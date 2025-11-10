@@ -40,20 +40,22 @@ const AddScheduleDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringDat
   } = useQuery({
     queryKey: ['treatment-monitoring-parameters'],
     queryFn: () => getMonitoringParameters(hospitalCaseId),
-    enabled: false
+    enabled: !!hospitalCaseId && open
   })
 
   useEffect(() => {
-    if (open) {
-      refetchMonitoringParams()
-    }
+    if (open) refetchMonitoringParams()
   }, [open, refetchMonitoringParams])
 
-  const monitoring = monitoringParams?.data?.assessments?.map(item => ({
-    id: item?.assessment_type_id,
-    label: item?.label,
-    defaultInterval: item?.default_interval
-  }))
+  const monitoring = useMemo(() => {
+    return (
+      monitoringParams?.data?.assessments?.map(item => ({
+        id: String(item?.assessment_type_id),
+        label: item?.label,
+        defaultInterval: item?.assessment_interval ? String(item.assessment_interval) : '1'
+      })) || []
+    )
+  }, [monitoringParams])
 
   const { data: treatmentIntervals, isLoading: intervalLoading } = useQuery({
     queryKey: ['hospital-treatment-interval'],
@@ -69,22 +71,6 @@ const AddScheduleDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringDat
       } || [])
   )
 
-  const defaultValues = useMemo(() => {
-    const now = dayjs()
-
-    const values = {
-      setAsDefault: false,
-      monitoring_start_date: now,
-      monitoring_start_time: now
-    }
-
-    monitoring?.forEach(item => {
-      values[item.id] = item?.defaultInterval ? String(item.defaultInterval) : '1'
-    })
-
-    return values
-  }, [monitoring])
-
   const {
     control,
     setValue,
@@ -93,46 +79,39 @@ const AddScheduleDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringDat
     reset,
     formState: { errors }
   } = useForm({
-    defaultValues
+    // defaultValues
   })
 
   useEffect(() => {
-    if (monitoring?.length) {
-      const now = dayjs()
+    if (!monitoring?.length) return
 
-      const values = {
-        setAsDefault: false,
-        monitoring_start_date: now,
-        monitoring_start_time: now
-      }
+    const now = dayjs()
 
-      monitoring.forEach(item => {
-        values[item.id] = item?.defaultInterval ? String(item.defaultInterval) : '1'
-      })
-
-      reset(values, { keepDirtyValues: true })
+    const values = {
+      setAsDefault: false,
+      monitoring_start_date: now,
+      monitoring_start_time: now
     }
-  }, [!!monitoring?.length])
 
-  const allValues = watch()
+    monitoring.forEach(param => {
+      values[param.id] = param.defaultInterval || '1'
+    })
+
+    reset(values)
+  }, [monitoring, reset])
 
   useEffect(() => {
     if (!monitoring?.length) return
-    const currentIntervals = monitoring.map(m => allValues[m.id])
-    const isUniform = currentIntervals.every(val => val === selectedInterval)
 
-    if (!isUniform && selectedInterval !== null) {
-      setSelectedInterval(null)
-    }
-  }, [allValues, monitoring])
+    const intervals = monitoring.map(m => m.defaultInterval)
+    const allSame = intervals.every(v => v === intervals[0])
+
+    setSelectedInterval(allSame ? intervals[0] : null)
+  }, [monitoring])
 
   const handleIntervalClick = id => {
     setSelectedInterval(id)
-
-    // Apply interval to all parameter fields
-    monitoring?.forEach(param => {
-      setValue(param.id, id)
-    })
+    monitoring?.forEach(param => setValue(param.id, id))
   }
 
   const handleDrawerClose = () => setOpen(false)

@@ -9,6 +9,7 @@ import { useRouter } from 'next/router'
 import { getTreatmentMonitoringData } from 'src/lib/api/hospital/treatmentMonitoring'
 import AddParameterDataEntry from 'src/views/pages/hospital/treatment-monitoring/AddParameterDataEntry'
 import { useQuery } from '@tanstack/react-query'
+import Utility from 'src/utility'
 
 // Utility functions
 const getLabelForHour = hour => {
@@ -17,6 +18,14 @@ const getLabelForHour = hour => {
   const ampm = normalizedHour < 12 ? 'AM' : 'PM'
 
   return `${h} ${ampm}`
+}
+
+const formatInterval = interval => {
+  if (!interval) return ''
+  if (interval.includes(':')) return interval
+  const [hour, ampm] = interval.split(' ')
+
+  return `${hour}:00 ${ampm}`
 }
 
 const useRealtimeTooltip = (scrollContainerRef, timeSlots) => {
@@ -138,6 +147,14 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots) => {
   }, [scrollContainerRef, timeSlots])
 }
 
+const getTimeSlotLabelFromRecord = recordTime => {
+  if (!recordTime) return ''
+  const [hourStr] = recordTime.split(':')
+  const hour = parseInt(hourStr, 10)
+
+  return getLabelForHour(hour)
+}
+
 const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   const theme = useTheme()
   const scrollContainerRef = useRef(null)
@@ -147,12 +164,10 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   const { id, medical_record_id, animal_id } = router.query
   const today = new Date().toISOString().split('T')[0]
 
-  const [hoveredSlot, setHoveredSlot] = useState(null)
   const [didInitialScroll, setDidInitialScroll] = useState(false)
   const [openScheduleDrawer, setOpenScheduleDrawer] = useState(false)
   const [addParameterDrawerOpen, setAddParameterDrawerOpen] = useState(false)
   const [openParamsEntryDrawer, setOpenParamsEntryDrawer] = useState(false)
-  const [parametersLoading, setParametersLoading] = useState(false)
   const [dates, setDates] = useState(null)
   const [selectedDate, setSelectedDate] = useState(today)
 
@@ -207,13 +222,30 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   })
 
   const monitoringData = useMemo(() => {
-    return (
-      monitoringDataListings?.data?.map(item => ({
+    if (!monitoringDataListings?.data) return []
+
+    return monitoringDataListings.data.map(item => {
+      const slots = createTimeSlotStructure(timeSlots)
+
+      item.assessment_details?.forEach(detail => {
+        console.log(detail?.record_time)
+        const slotLabel = getTimeSlotLabelFromRecord(detail?.record_time)
+        const slot = slots.find(s => s.time === slotLabel)
+        if (slot) {
+          slot.isActive = true
+          slot.record = {
+            value: detail.assessment_value,
+            unit: detail.unit_name
+          }
+        }
+      })
+
+      return {
         ...item,
-        timeSlots: createTimeSlotStructure(timeSlots),
+        timeSlots: slots,
         canEdit: true
-      })) || []
-    )
+      }
+    })
   }, [monitoringDataListings, createTimeSlotStructure, timeSlots])
 
   const defaultMetrics = useMemo(() => monitoringData, [monitoringData])
@@ -280,9 +312,18 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
             <TimeSlot
               key={slotKey}
               sx={{
-                backgroundColor: bgColor,
+                backgroundColor: timeSlot.record ? alpha(theme.palette.customColors.SecondaryContainer, 0.24) : bgColor,
+                border: timeSlot.record
+                  ? `1px solid${theme.palette.customColors.OutlineVariant}`
+                  : `1px dashed ${theme.palette.customColors.OutlineVariant}`,
                 opacity: isDisabled ? 0.5 : 1,
-                cursor: isDisabled ? 'not-allowed' : 'pointer'
+                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                alignItems: timeSlot.record ? 'flex-start' : 'center',
+                justifyContent: timeSlot.record ? 'flex-start' : 'center',
+                padding: timeSlot.record ? '12px' : 0,
+                '&:hover': {
+                  border: `2px solid${theme.palette.primary.main}`
+                }
               }}
               onClick={() => {
                 if (!isDisabled)
@@ -293,7 +334,22 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                   })
               }}
             >
-              {!isDisabled && showPlus && <Icon icon={'mdi-plus'} fontSize={20} />}
+              {timeSlot.record ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, justifyContent: 'flex-start !important' }}>
+                  <Typography
+                    sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.neutralPrimary }}
+                  >{`${timeSlot.record.value} ${timeSlot.record.unit}`}</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Typography
+                      sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      {formatInterval(timeSlot?.time)}
+                    </Typography>
+                  </Box>
+                </Box>
+              ) : (
+                !isDisabled && showPlus && <Icon icon={'mdi-plus'} fontSize={20} />
+              )}
             </TimeSlot>
           )
         })}
@@ -531,7 +587,6 @@ const TimeSlot = styled(Box)(({ theme }) => ({
   justifyContent: 'center',
   backgroundColor: 'white',
   borderRadius: '6px',
-  border: '1px dashed',
   borderColor: theme.palette.customColors.OutlineVariant,
   fontSize: '13px',
   fontWeight: 500,

@@ -9,6 +9,8 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useForm } from 'react-hook-form'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import { deleteAssessmentHistory, updateHospitalAssessmentHistory } from 'src/lib/api/hospital/treatmentMonitoring'
+import Toaster from 'src/components/Toaster'
 
 const defaultValues = {
   observation_time: dayjs(),
@@ -20,10 +22,10 @@ const defaultValues = {
 const schema = yup.object().shape({
   observation_value: yup.string().required('Observation Value is required'),
   observation_time: yup.string().required('Observation time is required'),
-  value_unit: yup.object().required('Unit is required')
+  value_unit: yup.string().required('Unit is required')
 })
 
-const EditParamsHistory = ({ open, setOpen }) => {
+const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
   const theme = useTheme()
 
   const {
@@ -39,13 +41,58 @@ const EditParamsHistory = ({ open, setOpen }) => {
   })
 
   const [updateLoading, setUpdateLoading] = useState(false)
-  const [units, setUnits] = useState([])
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
-  const onSubmit = data => {}
+  const onSubmit = async formData => {
+    setUpdateLoading(true)
+    try {
+      const payload = {
+        animal_assessment_id: data?.id,
+        assessment_type_id: data?.assessment_type_id,
+        assessment_value: formData?.observation_value,
+        assessment_unit_id: formData?.value_unit,
+        comments: formData?.note,
+        recorded_date_time: new Date()
+      }
 
-  const handleEntryDelete = () => {}
+      await updateHospitalAssessmentHistory(data?.animal_id, payload).then(res => {
+        if (res?.success === true) {
+          Toaster({ type: 'success', message: res?.message })
+          setUpdateLoading(false)
+          setOpen(false)
+          refetch()
+        } else {
+          Toaster({ type: 'error', message: res?.message })
+          setUpdateLoading(false)
+        }
+      })
+    } catch (error) {
+      console.error('Cannot Edit Assessment', error)
+      setUpdateLoading(false)
+    }
+  }
+
+  const handleEntryDelete = async () => {
+    setDeleteLoading(true)
+    try {
+      await deleteAssessmentHistory(data?.id).then(res => {
+        if (res?.status === true) {
+          setDeleteLoading(false)
+          Toaster({ type: 'success', message: res?.message })
+          setOpenDeleteDialog(false)
+          setOpen(false)
+          refetch()
+        } else {
+          setDeleteLoading(false)
+          Toaster({ type: 'error', message: res?.message })
+        }
+      })
+    } catch (error) {
+      console.error('Cannot Delete Assessment History')
+      setDeleteLoading(false)
+    }
+  }
 
   return (
     <>
@@ -130,34 +177,69 @@ const EditParamsHistory = ({ open, setOpen }) => {
                       Enter Observation
                     </Typography>
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 8 }}>
-                    <ControlledTextField
-                      control={control}
-                      name={'observation_value'}
-                      label={'Enter Value'}
-                      errors={errors}
-                      required
-                      inputBackgroundColor={theme.palette.customColors.Surface}
-                      sx={{
-                        borderRadius: 1
-                      }}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <ControlledSelect
-                      control={control}
-                      errors={errors}
-                      label={'Select Unit'}
-                      name={'value_unit'}
-                      getOptionLabel={option => option.label}
-                      getOptionValue={option => option.value}
-                      required
-                      sx={{
-                        backgroundColor: theme.palette.customColors.Surface,
-                        borderRadius: 1
-                      }}
-                    />
-                  </Grid>
+                  {resType === 'numeric_value' && (
+                    <>
+                      <Grid size={{ xs: 12, sm: 8 }}>
+                        <ControlledTextField
+                          control={control}
+                          name='observation_value'
+                          label='Enter Value'
+                          errors={errors}
+                          required
+                          inputBackgroundColor={theme.palette.customColors.Surface}
+                          sx={{ borderRadius: 1 }}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <ControlledSelect
+                          control={control}
+                          errors={errors}
+                          label='Select Unit'
+                          name='value_unit'
+                          options={data?.unitsData || []}
+                          getOptionLabel={option => option.label}
+                          getOptionValue={option => option.value}
+                          required
+                          sx={{
+                            backgroundColor: theme.palette.customColors.Surface,
+                            borderRadius: 1
+                          }}
+                        />
+                      </Grid>
+                    </>
+                  )}
+
+                  {(resType === 'numeric_scale' || resType === 'list') && (
+                    <Grid size={{ xs: 12 }}>
+                      <ControlledSelect
+                        control={control}
+                        errors={errors}
+                        label='Select Value'
+                        name='observation_value'
+                        options={data?.unitsData || []}
+                        getOptionLabel={option => option.label}
+                        getOptionValue={option => option.value}
+                        required
+                        sx={{
+                          backgroundColor: theme.palette.customColors.Surface,
+                          borderRadius: 1
+                        }}
+                      />
+                    </Grid>
+                  )}
+                  {resType === 'text' && (
+                    <Grid size={{ xs: 12 }}>
+                      <ControlledTextField
+                        control={control}
+                        name='observation_value'
+                        label='Enter Text'
+                        errors={errors}
+                        required
+                        inputBackgroundColor={theme.palette.customColors.Surface}
+                        sx={{ borderRadius: 1 }}
+                      />
+                    </Grid>
+                  )}
                   <Grid
                     size={{ xs: 12 }}
                     sx={{ backgroundColor: alpha(theme.palette.customColors.antzNotes, 0.6), p: 4, borderRadius: 1 }}
@@ -210,6 +292,7 @@ const EditParamsHistory = ({ open, setOpen }) => {
               Delete Entry
             </Button>
             <Button
+              onClick={handleSubmit(onSubmit)}
               variant='contained'
               fullWidth
               sx={{ height: '56px', backgroundColor: theme.palette.customColors.OnPrimaryContainer }}
