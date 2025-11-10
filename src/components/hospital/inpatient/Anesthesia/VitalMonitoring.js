@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import { v4 as uuidv4 } from 'uuid'
+import { alpha, useTheme } from '@mui/material/styles'
 
 import AddTimeForm from './vitalForms/AddTimeForm'
 import TemperatureForm from './vitalForms/TemperatureForm'
@@ -16,6 +17,7 @@ import MuscleRelaxForm from './vitalForms/MuscleRelaxForm'
 
 const HEADER_CELL_HEIGHT = '48px'
 const DATA_CELL_HEIGHT = '72px'
+const BASE_CELL_WIDTH = '164px'
 
 const ROWS = [
   { key: 'recordedTime', label: 'Recorded Time' },
@@ -30,121 +32,6 @@ const ROWS = [
   { key: 'muscleRelax', label: 'Muscle Relax', formComponent: MuscleRelaxForm }
 ]
 
-const FIRST_COLUMN_CELL_STYLES = {
-  width: '164px',
-  minWidth: '164px',
-  borderRadius: '4px',
-  padding: '8px 12px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  backgroundColor: '#EFF5F2',
-  border: '0.5px solid #DAE7DF'
-}
-
-const FIRST_COLUMN_TEXT_STYLES = {
-  fontFamily: 'Inter',
-  fontWeight: 500,
-  fontSize: '16px',
-  letterSpacing: 0,
-  color: '#000000'
-}
-
-const TIME_CELL_STYLES = {
-  width: '164px',
-  minWidth: '164px',
-  borderRadius: '4px',
-  padding: '8px 12px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  backgroundColor: '#EFF5F2',
-  border: '0.5px solid #DAE7DF'
-}
-
-const TIME_TEXT_STYLES = {
-  fontFamily: 'Inter',
-  fontWeight: 500,
-  fontSize: '16px',
-  letterSpacing: 0,
-  color: '#000000'
-}
-
-const DATA_CELL_STYLES = {
-  width: '164px',
-  minWidth: '164px',
-  height: DATA_CELL_HEIGHT,
-  borderRadius: '4px',
-  padding: '8px 12px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '4px',
-  justifyContent: 'center',
-  backgroundColor: '#AFEFEB3D',
-  border: '0.5px solid #DAE7DF',
-  cursor: 'pointer'
-}
-
-const DATA_CELL_ACTIVE_STYLES = {
-  border: '1px solid #37BD69',
-  backgroundColor: '#E6F8ED'
-}
-
-const DATA_PRIMARY_TEXT = {
-  fontFamily: 'Inter',
-  fontWeight: 500,
-  fontSize: '16px',
-  letterSpacing: 0,
-  color: '#000000'
-}
-
-const DATA_SECONDARY_TEXT = {
-  fontFamily: 'Inter',
-  fontWeight: 400,
-  fontSize: '14px',
-  letterSpacing: 0,
-  color: '#44544A'
-}
-
-const DASHED_BOX_STYLES = {
-  width: '164px',
-  minWidth: '164px',
-  height: DATA_CELL_HEIGHT,
-  borderRadius: '4px',
-  padding: '8px',
-  borderWidth: '0.5px',
-  borderStyle: 'dashed',
-  borderColor: '#C3CEC7',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  color: '#C3CEC7',
-  backgroundColor: 'transparent',
-  transition: 'all 0.2s ease',
-  cursor: 'pointer',
-  opacity: 0.9
-}
-
-const DASHED_BOX_ACTIVE_STYLES = {
-  borderWidth: '1px',
-  borderStyle: 'solid',
-  borderColor: '#37BD69',
-  backgroundColor: '#FCF4AEA3'
-}
-
-const ADD_TIME_BOX_STYLES = {
-  ...TIME_CELL_STYLES,
-  cursor: 'pointer',
-  color: '#44544A',
-  display: 'flex',
-  gap: '8px'
-}
-
-const ADD_ICON_STYLES = {
-  fontSize: '24px',
-  color: '#37BD69'
-}
-
 const STICKY_ADD_WRAPPER_STYLES = {
   position: 'absolute',
   top: 0,
@@ -154,26 +41,6 @@ const STICKY_ADD_WRAPPER_STYLES = {
   justifyContent: 'flex-end',
   pointerEvents: 'none',
   zIndex: 2
-}
-
-const STICKY_ADD_BUTTON_STYLES = {
-  width: '48px',
-  height: HEADER_CELL_HEIGHT,
-  minHeight: HEADER_CELL_HEIGHT,
-  borderRadius: '4px',
-  padding: '8px 12px',
-  backgroundColor: '#37BD69',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '10px',
-  cursor: 'pointer',
-  pointerEvents: 'auto'
-}
-
-const STICKY_ADD_ICON_STYLES = {
-  fontSize: '20px',
-  color: '#FFFFFF'
 }
 
 const FORM_COMPONENTS = {
@@ -186,6 +53,151 @@ const FORM_COMPONENTS = {
   painReflex: PainReflexForm,
   analReflex: AnalReflexForm,
   muscleRelax: MuscleRelaxForm
+}
+
+const createStyles = theme => {
+  const bodyBg = theme.palette.customColors?.bodyBg || theme.palette.background.default
+  const surfaceVariant = theme.palette.customColors?.SurfaceVariant || theme.palette.divider
+  const outlineVariant = theme.palette.customColors?.OutlineVariant || theme.palette.divider
+  const neutralPrimary = theme.palette.customColors?.neutralPrimary || theme.palette.text.primary
+  const onSurfaceVariant = theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.secondary
+  const infoBackground = alpha(theme.palette.customColors?.SecondaryContainer || theme.palette.primary.light, 0.24)
+  const activeBackground = theme.palette.customColors?.OnBackground || alpha(theme.palette.primary.light, 0.2)
+  const dashedActiveBackground = alpha(theme.palette.customColors?.Notes || theme.palette.warning.light, 0.64)
+
+  return {
+    firstColumnCell: {
+      width: BASE_CELL_WIDTH,
+      minWidth: BASE_CELL_WIDTH,
+      borderRadius: '4px',
+      padding: '8px 12px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      backgroundColor: bodyBg,
+      border: `0.5px solid ${surfaceVariant}`
+    },
+    firstColumnText: {
+      fontFamily: 'Inter',
+      fontWeight: 500,
+      fontSize: '16px',
+      letterSpacing: 0,
+      color: neutralPrimary
+    },
+    timeCell: {
+      width: BASE_CELL_WIDTH,
+      minWidth: BASE_CELL_WIDTH,
+      borderRadius: '4px',
+      padding: '8px 12px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: bodyBg,
+      border: `0.5px solid ${surfaceVariant}`
+    },
+    timeText: {
+      fontFamily: 'Inter',
+      fontWeight: 500,
+      fontSize: '16px',
+      letterSpacing: 0,
+      color: neutralPrimary
+    },
+    dataCell: {
+      width: BASE_CELL_WIDTH,
+      minWidth: BASE_CELL_WIDTH,
+      height: DATA_CELL_HEIGHT,
+      borderRadius: '4px',
+      padding: '8px 12px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '4px',
+      justifyContent: 'center',
+      backgroundColor: infoBackground,
+      border: `0.5px solid ${surfaceVariant}`,
+      cursor: 'pointer'
+    },
+    dataCellActive: {
+      border: `1px solid ${theme.palette.primary.main}`,
+      backgroundColor: activeBackground
+    },
+    dataPrimaryText: {
+      fontFamily: 'Inter',
+      fontWeight: 500,
+      fontSize: '16px',
+      letterSpacing: 0,
+      color: neutralPrimary
+    },
+    dataSecondaryText: {
+      fontFamily: 'Inter',
+      fontWeight: 400,
+      fontSize: '14px',
+      letterSpacing: 0,
+      color: onSurfaceVariant
+    },
+    dashedCell: {
+      width: BASE_CELL_WIDTH,
+      minWidth: BASE_CELL_WIDTH,
+      height: DATA_CELL_HEIGHT,
+      borderRadius: '4px',
+      padding: '8px',
+      borderWidth: '0.5px',
+      borderStyle: 'dashed',
+      borderColor: outlineVariant,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: outlineVariant,
+      backgroundColor: 'transparent',
+      transition: 'all 0.2s ease',
+      cursor: 'pointer',
+      opacity: 0.9
+    },
+    dashedCellActive: {
+      borderWidth: '1px',
+      borderStyle: 'solid',
+      borderColor: theme.palette.primary.main,
+      backgroundColor: dashedActiveBackground
+    },
+    dashedIcon: {
+      color: outlineVariant
+    },
+    addTimeBox: {
+      width: BASE_CELL_WIDTH,
+      minWidth: BASE_CELL_WIDTH,
+      borderRadius: '4px',
+      padding: '8px 12px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '8px',
+      backgroundColor: bodyBg,
+      border: `0.5px solid ${surfaceVariant}`,
+      cursor: 'pointer',
+      color: onSurfaceVariant
+    },
+    addIcon: {
+      fontSize: '24px',
+      color: theme.palette.primary.main
+    },
+    stickyButton: {
+      width: '48px',
+      height: HEADER_CELL_HEIGHT,
+      minHeight: HEADER_CELL_HEIGHT,
+      borderRadius: '4px',
+      padding: '8px 12px',
+      backgroundColor: theme.palette.primary.main,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '10px',
+      cursor: 'pointer',
+      pointerEvents: 'auto'
+    },
+    stickyIcon: {
+      fontSize: '20px',
+      color: theme.palette.primary.contrastText
+    }
+  }
 }
 
 function getCellDisplay(rowKey, entry, timeLabel) {
@@ -225,6 +237,8 @@ function getCellDisplay(rowKey, entry, timeLabel) {
 }
 
 export default function VitalMonitoring() {
+  const theme = useTheme()
+  const styles = useMemo(() => createStyles(theme), [theme])
   const [columns, setColumns] = useState([])
   const [isTimeFormOpen, setIsTimeFormOpen] = useState(false)
   const [formState, setFormState] = useState(null)
@@ -346,11 +360,11 @@ export default function VitalMonitoring() {
             <Box
               key={row.key}
               sx={{
-                ...FIRST_COLUMN_CELL_STYLES,
+                ...styles.firstColumnCell,
                 height: row.key === 'recordedTime' ? HEADER_CELL_HEIGHT : DATA_CELL_HEIGHT
               }}
             >
-              <Typography sx={FIRST_COLUMN_TEXT_STYLES}>{row.label}</Typography>
+              <Typography sx={styles.firstColumnText}>{row.label}</Typography>
             </Box>
           ))}
         </Box>
@@ -365,11 +379,11 @@ export default function VitalMonitoring() {
                       <Box
                         key={row.key}
                         sx={{
-                          ...TIME_CELL_STYLES,
+                          ...styles.timeCell,
                           height: HEADER_CELL_HEIGHT
                         }}
                       >
-                        <Typography sx={TIME_TEXT_STYLES}>{column.timeLabel}</Typography>
+                        <Typography sx={styles.timeText}>{column.timeLabel}</Typography>
                       </Box>
                     )
                   }
@@ -383,13 +397,13 @@ export default function VitalMonitoring() {
                       <Box
                         key={row.key}
                         sx={{
-                          ...DATA_CELL_STYLES,
-                          ...(isActive ? DATA_CELL_ACTIVE_STYLES : {})
+                          ...styles.dataCell,
+                          ...(isActive ? styles.dataCellActive : {})
                         }}
                         onClick={() => handleOpenCellForm(column.id, row.key)}
                       >
-                        <Typography sx={DATA_PRIMARY_TEXT}>{display.primary}</Typography>
-                        <Typography sx={DATA_SECONDARY_TEXT}>{display.secondary}</Typography>
+                        <Typography sx={styles.dataPrimaryText}>{display.primary}</Typography>
+                        <Typography sx={styles.dataSecondaryText}>{display.secondary}</Typography>
                       </Box>
                     )
                   }
@@ -398,12 +412,12 @@ export default function VitalMonitoring() {
                     <Box
                       key={row.key}
                       sx={{
-                        ...DASHED_BOX_STYLES,
-                        ...(isActive ? DASHED_BOX_ACTIVE_STYLES : {})
+                        ...styles.dashedCell,
+                        ...(isActive ? styles.dashedCellActive : {})
                       }}
                       onClick={() => handleOpenCellForm(column.id, row.key)}
                     >
-                      <AddRoundedIcon sx={{ color: '#C3CEC7' }} />
+                      <AddRoundedIcon sx={styles.dashedIcon} />
                     </Box>
                   )
                 })}
@@ -417,19 +431,19 @@ export default function VitalMonitoring() {
                     <Box
                       key={row.key}
                       sx={{
-                        ...ADD_TIME_BOX_STYLES,
+                        ...styles.addTimeBox,
                         height: HEADER_CELL_HEIGHT
                       }}
                       onClick={() => {
                         setIsTimeFormOpen(true)
                       }}
                     >
-                      <AddRoundedIcon sx={ADD_ICON_STYLES} />
+                      <AddRoundedIcon sx={styles.addIcon} />
                     </Box>
                   )
                 }
 
-                return <Box key={row.key} sx={{ width: '164px', height: '72px' }} />
+                return <Box key={row.key} sx={{ width: BASE_CELL_WIDTH, height: DATA_CELL_HEIGHT }} />
               })}
             </Box>
           </Box>
@@ -438,11 +452,11 @@ export default function VitalMonitoring() {
         {hasOverflow && !isScrolledToEnd ? (
           <Box sx={STICKY_ADD_WRAPPER_STYLES}>
             <Box
-              sx={STICKY_ADD_BUTTON_STYLES}
+              sx={styles.stickyButton}
               onClick={() => setIsTimeFormOpen(true)}
               onMouseDown={event => event.preventDefault()}
             >
-              <AddRoundedIcon sx={STICKY_ADD_ICON_STYLES} />
+              <AddRoundedIcon sx={styles.stickyIcon} />
             </Box>
           </Box>
         ) : null}

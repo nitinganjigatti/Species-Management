@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import { Box, TextField, Typography } from '@mui/material'
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
+import { useTheme } from '@mui/material/styles'
 
 import VitalFormDialog from './VitalFormDialog'
 import {
@@ -23,23 +24,11 @@ import {
 
 const unitValue = 'bpm'
 
-const headerRenderer = (title, timeLabel) => {
-  const displayTime = timeLabel || '--'
-
-  return (
-    <Box sx={measurementHeaderContainerSx}>
-      <Typography sx={measurementHeaderTitleSx}>{title}</Typography>
-      <Box sx={measurementHeaderTimeContainerSx}>
-        <AccessTimeRoundedIcon sx={measurementHeaderTimeIconSx} />
-        <Typography sx={measurementHeaderTitleSx}>{displayTime}</Typography>
-      </Box>
-    </Box>
-  )
-}
-
 export default function HeartRateForm({ open, onClose, onSubmit, timeLabel, initialData }) {
+  const theme = useTheme()
   const [value, setValue] = useState(initialData?.value || '')
   const [unit] = useState(unitValue)
+  const firstFieldRef = useRef(null)
 
   useEffect(() => {
     if (open) {
@@ -56,6 +45,32 @@ export default function HeartRateForm({ open, onClose, onSubmit, timeLabel, init
   }
 
   const disableSubmit = useMemo(() => !value.trim(), [value])
+  const handleFormSubmit = event => {
+    event.preventDefault()
+    handleSubmit()
+  }
+
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => {
+        firstFieldRef.current?.focus()
+      }, 0)
+    }
+  }, [open])
+
+  const renderHeader = () => {
+    const displayTime = timeLabel || '--'
+
+    return (
+      <Box sx={measurementHeaderContainerSx(theme)}>
+        <Typography sx={measurementHeaderTitleSx(theme)}>Heart Rate (HR)</Typography>
+        <Box sx={measurementHeaderTimeContainerSx}>
+          <AccessTimeRoundedIcon sx={measurementHeaderTimeIconSx(theme)} />
+          <Typography sx={measurementHeaderTitleSx(theme)}>{displayTime}</Typography>
+        </Box>
+      </Box>
+    )
+  }
 
   return (
     <VitalFormDialog
@@ -63,18 +78,18 @@ export default function HeartRateForm({ open, onClose, onSubmit, timeLabel, init
       onClose={onClose}
       onSubmit={handleSubmit}
       title='Heart Rate (HR)'
-      renderHeader={() => headerRenderer('Heart Rate (HR)', timeLabel)}
+      renderHeader={renderHeader}
       contentSx={measurementContentSx}
       actionsSx={measurementActionsSx}
-      cancelButtonSx={measurementCancelButtonSx}
-      submitButtonSx={measurementSubmitButtonSx}
-      paperSx={measurementDialogPaperSx}
+      cancelButtonSx={measurementCancelButtonSx(theme)}
+      submitButtonSx={measurementSubmitButtonSx(theme)}
+      paperSx={measurementDialogPaperSx(theme)}
       disableSubmit={disableSubmit}
       submitLabel='Add Entry'
     >
-      <Box sx={measurementFieldsContainerSx}>
+      <Box component='form' onSubmit={handleFormSubmit} sx={measurementFieldsContainerSx}>
         <Box sx={measurementPrimaryFieldColumnSx}>
-          <Typography sx={measurementFieldLabelSx}>Enter Value</Typography>
+          <Typography sx={measurementFieldLabelSx(theme)}>Enter Value</Typography>
           <TextField
             fullWidth
             placeholder='Enter Value'
@@ -82,17 +97,26 @@ export default function HeartRateForm({ open, onClose, onSubmit, timeLabel, init
             onChange={event => setValue(event.target.value)}
             type='number'
             inputProps={{ min: 0, inputMode: 'numeric' }}
-            sx={createMeasurementFieldSx('#F2FFF8')}
+            sx={createMeasurementFieldSx(
+              theme,
+              theme.palette.customColors?.Surface,
+              theme.palette.customColors?.customHeadingTextColor
+            )}
+            inputRef={firstFieldRef}
           />
         </Box>
 
         <Box sx={measurementSecondaryFieldColumnSx}>
-          <Typography sx={measurementFieldLabelSx}>UOM</Typography>
+          <Typography sx={measurementFieldLabelSx(theme)}>UOM</Typography>
           <TextField
             fullWidth
             value={unit}
             InputProps={{ readOnly: true }}
-            sx={createMeasurementFieldSx('rgba(0, 0, 0, 0.05)', '#7A8684')}
+            sx={createMeasurementFieldSx(
+              theme,
+              theme.palette.customColors?.neutral05,
+              theme.palette.customColors?.neutralSecondary
+            )}
           />
         </Box>
       </Box>

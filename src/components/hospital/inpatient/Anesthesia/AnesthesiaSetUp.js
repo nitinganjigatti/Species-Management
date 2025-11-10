@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
+
 import {
   Box,
   Button,
@@ -15,6 +16,7 @@ import {
 } from '@mui/material'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import { useFormContext } from 'react-hook-form'
+import { alpha, useTheme } from '@mui/material/styles'
 
 const monitoringOptions = [
   'Pulse ox',
@@ -34,50 +36,56 @@ const monitoringOptions = [
 const ventilationOptions = ['No', 'Vetronics', 'Manual']
 const catheterOptions = ['IV', 'IO']
 
-const textFieldStyles = {
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '4px',
-    backgroundColor: '#FFFFFF',
-    '& fieldset': {
-      borderColor: '#D5E8E0'
+const getTextFieldStyles = theme => {
+  const outline = theme.palette.customColors?.SurfaceVariant || theme.palette.divider
+  const mutedText = theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+  const onSurface = theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+
+  return {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '4px',
+      backgroundColor: theme.palette.primary.contrastText,
+      '& fieldset': {
+        borderColor: outline
+      },
+      '&:hover fieldset': {
+        borderColor: theme.palette.primary.main
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: theme.palette.primary.main
+      }
     },
-    '&:hover fieldset': {
-      borderColor: '#37BD69'
+    '& .MuiInputLabel-root': {
+      fontFamily: 'Inter',
+      fontWeight: 400,
+      fontSize: '14px',
+      letterSpacing: 0,
+      color: mutedText,
+      transform: 'translate(12px, 10px)',
+      opacity: 0,
+      transition: 'opacity 0.2s ease, transform 0.2s ease',
+      '&.MuiInputLabel-shrink': {
+        transform: 'translate(12px, -10px) scale(1)',
+        backgroundColor: 'transparent',
+        padding: 0,
+        opacity: 1
+      }
     },
-    '&.Mui-focused fieldset': {
-      borderColor: '#37BD69'
-    }
-  },
-  '& .MuiInputLabel-root': {
-    fontFamily: 'Inter',
-    fontWeight: 400,
-    fontSize: '14px',
-    letterSpacing: 0,
-    color: '#839D8D',
-    transform: 'translate(12px, 10px)',
-    opacity: 0,
-    transition: 'opacity 0.2s ease, transform 0.2s ease',
-    '&.MuiInputLabel-shrink': {
-      transform: 'translate(12px, -10px) scale(1)',
-      backgroundColor: 'transparent',
-      padding: 0,
+    '& .MuiFormLabel-root.MuiInputLabel-shrink': {
+      opacity: 1
+    },
+    '& .MuiInputBase-input': {
+      fontFamily: 'Inter',
+      fontWeight: 500,
+      fontSize: '16px',
+      lineHeight: 1,
+      letterSpacing: 0,
+      color: onSurface
+    },
+    '& .MuiInputBase-input::placeholder': {
+      color: onSurface,
       opacity: 1
     }
-  },
-  '& .MuiFormLabel-root.MuiInputLabel-shrink': {
-    opacity: 1
-  },
-  '& .MuiInputBase-input': {
-    fontFamily: 'Inter',
-    fontWeight: 500,
-    fontSize: '16px',
-    lineHeight: 1,
-    letterSpacing: 0,
-    color: '#44544A'
-  },
-  '& .MuiInputBase-input::placeholder': {
-    color: '#44544A',
-    opacity: 1
   }
 }
 
@@ -90,32 +98,37 @@ const radioTileGroupStyles = {
   }
 }
 
-const radioTileButtonStyles = {
-  width: '257.3333435058594px',
-  height: '56px',
-  padding: '0 12px',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  borderRadius: '4px !important',
-  border: '1px solid #C3CEC7 !important',
-  backgroundColor: '#FFFFFF !important',
-  textTransform: 'none',
-  color: '#44544A',
-  fontFamily: 'Inter',
-  fontWeight: 500,
-  fontSize: '16px',
-  lineHeight: 1,
-  letterSpacing: 0,
-  '&:hover': {
-    backgroundColor: '#FFFFFF'
-  },
-  '&.Mui-selected': {
-    borderColor: '#37BD69 !important',
-    color: '#006D35',
-    backgroundColor: '#FFFFFF !important'
-  },
-  '&.Mui-selected:hover': {
-    backgroundColor: '#FFFFFF'
+const getRadioTileButtonStyles = theme => {
+  const outline = theme.palette.customColors?.OutlineVariant || theme.palette.divider
+  const onSurface = theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+
+  return {
+    width: '257.3333435058594px',
+    height: '56px',
+    padding: '0 12px',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderRadius: '4px !important',
+    border: `1px solid ${outline} !important`,
+    backgroundColor: `${theme.palette.primary.contrastText} !important`,
+    textTransform: 'none',
+    color: onSurface,
+    fontFamily: 'Inter',
+    fontWeight: 500,
+    fontSize: '16px',
+    lineHeight: 1,
+    letterSpacing: 0,
+    '&:hover': {
+      backgroundColor: theme.palette.primary.contrastText
+    },
+    '&.Mui-selected': {
+      borderColor: `${theme.palette.primary.main} !important`,
+      color: theme.palette.primary.dark || theme.palette.primary.main,
+      backgroundColor: `${theme.palette.primary.contrastText} !important`
+    },
+    '&.Mui-selected:hover': {
+      backgroundColor: theme.palette.primary.contrastText
+    }
   }
 }
 
@@ -137,61 +150,66 @@ const monitoringToggleGroupStyles = {
   }
 }
 
-const monitoringToggleButtonStyles = {
-  width: '189px',
-  height: '56px',
-  padding: '0 12px',
-  borderRadius: '4px !important',
-  border: '1.5px solid #C3CEC7 !important',
-  backgroundColor: '#FFFFFF',
-  textTransform: 'none',
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  color: '#44544A',
-  fontFamily: 'Inter',
-  fontWeight: 500,
-  fontSize: '16px',
-  lineHeight: 1,
-  letterSpacing: 0,
-  '&:hover': {
-    backgroundColor: '#FFFFFF'
-  },
-  '&.Mui-selected': {
-    borderColor: '#37BD69 !important',
-    backgroundColor: '#FFFFFF !important'
-  },
-  '&.Mui-selected:hover': {
-    backgroundColor: '#FFFFFF'
-  },
-  '& .MuiCheckbox-root': {
-    padding: 0,
-    color: '#C3CEC7'
-  },
-  '& .MuiCheckbox-root.Mui-checked': {
-    color: '#37BD69'
+const getMonitoringToggleButtonStyles = theme => {
+  const outline = theme.palette.customColors?.OutlineVariant || theme.palette.divider
+  const onSurface = theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+
+  return {
+    width: '189px',
+    height: '56px',
+    padding: '0 12px',
+    borderRadius: '4px !important',
+    border: `1.5px solid ${outline} !important`,
+    backgroundColor: theme.palette.primary.contrastText,
+    textTransform: 'none',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    color: onSurface,
+    fontFamily: 'Inter',
+    fontWeight: 500,
+    fontSize: '16px',
+    lineHeight: 1,
+    letterSpacing: 0,
+    '&:hover': {
+      backgroundColor: theme.palette.primary.contrastText
+    },
+    '&.Mui-selected': {
+      borderColor: `${theme.palette.primary.main} !important`,
+      backgroundColor: theme.palette.primary.contrastText
+    },
+    '&.Mui-selected:hover': {
+      backgroundColor: theme.palette.primary.contrastText
+    },
+    '& .MuiCheckbox-root': {
+      padding: 0,
+      color: outline
+    },
+    '& .MuiCheckbox-root.Mui-checked': {
+      color: theme.palette.primary.main
+    }
   }
 }
 
-const sectionTitleStyles = {
+const getSectionTitleStyles = theme => ({
   fontFamily: 'Inter',
   fontWeight: 500,
   fontSize: '20px',
   lineHeight: 1,
   letterSpacing: 0,
-  color: '#44544A'
-}
+  color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+})
 
-const firstColumnTextStyles = {
+const getFirstColumnTextStyles = theme => ({
   fontFamily: 'Inter',
   fontWeight: 500,
   fontSize: '16px',
   lineHeight: 1,
   letterSpacing: 0,
-  color: '#44544A'
-}
+  color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+})
 
-const chipStyles = {
+const getChipStyles = theme => ({
   width: '174px',
   minWidth: '174px',
   height: '48px',
@@ -200,13 +218,13 @@ const chipStyles = {
   alignItems: 'center',
   justifyContent: 'space-between',
   borderRadius: '8px',
-  border: '1px solid #37BD69',
-  backgroundColor: '#52F99033',
+  border: `1px solid ${theme.palette.primary.main}`,
+  backgroundColor: alpha(theme.palette.customColors?.PrimaryContainer || theme.palette.primary.light, 0.2),
   fontFamily: 'Inter',
   fontWeight: 500,
   fontSize: '16px',
   letterSpacing: 0,
-  color: '#006D35',
+  color: theme.palette.primary.dark || theme.palette.primary.main,
   '& .MuiChip-label': {
     paddingInline: 0,
     overflow: 'hidden',
@@ -217,13 +235,31 @@ const chipStyles = {
     width: '16px',
     height: '16px',
     fontSize: '16px',
-    color: '#839D8D',
+    color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary,
     marginLeft: '8px'
   }
-}
+})
 
 const AnesthesiaSetUpSection = () => {
   const { watch, setValue } = useFormContext()
+
+  const theme = useTheme()
+  const textFieldStyles = useMemo(() => getTextFieldStyles(theme), [theme])
+  const radioTileButtonStyles = useMemo(() => getRadioTileButtonStyles(theme), [theme])
+  const monitoringToggleButtonStyles = useMemo(() => getMonitoringToggleButtonStyles(theme), [theme])
+  const sectionTitleStyles = useMemo(() => getSectionTitleStyles(theme), [theme])
+  const firstColumnTextStyles = useMemo(() => getFirstColumnTextStyles(theme), [theme])
+  const chipStyles = useMemo(() => getChipStyles(theme), [theme])
+  const outlineColor = theme.palette.customColors?.OutlineVariant || theme.palette.divider
+  const borderMutedColor = theme.palette.customColors?.customTableBorderBg || outlineColor
+  const selectedBackground = theme.palette.customColors?.displaybgPrimary || alpha(theme.palette.primary.main, 0.12)
+  const unselectedBackground = theme.palette.customColors?.bodyBg || theme.palette.background.default
+  const displayBgSecondary = theme.palette.customColors?.displaybgSecondary || alpha(theme.palette.primary.main, 0.06)
+  const onSurface = theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+  const neutralSecondary = theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+  const contrastText = theme.palette.primary.contrastText
+  const primaryMain = theme.palette.primary.main
+  const primaryDark = theme.palette.primary.dark || theme.palette.primary.main
 
   const [newMonitoringItem, setNewMonitoringItem] = useState('')
 
@@ -348,7 +384,13 @@ const AnesthesiaSetUpSection = () => {
                     checked={isSelected}
                     disableRipple
                     inputProps={{ readOnly: true }}
-                    sx={{ pointerEvents: 'none', color: '#C3CEC7', '&.Mui-checked': { color: '#37BD69' } }}
+                    sx={{
+                      pointerEvents: 'none',
+                      color: outlineColor,
+                      '&.Mui-checked': {
+                        color: primaryMain
+                      }
+                    }}
                   />
                 </ToggleButton>
               )
@@ -447,7 +489,13 @@ const AnesthesiaSetUpSection = () => {
                     checked={isSelected}
                     disableRipple
                     inputProps={{ readOnly: true }}
-                    sx={{ pointerEvents: 'none', color: '#C3CEC7', '&.Mui-checked': { color: '#37BD69' } }}
+                    sx={{
+                      pointerEvents: 'none',
+                      color: outlineColor,
+                      '&.Mui-checked': {
+                        color: primaryMain
+                      }
+                    }}
                   />
                 </ToggleButton>
               )
@@ -505,8 +553,8 @@ const AnesthesiaSetUpSection = () => {
                 gap: '10px',
                 borderRadius: '8px',
                 padding: '16px',
-                border: '0.5px solid #C3CEC7',
-                backgroundColor: '#DDEBE9',
+                border: `0.5px solid ${outlineColor}`,
+                backgroundColor: displayBgSecondary,
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between'
@@ -519,7 +567,7 @@ const AnesthesiaSetUpSection = () => {
                   fontSize: '14px',
                   lineHeight: 1,
                   letterSpacing: 0,
-                  color: '#44544A'
+                  color: onSurface
                 }}
               >
                 Add New Other Item
@@ -532,22 +580,20 @@ const AnesthesiaSetUpSection = () => {
                   onChange={e => setNewMonitoringItem(e.target.value)}
                   onKeyDown={handleNewItemKeyDown}
                   sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '4px',
-                      backgroundColor: '#FFFFFF',
-                      '& fieldset': { borderColor: '#D5E8E0' },
-                      '&:hover fieldset': { borderColor: '#37BD69' },
-                      '&.Mui-focused fieldset': { borderColor: '#37BD69' }
-                    },
+                    ...textFieldStyles,
                     '& .MuiInputBase-input': {
                       fontFamily: 'Inter',
                       fontWeight: 400,
                       fontSize: '16px',
                       lineHeight: 1,
                       letterSpacing: 0,
-                      color: '#44544A'
+                      color: onSurface
                     },
-                    '& .MuiInputBase-input::placeholder': { color: '#44544A', opacity: 1, fontWeight: 400 }
+                    '& .MuiInputBase-input::placeholder': {
+                      color: onSurface,
+                      opacity: 1,
+                      fontWeight: 400
+                    }
                   }}
                 />
                 <Button
@@ -565,9 +611,11 @@ const AnesthesiaSetUpSection = () => {
                     lineHeight: 1,
                     letterSpacing: 0,
                     textTransform: 'none',
-                    backgroundColor: newMonitoringItem.trim() ? '#006D35' : '#C3CEC7',
-                    color: '#FFFFFF',
-                    '&:hover': { backgroundColor: newMonitoringItem.trim() ? '#00592A' : '#C3CEC7' }
+                    backgroundColor: newMonitoringItem.trim() ? primaryDark : outlineColor,
+                    color: contrastText,
+                    '&:hover': {
+                      backgroundColor: newMonitoringItem.trim() ? primaryMain : outlineColor
+                    }
                   }}
                 >
                   ADD
@@ -640,8 +688,16 @@ const AnesthesiaSetUpSection = () => {
                 <Checkbox
                   checked={!!checked}
                   onChange={handleCheckboxToggle(key)}
-                  onClick={e => e.stopPropagation()}
-                  sx={{ p: 0, width: '24px', height: '24px', color: '#37BD69', '&.Mui-checked': { color: '#37BD69' } }}
+                  onClick={event => event.stopPropagation()}
+                  sx={{
+                    p: 0,
+                    width: '24px',
+                    height: '24px',
+                    color: primaryMain,
+                    '&.Mui-checked': {
+                      color: primaryMain
+                    }
+                  }}
                 />
                 <Typography
                   sx={{

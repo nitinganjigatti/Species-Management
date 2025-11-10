@@ -860,3 +860,13 @@ export const GET_PARAMS_OF_TEMPLATE = `v1/assessment/templates/types`
 export const SAVE_HOSPITAL_TEMPLATE = `/v1/hospital/create-monitoring-parameters-template`
 
 export const APPLY_PARAMS_TO_CASE_ID = `v1/hospital/add-monitoring-parameters`
+
+export const GET_TREATMENT_MONITORING_DATA = `v1/hospital/list-treatment-monitoring`
+
+export const GET_MONITORING_PARAMETERS = `v1/hospital/list-monitoring-parameters`
+
+export const GET_MONITORING_HISTORY = `v1/hospital/get-assessment-history`
+
+export const ADD_ASSESSMENT_VALUE_TO_PARAMS = `v1/assessment/animal/add`
+
+export const GET_HOSPITAL_PARAMETERS_UNIT = `v1/hospital/get-assessment-details`

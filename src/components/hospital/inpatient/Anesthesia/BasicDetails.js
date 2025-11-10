@@ -85,7 +85,8 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
             )}
           />
         </Grid>
-
+        {console.log('vetOptions:', vetOptions)}
+        {console.log('anesthetistOptions:', anesthetistOptions)}
         <Grid size={{ xs: 12, md: 4 }}>
           <Controller
             name='basicDetails.dateTime'
@@ -191,15 +192,6 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
                       {...params}
                       label='Veterinarian'
                       fullWidth
-                      slotProps={{
-                        input: {
-                          ...params.slotProps?.input,
-                          inputProps: {
-                            ...params.inputProps,
-                            'data-field': 'veterinarian'
-                          }
-                        }
-                      }}
                       error={!!errors?.basicDetails?.veterinarian}
                       helperText={errors?.basicDetails?.veterinarian?.message}
                     />
@@ -226,15 +218,6 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
                       {...params}
                       label='Anesthetist'
                       fullWidth
-                      slotProps={{
-                        input: {
-                          ...params.slotProps?.input,
-                          inputProps: {
-                            ...params.inputProps,
-                            'data-field': 'anesthetist'
-                          }
-                        }
-                      }}
                       error={!!errors?.basicDetails?.anesthetist}
                       helperText={errors?.basicDetails?.anesthetist?.message}
                     />

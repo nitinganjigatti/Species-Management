@@ -17,11 +17,14 @@ import { useForm, FormProvider } from 'react-hook-form'
 
 import BasicDetails from 'src/components/hospital/inpatient/Anesthesia/BasicDetails'
 import AttachmentsSection from 'src/components/hospital/inpatient/Anesthesia/AttachmentsSection'
+import AnesthesiaSetUpSection from 'src/components/hospital/inpatient/Anesthesia/AnesthesiaSetUp'
+import VitalMonitoring from 'src/components/hospital/inpatient/Anesthesia/VitalMonitoring'
 import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
 import ActionButtons from 'src/components/hospital/FooterActionbuttons'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
-import AnesthesiaSetUpSection from 'src/components/hospital/inpatient/Anesthesia/AnesthesiaSetUp'
+import MedicationsGasSection from 'src/components/hospital/inpatient/Anesthesia/MedicationsGasSection'
+import PreAnesthesia from 'src/components/hospital/inpatient/Anesthesia/PreAnesthesia'
 
 export const anesthesiaSchema = yup.object({
   basicDetails: yup.object({
@@ -43,6 +46,15 @@ export const anesthesiaSchema = yup.object({
   })
 })
 
+const sections = [
+  { id: 'basicDetails', label: 'Basic Detail', component: BasicDetails },
+  { id: 'medicationsGas', label: 'Medications & Gas', component: MedicationsGasSection },
+  { id: 'attachments', label: 'Attachments', component: AttachmentsSection },
+  { id: 'anesthesiaSetUp', label: 'Anesthesia Set Up', component: AnesthesiaSetUpSection },
+  { id: 'preAnesthesia', label: 'Pre Anesthesia', component: PreAnesthesia },
+  { id: 'vitalMonitoring', label: 'Vital Monitoring', component: VitalMonitoring }
+]
+
 export default function AddAnesthesiaRecord() {
   const router = useRouter()
   const [expanded, setExpanded] = React.useState('basicDetails')
@@ -61,12 +73,6 @@ export default function AddAnesthesiaRecord() {
     { id: 1, name: 'Dr. John D Sam' },
     { id: 2, name: 'Dr. Jane M Doe' },
     { id: 3, name: 'Dr. Vineet R' }
-  ]
-
-  const sections = [
-    { id: 'basicDetails', label: 'Basic Detail', component: BasicDetails },
-    { id: 'anesthesiaSetup', label: 'Anesthesia Set-up', component: AnesthesiaSetUpSection },
-    { id: 'attachments', label: 'Attachments', component: AttachmentsSection }
   ]
 
   const methods = useForm({

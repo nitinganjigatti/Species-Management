@@ -12,85 +12,7 @@ import {
 } from '@mui/material'
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
-
-const defaultHeaderSx = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: '16px',
-  padding: '16px 24px',
-  backgroundColor: '#EFF5F2'
-}
-
-const defaultTitleSx = {
-  fontFamily: 'Inter',
-  fontWeight: 600,
-  fontSize: '18px',
-  letterSpacing: 0,
-  color: '#133020'
-}
-
-const defaultCloseButtonSx = {
-  border: '1px solid #DAE7DF',
-  color: '#839D8D',
-  width: 36,
-  height: 36
-}
-
-const timeChipStyles = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '6px 12px',
-  borderRadius: '24px',
-  backgroundColor: '#FFFFFF',
-  border: '1px solid #C3CEC7',
-  color: '#44544A',
-  fontFamily: 'Inter',
-  fontWeight: 500,
-  fontSize: '14px',
-  letterSpacing: 0
-}
-
-const defaultContentSx = {
-  padding: '24px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '16px'
-}
-
-const defaultActionsSx = {
-  display: 'flex',
-  justifyContent: 'flex-end',
-  gap: '12px',
-  padding: '16px 24px 24px'
-}
-
-const defaultCancelButtonSx = {
-  minWidth: '128px',
-  height: '48px',
-  borderRadius: '8px',
-  borderColor: '#C3CEC7',
-  color: '#44544A',
-  fontFamily: 'Inter',
-  fontWeight: 600,
-  fontSize: '16px',
-  letterSpacing: 0
-}
-
-const defaultSubmitButtonSx = {
-  minWidth: '140px',
-  height: '48px',
-  borderRadius: '8px',
-  backgroundColor: '#37BD69',
-  '&:hover': {
-    backgroundColor: '#2BA35A'
-  },
-  fontFamily: 'Inter',
-  fontWeight: 600,
-  fontSize: '16px',
-  letterSpacing: 0
-}
+import { useTheme } from '@mui/material/styles'
 
 export default function VitalFormDialog({
   open,
@@ -114,6 +36,87 @@ export default function VitalFormDialog({
   paperSx,
   renderHeader
 }) {
+  const theme = useTheme()
+
+  const defaultHeaderSx = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '16px',
+    padding: '16px 24px',
+    backgroundColor: theme.palette.customColors?.bodyBg || theme.palette.background.default
+  }
+
+  const defaultTitleSx = {
+    fontFamily: 'Inter',
+    fontWeight: 600,
+    fontSize: '18px',
+    letterSpacing: 0,
+    color: theme.palette.customColors?.customHeadingTextColor || theme.palette.text.primary
+  }
+
+  const defaultCloseButtonSx = {
+    border: `1px solid ${theme.palette.customColors?.SurfaceVariant || theme.palette.divider}`,
+    color: theme.palette.customColors?.Outline || theme.palette.text.secondary,
+    width: 36,
+    height: 36
+  }
+
+  const timeChipStyles = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '6px 12px',
+    borderRadius: '24px',
+    backgroundColor: theme.palette.primary.contrastText,
+    border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`,
+    color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.secondary,
+    fontFamily: 'Inter',
+    fontWeight: 500,
+    fontSize: '14px',
+    letterSpacing: 0
+  }
+
+  const defaultContentSx = {
+    padding: '24px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px'
+  }
+
+  const defaultActionsSx = {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '12px',
+    padding: '16px 24px 24px'
+  }
+
+  const defaultCancelButtonSx = {
+    minWidth: '128px',
+    height: '48px',
+    borderRadius: '8px',
+    borderColor: theme.palette.customColors?.OutlineVariant || theme.palette.divider,
+    color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary,
+    fontFamily: 'Inter',
+    fontWeight: 600,
+    fontSize: '16px',
+    letterSpacing: 0
+  }
+
+  const defaultSubmitButtonSx = {
+    minWidth: '140px',
+    height: '48px',
+    borderRadius: '8px',
+    backgroundColor: theme.palette.primary.main,
+    '&:hover': {
+      backgroundColor: theme.palette.primary.dark || theme.palette.primary.main
+    },
+    fontFamily: 'Inter',
+    fontWeight: 600,
+    fontSize: '16px',
+    letterSpacing: 0
+  }
+
   const headerContent =
     renderHeader !== undefined
       ? typeof renderHeader === 'function'
@@ -130,8 +133,8 @@ export default function VitalFormDialog({
       PaperProps={{
         sx: {
           borderRadius: '8px',
-          border: '1px solid #37BD69',
-          boxShadow: '0px 0px 14px 0px #00000040',
+          border: `1px solid ${theme.palette.primary.main}`,
+          boxShadow: `0px 0px 14px 0px ${theme.palette.customColors?.shadowColor || '#00000040'}`,
           overflow: 'hidden',
           ...paperSx
         }

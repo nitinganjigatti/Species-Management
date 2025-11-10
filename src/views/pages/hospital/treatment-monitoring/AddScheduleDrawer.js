@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   Checkbox,
+  CircularProgress,
   Drawer,
   FormControlLabel,
   Grid,
@@ -13,20 +14,60 @@ import {
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
-import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
-import { getTreatmentIntervals } from 'src/lib/api/hospital/treatmentMonitoring'
+import Toaster from 'src/components/Toaster'
+import {
+  addIntervalsForParameters,
+  getMonitoringParameters,
+  getTreatmentIntervals
+} from 'src/lib/api/hospital/treatmentMonitoring'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 
-const AddScheduleDrawer = ({ open, setOpen, monitoring, hospitalCaseId }) => {
+const AddScheduleDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringData }) => {
   const theme = useTheme()
 
   const [selectedInterval, setSelectedInterval] = useState('1')
   const [addScheduleLoading, setScheduleLoading] = useState(false)
+
+  const {
+    data: monitoringParams,
+    isLoading: monitoringParamsLoading,
+    refetch: refetchMonitoringParams
+  } = useQuery({
+    queryKey: ['treatment-monitoring-parameters'],
+    queryFn: () => getMonitoringParameters(hospitalCaseId),
+    enabled: false
+  })
+
+  useEffect(() => {
+    if (open) {
+      refetchMonitoringParams()
+    }
+  }, [open, refetchMonitoringParams])
+
+  const monitoring = monitoringParams?.data?.assessments?.map(item => ({
+    id: item?.assessment_type_id,
+    label: item?.label,
+    defaultInterval: item?.default_interval
+  }))
+
+  const { data: treatmentIntervals, isLoading: intervalLoading } = useQuery({
+    queryKey: ['hospital-treatment-interval'],
+    queryFn: () => getTreatmentIntervals()
+  })
+
+  const intervalList = treatmentIntervals?.data?.map(
+    item =>
+      ({
+        id: item?.id,
+        label: item?.frequency_label,
+        duration: item?.duration_minutes
+      } || [])
+  )
 
   const defaultValues = useMemo(() => {
     const now = dayjs()
@@ -38,7 +79,7 @@ const AddScheduleDrawer = ({ open, setOpen, monitoring, hospitalCaseId }) => {
     }
 
     monitoring?.forEach(item => {
-      values[item.id] = '1'
+      values[item.id] = item?.defaultInterval ? String(item.defaultInterval) : '1'
     })
 
     return values
@@ -55,68 +96,82 @@ const AddScheduleDrawer = ({ open, setOpen, monitoring, hospitalCaseId }) => {
     defaultValues
   })
 
-  const { data: treatmentIntervals, isLoading: intervalLoading } = useQuery({
-    queryKey: ['hospital-treatment-interval'],
-    queryFn: () => getTreatmentIntervals()
-  })
-
-  const intervalList = treatmentIntervals?.data?.map(
-    item =>
-      ({
-        id: item?.id,
-        label: item?.frequency_label,
-        duration: item?.duration_minutes
-      } || [])
-  )
-
   useEffect(() => {
-    if (!selectedInterval) return
-    monitoring?.forEach(item => {
-      setValue(item.id, selectedInterval)
-    })
-  }, [selectedInterval, monitoring, setValue])
+    if (monitoring?.length) {
+      const now = dayjs()
 
-  useEffect(() => {
-    const subscription = watch(values => {
-      if (!monitoring) return
-      const anyDifferent = monitoring.some(item => values[item.id] !== selectedInterval)
-      if (anyDifferent) setSelectedInterval(null)
-    })
+      const values = {
+        setAsDefault: false,
+        monitoring_start_date: now,
+        monitoring_start_time: now
+      }
 
-    return () => subscription.unsubscribe()
-  }, [watch, monitoring, selectedInterval])
+      monitoring.forEach(item => {
+        values[item.id] = item?.defaultInterval ? String(item.defaultInterval) : '1'
+      })
 
-  useEffect(() => {
-    if (open && monitoring) {
-      reset(defaultValues)
+      reset(values, { keepDirtyValues: true })
     }
-  }, [open, monitoring, defaultValues, reset])
+  }, [!!monitoring?.length])
+
+  const allValues = watch()
+
+  useEffect(() => {
+    if (!monitoring?.length) return
+    const currentIntervals = monitoring.map(m => allValues[m.id])
+    const isUniform = currentIntervals.every(val => val === selectedInterval)
+
+    if (!isUniform && selectedInterval !== null) {
+      setSelectedInterval(null)
+    }
+  }, [allValues, monitoring])
+
+  const handleIntervalClick = id => {
+    setSelectedInterval(id)
+
+    // Apply interval to all parameter fields
+    monitoring?.forEach(param => {
+      setValue(param.id, id)
+    })
+  }
 
   const handleDrawerClose = () => setOpen(false)
 
   const onSubmit = async data => {
-    const scheduleData = {
-      is_schedule_for_today: data.setAsDefault,
-      parameters: [],
-      start_date: moment(data?.monitoring_start_date).format('YYYY-MM-DD'),
-      start_time: moment(data?.monitoring_start_time).format('HH:mm'),
-      hospital_case_id: hospitalCaseId
-    }
-
-    //The parameter id and value will be implemented after listing the parameters in the main page
-
-    monitoring?.forEach(item => {
-      if (data[item.id]) {
-        scheduleData.parameters.push({
-          parameter_id: String(item.id),
-          parameter_value: String(data[item.id])
-        })
+    setScheduleLoading(true)
+    try {
+      const scheduleData = {
+        is_schedule_for_today: data.setAsDefault === true ? '1' : '0',
+        parameters: [],
+        start_date: dayjs(data?.monitoring_start_date).format('YYYY-MM-DD'),
+        start_time: dayjs(data?.monitoring_start_time).format('HH:mm'),
+        hospital_case_id: hospitalCaseId
       }
-    })
 
-    console.log('Processed schedule data:', scheduleData)
+      monitoring?.forEach(item => {
+        if (data[item.id]) {
+          scheduleData.parameters.push({
+            parameter_id: String(item.id),
+            parameter_value: String(data[item.id])
+          })
+        }
+      })
 
-    // handleDrawerClose()
+      await addIntervalsForParameters(scheduleData).then(res => {
+        if (res?.status === 'success') {
+          Toaster({ type: 'success', message: res?.message })
+          setScheduleLoading(false)
+          handleDrawerClose()
+          refetchMonitoringData()
+        } else {
+          Toaster({ type: 'error', message: res?.message })
+          setScheduleLoading(false)
+        }
+      })
+    } catch (error) {
+      console.error('Cannot Schedule Parameters', error)
+      setScheduleLoading(false)
+    }
   }
 
   return (
@@ -231,7 +286,7 @@ const AddScheduleDrawer = ({ open, setOpen, monitoring, hospitalCaseId }) => {
                     {intervalList?.map(item => (
                       <Box
                         key={item?.id}
-                        onClick={() => setSelectedInterval(item.id)}
+                        onClick={() => handleIntervalClick(item.id)}
                         sx={{
                           px: 3,
                           py: 2,
@@ -251,7 +306,7 @@ const AddScheduleDrawer = ({ open, setOpen, monitoring, hospitalCaseId }) => {
                           transition: 'all 0.2s ease',
                           '&:hover': {
                             backgroundColor:
-                              selectedInterval === item.value
+                              selectedInterval === item.id
                                 ? theme.palette.customColors.OnPrimaryContainer
                                 : alpha(theme.palette.primary.main, 0.1)
                           }
@@ -286,9 +341,9 @@ const AddScheduleDrawer = ({ open, setOpen, monitoring, hospitalCaseId }) => {
                   </Box>
                 ) : (
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {monitoring?.map((item, idx) => (
+                    {monitoring?.map(item => (
                       <Grid
-                        key={idx}
+                        key={item?.id}
                         container
                         spacing={0}
                         sx={{
@@ -296,7 +351,7 @@ const AddScheduleDrawer = ({ open, setOpen, monitoring, hospitalCaseId }) => {
                         }}
                       >
                         <Grid size={{ xs: 4 }}>
-                          <Typography>{item?.name}</Typography>
+                          <Typography>{item?.label}</Typography>
                         </Grid>
                         <Grid size={{ xs: 8 }}>
                           <ControlledSelect
@@ -349,7 +404,7 @@ const AddScheduleDrawer = ({ open, setOpen, monitoring, hospitalCaseId }) => {
               Cancel
             </Button>
             <Button variant='contained' fullWidth onClick={handleSubmit(onSubmit)} sx={{ height: '56px' }}>
-              Add Schedule
+              {addScheduleLoading ? <CircularProgress /> : 'SAVE'}
             </Button>
           </Box>
         </Box>

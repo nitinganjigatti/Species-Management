@@ -1,15 +1,15 @@
-export const measurementDialogPaperSx = {
+export const measurementDialogPaperSx = theme => ({
   width: '472.00323486328125px',
   maxWidth: '472.00323486328125px',
   minWidth: '472.00323486328125px',
   height: '259.114990234375px',
-  backgroundColor: '#FFFFFF',
+  backgroundColor: theme.palette.primary.contrastText,
   borderRadius: '8px',
-  border: '1.5px solid #37BD69',
-  boxShadow: '0px 4px 18px 0px #00000040'
-}
+  border: `1.5px solid ${theme.palette.primary.main}`,
+  boxShadow: `0px 4px 18px 0px ${theme.palette.customColors?.shadowColor || '#00000040'}`
+})
 
-export const measurementHeaderContainerSx = {
+export const measurementHeaderContainerSx = theme => ({
   width: '100%',
   height: '72px',
   padding: '24px 16px',
@@ -17,16 +17,16 @@ export const measurementHeaderContainerSx = {
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: '24px',
-  borderBottom: '1px solid #DAE7DF'
-}
+  borderBottom: `1px solid ${theme.palette.customColors?.SurfaceVariant || '#DAE7DF'}`
+})
 
-export const measurementHeaderTitleSx = {
+export const measurementHeaderTitleSx = theme => ({
   fontFamily: 'Inter',
   fontWeight: 500,
   fontSize: '20px',
   letterSpacing: 0,
-  color: '#44544A'
-}
+  color: theme.palette.customColors?.customHeadingTextColor || theme.palette.text.primary
+})
 
 export const measurementHeaderTimeContainerSx = {
   display: 'flex',
@@ -34,10 +34,10 @@ export const measurementHeaderTimeContainerSx = {
   gap: '8px'
 }
 
-export const measurementHeaderTimeIconSx = {
+export const measurementHeaderTimeIconSx = theme => ({
   fontSize: '20px',
-  color: '#44544A'
-}
+  color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+})
 
 export const measurementContentSx = {
   padding: 0,
@@ -54,7 +54,7 @@ export const measurementFieldsContainerSx = {
   gap: '20px',
   display: 'flex',
   alignItems: 'center',
-  backgroundColor: '#FFFFFF'
+  backgroundColor: 'transparent'
 }
 
 const baseColumnSx = {
@@ -75,33 +75,29 @@ export const measurementSecondaryFieldColumnSx = {
   maxWidth: '132px'
 }
 
-export const measurementFieldLabelSx = {
+export const measurementFieldLabelSx = theme => ({
   fontFamily: 'Inter',
   fontWeight: 400,
   fontSize: '16px',
   letterSpacing: 0,
-  color: '#44544A'
-}
+  color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+})
 
-export const createMeasurementFieldSx = (backgroundColor, textColor = '#133020') => ({
+export const createMeasurementFieldSx = (theme, backgroundColor, textColor) => ({
   '& .MuiOutlinedInput-root': {
     borderRadius: '4px',
     height: '56px',
-    backgroundColor,
+    backgroundColor: backgroundColor ?? theme.palette.primary.contrastText,
     padding: 0,
-    '& .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#839D8D',
-      borderWidth: '1px'
-    },
     '& fieldset': {
-      borderColor: '#839D8D',
+      borderColor: theme.palette.customColors?.Outline || theme.palette.divider,
       borderWidth: '1px'
     },
     '&:hover fieldset': {
-      borderColor: '#37BD69'
+      borderColor: theme.palette.primary.main
     },
     '&.Mui-focused fieldset': {
-      borderColor: '#37BD69'
+      borderColor: theme.palette.primary.main
     }
   },
   '& .MuiOutlinedInput-input': {
@@ -110,13 +106,13 @@ export const createMeasurementFieldSx = (backgroundColor, textColor = '#133020')
     fontWeight: 500,
     fontSize: '16px',
     letterSpacing: 0,
-    color: textColor
+    color: textColor ?? (theme.palette.customColors?.customHeadingTextColor || theme.palette.text.primary)
   },
   '& .MuiSelect-icon': {
-    color: '#44544A'
+    color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
   },
   '& .MuiInputAdornment-root svg': {
-    color: '#44544A'
+    color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
   }
 })
 
@@ -132,31 +128,31 @@ export const measurementActionsSx = {
   paddingLeft: '16px'
 }
 
-export const measurementCancelButtonSx = {
+export const measurementCancelButtonSx = theme => ({
   flex: 1,
   minWidth: 0,
   height: '48px',
   borderRadius: '8px',
-  borderColor: '#1F515B',
-  color: '#1F515B',
+  borderColor: theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.dark,
+  color: theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.dark,
   fontFamily: 'Inter',
   fontWeight: 600,
   fontSize: '16px',
   letterSpacing: 0
-}
+})
 
-export const measurementSubmitButtonSx = {
+export const measurementSubmitButtonSx = theme => ({
   flex: 1,
   minWidth: 0,
   height: '48px',
   borderRadius: '8px',
-  backgroundColor: '#37BD69',
-  boxShadow: '0px 4px 8px -4px #4C4E646B',
+  backgroundColor: theme.palette.primary.main,
+  boxShadow: `0px 4px 8px -4px ${theme.palette.customColors?.shadowColor || '#4C4E646B'}`,
   fontFamily: 'Inter',
   fontWeight: 600,
   fontSize: '16px',
   letterSpacing: 0,
   '&:hover': {
-    backgroundColor: '#2BA35A'
+    backgroundColor: theme.palette.primary.dark || theme.palette.primary.main
   }
-}
+})
