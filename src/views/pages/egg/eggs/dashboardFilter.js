@@ -66,6 +66,15 @@ const DashboardFilter = ({
   const loading = loadingCount > 0
 
   const [tempSelectedOptions, setTempSelectedOptions] = useState(selectedOptions)
+  const filtersToAggregate = ['Species', 'Nursery', 'Batch', 'Security status', 'Condition', 'Reason', 'Site']
+
+  const totalSelectedCount = React.useMemo(() => {
+    if (!tempSelectedOptions) {
+      return 0
+    }
+
+    return filtersToAggregate.reduce((count, key) => count + (tempSelectedOptions?.[key]?.length || 0), 0)
+  }, [tempSelectedOptions])
 
   const getMenuBadgeCount = menuName => {
     const selections = tempSelectedOptions?.[menuName]
@@ -400,7 +409,7 @@ const DashboardFilter = ({
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Icon icon='mage:filter' fontSize={30} />
           <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>
-            Filter - {filterList?.length > 0 && filterList?.length}{' '}
+            Filter - {totalSelectedCount}
           </Typography>
         </Box>
 
