@@ -285,6 +285,17 @@ const AnesthesiaSetUpSection = () => {
     setValue(`anesthesiaSetup.${section}.${field}`, event.target.value, { shouldDirty: true, shouldValidate: false })
   }
 
+  const isValidNumericValue = value => /^(\d+(\.\d*)?)?$/.test(value)
+
+  const handleNumericFieldChange = (section, field) => event => {
+    const nextValue = event.target.value
+    if (!isValidNumericValue(nextValue)) {
+      return
+    }
+
+    setValue(`anesthesiaSetup.${section}.${field}`, nextValue, { shouldDirty: true, shouldValidate: false })
+  }
+
   const handleExclusiveToggle = (section, field) => (_, newValue) => {
     setValue(`anesthesiaSetup.${section}.${field}`, newValue ?? '', { shouldDirty: true })
   }
@@ -351,9 +362,13 @@ const AnesthesiaSetUpSection = () => {
                 label='Quantity'
                 placeholder='Enter'
                 value={fluids?.quantity || ''}
-                onChange={handleFieldChange('fluids', 'quantity')}
+                onChange={handleNumericFieldChange('fluids', 'quantity')}
+                type='number'
                 InputLabelProps={{ shrink: true }}
                 InputProps={{
+                  inputMode: 'decimal',
+                  pattern: '[0-9]*',
+                  min: 0,
                   endAdornment: (
                     <InputAdornment position='end'>
                       <Typography sx={{ ...firstColumnTextStyles, fontSize: '14px' }}>ml / hr</Typography>
@@ -406,9 +421,13 @@ const AnesthesiaSetUpSection = () => {
                 label='Rate'
                 placeholder='Enter'
                 value={syringePump?.rate || ''}
-                onChange={handleFieldChange('syringePump', 'rate')}
+                onChange={handleNumericFieldChange('syringePump', 'rate')}
+                type='number'
                 InputLabelProps={{ shrink: true }}
                 InputProps={{
+                  inputMode: 'decimal',
+                  pattern: '[0-9]*',
+                  min: 0,
                   endAdornment: (
                     <InputAdornment position='end'>
                       <Typography sx={{ ...firstColumnTextStyles, fontSize: '14px' }}>ml / hr</Typography>
@@ -426,11 +445,22 @@ const AnesthesiaSetUpSection = () => {
             <Grid item xs={12} md={6} sx={{ width: '270px' }}>
               <TextField
                 fullWidth
-                label='Tube Size(s) Ex: 1mm, 2mm, 3mm     '
+                label='Tube Size(s)'
                 placeholder='Enter'
                 value={etIntubation?.tubeSizes || ''}
-                onChange={handleFieldChange('etIntubation', 'tubeSizes')}
+                onChange={handleNumericFieldChange('etIntubation', 'tubeSizes')}
+                type='number'
                 InputLabelProps={{ shrink: true }}
+                InputProps={{
+                  inputMode: 'decimal',
+                  pattern: '[0-9]*',
+                  min: 0,
+                  endAdornment: (
+                    <InputAdornment position='end'>
+                      <Typography sx={{ ...firstColumnTextStyles, fontSize: '14px' }}>mm</Typography>
+                    </InputAdornment>
+                  )
+                }}
                 sx={textFieldStyles}
               />
             </Grid>
@@ -456,9 +486,13 @@ const AnesthesiaSetUpSection = () => {
                 label='Quantity'
                 placeholder='Enter'
                 value={nasalIntubation?.quantity || ''}
-                onChange={handleFieldChange('nasalIntubation', 'quantity')}
+                onChange={handleNumericFieldChange('nasalIntubation', 'quantity')}
+                type='number'
                 InputLabelProps={{ shrink: true }}
                 InputProps={{
+                  inputMode: 'decimal',
+                  pattern: '[0-9]*',
+                  min: 0,
                   endAdornment: (
                     <InputAdornment position='end'>
                       <Typography sx={{ ...firstColumnTextStyles, fontSize: '14px' }}>ml / hr</Typography>
