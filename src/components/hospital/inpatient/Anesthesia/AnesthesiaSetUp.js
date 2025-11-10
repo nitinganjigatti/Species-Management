@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-
 import {
   Box,
   Button,
@@ -15,6 +14,7 @@ import {
   Typography
 } from '@mui/material'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
+import { useFormContext } from 'react-hook-form'
 
 const monitoringOptions = [
   'Pulse ox',
@@ -31,7 +31,6 @@ const monitoringOptions = [
   'Pediatric',
   'Adult'
 ]
-
 const ventilationOptions = ['No', 'Vetronics', 'Manual']
 const catheterOptions = ['IV', 'IO']
 
@@ -224,101 +223,62 @@ const chipStyles = {
 }
 
 const AnesthesiaSetUpSection = () => {
-  const [formState, setFormState] = useState({
-    fluids: { checked: false, fluidType: '', quantity: '' },
-    catheterSetup: { checked: false, method: '' },
-    syringePump: { checked: false, rate: '' },
-    etIntubation: { checked: false, tubeSizes: '' },
-    nasalIntubation: { checked: false, fluidType: '', quantity: '' },
-    ventilation: { checked: false, mode: '' },
-    monitoring: { checked: false, selected: monitoringOptions, otherItems: [] }
-  })
+  const { watch, setValue } = useFormContext()
+
   const [newMonitoringItem, setNewMonitoringItem] = useState('')
 
+  const fluids = watch('anesthesiaSetup.fluids')
+  const catheterSetup = watch('anesthesiaSetup.catheterSetup')
+  const syringePump = watch('anesthesiaSetup.syringePump')
+  const etIntubation = watch('anesthesiaSetup.etIntubation')
+  const nasalIntubation = watch('anesthesiaSetup.nasalIntubation')
+  const ventilation = watch('anesthesiaSetup.ventilation')
+  const monitoring = watch('anesthesiaSetup.monitoring')
+
   const toggleRowChecked = key => {
-    setFormState(prev => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        checked: !prev[key].checked
-      }
-    }))
+    const current = watch(`anesthesiaSetup.${key}.checked`)
+    setValue(`anesthesiaSetup.${key}.checked`, !current, { shouldDirty: true })
   }
 
   const handleCheckboxToggle = key => event => {
     event.stopPropagation()
-    const { checked } = event.target
-    setFormState(prev => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        checked
-      }
-    }))
+    setValue(`anesthesiaSetup.${key}.checked`, event.target.checked, { shouldDirty: true })
   }
 
   const handleFieldChange = (section, field) => event => {
-    const { value } = event.target
-    setFormState(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
-      }
-    }))
+    setValue(`anesthesiaSetup.${section}.${field}`, event.target.value, { shouldDirty: true, shouldValidate: false })
   }
 
   const handleExclusiveToggle = (section, field) => (_, newValue) => {
-    setFormState(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: newValue ?? ''
-      }
-    }))
+    setValue(`anesthesiaSetup.${section}.${field}`, newValue ?? '', { shouldDirty: true })
   }
 
   const handleMonitoringToggle = (_, newValues) => {
-    setFormState(prev => ({
-      ...prev,
-      monitoring: {
-        ...prev.monitoring,
-        selected: newValues
-      }
-    }))
+    setValue('anesthesiaSetup.monitoring.selected', newValues, { shouldDirty: true })
   }
 
   const handleAddOtherItem = () => {
-    const trimmedValue = newMonitoringItem.trim()
-    if (!trimmedValue) {
-      return
+    const v = newMonitoringItem.trim()
+    if (!v) return
+    const list = monitoring?.otherItems || []
+    if (!list.includes(v)) {
+      setValue('anesthesiaSetup.monitoring.otherItems', [...list, v], { shouldDirty: true })
     }
-
-    setFormState(prev => ({
-      ...prev,
-      monitoring: {
-        ...prev.monitoring,
-        otherItems: prev.monitoring.otherItems.includes(trimmedValue)
-          ? prev.monitoring.otherItems
-          : [...prev.monitoring.otherItems, trimmedValue]
-      }
-    }))
     setNewMonitoringItem('')
   }
 
   const handleRemoveOtherItem = itemToRemove => {
-    setFormState(prev => ({
-      ...prev,
-      monitoring: {
-        ...prev.monitoring,
-        otherItems: prev.monitoring.otherItems.filter(item => item !== itemToRemove)
-      }
-    }))
+    const list = monitoring?.otherItems || []
+    setValue(
+      'anesthesiaSetup.monitoring.otherItems',
+      list.filter(i => i !== itemToRemove),
+      { shouldDirty: true }
+    )
   }
 
-  const handleNewItemKeyDown = event => {
-    if (event.key === 'Enter') {
-      event.preventDefault()
+  const handleNewItemKeyDown = e => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
       handleAddOtherItem()
     }
   }
@@ -343,7 +303,7 @@ const AnesthesiaSetUpSection = () => {
                 fullWidth
                 label='Fluid Type'
                 placeholder='Enter'
-                value={formState.fluids.fluidType}
+                value={fluids?.fluidType || ''}
                 onChange={handleFieldChange('fluids', 'fluidType')}
                 InputLabelProps={{ shrink: true }}
                 sx={textFieldStyles}
@@ -354,7 +314,7 @@ const AnesthesiaSetUpSection = () => {
                 fullWidth
                 label='Quantity'
                 placeholder='Enter'
-                value={formState.fluids.quantity}
+                value={fluids?.quantity || ''}
                 onChange={handleFieldChange('fluids', 'quantity')}
                 InputLabelProps={{ shrink: true }}
                 InputProps={{
@@ -373,13 +333,12 @@ const AnesthesiaSetUpSection = () => {
         return (
           <ToggleButtonGroup
             exclusive
-            value={formState.catheterSetup.method}
+            value={catheterSetup?.method || ''}
             onChange={handleExclusiveToggle('catheterSetup', 'method')}
             sx={radioTileGroupStyles}
           >
             {catheterOptions.map(option => {
-              const isSelected = formState.catheterSetup.method === option
-
+              const isSelected = catheterSetup?.method === option
               return (
                 <ToggleButton key={option} value={option} sx={radioTileButtonStyles}>
                   <Typography component='span' sx={radioTileLabelStyles}>
@@ -389,13 +348,7 @@ const AnesthesiaSetUpSection = () => {
                     checked={isSelected}
                     disableRipple
                     inputProps={{ readOnly: true }}
-                    sx={{
-                      pointerEvents: 'none',
-                      color: '#C3CEC7',
-                      '&.Mui-checked': {
-                        color: '#37BD69'
-                      }
-                    }}
+                    sx={{ pointerEvents: 'none', color: '#C3CEC7', '&.Mui-checked': { color: '#37BD69' } }}
                   />
                 </ToggleButton>
               )
@@ -410,7 +363,7 @@ const AnesthesiaSetUpSection = () => {
                 fullWidth
                 label='Rate'
                 placeholder='Enter'
-                value={formState.syringePump.rate}
+                value={syringePump?.rate || ''}
                 onChange={handleFieldChange('syringePump', 'rate')}
                 InputLabelProps={{ shrink: true }}
                 InputProps={{
@@ -428,19 +381,12 @@ const AnesthesiaSetUpSection = () => {
       case 'etIntubation':
         return (
           <Grid container spacing={3}>
-            <Grid
-              item
-              xs={12}
-              md={6}
-              sx={{
-                width: '270px'
-              }}
-            >
+            <Grid item xs={12} md={6} sx={{ width: '270px' }}>
               <TextField
                 fullWidth
-                label='Tube Size(s) Ex: 1mm, 2mm, 3mm &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+                label='Tube Size(s) Ex: 1mm, 2mm, 3mm     '
                 placeholder='Enter'
-                value={formState.etIntubation.tubeSizes}
+                value={etIntubation?.tubeSizes || ''}
                 onChange={handleFieldChange('etIntubation', 'tubeSizes')}
                 InputLabelProps={{ shrink: true }}
                 sx={textFieldStyles}
@@ -456,7 +402,7 @@ const AnesthesiaSetUpSection = () => {
                 fullWidth
                 label='Fluid Type'
                 placeholder='Enter'
-                value={formState.nasalIntubation.fluidType}
+                value={nasalIntubation?.fluidType || ''}
                 onChange={handleFieldChange('nasalIntubation', 'fluidType')}
                 InputLabelProps={{ shrink: true }}
                 sx={textFieldStyles}
@@ -467,7 +413,7 @@ const AnesthesiaSetUpSection = () => {
                 fullWidth
                 label='Quantity'
                 placeholder='Enter'
-                value={formState.nasalIntubation.quantity}
+                value={nasalIntubation?.quantity || ''}
                 onChange={handleFieldChange('nasalIntubation', 'quantity')}
                 InputLabelProps={{ shrink: true }}
                 InputProps={{
@@ -486,13 +432,12 @@ const AnesthesiaSetUpSection = () => {
         return (
           <ToggleButtonGroup
             exclusive
-            value={formState.ventilation.mode}
+            value={ventilation?.mode || ''}
             onChange={handleExclusiveToggle('ventilation', 'mode')}
             sx={radioTileGroupStyles}
           >
             {ventilationOptions.map(option => {
-              const isSelected = formState.ventilation.mode === option
-
+              const isSelected = ventilation?.mode === option
               return (
                 <ToggleButton key={option} value={option} sx={radioTileButtonStyles}>
                   <Typography component='span' sx={radioTileLabelStyles}>
@@ -502,13 +447,7 @@ const AnesthesiaSetUpSection = () => {
                     checked={isSelected}
                     disableRipple
                     inputProps={{ readOnly: true }}
-                    sx={{
-                      pointerEvents: 'none',
-                      color: '#C3CEC7',
-                      '&.Mui-checked': {
-                        color: '#37BD69'
-                      }
-                    }}
+                    sx={{ pointerEvents: 'none', color: '#C3CEC7', '&.Mui-checked': { color: '#37BD69' } }}
                   />
                 </ToggleButton>
               )
@@ -519,13 +458,12 @@ const AnesthesiaSetUpSection = () => {
         return (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <ToggleButtonGroup
-              value={formState.monitoring.selected}
+              value={monitoring?.selected || []}
               onChange={handleMonitoringToggle}
               sx={monitoringToggleGroupStyles}
             >
               {monitoringOptions.map(option => {
-                const isSelected = formState.monitoring.selected.includes(option)
-
+                const isSelected = (monitoring?.selected || []).includes(option)
                 return (
                   <ToggleButton key={option} value={option} sx={monitoringToggleButtonStyles}>
                     <Typography component='span' sx={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '16px' }}>
@@ -542,11 +480,11 @@ const AnesthesiaSetUpSection = () => {
               })}
             </ToggleButtonGroup>
 
-            {formState.monitoring.otherItems.length > 0 && (
+            {monitoring?.otherItems?.length > 0 && (
               <Box>
                 <Typography sx={{ ...firstColumnTextStyles, mb: '10px' }}>Other Monitoring Items Added</Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '12px', mt: '10px', mb: '10px' }}>
-                  {formState.monitoring.otherItems.map(item => (
+                  {monitoring.otherItems.map(item => (
                     <Tooltip key={item} title={item} arrow placement='top'>
                       <Chip
                         label={item}
@@ -591,21 +529,15 @@ const AnesthesiaSetUpSection = () => {
                   fullWidth
                   placeholder='New Monitoring'
                   value={newMonitoringItem}
-                  onChange={event => setNewMonitoringItem(event.target.value)}
+                  onChange={e => setNewMonitoringItem(e.target.value)}
                   onKeyDown={handleNewItemKeyDown}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '4px',
                       backgroundColor: '#FFFFFF',
-                      '& fieldset': {
-                        borderColor: '#D5E8E0'
-                      },
-                      '&:hover fieldset': {
-                        borderColor: '#37BD69'
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#37BD69'
-                      }
+                      '& fieldset': { borderColor: '#D5E8E0' },
+                      '&:hover fieldset': { borderColor: '#37BD69' },
+                      '&.Mui-focused fieldset': { borderColor: '#37BD69' }
                     },
                     '& .MuiInputBase-input': {
                       fontFamily: 'Inter',
@@ -615,11 +547,7 @@ const AnesthesiaSetUpSection = () => {
                       letterSpacing: 0,
                       color: '#44544A'
                     },
-                    '& .MuiInputBase-input::placeholder': {
-                      color: '#44544A',
-                      opacity: 1,
-                      fontWeight: 400
-                    }
+                    '& .MuiInputBase-input::placeholder': { color: '#44544A', opacity: 1, fontWeight: 400 }
                   }}
                 />
                 <Button
@@ -639,9 +567,7 @@ const AnesthesiaSetUpSection = () => {
                     textTransform: 'none',
                     backgroundColor: newMonitoringItem.trim() ? '#006D35' : '#C3CEC7',
                     color: '#FFFFFF',
-                    '&:hover': {
-                      backgroundColor: newMonitoringItem.trim() ? '#00592A' : '#C3CEC7'
-                    }
+                    '&:hover': { backgroundColor: newMonitoringItem.trim() ? '#00592A' : '#C3CEC7' }
                   }}
                 >
                   ADD
@@ -657,10 +583,17 @@ const AnesthesiaSetUpSection = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography sx={sectionTitleStyles}>Anesthesia Set-Up</Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-        {rows.map(({ key, label }) => {
-          const checked = formState[key].checked
+        {[
+          { key: 'fluids', label: 'Fluids' },
+          { key: 'catheterSetup', label: 'Catheter set-up' },
+          { key: 'syringePump', label: 'Syringe pump' },
+          { key: 'etIntubation', label: 'ET intubation' },
+          { key: 'nasalIntubation', label: 'Nasal Intubation' },
+          { key: 'ventilation', label: 'Ventilation' },
+          { key: 'monitoring', label: 'Monitoring' }
+        ].map(({ key, label }) => {
+          const checked = watch(`anesthesiaSetup.${key}.checked`)
           const backgroundColor = checked ? '#E8F4F2' : '#EFF5F2'
           const borderColor = checked ? '#C3CEC7' : '#D5E8E0'
 
@@ -697,29 +630,33 @@ const AnesthesiaSetUpSection = () => {
                 tabIndex={0}
                 aria-expanded={checked}
                 onClick={() => toggleRowChecked(key)}
-                onKeyDown={event => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
                     toggleRowChecked(key)
                   }
                 }}
               >
                 <Checkbox
-                  checked={checked}
+                  checked={!!checked}
                   onChange={handleCheckboxToggle(key)}
-                  onClick={event => event.stopPropagation()}
-                  sx={{
-                    p: 0,
-                    width: '24px',
-                    height: '24px',
-                    color: '#37BD69',
-                    '&.Mui-checked': {
-                      color: '#37BD69'
-                    }
-                  }}
+                  onClick={e => e.stopPropagation()}
+                  sx={{ p: 0, width: '24px', height: '24px', color: '#37BD69', '&.Mui-checked': { color: '#37BD69' } }}
                 />
-                <Typography sx={firstColumnTextStyles}>{label}</Typography>
+                <Typography
+                  sx={{
+                    fontFamily: 'Inter',
+                    fontWeight: 500,
+                    fontSize: '16px',
+                    lineHeight: 1,
+                    letterSpacing: 0,
+                    color: '#44544A'
+                  }}
+                >
+                  {label}
+                </Typography>
               </Box>
+
               <Box
                 sx={{
                   flex: checked ? '1 1 auto' : '0 0 0px',

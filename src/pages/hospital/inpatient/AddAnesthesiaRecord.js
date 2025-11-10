@@ -21,6 +21,7 @@ import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
 import ActionButtons from 'src/components/hospital/FooterActionbuttons'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+import AnesthesiaSetUpSection from 'src/components/hospital/inpatient/Anesthesia/AnesthesiaSetUp'
 
 export const anesthesiaSchema = yup.object({
   basicDetails: yup.object({
@@ -42,11 +43,6 @@ export const anesthesiaSchema = yup.object({
   })
 })
 
-const sections = [
-  { id: 'basicDetails', label: 'Basic Detail', component: BasicDetails },
-  { id: 'attachments', label: 'Attachments', component: AttachmentsSection }
-]
-
 export default function AddAnesthesiaRecord() {
   const router = useRouter()
   const [expanded, setExpanded] = React.useState('basicDetails')
@@ -54,6 +50,24 @@ export default function AddAnesthesiaRecord() {
   const scrollContainerRef = React.useRef(null)
   const theme = useTheme()
   const HEADER_HEIGHT = 120
+
+  const vetOptions = [
+    { id: 1, name: 'Dr. John D Sam' },
+    { id: 2, name: 'Dr. Jane M Doe' },
+    { id: 3, name: 'Dr. Vineet R' }
+  ]
+
+  const anesthetistOptions = [
+    { id: 1, name: 'Dr. John D Sam' },
+    { id: 2, name: 'Dr. Jane M Doe' },
+    { id: 3, name: 'Dr. Vineet R' }
+  ]
+
+  const sections = [
+    { id: 'basicDetails', label: 'Basic Detail', component: BasicDetails },
+    { id: 'anesthesiaSetup', label: 'Anesthesia Set-up', component: AnesthesiaSetUpSection },
+    { id: 'attachments', label: 'Attachments', component: AttachmentsSection }
+  ]
 
   const methods = useForm({
     defaultValues: {
@@ -65,6 +79,15 @@ export default function AddAnesthesiaRecord() {
         anesthetist: '',
         purpose: [],
         notes: ''
+      },
+      anesthesiaSetup: {
+        fluids: { checked: false, fluidType: '', quantity: '' },
+        catheterSetup: { checked: false, method: '' },
+        syringePump: { checked: false, rate: '' },
+        etIntubation: { checked: false, tubeSizes: '' },
+        nasalIntubation: { checked: false, fluidType: '', quantity: '' },
+        ventilation: { checked: false, mode: '' },
+        monitoring: { checked: false, selected: [], otherItems: [] }
       },
       attachments: {
         files: [],
@@ -96,6 +119,7 @@ export default function AddAnesthesiaRecord() {
   const onValid = data => {
     console.log(' basicdetails:', data.basicDetails)
     console.log('Files:', data.attachments.files)
+    console.log(data, 'data')
 
     //  API here
   }
@@ -252,7 +276,7 @@ export default function AddAnesthesiaRecord() {
                 </AccordionSummary>
 
                 <AccordionDetails sx={{ pt: 0 }}>
-                  <SectionComponent sectionId={id} />
+                  <SectionComponent sectionId={id} vetOptions={vetOptions} anesthetistOptions={anesthetistOptions} />
                 </AccordionDetails>
               </Accordion>
             ))}
