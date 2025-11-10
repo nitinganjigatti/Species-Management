@@ -241,7 +241,7 @@ export default function VitalMonitoring() {
   const theme = useTheme()
   const styles = useMemo(() => createStyles(theme), [theme])
   const { control, setValue } = useFormContext()
-  const columns = useWatch({ control, name: 'vitalMonitoring.columns' }) || []
+  const columns = useWatch({ control, name: 'vitalMonitoring' }) || []
   const [isTimeFormOpen, setIsTimeFormOpen] = useState(false)
   const [formState, setFormState] = useState(null)
   const [activeCell, setActiveCell] = useState(null)
@@ -251,7 +251,7 @@ export default function VitalMonitoring() {
   const scrollContainerRef = useRef(null)
 
   const updateColumns = newColumns => {
-    setValue('vitalMonitoring.columns', newColumns, { shouldDirty: true })
+    setValue('vitalMonitoring', newColumns, { shouldDirty: true })
   }
 
   const handleAddColumn = ({ timeLabel }) => {
