@@ -642,8 +642,8 @@ const AnesthesiaSetUpSection = () => {
           { key: 'monitoring', label: 'Monitoring' }
         ].map(({ key, label }) => {
           const checked = watch(`anesthesiaSetup.${key}.checked`)
-          const backgroundColor = checked ? '#E8F4F2' : '#EFF5F2'
-          const borderColor = checked ? '#C3CEC7' : '#D5E8E0'
+          const backgroundColor = checked ? selectedBackground : unselectedBackground
+          const borderColor = checked ? outlineColor : borderMutedColor
 
           return (
             <Box
