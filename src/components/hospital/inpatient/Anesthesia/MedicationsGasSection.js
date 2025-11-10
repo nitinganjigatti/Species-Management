@@ -1,60 +1,34 @@
 import React, { useCallback, useState } from 'react'
-import { Button, Typography, styled, Box, useTheme, IconButton, Tooltip, alpha } from '@mui/material'
+import { Button, Typography, styled, Box, useTheme, IconButton, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-
 import { Add as AddIcon } from '@mui/icons-material'
+import { useFormContext } from 'react-hook-form'
 import AddMedicationDrawer from './AddMedicationDrawer'
 import AddGasDrawer from './AddGasDrawer'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import dayjs from 'dayjs'
 
-const medicationsData = [
-  {
-    id: 1,
-    drug: 'Ketamine 100 MG Tablet',
-    purpose_stage: 'Induction',
-    amount: '10 mg',
-    route: 'Intramuscular',
-    delivery_time: '12:00 AM',
-    delivery: 'Completed',
-    notes: 'Time taken for effect looks normal'
-  },
-  {
-    id: 2,
-    drug: 'Acepromazine',
-    purpose_stage: 'Antiemetic',
-    amount: '10 mg',
-    route: 'Intramuscular',
-    delivery_time: '12:00 AM',
-    delivery: 'Completed',
-    notes: 'Time taken for effect looks normal'
-  }
-]
-
-const gasData = [
-  {
-    id: 1,
-    gas: 'Halothane',
-    o2_flow: '100 mg',
-    concentration: '3',
-    route: 'Subcutaneous',
-    start_time: '12:00 AM',
-    end_time: '6:00 AM'
-  },
-  {
-    id: 2,
-    gas: 'Acepromazine',
-    o2_flow: '30 mg',
-    concentration: '8',
-    route: 'Intramuscular',
-    start_time: '12:00 AM',
-    end_time: '6:00 AM'
-  }
-]
-function MedicationsGasSection() {
+function MedicationsGasSection({
+  onAddMedication,
+  onAddGas,
+  onUpdateMedication,
+  onUpdateGas,
+  onDeleteMedication,
+  onDeleteGas,
+  drugOptions,
+  gasOptions,
+  unitOptions,
+  deliveryRouteOptions
+}) {
   const theme = useTheme()
   const [drawerType, setDrawerType] = useState(null)
+  const [editIndex, setEditIndex] = useState(null)
   const [submitLoader, setSubmitLoader] = useState(false)
+
+  const { watch } = useFormContext()
+  const medications = watch('medicationsGas.medications') || []
+  const gases = watch('medicationsGas.gases') || []
 
   const medicationColumns = [
     {
@@ -80,7 +54,7 @@ function MedicationsGasSection() {
         >
           <TextEllipsisWithModal
             enableDialog={false}
-            text={params.row.drug ?? '-'}
+            text={params.row.drug_name?.drug_name ?? '-'}
             style={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '14px',
@@ -117,28 +91,35 @@ function MedicationsGasSection() {
       headerName: 'Amount',
       minWidth: 100,
       sortable: false,
-      renderCell: params => <StyledTypography>{params.row.amount}</StyledTypography>
+      renderCell: params => (
+        <StyledTypography>
+          {params.row.amount} {params.row.unit}
+        </StyledTypography>
+      )
     },
     {
       field: 'route',
       headerName: 'Route',
       minWidth: 140,
       sortable: false,
-      renderCell: params => <StyledTypography>{params.row.route}</StyledTypography>
+      renderCell: params => <StyledTypography>{params.row.delivery_route}</StyledTypography>
     },
     {
       field: 'delivery_time',
       headerName: 'Delivery Time',
       minWidth: 130,
       sortable: false,
-      renderCell: params => <StyledTypography>{params.row.delivery_time}</StyledTypography>
+      renderCell: params => {
+        const time = params.row.delivery_time ? (params.row.delivery_time ? params.row.delivery_time : '-') : '-'
+        return <StyledTypography>{time}</StyledTypography>
+      }
     },
     {
       field: 'delivery',
       headerName: 'Delivery',
       minWidth: 120,
       sortable: false,
-      renderCell: params => <StyledTypography>{params.row.delivery}</StyledTypography>
+      renderCell: params => <StyledTypography>{params.row.delivery_status || '-'}</StyledTypography>
     },
     {
       field: 'notes',
@@ -169,13 +150,13 @@ function MedicationsGasSection() {
       renderCell: params => (
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title='Edit'>
-            <IconButton size='small' onClick={() => {}}>
+            <IconButton size='small' onClick={() => handleEditMedication(params.row.id - 1)}>
               <Icon icon='mdi:pencil-outline' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
             </IconButton>
           </Tooltip>
 
           <Tooltip title='Delete'>
-            <IconButton size='small' onClick={() => {}}>
+            <IconButton size='small' onClick={() => onDeleteMedication(params.row.id - 1)}>
               <Icon icon='mdi:delete-outline' fontSize={20} color={theme.palette.customColors.Error} />
             </IconButton>
           </Tooltip>
@@ -208,7 +189,7 @@ function MedicationsGasSection() {
         >
           <TextEllipsisWithModal
             enableDialog={false}
-            text={params.row.gas ?? '-'}
+            text={params.row.gas_name?.gas_name ?? '-'}
             style={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '14px',
@@ -239,21 +220,35 @@ function MedicationsGasSection() {
       headerName: 'Route',
       minWidth: 150,
       sortable: false,
-      renderCell: params => <StyledTypography>{params.row.route}</StyledTypography>
+      renderCell: params => <StyledTypography>{params.row.delivery_route}</StyledTypography>
     },
     {
       field: 'start_time',
       headerName: 'Start Time',
       minWidth: 120,
       sortable: false,
-      renderCell: params => <StyledTypography>{params.row.start_time}</StyledTypography>
+      renderCell: params => {
+        const time = params.row.start_time
+          ? dayjs(params.row.start_time).isValid()
+            ? dayjs(params.row.start_time).format('hh:mm A')
+            : '-'
+          : '-'
+        return <StyledTypography>{time}</StyledTypography>
+      }
     },
     {
       field: 'end_time',
       headerName: 'End Time',
       minWidth: 120,
       sortable: false,
-      renderCell: params => <StyledTypography>{params.row.end_time}</StyledTypography>
+      renderCell: params => {
+        const time = params.row.end_time
+          ? dayjs(params.row.end_time).isValid()
+            ? dayjs(params.row.end_time).format('hh:mm A')
+            : '-'
+          : '-'
+        return <StyledTypography>{time}</StyledTypography>
+      }
     },
     {
       field: 'actions',
@@ -265,13 +260,13 @@ function MedicationsGasSection() {
       renderCell: params => (
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title='Edit'>
-            <IconButton size='small' onClick={() => {}}>
+            <IconButton size='small' onClick={() => handleEditGas(params.row.id - 1)}>
               <Icon icon='mdi:pencil-outline' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
             </IconButton>
           </Tooltip>
 
           <Tooltip title='Delete'>
-            <IconButton size='small' onClick={() => {}}>
+            <IconButton size='small' onClick={() => onDeleteGas(params.row.id - 1)}>
               <Icon icon='mdi:delete-outline' fontSize={20} color={theme.palette.customColors.Error} />
             </IconButton>
           </Tooltip>
@@ -280,18 +275,60 @@ function MedicationsGasSection() {
     }
   ]
 
-  // Add Medications /Gas handler
-  const handleSubmitData = useCallback(async payload => {
-    setSubmitLoader(true)
-    try {
-      alert(JSON.stringify(payload))
-    } catch (error) {
-      console.error('Error adding data:', error)
-    } finally {
-      setSubmitLoader(false)
-      setDrawerType(null)
-    }
-  }, [])
+  const handleEditMedication = index => {
+    setEditIndex(index)
+    setDrawerType('medication')
+  }
+
+  const handleEditGas = index => {
+    setEditIndex(index)
+    setDrawerType('gas')
+  }
+
+  const handleSubmitMedication = useCallback(
+    async payload => {
+      setSubmitLoader(true)
+      try {
+        if (editIndex !== null) {
+          onUpdateMedication(editIndex, payload)
+        } else {
+          onAddMedication(payload)
+        }
+      } catch (error) {
+        console.error('Error adding/updating medication:', error)
+      } finally {
+        setSubmitLoader(false)
+        setDrawerType(null)
+        setEditIndex(null)
+      }
+    },
+    [editIndex, onAddMedication, onUpdateMedication]
+  )
+
+  const handleSubmitGas = useCallback(
+    async payload => {
+      setSubmitLoader(true)
+      try {
+        if (editIndex !== null) {
+          onUpdateGas(editIndex, payload)
+        } else {
+          onAddGas(payload)
+        }
+      } catch (error) {
+        console.error('Error adding/updating gas:', error)
+      } finally {
+        setSubmitLoader(false)
+        setDrawerType(null)
+        setEditIndex(null)
+      }
+    },
+    [editIndex, onAddGas, onUpdateGas]
+  )
+
+  const handleCloseDrawer = () => {
+    setDrawerType(null)
+    setEditIndex(null)
+  }
 
   const renderAddSection = (label, type, buttonText) => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
@@ -307,7 +344,10 @@ function MedicationsGasSection() {
       <Button
         variant='outlined'
         endIcon={<AddIcon />}
-        onClick={() => setDrawerType(type)}
+        onClick={() => {
+          setEditIndex(null)
+          setDrawerType(type)
+        }}
         sx={{
           flex: 1,
           py: '8px',
@@ -322,77 +362,112 @@ function MedicationsGasSection() {
     </Box>
   )
 
+  const medicationsData = medications.map((med, index) => ({
+    ...med,
+    id: index + 1
+  }))
+
+  const gasesData = gases.map((gas, index) => ({
+    ...gas,
+    id: index + 1
+  }))
+
   return (
-    <Box sx={{ p: '0 24px 24px 24px' }}>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%' }}>
-        {renderAddSection('Medication', 'medication', 'Add Drug')}
-        {renderAddSection('Gas', 'gas', 'Add Gas')}
+    <Box sx={{ p: '0 0px 24px 0px' }}>
+      {medications.length > 0 && (
+        <>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <StyledTypography fontSize={'1rem'} fontWeight={600}>
+              Medication - {medications.length}
+            </StyledTypography>
+            <Button
+              variant='contained'
+              endIcon={<AddIcon />}
+              onClick={() => {
+                setEditIndex(null)
+                setDrawerType('medication')
+              }}
+            >
+              Add New
+            </Button>
+          </Box>
+          <CommonTable
+            columns={medicationColumns}
+            indexedRows={medicationsData}
+            rowHeight={64}
+            total={medicationsData?.length || 0}
+            externalTableStyle={{
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: theme.palette.customColors.neutral05,
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: theme.palette.customColors.OnSurfaceVariant
+              }
+            }}
+          />
+        </>
+      )}
+
+      {gases.length > 0 && (
+        <>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 4 }}>
+            <StyledTypography fontSize={'1rem'} fontWeight={600}>
+              Gas - {gases.length}
+            </StyledTypography>
+            <Button
+              variant='contained'
+              endIcon={<AddIcon />}
+              onClick={() => {
+                setEditIndex(null)
+                setDrawerType('gas')
+              }}
+            >
+              Add New
+            </Button>
+          </Box>
+          <CommonTable
+            columns={gasColumns}
+            indexedRows={gasesData}
+            rowHeight={64}
+            total={gasesData?.length || 0}
+            externalTableStyle={{
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: theme.palette.customColors.neutral05,
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: theme.palette.customColors.OnSurfaceVariant
+              }
+            }}
+          />
+        </>
+      )}
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', mb: 4 }}>
+        {medications.length === 0 && renderAddSection('Medication', 'medication', 'Add Drug')}
+        {gases.length === 0 && renderAddSection('Gas', 'gas', 'Add Gas')}
       </Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <StyledTypography fontSize={'1rem'} fontWeight={600}>
-          Medication - 3
-        </StyledTypography>
-        <Button variant='contained' endIcon={<AddIcon />} onClick={() => setDrawerType('medication')}>
-          Add New{' '}
-        </Button>
-      </Box>
-      {/* {drawerType === 'medication' && ( */}
-      <CommonTable
-        columns={medicationColumns}
-        // loading={loading}
-        indexedRows={medicationsData}
-        rowHeight={64}
-        total={medicationsData?.length || 0}
-        externalTableStyle={{
-          '& .MuiDataGrid-columnHeaders': {
-            backgroundColor: theme.palette.customColors.neutral05,
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }
-        }}
-      />
-      {/* )} */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <StyledTypography fontSize={'1rem'} fontWeight={600}>
-          Gas - 3
-        </StyledTypography>
-        <Button variant='contained' endIcon={<AddIcon />} onClick={() => setDrawerType('medication')}>
-          Add New{' '}
-        </Button>
-      </Box>
-      {/* {drawerType === 'gas' && ( */}
-      <CommonTable
-        columns={gasColumns}
-        // loading={loading}
-        indexedRows={gasData}
-        rowHeight={64}
-        total={medicationsData?.length || 0}
-        externalTableStyle={{
-          '& .MuiDataGrid-columnHeaders': {
-            backgroundColor: theme.palette.customColors.neutral05,
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }
-        }}
-      />
-      {/* )} */}
 
       {drawerType === 'medication' && (
         <AddMedicationDrawer
           handleSidebarOpen={Boolean(drawerType)}
-          handleSubmitData={handleSubmitData}
-          handleSidebarClose={() => setDrawerType(null)}
+          handleSubmitData={handleSubmitMedication}
+          handleSidebarClose={handleCloseDrawer}
           submitLoader={submitLoader}
+          editData={editIndex !== null ? medications[editIndex] : null}
+          drugOptions={drugOptions}
+          unitOptions={unitOptions}
+          deliveryRouteOptions={deliveryRouteOptions}
         />
       )}
       {drawerType === 'gas' && (
         <AddGasDrawer
           handleSidebarOpen={Boolean(drawerType)}
-          handleSubmitData={handleSubmitData}
-          handleSidebarClose={() => setDrawerType(null)}
+          handleSubmitData={handleSubmitGas}
+          handleSidebarClose={handleCloseDrawer}
           submitLoader={submitLoader}
+          editData={editIndex !== null ? gases[editIndex] : null}
+          gasOptions={gasOptions}
+          deliveryRouteOptions={deliveryRouteOptions}
         />
       )}
     </Box>

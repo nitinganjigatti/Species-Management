@@ -62,8 +62,8 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
     return { val: v || '', unit: u || 'hr' }
   }
 
-  const purposes = watch('basicDetails.purpose') || []
-  const customPurposes = purposes.filter(p => !purposeOptions.includes(p))
+  const selectedPurpose = watch('basicDetails.purpose') || []
+  const selectedOtherPurpose = watch('basicDetails.otherPurpose') || []
 
   return (
     <Box sx={{ width: '100%', p: 0 }}>
@@ -116,25 +116,29 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
             defaultValue=''
             render={({ field }) => {
               const { val, unit } = parseEstimatedTime(field.value)
+
               const handleChange = (newVal, newUnit) => {
                 const combined = newVal ? `${newVal} ${newUnit}` : ''
                 field.onChange(combined)
               }
+
+              const showUnit = String(val ?? '').trim().length > 0
 
               return (
                 <TextField
                   fullWidth
                   label='Estimated Time Required'
                   placeholder='Enter'
+                  type='number'
                   value={val}
                   onChange={e => handleChange(e.target.value, unit)}
                   error={!!errors.basicDetails?.estimatedTime}
                   helperText={errors.basicDetails?.estimatedTime?.message}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '4px', height: '56px' } }}
+                  sx={{ ...commonTextFieldSx, '& .MuiOutlinedInput-root': { borderRadius: '4px', height: '56px' } }}
                   slotProps={{
                     input: {
                       'data-field': 'estimatedTime',
-                      endAdornment: (
+                      endAdornment: showUnit ? (
                         <InputAdornment position='end' sx={{ mr: 0.5 }}>
                           <Box
                             sx={{ display: 'flex', alignItems: 'center', width: '80px', justifyContent: 'flex-end' }}
@@ -164,7 +168,7 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
                             </TextField>
                           </Box>
                         </InputAdornment>
-                      )
+                      ) : null
                     }
                   }}
                 />
@@ -194,6 +198,7 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
                       fullWidth
                       error={!!errors?.basicDetails?.veterinarian}
                       helperText={errors?.basicDetails?.veterinarian?.message}
+                      sx={commonTextFieldSx}
                     />
                   )}
                 />
@@ -220,6 +225,7 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
                       fullWidth
                       error={!!errors?.basicDetails?.anesthetist}
                       helperText={errors?.basicDetails?.anesthetist?.message}
+                      sx={commonTextFieldSx}
                     />
                   )}
                 />
@@ -296,7 +302,7 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
                 </Typography>
               )}
 
-              {customPurposes.length > 0 && (
+              {selectedOtherPurpose.length > 0 && (
                 <Box mt={5}>
                   <Typography
                     sx={{
@@ -310,7 +316,7 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
                   </Typography>
 
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                    {customPurposes.map(p => (
+                    {selectedOtherPurpose.map(p => (
                       <Box
                         key={p}
                         sx={{
@@ -327,7 +333,10 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
                       >
                         <span style={{ whiteSpace: 'nowrap' }}>{p}</span>
                         <Button
-                          onClick={() => field.onChange((field.value || []).filter(item => item !== p))}
+                          onClick={() => {
+                            const updated = selectedOtherPurpose.filter(item => item !== p)
+                            setValue('basicDetails.otherPurpose', updated, { shouldValidate: true })
+                          }}
                           aria-label={`Remove ${p}`}
                           sx={{
                             minWidth: 0,
@@ -380,8 +389,9 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
                     onClick={() => {
                       const v = newPurpose.trim()
                       if (!v) return
-                      const current = Array.isArray(field.value) ? field.value : []
-                      field.onChange([...current, v])
+
+                      const current = watch('basicDetails.otherPurpose') || []
+                      setValue('basicDetails.otherPurpose', [...current, v], { shouldValidate: true })
                       setNewPurpose('')
                     }}
                     sx={{

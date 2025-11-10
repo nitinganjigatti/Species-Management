@@ -49,10 +49,10 @@ export const anesthesiaSchema = yup.object({
 const sections = [
   { id: 'basicDetails', label: 'Basic Detail', component: BasicDetails },
   { id: 'medicationsGas', label: 'Medications & Gas', component: MedicationsGasSection },
-  { id: 'attachments', label: 'Attachments', component: AttachmentsSection },
   { id: 'anesthesiaSetUp', label: 'Anesthesia Set Up', component: AnesthesiaSetUpSection },
   { id: 'preAnesthesia', label: 'Pre Anesthesia', component: PreAnesthesia },
-  { id: 'vitalMonitoring', label: 'Vital Monitoring', component: VitalMonitoring }
+  { id: 'vitalMonitoring', label: 'Vital Monitoring', component: VitalMonitoring },
+  { id: 'attachments', label: 'Attachments', component: AttachmentsSection }
 ]
 
 export default function AddAnesthesiaRecord() {
@@ -61,7 +61,6 @@ export default function AddAnesthesiaRecord() {
   const sectionRefs = React.useRef({})
   const scrollContainerRef = React.useRef(null)
   const theme = useTheme()
-  const HEADER_HEIGHT = 120
 
   const vetOptions = [
     { id: 1, name: 'Dr. John D Sam' },
@@ -75,6 +74,37 @@ export default function AddAnesthesiaRecord() {
     { id: 3, name: 'Dr. Vineet R' }
   ]
 
+  const drugOptions = [
+    { drug_id: '1', drug_name: 'Ketamine 100 MG Tablet' },
+    { drug_id: '2', drug_name: 'Acepromazine' },
+    { drug_id: '3', drug_name: 'Propofol' },
+    { drug_id: '4', drug_name: 'Midazolam' },
+    { drug_id: '5', drug_name: 'Fentanyl' }
+  ]
+
+  const gasOptions = [
+    { gas_id: '1', gas_name: 'Halothane' },
+    { gas_id: '2', gas_name: 'Isoflurane' },
+    { gas_id: '3', gas_name: 'Sevoflurane' },
+    { gas_id: '4', gas_name: 'Oxygen' },
+    { gas_id: '5', gas_name: 'Nitrous Oxide' }
+  ]
+
+  const unitOptions = [
+    { label: 'mg', value: 'mg' },
+    { label: 'ml', value: 'ml' },
+    { label: 'g', value: 'g' },
+    { label: 'mcg', value: 'mcg' }
+  ]
+
+  const deliveryRouteOptions = [
+    { label: 'Intramuscular', value: 'intramuscular' },
+    { label: 'Intravenous', value: 'intravenous' },
+    { label: 'Subcutaneous', value: 'subcutaneous' },
+    { label: 'Oral', value: 'oral' },
+    { label: 'Inhalation', value: 'inhalation' }
+  ]
+
   const methods = useForm({
     defaultValues: {
       basicDetails: {
@@ -84,6 +114,7 @@ export default function AddAnesthesiaRecord() {
         veterinarian: '',
         anesthetist: '',
         purpose: [],
+        otherPurpose: [],
         notes: ''
       },
       anesthesiaSetup: {
@@ -94,6 +125,10 @@ export default function AddAnesthesiaRecord() {
         nasalIntubation: { checked: false, fluidType: '', quantity: '' },
         ventilation: { checked: false, mode: '' },
         monitoring: { checked: false, selected: [], otherItems: [] }
+      },
+      medicationsGas: {
+        medications: [],
+        gases: []
       },
       attachments: {
         files: [],
@@ -109,23 +144,155 @@ export default function AddAnesthesiaRecord() {
     handleSubmit,
     setError,
     clearErrors,
+    reset,
+    setValue,
+    watch,
     formState: { errors }
   } = methods
 
+  const medications = watch('medicationsGas.medications')
+  const gases = watch('medicationsGas.gases')
+
+  const handleAddMedication = React.useCallback(
+    medicationData => {
+      setValue('medicationsGas.medications', [...medications, medicationData])
+    },
+    [medications, setValue]
+  )
+
+  const handleAddGas = React.useCallback(
+    gasData => {
+      setValue('medicationsGas.gases', [...gases, gasData])
+    },
+    [gases, setValue]
+  )
+
+  const handleUpdateMedication = React.useCallback(
+    (index, medicationData) => {
+      const updatedMedications = [...medications]
+      updatedMedications[index] = medicationData
+      setValue('medicationsGas.medications', updatedMedications)
+    },
+    [medications, setValue]
+  )
+
+  const handleUpdateGas = React.useCallback(
+    (index, gasData) => {
+      const updatedGases = [...gases]
+      updatedGases[index] = gasData
+      setValue('medicationsGas.gases', updatedGases)
+    },
+    [gases, setValue]
+  )
+
+  const handleDeleteMedication = React.useCallback(
+    index => {
+      const updatedMedications = medications.filter((_, i) => i !== index)
+      setValue('medicationsGas.medications', updatedMedications)
+    },
+    [medications, setValue]
+  )
+
+  const handleDeleteGas = React.useCallback(
+    index => {
+      const updatedGases = gases.filter((_, i) => i !== index)
+      setValue('medicationsGas.gases', updatedGases)
+    },
+    [gases, setValue]
+  )
+
   const handleChange = sectionId => {
+    const isExpanding = expanded !== sectionId
     setExpanded(sectionId)
-    const target = sectionRefs.current[sectionId]
-    const scrollContainer = scrollContainerRef.current
-    if (target && scrollContainer) {
-      const targetTop = target.offsetTop - HEADER_HEIGHT
-      scrollContainer.scrollTo({ top: targetTop, behavior: 'smooth' })
+
+    if (isExpanding) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            const target = sectionRefs.current[sectionId]
+            const scrollContainer = scrollContainerRef.current
+
+            if (target && scrollContainer) {
+              const containerRect = scrollContainer.getBoundingClientRect()
+              const targetRect = target.getBoundingClientRect()
+
+              const offset = 8
+              const scrollTop = scrollContainer.scrollTop + targetRect.top - containerRect.top - offset
+
+              scrollContainer.scrollTo({
+                top: scrollTop,
+                behavior: 'smooth'
+              })
+            }
+          }, 350)
+        })
+      })
     }
   }
 
+  //   React.useEffect(() => {
+  //     // Simulate API details response
+  //     const fetchedData = {
+  //       basicDetails: {
+  //         location: 'Main Zoo Wing',
+  //         dateTime: '2025-01-10T14:30',
+  //         estimatedTime: '2 hr',
+  //         veterinarian: 1,
+  //         anesthetist: 3,
+  //         purpose: ['Ultrasonography', 'MRI'],
+  //         notes: 'Sedated for imaging session.'
+  //       },
+  //       medicationsGas: {
+  //         medications: [
+  //           {
+  //             drug_name: { drug_id: '3', drug_name: 'Propofol' },
+  //             purpose_stage: 'Induction',
+  //             amount: '10',
+  //             unit: 'mg',
+  //             delivery_route: 'intravenous',
+  //             delivery_time: '12:00 PM',
+  //             delivery_status: 'complete',
+  //             max_effect_time: '12:15 PM',
+  //             notes: 'Given slowly'
+  //           }
+  //         ],
+  //         gases: [
+  //           {
+  //             gas_name: { gas_id: '2', gas_name: 'Isoflurane' },
+  //             concentration: '2%',
+  //             flow_rate: '1.5',
+  //             notes: 'Stable readings'
+  //           }
+  //         ]
+  //       },
+  //       anesthesiaSetup: {
+  //         fluids: { checked: true, fluidType: 'Ringer Lactate', quantity: '80' },
+  //         catheterSetup: { checked: true, method: 'IV' },
+  //         syringePump: { checked: true, rate: '2' },
+  //         etIntubation: { checked: true, tubeSizes: '2mm, 3mm' },
+  //         nasalIntubation: { checked: false, fluidType: '', quantity: '' },
+  //         ventilation: { checked: true, mode: 'Manual' },
+  //         monitoring: {
+  //           checked: true,
+  //           selected: ['Pulse ox', 'ECG'],
+  //           otherItems: ['Blood pressure']
+  //         }
+  //       },
+  //       attachments: {
+  //         files: [],
+  //         comments: 'Uploaded in next step'
+  //       }
+  //     }
+
+  //     reset(fetchedData)
+  //   }, [reset])
+
   const onValid = data => {
-    console.log(' basicdetails:', data.basicDetails)
+    console.log('Basic details:', data.basicDetails)
+    console.log('Medications:', data.medicationsGas.medications)
+    console.log('Gases:', data.medicationsGas.gases)
     console.log('Files:', data.attachments.files)
-    console.log(data, 'data')
+    console.log('Complete data:', data)
 
     //  API here
   }
@@ -282,7 +449,21 @@ export default function AddAnesthesiaRecord() {
                 </AccordionSummary>
 
                 <AccordionDetails sx={{ pt: 0 }}>
-                  <SectionComponent sectionId={id} vetOptions={vetOptions} anesthetistOptions={anesthetistOptions} />
+                  <SectionComponent
+                    sectionId={id}
+                    vetOptions={vetOptions}
+                    anesthetistOptions={anesthetistOptions}
+                    drugOptions={drugOptions}
+                    gasOptions={gasOptions}
+                    unitOptions={unitOptions}
+                    deliveryRouteOptions={deliveryRouteOptions}
+                    onAddMedication={handleAddMedication}
+                    onAddGas={handleAddGas}
+                    onUpdateMedication={handleUpdateMedication}
+                    onUpdateGas={handleUpdateGas}
+                    onDeleteMedication={handleDeleteMedication}
+                    onDeleteGas={handleDeleteGas}
+                  />
                 </AccordionDetails>
               </Accordion>
             ))}

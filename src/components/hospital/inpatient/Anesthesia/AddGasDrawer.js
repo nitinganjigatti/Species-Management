@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { Box, Card, Chip, Drawer, IconButton, Typography, useTheme } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 
@@ -8,11 +8,13 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
-import { alpha, Grid } from '@mui/system'
+import { Grid } from '@mui/system'
 import { LoadingButton } from '@mui/lab'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
-import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+dayjs.extend(customParseFormat)
 
 // Validation Schema
 const schema = yup.object().shape({
@@ -44,10 +46,19 @@ const defaultValues = {
   concentration: '',
   start_time: null,
   delivery_route: '',
+  delivery_status: null,
   end_time: null
 }
 
-function AddGasDrawer({ handleSidebarOpen, handleSidebarClose, handleSubmitData, submitLoader }) {
+function AddGasDrawer({
+  handleSidebarOpen,
+  handleSidebarClose,
+  handleSubmitData,
+  submitLoader,
+  editData,
+  gasOptions = [],
+  deliveryRouteOptions = []
+}) {
   const theme = useTheme()
   const [selectedStatus, setSelectedStatus] = useState(null)
 
@@ -55,6 +66,7 @@ function AddGasDrawer({ handleSidebarOpen, handleSidebarClose, handleSubmitData,
     reset,
     control,
     handleSubmit,
+    setValue,
     formState: { errors, isValid }
   } = useForm({
     defaultValues,
@@ -64,32 +76,56 @@ function AddGasDrawer({ handleSidebarOpen, handleSidebarClose, handleSubmitData,
     reValidateMode: 'onChange'
   })
 
-  // Handle form submission to create medications
+  useEffect(() => {
+    if (!handleSidebarOpen) return
+    if (editData) {
+      const parseTime = t => (t ? dayjs(t, 'hh:mm A', true) : null)
+
+      Object.keys(defaultValues).forEach(key => {
+        if (key !== 'start_time' && key !== 'end_time') {
+          setValue(key, editData[key] ?? defaultValues[key])
+        }
+      })
+
+      setValue('start_time', parseTime(editData.start_time))
+      setValue('end_time', parseTime(editData.end_time))
+
+      if (editData.delivery_status) setSelectedStatus(editData.delivery_status)
+    } else {
+      reset(defaultValues)
+      setSelectedStatus(null)
+    }
+  }, [editData, setValue, reset])
+
   const onSubmit = useCallback(
     async formData => {
+      const fmt = v => (v ? dayjs(v).format('hh:mm A') : null)
       const payload = {
         gas_name: formData.gas_name,
         o2_flow: formData.o2_flow,
         concentration: formData.concentration,
-        start_time: formData.start_time,
+        start_time: fmt(formData.start_time),
         delivery_route: formData.delivery_route,
-        end_time: formData.end_time
+        delivery_status: selectedStatus,
+        end_time: fmt(formData.end_time)
       }
 
       try {
         await handleSubmitData(payload)
         reset(defaultValues)
+        setSelectedStatus(null)
         handleSidebarClose()
       } catch (error) {
         console.error('Error submitting form:', error)
       }
     },
-    [handleSubmitData, reset, handleSidebarClose]
+    [handleSubmitData, reset, handleSidebarClose, selectedStatus]
   )
 
   // Close handler
   const handleClose = useCallback(() => {
     reset(defaultValues)
+    setSelectedStatus(null)
     handleSidebarClose()
   }, [reset, handleSidebarClose])
 
@@ -114,7 +150,7 @@ function AddGasDrawer({ handleSidebarOpen, handleSidebarClose, handleSubmitData,
           <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Hospital Icon' />
 
           <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-            Add Gas
+            {editData ? 'Edit Gas' : 'Add Gas'}
           </Typography>
         </Box>
 
@@ -123,7 +159,6 @@ function AddGasDrawer({ handleSidebarOpen, handleSidebarClose, handleSubmitData,
         </IconButton>
       </Box>
 
-      {/* Sidebar Body */}
       <Box
         className='sidebar-body'
         sx={{
@@ -142,7 +177,7 @@ function AddGasDrawer({ handleSidebarOpen, handleSidebarClose, handleSubmitData,
                   name='gas_name'
                   errors={errors}
                   label='Enter Gas Name*'
-                  options={[]}
+                  options={gasOptions}
                   getOptionLabel={option => option?.gas_name || ''}
                   isOptionEqualToValue={(option, value) => option?.gas_id === value?.gas_id}
                   renderOption={(props, option) => (
@@ -160,6 +195,7 @@ function AddGasDrawer({ handleSidebarOpen, handleSidebarClose, handleSubmitData,
                   name='o2_flow'
                   placeholder='O2 Flow (L/min)'
                   fullWidth
+                  type='number'
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
@@ -170,10 +206,17 @@ function AddGasDrawer({ handleSidebarOpen, handleSidebarClose, handleSubmitData,
                   name='concentration'
                   placeholder='Concentration (%)'
                   fullWidth
+                  type='number'
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
-                <ControlledTimePicker control={control} name={'start_time'} label='Start Time*' errors={errors} />
+                <ControlledTimePicker
+                  control={control}
+                  name={'start_time'}
+                  label='Start Time*'
+                  errors={errors}
+                  format='hh:mm a'
+                />
               </Grid>
               <Grid size={{ xs: 6 }}>
                 <ControlledSelect
@@ -181,7 +224,7 @@ function AddGasDrawer({ handleSidebarOpen, handleSidebarClose, handleSubmitData,
                   name='delivery_route'
                   errors={errors}
                   label='Delivery Route*'
-                  options={[]}
+                  options={deliveryRouteOptions}
                   getOptionLabel={option => option.label}
                   getOptionValue={option => option.value}
                 />
@@ -207,24 +250,19 @@ function AddGasDrawer({ handleSidebarOpen, handleSidebarClose, handleSubmitData,
                           selectedStatus === status.value
                             ? theme.palette.primary.contrastText
                             : theme.palette.text.primary
-
-                        // '&:hover': {
-                        //   backgroundColor:
-                        //     selectedStatus === status.value
-                        //       ? theme.palette.customColors.OnSecondaryContainer
-                        //       : theme.palette.action.hover,
-                        //   color:
-                        //     selectedStatus === status.value
-                        //       ? theme.palette.primary.contrastText
-                        //       : theme.palette.text.primary
-                        // }
                       }}
                     />
                   ))}
                 </Box>
               </Grid>
               <Grid size={{ xs: 12 }}>
-                <ControlledTimePicker control={control} name={'end_time'} label='End Time*' errors={errors} />
+                <ControlledTimePicker
+                  control={control}
+                  name={'end_time'}
+                  label='End Time*'
+                  errors={errors}
+                  format='hh:mm a'
+                />
               </Grid>
             </Grid>
           </Card>
@@ -266,7 +304,7 @@ function AddGasDrawer({ handleSidebarOpen, handleSidebarClose, handleSubmitData,
                 sx={{ flex: 1, py: 4 }}
                 disabled={!isValid || submitLoader}
               >
-                Add
+                {editData ? 'Update' : 'Add'}
               </LoadingButton>
             </Box>
           </Box>

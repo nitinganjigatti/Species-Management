@@ -1,8 +1,6 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { Box, Card, Chip, Drawer, IconButton, Typography, useTheme } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-
-// ** Form & Validation Setup
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form'
@@ -13,6 +11,9 @@ import { LoadingButton } from '@mui/lab'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+dayjs.extend(customParseFormat)
 
 // Validation Schema
 const schema = yup.object().shape({
@@ -27,6 +28,7 @@ const schema = yup.object().shape({
   purpose_stage: yup.string().trim().required('Purpose or stage is required'),
   amount: yup.string().trim().required('Amount is required'),
   unit: yup.string().required('Unit is required'),
+  delivery_time: yup.date().nullable().required('Delivery Time is required'),
   delivery_route: yup.string().required('Delivery Route is required'),
   max_effect_time: yup.date().nullable().required('Max Effect Time is required'),
   notes: yup.string().trim().required('Note is required')
@@ -45,11 +47,22 @@ const defaultValues = {
   amount: '',
   unit: '',
   delivery_route: '',
+  delivery_time: null,
+  delivery_status: null,
   max_effect_time: null,
   notes: ''
 }
 
-function AddMedicationDrawer({ handleSidebarOpen, handleSidebarClose, handleSubmitData, submitLoader }) {
+function AddMedicationDrawer({
+  handleSidebarOpen,
+  handleSidebarClose,
+  handleSubmitData,
+  submitLoader,
+  editData,
+  drugOptions = [],
+  unitOptions = [],
+  deliveryRouteOptions = []
+}) {
   const theme = useTheme()
   const [selectedStatus, setSelectedStatus] = useState(null)
 
@@ -57,6 +70,7 @@ function AddMedicationDrawer({ handleSidebarOpen, handleSidebarClose, handleSubm
     reset,
     control,
     handleSubmit,
+    setValue,
     formState: { errors, isValid }
   } = useForm({
     defaultValues,
@@ -66,33 +80,59 @@ function AddMedicationDrawer({ handleSidebarOpen, handleSidebarClose, handleSubm
     reValidateMode: 'onChange'
   })
 
-  // Handle form submission to create medications
+  useEffect(() => {
+    if (!handleSidebarOpen) return
+    if (editData) {
+      const parseTime = t => (t ? dayjs(t, 'hh:mm A', true) : null)
+
+      Object.keys(defaultValues).forEach(key => {
+        if (key !== 'delivery_time' && key !== 'max_effect_time') {
+          setValue(key, editData[key] ?? defaultValues[key])
+        }
+      })
+
+      setValue('delivery_time', parseTime(editData.delivery_time))
+      setValue('max_effect_time', parseTime(editData.max_effect_time))
+
+      if (editData.delivery_status) setSelectedStatus(editData.delivery_status)
+    } else {
+      reset(defaultValues)
+      setSelectedStatus(null)
+    }
+  }, [editData, setValue, reset])
+
   const onSubmit = useCallback(
     async formData => {
+      const fmt = v => (v ? dayjs(v).format('hh:mm A') : null)
+
       const payload = {
         drug_name: formData.drug_name,
         purpose_stage: formData.purpose_stage,
         amount: formData.amount,
         unit: formData.unit,
         delivery_route: formData.delivery_route,
-        max_effect_time: formData.max_effect_time,
+        delivery_time: fmt(formData.delivery_time),
+        delivery_status: selectedStatus,
+        max_effect_time: fmt(formData.max_effect_time),
         notes: formData.notes
       }
 
       try {
         await handleSubmitData(payload)
         reset(defaultValues)
+        setSelectedStatus(null)
         handleSidebarClose()
       } catch (error) {
         console.error('Error submitting form:', error)
       }
     },
-    [handleSubmitData, reset, handleSidebarClose]
+    [handleSubmitData, reset, handleSidebarClose, selectedStatus]
   )
 
   // Close handler
   const handleClose = useCallback(() => {
     reset(defaultValues)
+    setSelectedStatus(null)
     handleSidebarClose()
   }, [reset, handleSidebarClose])
 
@@ -117,7 +157,7 @@ function AddMedicationDrawer({ handleSidebarOpen, handleSidebarClose, handleSubm
           <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Hospital Icon' />
 
           <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-            Add Drug
+            {editData ? 'Edit Drug' : 'Add Drug'}
           </Typography>
         </Box>
 
@@ -145,7 +185,7 @@ function AddMedicationDrawer({ handleSidebarOpen, handleSidebarClose, handleSubm
                   name='drug_name'
                   errors={errors}
                   label='Enter Drug Name*'
-                  options={[]}
+                  options={drugOptions}
                   getOptionLabel={option => option?.drug_name || ''}
                   isOptionEqualToValue={(option, value) => option?.drug_id === value?.drug_id}
                   renderOption={(props, option) => (
@@ -173,6 +213,7 @@ function AddMedicationDrawer({ handleSidebarOpen, handleSidebarClose, handleSubm
                   name='amount'
                   placeholder='Enter amount'
                   fullWidth
+                  type='number'
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
@@ -181,13 +222,19 @@ function AddMedicationDrawer({ handleSidebarOpen, handleSidebarClose, handleSubm
                   name='unit'
                   errors={errors}
                   label='Unit*'
-                  options={[]}
+                  options={unitOptions}
                   getOptionLabel={option => option.label}
                   getOptionValue={option => option.value}
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
-                <ControlledTimePicker control={control} name={'delivery_time'} label='Delivery Time*' errors={errors} />
+                <ControlledTimePicker
+                  control={control}
+                  name={'delivery_time'}
+                  label='Delivery Time*'
+                  format='hh:mm a'
+                  errors={errors}
+                />
               </Grid>
               <Grid size={{ xs: 6 }}>
                 <ControlledSelect
@@ -195,7 +242,7 @@ function AddMedicationDrawer({ handleSidebarOpen, handleSidebarClose, handleSubm
                   name='delivery_route'
                   errors={errors}
                   label='Delivery Route*'
-                  options={[]}
+                  options={deliveryRouteOptions}
                   getOptionLabel={option => option.label}
                   getOptionValue={option => option.value}
                 />
@@ -221,17 +268,6 @@ function AddMedicationDrawer({ handleSidebarOpen, handleSidebarClose, handleSubm
                           selectedStatus === status.value
                             ? theme.palette.primary.contrastText
                             : theme.palette.text.primary
-
-                        // '&:hover': {
-                        //   backgroundColor:
-                        //     selectedStatus === status.value
-                        //       ? theme.palette.customColors.OnSecondaryContainer
-                        //       : theme.palette.action.hover,
-                        //   color:
-                        //     selectedStatus === status.value
-                        //       ? theme.palette.primary.contrastText
-                        //       : theme.palette.text.primary
-                        // }
                       }}
                     />
                   ))}
@@ -242,6 +278,7 @@ function AddMedicationDrawer({ handleSidebarOpen, handleSidebarClose, handleSubm
                   control={control}
                   name={'max_effect_time'}
                   label='Max Effect Time*'
+                  format='hh:mm a'
                   errors={errors}
                 />
               </Grid>
@@ -297,7 +334,7 @@ function AddMedicationDrawer({ handleSidebarOpen, handleSidebarClose, handleSubm
                 sx={{ flex: 1, py: 4 }}
                 disabled={!isValid || submitLoader}
               >
-                Add
+                {editData ? 'Update' : 'Add'}
               </LoadingButton>
             </Box>
           </Box>
