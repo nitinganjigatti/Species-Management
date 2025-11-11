@@ -46,24 +46,17 @@ function MedicationsGasSection({
       flex: 1,
       sortable: false,
       renderCell: params => (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column'
+        <TextEllipsisWithModal
+          enableDialog={false}
+          text={params.row.drug_name?.drug_name ?? '-'}
+          style={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: 500,
+            pl: 2,
+            maxWidth: '200px'
           }}
-        >
-          <TextEllipsisWithModal
-            enableDialog={false}
-            text={params.row.drug_name?.drug_name ?? '-'}
-            style={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '14px',
-              fontWeight: 500,
-              pl: 2,
-              maxWidth: '200px'
-            }}
-          />
-        </Box>
+        />
       )
     },
     {
@@ -111,6 +104,7 @@ function MedicationsGasSection({
       sortable: false,
       renderCell: params => {
         const time = params.row.delivery_time ? (params.row.delivery_time ? params.row.delivery_time : '-') : '-'
+
         return <StyledTypography>{time}</StyledTypography>
       }
     },
