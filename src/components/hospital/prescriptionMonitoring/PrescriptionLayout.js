@@ -1,5 +1,5 @@
 import { Grid, Box } from '@mui/system'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import PrescriptionMonitoringGrid from './PrescriptionMonitoringGrid'
 import { AdministerMedicineModal, MedicineScheduleView } from 'src/views/pages/hospital/prescription-monitoring'
 import MedicinePrescriptionCard from 'src/views/pages/hospital/prescription-monitoring/MedicinePrescriptionCard'
@@ -11,6 +11,7 @@ import {
   administerDose,
   administerPrescription,
   getDates,
+  getMedicineBatches,
   getPrescriptionDetails,
   getPrescriptions,
   skipPrescription,
@@ -20,6 +21,9 @@ import Utility from 'src/utility'
 import { status } from 'nprogress'
 import AdministerOrSkipModal from 'src/views/pages/hospital/prescription-monitoring/AdministerOrSkipModal'
 import { SelectAll } from '@mui/icons-material'
+import { getMedicalMasterData } from 'src/lib/api/hospital/medicalMaster'
+import { debounce } from 'lodash'
+import ScheduleDosage from 'src/views/pages/hospital/prescription-monitoring/ScheduleDosage'
 
 function PrescriptionLayout({ drawerType }) {
   const [openSchedule, setOpenSchedule] = useState(false)
@@ -40,6 +44,15 @@ function PrescriptionLayout({ drawerType }) {
   const [isSelectedAll, setIsSelectedAll] = useState(false)
   const [isSkipLoading, setIsSkipLoading] = useState(false)
   const [isAdministerLoading, setIsAdministerLoading] = useState(false)
+  const [medicalMasterData, setMedicalMasterData] = useState(null)
+  const [medicalMasterDataLoading, setMedicalMasterDataLoading] = useState(false)
+  const [administerModelOpen, setAdministerModelOpen] = useState(false)
+  const [batchList, setBatchList] = useState([])
+  const [batchSearchQuery, setBatchSearchQuery] = useState('')
+  const [batchLoading, setBatchLoading] = useState(false)
+  const [selectedSlotData, setSelectedSlotData] = useState(null)
+  const [isScheduleDosageModelOpen, setIsScheduleDosageModelOpen] = useState(false)
+  const [isAdministerDosageModelOpen, setIsAdministerDosageModelOpen] = useState(false)
 
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
   const [selectedDate, setSelectedDate] = useState(today)
@@ -80,7 +93,7 @@ function PrescriptionLayout({ drawerType }) {
       const response = await stopPrescription(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: 'Medicine stopped successfully' })
+        Toaster({ type: 'success', message: response?.message || 'Medicine stopped successfully' })
 
         // Refresh the prescription list
         getPrescriptionList()
@@ -94,10 +107,10 @@ function PrescriptionLayout({ drawerType }) {
       }
 
       // For now, just show a success message
-      Toaster({
-        type: 'success',
-        message: `Medicine stopped. Reason: ${data.reason}. Adverse effects: ${data.hasAdverseEffects}`
-      })
+      // Toaster({
+      //   type: 'success',
+      //   message: `Medicine stopped. Reason: ${data.reason}. Adverse effects: ${data.hasAdverseEffects}`
+      // })
 
       // Optionally refresh the data
       // getPrescriptionList()
@@ -163,9 +176,9 @@ function PrescriptionLayout({ drawerType }) {
       setIsDetailLoading(true)
 
       const payload = {
-        prescription_id: data?.id,
+        prescription_id: data?.id || medicineDetails?.prescription_id,
         date: detailSelectedDate,
-        group_prescription_id: data?.id
+        group_prescription_id: data?.id || medicineDetails?.prescription_id
       }
 
       const response = await getPrescriptionDetails(payload)
@@ -244,39 +257,49 @@ function PrescriptionLayout({ drawerType }) {
 
   const handleAdministerOrSkipClose = () => setIsAdministerOrSkipPopupOpen(false)
 
-  const handleSubmit = async data => {
+  const handleAdministerOrSubmit = async data => {
     setIsAdministerOrSkipPopupLoading(true)
-
+    console.log('handleAdministerOrSubmit data', data)
     try {
+      const quantityUnit = medicalMasterData?.prescriptionMeasurementType?.find(
+        item => item.uom_abbr === data?.quantityUnit
+      )
+
+      const wastageUnit = medicalMasterData?.prescriptionMeasurementType?.find(
+        item => item.uom_abbr === data?.wastageUnit
+      )
+
+      console.log('quantityUnit', quantityUnit)
+      console.log('wastageUnit', wastageUnit)
+
       // Process the form data based on action type
-      if (data.action === 'administer') {
-        console.log('Administering medicine with data:', {
-          time: data.time,
-          quantity: data.quantity,
-          quantityUnit: data.quantityUnit,
-          wastageQuantity: data.wastageQuantity,
-          wastageUnit: data.wastageUnit,
-          notes: data.notes,
-          batchNumber: data.batchNumber,
-          attachment: data.attachment
-        })
-
-        // Your API call for administering medicine
-        // await administerMedicine(data)
-      } else if (data.action === 'skipped') {
-        console.log('Skipping medicine with data:', {
-          time: data.time,
-          quantity: data.quantity,
-          quantityUnit: data.quantityUnit,
-          skipReason: data.skipReason
-        })
-
-        // Your API call for skipping medicine
-        // await skipMedicine(data)
+      const payload = {
+        medical_record_id: JSON.stringify([medical_record_id]),
+        medicine_id: JSON.stringify([selectedSlotData?.timeSlot?.medicine_id]),
+        type: 'single',
+        purpose: data.action === 'administer' ? 'administer' : 'withheld',
+        side_effect: 0,
+        administer_id: JSON.stringify([selectedSlotData?.timeSlot?.schedule_id]),
+        batch_details: JSON.stringify([
+          {
+            id: data?.batchNumber?.id,
+            batch_no: data?.batchNumber?.batch_no,
+            animal_id: [animal_id],
+            wastage_quantity: data?.wastageQuantity,
+            reason: data?.skipReason,
+            wastage_unit_id: wastageUnit?.id
+          }
+        ]),
+        administritive_time: new Date().toLocaleTimeString('en-GB', { hour12: false }),
+        group_prescription_id: data?.group_prescription_id || data?.id
       }
-
-      // Success handling
-      alert('Action completed successfully!')
+      const response = await administerDose(payload)
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message })
+        getPrescriptionList()
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
 
       // handleClose()
     } catch (error) {
@@ -400,10 +423,207 @@ function PrescriptionLayout({ drawerType }) {
     }
   }
 
+  const fetchMedicalMasterData = useCallback(async () => {
+    try {
+      setMedicalMasterDataLoading(true)
+      const response = await getMedicalMasterData()
+      if (response?.success) {
+        setMedicalMasterData({
+          ...response?.data,
+
+          // prescriptionFrequency: frequencyData || [],
+          prescriptionDosageMeasurementType:
+            response?.data?.prescriptionDosageMeasurementType?.map(item => ({ ...item, value: item.key })) || [],
+          prescriptionDuration: response?.data?.prescriptionDuration?.map(item => ({ ...item, value: item.key })) || [],
+          prescriptionMeasurementType:
+            response?.data?.prescriptionMeasurementType?.map(item => ({
+              ...item,
+              label: item.unit_name,
+              value: item.uom_abbr
+            })) || [],
+          prescriptionDeliveryRoute:
+            response?.data?.prescriptionDeliveryRoute?.map(item => ({
+              ...item,
+              label: item.delivery,
+              value: item.route_abbr
+            })) || []
+        })
+      } else {
+        setMedicalMasterData([])
+      }
+    } catch (error) {
+      console.error('Error fetching medical master data:', error.message)
+    } finally {
+      setMedicalMasterDataLoading(false)
+    }
+  }, [])
+
   const handleAdministerOrSkipOpen = data => {
-    setSelectedMedicine(data)
-    console.log('data in handleAdministerOrSkipOpen:', data)
+    setSelectedSlotData(data)
+
+    // setSelectedMedicine(data)
+    if (!medicalMasterData) {
+      fetchMedicalMasterData()
+    }
+    setBatchList([])
     setIsAdministerOrSkipPopupOpen(true)
+  }
+
+  const handleAdministerSelectedFromDrawer = async (selectedItems, medicineData) => {
+    console.log('Administer selected medications from drawer:', selectedItems, medicineData)
+
+    try {
+      setIsAdministerLoading(true)
+
+      // Extract administritive_ids from selected items
+      const administerIds = JSON.stringify(selectedItems.map(item => item?.administritive_id).filter(Boolean))
+
+      const payload = {
+        medical_record_id: JSON.stringify([medical_record_id]),
+        medicine_id: JSON.stringify([medicineData?.medicine_id]),
+        type: 'single',
+        purpose: 'administer',
+        side_effect: 0,
+        administer_id: administerIds,
+        batch_details: [],
+        administritive_time: new Date().toLocaleTimeString('en-GB', { hour12: false }),
+        group_prescription_id: medicineData?.group_prescription_id || medicineData?.id
+      }
+
+      const response = await administerDose(payload)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Medications administered successfully' })
+
+        // Refresh the prescription list
+        getPrescriptionList()
+
+        // Refresh the drawer details
+        if (prescriptionCardOpen && medicineData) {
+          getDetails(medicineData, detailSelectedDate)
+        }
+
+        // Close the drawer after successful action
+        // handleClosePrescriptionCard()
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to administer medications' })
+      }
+    } catch (error) {
+      console.error('Error administering medications:', error)
+      Toaster({ type: 'error', message: error?.message || 'Something went wrong' })
+    } finally {
+      setIsAdministerLoading(false)
+    }
+  }
+
+  const handleSkipSelectedFromDrawer = async (selectedItems, medicineData) => {
+    console.log('Skip selected medications from drawer:', selectedItems, medicineData)
+
+    try {
+      setIsSkipLoading(true)
+
+      // Extract administritive_ids from selected items
+      const administerIds = JSON.stringify(selectedItems.map(item => item?.administritive_id).filter(Boolean))
+
+      const payload = {
+        medical_record_id: JSON.stringify([medical_record_id]),
+        medicine_id: JSON.stringify([medicineData?.medicine_id]),
+        type: 'single',
+        purpose: 'withheld', // "withheld" for skip
+        side_effect: 0,
+        administer_id: administerIds,
+        batch_details: [],
+        administritive_time: new Date().toLocaleTimeString('en-GB', { hour12: false }),
+        group_prescription_id: medicineData?.group_prescription_id || medicineData?.id
+      }
+
+      const response = await administerDose(payload)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Medications skipped successfully' })
+
+        // Refresh the prescription list
+        getPrescriptionList()
+
+        // Refresh the drawer details
+        if (prescriptionCardOpen && medicineData) {
+          getDetails(medicineData, detailSelectedDate)
+        }
+
+        // Close the drawer after successful action
+        // handleClosePrescriptionCard()
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to skip medications' })
+      }
+    } catch (error) {
+      console.error('Error skipping medications:', error)
+      Toaster({ type: 'error', message: error?.message || 'Something went wrong' })
+    } finally {
+      setIsSkipLoading(false)
+    }
+  }
+
+  const debouncedBatchSearch = useCallback(
+    debounce(async (medicineId, query = '') => {
+      if (!medicineId) {
+        console.log('No medicineId provided, skipping batch fetch')
+        setBatchList([])
+
+        return
+      }
+
+      try {
+        setBatchLoading(true)
+
+        const params = {
+          medicine_id: medicineId,
+          q: query
+        }
+
+        const response = await getMedicineBatches(params)
+        if (response?.success) {
+          setBatchList(response?.data?.result.map(item => ({ ...item, label: item?.batch_no, value: item?.id })) || [])
+        } else {
+          setBatchList([])
+        }
+      } catch (error) {
+        console.error('Error fetching medicine batches:', error.message)
+        setBatchList([])
+      } finally {
+        setBatchLoading(false)
+      }
+    }, 500),
+    []
+  )
+
+  const fetchMedicineBatches = useCallback(
+    (medicineId, query = '') => {
+      console.log('Fetching batches for medicineId:', medicineId, 'with query:', query)
+      debouncedBatchSearch(medicineId, query)
+    },
+    [debouncedBatchSearch]
+  )
+
+  const handleBatchSearch = value => {
+    console.log('Batch search triggered with value:', value)
+    setBatchSearchQuery(value)
+    const medicineId = selectedSlotData?.timeSlot?.medicine_id || selectedSlotData?.data?.medicine_id
+
+    // console.log('Calling fetchMedicineBatches for medicine:', temporarilySelectedMedicine.id)
+    fetchMedicineBatches(medicineId, value)
+  }
+
+  const addPrescriptionToTimeslot = async (type, data) => {
+    console.log('addPrescriptionToTimeslot', type, data)
+    setSelectedSlotData(data)
+    if (!medicalMasterData) fetchMedicalMasterData()
+    setBatchList([])
+    if (type === 'past') {
+      setIsAdministerDosageModelOpen(true)
+    } else if (type === 'future') {
+      setIsScheduleDosageModelOpen(true)
+    }
+    console.log('addPrescriptionToTimeslot', type, data)
   }
 
   return (
@@ -416,6 +636,7 @@ function PrescriptionLayout({ drawerType }) {
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
+
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -429,6 +650,7 @@ function PrescriptionLayout({ drawerType }) {
             handleAdminister={handleAdminister}
             handleSkip={handleSkip}
             handleAdministerOrSkipOpen={handleAdministerOrSkipOpen}
+            addPrescriptionToTimeslot={addPrescriptionToTimeslot}
           />
         </Grid>
       </Grid>
@@ -459,18 +681,30 @@ function PrescriptionLayout({ drawerType }) {
       /> */}
       {/* Medicine Prescription Card Drawer */}
 
-      {/* <AdministerMedicineModal
-              isSidebarOpen={isAdministerFormOpen}
-              handleSidebarClose={() => setIsAdministerFormOpen(false)}
-              scheduleDosage={dummyMedicationData}
-              onSubmit={handleAdministerSubmit}
-            /> */}
-      {/* <ScheduleDosage
-              isOpen={isAdministerFormOpen}
-              handleSidebarClose={() => setIsAdministerFormOpen(false)}
-              scheduleDosage={dummyMedicationData}
-              onSubmit={handleAdministerSubmit}
-            /> */}
+      <AdministerMedicineModal
+        handleSidebarOpen={isAdministerDosageModelOpen}
+        handleSidebarClose={() => setIsAdministerDosageModelOpen(false)}
+        scheduleDosage={selectedSlotData}
+        onSubmit={handleAdministerSubmit}
+        batchList={batchList}
+        batchLoading={batchLoading}
+        handleBatchSearch={handleBatchSearch}
+        selectedDate={selectedDate}
+        medicalMasterData={medicalMasterData}
+        isControlledSubstance={selectedSlotData?.data?.controlled_substance == 1}
+      />
+      <ScheduleDosage
+        handleOpen={isScheduleDosageModelOpen}
+        handleSidebarClose={() => setIsScheduleDosageModelOpen(false)}
+        scheduleDosage={selectedSlotData}
+        onSubmit={handleAdministerSubmit}
+        batchList={batchList}
+        batchLoading={batchLoading}
+        handleBatchSearch={handleBatchSearch}
+        selectedDate={selectedDate}
+        medicalMasterData={medicalMasterData}
+        isControlledSubstance={selectedSlotData?.data?.controlled_substance == 1}
+      />
 
       <MedicinePrescriptionCard
         open={prescriptionCardOpen}
@@ -495,10 +729,10 @@ function PrescriptionLayout({ drawerType }) {
                 )} • ${Utility.formatDisplayDate(medicineDetails?.updated_at || medicineDetails?.created_at)}`
               : '-',
           defaultTab: 2,
-
-          // Pass additional data needed for API calls
           prescription_id: medicineDetails?.prescription_id,
-          group_prescription_id: medicineDetails?.group_prescription_id
+          group_prescription_id: medicineDetails?.group_prescription_id,
+          medicine_id: medicineDetails?.medicine_id,
+          id: medicineDetails?.id
         }}
         dosageEntries={medicineDetails?.medicine_timings || []}
         dateOptions={detailDates}
@@ -507,18 +741,29 @@ function PrescriptionLayout({ drawerType }) {
         onRefreshEntry={handleRefreshEntry}
         handleDateChange={handleDetailDateChange}
         selectedDate={detailSelectedDate}
+        onAdministerSelected={handleAdministerSelectedFromDrawer}
+        onSkipSelected={handleSkipSelectedFromDrawer}
+        isAdministerLoading={isAdministerLoading}
+        isSkipLoading={isSkipLoading}
       />
       <AdministerOrSkipModal
         open={isAdministerOrSkipPopupOpen}
         handleClose={handleAdministerOrSkipClose}
-        onSubmit={handleSubmit}
+        onSubmit={handleAdministerOrSubmit}
+        medicalMasterData={medicalMasterData}
         submitLoader={isAdministerOrSkipPopupLoading}
+        mastersDataLoading={medicalMasterDataLoading}
+        batchList={batchList}
+        batchLoading={batchLoading}
+        handleBatchSearch={handleBatchSearch}
+        isControlledSubstance={selectedSlotData?.data?.controlled_substance == 1}
+        scheduledDate={selectedDate}
         medicineData={{
-          ...selectedMedicine,
-          name: selectedMedicine?.name,
-          time: selectedMedicine?.scheduledTime,
-          date: selectedMedicine?.date,
-          calculatedDosage: selectedMedicine?.dosage
+          ...selectedSlotData,
+          data: selectedSlotData?.data,
+          scheduled_time: selectedSlotData?.scheduled_time,
+          status: selectedSlotData?.status,
+          timeSlot: selectedSlotData?.timeSlot
         }}
       />
     </Box>

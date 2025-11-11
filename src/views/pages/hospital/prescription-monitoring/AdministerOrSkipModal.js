@@ -1,19 +1,9 @@
-import React from 'react'
-import {
-  Dialog,
-  DialogContent,
-  Box,
-  Typography,
-  IconButton,
-  Grid,
-  Card,
-  CardContent,
-  Button,
-  Radio,
-  FormControlLabel
-} from '@mui/material'
+import React, { useEffect } from 'react'
+import { Dialog, DialogContent, Box, Typography, IconButton, Grid, Card, CardContent } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { useForm, Controller } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
@@ -25,15 +15,113 @@ import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePick
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import TreatmentTypeRadioButtons from '../utility/TreatmentTypeRadioButtons'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import Utility from 'src/utility'
 
 const AdministerOrSkipModal = ({
   open,
   handleClose,
   onSubmit,
   submitLoader,
-  medicineData
+  medicineData,
+  medicalMasterData,
+  mastersDataLoading,
+  batchList = [],
+  batchLoading,
+  handleBatchSearch,
+  isControlledSubstance = false,
+  scheduledDate
 }) => {
   const theme = useTheme()
+
+  // Yup validation schema
+  const validationSchema = yup.object().shape({
+    action: yup.string().oneOf(['administer', 'skipped']).required('Action is required'),
+    time: yup.string().when('action', {
+      is: 'administer',
+      then: schema => schema.required('Time is required for administration'),
+      otherwise: schema => schema.notRequired()
+    }),
+    quantity: yup.string().when('action', {
+      is: 'administer',
+      then: schema =>
+        schema
+          .required('Quantity is required for administration')
+          .test('is-valid-number', 'Quantity must be a valid number', value => {
+            if (!value) return false
+            const num = parseFloat(value)
+
+            return !isNaN(num) && num > 0
+          })
+          .test('min-value', 'Quantity must be greater than 0', value => {
+            if (!value) return false
+
+            return parseFloat(value) > 0
+          }),
+      otherwise: schema => schema.notRequired()
+    }),
+    quantityUnit: yup.string().when('action', {
+      is: 'administer',
+      then: schema => schema.required('Quantity unit is required for administration'),
+      otherwise: schema => schema.notRequired()
+    }),
+    skipReason: yup.string().when('action', {
+      is: 'skipped',
+      then: schema =>
+        schema
+          .required('Skip reason is required when skipping medication')
+          .min(5, 'Skip reason must be at least 5 characters long')
+          .max(500, 'Skip reason cannot exceed 500 characters'),
+      otherwise: schema => schema.notRequired()
+    }),
+    wastageQuantity: yup
+      .string()
+      .test('is-valid-number', 'Wastage quantity must be a valid number', value => {
+        if (!value) return true // Optional field
+        const num = parseFloat(value)
+
+        return !isNaN(num) && num >= 0
+      })
+      .test('wastage-unit-consistency', 'Wastage unit is required when wastage quantity is provided', function (value) {
+        const { wastageUnit } = this.parent
+        if (value && !wastageUnit) {
+          return this.createError({ message: 'Wastage unit is required when wastage quantity is provided' })
+        }
+
+        return true
+      }),
+    wastageUnit: yup
+      .string()
+      .test(
+        'wastage-quantity-consistency',
+        'Wastage quantity is required when wastage unit is provided',
+        function (value) {
+          const { wastageQuantity } = this.parent
+          if (value && !wastageQuantity) {
+            return this.createError({ message: 'Wastage quantity is required when wastage unit is provided' })
+          }
+
+          return true
+        }
+      ),
+    notes: yup.string().max(10000, 'Notes cannot exceed 10000 characters'),
+
+    batchNumber: yup.mixed().when('action', {
+      is: 'administer',
+      then: schema =>
+        isControlledSubstance
+          ? schema
+              .required('Batch number is required for controlled substances')
+              .test('valid-batch-object', 'Please select a valid batch', value => {
+                if (!value) return false
+
+                // Check if it's a valid batch object with batch_no
+                return value && value.batch_no && typeof value.batch_no === 'string'
+              })
+          : schema.nullable().notRequired(),
+      otherwise: schema => schema.nullable().notRequired()
+    })
+  })
 
   const {
     control,
@@ -43,33 +131,29 @@ const AdministerOrSkipModal = ({
     formState: { errors }
   } = useForm({
     defaultValues: {
-      action: 'administer', // 'administer' or 'skipped'
+      action: 'administer',
       time: '',
       quantity: '',
-      quantityUnit: 'mg',
+      quantityUnit: '',
       wastageQuantity: '',
-      wastageUnit: 'mg',
+      wastageUnit: '',
       notes: '',
-      batchNumber: '',
+      batchNumber: null,
       attachment: null,
       skipReason: ''
-    }
+    },
+    resolver: yupResolver(validationSchema),
+    mode: 'onChange'
   })
 
   const actionType = watch('action')
-
-  const quantityUnits = [
-    { label: 'mg', value: 'mg' },
-    { label: 'ml', value: 'ml' },
-    { label: 'g', value: 'g' }
-  ]
 
   const handleModalClose = () => {
     reset()
     handleClose()
   }
 
-  const handleFormSubmit = data => {
+  const onFormSubmit = data => {
     onSubmit(data)
     handleModalClose()
   }
@@ -139,7 +223,7 @@ const AdministerOrSkipModal = ({
               color: theme.palette.primary.deepDark
             }}
           >
-            {medicineData?.name || 'Levothyroxine'}
+            {medicineData?.data?.name}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -151,7 +235,7 @@ const AdministerOrSkipModal = ({
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                {medicineData?.date || '2 Jan 2025'}
+                {Utility.formatDisplayDate(scheduledDate)}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
@@ -163,7 +247,7 @@ const AdministerOrSkipModal = ({
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                {medicineData?.time || '12:00 PM'}
+                {medicineData?.scheduledTime}
               </Typography>
             </Box>
           </Box>
@@ -180,7 +264,7 @@ const AdministerOrSkipModal = ({
           }}
         >
           <CardContent sx={{ p: 6 }}>
-            <form onSubmit={handleSubmit(handleFormSubmit)}>
+            <form onSubmit={handleSubmit(onFormSubmit)}>
               <Grid container spacing={4}>
                 {/* Radio Buttons for Action Type */}
                 <Grid size={{ xs: 12 }}>
@@ -217,6 +301,7 @@ const AdministerOrSkipModal = ({
                     label='Time'
                     format='hh:mm A'
                     sx={{ backgroundColor: theme.palette.customColors.Surface }}
+                    error={errors.time}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
@@ -225,13 +310,14 @@ const AdministerOrSkipModal = ({
                     selectFieldName='quantityUnit'
                     control={control}
                     errors={errors}
-                    options={quantityUnits}
+                    options={medicalMasterData?.prescriptionMeasurementType}
                     label='Quantity'
+                    loading={mastersDataLoading}
                     placeholder='Enter quantity'
                     type='number'
                     getOptionLabel={option => option.label}
                     getOptionValue={option => option.value}
-                    required
+                    required={actionType === 'administer'}
                     selectWidth={80}
                   />
                 </Grid>
@@ -280,7 +366,7 @@ const AdministerOrSkipModal = ({
                             label='Unit'
                             control={control}
                             errors={errors}
-                            options={quantityUnits}
+                            options={medicalMasterData?.prescriptionMeasurementType}
                             getOptionLabel={option => option.label}
                             getOptionValue={option => option.value}
                           />
@@ -298,12 +384,44 @@ const AdministerOrSkipModal = ({
                         </Grid>
 
                         <Grid size={{ xs: 12 }}>
-                          <ControlledTextField
+                          <ControlledAutocomplete
                             name='batchNumber'
                             control={control}
                             errors={errors}
-                            label='Batch Number'
-                            placeholder='Enter batch number if any (optional)'
+                            label={
+                              isControlledSubstance
+                                ? 'Enter batch number (required)'
+                                : 'Enter batch number if any (optional)'
+                            }
+                            options={batchList}
+                            getOptionLabel={option => {
+                              if (typeof option === 'string') return option
+
+                              // Use the label property from your batch object
+                              return option?.label || option?.batch_no || ''
+                            }}
+                            getOptionValue={option => {
+                              if (typeof option === 'string') return option
+
+                              // Return the entire object so we have access to batch_no, id, etc.
+                              return option
+                            }}
+                            isOptionEqualToValue={(option, value) => {
+                              if (!option || !value) return false
+
+                              // Compare by id since that's unique
+                              const optionId = option?.id
+                              const valueId = value?.id
+
+                              return optionId === valueId
+                            }}
+                            loading={batchLoading}
+                            onInputChange={handleBatchSearch}
+                            required={isControlledSubstance}
+                            autocompleteProps={{
+                              filterOptions: x => x,
+                              noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
+                            }}
                           />
                         </Grid>
 
@@ -313,6 +431,9 @@ const AdministerOrSkipModal = ({
                             control={control}
                             errors={errors}
                             label='Batch Image'
+                            maxFiles={5}
+                            maxFileSize={5 * 1024 * 1024} // 5MB
+                            acceptedFileTypes='image/jpeg,image/png,image/jpg,application/pdf'
                           />
                         </Grid>
                       </Grid>
@@ -334,6 +455,9 @@ const AdministerOrSkipModal = ({
                     </Grid>
                   </>
                 )}
+
+                {/* Hidden submit button for form submission */}
+                <button type='submit' style={{ display: 'none' }} />
               </Grid>
             </form>
           </CardContent>
@@ -364,7 +488,7 @@ const AdministerOrSkipModal = ({
           variant='contained'
           type='submit'
           loading={submitLoader}
-          onClick={handleSubmit(handleFormSubmit)}
+          onClick={handleSubmit(onFormSubmit)}
           sx={{ flex: 1, py: 2 }}
         >
           {actionType === 'administer' ? 'ADMINISTER' : 'SKIPPED'}

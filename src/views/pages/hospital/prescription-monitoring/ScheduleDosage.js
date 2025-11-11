@@ -19,8 +19,9 @@ import ControlledSelectWithTextField from 'src/views/forms/form-fields/Controlle
 import { LoadingButton } from '@mui/lab'
 import TreatmentTypeRadioButtons from '../utility/TreatmentTypeRadioButtons'
 import { Controller, useForm, useFieldArray } from 'react-hook-form'
+import Utility from 'src/utility'
 
-const ScheduleDosage = ({ handleOpen, handleSidebarClose, onSubmit, submitLoader }) => {
+const ScheduleDosage = ({ handleOpen, handleSidebarClose, onSubmit, submitLoader, scheduleDosage, selectedDate }) => {
   const theme = useTheme()
 
   const {
@@ -131,7 +132,7 @@ const ScheduleDosage = ({ handleOpen, handleSidebarClose, onSubmit, submitLoader
               color: theme.palette.primary.deepDark
             }}
           >
-            Dolo 650 tablet
+            {scheduleDosage?.data?.name}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <CalendarTodayIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurfaceVariant }} />
@@ -142,7 +143,7 @@ const ScheduleDosage = ({ handleOpen, handleSidebarClose, onSubmit, submitLoader
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              2 Jan 2025
+              {Utility?.formatDisplayDate(selectedDate)}
             </Typography>
           </Box>
         </Box>
@@ -176,18 +177,18 @@ const ScheduleDosage = ({ handleOpen, handleSidebarClose, onSubmit, submitLoader
                       <ControlledSelectWithTextField
                         textFieldName={`schedules.${idx}.dosageQuantity`}
                         selectFieldName={`schedules.${idx}.dosageUnit`}
-                        secondSelectFieldName={`schedules.${idx}.dosageWeights`}
+                        // secondSelectFieldName={`schedules.${idx}.dosageWeights`}
+                        // secondOptions={dosageWeights}
+                        // getSecondOptionLabel={option => option.label}
+                        // getSecondOptionValue={option => option.value}
                         control={control}
                         errors={errors?.schedules?.[idx]}
                         options={dosageUnits}
-                        secondOptions={dosageWeights}
                         label='Quantity'
                         placeholder='Enter quantity'
                         type='number'
                         getOptionLabel={option => option.label}
                         getOptionValue={option => option.value}
-                        getSecondOptionLabel={option => option.label}
-                        getSecondOptionValue={option => option.value}
                         required
                         selectWidth={60}
                         secondSelectWidth={50}

@@ -13,6 +13,7 @@ import ControlledSelectWithTextField from 'src/views/forms/form-fields/Controlle
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
 import dayjs from 'dayjs'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 
 export default function ScheduleMedicine({
   control,
@@ -473,7 +474,7 @@ export default function ScheduleMedicine({
                     }}
                   />
                 </Grid>
-                <ControlledFileUpload name='batchImage' label='Batch Image' control={control} />
+                <ControlledMultiFileUpload name='batchImage' control={control} label='Batch Image' />
               </>
             )}
           </Box>
