@@ -748,11 +748,22 @@ const SpeciesMappedtoDietFilter = ({
 
                                   <Tooltip title={itemName}>
                                     <span
+                                      role='button'
+                                      tabIndex={0}
+                                      onClick={() => handleSpeciesCheckboxChange(itemId)}
+                                      onKeyDown={event => {
+                                        if (event.key === 'Enter' || event.key === ' ') {
+                                          event.preventDefault()
+                                          handleSpeciesCheckboxChange(itemId)
+                                        }
+                                      }}
                                       style={{
                                         textOverflow: 'ellipsis',
                                         whiteSpace: 'nowrap',
                                         width: '85%',
-                                        overflow: 'hidden'
+                                        overflow: 'hidden',
+                                        cursor: 'pointer',
+                                        color: theme.palette.customColors.OnSurfaceVariant
                                       }}
                                     >
                                       {itemName}
@@ -858,11 +869,22 @@ const SpeciesMappedtoDietFilter = ({
                                   />
                                   <Tooltip title={itemName}>
                                     <span
+                                      role='button'
+                                      tabIndex={0}
+                                      onClick={() => handleTaxonomyCheckboxChange(itemId)}
+                                      onKeyDown={event => {
+                                        if (event.key === 'Enter' || event.key === ' ') {
+                                          event.preventDefault()
+                                          handleTaxonomyCheckboxChange(itemId)
+                                        }
+                                      }}
                                       style={{
                                         textOverflow: 'ellipsis',
                                         whiteSpace: 'nowrap',
                                         width: '85%',
-                                        overflow: 'hidden'
+                                        overflow: 'hidden',
+                                        cursor: 'pointer',
+                                        color: theme.palette.customColors.OnSurfaceVariant
                                       }}
                                     >
                                       {itemName}
