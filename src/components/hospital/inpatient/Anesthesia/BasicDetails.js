@@ -133,7 +133,7 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
                   value={val}
                   onChange={e => {
                     const newValue = e.target.value
-                    if (newValue === '' || Number(newValue) >= 0) {
+                    if (newValue === '' || Number(newValue) > 0) {
                       handleChange(newValue, unit)
                     }
                   }}
