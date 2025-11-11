@@ -20,6 +20,8 @@ import { useRouter } from 'next/router'
 import { alpha } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import PrescriptionMonitoringGrid from '../prescriptionMonitoring/PrescriptionMonitoringGrid'
+import VitalMonitoring from './Anesthesia/VitalMonitoring'
+import VitalMonitoringDetail from './Anesthesia/vitalForms/VitalMonitoringDEtail'
 
 const surgeries = [
   'S1235/25',
@@ -662,155 +664,6 @@ function Anesthesia({ hospitalCaseId }) {
                 ))}
               </Box>
             </Box>
-
-            {/* <Box sx={{ mt: 2 }}>
-              <Typography
-                sx={{
-                  mb: '4px',
-                  fontWeight: 400,
-                  fontSize: '14px',
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.neutralSecondary
-                }}
-              >
-                Surgery notes
-              </Typography>
-
-              
-              <Tooltip title={surgeryNotes.paragraph}>
-                <Typography
-                  sx={{
-                    fontWeight: 400,
-                    fontSize: '16px',
-                    letterSpacing: 0,
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    mb: 1.5,
-                    display: '-webkit-box', // for multiline ellipsis
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    WebkitLineClamp: 5,
-                    WebkitBoxOrient: 'vertical'
-                  }}
-                >
-                  {surgeryNotes.paragraph}
-                </Typography>
-              </Tooltip>
-
-              
-              <Tooltip title={`Findings: ${surgeryNotes.findings}`}>
-                <Typography
-                  sx={{
-                    fontWeight: 400,
-                    fontSize: '16px',
-                    letterSpacing: 0,
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    mb: 1.5,
-                    display: '-webkit-box',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: 'vertical'
-                  }}
-                >
-                  <strong>Findings:</strong> {surgeryNotes.findings}
-                </Typography>
-              </Tooltip>
-
-              
-              <Typography
-                sx={{
-                  fontWeight: 400,
-                  fontSize: '16px',
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  mb: 1
-                }}
-              >
-                Procedure Performed:
-              </Typography>
-              <Box component='ul' sx={{ ml: '-8px', mt: 0, mb: 1 }}>
-                {surgeryNotes.procedurePerformed.map((item, idx) => (
-                  <li key={idx}>
-                    <Tooltip title={item}>
-                      <Typography
-                        component='span'
-                        sx={{
-                          fontWeight: 400,
-                          fontSize: '16px',
-                          letterSpacing: 0,
-                          color: theme.palette.customColors.OnSurfaceVariant,
-                          display: '-webkit-box', // for multiline ellipsis
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical'
-                        }}
-                      >
-                        {item}
-                      </Typography>
-                    </Tooltip>
-                  </li>
-                ))}
-              </Box>
-
-              
-              <Typography
-                sx={{
-                  fontWeight: 400,
-                  fontSize: '16px',
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  mb: 0.5
-                }}
-              >
-                <strong>Hemostasis:</strong> {surgeryNotes.hemostasis}
-              </Typography>
-
-              
-              <Typography
-                sx={{
-                  fontWeight: 400,
-                  fontSize: '16px',
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                <strong>Closure:</strong> {surgeryNotes.closure}
-              </Typography>
-            </Box> */}
-
-            {/* <Box>
-              <Typography
-                sx={{
-                  mb: '4px',
-                  fontWeight: 400,
-                  fontSize: '14px',
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.neutralSecondary,
-                  textTransform: 'capitalize',
-                  textOverflow: 'ellipsis',
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                Complication
-              </Typography>
-              <Tooltip title={'None'}>
-                <Typography
-                  sx={{
-                    fontWeight: 400,
-                    fontSize: '16px',
-                    letterSpacing: 0,
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  None
-                </Typography>
-              </Tooltip>
-            </Box> */}
           </Grid>
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1118,6 +971,7 @@ function Anesthesia({ hospitalCaseId }) {
           // selectedDate={selectedDate}
           // handleDateChange={handleDateChange}
           /> */}
+          <VitalMonitoringDetail />
         </Grid>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
