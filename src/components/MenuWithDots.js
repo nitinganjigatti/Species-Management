@@ -6,7 +6,7 @@ import Icon from 'src/@core/components/icon'
 import Box from '@mui/material/Box'
 import { useTheme } from '@mui/material'
 
-const MenuWithDots = ({ options, disabled = false, showBorder = false, borderColor, menuSx, menuItemSx }) => {
+const MenuWithDots = ({ options, disabled = false, showBorder = false, borderColor, menuSx, menuItemSx, iconSx }) => {
   const theme = useTheme()
   const [anchorEl, setAnchorEl] = useState(null)
 
@@ -20,7 +20,7 @@ const MenuWithDots = ({ options, disabled = false, showBorder = false, borderCol
 
   return (
     <Box sx={{ textAlign: 'left' }}>
-      <IconButton onClick={handleClick}>
+      <IconButton sx={iconSx} onClick={handleClick}>
         <Icon icon='mdi:dots-vertical' />
       </IconButton>
       <Menu
