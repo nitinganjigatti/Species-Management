@@ -25,6 +25,7 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import MedicationsGasSection from 'src/components/hospital/inpatient/Anesthesia/MedicationsGasSection'
 import PreAnesthesia from 'src/components/hospital/inpatient/Anesthesia/PreAnesthesia'
+import RecoveryAndReversal from 'src/components/hospital/inpatient/Anesthesia/RecoveryAndReversal'
 
 export const anesthesiaSchema = yup.object({
   basicDetails: yup.object({
@@ -62,6 +63,7 @@ const sections = [
   { id: 'anesthesiaSetUp', label: 'Anesthesia Set Up', component: AnesthesiaSetUpSection },
   { id: 'preAnesthesia', label: 'Pre Anesthesia', component: PreAnesthesia },
   { id: 'vitalMonitoring', label: 'Vital Monitoring', component: VitalMonitoring },
+  { id: 'recoveryAndReversal', label: 'Recovery And Reversal', component: RecoveryAndReversal },
   { id: 'attachments', label: 'Attachments', component: AttachmentsSection }
 ]
 
