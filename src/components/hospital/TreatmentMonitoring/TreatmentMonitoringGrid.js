@@ -6,10 +6,23 @@ import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
 import AddScheduleDrawer from 'src/views/pages/hospital/treatment-monitoring/AddScheduleDrawer'
 import AddParameterDrawer from 'src/views/pages/hospital/treatment-monitoring/AddParameterDrawer'
 import { useRouter } from 'next/router'
-import { getTreatmentMonitoringData } from 'src/lib/api/hospital/treatmentMonitoring'
+import { deleteMonitoringParameter, getTreatmentMonitoringData } from 'src/lib/api/hospital/treatmentMonitoring'
 import AddParameterDataEntry from 'src/views/pages/hospital/treatment-monitoring/AddParameterDataEntry'
 import { useQuery } from '@tanstack/react-query'
-import Utility from 'src/utility'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
+import dayjs from 'dayjs'
+import Toaster from 'src/components/Toaster'
+
+const convertUTCToIST = utcTime => {
+  if (!utcTime) return ''
+  const today = new Date().toISOString().split('T')[0]
+  const utcDateTime = `${today}T${utcTime}Z` // mark as UTC
+
+  // Just create the Date — JS automatically converts to local (IST)
+  const localDate = new Date(utcDateTime)
+
+  return localDate.toTimeString().split(' ')[0] // e.g. "11:04:33"
+}
 
 // Utility functions
 const getLabelForHour = hour => {
@@ -170,6 +183,9 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   const [openParamsEntryDrawer, setOpenParamsEntryDrawer] = useState(false)
   const [dates, setDates] = useState(null)
   const [selectedDate, setSelectedDate] = useState(today)
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [paramData, setParamData] = useState(null)
 
   // const [monitoringData, setMonitoringData] = useState([])
 
@@ -228,7 +244,8 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
       const slots = createTimeSlotStructure(timeSlots)
 
       item.assessment_details?.forEach(detail => {
-        const slotLabel = getTimeSlotLabelFromRecord(detail?.record_time)
+        const istRecordTime = convertUTCToIST(detail?.record_time)
+        const slotLabel = getTimeSlotLabelFromRecord(istRecordTime)
         const slot = slots.find(s => s.time === slotLabel)
         if (slot) {
           slot.isActive = true
@@ -285,6 +302,37 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
     setSelectedDate(date)
   }
 
+  const handleParamDelete = async () => {
+    setDeleteLoading(true)
+
+    try {
+      const payload = {
+        hospital_case_id: id,
+        assessment_type_id: paramData?.assessment_type_id,
+        scheduled_date_time: dayjs(selectedDate)
+          .hour(dayjs().hour())
+          .minute(dayjs().minute())
+          .second(dayjs().second())
+          .format('YYYY-MM-DD HH:mm:ss')
+      }
+
+      await deleteMonitoringParameter(payload).then(res => {
+        if (res?.status === true) {
+          Toaster({ type: 'success', message: res?.message })
+          setDeleteLoading(false)
+          setOpenDeleteDialog(false)
+          monitoringRefetch()
+        } else {
+          setDeleteLoading(false)
+          Toaster({ type: 'error', message: res?.message })
+        }
+      })
+    } catch (error) {
+      console.error('Cannot Delete Parameter', error)
+      setDeleteLoading(false)
+    }
+  }
+
   const renderedMetrics = useMemo(() => {
     return displayMetrics?.map(metric => (
       <TimeSlotGrid key={metric?.id} numColumns={timeSlots.length}>
@@ -338,9 +386,15 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                 <Box
                   sx={{ display: 'flex', flexDirection: 'column', gap: 1, justifyContent: 'flex-start', width: '100%' }}
                 >
-                  <Typography
-                    sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.neutralPrimary }}
-                  >{`${timeSlot.record.value} ${timeSlot.record.unit}`}</Typography>
+                  {timeSlot?.record?.unit !== null ? (
+                    <Typography
+                      sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.neutralPrimary }}
+                    >{`${timeSlot.record.value} ${timeSlot.record.unit}`}</Typography>
+                  ) : (
+                    <Typography
+                      sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.neutralPrimary }}
+                    >{`${timeSlot.record.value}`}</Typography>
+                  )}
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Typography
                       sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}
@@ -451,7 +505,14 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                       </Box>
 
                       {metric.canEdit && (
-                        <IconButton size='small' onClick={() => console.log(metric)} sx={{ color: '#6c757d', ml: 1 }}>
+                        <IconButton
+                          size='small'
+                          onClick={() => {
+                            setOpenDeleteDialog(true)
+                            setParamData(metric)
+                          }}
+                          sx={{ color: '#6c757d', ml: 1 }}
+                        >
                           <Icon icon={'mdi-close'} fontSize={20} />
                         </IconButton>
                       )}
@@ -501,6 +562,24 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
           medicalRecordId={medical_record_id}
           animalId={animal_id}
           refetchMonitoringData={monitoringRefetch}
+        />
+      )}
+      {openDeleteDialog && (
+        <ConfirmationDialog
+          dialogBoxStatus={openDeleteDialog}
+          onClose={() => setOpenDeleteDialog(false)}
+          description='Are you sure you want to delete this parameter'
+          cancelText='CANCEL'
+          cancelBtnStyle={{
+            borderColor: theme.palette.customColors.OnPrimaryContainer,
+            color: theme.palette.customColors.OnPrimaryContainer
+          }}
+          confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2 }}
+          image='/images/warning-icon.svg'
+          imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
+          confirmAction={handleParamDelete}
+          loading={deleteLoading}
+          ConfirmationText='DELETE'
         />
       )}
     </>

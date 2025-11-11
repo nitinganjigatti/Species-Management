@@ -876,3 +876,5 @@ export const GET_PARAMETER_ASSESSMENT_HISTORY = `v1/hospital/get-assessment-hist
 export const UPDATE_PARAMETER_ASSESSMENT_HISTORY = `/v1/assessment/animal/update`
 
 export const DELETE_PARAMETER_ASSESSMENT_HISTORY = `v1/hospital/delete-assessment-record`
+
+export const DELETE_MONITORING_MONITORING = `v1/hospital/delete-scheduled-monitoring-parameter`
