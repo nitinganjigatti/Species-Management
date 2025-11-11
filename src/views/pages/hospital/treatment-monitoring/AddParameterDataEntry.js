@@ -31,6 +31,8 @@ import {
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import moment from 'moment'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 const defaultValues = {
   observation_time: dayjs(),
@@ -39,11 +41,12 @@ const defaultValues = {
   note: ''
 }
 
-const schema = yup.object().shape({
-  observation_value: yup.string().required('Observation Value is required'),
-  observation_time: yup.string().required('Observation time is required'),
-  value_unit: yup.string().required('Unit is required')
-})
+const getSchema = resType =>
+  yup.object().shape({
+    observation_value: yup.mixed().required('Observation Value is required'),
+    observation_time: yup.string().required('Observation time is required'),
+    value_unit: resType === 'numeric_value' ? yup.string().required('Unit is required') : yup.mixed().notRequired()
+  })
 
 const AddParameterDataEntry = ({
   open,
@@ -60,18 +63,6 @@ const AddParameterDataEntry = ({
   const [activeTab, setActiveTab] = useState(0)
   const [openEditHistoryDrawer, setOpenEditHistoryDrawer] = useState(false)
   const [editHistoryData, setEditHistoryData] = useState(null)
-
-  const {
-    control,
-    handleSubmit,
-    formState: { errors }
-  } = useForm({
-    resolver: yupResolver(schema),
-    defaultValues,
-    shouldUnregister: false,
-    mode: 'onChange',
-    reValidateMode: 'onChange'
-  })
 
   const { data: parameterUnit, isLoading: unitLoading } = useQuery({
     queryKey: ['hospital-parameters-units-listing', data?.parameter?.assessment_type_id, open],
@@ -106,7 +97,7 @@ const AddParameterDataEntry = ({
     isLoading: historyLoading,
     refetch: refetchHistory
   } = useQuery({
-    queryKey: ['hospital-assessment-history', data?.parameter?.assessment_type_id, open, activeTab === 1],
+    queryKey: ['hospital-assessment-history', data?.parameter?.assessment_type_id, open, activeTab],
     queryFn: () =>
       getHospitalAssessmentHistory({
         date: data?.date,
@@ -128,6 +119,9 @@ const AddParameterDataEntry = ({
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue)
+    if (newValue === 1) {
+      refetchHistory()
+    }
   }
 
   const handleDrawerClose = () => {
@@ -145,7 +139,10 @@ const AddParameterDataEntry = ({
         comments: params?.note,
         medical_record_id: medicalRecordId,
         hospital_case_id: hospitalCaseId,
-        recorded_date_time: new Date()
+        recorded_date_time:
+          moment(params?.observation_time).format('YYYY-MM-DD') +
+          ' ' +
+          moment(params?.observation_time).format('HH:mm:ss')
       }
 
       await addAssessmentToParams(animalId, payload).then(res => {
@@ -161,6 +158,20 @@ const AddParameterDataEntry = ({
       setAddLoading(false)
     }
   }
+
+  const schema = useMemo(() => getSchema(resType), [resType])
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues,
+    shouldUnregister: false,
+    mode: 'onChange',
+    reValidateMode: 'onChange'
+  })
 
   return (
     <>
@@ -462,59 +473,72 @@ const AddParameterDataEntry = ({
                     </Box>
                   </Box>
                   <Box sx={{ py: 6, px: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    {historyLoading
-                      ? Array.from(new Array(3)).map((_, index) => (
-                          <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <Skeleton variant='text' width={60} height={24} sx={{ flexShrink: 0 }} />
-                            <Box
-                              sx={{
-                                flexGrow: 1,
-                                p: 4,
-                                borderRadius: 1,
-                                backgroundColor: theme.palette.customColors.displaybgPrimary,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 3
-                              }}
-                            >
-                              <Skeleton variant='text' width='40%' height={24} />
-                              <Skeleton variant='text' width='60%' height={20} />
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2 }}>
-                                <Skeleton variant='circular' width={32} height={32} />
-                                <Skeleton variant='text' width='30%' height={20} />
-                              </Box>
+                    {historyLoading ? (
+                      Array.from(new Array(3)).map((_, index) => (
+                        <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Skeleton variant='text' width={60} height={24} sx={{ flexShrink: 0 }} />
+                          <Box
+                            sx={{
+                              flexGrow: 1,
+                              p: 4,
+                              borderRadius: 1,
+                              backgroundColor: theme.palette.customColors.displaybgPrimary,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 3
+                            }}
+                          >
+                            <Skeleton variant='text' width='40%' height={24} />
+                            <Skeleton variant='text' width='60%' height={20} />
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2 }}>
+                              <Skeleton variant='circular' width={32} height={32} />
+                              <Skeleton variant='text' width='30%' height={20} />
                             </Box>
                           </Box>
-                        ))
-                      : historyList?.map(item => (
-                          <Box key={item?.id} sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <Typography
-                              sx={{
-                                flexShrink: 0,
-                                whiteSpace: 'nowrap',
-                                fontWeight: 600,
-                                fontSize: '14px',
-                                color: theme.palette.customColors.OnSurfaceVariant,
-                                minWidth: '80px',
-                                textAlign: 'right'
-                              }}
-                            >
-                              {Utility.convertUTCToLocaltime(item?.recorded_date_time)}
-                            </Typography>
+                        </Box>
+                      ))
+                    ) : historyList?.length > 0 ? (
+                      historyList?.map(item => (
+                        <Box key={item?.id} sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Typography
+                            sx={{
+                              flexShrink: 0,
+                              whiteSpace: 'nowrap',
+                              fontWeight: 600,
+                              fontSize: '14px',
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              minWidth: '80px',
+                              textAlign: 'right'
+                            }}
+                          >
+                            {Utility.convertUTCToLocaltime(item?.recorded_date_time)}
+                          </Typography>
 
-                            <Box
-                              sx={{
-                                flexGrow: 1,
-                                p: 4,
-                                borderRadius: 1,
-                                backgroundColor: theme.palette.customColors.displaybgPrimary,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 4
-                              }}
-                            >
-                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                          <Box
+                            sx={{
+                              flexGrow: 1,
+                              p: 4,
+                              borderRadius: 1,
+                              backgroundColor: theme.palette.customColors.displaybgPrimary,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 4
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                {(resType === 'numeric_scale' || 'list') && (
+                                  <Typography
+                                    sx={{
+                                      fontSize: '1rem',
+                                      fontWeight: 600,
+                                      color: theme.palette.customColors.OnSurfaceVariant
+                                    }}
+                                  >
+                                    {item?.list_label}
+                                  </Typography>
+                                )}
+                                {resType === 'numeric_value' && (
                                   <Typography
                                     sx={{
                                       fontSize: '1rem',
@@ -522,51 +546,64 @@ const AddParameterDataEntry = ({
                                       color: theme.palette.customColors.OnSurfaceVariant
                                     }}
                                   >{`${item?.assessment_value} ${item?.base_uom_name}`}</Typography>
+                                )}
+                                {resType === 'text' && (
                                   <Typography
                                     sx={{
-                                      fontSize: '14px',
-                                      fontWeight: 400,
+                                      fontSize: '1rem',
+                                      fontWeight: 600,
                                       color: theme.palette.customColors.OnSurfaceVariant
                                     }}
-                                  >
-                                    {item?.comments}
-                                  </Typography>
-                                </Box>
-                                <IconButton
-                                  onClick={() => {
-                                    setEditHistoryData({
-                                      ...item,
-                                      unitsData
-                                    })
-                                    setOpenEditHistoryDrawer(true)
+                                  >{`${item?.assessment_value}`}</Typography>
+                                )}
+                                <Typography
+                                  sx={{
+                                    fontSize: '14px',
+                                    fontWeight: 400,
+                                    color: theme.palette.customColors.OnSurfaceVariant
                                   }}
                                 >
-                                  <Icon icon={'material-symbols:edit-outline-rounded'} />
-                                </IconButton>
+                                  {item?.comments}
+                                </Typography>
                               </Box>
+                              <IconButton
+                                onClick={() => {
+                                  setEditHistoryData({
+                                    ...item,
+                                    unitsData
+                                  })
+                                  setOpenEditHistoryDrawer(true)
+                                }}
+                              >
+                                <Icon icon={'material-symbols:edit-outline-rounded'} />
+                              </IconButton>
+                            </Box>
 
-                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <UserAvatarDetails
-                                  user_name={`${item?.user_first_name} ${item?.user_last_name}`}
-                                  date={item?.created_at}
-                                  show_time
-                                  profile_image={item?.user_profile_full_url}
-                                />
-                                {item?.modified_by !== null ? (
-                                  <Typography
-                                    sx={{
-                                      fontSize: '12px',
-                                      fontWeight: 400,
-                                      color: theme.palette.customColors.neutralSecondary
-                                    }}
-                                  >
-                                    Edited
-                                  </Typography>
-                                ) : null}
-                              </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <UserAvatarDetails
+                                user_name={`${item?.user_first_name} ${item?.user_last_name}`}
+                                date={item?.created_at}
+                                show_time
+                                profile_image={item?.user_profile_full_url}
+                              />
+                              {item?.modified_by !== null ? (
+                                <Typography
+                                  sx={{
+                                    fontSize: '12px',
+                                    fontWeight: 400,
+                                    color: theme.palette.customColors.neutralSecondary
+                                  }}
+                                >
+                                  Edited
+                                </Typography>
+                              ) : null}
                             </Box>
                           </Box>
-                        ))}
+                        </Box>
+                      ))
+                    ) : (
+                      <NoDataFound />
+                    )}
                   </Box>
                 </Box>
               </>
