@@ -228,14 +228,14 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
       const slots = createTimeSlotStructure(timeSlots)
 
       item.assessment_details?.forEach(detail => {
-        console.log(detail?.record_time)
         const slotLabel = getTimeSlotLabelFromRecord(detail?.record_time)
         const slot = slots.find(s => s.time === slotLabel)
         if (slot) {
           slot.isActive = true
           slot.record = {
             value: detail.assessment_value,
-            unit: detail.unit_name
+            unit: detail.unit_name,
+            total: Number(detail.total_records || 1)
           }
         }
       })
@@ -335,7 +335,9 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
               }}
             >
               {timeSlot.record ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, justifyContent: 'flex-start !important' }}>
+                <Box
+                  sx={{ display: 'flex', flexDirection: 'column', gap: 1, justifyContent: 'flex-start', width: '100%' }}
+                >
                   <Typography
                     sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.neutralPrimary }}
                   >{`${timeSlot.record.value} ${timeSlot.record.unit}`}</Typography>
@@ -345,6 +347,17 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                     >
                       {formatInterval(timeSlot?.time)}
                     </Typography>
+                    {timeSlot.record.total > 1 && (
+                      <Typography
+                        sx={{
+                          fontSize: '0.85rem',
+                          fontWeight: 500,
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }}
+                      >
+                        +{timeSlot.record.total - 1}
+                      </Typography>
+                    )}
                   </Box>
                 </Box>
               ) : (
