@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -27,8 +27,22 @@ import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePick
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import Utility from 'src/utility'
 
-const AdministerMedicineModal = ({ scheduleDosage, handleSidebarOpen, handleSidebarClose, onSubmit, submitLoader }) => {
+const AdministerMedicineModal = ({
+  scheduleDosage,
+  handleSidebarOpen,
+  handleSidebarClose,
+  onSubmit,
+  submitLoader,
+  batchList = [],
+  batchLoading,
+  handleBatchSearch,
+  isControlledSubstance = false,
+  selectedDate,
+  medicalMasterData
+}) => {
   const theme = useTheme()
 
   const {
@@ -46,12 +60,6 @@ const AdministerMedicineModal = ({ scheduleDosage, handleSidebarOpen, handleSide
       batchNumber: ''
     }
   })
-
-  const wastageUnits = [
-    { label: 'mg', value: 'mg' },
-    { label: 'ml', value: 'ml' },
-    { label: 'g', value: 'g' }
-  ]
 
   const handleClose = () => {
     reset()
@@ -132,7 +140,7 @@ const AdministerMedicineModal = ({ scheduleDosage, handleSidebarOpen, handleSide
               color: theme.palette.primary.deepDark
             }}
           >
-            Dolo 650 tablet
+            {scheduleDosage?.data?.name}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -144,7 +152,7 @@ const AdministerMedicineModal = ({ scheduleDosage, handleSidebarOpen, handleSide
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                2 Jan 2025
+                {Utility?.formatDisplayDate(selectedDate)}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
@@ -156,7 +164,7 @@ const AdministerMedicineModal = ({ scheduleDosage, handleSidebarOpen, handleSide
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                12:00 PM
+                {scheduleDosage?.scheduledTime}
               </Typography>
             </Box>
           </Box>
@@ -184,21 +192,21 @@ const AdministerMedicineModal = ({ scheduleDosage, handleSidebarOpen, handleSide
                       <ControlledSelectWithTextField
                         textFieldName='schedules'
                         selectFieldName='quantity'
-                        secondSelectFieldName='wastageUnit'
                         control={control}
                         errors={errors}
-                        options={wastageUnits}
-                        secondOptions={wastageUnits}
+                        options={medicalMasterData?.prescriptionMeasurementType}
                         label='Quantity'
                         placeholder='Enter quantity'
                         type='number'
                         getOptionLabel={option => option.label}
                         getOptionValue={option => option.value}
-                        getSecondOptionLabel={option => option.label}
-                        getSecondOptionValue={option => option.value}
+                        // secondSelectFieldName='wastageUnit'
+                        // secondOptions={medicalMasterData?.prescriptionMeasurementType}
+                        // getSecondOptionLabel={option => option.label}
+                        // getSecondOptionValue={option => option.value}
+                        // secondSelectWidth={{ xs: 50, sm: 80 }}
                         required
                         selectWidth={{ xs: 50, sm: 80 }}
-                        secondSelectWidth={{ xs: 50, sm: 80 }}
                         showEmptyMenuItem={{ xs: false, md: true }}
                         showEmptyMenuItemLabel={{ xs: false, md: true }}
                       />
@@ -249,7 +257,7 @@ const AdministerMedicineModal = ({ scheduleDosage, handleSidebarOpen, handleSide
                         selectFieldName='quantity'
                         control={control}
                         errors={errors}
-                        options={wastageUnits}
+                        options={medicalMasterData?.prescriptionMeasurementType}
                         label='Quantity'
                         placeholder='Enter quantity'
                         type='number'
@@ -327,7 +335,7 @@ const AdministerMedicineModal = ({ scheduleDosage, handleSidebarOpen, handleSide
                             label='Unit'
                             control={control}
                             errors={errors}
-                            options={wastageUnits}
+                            options={medicalMasterData?.prescriptionMeasurementType}
                             getOptionLabel={option => option.label}
                             getOptionValue={option => option.value}
                           />
@@ -344,21 +352,46 @@ const AdministerMedicineModal = ({ scheduleDosage, handleSidebarOpen, handleSide
                           />
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                          <ControlledTextField
+                          <ControlledAutocomplete
                             name='batchNumber'
                             control={control}
                             errors={errors}
-                            label='Batch Number'
-                            placeholder='Enter batch number if any (optional)'
+                            label={
+                              isControlledSubstance
+                                ? 'Enter batch number (required)'
+                                : 'Enter batch number if any (optional)'
+                            }
+                            options={batchList}
+                            getOptionLabel={option => {
+                              if (typeof option === 'string') return option
+
+                              // API returns batch_no
+                              return option?.batch_no || ''
+                            }}
+                            getOptionValue={option => {
+                              if (typeof option === 'string') return option
+
+                              // API returns batch_no
+                              return option?.batch_no || ''
+                            }}
+                            isOptionEqualToValue={(option, value) => {
+                              if (!option || !value) return false
+
+                              const optionVal = typeof option === 'string' ? option : option?.batch_no
+                              const valueVal = typeof value === 'string' ? value : value?.batch_no
+
+                              return optionVal === valueVal
+                            }}
+                            loading={batchLoading}
+                            onInputChange={handleBatchSearch}
+                            required={isControlledSubstance}
+                            autocompleteProps={{
+                              filterOptions: x => x,
+                              noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
+                            }}
                           />
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                          {/* <ControlledFileUpload
-                            name='attachment'
-                            control={control}
-                            errors={errors}
-                            label='Upload attachment'
-                          /> */}
                           <ControlledMultiFileUpload
                             name='attachment'
                             control={control}

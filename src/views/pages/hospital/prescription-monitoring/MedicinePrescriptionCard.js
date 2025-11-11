@@ -16,13 +16,16 @@ import {
   useTheme,
   useMediaQuery,
   CircularProgress,
-  Skeleton
+  Skeleton,
+  Checkbox
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
 import MedicationTimeCard from './MedicationTimeCard'
 import StopMedicine from './StopMedicine'
+import CustomButtons from 'src/components/hospital/CustomButtons'
+import Utility from 'src/utility'
 
 // Custom styled components for drawer content
 const DrawerContent = styled(Box)(({ theme }) => ({
@@ -130,25 +133,33 @@ const MedicinePrescriptionCard = ({
   handleDateChange,
   isDetailLoading = false,
   isDatesLoading = false,
-  selectedDate
+  selectedDate,
+  onAdministerSelected,
+  onSkipSelected,
+  isAdministerLoading = false,
+  isSkipLoading = false
 }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors }
-  } = useForm()
-
   const [activeTab, setActiveTab] = useState(medicineData?.defaultTab || 1)
   const [stopMedicineModalOpen, setStopMedicineModalOpen] = useState(false)
+
+  // Add state for selected medications
+  const [selectedMedications, setSelectedMedications] = useState([])
+  const [isSelectionMode, setIsSelectionMode] = useState(false)
 
   const medicine = {
     ...medicineData
   }
 
   const tabs = dateOptions?.length > 0 ? dateOptions : []
+
+  // Filter pending medications
+  const pendingMedications = dosageEntries?.filter(item => !item?.status || item?.status?.toLowerCase() === 'pending')
+
+  // Check if all pending medications are selected
+  const allSelected = pendingMedications?.length > 0 && selectedMedications.length === pendingMedications.length
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue)
@@ -179,6 +190,102 @@ const MedicinePrescriptionCard = ({
     if (onRefreshEntry) {
       onRefreshEntry(entryId, medicine)
     }
+  }
+
+  // Handle individual medication selection
+  const handleMedicationSelect = (medicationId, checked) => {
+    setSelectedMedications(prev => {
+      if (checked) {
+        return [...prev, medicationId]
+      } else {
+        return prev.filter(id => id !== medicationId)
+      }
+    })
+  }
+
+  // Handle select all
+  const handleSelectAll = () => {
+    if (allSelected) {
+      setSelectedMedications([])
+    } else {
+      const allPendingIds = pendingMedications?.map(item => item?.administritive_id) || []
+      setSelectedMedications(allPendingIds)
+    }
+  }
+
+  // Handle administer selected
+  const handleAdministerSelected = () => {
+    if (onAdministerSelected) {
+      const selectedItems = dosageEntries?.filter(item => selectedMedications.includes(item?.administritive_id))
+      onAdministerSelected(selectedItems, medicineData)
+
+      // setSelectedMedications([])
+      setIsSelectionMode(false)
+    }
+  }
+
+  // Handle skip selected
+  const handleSkipSelected = () => {
+    if (onSkipSelected) {
+      const selectedItems = dosageEntries?.filter(item => selectedMedications.includes(item?.administritive_id))
+      onSkipSelected(selectedItems, medicineData)
+
+      // setSelectedMedications([])
+      setIsSelectionMode(false)
+    }
+  }
+
+  // Format time from API response
+  const formatTime = timeString => {
+    if (!timeString) return ''
+    const [hours, minutes] = timeString.split(':')
+    const hour = parseInt(hours)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const displayHour = hour % 12 || 12
+
+    return `${displayHour.toString().padStart(2, '0')}:${minutes} ${ampm}`
+  }
+
+  // Reset selection when closing
+  const handleClose = () => {
+    setSelectedMedications([])
+    setIsSelectionMode(false)
+    onClose()
+  }
+
+  const handleAddNewDosageTimeCheck = data => {
+    const datePart = selectedDate.split(' ')[0] // "2025-11-10"
+
+    // Convert "5 AM" etc. to proper 24-hour format
+    const targetDateTime = new Date(`${datePart}T${convertTo24Hour(data?.scheduledTime)}`)
+    const now = new Date()
+
+    console.log('targetDateTime', targetDateTime)
+    console.log('now', now)
+
+    if (isNaN(targetDateTime.getTime())) {
+      console.error('Invalid date or time format')
+
+      return
+    }
+
+    if (targetDateTime > now) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  // Helper: converts "5 AM"/"1 PM" to "HH:mm:ss"
+  function convertTo24Hour(time12h) {
+    if (!time12h) return '00:00:00'
+    let [hour, modifier] = time12h.split(' ')
+    hour = parseInt(hour, 10)
+
+    if (modifier.toUpperCase() === 'PM' && hour !== 12) hour += 12
+    if (modifier.toUpperCase() === 'AM' && hour === 12) hour = 0
+
+    return `${hour.toString().padStart(2, '0')}:00:00`
   }
 
   if (!open) return null
@@ -321,9 +428,11 @@ const MedicinePrescriptionCard = ({
             </Typography>
           </Box>
         </Box>
-        <IconButton size='small' onClick={() => handleRefreshEntry(entry.id)}>
-          <Icon icon='mdi:refresh' fontSize='16px' color={theme.palette.customColors.Tertiary} />
-        </IconButton>
+        {entry?.status?.toLowerCase() != 'stopped' && (
+          <IconButton size='small' onClick={() => handleRefreshEntry(entry.id)}>
+            <Icon icon='mdi:refresh' fontSize='16px' color={theme.palette.customColors.Tertiary} />
+          </IconButton>
+        )}
       </Box>
     </DosageSection>
   )
@@ -333,11 +442,11 @@ const MedicinePrescriptionCard = ({
       <Drawer
         anchor='right'
         open={open}
-        onClose={onClose}
+        onClose={handleClose}
         slotProps={{
           paper: {
             sx: {
-              width: isMobile ? '100vw' : 562,
+              width: isMobile ? '100vw' : 600,
               maxWidth: '100vw',
               height: '100vh',
               px: '24px',
@@ -347,7 +456,7 @@ const MedicinePrescriptionCard = ({
         }}
       >
         <DrawerContent>
-          {/* Header Section */}
+          {/* Header Section - Same as before */}
           {isDetailLoading || isDatesLoading ? (
             <HeaderShimmer theme={theme} />
           ) : (
@@ -367,7 +476,7 @@ const MedicinePrescriptionCard = ({
                     {medicine.name}
                   </Typography>
                 </Box>
-                <IconButton onClick={onClose}>
+                <IconButton onClick={handleClose}>
                   <Icon icon='mdi:close' fontSize='24px' color={theme.palette.customColors.OnPrimaryContainer} />
                 </IconButton>
               </Box>
@@ -412,7 +521,7 @@ const MedicinePrescriptionCard = ({
                       variant='body2'
                       sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      {medicine.startDate}
+                      {Utility.convertUTCToLocalDateTime(medicine.startDate)}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -425,7 +534,7 @@ const MedicinePrescriptionCard = ({
                       variant='body2'
                       sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      {medicine.endDate}
+                      {Utility.convertUTCToLocalDateTime(medicine.endDate)}
                     </Typography>
                   </Box>
                 </Box>
@@ -433,7 +542,7 @@ const MedicinePrescriptionCard = ({
             </HeaderSection>
           )}
 
-          {/* Info Section */}
+          {/* Info Section - Same as before */}
           {isDetailLoading || isDatesLoading ? (
             <InfoSectionShimmer theme={theme} />
           ) : (
@@ -548,7 +657,7 @@ const MedicinePrescriptionCard = ({
             </Box>
           )}
 
-          {/* Date Tabs */}
+          {/* Date Tabs - Same as before */}
           {isDetailLoading || isDatesLoading ? (
             <DateTabsShimmer theme={theme} />
           ) : (
@@ -577,6 +686,84 @@ const MedicinePrescriptionCard = ({
             </Box>
           )}
 
+          {/* Selection Header - Show when there are pending medications */}
+          {/* {!isDetailLoading && !isDatesLoading && pendingMedications?.length > 0 && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                backgroundColor: selectedMedications.length > 0 
+                  ? theme.palette.primary.light 
+                  : theme.palette.customColors.OnBackground,
+                borderRadius: '8px',
+                mb: 2,
+                transition: 'all 0.3s ease'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Checkbox
+                  checked={allSelected}
+                  indeterminate={selectedMedications.length > 0 && !allSelected}
+                  onChange={handleSelectAll}
+                  sx={{
+                    color: theme.palette.primary.main,
+                    '&.Mui-checked': {
+                      color: theme.palette.primary.main
+                    },
+                    '&.MuiCheckbox-indeterminate': {
+                      color: theme.palette.primary.main
+                    }
+                  }}
+                />
+                <Typography
+                  variant='body1'
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  {selectedMedications.length > 0
+                    ? `${selectedMedications.length} selected`
+                    : 'Select medications'}
+                </Typography>
+              </Box>
+              
+              {selectedMedications.length > 0 && (
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    size='small'
+                    variant='outlined'
+                    onClick={handleSkipSelected}
+                    sx={{
+                      textTransform: 'none',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      borderColor: theme.palette.customColors.OnSurfaceVariant,
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    Skip
+                  </Button>
+                  <Button
+                    size='small'
+                    variant='contained'
+                    onClick={handleAdministerSelected}
+                    sx={{
+                      textTransform: 'none',
+                      fontSize: '12px',
+                      fontWeight: 500
+                    }}
+                  >
+                    Administer
+                  </Button>
+                </Box>
+              )}
+            </Box>
+          )} */}
+
           {/* Bottom Container */}
           <Box
             sx={{
@@ -595,15 +782,50 @@ const MedicinePrescriptionCard = ({
               </>
             ) : (
               <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <MedicationTimeCard
-                  key={1}
-                  time={'07:00 AM'}
-                  dosage={'10 mg/kg'}
-                  amount={'310 mg'}
-                  checked={false}
-                  onChange={checked => console.log(1, checked)}
-                />
-                {dosageEntries?.map(item => renderDosageEntry(item))}
+                {dosageEntries?.map(item => {
+                  const isPending = !item?.status || item?.status?.toLowerCase() === 'pending'
+                  const isSelected = selectedMedications.includes(item?.administritive_id)
+
+                  return isPending ? (
+                    <MedicationTimeCard
+                      key={item?.administritive_id}
+                      time={formatTime(item?.scheduled_time)}
+                      dosage={`${item?.scheduled_quantity} ${item?.scheduled_unit_name && item?.scheduled_unit_name}`}
+                      amount={`${item?.scheduled_quantity} ${item?.scheduled_unit_name}`}
+                      checked={isSelected}
+                      onChange={checked => handleMedicationSelect(item?.administritive_id, checked)}
+                    />
+                  ) : (
+                    renderDosageEntry({
+                      id: item?.administritive_id,
+                      time: formatTime(item?.administritive_time || item?.scheduled_time),
+                      status: item?.status || 'Pending',
+                      dosage: `${item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
+                      amount: `${item?.quantity_administered || item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
+                      variant:
+                        item?.status?.toLowerCase() === 'administered'
+                          ? 'administered'
+                          : item?.status?.toLowerCase() === 'skipped'
+                          ? 'skipped'
+                          : 'stopped',
+                      icon:
+                        item?.status?.toLowerCase() === 'administered'
+                          ? 'mdi:check-circle'
+                          : item?.status?.toLowerCase() === 'skipped'
+                          ? 'mdi:close-circle'
+                          : 'mdi:stop-circle',
+                      wastage: item?.wastage_quantity ? `Wastage: ${item?.wastage_quantity}` : null,
+                      wastageNote: item?.notes || '',
+                      batchNumber: item?.batch_details?.[0]?.batch_number || null,
+                      administeredBy: item?.user_full_name || 'Unknown',
+                      administeredAt: item?.administritive_date
+                        ? new Date(item.administritive_date).toLocaleString()
+                        : '',
+                      isStrikethrough: item?.status?.toLowerCase() === 'stopped'
+                    })
+                  )
+                })}
+
                 {stopMedicineModalOpen ? (
                   <StopMedicine
                     onClose={() => setStopMedicineModalOpen(false)}
@@ -639,31 +861,100 @@ const MedicinePrescriptionCard = ({
                     >
                       Stop Medicine
                     </Button>
-                    <Button
-                      variant='text'
-                      startIcon={<Icon icon='mdi:plus' />}
-                      onClick={handleAddNewDosage}
-                      disabled={isDetailLoading}
-                      sx={{
-                        color: theme.palette.customColors.OnSurface,
-                        fontSize: '16px',
-                        fontWeight: 500,
-                        transform: 'none',
-                        textTransform: 'none'
-                      }}
-                    >
-                      Add New Dosage
-                    </Button>
+                    {handleAddNewDosageTimeCheck(selectedDate) && (
+                      <Button
+                        variant='text'
+                        startIcon={<Icon icon='mdi:plus' />}
+                        onClick={handleAddNewDosage}
+                        disabled={isDetailLoading}
+                        sx={{
+                          color: theme.palette.customColors.OnSurface,
+                          fontSize: '16px',
+                          fontWeight: 500,
+                          transform: 'none',
+                          textTransform: 'none'
+                        }}
+                      >
+                        Add New Dosage
+                      </Button>
+                    )}
                   </Box>
                 )}
               </Box>
             )}
           </Box>
+          {/* Selection Actions - Show when medications are selected */}
+          {selectedMedications.length > 0 && (
+            <Box
+              sx={{
+                position: 'sticky',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                backgroundColor: theme.palette.background.paper,
+                borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                padding: '16px 24px',
+                zIndex: 10,
+                marginLeft: '-24px',
+                marginRight: '-24px',
+                width: 'calc(100% + 48px)'
+              }}
+            >
+              {/* <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 2
+                }}
+              >
+                <Typography
+                  variant='body1'
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  {selectedMedications.length} medication{selectedMedications.length > 1 ? 's' : ''} selected
+                </Typography>
+                <Button
+                  size='small'
+                  onClick={() => setSelectedMedications([])}
+                  sx={{
+                    textTransform: 'none',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  Clear Selection
+                </Button>
+              </Box> */}
+
+              <CustomButtons
+                primaryLabel='ADMINISTER'
+                onPrimaryClick={handleAdministerSelected}
+                isPrimaryLoading={isAdministerLoading}
+                isPrimaryDisabled={selectedMedications.length === 0}
+                primaryVariant='primary'
+                secondaryLabel='SKIPPED'
+                onSecondaryClick={handleSkipSelected}
+                isSecondaryLoading={isSkipLoading}
+                isSecondaryDisabled={selectedMedications.length === 0}
+                secondaryVariant='secondary'
+                width='100%'
+                height='48px'
+                reverseOrder={false}
+              />
+            </Box>
+          )}
         </DrawerContent>
       </Drawer>
     </>
   )
 }
+
 
 export default MedicinePrescriptionCard
 
