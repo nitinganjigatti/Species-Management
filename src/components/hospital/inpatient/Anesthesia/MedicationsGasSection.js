@@ -228,11 +228,7 @@ function MedicationsGasSection({
       minWidth: 120,
       sortable: false,
       renderCell: params => {
-        const time = params.row.start_time
-          ? dayjs(params.row.start_time).isValid()
-            ? dayjs(params.row.start_time).format('hh:mm A')
-            : '-'
-          : '-'
+        const time = params.row.start_time ? (params.row.start_time ? params.row.start_time : '-') : '-'
         return <StyledTypography>{time}</StyledTypography>
       }
     },
@@ -242,11 +238,12 @@ function MedicationsGasSection({
       minWidth: 120,
       sortable: false,
       renderCell: params => {
-        const time = params.row.end_time
-          ? dayjs(params.row.end_time).isValid()
-            ? dayjs(params.row.end_time).format('hh:mm A')
-            : '-'
-          : '-'
+        // const time = params.row.end_time
+        //   ? dayjs(params.row.end_time).isValid()
+        //     ? dayjs(params.row.end_time).format('hh:mm A')
+        //     : '-'
+        //   : '-'
+        const time = params.row.end_time ? (params.row.end_time ? params.row.end_time : '-') : '-'
         return <StyledTypography>{time}</StyledTypography>
       }
     },

@@ -433,7 +433,7 @@ export default function AddAnesthesiaRecord() {
             </Tabs>
           </Paper>
 
-          <Box ref={scrollContainerRef} flex={1} overflow='auto' p={0} mt={4}>
+          <Box ref={scrollContainerRef} flex={1} overflow='auto' p={0} mt={4} mb={10}>
             {sections.map(({ id, label, component: SectionComponent }) => (
               <Accordion
                 key={id}
