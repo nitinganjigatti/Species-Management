@@ -49,7 +49,15 @@ const ControlledTextField = ({
           error={Boolean(error)}
           helperText={helperText}
           onChange={e => {
-            const value = e?.target ? e.target.value : e
+            let value = e?.target ? e.target.value : e
+            if (type === 'number') {
+              // disable negative values
+              if (value === '' || Number(value) >= 0) {
+                field.onChange(value)
+                if (onChangeOverride) onChangeOverride(value, e)
+              }
+              return
+            }
             field.onChange(value)
             if (onChangeOverride) onChangeOverride(value, e)
           }}

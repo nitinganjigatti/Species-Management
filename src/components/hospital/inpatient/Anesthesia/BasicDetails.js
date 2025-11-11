@@ -131,7 +131,12 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
                   placeholder='Enter'
                   type='number'
                   value={val}
-                  onChange={e => handleChange(e.target.value, unit)}
+                  onChange={e => {
+                    const newValue = e.target.value
+                    if (newValue === '' || Number(newValue) >= 0) {
+                      handleChange(newValue, unit)
+                    }
+                  }}
                   error={!!errors.basicDetails?.estimatedTime}
                   helperText={errors.basicDetails?.estimatedTime?.message}
                   sx={{ ...commonTextFieldSx, '& .MuiOutlinedInput-root': { borderRadius: '4px', height: '56px' } }}
