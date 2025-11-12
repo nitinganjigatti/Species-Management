@@ -869,6 +869,8 @@ export const GET_MONITORING_PARAMETERS = `v1/hospital/list-monitoring-parameters
 
 export const GET_MONITORING_HISTORY = `v1/hospital/get-assessment-history`
 
+export const GET_TREATMENT_MASTER_LIST = 'v1/hospital/treatment/masterlist'
+
 export const ADD_ASSESSMENT_VALUE_TO_PARAMS = `v1/assessment/animal/add`
 
 export const GET_HOSPITAL_PARAMETERS_UNIT = `v1/hospital/get-assessment-details`

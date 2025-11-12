@@ -9,6 +9,7 @@ import { useForm, Controller } from 'react-hook-form'
 import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import DialogConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
+import { getTreatmentMasterList } from 'src/lib/api/hospital/treatmentMaster'
 
 const treatmentGroups = [
   {
@@ -155,7 +156,7 @@ const treatmentGroups = [
   }
 ]
 
-const treatmentNameOptions = Array.from(
+const defaultTreatmentOptions = Array.from(
   new Set(treatmentGroups.flatMap(group => group.treatments.map(treatment => treatment.name)))
 ).map((name, index) => ({
   label: name,
@@ -201,7 +202,7 @@ const OtherTreatment = () => {
   const [isEditDrawerOpen, setEditDrawerOpen] = useState(false)
   const [formData, setFormData] = useState({
     startDate: dayjs('2025-07-12'),
-    treatmentName: treatmentNameOptions[0] || null,
+    treatmentName: defaultTreatmentOptions[0] || null,
     notes: ''
   })
   const [editFormData, setEditFormData] = useState({
@@ -211,8 +212,51 @@ const OtherTreatment = () => {
   })
   const [selectedTreatment, setSelectedTreatment] = useState(null)
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [treatmentOptions, setTreatmentOptions] = useState(defaultTreatmentOptions)
+  const [treatmentOptionsLoading, setTreatmentOptionsLoading] = useState(false)
+  const [treatmentSearchTerm, setTreatmentSearchTerm] = useState('')
 
   const totalTreatments = useMemo(() => treatmentGroups.reduce((sum, group) => sum + group.treatments.length, 0), [])
+
+  useEffect(() => {
+    let isMounted = true
+    const handler = setTimeout(async () => {
+      setTreatmentOptionsLoading(true)
+      try {
+        const response = await getTreatmentMasterList({ q: treatmentSearchTerm, page: 0, limit: 10 })
+        if (!isMounted) return
+        const records = response?.data?.records || []
+        if (records.length) {
+          setTreatmentOptions(
+            records.map(record => ({
+              label: record.treatment_name,
+              value: record.treatment_name,
+              id: record.id
+            }))
+          )
+        } else if (!treatmentSearchTerm) {
+          setTreatmentOptions(defaultTreatmentOptions)
+        } else {
+          setTreatmentOptions([])
+        }
+      } catch (error) {
+        if (isMounted) {
+          if (!treatmentSearchTerm) {
+            setTreatmentOptions(defaultTreatmentOptions)
+          }
+        }
+      } finally {
+        if (isMounted) {
+          setTreatmentOptionsLoading(false)
+        }
+      }
+    }, 400)
+
+    return () => {
+      isMounted = false
+      clearTimeout(handler)
+    }
+  }, [treatmentSearchTerm])
 
   const handleFieldChange = (field, value) => {
     setFormData(prev => ({
@@ -306,6 +350,10 @@ const OtherTreatment = () => {
       notes: prefillNotes,
       activeActivityId: activity.id || null
     })
+  }
+
+  const handleTreatmentSearch = value => {
+    setTreatmentSearchTerm(value?.trim() || '')
   }
 
   return (
@@ -502,7 +550,9 @@ const OtherTreatment = () => {
         formData={formData}
         onChange={handleFieldChange}
         onSubmit={handleAddTreatment}
-        treatmentOptions={treatmentNameOptions}
+        treatmentOptions={treatmentOptions}
+        optionsLoading={treatmentOptionsLoading}
+        onSearchTreatment={handleTreatmentSearch}
       />
 
       <EditTreatmentDrawer
@@ -528,7 +578,16 @@ const OtherTreatment = () => {
 
 export default OtherTreatment
 
-const AddTreatmentDrawer = ({ open, onClose, formData, onChange, onSubmit, treatmentOptions }) => {
+const AddTreatmentDrawer = ({
+  open,
+  onClose,
+  formData,
+  onChange,
+  onSubmit,
+  treatmentOptions,
+  onSearchTreatment,
+  optionsLoading
+}) => {
   const { control, reset } = useForm({
     defaultValues: {
       treatmentName: formData.treatmentName || null,
@@ -645,10 +704,12 @@ const AddTreatmentDrawer = ({ open, onClose, formData, onChange, onSubmit, treat
                 control={control}
                 errors={{}}
                 options={treatmentOptions}
+                loading={optionsLoading}
                 fullWidth
                 getOptionLabel={option => option?.label || ''}
                 isOptionEqualToValue={(option, value) => option?.value === value?.value}
                 onChangeOverride={value => onChange('treatmentName', value)}
+                onInputChange={value => onSearchTreatment?.(value)}
                 inputBackgroundColor='#FFFFFF'
                 textFieldProps={{
                   placeholder: 'Select treatment',
