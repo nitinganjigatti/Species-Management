@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Box, Button, Drawer, IconButton, Tooltip, Typography } from '@mui/material'
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material'
 import dayjs from 'dayjs'
@@ -9,161 +9,16 @@ import { useForm, Controller } from 'react-hook-form'
 import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import DialogConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
-import { createTreatmentRecord, getTreatmentMasterList } from 'src/lib/api/hospital/treatmentMaster'
+import { createTreatmentRecord, getTreatmentMasterList, getTreatmentList } from 'src/lib/api/hospital/treatmentMaster'
 import { useRouter } from 'next/router'
 import Toaster from 'src/components/Toaster'
 
-const treatmentGroups = [
-  {
-    id: 'med-12345-25',
-    code: 'MED - 12345/25',
-    icon: 'solar:bill-list-outline',
-    treatments: [
-      {
-        id: 'physiotherapy',
-        name: 'Physiotherapy',
-        noteCount: 2,
-        noteSummary:
-          'Behavioral changes likely linked to minor environmental stress. No physical abnormalities observed. Will continue monitoring for another 3 days. Consider environmental enrichment if no improvement.',
-        lastUpdated: '2025-05-19T12:05:00Z',
-        clinician: {
-          name: 'Jordan Stevenson',
-          avatarUrl: '/images/avatars/1.png',
-          updatedAt: '2025-01-02T12:35:00Z'
-        },
-        activities: [
-          {
-            id: 'act-1',
-            status: 'pending',
-            description:
-              'Beak deformity present with overgrowth and surface cracking; patient shows signs of immunosuppression',
-            author: 'Dr. Nitin',
-            timestamp: '2025-05-19T12:05:00Z'
-          },
-          {
-            id: 'act-2',
-            status: 'pending',
-            description:
-              'Hydrotherapy scheduled twice a day to reduce inflammation; awaiting response after day 3 assessment',
-            author: 'Dr. Nitin',
-            timestamp: '2025-05-19T12:05:00Z'
-          },
-          {
-            id: 'act-3',
-            status: 'updated',
-            title: 'Status Update',
-            author: 'Dr. Nitin',
-            timestamp: '2025-05-19T12:05:00Z',
-            treatmentStartDate: '2025-08-12T00:00:00Z',
-            notes: 'Mild oral plaque formation inside beak noted; no concurrent bacterial infections detected.'
-          }
-        ]
-      },
-      {
-        id: 'wound-dressing',
-        name: 'Wound Dressing',
-        noteCount: 2,
-        noteSummary:
-          'Dressing changed without complications. Tissue regeneration looks healthy with no discharge. Maintain same dressing cadence and reassess in 48 hours.',
-        lastUpdated: '2025-05-19T12:05:00Z',
-        clinician: {
-          name: 'Jordan Stevenson',
-          avatarUrl: '/images/avatars/1.png',
-          updatedAt: '2025-01-02T12:35:00Z'
-        },
-        activities: [
-          {
-            id: 'act-4',
-            status: 'pending',
-            description: 'Dressing changed without complications. Tissue regeneration looks healthy with no discharge.',
-            author: 'Dr. Nitin',
-            timestamp: '2025-05-19T12:05:00Z'
-          }
-        ]
-      },
-      {
-        id: 'immunotherapy',
-        name: 'Immunotherapy',
-        noteCount: 2,
-        noteSummary:
-          'Immunotherapy tolerated well. Mild lethargy noted (~30 mins) post-dose but within expected range. No escalation required. Keep hydration checks in place.',
-        lastUpdated: '2025-05-19T12:05:00Z',
-        clinician: {
-          name: 'Jordan Stevenson',
-          avatarUrl: '/images/avatars/1.png',
-          updatedAt: '2025-01-02T12:35:00Z'
-        },
-        activities: [
-          {
-            id: 'act-5',
-            status: 'pending',
-            description: 'Immunotherapy tolerated well. Mild lethargy noted post dose but within expected range.',
-            author: 'Dr. Riya',
-            timestamp: '2025-05-19T12:05:00Z'
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'med-22245-56',
-    code: 'MED - 22245/56',
-    icon: 'mdi:leaf-circle-outline',
-    treatments: [
-      {
-        id: 'water-therapy-one',
-        name: 'Watertherapy',
-        noteCount: 2,
-        noteSummary:
-          'Patient responded calmly to extended hydro sessions. Continue 15 min cycles with temperature at 27°C. Add floating support to reduce joint strain.',
-        lastUpdated: '2025-05-19T12:05:00Z',
-        clinician: {
-          name: 'Jordan Stevenson',
-          avatarUrl: '/images/avatars/1.png',
-          updatedAt: '2025-01-02T12:35:00Z'
-        },
-        activities: [
-          {
-            id: 'act-6',
-            status: 'pending',
-            description: 'Patient responded calmly to extended hydro sessions. Continue 15 min cycles.',
-            author: 'Dr. Nitin',
-            timestamp: '2025-05-19T12:05:00Z'
-          }
-        ]
-      },
-      {
-        id: 'water-therapy-two',
-        name: 'Watertherapy',
-        noteCount: 2,
-        noteSummary:
-          'Muscle tone improved post-therapy. Slight stiffness remains on rear left limb. Re-evaluate need for electro-therapy pairing after next session.',
-        lastUpdated: '2025-05-19T12:05:00Z',
-        clinician: {
-          name: 'Jordan Stevenson',
-          avatarUrl: '/images/avatars/1.png',
-          updatedAt: '2025-01-02T12:35:00Z'
-        },
-        activities: [
-          {
-            id: 'act-7',
-            status: 'pending',
-            description: 'Muscle tone improved post-therapy. Slight stiffness remains on rear left limb.',
-            author: 'Dr. Nitin',
-            timestamp: '2025-05-19T12:05:00Z'
-          }
-        ]
-      }
-    ]
-  }
-]
-
-const defaultTreatmentOptions = Array.from(
-  new Set(treatmentGroups.flatMap(group => group.treatments.map(treatment => treatment.name)))
-).map((name, index) => ({
-  label: name,
-  value: `${name.toLowerCase().replace(/\s+/g, '-')}-${index}`
-}))
+const defaultTreatmentOptions = ['Physiotherapy', 'Wound Dressing', 'Immunotherapy', 'Watertherapy'].map(
+  (name, index) => ({
+    label: name,
+    value: `${name.toLowerCase().replace(/\s+/g, '-')}-${index}`
+  })
+)
 
 const formatTimestamp = isoString => {
   if (!isoString) return '-'
@@ -199,6 +54,41 @@ const formatShortDate = isoString => {
   return dayjs(isoString).format('DD MMM YYYY')
 }
 
+const buildTreatmentFromRecord = record => ({
+  id: record.id,
+  name: record.treatment_name || 'Treatment',
+  noteCount: record.note ? 1 : 0,
+  noteSummary: record.note?.trim() || 'No notes added yet.',
+  lastUpdated: record.updated_at || record.created_at || null,
+  clinician: {
+    name: record.created_by_name || '—',
+    avatarUrl: record.profile_pic || '',
+    updatedAt: record.updated_at || record.created_at || ''
+  },
+  activities: record.activities || []
+})
+
+const mapRecordsToGroups = (records = []) => {
+  if (!records.length) return []
+
+  const grouped = records.reduce((acc, record) => {
+    const key = record.treatment_master_id || 'default'
+    if (!acc[key]) {
+      acc[key] = {
+        id: key,
+        code: record.treatment_name ? `Treatment - ${record.treatment_name}` : 'Treatment',
+        icon: 'mdi:medical-bag-outline',
+        treatments: []
+      }
+    }
+    acc[key].treatments.push(buildTreatmentFromRecord(record))
+
+    return acc
+  }, {})
+
+  return Object.values(grouped)
+}
+
 const OtherTreatment = () => {
   const router = useRouter()
   const { animal_id, medical_record_id, id: hospital_case_id } = router.query
@@ -216,12 +106,44 @@ const OtherTreatment = () => {
   })
   const [selectedTreatment, setSelectedTreatment] = useState(null)
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [treatmentGroups, setTreatmentGroups] = useState([])
   const [treatmentOptions, setTreatmentOptions] = useState(defaultTreatmentOptions)
   const [treatmentOptionsLoading, setTreatmentOptionsLoading] = useState(false)
   const [treatmentSearchTerm, setTreatmentSearchTerm] = useState('')
   const [isCreatingTreatment, setIsCreatingTreatment] = useState(false)
+  const [isTreatmentsLoading, setTreatmentsLoading] = useState(false)
 
-  const totalTreatments = useMemo(() => treatmentGroups.reduce((sum, group) => sum + group.treatments.length, 0), [])
+  const totalTreatments = useMemo(
+    () => treatmentGroups.reduce((sum, group) => sum + group.treatments.length, 0),
+    [treatmentGroups]
+  )
+
+  const fetchTreatments = useCallback(async () => {
+    if (!animal_id || !medical_record_id) return
+
+    setTreatmentsLoading(true)
+    try {
+      const response = await getTreatmentList({
+        animal_id,
+        medical_record_id,
+        hospital_case_id: hospital_case_id ?? 'null',
+        page: 0,
+        limit: 10
+      })
+
+      const records = response?.data?.records || []
+      setTreatmentGroups(mapRecordsToGroups(records))
+    } catch (error) {
+      Toaster({ type: 'error', message: error?.message || 'Failed to fetch treatments.' })
+      setTreatmentGroups([])
+    } finally {
+      setTreatmentsLoading(false)
+    }
+  }, [animal_id, medical_record_id, hospital_case_id])
+
+  useEffect(() => {
+    fetchTreatments()
+  }, [fetchTreatments])
 
   useEffect(() => {
     let isMounted = true
@@ -303,6 +225,7 @@ const OtherTreatment = () => {
           treatmentName: null,
           notes: ''
         })
+        fetchTreatments()
       }
     } catch (error) {
       Toaster({ type: 'error', message: error?.message || 'Failed to create treatment.' })
@@ -430,6 +353,14 @@ const OtherTreatment = () => {
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {isTreatmentsLoading && (
+          <Typography sx={{ color: '#44544A', fontWeight: 400, fontSize: '14px' }}>Loading treatments...</Typography>
+        )}
+
+        {!isTreatmentsLoading && treatmentGroups.length === 0 && (
+          <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '14px' }}>No treatments found.</Typography>
+        )}
+
         {treatmentGroups.map(group => (
           <Box key={group.id} sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
