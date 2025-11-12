@@ -367,7 +367,7 @@ const AddScheduleDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringDat
         >
           <FormControlLabel
             control={<Checkbox {...control.register('setAsDefault')} />}
-            label='Set as default for all upcoming days'
+            label='Set this schedule just for today'
           />
           <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 2 }}>
             <Button

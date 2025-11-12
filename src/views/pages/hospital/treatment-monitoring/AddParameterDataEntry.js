@@ -55,7 +55,8 @@ const AddParameterDataEntry = ({
   medicalRecordId,
   hospitalCaseId,
   animalId,
-  refetchMonitoringData
+  refetchMonitoringData,
+  selectedDate
 }) => {
   const theme = useTheme()
 
@@ -95,16 +96,20 @@ const AddParameterDataEntry = ({
   const {
     data: historyData,
     isLoading: historyLoading,
+    isFetching: historyFetching,
     refetch: refetchHistory
   } = useQuery({
-    queryKey: ['hospital-assessment-history', data?.parameter?.assessment_type_id, open, activeTab],
+    queryKey: ['hospital-assessment-history', data?.parameter?.assessment_type_id, data?.date, hospitalCaseId],
     queryFn: () =>
       getHospitalAssessmentHistory({
         date: data?.date,
         hospital_case_id: hospitalCaseId,
         assessment_type_id: data?.parameter?.assessment_type_id
       }),
-    enabled: open && activeTab === 1 && !!data?.parameter?.assessment_type_id
+    enabled: open && activeTab === 1 && !!data?.parameter?.assessment_type_id,
+    keepPreviousData: true, // ✅ keeps old data visible during refetch
+    staleTime: 0, // ✅ always consider data stale
+    refetchOnWindowFocus: false
   })
 
   const historyList = historyData?.data || []
@@ -140,9 +145,7 @@ const AddParameterDataEntry = ({
         medical_record_id: medicalRecordId,
         hospital_case_id: hospitalCaseId,
         recorded_date_time:
-          moment(params?.observation_time).format('YYYY-MM-DD') +
-          ' ' +
-          moment(params?.observation_time).format('HH:mm:ss')
+          moment(selectedDate).format('YYYY-MM-DD') + ' ' + moment(params?.observation_time).format('HH:mm:ss')
       }
 
       await addAssessmentToParams(animalId, payload).then(res => {
@@ -473,7 +476,7 @@ const AddParameterDataEntry = ({
                     </Box>
                   </Box>
                   <Box sx={{ py: 6, px: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    {historyLoading ? (
+                    {historyLoading || historyFetching ? (
                       Array.from(new Array(3)).map((_, index) => (
                         <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                           <Skeleton variant='text' width={60} height={24} sx={{ flexShrink: 0 }} />
@@ -525,7 +528,7 @@ const AddParameterDataEntry = ({
                               gap: 4
                             }}
                           >
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                                 {(resType === 'numeric_scale' || 'list') && (
                                   <Typography
@@ -545,7 +548,7 @@ const AddParameterDataEntry = ({
                                       fontWeight: 600,
                                       color: theme.palette.customColors.OnSurfaceVariant
                                     }}
-                                  >{`${item?.assessment_value} ${item?.base_uom_name}`}</Typography>
+                                  >{`${item?.assessment_value} ${item?.given_unit_name}`}</Typography>
                                 )}
                                 {resType === 'text' && (
                                   <Typography
@@ -556,15 +559,17 @@ const AddParameterDataEntry = ({
                                     }}
                                   >{`${item?.assessment_value}`}</Typography>
                                 )}
-                                <Typography
-                                  sx={{
-                                    fontSize: '14px',
-                                    fontWeight: 400,
-                                    color: theme.palette.customColors.OnSurfaceVariant
-                                  }}
-                                >
-                                  {item?.comments}
-                                </Typography>
+                                {item?.comments && item?.comments.trim().length > 0 && (
+                                  <Typography
+                                    sx={{
+                                      fontSize: '14px',
+                                      fontWeight: 400,
+                                      color: theme.palette.customColors.OnSurfaceVariant
+                                    }}
+                                  >
+                                    {item?.comments}
+                                  </Typography>
+                                )}
                               </Box>
                               <IconButton
                                 onClick={() => {
