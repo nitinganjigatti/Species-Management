@@ -1,5 +1,5 @@
-import { GET_TREATMENT_MASTER_LIST } from 'src/constants/ApiConstant'
-import { axiosGet } from '../utility'
+import { GET_TREATMENT_MASTER_LIST, CREATE_TREATMENT } from 'src/constants/ApiConstant'
+import { axiosFormPost, axiosGet } from '../utility'
 
 export const getTreatmentMasterList = async ({ q = '', page = 0, limit = 10 } = {}) => {
   try {
@@ -15,3 +15,24 @@ export const getTreatmentMasterList = async ({ q = '', page = 0, limit = 10 } = 
   }
 }
 
+export const createTreatmentRecord = async payload => {
+  try {
+    const formData = new FormData()
+
+    Object.entries(payload || {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, value)
+      }
+    })
+
+    const response = await axiosFormPost({
+      url: CREATE_TREATMENT,
+      body: formData
+    })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error creating treatment:', error?.message || error)
+    throw error
+  }
+}

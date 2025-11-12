@@ -9,7 +9,9 @@ import { useForm, Controller } from 'react-hook-form'
 import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import DialogConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
-import { getTreatmentMasterList } from 'src/lib/api/hospital/treatmentMaster'
+import { createTreatmentRecord, getTreatmentMasterList } from 'src/lib/api/hospital/treatmentMaster'
+import { useRouter } from 'next/router'
+import Toaster from 'src/components/Toaster'
 
 const treatmentGroups = [
   {
@@ -198,6 +200,8 @@ const formatShortDate = isoString => {
 }
 
 const OtherTreatment = () => {
+  const router = useRouter()
+  const { animal_id, medical_record_id, id: hospital_case_id } = router.query
   const [isAddDrawerOpen, setAddDrawerOpen] = useState(false)
   const [isEditDrawerOpen, setEditDrawerOpen] = useState(false)
   const [formData, setFormData] = useState({
@@ -215,6 +219,7 @@ const OtherTreatment = () => {
   const [treatmentOptions, setTreatmentOptions] = useState(defaultTreatmentOptions)
   const [treatmentOptionsLoading, setTreatmentOptionsLoading] = useState(false)
   const [treatmentSearchTerm, setTreatmentSearchTerm] = useState('')
+  const [isCreatingTreatment, setIsCreatingTreatment] = useState(false)
 
   const totalTreatments = useMemo(() => treatmentGroups.reduce((sum, group) => sum + group.treatments.length, 0), [])
 
@@ -265,15 +270,45 @@ const OtherTreatment = () => {
     }))
   }
 
-  const handleAddTreatment = () => {
-    const payload = {
-      startDate: formData.startDate ? formData.startDate.toISOString() : null,
-      treatmentName: formData.treatmentName?.label || '',
-      notes: formData.notes
+  const handleAddTreatment = async () => {
+    if (!formData.treatmentName?.label) {
+      Toaster({ type: 'error', message: 'Please select a treatment name.' })
+      return
     }
 
-    console.log('Add treatment payload:', payload)
-    setAddDrawerOpen(false)
+    if (!animal_id || !medical_record_id) {
+      Toaster({ type: 'error', message: 'Missing patient identifiers to create treatment.' })
+      return
+    }
+
+    const formattedStartTime = formData.startDate ? dayjs(formData.startDate).format('DD MMM YYYY HH:mm:ss') : ''
+
+    const payload = {
+      animal_id,
+      medical_record_id,
+      hospital_case_id: hospital_case_id || '',
+      start_time: formattedStartTime,
+      treatment_master_id: formData.treatmentName.label,
+      note: formData.notes || ''
+    }
+
+    try {
+      setIsCreatingTreatment(true)
+      const response = await createTreatmentRecord(payload)
+      Toaster({ type: response?.success ? 'success' : 'error', message: response?.message || 'Treatment creation status unknown.' })
+      if (response?.success) {
+        setAddDrawerOpen(false)
+        setFormData({
+          startDate: dayjs('2025-07-12'),
+          treatmentName: null,
+          notes: ''
+        })
+      }
+    } catch (error) {
+      Toaster({ type: 'error', message: error?.message || 'Failed to create treatment.' })
+    } finally {
+      setIsCreatingTreatment(false)
+    }
   }
 
   const handleEditFieldChange = (field, value) => {
@@ -553,6 +588,7 @@ const OtherTreatment = () => {
         treatmentOptions={treatmentOptions}
         optionsLoading={treatmentOptionsLoading}
         onSearchTreatment={handleTreatmentSearch}
+        isSubmitting={isCreatingTreatment}
       />
 
       <EditTreatmentDrawer
@@ -586,7 +622,8 @@ const AddTreatmentDrawer = ({
   onSubmit,
   treatmentOptions,
   onSearchTreatment,
-  optionsLoading
+  optionsLoading,
+  isSubmitting
 }) => {
   const { control, reset } = useForm({
     defaultValues: {
@@ -770,6 +807,7 @@ const AddTreatmentDrawer = ({
             fullWidth
             variant='contained'
             onClick={onSubmit}
+            disabled={isSubmitting}
             sx={{
               borderRadius: '8px',
               height: '56px',
@@ -783,7 +821,7 @@ const AddTreatmentDrawer = ({
               }
             }}
           >
-            Add
+            {isSubmitting ? 'Adding...' : 'Add'}
           </Button>
         </Box>
       </Box>
