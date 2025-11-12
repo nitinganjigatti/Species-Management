@@ -8,6 +8,7 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 import { useForm, Controller } from 'react-hook-form'
 import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import DialogConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 
 const treatmentGroups = [
   {
@@ -209,6 +210,7 @@ const OtherTreatment = () => {
     activeActivityId: null
   })
   const [selectedTreatment, setSelectedTreatment] = useState(null)
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   const totalTreatments = useMemo(() => treatmentGroups.reduce((sum, group) => sum + group.treatments.length, 0), [])
 
@@ -248,7 +250,7 @@ const OtherTreatment = () => {
           ? dayjs(treatment.lastUpdated)
           : dayjs()
 
-    const prefillNotes = activity?.description || activity?.notes || treatment.noteSummary || ''
+    const prefillNotes = activity ? activity.description || activity.notes || '' : ''
 
     setSelectedTreatment(treatment)
     setEditFormData({
@@ -270,11 +272,20 @@ const OtherTreatment = () => {
   }
 
   const handleDeleteTreatment = () => {
+    setDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDeleteTreatment = () => {
     console.log('Delete treatment/activity:', {
       treatmentId: selectedTreatment?.id,
       activityId: editFormData.activeActivityId
     })
+    setDeleteDialogOpen(false)
     setEditDrawerOpen(false)
+  }
+
+  const handleCancelDeleteTreatment = () => {
+    setDeleteDialogOpen(false)
   }
 
   const handlePrefillFromActivity = activity => {
@@ -503,6 +514,13 @@ const OtherTreatment = () => {
         onDelete={handleDeleteTreatment}
         onUpdate={handleUpdateTreatment}
         onActivityPrefill={handlePrefillFromActivity}
+      />
+
+      <DialogConfirmationDialog
+        open={isDeleteDialogOpen}
+        handleClose={handleCancelDeleteTreatment}
+        action={handleConfirmDeleteTreatment}
+        message='Are you sure you want to delete this treatment?'
       />
     </Box>
   )
