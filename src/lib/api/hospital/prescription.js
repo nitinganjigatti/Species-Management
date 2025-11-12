@@ -8,6 +8,7 @@ import {
   GET_PRESCRIPTION_DETAILS,
   GET_PRESCRIPTION_DETAILS_DATES,
   GET_PRESCRIPTION_LIST,
+  SCHEDULE_PRESCRIPTION,
   SKIP_PRESCRIPTION,
   STOP_PRESCRIPTION
 } from 'src/constants/ApiConstant'
@@ -123,6 +124,16 @@ export async function administerDose(payLoad) {
 export async function administerAllMedicines(payLoad) {
   try {
     const response = await axiosFormPost({ url: `${ADMINISTER_ALL_MEDICINES}`, body: payLoad })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error adding prescription:', error.message)
+  }
+}
+
+export async function schedulePrescription(payLoad) {
+  try {
+    const response = await axiosPost({ url: `${SCHEDULE_PRESCRIPTION}`, body: payLoad })
 
     return response?.data
   } catch (error) {

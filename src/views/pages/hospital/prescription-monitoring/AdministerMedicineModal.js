@@ -15,6 +15,8 @@ import {
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
@@ -25,7 +27,6 @@ import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
-import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import Utility from 'src/utility'
@@ -41,9 +42,104 @@ const AdministerMedicineModal = ({
   handleBatchSearch,
   isControlledSubstance = false,
   selectedDate,
-  medicalMasterData
+  medicalMasterData,
+  mastersDataLoading
 }) => {
   const theme = useTheme()
+  console.log('isControlledSubstance', isControlledSubstance)
+
+  // Yup validation schema
+  const validationSchema = yup.object().shape({
+    time: yup.string().required('Time is required'),
+    quantity: yup
+      .string()
+      .required('Quantity is required')
+      .test('is-valid-number', 'Quantity must be a valid number', value => {
+        if (!value) return false
+        const num = parseFloat(value)
+
+        return !isNaN(num) && num > 0
+      })
+      .test('min-value', 'Quantity must be greater than 0', value => {
+        if (!value) return false
+
+        return parseFloat(value) > 0
+      }),
+    quantityUnit: yup.string().required('Quantity unit is required'),
+    wastageQuantity: yup
+      .string()
+      .test('is-valid-number', 'Wastage quantity must be a valid number', value => {
+        if (!value) return true // Optional field
+        const num = parseFloat(value)
+
+        return !isNaN(num) && num >= 0
+      })
+      .test('wastage-unit-consistency', 'Wastage unit is required when wastage quantity is provided', function (value) {
+        const { wastageUnit } = this.parent
+        if (value && !wastageUnit) {
+          return this.createError({ message: 'Wastage unit is required when wastage quantity is provided' })
+        }
+
+        return true
+      }),
+    wastageUnit: yup
+      .string()
+      .test(
+        'wastage-quantity-consistency',
+        'Wastage quantity is required when wastage unit is provided',
+        function (value) {
+          const { wastageQuantity } = this.parent
+          if (value && !wastageQuantity) {
+            return this.createError({ message: 'Wastage quantity is required when wastage unit is provided' })
+          }
+
+          return true
+        }
+      ),
+    notes: yup.string().max(10000, 'Notes cannot exceed 10000 characters'),
+    batchNumber: yup
+      .mixed()
+      .nullable()
+      .test('batch-validation', 'Batch number is required for controlled substances', function (value) {
+        // Only validate if it's a controlled substance
+        if (!isControlledSubstance) {
+          return true // Skip validation entirely for non-controlled substances
+        }
+
+        // For controlled substances, check if value exists and is valid
+        if (!value) {
+          return false
+        }
+
+        // Check if it's a valid batch object with batch_no
+        return !!(value && value.batch_no && typeof value.batch_no === 'string')
+      })
+  })
+
+  // batchNumber: yup
+  //   .mixed()
+  //   .test('batch-validation', 'Batch number is required for controlled substances', function (value) {
+  //     if (isControlledSubstance) {
+  //       if (!value) return false
+
+  //       // Check if it's a valid batch object with batch_no
+  //       return value && value.batch_no && typeof value.batch_no === 'string'
+  //     }
+
+  //     return true
+  //   })
+  // })
+
+  const defaultValues = {
+    time: '',
+    quantity: '',
+    quantityUnit: '',
+    wastageQuantity: '',
+    wastageUnit: '',
+    notes: '',
+    batchNumber: null,
+    attachment: null
+  }
 
   const {
     control,
@@ -51,18 +147,35 @@ const AdministerMedicineModal = ({
     reset,
     formState: { errors }
   } = useForm({
-    defaultValues: {
-      time: '',
-      quantity: '',
-      wastageQuantity: '',
-      wastageUnit: '',
-      notes: '',
-      batchNumber: ''
-    }
+    defaultValues: defaultValues,
+    resolver: yupResolver(validationSchema),
+    mode: 'onChange'
   })
 
+  // Set default quantity and unit from scheduleDosage
+  useEffect(() => {
+    if (scheduleDosage && medicalMasterData) {
+      let updatedQuantity = ''
+      let updatedQuantityUnit = ''
+
+      if (scheduleDosage?.dosage) {
+        const [value, unitRaw] = scheduleDosage.dosage.split(' ')
+        updatedQuantity = value
+
+        const foundUnit = medicalMasterData?.prescriptionMeasurementType?.find(item => item?.unit_name === unitRaw)
+        updatedQuantityUnit = foundUnit ? foundUnit.unit_name : ''
+      }
+
+      reset(prev => ({
+        ...prev,
+        quantity: updatedQuantity,
+        quantityUnit: updatedQuantityUnit
+      }))
+    }
+  }, [scheduleDosage, medicalMasterData, reset])
+
   const handleClose = () => {
-    reset()
+    reset(defaultValues)
     handleSidebarClose()
   }
 
@@ -186,12 +299,19 @@ const AdministerMedicineModal = ({
                 {scheduleDosage ? (
                   <>
                     <Grid size={{ xs: 12, md: 4 }}>
-                      <ControlledTimePicker name={'time'} control={control} label='Select Time' format='hh:mm A' />
+                      <ControlledTimePicker
+                        name={'time'}
+                        control={control}
+                        label='Select Time'
+                        format='hh:mm A'
+                        error={errors.time}
+                        required
+                      />
                     </Grid>
                     <Grid size={{ xs: 12, md: 8 }}>
                       <ControlledSelectWithTextField
-                        textFieldName='schedules'
-                        selectFieldName='quantity'
+                        textFieldName='quantity'
+                        selectFieldName='quantityUnit'
                         control={control}
                         errors={errors}
                         options={medicalMasterData?.prescriptionMeasurementType}
@@ -209,6 +329,7 @@ const AdministerMedicineModal = ({
                         selectWidth={{ xs: 50, sm: 80 }}
                         showEmptyMenuItem={{ xs: false, md: true }}
                         showEmptyMenuItemLabel={{ xs: false, md: true }}
+                        loading={mastersDataLoading}
                       />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
@@ -249,12 +370,14 @@ const AdministerMedicineModal = ({
                         label='Select Time'
                         format='hh:mm A'
                         sx={{ backgroundColor: theme.palette.customColors.Surface }}
+                        error={errors.time}
+                        required
                       />
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
                       <ControlledSelectWithTextField
-                        textFieldName='schedules'
-                        selectFieldName='quantity'
+                        textFieldName='quantity'
+                        selectFieldName='quantityUnit'
                         control={control}
                         errors={errors}
                         options={medicalMasterData?.prescriptionMeasurementType}
@@ -265,6 +388,7 @@ const AdministerMedicineModal = ({
                         getOptionValue={option => option.value}
                         required
                         selectWidth={80}
+                        loading={mastersDataLoading}
                       />
                     </Grid>
                   </>
@@ -286,8 +410,7 @@ const AdministerMedicineModal = ({
                       sx={{
                         px: 0,
                         minHeight: 'auto',
-                        pointerEvents: scheduleDosage ? 'auto' : 'none', // accordion disable interaction
-
+                        pointerEvents: scheduleDosage ? 'auto' : 'none',
                         '& .MuiAccordionSummary-content': {
                           margin: '0.5rem 0'
                         },
@@ -323,8 +446,8 @@ const AdministerMedicineModal = ({
                             name='wastageQuantity'
                             control={control}
                             errors={errors}
-                            label='Quantity*'
-                            placeholder={'Enter Quantity '}
+                            label='Quantity'
+                            placeholder='Enter Quantity'
                             type='number'
                           />
                         </Grid>
@@ -338,6 +461,7 @@ const AdministerMedicineModal = ({
                             options={medicalMasterData?.prescriptionMeasurementType}
                             getOptionLabel={option => option.label}
                             getOptionValue={option => option.value}
+                            loading={mastersDataLoading}
                           />
                         </Grid>
 
@@ -365,18 +489,15 @@ const AdministerMedicineModal = ({
                             getOptionLabel={option => {
                               if (typeof option === 'string') return option
 
-                              // API returns batch_no
                               return option?.batch_no || ''
                             }}
                             getOptionValue={option => {
                               if (typeof option === 'string') return option
 
-                              // API returns batch_no
                               return option?.batch_no || ''
                             }}
                             isOptionEqualToValue={(option, value) => {
                               if (!option || !value) return false
-
                               const optionVal = typeof option === 'string' ? option : option?.batch_no
                               const valueVal = typeof value === 'string' ? value : value?.batch_no
 
@@ -397,6 +518,9 @@ const AdministerMedicineModal = ({
                             control={control}
                             errors={errors}
                             label='Batch Image'
+                            maxFiles={5}
+                            maxFileSize={5 * 1024 * 1024} // 5MB
+                            acceptedFileTypes='image/jpeg,image/png,image/jpg,application/pdf'
                           />
                         </Grid>
                       </Grid>
@@ -404,6 +528,9 @@ const AdministerMedicineModal = ({
                   </Accordion>
                 </Grid>
               </Grid>
+
+              {/* Hidden submit button for form submission */}
+              <button type='submit' style={{ display: 'none' }} />
             </form>
           </CardContent>
         </Card>
@@ -420,7 +547,13 @@ const AdministerMedicineModal = ({
         }}
       >
         {scheduleDosage ? (
-          <LoadingButton variant='contained' type='submit' loading={submitLoader} sx={{ flex: 1, py: 2 }}>
+          <LoadingButton
+            variant='contained'
+            type='submit'
+            loading={submitLoader}
+            onClick={handleSubmit(handleFormSubmit)}
+            sx={{ flex: 1, py: 2 }}
+          >
             ADMINISTER
           </LoadingButton>
         ) : (
@@ -434,7 +567,13 @@ const AdministerMedicineModal = ({
             >
               SKIPPED
             </LoadingButton>
-            <LoadingButton variant='contained' type='submit' loading={submitLoader} sx={{ flex: 1, py: 2 }}>
+            <LoadingButton
+              variant='contained'
+              type='submit'
+              loading={submitLoader}
+              onClick={handleSubmit(handleFormSubmit)}
+              sx={{ flex: 1, py: 2 }}
+            >
               ADMINISTER
             </LoadingButton>
           </>

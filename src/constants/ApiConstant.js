@@ -795,6 +795,8 @@ export const MEDICAL_MASTER_DATA = 'medical/masterdata'
 
 export const ADD_PRESCRIPTION = 'medical/v2/prescription-update'
 
+export const SCHEDULE_PRESCRIPTION = 'v1/hospital/add-additional-dosage-timing'
+
 export const STOP_PRESCRIPTION = 'medical/v2/restart-stop-medicine'
 
 export const SKIP_PRESCRIPTION = 'administer/manage/medicine'

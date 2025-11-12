@@ -19,10 +19,56 @@ import ControlledSelectWithTextField from 'src/views/forms/form-fields/Controlle
 import { LoadingButton } from '@mui/lab'
 import TreatmentTypeRadioButtons from '../utility/TreatmentTypeRadioButtons'
 import { Controller, useForm, useFieldArray } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 import Utility from 'src/utility'
 
-const ScheduleDosage = ({ handleOpen, handleSidebarClose, onSubmit, submitLoader, scheduleDosage, selectedDate }) => {
+const ScheduleDosage = ({
+  label = 'Schedule Dosage',
+  handleOpen,
+  handleSidebarClose,
+  onSubmit,
+  submitLoader,
+  scheduleDosage,
+  selectedDate,
+  medicalMasterData
+}) => {
   const theme = useTheme()
+
+  // Validation schema based on reference component
+  const validationSchema = yup.object({
+    schedules: yup
+      .array()
+      .of(
+        yup.object({
+          time: yup.string().required('Time is required'),
+          dosageQuantity: yup
+            .mixed()
+            .test('is-valid-quantity', 'Quantity is required', function (value) {
+              if (!value || value === '') return false
+              const num = parseFloat(value)
+
+              return !isNaN(num) && num >= 0.1
+            })
+            .test('min-value', 'Quantity must be at least 0.1', function (value) {
+              if (!value) return false
+              const num = parseFloat(value)
+
+              return num >= 0.1
+            })
+            .test('max-value', 'Quantity cannot exceed 1000', function (value) {
+              if (!value) return false
+              const num = parseFloat(value)
+
+              return num <= 1000
+            }),
+          dosageUnit: yup.string().required('Please select a unit')
+        })
+      )
+      .min(1, 'At least one schedule time is required')
+      .required('Schedules are required'),
+    applyDosage: yup.string().oneOf(['this_day', 'till_end'], 'Please select dosage application type')
+  })
 
   const {
     control,
@@ -38,27 +84,18 @@ const ScheduleDosage = ({ handleOpen, handleSidebarClose, onSubmit, submitLoader
           dosageUnit: '',
           dosageWeights: ''
         }
-      ]
-    }
+      ],
+      applyDosage: 'this_day' // Set default value
+    },
+    resolver: yupResolver(validationSchema),
+    mode: 'onChange'
   })
 
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'schedules',
-    keyName: 'fieldId' // add this to avoid key prop conflicts
+    keyName: 'fieldId'
   })
-
-  const dosageUnits = [
-    { label: 'mg', value: 'mg' },
-    { label: 'ml', value: 'ml' },
-    { label: 'g', value: 'g' }
-  ]
-
-  const dosageWeights = [
-    { label: 'kg', value: 'kg' },
-    { label: 'g', value: 'g' },
-    { label: 'mg', value: 'mg' }
-  ]
 
   const handleClose = () => {
     reset()
@@ -106,7 +143,7 @@ const ScheduleDosage = ({ handleOpen, handleSidebarClose, onSubmit, submitLoader
             <Typography
               sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
             >
-              Schedule Dosage
+              {label}
             </Typography>
           </Box>
           <IconButton onClick={handleClose} sx={{ color: theme.palette.text.primary, padding: 0 }}>
@@ -161,6 +198,15 @@ const ScheduleDosage = ({ handleOpen, handleSidebarClose, onSubmit, submitLoader
           <CardContent sx={{ p: 6 }}>
             <form onSubmit={handleSubmit(handleFormSubmit)}>
               <Grid container rowSpacing={4} columnSpacing={2}>
+                {/* Show array error if exists */}
+                {errors.schedules && typeof errors.schedules === 'string' && (
+                  <Grid size={{ xs: 12 }}>
+                    <Typography color='error' variant='caption'>
+                      {errors.schedules.message}
+                    </Typography>
+                  </Grid>
+                )}
+
                 {fields.map((field, idx) => (
                   <React.Fragment key={field.fieldId}>
                     <Grid size={{ xs: 12, sm: 4 }}>
@@ -169,7 +215,7 @@ const ScheduleDosage = ({ handleOpen, handleSidebarClose, onSubmit, submitLoader
                         control={control}
                         label='Select Time'
                         format='hh:mm A'
-                        errors={errors?.schedules?.[idx]?.time}
+                        error={errors?.schedules?.[idx]?.time}
                         required
                       />
                     </Grid>
@@ -177,23 +223,20 @@ const ScheduleDosage = ({ handleOpen, handleSidebarClose, onSubmit, submitLoader
                       <ControlledSelectWithTextField
                         textFieldName={`schedules.${idx}.dosageQuantity`}
                         selectFieldName={`schedules.${idx}.dosageUnit`}
-                        // secondSelectFieldName={`schedules.${idx}.dosageWeights`}
-                        // secondOptions={dosageWeights}
-                        // getSecondOptionLabel={option => option.label}
-                        // getSecondOptionValue={option => option.value}
                         control={control}
-                        errors={errors?.schedules?.[idx]}
-                        options={dosageUnits}
+                        errors={{
+                          // Use the actual field names as keys for the errors object
+                          [`schedules.${idx}.dosageQuantity`]: errors?.schedules?.[idx]?.dosageQuantity,
+                          [`schedules.${idx}.dosageUnit`]: errors?.schedules?.[idx]?.dosageUnit
+                        }}
+                        options={medicalMasterData?.prescriptionMeasurementType}
                         label='Quantity'
                         placeholder='Enter quantity'
                         type='number'
                         getOptionLabel={option => option.label}
                         getOptionValue={option => option.value}
                         required
-                        selectWidth={60}
-                        secondSelectWidth={50}
-                        showEmptyMenuItem={false}
-                        showEmptyMenuItemLabel={false}
+                        selectWidth={100}
                       />
                     </Grid>
                     {fields.length > 1 && (
@@ -205,6 +248,7 @@ const ScheduleDosage = ({ handleOpen, handleSidebarClose, onSubmit, submitLoader
                     )}
                   </React.Fragment>
                 ))}
+
                 <Grid size={{ xs: 12 }}>
                   <Button
                     startIcon={<Icon icon='mdi:plus' fontSize={24} />}
@@ -221,13 +265,20 @@ const ScheduleDosage = ({ handleOpen, handleSidebarClose, onSubmit, submitLoader
                     }}
                     onClick={e => {
                       e.preventDefault()
-                      append({ time: '', dosageQuantity: '', dosageUnit: 'mg', dosageWeights: 'kg' })
+                      append({
+                        time: '',
+                        dosageQuantity: '',
+                        dosageUnit: medicalMasterData?.prescriptionMeasurementType?.[0]?.unit_name || '',
+                        dosageWeights: ''
+                      })
                     }}
                   >
                     Add Time
                   </Button>
                 </Grid>
+
                 <Divider sx={{ width: '100%', my: 2, borderColor: theme.palette.customColors.OutlineVariant }} />
+
                 <Grid size={{ xs: 12 }}>
                   <Typography
                     sx={{
@@ -243,6 +294,7 @@ const ScheduleDosage = ({ handleOpen, handleSidebarClose, onSubmit, submitLoader
                   <Controller
                     name='applyDosage'
                     control={control}
+                    defaultValue='this_day'
                     render={({ field }) => (
                       <Grid container spacing={4}>
                         <Grid size={{ xs: 12 }}>
@@ -273,6 +325,9 @@ const ScheduleDosage = ({ handleOpen, handleSidebarClose, onSubmit, submitLoader
                   />
                 </Grid>
               </Grid>
+
+              {/* Hidden submit button for form submission */}
+              <button type='submit' style={{ display: 'none' }} />
             </form>
           </CardContent>
         </Card>
@@ -286,7 +341,13 @@ const ScheduleDosage = ({ handleOpen, handleSidebarClose, onSubmit, submitLoader
           backgroundColor: theme.palette.background.paper
         }}
       >
-        <LoadingButton variant='contained' type='submit' loading={submitLoader} sx={{ flex: 1, py: 2 }}>
+        <LoadingButton
+          variant='contained'
+          type='submit'
+          loading={submitLoader}
+          onClick={handleSubmit(handleFormSubmit)}
+          sx={{ flex: 1, py: 2 }}
+        >
           Schedule
         </LoadingButton>
       </Box>
