@@ -43,6 +43,7 @@ const InpatientOverview = lazy(() => import('src/views/pages/hospital/inpatient/
 const InpatientMedicalSummary = lazy(() => import('src/components/hospital/inpatient/InpatientMedicalSummary'))
 const ClinicalAssessment = lazy(() => import('src/components/hospital/inpatient/ClinicalAssessment'))
 const ClinicalNotes = lazy(() => import('src/components/hospital/inpatient/ClinicalNotes'))
+const OtherTreatments = lazy(() => import('src/components/hospital/inpatient/OtherTreatments'))
 const Symptoms = lazy(() => import('src/components/hospital/inpatient/Symptoms'))
 const InpatientSurgery = lazy(() => import('src/views/pages/hospital/inpatient/InpatientSurgery'))
 const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'))
@@ -113,6 +114,7 @@ const InpatientDetails = () => {
       { label: 'Treatment Monitoring', value: 'treatmentMonitoring', component: TreatmentLayout },
       { label: 'Clinical Assessment', value: 'clinicalAssessment', component: ClinicalAssessment }, // Updated to match URL param
       { label: 'Clinical Notes', value: 'clinicalNotes', component: ClinicalNotes },
+      { label: 'Other Treatments', value: 'otherTreatments', component: OtherTreatments },
       { label: 'Symptoms', value: 'symptoms', component: Symptoms },
       { label: 'Surgery', value: 'surgery', component: InpatientSurgery },
       { label: 'Discharge', value: 'discharge', component: InpatientDischarge },
