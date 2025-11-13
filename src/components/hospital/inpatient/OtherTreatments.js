@@ -201,8 +201,8 @@ const OtherTreatment = () => {
 
     const treatmentNameValue = (treatmentInputValue || selectedValue || '').trim()
 
-    if (!treatmentNameValue) {
-      Toaster({ type: 'error', message: 'Please select a treatment name.' })
+    if (!treatmentNameValue || treatmentNameValue.length < 3) {
+      Toaster({ type: 'error', message: 'Treatment name must be at least 3 characters.' })
       return
     }
 
@@ -320,7 +320,8 @@ const OtherTreatment = () => {
   }
 
   const handleTreatmentSearch = value => {
-    setTreatmentSearchTerm(value?.trim() || '')
+    const trimmed = value?.trim() || ''
+    setTreatmentSearchTerm(trimmed.length >= 3 ? trimmed : '')
   }
 
   return (
