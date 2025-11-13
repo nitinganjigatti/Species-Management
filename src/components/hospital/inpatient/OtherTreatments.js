@@ -54,39 +54,176 @@ const formatShortDate = isoString => {
   return dayjs(isoString).format('DD MMM YYYY')
 }
 
-const buildTreatmentFromRecord = record => ({
-  id: record.id,
-  name: record.treatment_name || 'Treatment',
-  noteCount: record.note ? 1 : 0,
-  noteSummary: record.note?.trim() || 'No notes added yet.',
-  lastUpdated: record.updated_at || record.created_at || null,
-  clinician: {
-    name: record.created_by_name || '—',
-    avatarUrl: record.profile_pic || '',
-    updatedAt: record.updated_at || record.created_at || ''
-  },
-  activities: record.activities || []
-})
+const getRecordTimestamp = record => record?.updated_at || record?.created_at || record?.timestamp || null
 
-const mapRecordsToGroups = (records = []) => {
-  if (!records.length) return []
+const getTimestampValue = record => {
+  const timestamp = typeof record === 'string' ? record : getRecordTimestamp(record)
+  if (!timestamp) return -Infinity
+  const parsed = dayjs(timestamp)
 
-  const grouped = records.reduce((acc, record) => {
-    const key = record.treatment_master_id || 'default'
+  return parsed.isValid() ? parsed.valueOf() : -Infinity
+}
+
+const deriveTreatmentId = entry => {
+  if (!entry) return null
+
+  return (
+    entry.treatment_master_id ||
+    entry.id ||
+    (entry.treatment_name ? entry.treatment_name.trim().toLowerCase().replace(/\s+/g, '-') : null)
+  )
+}
+
+const buildActivityFromSource = (activity = {}, fallbackRecord = {}, index = 0) => {
+  const timestamp =
+    activity.timestamp || activity.updated_at || activity.created_at || getRecordTimestamp(fallbackRecord) || null
+  const fallbackIdBase =
+    fallbackRecord.id ||
+    fallbackRecord.treatment_master_id ||
+    (fallbackRecord.treatment_name ? fallbackRecord.treatment_name.trim().toLowerCase().replace(/\s+/g, '-') : 'activity')
+
+  return {
+    id: activity.id || `${fallbackIdBase}-${index}`,
+    description: activity.description ?? fallbackRecord.note ?? '',
+    author: activity.author || activity.created_by_name || fallbackRecord.created_by_name || '—',
+    timestamp,
+    status: activity.status || fallbackRecord.status || 'completed',
+    title: activity.title || fallbackRecord.treatment_name || 'Status Update',
+    treatmentStartDate: activity.treatmentStartDate || activity.start_time || fallbackRecord.start_time || null,
+    notes: activity.notes ?? fallbackRecord.note ?? activity.description ?? ''
+  }
+}
+
+const extractActivitiesFromRecord = record => {
+  if (Array.isArray(record?.activities) && record.activities.length) {
+    return record.activities.map((activity, index) => buildActivityFromSource(activity, record, index))
+  }
+
+  return [
+    buildActivityFromSource(
+      {
+        id: record?.id,
+        description: record?.note,
+        notes: record?.note,
+        timestamp: getRecordTimestamp(record),
+        author: record?.created_by_name,
+        treatmentStartDate: record?.start_time,
+        status: record?.status,
+        title: record?.treatment_name
+      },
+      record
+    )
+  ]
+}
+
+const buildTreatmentFromEntries = entries => {
+  if (!entries?.length) return null
+
+  const activities = entries.flatMap(extractActivitiesFromRecord)
+  const latestEntry =
+    entries
+      .slice()
+      .sort((a, b) => getTimestampValue(b) - getTimestampValue(a))[0] || entries[0]
+
+  const latestActivityWithNotes = activities
+    .slice()
+    .sort((a, b) => getTimestampValue(b) - getTimestampValue(a))
+    .find(activity => (activity.notes || activity.description)?.toString().trim())
+
+  return {
+    id: deriveTreatmentId(latestEntry) || deriveTreatmentId(entries[0]) || 'treatment',
+    name: latestEntry?.treatment_name || entries[0]?.treatment_name || 'Treatment',
+    noteCount: activities.filter(activity => (activity.notes || activity.description)?.toString().trim()).length,
+    noteSummary:
+      latestActivityWithNotes?.notes?.toString().trim() ||
+      latestActivityWithNotes?.description?.toString().trim() ||
+      'No notes added yet.',
+    lastUpdated: getRecordTimestamp(latestEntry),
+    clinician: {
+      name: latestEntry?.created_by_name || '—',
+      avatarUrl: latestEntry?.profile_pic || '',
+      updatedAt: getRecordTimestamp(latestEntry) || ''
+    },
+    activities
+  }
+}
+
+const aggregateTreatmentsByName = (treatments = []) => {
+  if (!treatments.length) return []
+
+  const grouped = treatments.reduce((acc, record) => {
+    if (!record) return acc
+
+    const key =
+      record.treatment_name?.trim().toLowerCase() ||
+      record.treatment_master_id ||
+      record.id ||
+      `treatment-${Object.keys(acc).length}`
+
     if (!acc[key]) {
-      acc[key] = {
-        id: key,
-        code: record.treatment_name ? `Treatment - ${record.treatment_name}` : 'Treatment',
-        icon: 'mdi:medical-bag-outline',
-        treatments: []
-      }
+      acc[key] = []
     }
-    acc[key].treatments.push(buildTreatmentFromRecord(record))
+
+    acc[key].push(record)
 
     return acc
   }, {})
 
   return Object.values(grouped)
+    .map(buildTreatmentFromEntries)
+    .filter(Boolean)
+}
+
+const mapRecordsToGroups = (records = []) => {
+  if (!records.length) return []
+
+  const hasNestedTreatments = records.some(record => Array.isArray(record?.treatments))
+
+  if (hasNestedTreatments) {
+    return records
+      .map(record => {
+        const treatments = aggregateTreatmentsByName(record.treatments || [])
+        if (!treatments.length) return null
+
+        return {
+          id: record.medical_record_id || record.medical_record_code || 'medical-record',
+          code: record.medical_record_code ? `MED - ${record.medical_record_code}` : 'Medical Record',
+          icon: 'mdi:medical-bag-outline',
+          treatments
+        }
+      })
+      .filter(Boolean)
+  }
+
+  const groupedByMedicalRecord = records.reduce((acc, record) => {
+    if (!record) return acc
+
+    const key = record.medical_record_code || record.medical_record_id || 'default'
+    if (!acc[key]) {
+      acc[key] = {
+        id: key,
+        code: record.medical_record_code
+          ? `MED - ${record.medical_record_code}`
+          : record.treatment_name
+            ? `Treatment - ${record.treatment_name}`
+            : 'Treatment',
+        icon: 'mdi:medical-bag-outline',
+        entries: []
+      }
+    }
+    acc[key].entries.push(record)
+
+    return acc
+  }, {})
+
+  return Object.values(groupedByMedicalRecord)
+    .map(group => ({
+      id: group.id,
+      code: group.code,
+      icon: group.icon,
+      treatments: aggregateTreatmentsByName(group.entries)
+    }))
+    .filter(group => group.treatments.length)
 }
 
 const OtherTreatment = () => {
