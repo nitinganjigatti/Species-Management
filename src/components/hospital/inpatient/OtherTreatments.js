@@ -96,7 +96,7 @@ const OtherTreatment = () => {
   const [isEditDrawerOpen, setEditDrawerOpen] = useState(false)
   const [formData, setFormData] = useState({
     startDate: dayjs('2025-07-12'),
-    treatmentName: defaultTreatmentOptions[0] || null,
+    treatmentName: null,
     notes: ''
   })
   const [editFormData, setEditFormData] = useState({
@@ -112,6 +112,7 @@ const OtherTreatment = () => {
   const [treatmentSearchTerm, setTreatmentSearchTerm] = useState('')
   const [isCreatingTreatment, setIsCreatingTreatment] = useState(false)
   const [isTreatmentsLoading, setTreatmentsLoading] = useState(false)
+  const [treatmentInputValue, setTreatmentInputValue] = useState('')
 
   const totalTreatments = useMemo(
     () => treatmentGroups.reduce((sum, group) => sum + group.treatments.length, 0),
@@ -193,7 +194,14 @@ const OtherTreatment = () => {
   }
 
   const handleAddTreatment = async () => {
-    if (!formData.treatmentName?.label) {
+    const selectedValue =
+      typeof formData.treatmentName === 'string'
+        ? formData.treatmentName
+        : formData.treatmentName?.label || formData.treatmentName?.value || ''
+
+    const treatmentNameValue = (treatmentInputValue || selectedValue || '').trim()
+
+    if (!treatmentNameValue) {
       Toaster({ type: 'error', message: 'Please select a treatment name.' })
       return
     }
@@ -210,7 +218,7 @@ const OtherTreatment = () => {
       medical_record_id,
       hospital_case_id: hospital_case_id || '',
       start_time: formattedStartTime,
-      treatment_master_id: formData.treatmentName.label,
+      treatment_master_id: treatmentNameValue,
       note: formData.notes || ''
     }
 
@@ -225,6 +233,7 @@ const OtherTreatment = () => {
           treatmentName: null,
           notes: ''
         })
+        setTreatmentInputValue('')
         fetchTreatments()
       }
     } catch (error) {
@@ -532,6 +541,7 @@ const OtherTreatment = () => {
         treatmentOptions={treatmentOptions}
         optionsLoading={treatmentOptionsLoading}
         onSearchTreatment={handleTreatmentSearch}
+        onInputValueChange={setTreatmentInputValue}
         isSubmitting={isCreatingTreatment}
       />
 
@@ -567,8 +577,45 @@ const AddTreatmentDrawer = ({
   treatmentOptions,
   onSearchTreatment,
   optionsLoading,
+  onInputValueChange,
   isSubmitting
 }) => {
+  const handleTreatmentInputChange = (value, reason) => {
+    if (reason === 'input') {
+      onInputValueChange?.(value || '')
+      onSearchTreatment?.(value || '')
+      onChange('treatmentName', value || null)
+      return
+    }
+
+    if (reason === 'reset') {
+      if (typeof value === 'string') {
+        onInputValueChange?.(value)
+      } else if (value?.label) {
+        onInputValueChange?.(value.label)
+      }
+
+      return
+    }
+
+    if (reason === 'clear') {
+      onInputValueChange?.('')
+      onSearchTreatment?.('')
+      onChange('treatmentName', null)
+    }
+  }
+
+  const handleTreatmentSelect = value => {
+    onChange('treatmentName', value)
+
+    if (typeof value === 'string') {
+      onInputValueChange?.(value)
+    } else if (value?.label) {
+      onInputValueChange?.(value.label)
+    } else {
+      onInputValueChange?.('')
+    }
+  }
   const { control, reset } = useForm({
     defaultValues: {
       treatmentName: formData.treatmentName || null,
@@ -687,10 +734,12 @@ const AddTreatmentDrawer = ({
                 options={treatmentOptions}
                 loading={optionsLoading}
                 fullWidth
-                getOptionLabel={option => option?.label || ''}
-                isOptionEqualToValue={(option, value) => option?.value === value?.value}
-                onChangeOverride={value => onChange('treatmentName', value)}
-                onInputChange={value => onSearchTreatment?.(value)}
+                getOptionLabel={option => option?.label || option || ''}
+                isOptionEqualToValue={(option, value) =>
+                  (option?.value && option?.value === value?.value) || option === value
+                }
+                onChangeOverride={handleTreatmentSelect}
+                onInputChange={handleTreatmentInputChange}
                 inputBackgroundColor='#FFFFFF'
                 textFieldProps={{
                   placeholder: 'Select treatment',
