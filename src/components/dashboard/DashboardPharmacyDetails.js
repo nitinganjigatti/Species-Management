@@ -22,7 +22,7 @@ import Icon from 'src/@core/components/icon'
 // ** Custom Components Imports
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import { bgcolor, fontWeight, padding } from '@mui/system'
-import { Avatar } from '@mui/material'
+import { Avatar, Tooltip } from '@mui/material'
 import Utility from 'src/utility'
 
 const data = [
@@ -67,7 +67,14 @@ const Slides = ({ sliderData }) => {
         sliderData.map((slide, index) => {
           return (
             <Box key={index} className='keen-slider__slide'>
-              <Box sx={{ mb: 5, display: 'flex', alignItems: 'stretch' }}>
+              <Box
+                sx={{
+                  mb: 5,
+                  display: 'flex',
+                  alignItems: 'stretch',
+                  gap: '10px '
+                }}
+              >
                 {/* <Box component='img' src={slide.img} alt={slide.title} sx={{ mr: 3, width: 100 }} /> */}
                 {/* <Avatar
                 variant='square'
@@ -86,7 +93,9 @@ const Slides = ({ sliderData }) => {
                     maxWidth: 140, // Prevents the image from taking too much space
                     minWidth: 120, // Ensures image does not get too small
                     display: 'flex',
-                    mr: 6
+                    alignItems: 'center',
+
+                    mr: 3
                   }}
                 >
                   <Avatar
@@ -95,18 +104,34 @@ const Slides = ({ sliderData }) => {
                       width: '100%', // Takes full width of the box
                       height: '100%', // Matches the height of right content
                       objectFit: 'cover', // Ensures proper scaling without distortion
+                      // alignItems: 'center'
                       alignItems: 'flex-end'
                     }}
                     src={slidesImg[slide.title]}
                   />
                 </Box>
-                <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <Typography sx={{ mb: 5, fontWeight: 600, color: '#FFFFFF', textAlign: 'start' }}>
+                <Grid
+                  container
+                  sx={{
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'start'
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      mb: 5,
+                      fontWeight: 600,
+                      color: '#FFFFFF',
+                      textAlign: 'start'
+                    }}
+                  >
                     {slide.subtitle}
                   </Typography>
-                  <Grid container spacing={2.5}>
+                  <Grid container spacing={{ xs: 2.5, lg: 1 }}>
                     {Object.keys(slide.details).map((key, index) => (
-                      <Grid item size={{ xs: 6 }} key={index}>
+                      <Grid item size={{ xs: 12, lg: 6 }} key={index}>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <CustomAvatar
                             skin='light'
@@ -124,14 +149,30 @@ const Slides = ({ sliderData }) => {
                           >
                             {Utility.formatAmountCompactDisplay(slide.details[key])}
                           </CustomAvatar>
-                          <Typography variant='caption' sx={{ color: '#FFFFFF', letterSpacing: 0, textAlign: 'left' }}>
-                            {formatTitleCase(key)}
-                          </Typography>
+
+                          <Tooltip title={formatTitleCase(key)}>
+                            <Typography
+                              variant='caption'
+                              sx={{
+                                color: '#FFFFFF',
+                                letterSpacing: 0,
+                                textAlign: 'left',
+
+                                // whiteSpace: 'nowrap',
+                                textOverflow: 'ellipsis',
+
+                                display: 'block',
+                                overflow: 'hidden'
+                              }}
+                            >
+                              {formatTitleCase(key)}
+                            </Typography>
+                          </Tooltip>
                         </Box>
                       </Grid>
                     ))}
                   </Grid>
-                </Box>
+                </Grid>
               </Box>
             </Box>
           )
