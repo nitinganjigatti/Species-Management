@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Box, Button, Drawer, IconButton, Tooltip, Typography } from '@mui/material'
+import { Box, Button, Drawer, IconButton, Skeleton, Tooltip, Typography } from '@mui/material'
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material'
 import dayjs from 'dayjs'
 import { Icon } from '@iconify/react'
@@ -354,7 +354,20 @@ const OtherTreatment = () => {
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {isTreatmentsLoading && (
-          <Typography sx={{ color: '#44544A', fontWeight: 400, fontSize: '14px' }}>Loading treatments...</Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {[1, 2, 3].map(item => (
+              <Box key={`skeleton-${item}`} sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <Skeleton variant='text' width={180} height={24} />
+                <Skeleton
+                  variant='rounded'
+                  height={118}
+                  sx={{
+                    borderRadius: '8px'
+                  }}
+                />
+              </Box>
+            ))}
+          </Box>
         )}
 
         {!isTreatmentsLoading && treatmentGroups.length === 0 && (
