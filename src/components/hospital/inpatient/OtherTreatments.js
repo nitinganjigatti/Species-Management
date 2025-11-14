@@ -433,6 +433,13 @@ const OtherTreatment = () => {
   }, [fetchTreatments])
 
   useEffect(() => {
+    if (!isAddDrawerOpen) {
+      setTreatmentOptions(defaultTreatmentOptions)
+      setTreatmentOptionsLoading(false)
+
+      return
+    }
+
     let isMounted = true
 
     const handler = setTimeout(async () => {
@@ -471,7 +478,7 @@ const OtherTreatment = () => {
       isMounted = false
       clearTimeout(handler)
     }
-  }, [treatmentSearchTerm])
+  }, [treatmentSearchTerm, isAddDrawerOpen])
 
   const handleFieldChange = (field, value) => {
     setFormData(prev => ({
