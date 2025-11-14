@@ -9,7 +9,12 @@ import { useForm, Controller } from 'react-hook-form'
 import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import DialogConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
-import { createTreatmentRecord, getTreatmentMasterList, getTreatmentList } from 'src/lib/api/hospital/treatmentMaster'
+import {
+  createTreatmentRecord,
+  getTreatmentMasterList,
+  getTreatmentList,
+  updateTreatmentRecord
+} from 'src/lib/api/hospital/treatmentMaster'
 import { useRouter } from 'next/router'
 import Toaster from 'src/components/Toaster'
 
@@ -180,6 +185,12 @@ const buildTreatmentFromEntries = entries => {
       avatarUrl: latestEntry?.clinician?.avatarUrl || latestEntry?.clinician?.avatar_url || latestEntry?.profile_pic || '',
       updatedAt: latestEntry?.clinician?.updatedAt || latestEntry?.clinician?.updated_at || getRecordTimestamp(latestEntry) || ''
     },
+    animalId: latestEntry?.animal_id || entries[0]?.animal_id || null,
+    medicalRecordId: latestEntry?.medical_record_id || entries[0]?.medical_record_id || null,
+    medicalRecordCode: latestEntry?.medical_record_code || entries[0]?.medical_record_code || '',
+    treatmentMasterId: latestEntry?.treatment_master_id || entries[0]?.treatment_master_id || null,
+    treatmentId: latestEntry?.treatment_id || entries[0]?.treatment_id || null,
+    hospitalCaseId: latestEntry?.hospital_case_id || entries[0]?.hospital_case_id || null,
     activities
   }
 }
@@ -269,6 +280,45 @@ const mapRecordsToGroups = (records = []) => {
     .filter(group => group.treatments.length)
 }
 
+const mapDetailRecordsToActivities = (records = []) => {
+  if (!records.length) return []
+
+  return records.map((record, index) => {
+    const timestamp =
+      record.update_at ||
+      record.updated_at ||
+      record.updatedAt ||
+      record.created_at ||
+      record.createdAt ||
+      record.timestamp ||
+      null
+
+    const treatmentStartDate = record.created_at || record.createdAt || timestamp || null
+    const note = record.note || ''
+
+    return {
+      id: record.id || `${record.treatment_master_id || record.treatment_id || 'treatment'}-${index}`,
+      title: record.treatment_name || 'Status Update',
+      treatmentName: record.treatment_name || '',
+      author: record.created_by_name || '—',
+      clinician: {
+        name: record.created_by_name || '—',
+        avatarUrl: record.profile_pic || ''
+      },
+      timestamp,
+      treatmentStartDate,
+      notes: note,
+      description: note,
+      note,
+      status: record.is_first === '1' ? 'initial' : 'update',
+      isFirst: record.is_first === '1',
+      isEditable: record.is_first !== '1',
+      medicalRecordCode: record.medical_record_code || '',
+      record
+    }
+  })
+}
+
 const OtherTreatment = () => {
   const router = useRouter()
   const { animal_id, medical_record_id, id: hospital_case_id } = router.query
@@ -295,6 +345,21 @@ const OtherTreatment = () => {
   const [isCreatingTreatment, setIsCreatingTreatment] = useState(false)
   const [isTreatmentsLoading, setTreatmentsLoading] = useState(false)
   const [treatmentInputValue, setTreatmentInputValue] = useState('')
+  const [selectedTreatmentActivities, setSelectedTreatmentActivities] = useState([])
+  const [isTreatmentActivitiesLoading, setTreatmentActivitiesLoading] = useState(false)
+  const [isUpdatingTreatment, setIsUpdatingTreatment] = useState(false)
+
+  const closeEditDrawer = useCallback(() => {
+    setEditDrawerOpen(false)
+    setSelectedTreatmentActivities([])
+    setSelectedTreatment(null)
+    setEditFormData({
+      startDate: dayjs(),
+      notes: '',
+      activeActivityId: null
+    })
+    setIsUpdatingTreatment(false)
+  }, [])
 
   const totalTreatments = useMemo(
     () => treatmentGroups.reduce((sum, group) => sum + group.treatments.length, 0),
@@ -321,6 +386,39 @@ const OtherTreatment = () => {
       setTreatmentsLoading(false)
     }
   }, [animal_id, medical_record_id, hospital_case_id])
+
+  const loadTreatmentActivities = useCallback(
+    async ({ treatmentMasterId, medicalRecordId, animalId: fallbackAnimalId } = {}) => {
+      const finalAnimalId = animal_id || fallbackAnimalId
+      const finalMedicalRecordId = medicalRecordId || medical_record_id
+      const finalTreatmentMasterId = treatmentMasterId
+
+      if (!finalAnimalId || !finalMedicalRecordId || !finalTreatmentMasterId) {
+        setSelectedTreatmentActivities([])
+
+        return
+      }
+
+      setTreatmentActivitiesLoading(true)
+      try {
+        const response = await getTreatmentList({
+          animal_id: finalAnimalId,
+          medical_record_id: finalMedicalRecordId,
+          treatment_master_id: finalTreatmentMasterId,
+          hospital_case_id
+        })
+
+        const records = response?.data?.records || []
+        setSelectedTreatmentActivities(mapDetailRecordsToActivities(records))
+      } catch (error) {
+        Toaster({ type: 'error', message: error?.message || 'Failed to fetch treatment details.' })
+        setSelectedTreatmentActivities([])
+      } finally {
+        setTreatmentActivitiesLoading(false)
+      }
+    },
+    [animal_id, medical_record_id, hospital_case_id]
+  )
 
   useEffect(() => {
     fetchTreatments()
@@ -439,6 +537,8 @@ const OtherTreatment = () => {
   const handleOpenEditDrawer = (treatment, activity = null) => {
     if (!treatment) return
 
+    setSelectedTreatmentActivities([])
+
     const inferredStartDate = activity?.treatmentStartDate
       ? dayjs(activity.treatmentStartDate)
       : activity?.timestamp
@@ -456,16 +556,77 @@ const OtherTreatment = () => {
       activeActivityId: activity?.id || null
     })
     setEditDrawerOpen(true)
+
+    loadTreatmentActivities({
+      treatmentMasterId: treatment.treatmentMasterId || treatment.treatment_master_id || treatment.treatmentId || treatment.id,
+      medicalRecordId: treatment.medicalRecordId || treatment.medical_record_id,
+      animalId: treatment.animalId
+    })
   }
 
-  const handleUpdateTreatment = () => {
-    console.log('Update payload:', {
-      treatmentId: selectedTreatment?.id,
-      startDate: editFormData.startDate ? editFormData.startDate.toISOString() : null,
-      notes: editFormData.notes,
-      activityId: editFormData.activeActivityId
-    })
-    setEditDrawerOpen(false)
+  const handleUpdateTreatment = async () => {
+    if (!selectedTreatment) {
+      Toaster({ type: 'error', message: 'Select a treatment to update.' })
+
+      return
+    }
+
+    if (!editFormData.activeActivityId) {
+      Toaster({ type: 'error', message: 'Select a note entry to update from the activity list.' })
+
+      return
+    }
+
+    const finalAnimalId = selectedTreatment.animalId || animal_id
+    const finalMedicalRecordId = selectedTreatment.medicalRecordId || medical_record_id
+
+    if (!finalAnimalId || !finalMedicalRecordId) {
+      Toaster({ type: 'error', message: 'Missing identifiers to update this treatment.' })
+
+      return
+    }
+
+    const formattedStartTime = editFormData.startDate ? dayjs(editFormData.startDate).format('DD MMM YYYY HH:mm:ss') : ''
+
+    const treatmentMasterId =
+      selectedTreatment.treatmentMasterId ||
+      selectedTreatment.treatment_master_id ||
+      selectedTreatment.treatmentId ||
+      selectedTreatment.id ||
+      ''
+
+    if (!treatmentMasterId) {
+      Toaster({ type: 'error', message: 'Unable to determine treatment reference for update.' })
+
+      return
+    }
+
+    const payload = {
+      animal_id: finalAnimalId,
+      medical_record_id: finalMedicalRecordId,
+      hospital_case_id: selectedTreatment.hospitalCaseId || hospital_case_id || '',
+      start_time: formattedStartTime,
+      treatment_master_id: treatmentMasterId,
+      note: editFormData.notes || '',
+      treatment_id: editFormData.activeActivityId
+    }
+
+    try {
+      setIsUpdatingTreatment(true)
+      const response = await updateTreatmentRecord(payload)
+      Toaster({
+        type: response?.success ? 'success' : 'error',
+        message: response?.message || 'Treatment update status unknown.'
+      })
+      if (response?.success) {
+        closeEditDrawer()
+        fetchTreatments()
+      }
+    } catch (error) {
+      Toaster({ type: 'error', message: error?.message || 'Failed to update treatment.' })
+    } finally {
+      setIsUpdatingTreatment(false)
+    }
   }
 
   const handleDeleteTreatment = () => {
@@ -478,7 +639,7 @@ const OtherTreatment = () => {
       activityId: editFormData.activeActivityId
     })
     setDeleteDialogOpen(false)
-    setEditDrawerOpen(false)
+    closeEditDrawer()
   }
 
   const handleCancelDeleteTreatment = () => {
@@ -745,13 +906,16 @@ const OtherTreatment = () => {
 
       <EditTreatmentDrawer
         open={isEditDrawerOpen}
-        onClose={() => setEditDrawerOpen(false)}
+        onClose={closeEditDrawer}
         treatment={selectedTreatment}
         formData={editFormData}
         onChange={handleEditFieldChange}
         onDelete={handleDeleteTreatment}
         onUpdate={handleUpdateTreatment}
         onActivityPrefill={handlePrefillFromActivity}
+        activities={selectedTreatmentActivities}
+        isActivitiesLoading={isTreatmentActivitiesLoading}
+        isSubmitting={isUpdatingTreatment}
       />
 
       <DialogConfirmationDialog
@@ -1031,7 +1195,10 @@ const EditTreatmentDrawer = ({
   onChange,
   onUpdate,
   onDelete,
-  onActivityPrefill
+  onActivityPrefill,
+  activities = [],
+  isActivitiesLoading = false,
+  isSubmitting = false
 }) => {
   const { control, reset } = useForm({
     defaultValues: {
@@ -1065,7 +1232,7 @@ const EditTreatmentDrawer = ({
     }
   }
 
-  const activityList = treatment.activities || []
+  const activityList = activities || []
 
   return (
     <Drawer
@@ -1209,8 +1376,77 @@ const EditTreatmentDrawer = ({
               Activity
             </Typography>
 
-            {activityList.map(activity => {
-              if (activity.status === 'pending') {
+            {isActivitiesLoading ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {[1, 2].map(item => (
+                  <Skeleton key={`activity-skeleton-${item}`} variant='rounded' height={96} sx={{ borderRadius: '8px' }} />
+                ))}
+              </Box>
+            ) : activityList.length === 0 ? (
+              <Typography
+                sx={{
+                  color: '#7A8684',
+                  fontWeight: 400,
+                  fontSize: '14px'
+                }}
+              >
+                No activity records available.
+              </Typography>
+            ) : (
+              activityList.map(activity => {
+                if (activity.isEditable) {
+                  return (
+                    <Box
+                      key={activity.id}
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                        borderRadius: '8px',
+                        padding: '12px',
+                        border: '1px solid #FCF4AE',
+                        backgroundColor: '#FCF4AE66'
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          gap: '8px',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start'
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            color: '#44544A',
+                            fontWeight: 400,
+                            fontSize: '14px'
+                          }}
+                        >
+                          {activity.note || activity.description || 'No notes recorded.'}
+                        </Typography>
+                        <IconButton
+                          size='small'
+                          sx={{ color: '#44544A', p: 1 }}
+                          onClick={() => onActivityPrefill?.(activity)}
+                        >
+                          <Icon icon='mdi:pencil-outline' />
+                        </IconButton>
+                      </Box>
+                      <Typography
+                        sx={{
+                          color: '#7A8684',
+                          fontWeight: 400,
+                          fontSize: '12px',
+                          lineHeight: '100%'
+                        }}
+                      >
+                        {activity.author} • {formatTimestamp(activity.timestamp)}
+                      </Typography>
+                    </Box>
+                  )
+                }
+
                 return (
                   <Box
                     key={activity.id}
@@ -1219,14 +1455,64 @@ const EditTreatmentDrawer = ({
                       flexDirection: 'column',
                       gap: '12px',
                       borderRadius: '8px',
-                      padding: '12px',
-                      border: '1px solid #FCF4AE',
-                      backgroundColor: '#FCF4AE66'
+                      padding: '16px',
+                      backgroundColor: '#EFF5F2'
                     }}
                   >
-                    <Box
-                      sx={{ display: 'flex', gap: '8px', justifyContent: 'space-between', alignItems: 'flex-start' }}
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <Typography
+                        sx={{
+                          color: '#44544A',
+                          fontWeight: 500,
+                          fontSize: '16px'
+                        }}
+                      >
+                        {activity.treatmentName || activity.title || 'Treatment Activity'}
+                      </Typography>
+                      {activity.medicalRecordCode ? (
+                        <Typography
+                          sx={{
+                            color: '#7A8684',
+                            fontWeight: 400,
+                            fontSize: '12px'
+                          }}
+                        >
+                          Medical Record: {activity.medicalRecordCode}
+                        </Typography>
+                      ) : null}
+                      <Typography
+                        sx={{
+                          color: '#7A8684',
+                          fontWeight: 400,
+                          fontSize: '12px',
+                          lineHeight: '100%'
+                        }}
+                      >
+                        {activity.author} • {formatTimestamp(activity.timestamp)}
+                      </Typography>
+                    </Box>
+                    <Typography
+                      sx={{
+                        color: '#44544A',
+                        fontWeight: 400,
+                        fontSize: '12px'
+                      }}
                     >
+                      Treatment Start Date:{' '}
+                      <Box component='span' sx={{ fontWeight: 600 }}>
+                        {formatShortDate(activity.treatmentStartDate)}
+                      </Box>
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <Typography
+                        sx={{
+                          color: '#7A8684',
+                          fontWeight: 400,
+                          fontSize: '12px'
+                        }}
+                      >
+                        Notes
+                      </Typography>
                       <Typography
                         sx={{
                           color: '#44544A',
@@ -1234,98 +1520,13 @@ const EditTreatmentDrawer = ({
                           fontSize: '14px'
                         }}
                       >
-                        {activity.description}
+                        {activity.note || 'No notes recorded.'}
                       </Typography>
-                      <IconButton
-                        size='small'
-                        sx={{ color: '#44544A', p: 1 }}
-                        onClick={() => onActivityPrefill?.(activity)}
-                      >
-                        <Icon icon='mdi:pencil-outline' />
-                      </IconButton>
                     </Box>
-                    <Typography
-                      sx={{
-                        color: '#7A8684',
-                        fontWeight: 400,
-                        fontSize: '12px',
-                        lineHeight: '100%'
-                      }}
-                    >
-                      {activity.author} • {formatTimestamp(activity.timestamp)}
-                    </Typography>
                   </Box>
                 )
-              }
-
-              return (
-                <Box
-                  key={activity.id}
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    backgroundColor: '#EFF5F2'
-                  }}
-                >
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <Typography
-                      sx={{
-                        color: '#44544A',
-                        fontWeight: 400,
-                        fontSize: '14px'
-                      }}
-                    >
-                      {activity.title || 'Status Update'}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        color: '#7A8684',
-                        fontWeight: 400,
-                        fontSize: '12px',
-                        lineHeight: '100%'
-                      }}
-                    >
-                      {activity.author} • {formatTimestamp(activity.timestamp)}
-                    </Typography>
-                  </Box>
-                  <Typography
-                    sx={{
-                      color: '#44544A',
-                      fontWeight: 400,
-                      fontSize: '12px'
-                    }}
-                  >
-                    Treatment Start Date:{' '}
-                    <Box component='span' sx={{ fontWeight: 600 }}>
-                      {formatShortDate(activity.treatmentStartDate)}
-                    </Box>
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <Typography
-                      sx={{
-                        color: '#7A8684',
-                        fontWeight: 400,
-                        fontSize: '12px'
-                      }}
-                    >
-                      Notes
-                    </Typography>
-                    <Typography
-                      sx={{
-                        color: '#44544A',
-                        fontWeight: 400,
-                        fontSize: '14px'
-                      }}
-                    >
-                      {activity.notes}
-                    </Typography>
-                  </Box>
-                </Box>
-              )
-            })}
+              })
+            )}
           </Box>
         </Box>
 
@@ -1363,6 +1564,7 @@ const EditTreatmentDrawer = ({
             variant='contained'
             fullWidth
             onClick={onUpdate}
+            disabled={isSubmitting || !formData?.activeActivityId}
             sx={{
               height: '56px',
               borderRadius: '8px',
@@ -1374,7 +1576,7 @@ const EditTreatmentDrawer = ({
               }
             }}
           >
-            Update
+            {isSubmitting ? 'Updating...' : 'Update'}
           </Button>
         </Box>
       </Box>
