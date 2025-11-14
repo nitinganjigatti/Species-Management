@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Box, Button, Drawer, IconButton, Skeleton, Tooltip, Typography } from '@mui/material'
+import { Avatar, Box, Button, Drawer, IconButton, Paper, Skeleton, Tooltip, Typography } from '@mui/material'
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material'
 import dayjs from 'dayjs'
 import { Icon } from '@iconify/react'
@@ -80,7 +80,9 @@ const buildActivityFromSource = (activity = {}, fallbackRecord = {}, index = 0) 
   const fallbackIdBase =
     fallbackRecord.id ||
     fallbackRecord.treatment_master_id ||
-    (fallbackRecord.treatment_name ? fallbackRecord.treatment_name.trim().toLowerCase().replace(/\s+/g, '-') : 'activity')
+    (fallbackRecord.treatment_name
+      ? fallbackRecord.treatment_name.trim().toLowerCase().replace(/\s+/g, '-')
+      : 'activity')
 
   return {
     id: activity.id || `${fallbackIdBase}-${index}`,
@@ -120,10 +122,7 @@ const buildTreatmentFromEntries = entries => {
   if (!entries?.length) return null
 
   const activities = entries.flatMap(extractActivitiesFromRecord)
-  const latestEntry =
-    entries
-      .slice()
-      .sort((a, b) => getTimestampValue(b) - getTimestampValue(a))[0] || entries[0]
+  const latestEntry = entries.slice().sort((a, b) => getTimestampValue(b) - getTimestampValue(a))[0] || entries[0]
 
   const latestActivityWithNotes = activities
     .slice()
@@ -169,9 +168,7 @@ const aggregateTreatmentsByName = (treatments = []) => {
     return acc
   }, {})
 
-  return Object.values(grouped)
-    .map(buildTreatmentFromEntries)
-    .filter(Boolean)
+  return Object.values(grouped).map(buildTreatmentFromEntries).filter(Boolean)
 }
 
 const mapRecordsToGroups = (records = []) => {
@@ -205,8 +202,8 @@ const mapRecordsToGroups = (records = []) => {
         code: record.medical_record_code
           ? `MED - ${record.medical_record_code}`
           : record.treatment_name
-            ? `Treatment - ${record.treatment_name}`
-            : 'Treatment',
+          ? `Treatment - ${record.treatment_name}`
+          : 'Treatment',
         icon: 'mdi:medical-bag-outline',
         entries: []
       }
@@ -362,7 +359,10 @@ const OtherTreatment = () => {
     try {
       setIsCreatingTreatment(true)
       const response = await createTreatmentRecord(payload)
-      Toaster({ type: response?.success ? 'success' : 'error', message: response?.message || 'Treatment creation status unknown.' })
+      Toaster({
+        type: response?.success ? 'success' : 'error',
+        message: response?.message || 'Treatment creation status unknown.'
+      })
       if (response?.success) {
         setAddDrawerOpen(false)
         setFormData({
@@ -393,10 +393,10 @@ const OtherTreatment = () => {
     const inferredStartDate = activity?.treatmentStartDate
       ? dayjs(activity.treatmentStartDate)
       : activity?.timestamp
-        ? dayjs(activity.timestamp)
-        : treatment.lastUpdated
-          ? dayjs(treatment.lastUpdated)
-          : dayjs()
+      ? dayjs(activity.timestamp)
+      : treatment.lastUpdated
+      ? dayjs(treatment.lastUpdated)
+      : dayjs()
 
     const prefillNotes = activity ? activity.description || activity.notes || '' : ''
 
@@ -442,10 +442,10 @@ const OtherTreatment = () => {
     const inferredStartDate = activity.treatmentStartDate
       ? dayjs(activity.treatmentStartDate)
       : activity.timestamp
-        ? dayjs(activity.timestamp)
-        : selectedTreatment.lastUpdated
-          ? dayjs(selectedTreatment.lastUpdated)
-          : dayjs()
+      ? dayjs(activity.timestamp)
+      : selectedTreatment.lastUpdated
+      ? dayjs(selectedTreatment.lastUpdated)
+      : dayjs()
 
     const prefillNotes = activity.description || activity.notes || ''
 
@@ -523,8 +523,13 @@ const OtherTreatment = () => {
 
         {treatmentGroups.map(group => (
           <Box key={group.id} sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Icon icon={group.icon} color='#006D35' width={20} height={20} />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Avatar
+                src='/icons/medId_icon.svg'
+                alt='note icon'
+                variant='rounded'
+                sx={{ width: 16, height: 16, bgcolor: 'transparent' }}
+              />
               <Typography
                 sx={{
                   fontWeight: 500,
@@ -619,7 +624,12 @@ const OtherTreatment = () => {
                         </Typography>
                       </Box>
 
-                      <Icon icon='mdi:note-text-outline' color='#006D35' width={18} height={18} />
+                      <Avatar
+                        src='/icons/Note.svg'
+                        alt='note icon'
+                        variant='square'
+                        style={{ width: 14, height: 14 }}
+                      />
                     </Box>
 
                     <Typography
@@ -1161,7 +1171,9 @@ const EditTreatmentDrawer = ({
                       backgroundColor: '#FCF4AE66'
                     }}
                   >
-                    <Box sx={{ display: 'flex', gap: '8px', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <Box
+                      sx={{ display: 'flex', gap: '8px', justifyContent: 'space-between', alignItems: 'flex-start' }}
+                    >
                       <Typography
                         sx={{
                           color: '#44544A',
