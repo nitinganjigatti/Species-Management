@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useState, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -26,19 +27,19 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import MedicationsGasSection from 'src/components/hospital/inpatient/Anesthesia/MedicationsGasSection'
 import PreAnesthesia from 'src/components/hospital/inpatient/Anesthesia/PreAnesthesia'
 import RecoveryAndReversal from 'src/components/hospital/inpatient/Anesthesia/RecoveryAndReversal'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { readAsync } from 'src/lib/windows/utils'
+import { getAssesmentList, addAnesthesia, getAnesthesiaSetupList } from 'src/lib/api/hospital/anesthesia'
+import Toaster from 'src/components/Toaster'
 
 export const anesthesiaSchema = yup.object({
   basicDetails: yup.object({
     location: yup.string().trim().required('Location is required'),
-    dateTime: yup.string().trim().required('Date & time is required'),
-    estimatedTime: yup
-      .string()
-      .trim()
-      .matches(/^\d+\s(hr|min)$/, 'Use format like "2 hr" or "30 min"')
-      .required('Estimated time is required'),
-    veterinarian: yup.string().trim().required('Veterinarian is required'),
-    anesthetist: yup.string().trim().required('Anesthetist is required'),
-    purpose: yup.array().of(yup.string()).min(1, 'Select at least one purpose'),
+    anaesthesia_datetime: yup.string().trim().required('Date & time is required'),
+    estimated_time_required: yup.string().trim().required('Estimated time is required'),
+    veterinarian_id: yup.string().trim().required('Veterinarian is required'),
+    anesthetist_id: yup.string().trim().required('Anesthetist is required'),
+    selected: yup.array().of(yup.string()).min(1, 'Select at least one purpose'),
     notes: yup.string().trim().required('Notes are required')
   }),
   vitalMonitoring: yup
@@ -67,24 +68,100 @@ const sections = [
   { id: 'attachments', label: 'Attachments', component: AttachmentsSection }
 ]
 
-export default function AddAnesthesiaRecord() {
+export default function AddAnesthesiaRecord({ patientData }) {
   const router = useRouter()
-  const [expanded, setExpanded] = React.useState('basicDetails')
+  const { hospital_case_id, medical_record_id, hospital_id } = router.query
+  const [expanded, setExpanded] = useState('basicDetails')
+  const [isBasicDetailsValid, setIsBasicDetailsValid] = useState(false)
+  const [isApiSuccess, setIsApiSuccess] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [assessmentList, setassessmentList] = useState([])
+  const [doctors, setDoctors] = useState([])
   const sectionRefs = React.useRef({})
   const scrollContainerRef = React.useRef(null)
   const theme = useTheme()
 
-  const vetOptions = [
-    { id: 1, name: 'Dr. John D Sam' },
-    { id: 2, name: 'Dr. Jane M Doe' },
-    { id: 3, name: 'Dr. Vineet R' }
-  ]
+  const getUserLists = async (query = '') => {
+    try {
+      const userDetails = await readAsync('userDetails')
+      if (userDetails?.user?.zoos.length > 0) {
+        const zoo_id = userDetails.user.zoos[0].zoo_id
+        const params = { zoo_id }
+        if (query.trim() !== '') {
+          params.q = query
+        }
+        const res = await getUserList(params)
+        if (res?.data?.length > 0) {
+          setDoctors(
+            res.data.map(item => ({
+              name: item?.user_name,
+              id: item?.user_id,
+              default_icon: item?.user_profile_pic,
+              role_name: item?.role_name
+            }))
+          )
+        } else {
+          setDoctors([])
+        }
+      }
+    } catch (error) {
+      console.log('user error', error)
+    }
+  }
 
-  const anesthetistOptions = [
-    { id: 1, name: 'Dr. John D Sam' },
-    { id: 2, name: 'Dr. Jane M Doe' },
-    { id: 3, name: 'Dr. Vineet R' }
-  ]
+  const fetchAssessmentList = async () => {
+    const params = {
+      type: 'purpose'
+      // anaesthesia_id: '7'
+      //hospital_id: hospital_id
+      // page:"",
+      // limit:"",
+    }
+    try {
+      const response = await getAssesmentList(params)
+      console.log(response, 'response')
+      if (response?.success && response?.data?.records?.length > 0) {
+        setassessmentList(
+          response?.data?.records.map(item => ({
+            name: item?.name,
+            id: item?.id
+          }))
+        )
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {}
+  }
+
+  const fetchAnesthesiaSetup = async () => {
+    const params = {
+      type: 'anaesthesia_setup',
+      // anaesthesia_id: '6',
+      hospital_id: hospital_id
+      // page_no:"",
+      // limit:"",
+    }
+    try {
+      const response = await getAnesthesiaSetupList(params)
+      console.log(response, 'response')
+      if (response?.success && response?.data?.records?.length > 0) {
+        setassessmentList(
+          response?.data?.records.map(item => ({
+            name: item?.name,
+            id: item?.id
+          }))
+        )
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {}
+  }
+
+  useEffect(() => {
+    getUserLists()
+    fetchAssessmentList()
+    //fetchAnesthesiaSetup()
+  }, [])
 
   const drugOptions = [
     { drug_id: '1', drug_name: 'Ketamine 100 MG Tablet' },
@@ -117,16 +194,61 @@ export default function AddAnesthesiaRecord() {
     { label: 'Inhalation', value: 'inhalation' }
   ]
 
+  const physicalHealthStatusOptions = [
+    { label: 'Excellent', value: 'excellent' },
+    { label: 'Good', value: 'good' },
+    { label: 'Fair', value: 'fair' },
+    { label: 'Poor', value: 'poor' },
+    { label: 'Critical', value: 'critical' }
+  ]
+
+  const bodyConditionOptions = [
+    { label: 'Emaciated', value: 'emaciated' },
+    { label: 'Thin', value: 'thin' },
+    { label: 'Ideal', value: 'ideal' },
+    { label: 'Overweight', value: 'overweight' },
+    { label: 'Obese', value: 'obese' }
+  ]
+
+  const animalActivityOptions = [
+    { label: 'Very Active', value: 'very_active' },
+    { label: 'Active', value: 'active' },
+    { label: 'Moderate', value: 'moderate' },
+    { label: 'Sedentary', value: 'sedentary' },
+    { label: 'Inactive', value: 'inactive' }
+  ]
+
+  const codeStatusOptions = [
+    { label: 'Full Code', value: 'full_code' },
+    { label: 'DNR (Do Not Resuscitate)', value: 'dnr' },
+    { label: 'Limited Interventions', value: 'limited_interventions' }
+  ]
+
+  const recoveryTypeOptions = [
+    { label: 'Smooth', value: 'smooth' },
+    { label: 'Moderate', value: 'moderate' },
+    { label: 'Rough', value: 'rough' },
+    { label: 'Prolonged', value: 'prolonged' }
+  ]
+
+  const anesthesiaRatingOptions = [
+    { label: 'Excellent', value: 'excellent' },
+    { label: 'Good', value: 'good' },
+    { label: 'Fair', value: 'fair' },
+    { label: 'Poor', value: 'poor' }
+  ]
+
   const methods = useForm({
     defaultValues: {
       basicDetails: {
         location: '',
-        dateTime: '',
-        estimatedTime: '',
-        veterinarian: '',
-        anesthetist: '',
-        purpose: [],
-        otherPurpose: [],
+        anaesthesia_datetime: '',
+        estimated_time_required: '',
+        estimated_time_unit: 'hr',
+        veterinarian_id: '',
+        anesthetist_id: '',
+        selected: [],
+        custom: [],
         notes: ''
       },
       anesthesiaSetup: {
@@ -143,6 +265,25 @@ export default function AddAnesthesiaRecord() {
         gases: []
       },
       vitalMonitoring: [],
+      preAnesthesia: {
+        temperature: '',
+        humidity: '',
+        physical_health_status: '',
+        body_condition: '',
+        animal_activity: '',
+        fasting_time: '',
+        fasting_unit: 'hours',
+        previous_endotracheal_tube_size: '',
+        code_status: '',
+        weight: '',
+        mark_weight_as_approximate: false,
+        risk_concerns: '',
+        clin_path: [],
+        other_clin_path: []
+      },
+      recoveryAndReversal: {
+        reversalDrugs: []
+      },
       attachments: {
         files: [],
         comments: ''
@@ -160,11 +301,22 @@ export default function AddAnesthesiaRecord() {
     reset,
     setValue,
     watch,
-    formState: { errors }
+    trigger,
+    formState: { errors, isValid }
   } = methods
+
+  // Watch individual fields
+  const location = watch('basicDetails.location')
+  const anaesthesia_datetime = watch('basicDetails.anaesthesia_datetime')
+  const estimated_time_required = watch('basicDetails.estimated_time_required')
+  const veterinarian_id = watch('basicDetails.veterinarian_id')
+  const anesthetist_id = watch('basicDetails.anesthetist_id')
+  const selected = watch('basicDetails.selected')
+  const notes = watch('basicDetails.notes')
 
   const medications = watch('medicationsGas.medications')
   const gases = watch('medicationsGas.gases')
+  const reversalDrugs = watch('recoveryAndReversal.reversalDrugs')
 
   const handleAddMedication = React.useCallback(
     medicationData => {
@@ -214,7 +366,65 @@ export default function AddAnesthesiaRecord() {
     [gases, setValue]
   )
 
-  const handleChange = sectionId => {
+  const onAddReversalDrug = React.useCallback(
+    drugData => {
+      const current = Array.isArray(reversalDrugs) ? reversalDrugs : []
+      setValue('recoveryAndReversal.reversalDrugs', [...current, drugData], { shouldDirty: true, shouldTouch: true })
+    },
+    [reversalDrugs, setValue]
+  )
+
+  const onUpdateReversalDrug = React.useCallback(
+    (index, drugData) => {
+      const current = Array.isArray(reversalDrugs) ? [...reversalDrugs] : []
+      if (index < 0 || index >= current.length) return
+      current[index] = drugData
+      setValue('recoveryAndReversal.reversalDrugs', current, { shouldDirty: true, shouldTouch: true })
+    },
+    [reversalDrugs, setValue]
+  )
+
+  const onDeleteReversalDrug = React.useCallback(
+    index => {
+      const current = Array.isArray(reversalDrugs) ? [...reversalDrugs] : []
+      const updated = current.filter((_, i) => i !== index)
+      setValue('recoveryAndReversal.reversalDrugs', updated, { shouldDirty: true, shouldTouch: true })
+    },
+    [reversalDrugs, setValue]
+  )
+
+  // Validate basic details for internal tracking
+  React.useEffect(() => {
+    const validateBasicDetails = async () => {
+      const valid = await trigger('basicDetails')
+      setIsBasicDetailsValid(valid)
+    }
+
+    validateBasicDetails()
+  }, [
+    location,
+    anaesthesia_datetime,
+    estimated_time_required,
+    veterinarian_id,
+    anesthetist_id,
+    selected,
+    notes,
+    trigger
+  ])
+
+  const handleChange = async sectionId => {
+    if (sectionId !== 'basicDetails' && !isApiSuccess) {
+      const valid = await methods.trigger('basicDetails')
+      if (!valid) {
+        setExpanded('basicDetails')
+        setTimeout(() => {
+          const firstErrorField = document.querySelector('[data-field].Mui-error')
+          firstErrorField?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }, 300)
+        return
+      }
+    }
+
     const isExpanding = expanded !== sectionId
     setExpanded(sectionId)
 
@@ -228,7 +438,6 @@ export default function AddAnesthesiaRecord() {
             if (target && scrollContainer) {
               const containerRect = scrollContainer.getBoundingClientRect()
               const targetRect = target.getBoundingClientRect()
-
               const offset = 8
               const scrollTop = scrollContainer.scrollTop + targetRect.top - containerRect.top - offset
 
@@ -243,71 +452,42 @@ export default function AddAnesthesiaRecord() {
     }
   }
 
-  //   React.useEffect(() => {
-  //     // Simulate API details response
-  //     const fetchedData = {
-  //       basicDetails: {
-  //         location: 'Main Zoo Wing',
-  //         dateTime: '2025-01-10T14:30',
-  //         estimatedTime: '2 hr',
-  //         veterinarian: 1,
-  //         anesthetist: 3,
-  //         purpose: ['Ultrasonography', 'MRI'],
-  //         notes: 'Sedated for imaging session.'
-  //       },
-  //       medicationsGas: {
-  //         medications: [
-  //           {
-  //             drug_name: { drug_id: '3', drug_name: 'Propofol' },
-  //             purpose_stage: 'Induction',
-  //             amount: '10',
-  //             unit: 'mg',
-  //             delivery_route: 'intravenous',
-  //             delivery_time: '12:00 PM',
-  //             delivery_status: 'complete',
-  //             max_effect_time: '12:15 PM',
-  //             notes: 'Given slowly'
-  //           }
-  //         ],
-  //         gases: [
-  //           {
-  //             gas_name: { gas_id: '2', gas_name: 'Isoflurane' },
-  //             concentration: '2%',
-  //             flow_rate: '1.5',
-  //             notes: 'Stable readings'
-  //           }
-  //         ]
-  //       },
-  //       anesthesiaSetup: {
-  //         fluids: { checked: true, fluidType: 'Ringer Lactate', quantity: '80' },
-  //         catheterSetup: { checked: true, method: 'IV' },
-  //         syringePump: { checked: true, rate: '2' },
-  //         etIntubation: { checked: true, tubeSizes: '2mm, 3mm' },
-  //         nasalIntubation: { checked: false, fluidType: '', quantity: '' },
-  //         ventilation: { checked: true, mode: 'Manual' },
-  //         monitoring: {
-  //           checked: true,
-  //           selected: ['Pulse ox', 'ECG'],
-  //           otherItems: ['Blood pressure']
-  //         }
-  //       },
-  //       attachments: {
-  //         files: [],
-  //         comments: 'Uploaded in next step'
-  //       }
-  //     }
+  const onValid = async data => {
+    setIsSubmitting(true)
 
-  //     reset(fetchedData)
-  //   }, [reset])
+    try {
+      const formData = new FormData()
 
-  const onValid = data => {
-    console.log('Basic details:', data.basicDetails)
-    console.log('Medications:', data.medicationsGas.medications)
-    console.log('Gases:', data.medicationsGas.gases)
-    console.log('Files:', data.attachments.files)
-    console.log('Complete data:', data)
+      formData.append('hospital_case_id', hospital_case_id || '234')
+      formData.append('medical_record_id', medical_record_id || '16427')
+      formData.append('location', data.basicDetails.location)
+      formData.append('anaesthesia_datetime', data.basicDetails.anaesthesia_datetime)
+      formData.append('estimated_time_required', data.basicDetails.estimated_time_required)
+      formData.append('estimated_time_unit', data.basicDetails.estimated_time_unit)
+      formData.append('veterinarian_id', data.basicDetails.veterinarian_id)
+      formData.append('anesthetist_id', data.basicDetails.anesthetist_id)
+      formData.append('notes', data.basicDetails.notes)
 
-    //  API here
+      const purposePayload = {
+        selected: data.basicDetails.selected || [],
+        custom: data.basicDetails.custom || []
+      }
+      formData.append('purpose', JSON.stringify(purposePayload))
+      console.log('🔹 Final payload for API:', Object.fromEntries(formData))
+      const response = await addAnesthesia(formData)
+
+      if (response?.status === true) {
+        setIsApiSuccess(true)
+        setExpanded('medicationsGas')
+        Toaster({ type: 'success', message: response?.message })
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to save record' })
+      }
+    } catch (error) {
+      Toaster({ type: 'error', message: 'Something went wrong. Please try again.' })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const onInvalid = errors => {
@@ -321,6 +501,9 @@ export default function AddAnesthesiaRecord() {
       })
     }
   }
+
+  // Determine if sections should be enabled
+  const shouldEnableSections = isApiSuccess
 
   return (
     <FormProvider {...methods}>
@@ -420,66 +603,123 @@ export default function AddAnesthesiaRecord() {
                 }
               }}
             >
-              {sections.map(sec => (
-                <Tab
-                  key={sec.id}
-                  label={sec.label}
-                  value={sec.id}
-                  sx={{
-                    color: theme.palette.customColors.secondaryBg,
-                    fontSize: '14px',
-                    fontWeight: '600!important'
-                  }}
-                />
-              ))}
+              {sections.map(sec => {
+                const isDisabled = sec.id !== 'basicDetails' && !shouldEnableSections
+                return (
+                  <Tab
+                    key={sec.id}
+                    label={sec.label}
+                    value={sec.id}
+                    disabled={isDisabled}
+                    sx={{
+                      color:
+                        sec.id !== 'basicDetails' && !shouldEnableSections
+                          ? theme.palette.customColors.OnSurfaceVariant
+                          : theme.palette.customColors.secondaryBg,
+                      fontSize: '14px',
+                      fontWeight: '600!important',
+                      opacity: sec.id !== 'basicDetails' && !shouldEnableSections ? 0.5 : 1
+                    }}
+                  />
+                )
+              })}
             </Tabs>
           </Paper>
 
-          <Box ref={scrollContainerRef} flex={1} overflow='auto' p={0} mt={4} mb={10}>
-            {sections.map(({ id, label, component: SectionComponent }) => (
-              <Accordion
-                key={id}
-                expanded={expanded === id}
-                onChange={() => handleChange(id)}
-                ref={el => (sectionRefs.current[id] = el)}
-                sx={{
-                  mb: 2,
-                  borderRadius: '8px',
-                  boxShadow: 0,
-                  '&:before': { display: 'none' }
-                }}
-              >
-                <AccordionSummary
-                  expandIcon={
-                    expanded === id ? (
-                      <Typography sx={{ fontWeight: 'bold', fontSize: 24, color: '#4c4e646e' }}>−</Typography>
-                    ) : (
-                      <Typography sx={{ fontWeight: 'bold', fontSize: 24 }}>+</Typography>
-                    )
-                  }
+          {/* Scroll container with proper height and overflow */}
+          <Box
+            ref={scrollContainerRef}
+            flex={1}
+            overflow='auto'
+            p={0}
+            mt={4}
+            mb={10}
+            sx={{
+              '&::-webkit-scrollbar': {
+                width: '8px'
+              },
+              '&::-webkit-scrollbar-track': {
+                background: '#f1f1f1'
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: '#c1c1c1',
+                borderRadius: '4px'
+              },
+              overflowX: 'hidden'
+            }}
+          >
+            {sections.map(({ id, label, component: SectionComponent }) => {
+              const isDisabled = id !== 'basicDetails' && !shouldEnableSections
+              return (
+                <Accordion
+                  key={id}
+                  expanded={expanded === id}
+                  onChange={() => handleChange(id)}
+                  ref={el => (sectionRefs.current[id] = el)}
+                  sx={{
+                    mb: 2,
+                    borderRadius: '8px',
+                    boxShadow: 0,
+                    '&:before': { display: 'none' },
+                    ...(isDisabled && {
+                      opacity: 0.6,
+                      pointerEvents: 'none',
+                      backgroundColor: theme.palette.common.white
+                    })
+                  }}
                 >
-                  <Typography fontWeight={600}>{label}</Typography>
-                </AccordionSummary>
+                  <AccordionSummary
+                    expandIcon={
+                      expanded === id ? (
+                        <Typography sx={{ fontWeight: 'bold', fontSize: 24, color: '#4c4e646e' }}>−</Typography>
+                      ) : (
+                        <Typography
+                          sx={{
+                            fontWeight: 'bold',
+                            fontSize: 24,
+                            color: isDisabled ? '#4c4e646e' : theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
+                          +
+                        </Typography>
+                      )
+                    }
+                  >
+                    <Typography fontWeight={600} sx={{ color: isDisabled ? theme.palette.text.disabled : 'inherit' }}>
+                      {label}
+                    </Typography>
+                  </AccordionSummary>
 
-                <AccordionDetails sx={{ pt: 0 }}>
-                  <SectionComponent
-                    sectionId={id}
-                    vetOptions={vetOptions}
-                    anesthetistOptions={anesthetistOptions}
-                    drugOptions={drugOptions}
-                    gasOptions={gasOptions}
-                    unitOptions={unitOptions}
-                    deliveryRouteOptions={deliveryRouteOptions}
-                    onAddMedication={handleAddMedication}
-                    onAddGas={handleAddGas}
-                    onUpdateMedication={handleUpdateMedication}
-                    onUpdateGas={handleUpdateGas}
-                    onDeleteMedication={handleDeleteMedication}
-                    onDeleteGas={handleDeleteGas}
-                  />
-                </AccordionDetails>
-              </Accordion>
-            ))}
+                  <AccordionDetails sx={{ pt: 0 }}>
+                    <SectionComponent
+                      sectionId={id}
+                      vetOptions={doctors}
+                      anesthetistOptions={doctors}
+                      purposeOptions={assessmentList}
+                      drugOptions={drugOptions}
+                      gasOptions={gasOptions}
+                      unitOptions={unitOptions}
+                      deliveryRouteOptions={deliveryRouteOptions}
+                      physicalHealthStatusOptions={physicalHealthStatusOptions}
+                      bodyConditionOptions={bodyConditionOptions}
+                      animalActivityOptions={animalActivityOptions}
+                      codeStatusOptions={codeStatusOptions}
+                      onAddMedication={handleAddMedication}
+                      onAddGas={handleAddGas}
+                      onUpdateMedication={handleUpdateMedication}
+                      onUpdateGas={handleUpdateGas}
+                      onDeleteMedication={handleDeleteMedication}
+                      onDeleteGas={handleDeleteGas}
+                      recoveryTypeOptions={recoveryTypeOptions}
+                      anesthesiaRatingOptions={anesthesiaRatingOptions}
+                      onAddReversalDrug={onAddReversalDrug}
+                      onUpdateReversalDrug={onUpdateReversalDrug}
+                      onDeleteReversalDrug={onDeleteReversalDrug}
+                    />
+                  </AccordionDetails>
+                </Accordion>
+              )
+            })}
           </Box>
         </Box>
 
@@ -487,12 +727,16 @@ export default function AddAnesthesiaRecord() {
           cancelLabel='CANCEL'
           addLabel={
             <Box display='flex' alignItems='center' gap={1}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>ADD</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+                {isSubmitting ? 'SUBMITTING...' : 'ADD'}
+              </span>
             </Box>
           }
           onAdd={handleSubmit(onValid, onInvalid)}
           width={200}
           height={50}
+          isSubmitLoading={isSubmitting}
+          isAddDisabled={!isBasicDetailsValid}
         />
       </Box>
     </FormProvider>

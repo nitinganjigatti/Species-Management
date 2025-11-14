@@ -1,33 +1,34 @@
-import React, { useState, useCallback } from 'react'
-import { Box, Card, Chip, Drawer, IconButton, Typography, useTheme, Grid } from '@mui/material'
+import React, { useState, useCallback, useEffect } from 'react'
+import { Box, Card, Chip, Drawer, IconButton, Typography, useTheme } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import { LoadingButton } from '@mui/lab'
 
 // ** Form & Validation Setup
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form'
-
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import { alpha, Grid } from '@mui/system'
+import { LoadingButton } from '@mui/lab'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
+import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 
 // Validation Schema
 const schema = yup.object().shape({
   drug_name: yup
     .object()
     .shape({
-      gas_id: yup.string().required('Gas Id is required'),
-      drug_name: yup.string().required('Gas Name is required')
+      drug_id: yup.string().required('Drug Id is required'),
+      drug_name: yup.string().required('Drug Name is required')
     })
-    .required('Gas Name is required')
+    .required('Drug Name is required')
     .nullable(),
   amount: yup.string().trim().required('Amount is required'),
   unit: yup.string().required('Unit is required'),
-  delivery_time: yup.date().nullable().required('Delivery Time is required'),
   delivery_route: yup.string().required('Delivery Route is required'),
-  max_effect_time: yup.date().nullable().required('Max Effect Time is required')
+  max_effect_time: yup.date().nullable().required('Max Effect Time is required'),
+  notes: yup.string().trim().required('Note is required')
 })
 
 const deliveryStatus = [
@@ -40,13 +41,24 @@ const deliveryStatus = [
 const defaultValues = {
   drug_name: null,
   amount: '',
-  delivery_time: null,
   unit: '',
   delivery_route: '',
-  max_effect_time: null
+  delivery_time: null,
+  delivery_status: null,
+  max_effect_time: null,
+  notes: ''
 }
 
-function AddReversalDrug({ handleSidebarOpen, handleSidebarClose, handleSubmitData, submitLoader }) {
+function AddReversalDrug({
+  handleSidebarOpen,
+  handleSidebarClose,
+  handleSubmitData,
+  submitLoader,
+  editData,
+  drugOptions = [],
+  unitOptions = [],
+  deliveryRouteOptions = []
+}) {
   const theme = useTheme()
   const [selectedStatus, setSelectedStatus] = useState(null)
 
@@ -54,6 +66,7 @@ function AddReversalDrug({ handleSidebarOpen, handleSidebarClose, handleSubmitDa
     reset,
     control,
     handleSubmit,
+    setValue,
     formState: { errors, isValid }
   } = useForm({
     defaultValues,
@@ -63,32 +76,51 @@ function AddReversalDrug({ handleSidebarOpen, handleSidebarClose, handleSubmitDa
     reValidateMode: 'onChange'
   })
 
-  // Handle form submission to create medications
+  // Populate form when editing
+  useEffect(() => {
+    if (editData) {
+      Object.keys(editData).forEach(key => {
+        setValue(key, editData[key])
+      })
+      if (editData.delivery_status) {
+        setSelectedStatus(editData.delivery_status)
+      }
+    } else {
+      reset(defaultValues)
+      setSelectedStatus(null)
+    }
+  }, [editData, setValue, reset])
+
+  // Handle form submission
   const onSubmit = useCallback(
     async formData => {
       const payload = {
         drug_name: formData.drug_name,
         amount: formData.amount,
         unit: formData.unit,
-        delivery_time: formData.delivery_time,
         delivery_route: formData.delivery_route,
-        max_effect_time: formData.max_effect_time
+        delivery_time: formData.delivery_time,
+        delivery_status: selectedStatus,
+        max_effect_time: formData.max_effect_time,
+        notes: formData.notes
       }
 
       try {
         await handleSubmitData(payload)
         reset(defaultValues)
+        setSelectedStatus(null)
         handleSidebarClose()
       } catch (error) {
         console.error('Error submitting form:', error)
       }
     },
-    [handleSubmitData, reset, handleSidebarClose]
+    [handleSubmitData, reset, handleSidebarClose, selectedStatus]
   )
 
   // Close handler
   const handleClose = useCallback(() => {
     reset(defaultValues)
+    setSelectedStatus(null)
     handleSidebarClose()
   }, [reset, handleSidebarClose])
 
@@ -113,7 +145,7 @@ function AddReversalDrug({ handleSidebarOpen, handleSidebarClose, handleSubmitDa
           <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Hospital Icon' />
 
           <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-            Add Reversal Drug
+            {editData ? 'Edit Reversal Drug' : 'Add Reversal Drug'}
           </Typography>
         </Box>
 
@@ -141,7 +173,7 @@ function AddReversalDrug({ handleSidebarOpen, handleSidebarClose, handleSubmitDa
                   name='drug_name'
                   errors={errors}
                   label='Enter Drug Name*'
-                  options={[]}
+                  options={drugOptions}
                   getOptionLabel={option => option?.drug_name || ''}
                   isOptionEqualToValue={(option, value) => option?.drug_id === value?.drug_id}
                   renderOption={(props, option) => (
@@ -167,7 +199,7 @@ function AddReversalDrug({ handleSidebarOpen, handleSidebarClose, handleSubmitDa
                   name='unit'
                   errors={errors}
                   label='Unit*'
-                  options={[]}
+                  options={unitOptions}
                   getOptionLabel={option => option.label}
                   getOptionValue={option => option.value}
                 />
@@ -180,15 +212,15 @@ function AddReversalDrug({ handleSidebarOpen, handleSidebarClose, handleSubmitDa
                   control={control}
                   name='delivery_route'
                   errors={errors}
-                  label='Select Route*'
-                  options={[]}
+                  label='Delivery Route*'
+                  options={deliveryRouteOptions}
                   getOptionLabel={option => option.label}
                   getOptionValue={option => option.value}
                 />
               </Grid>
               <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mr: 2 }}>
-                  Delivery status:
+                  Delivery status:{' '}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
                   {deliveryStatus.map((status, index) => (
@@ -207,17 +239,6 @@ function AddReversalDrug({ handleSidebarOpen, handleSidebarClose, handleSubmitDa
                           selectedStatus === status.value
                             ? theme.palette.primary.contrastText
                             : theme.palette.text.primary
-
-                        // '&:hover': {
-                        //   backgroundColor:
-                        //     selectedStatus === status.value
-                        //       ? theme.palette.customColors.OnSecondaryContainer
-                        //       : theme.palette.action.hover,
-                        //   color:
-                        //     selectedStatus === status.value
-                        //       ? theme.palette.primary.contrastText
-                        //       : theme.palette.text.primary
-                        // }
                       }}
                     />
                   ))}
@@ -229,6 +250,18 @@ function AddReversalDrug({ handleSidebarOpen, handleSidebarClose, handleSubmitDa
                   name={'max_effect_time'}
                   label='Max Effect Time*'
                   errors={errors}
+                />
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <ControlledTextArea
+                  control={control}
+                  errors={errors}
+                  label='Enter Notes'
+                  name='notes'
+                  placeholder='Enter Notes'
+                  fullWidth
+                  rows={2}
+                  sx={{ backgroundColor: alpha(theme.palette.customColors.antzNotes, 0.6) }}
                 />
               </Grid>
             </Grid>
@@ -271,7 +304,7 @@ function AddReversalDrug({ handleSidebarOpen, handleSidebarClose, handleSubmitDa
                 sx={{ flex: 1, py: 4 }}
                 disabled={!isValid || submitLoader}
               >
-                Add
+                {editData ? 'Update' : 'Add'}
               </LoadingButton>
             </Box>
           </Box>

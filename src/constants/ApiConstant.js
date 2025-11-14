@@ -876,3 +876,11 @@ export const GET_PARAMETER_ASSESSMENT_HISTORY = `v1/hospital/get-assessment-hist
 export const UPDATE_PARAMETER_ASSESSMENT_HISTORY = `/v1/assessment/animal/update`
 
 export const DELETE_PARAMETER_ASSESSMENT_HISTORY = `v1/hospital/delete-assessment-record`
+
+// Hospital Anesthesia
+
+export const GET_ASSESSMENT_LIST_ANESTHESIA = `v1/hospital/anaesthesia/assessment-items`
+
+export const ADD_ANESTHESIA = `v1/hospital/anaesthesia/save`
+
+export const GET_ANESTHESIA_SETUP_LIST = `v1/hospital/anaesthesia/sections`

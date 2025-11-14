@@ -8,14 +8,18 @@ import {
   Button,
   ToggleButtonGroup,
   ToggleButton,
-  InputAdornment,
   Divider,
   Autocomplete
 } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
 import { useFormContext, Controller, useFieldArray } from 'react-hook-form'
+import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
+import dayjs from 'dayjs'
+import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 
-export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] }) {
+export default function BasicDetails({ vetOptions = [], anesthetistOptions = [], purposeOptions = [] }) {
   const {
     control,
     watch,
@@ -25,22 +29,10 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
   const theme = useTheme()
   const [newPurpose, setNewPurpose] = useState('')
 
-  const purposeOptions = [
-    'Detailed physical examination',
-    'Ultrasonography',
-    'MRI',
-    'Blood draw',
-    'Wing/beak/nail trim',
-    'Endoscopy',
-    'E-collar placement',
-    'Dentistry, print dental sheet',
-    'Wound management/bandaging',
-    'Feeding tube (esophagostomy tube)',
-    'CT',
-    'OR surgery, submit request'
+  const timeUnits = [
+    { label: 'hr', value: 'hr' },
+    { label: 'min', value: 'min' }
   ]
-
-  const timeUnits = ['hr', 'min']
   const data = watch()
 
   const commonTextFieldSx = {
@@ -56,14 +48,8 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
     }
   }
 
-  const parseEstimatedTime = value => {
-    if (!value) return { val: '', unit: 'hr' }
-    const [v, u] = value.split(' ')
-    return { val: v || '', unit: u || 'hr' }
-  }
-
-  const selectedPurpose = watch('basicDetails.purpose') || []
-  const selectedOtherPurpose = watch('basicDetails.otherPurpose') || []
+  const selectedPurpose = watch('basicDetails.selected') || []
+  const selectedOtherPurpose = watch('basicDetails.custom') || []
 
   return (
     <Box sx={{ width: '100%', p: 0 }}>
@@ -85,108 +71,73 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
             )}
           />
         </Grid>
-        {console.log('vetOptions:', vetOptions)}
-        {console.log('anesthetistOptions:', anesthetistOptions)}
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Controller
-            name='basicDetails.dateTime'
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                fullWidth
-                label='Date & Time of Anesthesia'
-                type='datetime-local'
-                error={!!errors.basicDetails?.dateTime}
-                helperText={errors.basicDetails?.dateTime?.message}
-                slotProps={{
-                  inputLabel: { shrink: true },
-                  input: { 'data-field': 'dateTime' }
-                }}
-                sx={commonTextFieldSx}
-              />
-            )}
-          />
-        </Grid>
 
         <Grid size={{ xs: 12, md: 4 }}>
           <Controller
-            name='basicDetails.estimatedTime'
+            name='basicDetails.anaesthesia_datetime'
             control={control}
-            defaultValue=''
             render={({ field }) => {
-              const { val, unit } = parseEstimatedTime(field.value)
+              const [displayValue, setDisplayValue] = useState(
+                field.value ? dayjs(field.value, 'YYYY-MM-DD HH:mm:ss') : null
+              )
 
-              const handleChange = (newVal, newUnit) => {
-                const combined = newVal ? `${newVal} ${newUnit}` : ''
-                field.onChange(combined)
+              const handleDateChange = newValue => {
+                if (!newValue) {
+                  field.onChange('')
+                  setDisplayValue(null)
+                  return
+                }
+                setDisplayValue(newValue)
+                const formatted = dayjs(newValue).format('YYYY-MM-DD HH:mm:ss')
+                field.onChange(formatted)
               }
 
-              const showUnit = String(val ?? '').trim().length > 0
-
               return (
-                <TextField
-                  fullWidth
-                  label='Estimated Time Required'
-                  placeholder='Enter'
-                  type='number'
-                  value={val}
-                  onChange={e => {
-                    const newValue = e.target.value
-                    if (newValue === '' || Number(newValue) > 0) {
-                      handleChange(newValue, unit)
-                    }
-                  }}
-                  error={!!errors.basicDetails?.estimatedTime}
-                  helperText={errors.basicDetails?.estimatedTime?.message}
-                  sx={{ ...commonTextFieldSx, '& .MuiOutlinedInput-root': { borderRadius: '4px', height: '56px' } }}
-                  slotProps={{
-                    input: {
-                      'data-field': 'estimatedTime',
-                      endAdornment: showUnit ? (
-                        <InputAdornment position='end' sx={{ mr: 0.5 }}>
-                          <Box
-                            sx={{ display: 'flex', alignItems: 'center', width: '80px', justifyContent: 'flex-end' }}
-                          >
-                            <TextField
-                              select
-                              variant='standard'
-                              value={unit}
-                              onChange={e => handleChange(val, e.target.value)}
-                              slotProps={{ input: { disableUnderline: true } }}
-                              sx={{
-                                '& .MuiInputBase-root': {
-                                  border: 'none',
-                                  minWidth: '60px',
-                                  maxWidth: '80px',
-                                  fontSize: '14px',
-                                  textAlign: 'center'
-                                },
-                                '& .MuiSelect-select': { padding: 0 }
-                              }}
-                            >
-                              {timeUnits.map(u => (
-                                <MenuItem key={u} value={u}>
-                                  {u}
-                                </MenuItem>
-                              ))}
-                            </TextField>
-                          </Box>
-                        </InputAdornment>
-                      ) : null
-                    }
-                  }}
-                />
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DateTimePicker
+                    label='Date & Time of Anesthesia'
+                    value={displayValue}
+                    onChange={handleDateChange}
+                    format='DD MMM YYYY · hh:mm A'
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        error: !!errors.basicDetails?.anaesthesia_datetime,
+                        helperText: errors.basicDetails?.anaesthesia_datetime?.message,
+                        sx: commonTextFieldSx,
+                        inputProps: { 'data-field': 'anaesthesia_datetime' }
+                      }
+                    }}
+                  />
+                </LocalizationProvider>
               )
             }}
           />
         </Grid>
 
+        <Grid size={{ xs: 12, md: 4 }}>
+          <ControlledSelectWithTextField
+            textFieldName='basicDetails.estimated_time_required'
+            selectFieldName='basicDetails.estimated_time_unit'
+            control={control}
+            errors={errors}
+            options={timeUnits}
+            label='Estimated Time Required'
+            placeholder='Enter'
+            type='number'
+            getOptionLabel={option => option.label}
+            getOptionValue={option => option.value}
+            showEmptyMenuItem={false}
+            showEmptyMenuItemLabel={false}
+            selectWidth={80}
+          />
+        </Grid>
+
         <Grid container spacing={2}>
-          {/* Veterinarian Field */}
           <Grid item size={{ xs: 12, md: 4 }}>
+            {console.log(vetOptions, 'vetOptions')}
             <Controller
-              name='basicDetails.veterinarian'
+              name='basicDetails.veterinarian_id'
               control={control}
               render={({ field }) => (
                 <Autocomplete
@@ -201,8 +152,8 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
                       {...params}
                       label='Veterinarian'
                       fullWidth
-                      error={!!errors?.basicDetails?.veterinarian}
-                      helperText={errors?.basicDetails?.veterinarian?.message}
+                      error={!!errors?.basicDetails?.veterinarian_id}
+                      helperText={errors?.basicDetails?.veterinarian_id?.message}
                       sx={commonTextFieldSx}
                     />
                   )}
@@ -213,7 +164,7 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
 
           <Grid item size={{ xs: 12, md: 4 }}>
             <Controller
-              name='basicDetails.anesthetist'
+              name='basicDetails.anesthetist_id'
               control={control}
               render={({ field }) => (
                 <Autocomplete
@@ -228,8 +179,8 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
                       {...params}
                       label='Anesthetist'
                       fullWidth
-                      error={!!errors?.basicDetails?.anesthetist}
-                      helperText={errors?.basicDetails?.anesthetist?.message}
+                      error={!!errors?.basicDetails?.anesthetist_id}
+                      helperText={errors?.basicDetails?.anesthetist_id?.message}
                       sx={commonTextFieldSx}
                     />
                   )}
@@ -258,7 +209,7 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
         </Typography>
 
         <Controller
-          name='basicDetails.purpose'
+          name='basicDetails.selected'
           control={control}
           defaultValue={[]}
           render={({ field }) => (
@@ -294,16 +245,16 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
                   }
                 }}
               >
-                {purposeOptions.map(option => (
-                  <ToggleButton key={option} value={option}>
-                    {option}
+                {purposeOptions?.map(option => (
+                  <ToggleButton key={option.id ?? option.name} value={option.name}>
+                    {option?.name}
                   </ToggleButton>
                 ))}
               </ToggleButtonGroup>
 
-              {errors.basicDetails?.purpose && (
+              {errors.basicDetails?.selected && (
                 <Typography variant='caption' color={theme.palette.customColors.Error} sx={{ mt: 1, display: 'block' }}>
-                  {String(errors.basicDetails?.purpose?.message || 'Required')}
+                  {String(errors.basicDetails?.selected?.message || 'Required')}
                 </Typography>
               )}
 
@@ -340,7 +291,7 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
                         <Button
                           onClick={() => {
                             const updated = selectedOtherPurpose.filter(item => item !== p)
-                            setValue('basicDetails.otherPurpose', updated, { shouldValidate: true })
+                            setValue('basicDetails.custom', updated, { shouldValidate: true })
                           }}
                           aria-label={`Remove ${p}`}
                           sx={{
@@ -395,8 +346,8 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
                       const v = newPurpose.trim()
                       if (!v) return
 
-                      const current = watch('basicDetails.otherPurpose') || []
-                      setValue('basicDetails.otherPurpose', [...current, v], { shouldValidate: true })
+                      const current = watch('basicDetails.custom') || []
+                      setValue('basicDetails.custom', [...current, v], { shouldValidate: true })
                       setNewPurpose('')
                     }}
                     sx={{
@@ -419,34 +370,20 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] 
         <Typography fontWeight={600} mb={3}>
           Notes
         </Typography>
-        <Controller
-          name='basicDetails.notes'
+        <ControlledTextArea
           control={control}
-          render={({ field }) => (
-            <TextField
-              {...field}
-              fullWidth
-              placeholder='Enter Notes'
-              multiline
-              rows={3}
-              error={!!errors.basicDetails?.notes}
-              helperText={errors.basicDetails?.notes?.message}
-              slotProps={{ input: { 'data-field': 'notes' } }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '4px',
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  backgroundColor: theme.palette.customColors.antzNotes
-                },
-                '& .MuiInputBase-input': {
-                  color: theme.palette.customColors.OnSurfaceVariant
-                },
-                '& .MuiInputLabel-root': {
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }
-              }}
-            />
-          )}
+          errors={errors}
+          label='Enter Notes'
+          name='basicDetails.notes'
+          placeholder='Enter Notes'
+          fullWidth
+          rows={2}
+          sx={{
+            '& .MuiInputLabel-root': {
+              color: theme.palette.customColors.OnSurfaceVariant
+            },
+            backgroundColor: alpha(theme.palette.customColors.antzNotes, 0.6)
+          }}
         />
       </Box>
     </Box>

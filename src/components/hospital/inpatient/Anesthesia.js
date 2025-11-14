@@ -239,7 +239,7 @@ const MediaScroller = () => {
   )
 }
 
-function Anesthesia({ hospitalCaseId }) {
+function Anesthesia({ hospitalCaseId, patientData }) {
   const theme = useTheme()
   const router = useRouter()
 
@@ -386,7 +386,14 @@ function Anesthesia({ hospitalCaseId }) {
       resolveValue(id)
 
     const href = resolvedCaseId
-      ? { pathname: '/hospital/inpatient/AddAnesthesiaRecord', query: { hospital_case_id: resolvedCaseId } }
+      ? {
+          pathname: '/hospital/inpatient/AddAnesthesiaRecord',
+          query: {
+            hospital_case_id: resolvedCaseId,
+            medical_record_id: patientData?.medical_record_id,
+            hospital_id: patientData?.hospital_id
+          }
+        }
       : '/hospital/inpatient/AddAnesthesiaRecord'
 
     router.push(href)
@@ -416,11 +423,9 @@ function Anesthesia({ hospitalCaseId }) {
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
 
-          // alignItems: { sm: 'center', xs: 'fl' },
           gap: '24px'
         }}
       >
-        {/* LEFT: takes remaining space + horizontal scroll */}
         <Box
           sx={{
             flex: '1 1 auto',
@@ -463,7 +468,6 @@ function Anesthesia({ hospitalCaseId }) {
           </Box>
         </Box>
 
-        {/* RIGHT: content-size only */}
         <Button
           onClick={handleAddSurgeryRecord}
           variant='contained'
