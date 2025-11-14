@@ -434,16 +434,15 @@ const OtherTreatment = () => {
 
   useEffect(() => {
     if (!isAddDrawerOpen) {
-      setTreatmentOptions(defaultTreatmentOptions)
       setTreatmentOptionsLoading(false)
 
       return
     }
 
     let isMounted = true
+    setTreatmentOptionsLoading(true)
 
     const handler = setTimeout(async () => {
-      setTreatmentOptionsLoading(true)
       try {
         const response = await getTreatmentMasterList({ q: treatmentSearchTerm, page: 0, limit: 10 })
         if (!isMounted) return
@@ -462,10 +461,8 @@ const OtherTreatment = () => {
           setTreatmentOptions([])
         }
       } catch (error) {
-        if (isMounted) {
-          if (!treatmentSearchTerm) {
-            setTreatmentOptions(defaultTreatmentOptions)
-          }
+        if (isMounted && !treatmentSearchTerm) {
+          setTreatmentOptions(defaultTreatmentOptions)
         }
       } finally {
         if (isMounted) {
@@ -1018,9 +1015,8 @@ const AddTreatmentDrawer = ({
     if (reason === 'input') {
       onInputValueChange?.(value || '')
       onSearchTreatment?.(value || '')
-      onChange('treatmentName', value || null)
-      
-return
+
+      return
     }
 
     if (reason === 'reset') {
