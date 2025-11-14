@@ -11,7 +11,8 @@ import {
   Switch,
   FormControlLabel,
   CircularProgress,
-  Breadcrumbs
+  Breadcrumbs,
+  alpha
 } from '@mui/material'
 import styled from '@emotion/styled'
 import { Add as AddIcon } from '@mui/icons-material'
@@ -464,7 +465,7 @@ const HospitalRoomDetails = () => {
         field: 'status',
         headerName: 'Status',
         sortable: false,
-        renderCell: params => <StatusChip status={params.row.status} />
+        renderCell: params => <StatusChip chipStyles={{ ml: 1.4 }} status={params.row.status} />
       },
       {
         minWidth: 150,
@@ -473,12 +474,27 @@ const HospitalRoomDetails = () => {
         sortable: false,
         renderCell: params => (
           <Box onClick={e => e.stopPropagation()}>
-            <MenuWithDots options={getMenuOptions(params.row)} showBorder menuItemSx={{ padding: '0 20px' }} />
+            <MenuWithDots
+              options={getMenuOptions(params.row)}
+              showBorder
+              menuItemSx={{ padding: '0 20px' }}
+              iconSx={{ padding: 0 }}
+            />
           </Box>
         )
       }
     ]
   }, [getMenuOptions, theme.palette.customColors.OnSurfaceVariant])
+
+  // getRowClassName function
+  const getRowClassName = params => {
+    const isActive = String(params.row.status) === '1'
+    if (!isActive) {
+      return 'inactive-row'
+    }
+
+    return ''
+  }
 
   // Navigate to bed detail on Row click
   const handleRowClick = useCallback(
@@ -498,12 +514,10 @@ const HospitalRoomDetails = () => {
         <Link
           href='/hospital/masters/hospital'
           style={{
-            textDecoration: 'none',
-            color: 'inherit',
-            cursor: 'pointer'
+            textDecoration: 'none'
           }}
         >
-          <Typography>Hospital</Typography>
+          <Typography sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}>Hospital</Typography>
         </Link>
         <Typography sx={{ color: theme.palette.text.primary }}>Room</Typography>
       </Breadcrumbs>
@@ -605,6 +619,15 @@ const HospitalRoomDetails = () => {
           loading={isLoadingRooms}
           paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
           setPaginationModel={handlePaginationChange}
+          getRowClassName={getRowClassName}
+          externalTableStyle={{
+            '& .inactive-row': {
+              backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.1),
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.3)
+              }
+            }
+          }}
         />
       </Card>
 

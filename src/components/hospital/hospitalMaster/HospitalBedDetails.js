@@ -13,7 +13,8 @@ import {
   Switch,
   FormControlLabel,
   CircularProgress,
-  Breadcrumbs
+  Breadcrumbs,
+  alpha
 } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
@@ -378,7 +379,7 @@ const HospitalBedDetails = () => {
         )
       },
       {
-        minWidth: 200,
+        minWidth: 250,
         field: 'bed_name',
         headerName: 'Cage/stall/enclosure',
         sortable: false,
@@ -397,21 +398,25 @@ const HospitalBedDetails = () => {
         )
       },
       {
-        minWidth: 220,
+        minWidth: 280,
         field: 'occupant',
         headerName: 'Occupant',
         sortable: false,
         renderCell: params => {
           const animalData = {
+            animal_id: params.row.animal_id ?? '-',
             common_name: params.row.default_common_name ?? '-',
             scientific_name: params.row.scientific_name ?? '-',
+            age: params.row.age ?? '-',
             site_name: params.row.site_name ?? '-',
             sex: params.row.sex ?? '-',
-            age: Utility.convertUTCToLocal(params.row.birth_date) ?? '2025-10-30 04:56:38',
-            animal_id: params.row.animal_id ?? '-'
+            default_icon: params.row.occupant_icon
           }
 
-          return <AnimalCard data={animalData} />
+          const isOccupied = String(params.row?.is_occupied) === '1'
+          const isActive = String(params.row?.active) === '1'
+
+          return <Box sx={{ pl: 1.4 }}>{!isActive ? '' : isOccupied ? <AnimalCard data={animalData} /> : '--'}</Box>
         }
       },
       {
@@ -419,12 +424,12 @@ const HospitalBedDetails = () => {
         field: 'active',
         headerName: 'Status',
         sortable: false,
-        renderCell: params => <StatusChip status={params.row.active} />
+        renderCell: params => <StatusChip chipStyles={{ ml: 1.4 }} status={params.row.active} />
       },
       {
         minWidth: 180,
         field: 'room_date',
-        headerName: 'Room Alloted Date',
+        headerName: 'Room Alloted On',
         sortable: false,
         renderCell: params => (
           <StyledTypography sx={{ pl: 1.4 }}>
@@ -439,12 +444,27 @@ const HospitalBedDetails = () => {
         sortable: false,
         renderCell: params => (
           <Box onClick={e => e.stopPropagation()}>
-            <MenuWithDots options={getMenuOptions(params.row)} showBorder menuItemSx={{ padding: '0 20px' }} />
+            <MenuWithDots
+              options={getMenuOptions(params.row)}
+              showBorder
+              menuItemSx={{ padding: '0 20px' }}
+              iconSx={{ padding: 0 }}
+            />
           </Box>
         )
       }
     ]
   }, [getMenuOptions, theme.palette.customColors.OnSurfaceVariant])
+
+  // getRowClassName function
+  const getRowClassName = params => {
+    const isActive = String(params.row.active) === '1'
+    if (!isActive) {
+      return 'inactive-row'
+    }
+
+    return ''
+  }
 
   // Handle Status filter change
   const handleStatusChange = useCallback(
@@ -470,27 +490,16 @@ const HospitalBedDetails = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Link
-          href='/hospital/masters/hospital'
-          style={{
-            textDecoration: 'none',
-            color: 'inherit',
-            cursor: 'pointer'
-          }}
-        >
-          <Typography>Hospital</Typography>
-        </Link>
+        <Typography color={theme.palette.text.secondary}>Hospital</Typography>
         <Link
           href={`/hospital/masters/hospital/${id}`}
           style={{
-            textDecoration: 'none',
-            color: 'inherit',
-            cursor: 'pointer'
+            textDecoration: 'none'
           }}
         >
-          <Typography>Room</Typography>
+          <Typography sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}>Room</Typography>
         </Link>
-        <Typography sx={{ color: theme.palette.text.primary }}>Bed</Typography>
+        <Typography color={theme.palette.text.primary}>Bed</Typography>
       </Breadcrumbs>
       <Card sx={{ p: 6 }}>
         <CardHeader
@@ -579,7 +588,7 @@ const HospitalBedDetails = () => {
             displayEmpty
             onChange={e => handleStatusChange(e.target.value)}
             sx={{
-              width: { xs: '50%', sm: 150 },
+              width: { xs: '50%', sm: 140 },
               borderRadius: '4px'
             }}
           >
@@ -595,11 +604,20 @@ const HospitalBedDetails = () => {
         <CommonTable
           columns={columns}
           indexedRows={indexedRows}
-          rowHeight={150}
+          getRowHeight={params => (String(params.model.is_occupied) === '1' ? 150 : 60)}
           total={total}
           loading={isLoadingBeds}
           paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
           setPaginationModel={handlePaginationChange}
+          getRowClassName={getRowClassName}
+          externalTableStyle={{
+            '& .inactive-row': {
+              backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.1),
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.3)
+              }
+            }
+          }}
         />
       </Card>
 

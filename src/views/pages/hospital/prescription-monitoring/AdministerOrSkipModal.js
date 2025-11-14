@@ -123,6 +123,23 @@ const AdministerOrSkipModal = ({
     })
   })
 
+  const defaultValues = {
+    action: 'administer',
+    time: '',
+    quantity: '',
+    quantityUnit: '',
+    wastageQuantity: '',
+    wastageUnit: '',
+    notes: '',
+    batchNumber: null,
+    attachment: null,
+    skipReason: ''
+  }
+
+  useEffect(() => {
+    reset(defaultValues)
+  }, [])
+
   const {
     control,
     handleSubmit,
@@ -130,21 +147,38 @@ const AdministerOrSkipModal = ({
     watch,
     formState: { errors }
   } = useForm({
-    defaultValues: {
-      action: 'administer',
-      time: '',
-      quantity: '',
-      quantityUnit: '',
-      wastageQuantity: '',
-      wastageUnit: '',
-      notes: '',
-      batchNumber: null,
-      attachment: null,
-      skipReason: ''
-    },
+    defaultValues: defaultValues,
     resolver: yupResolver(validationSchema),
     mode: 'onChange'
   })
+
+  useEffect(() => {
+    if (medicineData && medicalMasterData) {
+      let updatedQuantity = ''
+      let updatedQuantityUnit = ''
+
+      if (medicineData?.dosage) {
+        console.log('medicineData?.dosage', medicineData?.dosage)
+
+        const [value, unitRaw] = medicineData.dosage.split(' ')
+        console.log('value, unitRaw', value, unitRaw)
+
+        updatedQuantity = value
+
+        const foundUnit = medicalMasterData?.prescriptionMeasurementType?.find(item => item?.unit_name === unitRaw)
+        console.log('foundUnit', foundUnit)
+
+        // Ensure the unit object has the expected structure
+        updatedQuantityUnit = foundUnit ? { ...foundUnit, value: foundUnit.key, label: foundUnit.unit_name } : null
+      }
+
+      reset(prev => ({
+        ...prev,
+        quantity: updatedQuantity,
+        quantityUnit: updatedQuantityUnit?.unit_name
+      }))
+    }
+  }, [medicineData, medicalMasterData, reset])
 
   const actionType = watch('action')
 
@@ -155,7 +189,6 @@ const AdministerOrSkipModal = ({
 
   const onFormSubmit = data => {
     onSubmit(data)
-    handleModalClose()
   }
 
   return (

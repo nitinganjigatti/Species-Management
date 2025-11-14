@@ -795,6 +795,8 @@ export const MEDICAL_MASTER_DATA = 'medical/masterdata'
 
 export const ADD_PRESCRIPTION = 'medical/v2/prescription-update'
 
+export const SCHEDULE_PRESCRIPTION = 'v1/hospital/add-additional-dosage-timing'
+
 export const STOP_PRESCRIPTION = 'medical/v2/restart-stop-medicine'
 
 export const SKIP_PRESCRIPTION = 'administer/manage/medicine'
@@ -867,6 +869,16 @@ export const GET_MONITORING_PARAMETERS = `v1/hospital/list-monitoring-parameters
 
 export const GET_MONITORING_HISTORY = `v1/hospital/get-assessment-history`
 
+export const GET_TREATMENT_MASTER_LIST = 'v1/hospital/treatment/masterlist'
+
+export const CREATE_TREATMENT = 'v1/hospital/treatment/create'
+
+export const GET_TREATMENT_LIST = 'v1/hospital/treatment/list'
+
+export const UPDATE_TREATMENT = 'v1/hospital/treatment/update'
+
+export const DELETE_TREATMENT = 'v1/hospital/treatment/delete'
+
 export const ADD_ASSESSMENT_VALUE_TO_PARAMS = `v1/assessment/animal/add`
 
 export const GET_HOSPITAL_PARAMETERS_UNIT = `v1/hospital/get-assessment-details`
@@ -884,3 +896,4 @@ export const GET_ASSESSMENT_LIST_ANESTHESIA = `v1/hospital/anaesthesia/assessmen
 export const ADD_ANESTHESIA = `v1/hospital/anaesthesia/save`
 
 export const GET_ANESTHESIA_SETUP_LIST = `v1/hospital/anaesthesia/sections`
+export const DELETE_MONITORING_MONITORING = `v1/hospital/delete-scheduled-monitoring-parameter`

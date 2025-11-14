@@ -1,6 +1,6 @@
 import { alpha, Box, Button, CircularProgress, Drawer, Grid, IconButton, Typography, useTheme } from '@mui/material'
 import dayjs from 'dayjs'
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
@@ -19,18 +19,38 @@ const defaultValues = {
   note: ''
 }
 
-const schema = yup.object().shape({
-  observation_value: yup.string().required('Observation Value is required'),
-  observation_time: yup.string().required('Observation time is required'),
-  value_unit: yup.string().required('Unit is required')
-})
+export const convertUTCToIST = utcDateTime => {
+  if (!utcDateTime) return ''
+  const utcDate = new Date(utcDateTime.replace(' ', 'T') + 'Z')
+  const localDate = new Date(utcDate)
+
+  const year = localDate.getFullYear()
+  const month = String(localDate.getMonth() + 1).padStart(2, '0')
+  const day = String(localDate.getDate()).padStart(2, '0')
+  const hours = String(localDate.getHours()).padStart(2, '0')
+  const minutes = String(localDate.getMinutes()).padStart(2, '0')
+  const seconds = String(localDate.getSeconds()).padStart(2, '0')
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+}
 
 const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
   const theme = useTheme()
 
+  const schema = useMemo(
+    () =>
+      yup.object().shape({
+        observation_value: yup.mixed().required('Observation Value is required'),
+        observation_time: yup.string().required('Observation time is required'),
+        value_unit: resType === 'numeric_value' ? yup.string().required('Unit is required') : yup.mixed().notRequired()
+      }),
+    [resType]
+  )
+
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors }
   } = useForm({
     resolver: yupResolver(schema),
@@ -39,6 +59,21 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
+
+  useEffect(() => {
+    if (open && data) {
+      const istTime = convertUTCToIST(data?.recorded_date_time)
+      reset({
+        observation_time: dayjs(istTime || new Date()),
+        observation_value:
+          resType === 'numeric_scale' || resType === 'list'
+            ? data?.assessment_dropdown_id || ''
+            : data?.assessment_value || '',
+        value_unit: data?.assessment_unit_id || null,
+        note: data?.comments || ''
+      })
+    }
+  }, [open, data, resType, reset])
 
   const [updateLoading, setUpdateLoading] = useState(false)
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
@@ -56,19 +91,18 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
         recorded_date_time: new Date()
       }
 
-      await updateHospitalAssessmentHistory(data?.animal_id, payload).then(res => {
-        if (res?.success === true) {
-          Toaster({ type: 'success', message: res?.message })
-          setUpdateLoading(false)
-          setOpen(false)
-          refetch()
-        } else {
-          Toaster({ type: 'error', message: res?.message })
-          setUpdateLoading(false)
-        }
-      })
+      const res = await updateHospitalAssessmentHistory(data?.animal_id, payload)
+      if (res?.success) {
+        Toaster({ type: 'success', message: res?.message })
+        refetch()
+        setOpen(false)
+      } else {
+        Toaster({ type: 'error', message: res?.message || 'Failed to update' })
+      }
     } catch (error) {
       console.error('Cannot Edit Assessment', error)
+      Toaster({ type: 'error', message: 'Something went wrong while updating' })
+    } finally {
       setUpdateLoading(false)
     }
   }
@@ -76,20 +110,19 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
   const handleEntryDelete = async () => {
     setDeleteLoading(true)
     try {
-      await deleteAssessmentHistory(data?.id).then(res => {
-        if (res?.status === true) {
-          setDeleteLoading(false)
-          Toaster({ type: 'success', message: res?.message })
-          setOpenDeleteDialog(false)
-          setOpen(false)
-          refetch()
-        } else {
-          setDeleteLoading(false)
-          Toaster({ type: 'error', message: res?.message })
-        }
-      })
+      const res = await deleteAssessmentHistory(data?.id)
+      if (res?.status) {
+        Toaster({ type: 'success', message: res?.message })
+        refetch()
+        setOpen(false)
+        setOpenDeleteDialog(false)
+      } else {
+        Toaster({ type: 'error', message: res?.message })
+      }
     } catch (error) {
-      console.error('Cannot Delete Assessment History')
+      console.error('Cannot Delete Assessment History', error)
+      Toaster({ type: 'error', message: 'Failed to delete entry' })
+    } finally {
       setDeleteLoading(false)
     }
   }
@@ -141,7 +174,9 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
               <Icon icon='mdi:close' fontSize={30} />
             </IconButton>
           </Box>
+
           <Box sx={{ flex: 1, overflow: 'auto' }}>
+            {/* ✅ Button inside form ensures handleSubmit works */}
             <form onSubmit={handleSubmit(onSubmit)}>
               <Box
                 sx={{
@@ -165,6 +200,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
                   </Typography>
                   <ControlledTimePicker control={control} name={'observation_time'} label='Time' />
                 </Box>
+
                 <Grid container rowSpacing={4} columnSpacing={3}>
                   <Grid size={{ xs: 12 }}>
                     <Typography
@@ -177,6 +213,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
                       Enter Observation
                     </Typography>
                   </Grid>
+
                   {resType === 'numeric_value' && (
                     <>
                       <Grid size={{ xs: 12, sm: 8 }}>
@@ -227,6 +264,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
                       />
                     </Grid>
                   )}
+
                   {resType === 'text' && (
                     <Grid size={{ xs: 12 }}>
                       <ControlledTextField
@@ -240,6 +278,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
                       />
                     </Grid>
                   )}
+
                   <Grid
                     size={{ xs: 12 }}
                     sx={{ backgroundColor: alpha(theme.palette.customColors.antzNotes, 0.6), p: 4, borderRadius: 1 }}
@@ -247,7 +286,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
                     <ControlledTextField
                       control={control}
                       name={'note'}
-                      label='Notes(Optional)'
+                      label='Notes (Optional)'
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           '& fieldset': { border: 'none' },
@@ -265,59 +304,66 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
                   </Grid>
                 </Grid>
               </Box>
+
+              {/* ✅ Buttons moved INSIDE form so handleSubmit works */}
+              <Box
+                sx={{
+                  p: 4,
+                  borderTop: `1px solid ${theme.palette.divider}`,
+                  backgroundColor: 'background.paper',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: 2,
+                  boxShadow: '0px -1px 30px 0px rgba(0, 0, 0, 0.1)'
+                }}
+              >
+                <Button
+                  variant='outlined'
+                  fullWidth
+                  onClick={() => setOpenDeleteDialog(true)}
+                  sx={{
+                    borderColor: theme.palette.customColors.Error,
+                    color: theme.palette.customColors.Error,
+                    height: '56px',
+                    fontWeight: 500
+                  }}
+                >
+                  Delete Entry
+                </Button>
+
+                <Button
+                  type='submit'
+                  variant='contained'
+                  fullWidth
+                  sx={{
+                    height: '56px',
+                    backgroundColor: theme.palette.customColors.OnPrimaryContainer
+                  }}
+                >
+                  {updateLoading ? <CircularProgress size={24} /> : 'UPDATE'}
+                </Button>
+              </Box>
             </form>
-          </Box>
-          <Box
-            sx={{
-              p: 4,
-              borderTop: `1px solid ${theme.palette.divider}`,
-              backgroundColor: 'background.paper',
-              display: 'flex',
-              justifyContent: 'center',
-              gap: 2,
-              boxShadow: '0px -1px 30px 0px rgba(0, 0, 0, 0.1)'
-            }}
-          >
-            <Button
-              variant='outlined'
-              fullWidth
-              onClick={() => setOpenDeleteDialog(true)}
-              sx={{
-                borderColor: theme.palette.customColors.Error,
-                color: theme.palette.customColors.Error,
-                height: '56px',
-                fontWeight: 500
-              }}
-            >
-              Delete Entry
-            </Button>
-            <Button
-              onClick={handleSubmit(onSubmit)}
-              variant='contained'
-              fullWidth
-              sx={{ height: '56px', backgroundColor: theme.palette.customColors.OnPrimaryContainer }}
-            >
-              {updateLoading ? <CircularProgress size={24} /> : 'UPDATE'}
-            </Button>
           </Box>
         </Box>
       </Drawer>
+
       {openDeleteDialog && (
         <ConfirmationDialog
           dialogBoxStatus={openDeleteDialog}
           onClose={() => setOpenDeleteDialog(false)}
-          description={'Are Your Sure You want to delete this current Entry'}
-          cancelText={'CANCEL'}
+          description='Are you sure you want to delete this current entry?'
+          cancelText='CANCEL'
           cancelBtnStyle={{
             borderColor: theme.palette.customColors.OnPrimaryContainer,
             color: theme.palette.customColors.OnPrimaryContainer
           }}
           confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2 }}
-          image={'/images/warning-icon.svg'}
+          image='/images/warning-icon.svg'
           imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
           confirmAction={handleEntryDelete}
           loading={deleteLoading}
-          ConfirmationText={'DELETE'}
+          ConfirmationText='DELETE'
         />
       )}
     </>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import {
   Box,
@@ -26,6 +26,7 @@ import MedicationTimeCard from './MedicationTimeCard'
 import StopMedicine from './StopMedicine'
 import CustomButtons from 'src/components/hospital/CustomButtons'
 import Utility from 'src/utility'
+import { LoadingButton } from '@mui/lab'
 
 // Custom styled components for drawer content
 const DrawerContent = styled(Box)(({ theme }) => ({
@@ -137,7 +138,9 @@ const MedicinePrescriptionCard = ({
   onAdministerSelected,
   onSkipSelected,
   isAdministerLoading = false,
-  isSkipLoading = false
+  isSkipLoading = false,
+  selectedMedications,
+  setSelectedMedications
 }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -146,7 +149,7 @@ const MedicinePrescriptionCard = ({
   const [stopMedicineModalOpen, setStopMedicineModalOpen] = useState(false)
 
   // Add state for selected medications
-  const [selectedMedications, setSelectedMedications] = useState([])
+  // const [selectedMedications, setSelectedMedications] = useState([])
   const [isSelectionMode, setIsSelectionMode] = useState(false)
 
   const medicine = {
@@ -154,6 +157,10 @@ const MedicinePrescriptionCard = ({
   }
 
   const tabs = dateOptions?.length > 0 ? dateOptions : []
+
+  useEffect(() => {
+    console.log('dosageEntries', dosageEntries)
+  }, [dosageEntries])
 
   // Filter pending medications
   const pendingMedications = dosageEntries?.filter(item => !item?.status || item?.status?.toLowerCase() === 'pending')
@@ -254,9 +261,7 @@ const MedicinePrescriptionCard = ({
   }
 
   const handleAddNewDosageTimeCheck = data => {
-    const datePart = selectedDate.split(' ')[0] // "2025-11-10"
-
-    // Convert "5 AM" etc. to proper 24-hour format
+    const datePart = selectedDate.split(' ')[0] // e.g., "2025-11-10"
     const targetDateTime = new Date(`${datePart}T${convertTo24Hour(data?.scheduledTime)}`)
     const now = new Date()
 
@@ -266,13 +271,22 @@ const MedicinePrescriptionCard = ({
     if (isNaN(targetDateTime.getTime())) {
       console.error('Invalid date or time format')
 
-      return
+      return false
     }
 
-    if (targetDateTime > now) {
-      return true
+    // Extract just the date parts for comparison
+    const targetDate = new Date(datePart)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    targetDate.setHours(0, 0, 0, 0)
+
+    // Allow if it's today or any future date/time
+    if (targetDate.getTime() === today.getTime()) {
+      return true // same day → allowed
+    } else if (targetDateTime > now) {
+      return true // future date/time → allowed
     } else {
-      return false
+      return false // past date/time → not allowed
     }
   }
 
@@ -384,7 +398,7 @@ const MedicinePrescriptionCard = ({
         </Box>
       )}
 
-      {entry.batchNumber && (
+      {entry?.batch_details?.length && (
         <Box sx={{ display: 'flex', padding: '0 16px', alignItems: 'center', gap: '8px' }}>
           <Box
             sx={{
@@ -407,7 +421,7 @@ const MedicinePrescriptionCard = ({
               variant='body1'
               sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
             >
-              {entry.batchNumber}
+              {entry.batch_details?.[0]?.batch_no}
             </Typography>
           </Box>
         </Box>
@@ -790,7 +804,7 @@ const MedicinePrescriptionCard = ({
                     <MedicationTimeCard
                       key={item?.administritive_id}
                       time={formatTime(item?.scheduled_time)}
-                      dosage={`${item?.scheduled_quantity} ${item?.scheduled_unit_name && item?.scheduled_unit_name}`}
+                      dosage={`${item?.scheduled_quantity} ${item?.scheduled_unit_name}`}
                       amount={`${item?.scheduled_quantity} ${item?.scheduled_unit_name}`}
                       checked={isSelected}
                       onChange={checked => handleMedicationSelect(item?.administritive_id, checked)}
@@ -884,69 +898,49 @@ const MedicinePrescriptionCard = ({
             )}
           </Box>
           {/* Selection Actions - Show when medications are selected */}
-          {selectedMedications.length > 0 && (
+          {selectedMedications?.length > 0 && (
             <Box
               sx={{
                 position: 'sticky',
                 bottom: 0,
                 left: 0,
                 right: 0,
-                backgroundColor: theme.palette.background.paper,
-                borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                padding: '16px 24px',
-                zIndex: 10,
-                marginLeft: '-24px',
-                marginRight: '-24px',
-                width: 'calc(100% + 48px)'
+                mx: '-24px'
               }}
             >
-              {/* <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  mb: 2
-                }}
-              >
-                <Typography
-                  variant='body1'
+              {!stopMedicineModalOpen && (
+                <Box
                   sx={{
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    color: theme.palette.customColors.OnSurfaceVariant
+                    p: 6,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: 6,
+                    boxShadow: '0px -2px 6px rgba(0, 0, 0, 0.1)',
+                    backgroundColor: theme.palette.background.paper
                   }}
                 >
-                  {selectedMedications.length} medication{selectedMedications.length > 1 ? 's' : ''} selected
-                </Typography>
-                <Button
-                  size='small'
-                  onClick={() => setSelectedMedications([])}
-                  sx={{
-                    textTransform: 'none',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                >
-                  Clear Selection
-                </Button>
-              </Box> */}
-
-              <CustomButtons
-                primaryLabel='ADMINISTER'
-                onPrimaryClick={handleAdministerSelected}
-                isPrimaryLoading={isAdministerLoading}
-                isPrimaryDisabled={selectedMedications.length === 0}
-                primaryVariant='primary'
-                secondaryLabel='SKIPPED'
-                onSecondaryClick={handleSkipSelected}
-                isSecondaryLoading={isSkipLoading}
-                isSecondaryDisabled={selectedMedications.length === 0}
-                secondaryVariant='secondary'
-                width='100%'
-                height='48px'
-                reverseOrder={false}
-              />
+                  <LoadingButton
+                    variant='outlined'
+                    type='button'
+                    loading={isSkipLoading}
+                    onClick={handleSkipSelected}
+                    disabled={selectedMedications.length === 0}
+                    sx={{ flex: 1, py: 2, height: '48px' }}
+                  >
+                    SKIPPED
+                  </LoadingButton>
+                  <LoadingButton
+                    variant='contained'
+                    type='button'
+                    loading={isAdministerLoading}
+                    onClick={handleAdministerSelected}
+                    disabled={selectedMedications.length === 0}
+                    sx={{ flex: 1, py: 2, height: '48px' }}
+                  >
+                    ADMINISTER
+                  </LoadingButton>
+                </Box>
+              )}
             </Box>
           )}
         </DrawerContent>
@@ -954,7 +948,6 @@ const MedicinePrescriptionCard = ({
     </>
   )
 }
-
 
 export default MedicinePrescriptionCard
 

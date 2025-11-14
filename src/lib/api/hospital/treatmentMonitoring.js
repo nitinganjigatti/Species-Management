@@ -1,6 +1,7 @@
 import {
   ADD_ASSESSMENT_VALUE_TO_PARAMS,
   APPLY_PARAMS_TO_CASE_ID,
+  DELETE_MONITORING_MONITORING,
   DELETE_PARAMETER_ASSESSMENT_HISTORY,
   GET_HOSPITAL_PARAMETERS_UNIT,
   GET_HOSPITAL_PARAMS_TEMPLATE,
@@ -110,6 +111,12 @@ export const updateHospitalAssessmentHistory = async (id, params) => {
 
 export const deleteAssessmentHistory = async id => {
   const response = await axiosGet({ url: `${DELETE_PARAMETER_ASSESSMENT_HISTORY}/${id}` })
+
+  return response?.data
+}
+
+export const deleteMonitoringParameter = async payload => {
+  const response = await axiosFormPost({ url: `${DELETE_MONITORING_MONITORING}`, body: payload })
 
   return response?.data
 }

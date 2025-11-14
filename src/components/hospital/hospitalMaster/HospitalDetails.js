@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react'
-import { Box, Button, Card, CardHeader, Typography, useTheme, MenuItem, Select } from '@mui/material'
+import { Box, Button, Card, CardHeader, Typography, useTheme, MenuItem, Select, alpha } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import styled from '@emotion/styled'
 import { useQuery } from '@tanstack/react-query'
@@ -292,13 +292,15 @@ const HospitalDetails = () => {
         headerName: 'Added By',
         sortable: false,
         renderCell: params => (
-          <UserAvatarDetails
-            user_name={params.row.created_by_name}
-            date={params.row.created_at}
-            dateType={'created'}
-            size='medium'
-            profile_image={params.row.profile_image}
-          />
+          <Box sx={{ pl: 1.4 }}>
+            <UserAvatarDetails
+              user_name={params.row.created_by_name}
+              date={params.row.created_at}
+              dateType={'created'}
+              size='medium'
+              profile_image={params.row.profile_image}
+            />
+          </Box>
         )
       },
       {
@@ -307,17 +309,29 @@ const HospitalDetails = () => {
         headerName: 'Updated By',
         sortable: false,
         renderCell: params => (
-          <UserAvatarDetails
-            user_name={params.row.updated_by_name}
-            date={params.row.updated_at}
-            dateType={'updated'}
-            size='medium'
-            profile_image={params.row.updated_user_profile_image}
-          />
+          <Box sx={{ pl: 1.4 }}>
+            <UserAvatarDetails
+              user_name={params.row.updated_by_name}
+              date={params.row.updated_at}
+              dateType={'updated'}
+              size='medium'
+              profile_image={params.row.updated_user_profile_image}
+            />
+          </Box>
         )
       }
     ]
   }, [theme.palette.customColors.OnSurfaceVariant])
+
+  // getRowClassName function
+  const getRowClassName = params => {
+    const isActive = String(params.row.active) === '1'
+    if (!isActive) {
+      return 'inactive-row'
+    }
+
+    return ''
+  }
 
   //  Handle Status filter change
   const handleStatusChange = useCallback(
@@ -429,6 +443,15 @@ const HospitalDetails = () => {
           loading={isLoadingHospitals}
           paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
           setPaginationModel={handlePaginationChange}
+          getRowClassName={getRowClassName}
+          externalTableStyle={{
+            '& .inactive-row': {
+              backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.1),
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.3)
+              }
+            }
+          }}
         />
       </Card>
 

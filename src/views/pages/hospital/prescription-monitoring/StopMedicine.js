@@ -1,9 +1,10 @@
 import React from 'react'
 import { useForm, Controller } from 'react-hook-form'
-import { Box, Typography, Radio, Button, IconButton, useTheme } from '@mui/material'
+import { Box, Typography, Button, IconButton, useTheme } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import TreatmentTypeRadioButtons from '../utility/TreatmentTypeRadioButtons' // Adjust import path as needed
 
 const BottomSheetContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -11,21 +12,6 @@ const BottomSheetContainer = styled(Box)(({ theme }) => ({
   height: 'auto',
   maxHeight: '80vh',
   overflow: 'hidden'
-}))
-
-const StyledRadioButton = styled(Box)(({ theme, selected }) => ({
-  display: 'flex',
-  padding: '12px 16px',
-  alignItems: 'center',
-  gap: '8px',
-  flex: '1 0 0',
-  borderRadius: '8px',
-  border: selected
-    ? `2px solid ${theme.palette.primary.main}`
-    : `1px solid ${theme.palette.customColors.OutlineVariant}`,
-  backgroundColor: selected ? theme.palette.customColors.primaryContainer : theme.palette.background.paper,
-  cursor: 'pointer',
-  transition: 'all 0.2s ease'
 }))
 
 const StopMedicine = ({ open, onClose, onConfirm, medicineData }) => {
@@ -73,7 +59,6 @@ const StopMedicine = ({ open, onClose, onConfirm, medicineData }) => {
         }}
       >
         <Typography
-          variant='h6'
           sx={{
             fontSize: '20px',
             fontWeight: 500,
@@ -106,55 +91,24 @@ const StopMedicine = ({ open, onClose, onConfirm, medicineData }) => {
             control={control}
             render={({ field }) => (
               <Box sx={{ display: 'flex', gap: '12px' }}>
-                <StyledRadioButton selected={field.value === 'yes'} onClick={() => field.onChange('yes')}>
-                  <Radio
-                    checked={field.value === 'yes'}
-                    value='yes'
-                    sx={{
-                      padding: 0,
-                      color: theme.palette.customColors.OutlineVariant,
-                      '&.Mui-checked': {
-                        color: theme.palette.primary.main
-                      }
-                    }}
-                  />
-                  <Typography
-                    variant='body1'
-                    sx={{
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      color:
-                        field.value === 'yes' ? theme.palette.primary.main : theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    Yes
-                  </Typography>
-                </StyledRadioButton>
-
-                <StyledRadioButton selected={field.value === 'no'} onClick={() => field.onChange('no')}>
-                  <Radio
-                    checked={field.value === 'no'}
-                    value='no'
-                    sx={{
-                      padding: 0,
-                      color: theme.palette.customColors.OutlineVariant,
-                      '&.Mui-checked': {
-                        color: theme.palette.primary.main
-                      }
-                    }}
-                  />
-                  <Typography
-                    variant='body1'
-                    sx={{
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      color:
-                        field.value === 'no' ? theme.palette.primary.main : theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    No
-                  </Typography>
-                </StyledRadioButton>
+                <TreatmentTypeRadioButtons
+                  label='Yes'
+                  isSelected={field.value === 'yes'}
+                  onClick={() => field.onChange('yes')}
+                  radioPosition='right'
+                  sx={{ 
+                    flex: 1
+                  }}
+                />
+                <TreatmentTypeRadioButtons
+                  label='No'
+                  isSelected={field.value === 'no'}
+                  onClick={() => field.onChange('no')}
+                  radioPosition='right'
+                  sx={{ 
+                    flex: 1
+                  }}
+                />
               </Box>
             )}
           />
@@ -226,7 +180,7 @@ const StopMedicine = ({ open, onClose, onConfirm, medicineData }) => {
             fontWeight: 600,
             padding: '12px',
             borderRadius: '8px',
-            backgroundColor: theme.palette.error.main,
+            backgroundColor: theme.palette.customColors.Tertiary,
             '&:hover': {
               backgroundColor: theme.palette.error.dark
             }

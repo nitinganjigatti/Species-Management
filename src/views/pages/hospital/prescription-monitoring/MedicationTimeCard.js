@@ -15,7 +15,7 @@ const MedicationTimeCard = ({ time, dosage, amount, checked = false, onChange = 
 
         paddingLeft: '16px',
         backgroundColor: checked ? theme.palette.customColors.Surface : theme.palette.customColors.Background,
-        border: checked ? `1px solid ${theme.palette.customColors.Primary}` : 'none',
+        border: checked ? `1px solid ${theme.palette.primary.main}` : 'none',
         borderRadius: '8px',
         gap: '8px'
       }}
