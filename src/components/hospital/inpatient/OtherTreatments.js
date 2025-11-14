@@ -172,6 +172,10 @@ const buildTreatmentFromEntries = entries => {
     .sort((a, b) => getTimestampValue(b) - getTimestampValue(a))
     .find(activity => (activity.notes || activity.description)?.toString().trim())
 
+  const apiNotesCountValue = entries.find(entry => entry.notes_count !== undefined && entry.notes_count !== null)?.notes_count
+  const parsedApiNotesCount = apiNotesCountValue !== undefined && apiNotesCountValue !== null ? Number(apiNotesCountValue) : null
+  const resolvedApiNotesCount = Number.isFinite(parsedApiNotesCount) ? parsedApiNotesCount : null
+
   return {
     id: deriveTreatmentId(latestEntry) || deriveTreatmentId(entries[0]) || 'treatment',
     name: latestEntry?.treatment_name || latestEntry?.name || entries[0]?.treatment_name || entries[0]?.name || 'Treatment',
@@ -192,7 +196,8 @@ const buildTreatmentFromEntries = entries => {
     treatmentMasterId: latestEntry?.treatment_master_id || entries[0]?.treatment_master_id || null,
     treatmentId: latestEntry?.treatment_id || entries[0]?.treatment_id || null,
     hospitalCaseId: latestEntry?.hospital_case_id || entries[0]?.hospital_case_id || null,
-    activities
+    activities,
+    notes_count: resolvedApiNotesCount
   }
 }
 
@@ -782,138 +787,169 @@ const OtherTreatment = () => {
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {group.treatments.map(treatment => (
-                <Box
-                  key={treatment.id}
-                  sx={{
-                    display: 'flex',
-                    gap: '24px',
-                    justifyContent: 'space-between',
-                    borderRadius: '8px',
-                    padding: '24px',
-                    background: '#EFF5F2',
-                    flexWrap: 'wrap',
-                    alignItems: 'center'
-                  }}
-                >
-                  <Tooltip title={treatment.name}>
-                    <Typography
-                      sx={{
-                        fontWeight: 500,
-                        fontSize: '20px',
-                        letterSpacing: 0,
-                        color: '#44544A',
-                        width: { xs: '100%', md: '220px' },
-                        maxWidth: { xs: '100%', md: '220px' },
-                        flexShrink: 0,
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}
-                    >
-                      {treatment.name}
-                    </Typography>
-                  </Tooltip>
+              {group.treatments.map(treatment => {
+                const parsedApiNotesCount =
+                  treatment?.notes_count !== undefined && treatment?.notes_count !== null
+                    ? Number(treatment.notes_count)
+                    : null
 
+                const fallbackNotesCount =
+                  treatment?.noteCount !== undefined && treatment?.noteCount !== null
+                    ? Number(treatment.noteCount)
+                    : null
+
+                const effectiveNotesCount = Number.isFinite(parsedApiNotesCount)
+                  ? parsedApiNotesCount
+                  : Number.isFinite(fallbackNotesCount)
+                  ? fallbackNotesCount
+                  : null
+                const shouldShowNotesCount = Number.isFinite(effectiveNotesCount) && effectiveNotesCount > 0
+
+                return (
                   <Box
+                    key={treatment.id}
                     sx={{
                       display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px',
+                      gap: '24px',
+                      justifyContent: 'space-between',
                       borderRadius: '8px',
-                      flex: '1 1 280px'
+                      padding: '24px',
+                      background: '#EFF5F2',
+                      flexWrap: 'wrap',
+                      alignItems: 'center'
                     }}
                   >
+                    <Tooltip title={treatment.name}>
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: '20px',
+                          letterSpacing: 0,
+                          color: '#44544A',
+                          width: { xs: '100%', md: '220px' },
+                          maxWidth: { xs: '100%', md: '220px' },
+                          flexShrink: 0,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
+                        {treatment.name}
+                      </Typography>
+                    </Tooltip>
+
                     <Box
-                      role='button'
-                      tabIndex={0}
-                      onClick={() => handleOpenEditDrawer(treatment)}
-                      onKeyDown={event => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault()
-                          handleOpenEditDrawer(treatment)
-                        }
-                      }}
                       sx={{
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        flexWrap: 'wrap',
-                        cursor: 'pointer'
+                        flexDirection: 'column',
+                        gap: '4px',
+                        borderRadius: '8px',
+                        flex: '1 1 280px'
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Typography
-                          sx={{
-                            fontWeight: 400,
-                            fontSize: '14px',
-                            color: '#7A8684'
-                          }}
-                        >
-                          Notes:
-                        </Typography>
-                        <Typography
-                          sx={{
-                            color: '#006D35',
-                            fontWeight: 600,
-                            fontSize: '16px'
-                          }}
-                        >
-                          +{treatment.noteCount}
-                        </Typography>
+                      <Box
+                        role='button'
+                        tabIndex={0}
+                        onClick={() => handleOpenEditDrawer(treatment)}
+                        onKeyDown={event => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            handleOpenEditDrawer(treatment)
+                          }
+                        }}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          flexWrap: 'wrap',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {shouldShowNotesCount ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Typography
+                              sx={{
+                                fontWeight: 400,
+                                fontSize: '14px',
+                                color: '#7A8684'
+                              }}
+                            >
+                              Notes:
+                            </Typography>
+                            <Typography
+                              sx={{
+                                color: '#006D35',
+                                fontWeight: 600,
+                                fontSize: '16px'
+                              }}
+                            >
+                              +{effectiveNotesCount}
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <Typography
+                            sx={{
+                              fontWeight: 400,
+                              fontSize: '14px',
+                              color: '#7A8684'
+                            }}
+                          >
+                            Notes
+                          </Typography>
+                        )}
+
+                        <Avatar
+                          src='/icons/Note.svg'
+                          alt='note icon'
+                          variant='square'
+                          style={{ width: 14, height: 14 }}
+                        />
                       </Box>
 
-                      <Avatar
-                        src='/icons/Note.svg'
-                        alt='note icon'
-                        variant='square'
-                        style={{ width: 14, height: 14 }}
-                      />
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '14px',
+                          color: '#44544A',
+                          letterSpacing: 0,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
+                        {treatment.noteSummary}
+                      </Typography>
+
+                      <Typography
+                        sx={{
+                          color: '#7A8684',
+                          fontWeight: 400,
+                          fontSize: '12px'
+                        }}
+                      >
+                        Last Updated: {formatTimestamp(treatment.lastUpdated)}
+                      </Typography>
                     </Box>
 
-                    <Typography
+                    <Box
                       sx={{
-                        fontWeight: 400,
-                        fontSize: '14px',
-                        color: '#44544A',
-                        letterSpacing: 0,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
+                        flexShrink: 0,
+                        minWidth: '220px',
+                        width: { xs: '100%', sm: 'auto' }
                       }}
                     >
-                      {treatment.noteSummary}
-                    </Typography>
-
-                    <Typography
-                      sx={{
-                        color: '#7A8684',
-                        fontWeight: 400,
-                        fontSize: '12px'
-                      }}
-                    >
-                      Last Updated: {formatTimestamp(treatment.lastUpdated)}
-                    </Typography>
+                      <UserInfoCard
+                        avatarUrl={treatment.clinician.avatarUrl}
+                        name={treatment.clinician.name}
+                        description={formatClinicianTimestamp(treatment.clinician.updatedAt)}
+                        textColor='#44544A'
+                      />
+                    </Box>
                   </Box>
-
-                  <Box
-                    sx={{
-                      flexShrink: 0,
-                      minWidth: '220px',
-                      width: { xs: '100%', sm: 'auto' }
-                    }}
-                  >
-                    <UserInfoCard
-                      avatarUrl={treatment.clinician.avatarUrl}
-                      name={treatment.clinician.name}
-                      description={formatClinicianTimestamp(treatment.clinician.updatedAt)}
-                      textColor='#44544A'
-                    />
-                  </Box>
-                </Box>
-              ))}
+                )
+              })}
             </Box>
           </Box>
         ))}
