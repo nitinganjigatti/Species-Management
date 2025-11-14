@@ -374,6 +374,23 @@ const OtherTreatment = () => {
     [treatmentGroups]
   )
 
+  const handleOpenAddDrawer = useCallback(() => {
+    setAddDrawerOpen(true)
+    setTreatmentSearchTerm('')
+  }, [])
+
+  const handleCloseAddDrawer = useCallback(() => {
+    setAddDrawerOpen(false)
+    setTreatmentSearchTerm('')
+    setTreatmentInputValue('')
+    setTreatmentOptionsLoading(false)
+    setFormData({
+      startDate: dayjs('2025-07-12'),
+      treatmentName: null,
+      notes: ''
+    })
+  }, [])
+
   const fetchTreatments = useCallback(async () => {
     if (!animal_id) return
 
@@ -530,6 +547,7 @@ const OtherTreatment = () => {
           notes: ''
         })
         setTreatmentInputValue('')
+        setTreatmentSearchTerm('')
         fetchTreatments()
       }
     } catch (error) {
@@ -732,7 +750,7 @@ const OtherTreatment = () => {
         <Button
           variant='contained'
           startIcon={<AddIcon />}
-          onClick={() => setAddDrawerOpen(true)}
+          onClick={handleOpenAddDrawer}
           sx={{
             boxShadow: '0px 4px 8px -4px #4C4E646B',
 
@@ -961,7 +979,7 @@ const OtherTreatment = () => {
 
       <AddTreatmentDrawer
         open={isAddDrawerOpen}
-        onClose={() => setAddDrawerOpen(false)}
+        onClose={handleCloseAddDrawer}
         formData={formData}
         onChange={handleFieldChange}
         onSubmit={handleAddTreatment}
@@ -1015,6 +1033,7 @@ const AddTreatmentDrawer = ({
     if (reason === 'input') {
       onInputValueChange?.(value || '')
       onSearchTreatment?.(value || '')
+      onChange('treatmentName', value || null)
 
       return
     }
@@ -1041,8 +1060,10 @@ const AddTreatmentDrawer = ({
 
     if (typeof value === 'string') {
       onInputValueChange?.(value)
+      onSearchTreatment?.('')
     } else if (value?.label) {
       onInputValueChange?.(value.label)
+      onSearchTreatment?.('')
     } else {
       onInputValueChange?.('')
     }
