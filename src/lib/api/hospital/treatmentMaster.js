@@ -1,4 +1,10 @@
-import { GET_TREATMENT_MASTER_LIST, CREATE_TREATMENT, GET_TREATMENT_LIST, UPDATE_TREATMENT } from 'src/constants/ApiConstant'
+import {
+  GET_TREATMENT_MASTER_LIST,
+  CREATE_TREATMENT,
+  GET_TREATMENT_LIST,
+  UPDATE_TREATMENT,
+  DELETE_TREATMENT
+} from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet } from '../utility'
 
 export const getTreatmentMasterList = async ({ q = '', page = 0, limit = 10 } = {}) => {
@@ -77,6 +83,28 @@ export const updateTreatmentRecord = async payload => {
     return response?.data
   } catch (error) {
     console.error('Error updating treatment:', error?.message || error)
+    throw error
+  }
+}
+
+export const deleteTreatmentRecord = async payload => {
+  try {
+    const formData = new FormData()
+
+    Object.entries(payload || {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, value)
+      }
+    })
+
+    const response = await axiosFormPost({
+      url: DELETE_TREATMENT,
+      body: formData
+    })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error deleting treatment:', error?.message || error)
     throw error
   }
 }

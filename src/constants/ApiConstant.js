@@ -877,6 +877,8 @@ export const GET_TREATMENT_LIST = 'v1/hospital/treatment/list'
 
 export const UPDATE_TREATMENT = 'v1/hospital/treatment/update'
 
+export const DELETE_TREATMENT = 'v1/hospital/treatment/delete'
+
 export const ADD_ASSESSMENT_VALUE_TO_PARAMS = `v1/assessment/animal/add`
 
 export const GET_HOSPITAL_PARAMETERS_UNIT = `v1/hospital/get-assessment-details`

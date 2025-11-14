@@ -13,7 +13,8 @@ import {
   createTreatmentRecord,
   getTreatmentMasterList,
   getTreatmentList,
-  updateTreatmentRecord
+  updateTreatmentRecord,
+  deleteTreatmentRecord
 } from 'src/lib/api/hospital/treatmentMaster'
 import { useRouter } from 'next/router'
 import Toaster from 'src/components/Toaster'
@@ -348,6 +349,7 @@ const OtherTreatment = () => {
   const [selectedTreatmentActivities, setSelectedTreatmentActivities] = useState([])
   const [isTreatmentActivitiesLoading, setTreatmentActivitiesLoading] = useState(false)
   const [isUpdatingTreatment, setIsUpdatingTreatment] = useState(false)
+  const [isDeletingTreatment, setIsDeletingTreatment] = useState(false)
 
   const closeEditDrawer = useCallback(() => {
     setEditDrawerOpen(false)
@@ -359,6 +361,7 @@ const OtherTreatment = () => {
       activeActivityId: null
     })
     setIsUpdatingTreatment(false)
+    setIsDeletingTreatment(false)
   }, [])
 
   const totalTreatments = useMemo(
@@ -630,20 +633,45 @@ const OtherTreatment = () => {
   }
 
   const handleDeleteTreatment = () => {
+    if (!editFormData.activeActivityId) {
+      Toaster({ type: 'error', message: 'Select a note entry to delete from the activity list.' })
+
+      return
+    }
+
     setDeleteDialogOpen(true)
   }
 
-  const handleConfirmDeleteTreatment = () => {
-    console.log('Delete treatment/activity:', {
-      treatmentId: selectedTreatment?.id,
-      activityId: editFormData.activeActivityId
-    })
-    setDeleteDialogOpen(false)
-    closeEditDrawer()
+  const handleConfirmDeleteTreatment = async () => {
+    if (!editFormData.activeActivityId) {
+      Toaster({ type: 'error', message: 'Missing note reference to delete.' })
+      setDeleteDialogOpen(false)
+
+      return
+    }
+
+    try {
+      setIsDeletingTreatment(true)
+      const response = await deleteTreatmentRecord({ treatment_id: editFormData.activeActivityId })
+      Toaster({
+        type: response?.success ? 'success' : 'error',
+        message: response?.message || 'Treatment delete status unknown.'
+      })
+      if (response?.success) {
+        setDeleteDialogOpen(false)
+        closeEditDrawer()
+        fetchTreatments()
+      }
+    } catch (error) {
+      Toaster({ type: 'error', message: error?.message || 'Failed to delete treatment entry.' })
+    } finally {
+      setIsDeletingTreatment(false)
+    }
   }
 
   const handleCancelDeleteTreatment = () => {
     setDeleteDialogOpen(false)
+    setIsDeletingTreatment(false)
   }
 
   const handlePrefillFromActivity = activity => {
@@ -923,6 +951,7 @@ const OtherTreatment = () => {
         handleClose={handleCancelDeleteTreatment}
         action={handleConfirmDeleteTreatment}
         message='Are you sure you want to delete this treatment?'
+        loading={isDeletingTreatment}
       />
     </Box>
   )
@@ -1394,18 +1423,30 @@ const EditTreatmentDrawer = ({
               </Typography>
             ) : (
               activityList.map(activity => {
+                const isSelected = formData?.activeActivityId === activity.id
+
                 if (activity.isEditable) {
                   return (
                     <Box
                       key={activity.id}
+                      role='button'
+                      tabIndex={0}
+                      onClick={() => onActivityPrefill?.(activity)}
+                      onKeyDown={event => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          onActivityPrefill?.(activity)
+                        }
+                      }}
                       sx={{
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '12px',
                         borderRadius: '8px',
                         padding: '12px',
-                        border: '1px solid #FCF4AE',
-                        backgroundColor: '#FCF4AE66'
+                        border: `1px solid ${isSelected ? '#37BD69' : '#FCF4AE'}`,
+                        backgroundColor: isSelected ? '#DFF5E7' : '#FCF4AE66',
+                        cursor: 'pointer'
                       }}
                     >
                       <Box
@@ -1428,7 +1469,10 @@ const EditTreatmentDrawer = ({
                         <IconButton
                           size='small'
                           sx={{ color: '#44544A', p: 1 }}
-                          onClick={() => onActivityPrefill?.(activity)}
+                          onClick={event => {
+                            event.stopPropagation()
+                            onActivityPrefill?.(activity)
+                          }}
                         >
                           <Icon icon='mdi:pencil-outline' />
                         </IconButton>
