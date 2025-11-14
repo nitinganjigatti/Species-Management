@@ -174,8 +174,6 @@ const AuthProvider = ({ children }) => {
     localStorage.removeItem('provider')
     localStorage.removeItem('selectedStore')
     localStorage.removeItem('selectedParivesh')
-
-    debugger
     setUser(null)
     setUserData(null)
     setSelectedPharmacy('')
