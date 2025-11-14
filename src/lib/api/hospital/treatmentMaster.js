@@ -37,18 +37,19 @@ export const createTreatmentRecord = async payload => {
   }
 }
 
-export const getTreatmentList = async ({ animal_id, medical_record_id, hospital_case_id, treatment_master_id, page = 0, limit = 10 } = {}) => {
+export const getTreatmentList = async (params = {}) => {
   try {
+    const filteredParams = Object.entries(params).reduce((acc, [key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        acc[key] = value
+      }
+
+      return acc
+    }, {})
+
     const response = await axiosGet({
       url: GET_TREATMENT_LIST,
-      params: {
-        animal_id,
-        medical_record_id,
-        hospital_case_id,
-        treatment_master_id,
-        page,
-        limit
-      }
+      params: filteredParams
     })
 
     return response?.data

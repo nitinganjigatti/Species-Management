@@ -24,10 +24,12 @@ const formatTimestamp = isoString => {
   if (!isoString) return '-'
 
   const date = new Date(isoString)
+
   const timePart = date.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit'
   })
+
   const datePart = date.toLocaleDateString('en-GB', {
     day: '2-digit',
     month: 'short',
@@ -51,10 +53,20 @@ const formatClinicianTimestamp = isoString => {
 
 const formatShortDate = isoString => {
   if (!isoString) return '-'
+
   return dayjs(isoString).format('DD MMM YYYY')
 }
 
-const getRecordTimestamp = record => record?.updated_at || record?.created_at || record?.timestamp || null
+const getRecordTimestamp = record =>
+  record?.lastUpdated ||
+  record?.last_updated ||
+  record?.updatedAt ||
+  record?.updated_at ||
+  record?.createdAt ||
+  record?.created_at ||
+  record?.timestamp ||
+  record?.start_time ||
+  null
 
 const getTimestampValue = record => {
   const timestamp = typeof record === 'string' ? record : getRecordTimestamp(record)
@@ -68,6 +80,8 @@ const deriveTreatmentId = entry => {
   if (!entry) return null
 
   return (
+    entry.treatment_id ||
+    entry.treatmentId ||
     entry.treatment_master_id ||
     entry.id ||
     (entry.treatment_name ? entry.treatment_name.trim().toLowerCase().replace(/\s+/g, '-') : null)
@@ -76,23 +90,46 @@ const deriveTreatmentId = entry => {
 
 const buildActivityFromSource = (activity = {}, fallbackRecord = {}, index = 0) => {
   const timestamp =
-    activity.timestamp || activity.updated_at || activity.created_at || getRecordTimestamp(fallbackRecord) || null
+    activity.timestamp ||
+    activity.updated_at ||
+    activity.updatedAt ||
+    activity.lastUpdated ||
+    activity.last_updated ||
+    activity.created_at ||
+    activity.createdAt ||
+    getRecordTimestamp(fallbackRecord) ||
+    null
+
   const fallbackIdBase =
     fallbackRecord.id ||
     fallbackRecord.treatment_master_id ||
+    fallbackRecord.treatment_id ||
     (fallbackRecord.treatment_name
       ? fallbackRecord.treatment_name.trim().toLowerCase().replace(/\s+/g, '-')
       : 'activity')
 
+  const treatmentStartDate =
+    activity.treatmentStartDate ||
+    activity.treatment_start_date ||
+    activity.start_time ||
+    fallbackRecord.start_time ||
+    null
+
   return {
     id: activity.id || `${fallbackIdBase}-${index}`,
-    description: activity.description ?? fallbackRecord.note ?? '',
-    author: activity.author || activity.created_by_name || fallbackRecord.created_by_name || '—',
+    description: activity.description ?? activity.notes ?? activity.note ?? fallbackRecord.note ?? '',
+    author:
+      activity.author ||
+      activity.created_by_name ||
+      activity.created_by_full_name ||
+      fallbackRecord.created_by_name ||
+      fallbackRecord.clinician?.name ||
+      '—',
     timestamp,
     status: activity.status || fallbackRecord.status || 'completed',
-    title: activity.title || fallbackRecord.treatment_name || 'Status Update',
-    treatmentStartDate: activity.treatmentStartDate || activity.start_time || fallbackRecord.start_time || null,
-    notes: activity.notes ?? fallbackRecord.note ?? activity.description ?? ''
+    title: activity.title || activity.treatment_name || fallbackRecord.treatment_name || fallbackRecord.name || 'Status Update',
+    treatmentStartDate,
+    notes: activity.notes ?? activity.description ?? activity.note ?? fallbackRecord.note ?? ''
   }
 }
 
@@ -131,7 +168,7 @@ const buildTreatmentFromEntries = entries => {
 
   return {
     id: deriveTreatmentId(latestEntry) || deriveTreatmentId(entries[0]) || 'treatment',
-    name: latestEntry?.treatment_name || entries[0]?.treatment_name || 'Treatment',
+    name: latestEntry?.treatment_name || latestEntry?.name || entries[0]?.treatment_name || entries[0]?.name || 'Treatment',
     noteCount: activities.filter(activity => (activity.notes || activity.description)?.toString().trim()).length,
     noteSummary:
       latestActivityWithNotes?.notes?.toString().trim() ||
@@ -139,9 +176,9 @@ const buildTreatmentFromEntries = entries => {
       'No notes added yet.',
     lastUpdated: getRecordTimestamp(latestEntry),
     clinician: {
-      name: latestEntry?.created_by_name || '—',
-      avatarUrl: latestEntry?.profile_pic || '',
-      updatedAt: getRecordTimestamp(latestEntry) || ''
+      name: latestEntry?.clinician?.name || latestEntry?.clinician_name || latestEntry?.created_by_name || '—',
+      avatarUrl: latestEntry?.clinician?.avatarUrl || latestEntry?.clinician?.avatar_url || latestEntry?.profile_pic || '',
+      updatedAt: latestEntry?.clinician?.updatedAt || latestEntry?.clinician?.updated_at || getRecordTimestamp(latestEntry) || ''
     },
     activities
   }
@@ -155,7 +192,9 @@ const aggregateTreatmentsByName = (treatments = []) => {
 
     const key =
       record.treatment_name?.trim().toLowerCase() ||
+      record.name?.trim().toLowerCase() ||
       record.treatment_master_id ||
+      record.treatment_id ||
       record.id ||
       `treatment-${Object.keys(acc).length}`
 
@@ -178,14 +217,21 @@ const mapRecordsToGroups = (records = []) => {
 
   if (hasNestedTreatments) {
     return records
-      .map(record => {
-        const treatments = aggregateTreatmentsByName(record.treatments || [])
+      .map((record, index) => {
+        const treatments = (record.treatments || [])
+          .map(entry => buildTreatmentFromEntries([entry]))
+          .filter(Boolean)
+
         if (!treatments.length) return null
 
         return {
-          id: record.medical_record_id || record.medical_record_code || 'medical-record',
-          code: record.medical_record_code ? `MED - ${record.medical_record_code}` : 'Medical Record',
-          icon: 'mdi:medical-bag-outline',
+          id: record.medical_record_id || record.medical_record_code || record.id || `medical-record-${index}`,
+          code:
+            record.code ||
+            (record.medical_record_code
+              ? `MED - ${record.medical_record_code}`
+              : record.medical_record_name || record.title || 'Medical Record'),
+          icon: record.icon || 'mdi:medical-bag-outline',
           treatments
         }
       })
@@ -228,11 +274,13 @@ const OtherTreatment = () => {
   const { animal_id, medical_record_id, id: hospital_case_id } = router.query
   const [isAddDrawerOpen, setAddDrawerOpen] = useState(false)
   const [isEditDrawerOpen, setEditDrawerOpen] = useState(false)
+
   const [formData, setFormData] = useState({
     startDate: dayjs('2025-07-12'),
     treatmentName: null,
     notes: ''
   })
+
   const [editFormData, setEditFormData] = useState({
     startDate: dayjs(),
     notes: '',
@@ -254,16 +302,14 @@ const OtherTreatment = () => {
   )
 
   const fetchTreatments = useCallback(async () => {
-    if (!animal_id || !medical_record_id) return
+    if (!animal_id) return
 
     setTreatmentsLoading(true)
     try {
       const response = await getTreatmentList({
         animal_id,
         medical_record_id,
-        hospital_case_id: hospital_case_id ?? 'null',
-        page: 0,
-        limit: 10
+        hospital_case_id
       })
 
       const records = response?.data?.records || []
@@ -282,6 +328,7 @@ const OtherTreatment = () => {
 
   useEffect(() => {
     let isMounted = true
+
     const handler = setTimeout(async () => {
       setTreatmentOptionsLoading(true)
       try {
@@ -337,11 +384,13 @@ const OtherTreatment = () => {
 
     if (!treatmentNameValue || treatmentNameValue.length < 3) {
       Toaster({ type: 'error', message: 'Treatment name must be at least 3 characters.' })
+
       return
     }
 
     if (!animal_id || !medical_record_id) {
       Toaster({ type: 'error', message: 'Missing patient identifiers to create treatment.' })
+
       return
     }
 
@@ -488,6 +537,7 @@ const OtherTreatment = () => {
           onClick={() => setAddDrawerOpen(true)}
           sx={{
             boxShadow: '0px 4px 8px -4px #4C4E646B',
+
             // width: '258px',
             height: '42px',
             borderRadius: '8px',
@@ -733,7 +783,8 @@ const AddTreatmentDrawer = ({
       onInputValueChange?.(value || '')
       onSearchTreatment?.(value || '')
       onChange('treatmentName', value || null)
-      return
+      
+return
     }
 
     if (reason === 'reset') {
@@ -764,6 +815,7 @@ const AddTreatmentDrawer = ({
       onInputValueChange?.('')
     }
   }
+
   const { control, reset } = useForm({
     defaultValues: {
       treatmentName: formData.treatmentName || null,
@@ -777,6 +829,7 @@ const AddTreatmentDrawer = ({
       notes: formData.notes || ''
     })
   }, [formData.treatmentName, formData.notes, reset, open])
+
   const commonFieldStyles = {
     '& .MuiOutlinedInput-root': {
       borderRadius: '8px',
