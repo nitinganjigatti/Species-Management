@@ -123,7 +123,7 @@ export async function administerDose(payLoad) {
 
 export async function administerAllMedicines(payLoad) {
   try {
-    const response = await axiosFormPost({ url: `${ADMINISTER_ALL_MEDICINES}`, body: payLoad })
+    const response = await axiosPost({ url: `${ADMINISTER_ALL_MEDICINES}`, body: payLoad })
 
     return response?.data
   } catch (error) {

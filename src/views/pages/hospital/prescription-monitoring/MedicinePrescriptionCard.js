@@ -27,6 +27,8 @@ import StopMedicine from './StopMedicine'
 import CustomButtons from 'src/components/hospital/CustomButtons'
 import Utility from 'src/utility'
 import { LoadingButton } from '@mui/lab'
+import DoDisturbIcon from '@mui/icons-material/DoDisturb'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 
 // Custom styled components for drawer content
 const DrawerContent = styled(Box)(({ theme }) => ({
@@ -140,6 +142,7 @@ const MedicinePrescriptionCard = ({
   isAdministerLoading = false,
   isSkipLoading = false,
   selectedMedications,
+  isStopMedicineLoading,
   setSelectedMedications
 }) => {
   const theme = useTheme()
@@ -158,15 +161,15 @@ const MedicinePrescriptionCard = ({
 
   const tabs = dateOptions?.length > 0 ? dateOptions : []
 
-  useEffect(() => {
-    console.log('dosageEntries', dosageEntries)
-  }, [dosageEntries])
-
   // Filter pending medications
   const pendingMedications = dosageEntries?.filter(item => !item?.status || item?.status?.toLowerCase() === 'pending')
 
   // Check if all pending medications are selected
   const allSelected = pendingMedications?.length > 0 && selectedMedications.length === pendingMedications.length
+
+  useEffect(() => {
+    if (stopMedicineModalOpen) setStopMedicineModalOpen(false)
+  }, [])
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue)
@@ -184,7 +187,6 @@ const MedicinePrescriptionCard = ({
     if (onStopMedicine) {
       onStopMedicine(data)
     }
-    setStopMedicineModalOpen(false)
   }
 
   const handleAddNewDosage = () => {
@@ -304,22 +306,50 @@ const MedicinePrescriptionCard = ({
 
   if (!open) return null
 
+  const formatDisplayDateTime = dateTimeString => {
+    // Parse the date string properly (DD/MM/YYYY format)
+    const [datePart, timePart] = dateTimeString.split(', ')
+    const [day, month, year] = datePart.split('/')
+
+    // Create date object (month is 0-indexed in JavaScript)
+    const date = new Date(year, month - 1, day, ...timePart.split(':'))
+
+    // Format date part: 02 Jan 2025
+    const formattedDate = date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    })
+
+    // Format time part: 12 : 35 PM
+    const formattedTime = date
+      .toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      })
+      .replace(':', ' : ')
+
+    return `${formattedDate} • ${formattedTime}`
+  }
+
   const renderDosageEntry = entry => (
     <DosageSection key={entry.id} variant={entry.variant}>
       <DosageHeader variant={entry.variant}>
         <Box sx={{ display: 'flex', padding: '0 16px', alignItems: 'center', gap: '4px', flex: '1 0 0' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Icon
-              icon={entry?.icon}
-              fontSize='24px'
-              color={
-                entry.variant === 'administered'
-                  ? theme.palette.primary.main
-                  : entry.variant === 'stopped'
-                  ? theme.palette.customColors.Tertiary
-                  : theme.palette.customColors.neutralSecondary
-              }
-            />
+            {entry.variant === 'administered' ? (
+              <CheckCircleIcon sx={{ fontSize: '24px' }} color={'primary'} />
+            ) : (
+              <DoDisturbIcon
+                sx={{ fontSize: '24px' }}
+                color={
+                  entry.status === 'stopped'
+                    ? theme.palette.customColors.Tertiary
+                    : theme.palette.customColors.neutralSecondary
+                }
+              />
+            )}
             <Box
               sx={{
                 display: 'flex',
@@ -384,7 +414,7 @@ const MedicinePrescriptionCard = ({
         </Box>
       </DosageHeader>
 
-      {entry.wastage && (
+      {entry?.batch_details?.length > 0 && (
         <Box sx={{ display: 'flex', padding: '0 16px', flexDirection: 'column', gap: '4px' }}>
           <Typography
             variant='body1'
@@ -397,8 +427,7 @@ const MedicinePrescriptionCard = ({
           </Typography>
         </Box>
       )}
-
-      {entry?.batch_details?.length && (
+      {entry?.batch_details?.length > 0 && (
         <Box sx={{ display: 'flex', padding: '0 16px', alignItems: 'center', gap: '8px' }}>
           <Box
             sx={{
@@ -413,7 +442,7 @@ const MedicinePrescriptionCard = ({
           >
             <Icon icon='mdi:package-variant' fontSize='24px' color={theme.palette.grey[600]} />
           </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: '1 0 0' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px', flex: '1 0 0' }}>
             <Typography variant='body2' sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
               Batch Number
             </Typography>
@@ -421,7 +450,7 @@ const MedicinePrescriptionCard = ({
               variant='body1'
               sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
             >
-              {entry.batch_details?.[0]?.batch_no}
+              {entry?.batch_details?.[0]?.batch_no}
             </Typography>
           </Box>
         </Box>
@@ -438,7 +467,7 @@ const MedicinePrescriptionCard = ({
               {entry.administeredBy}
             </Typography>
             <Typography variant='caption' sx={{ fontSize: '12px', color: theme.palette.customColors.neutralSecondary }}>
-              {entry.administeredAt}
+              {formatDisplayDateTime(entry.administeredAt)}
             </Typography>
           </Box>
         </Box>
@@ -535,7 +564,7 @@ const MedicinePrescriptionCard = ({
                       variant='body2'
                       sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      {Utility.convertUTCToLocalDateTime(medicine.startDate)}
+                      {Utility.formatDisplayDate(medicine.startDate)}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -548,7 +577,7 @@ const MedicinePrescriptionCard = ({
                       variant='body2'
                       sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      {Utility.convertUTCToLocalDateTime(medicine.endDate)}
+                      {Utility.formatDisplayDate(medicine.endDate)}
                     </Typography>
                   </Box>
                 </Box>
@@ -824,10 +853,10 @@ const MedicinePrescriptionCard = ({
                           : 'stopped',
                       icon:
                         item?.status?.toLowerCase() === 'administered'
-                          ? 'mdi:check-circle'
+                          ? CheckCircleIcon
                           : item?.status?.toLowerCase() === 'skipped'
-                          ? 'mdi:close-circle'
-                          : 'mdi:stop-circle',
+                          ? DoDisturbIcon
+                          : DoDisturbIcon,
                       wastage: item?.wastage_quantity ? `Wastage: ${item?.wastage_quantity}` : null,
                       wastageNote: item?.notes || '',
                       batchNumber: item?.batch_details?.[0]?.batch_number || null,
@@ -835,7 +864,8 @@ const MedicinePrescriptionCard = ({
                       administeredAt: item?.administritive_date
                         ? new Date(item.administritive_date).toLocaleString()
                         : '',
-                      isStrikethrough: item?.status?.toLowerCase() === 'stopped'
+                      isStrikethrough: item?.status?.toLowerCase() === 'stopped',
+                      batch_details: item?.batch_details
                     })
                   )
                 })}
@@ -845,6 +875,7 @@ const MedicinePrescriptionCard = ({
                     onClose={() => setStopMedicineModalOpen(false)}
                     onConfirm={handleStopMedicineConfirm}
                     medicineData={medicineData}
+                    isLoading={isStopMedicineLoading}
                   />
                 ) : (
                   <Box

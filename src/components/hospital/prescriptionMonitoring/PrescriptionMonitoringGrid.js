@@ -248,7 +248,7 @@ const PrescriptionMonitoringGrid = ({
 }) => {
   const theme = useTheme()
   const router = useRouter()
-  const { id, animal_id, medical_record_id } = router.query
+  const { id, animal_id, medical_record_id, animal_admitted_date } = router.query
   const scrollContainerRef = useRef(null)
   const hourRefs = useRef({})
 
@@ -364,7 +364,12 @@ const PrescriptionMonitoringGrid = ({
             ? {
                 schedule_id: schedule.schedule_id,
                 dosage: schedule.dosage,
-                status: schedule.status,
+                status:
+                  schedule?.status?.toLowerCase() === 'administrator'
+                    ? 'administered'
+                    : schedule?.status?.toLowerCase() === 'withheld'
+                    ? 'skipped'
+                    : schedule?.status?.toLowerCase(),
                 administered_time: schedule.administered_time,
                 compliance_note: schedule.compliance_note,
                 scheduledTime: schedule?.time,
@@ -528,7 +533,7 @@ const PrescriptionMonitoringGrid = ({
       }
     } else if (status === 'administered') {
       return {
-        backgroundColor: theme.palette.customColors.onPrimary,
+        backgroundColor: theme.palette.customColors.Surface,
         border: `0.5px solid ${theme.palette.customColors.Outline}`,
         color: theme.palette.customColors.OnSurface,
         textDecoration: 'none'
@@ -576,6 +581,29 @@ const PrescriptionMonitoringGrid = ({
   useEffect(() => {
     console.log('addPrescriptionToTimeslot past displayMetrics', displayMetrics)
   }, [displayMetrics])
+
+  const isScheduledFuture = (scheduledDate, scheduledTime) => {
+    // Parse the scheduled time (e.g., "03 AM")
+    const [hours, modifier] = scheduledTime.split(' ')
+    let hours24 = parseInt(hours)
+
+    // Convert to 24-hour format
+    if (modifier === 'PM' && hours24 !== 12) {
+      hours24 += 12
+    } else if (modifier === 'AM' && hours24 === 12) {
+      hours24 = 0
+    }
+
+    // Create scheduled datetime object
+    const scheduledDateTime = new Date(scheduledDate)
+    scheduledDateTime.setHours(hours24, 0, 0, 0)
+
+    // Get current datetime
+    const now = new Date()
+
+    // Return true if scheduled datetime is in the future
+    return scheduledDateTime > now
+  }
 
   // Helper: converts "5 AM"/"1 PM" to "HH:mm:ss"
   function convertTo24Hour(time12h) {
@@ -660,7 +688,8 @@ const PrescriptionMonitoringGrid = ({
                 pathname: `/hospital/inpatient/${id}/schedule-prescription`,
                 query: {
                   animal_id,
-                  medical_record_id
+                  medical_record_id,
+                  animal_admitted_date
                 }
               })
             }}
@@ -675,6 +704,14 @@ const PrescriptionMonitoringGrid = ({
           size={{ xs: 12, sm: 12 }}
           sx={{ display: 'flex', alignItems: 'center', my: 4, justifyContent: 'space-between' }}
         >
+          {/* <Box sx={{ display: 'flex', gap: '4px' }}>
+            <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+              Pending Dosage:
+            </Typography>
+            <Typography sx={{ weight: 600, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}>
+              7
+            </Typography>
+          </Box> */}
           <MUICheckbox
             label='Select all'
             labelStyle={isAllSelected && { color: 'green' }}
@@ -695,7 +732,11 @@ const PrescriptionMonitoringGrid = ({
               <MainContainer>
                 <FixedColumn>
                   <HeaderContainer>
-                    <Typography>Medications</Typography>
+                    <Typography
+                      sx={{ weight: 500, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}
+                    >
+                      Prescription
+                    </Typography>
                   </HeaderContainer>
 
                   {displayMetrics?.map(metric => (
@@ -782,32 +823,28 @@ const PrescriptionMonitoringGrid = ({
                                 staus: status,
                                 data: metric
                               }
+                              console.log('data', data)
+                              console.log('selectedDate', selectedDate)
                               if (!status) handleAddPrescriptionToTimeslot(data)
+                              if (status === 'pending') {
+                                const isFuture = isScheduledFuture(selectedDate, scheduledTime)
+                                if (!isFuture) {
+                                  // Open administer/skip modal
+                                  handleAdministerOrSkipOpen(data)
+                                  // onOpenPrescriptionCard(timeSlot)
+                                } else {
+                                  console.log('Cannot administer/skip future scheduled medications')
+                                }
+                              }
                               // handleTimeSlotClick(metric.id, timeSlot)
                             }}
+                            disabled
                           >
                             <TimeSlotCell
                               hasSchedule={hasSchedule}
                               status={status}
                               scheduledTime={scheduledTime}
                               dosage={dosage}
-                              onClick={() => {
-                                console.log('medicine scheduledTime', timeSlot?.value?.scheduledTime)
-                                console.log('slot time', timeSlot?.value)
-                                console.log('status', status)
-
-                                const data = {
-                                  scheduledTime: timeSlot?.value?.scheduledTime,
-                                  timeSlot: timeSlot?.value,
-                                  staus: status,
-                                  data: metric
-                                }
-                                if (status === 'pending') {
-                                  // Open administer/skip modal
-                                  handleAdministerOrSkipOpen(data)
-                                  // onOpenPrescriptionCard(timeSlot)
-                                }
-                              }}
                               config={timeSlotGridConfig(status)}
                               theme={theme}
                             />

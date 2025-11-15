@@ -17,6 +17,7 @@ import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMul
 import TreatmentTypeRadioButtons from '../utility/TreatmentTypeRadioButtons'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import Utility from 'src/utility'
+import dayjs from 'dayjs'
 
 const AdministerOrSkipModal = ({
   open,
@@ -42,6 +43,25 @@ const AdministerOrSkipModal = ({
       then: schema => schema.required('Time is required for administration'),
       otherwise: schema => schema.notRequired()
     }),
+    
+    // time: yup.string().when('action', {
+    //   is: 'administer',
+    //   then: schema =>
+    //     schema
+    //       .required('Time is required for administration')
+    //       .test('valid-time-slot', 'Time must be within the scheduled slot', function (value) {
+    //         if (!value || !slotStart || !slotEnd) return true
+
+    //         const selectedTime = dayjs(value, 'hh:mm A')
+    //         if (!selectedTime.isValid()) return false
+
+    //         const isAfterOrEqual = selectedTime.isAfter(slotStart.subtract(1, 'minute'))
+    //         const isBeforeOrEqual = selectedTime.isBefore(slotEnd.add(1, 'minute'))
+
+    //         return isAfterOrEqual && isBeforeOrEqual
+    //       }),
+    //   otherwise: schema => schema.notRequired()
+    // }),
     quantity: yup.string().when('action', {
       is: 'administer',
       then: schema =>
@@ -151,6 +171,10 @@ const AdministerOrSkipModal = ({
     resolver: yupResolver(validationSchema),
     mode: 'onChange'
   })
+
+  const slotStart = medicineData?.scheduledTime ? dayjs(medicineData.scheduledTime, 'hh:mm A') : null
+
+  const slotEnd = slotStart ? slotStart.add(59, 'minute') : null
 
   useEffect(() => {
     if (medicineData && medicalMasterData) {
@@ -330,6 +354,10 @@ const AdministerOrSkipModal = ({
                 <Grid size={{ xs: 12, md: 6 }}>
                   <ControlledTimePicker
                     name='time'
+
+                    // minTime={slotStart?.toDate()}
+                    // maxTime={slotEnd?.toDate()}
+                    // disableIgnoringDatePart={true}
                     control={control}
                     label='Time'
                     format='hh:mm A'

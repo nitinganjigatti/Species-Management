@@ -62,6 +62,27 @@ const InpatientDetails = () => {
 
   const openMenu = Boolean(anchorEl)
 
+  const updateUrlWithAdmittedDate = admittedDate => {
+    const currentPath = router.pathname
+    const currentQuery = { ...router.query }
+
+    // Add or update animal_admitted_date
+    const updatedQuery = {
+      ...currentQuery,
+      animal_admitted_date: admittedDate
+    }
+
+    // Replace URL with new query params, without refreshing the page
+    router.replace(
+      {
+        pathname: currentPath,
+        query: updatedQuery
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
+
   const {
     data: patientResponse,
     isLoading: patientLoading,
@@ -73,6 +94,14 @@ const InpatientDetails = () => {
     queryFn: () => getPatientDetails(id),
     enabled: !!id // only run when id exists
   })
+
+  useEffect(() => {
+    if (patientResponse?.data?.created_at) {
+      const admittedDate = patientResponse.data.created_at
+      console.log('✅ useEffect triggered - admittedDate:', admittedDate)
+      updateUrlWithAdmittedDate(admittedDate)
+    }
+  }, [patientResponse?.data?.created_at])
 
   const patientData = patientResponse?.data
   const animalData = patientResponse?.data?.animal_detail || {}
@@ -112,7 +141,7 @@ const InpatientDetails = () => {
       { label: 'Overview', value: 'overview', component: InpatientOverview },
       { label: 'Medical Summary', value: 'medicalSummary', component: InpatientMedicalSummary },
       { label: 'Treatment Monitoring', value: 'treatmentMonitoring', component: TreatmentLayout },
-      { label: 'Clinical Assessment', value: 'clinicalAssessment', component: ClinicalAssessment }, // Updated to match URL param
+      { label: 'Clinical Assessment', value: 'clinicalAssessment', component: ClinicalAssessment },
       { label: 'Clinical Notes', value: 'clinicalNotes', component: ClinicalNotes },
       { label: 'Other Treatments', value: 'otherTreatments', component: OtherTreatments },
       { label: 'Symptoms', value: 'symptoms', component: Symptoms },
@@ -127,7 +156,7 @@ const InpatientDetails = () => {
 
   const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
 
-  // Effect to handle URL tab parameter
+  // Effect to handle URL tab parameter - set initial tab from URL
   useEffect(() => {
     if (urlTab) {
       // Find if the URL tab exists in our tabConfig
@@ -136,7 +165,11 @@ const InpatientDetails = () => {
         setSelectedTab(matchingTab.value)
       } else {
         console.warn(`Tab "${urlTab}" not found in available tabs. Using default tab.`)
+        setSelectedTab(tabConfig[0].value)
       }
+    } else {
+      // If no tab in URL, set default tab
+      setSelectedTab(tabConfig[0].value)
     }
   }, [urlTab, tabConfig])
 
@@ -147,12 +180,38 @@ const InpatientDetails = () => {
     (event, newValue) => {
       setSelectedTab(newValue)
 
-      // Update URL without page reload, but remove the tab parameter when changing tabs
-      const { tab, ...queryWithoutTab } = router.query
+      // Update URL with the selected tab parameter
       router.replace(
         {
           pathname: router.pathname,
-          query: { ...queryWithoutTab, id: router.query.id }
+          query: {
+            ...router.query,
+            tab: newValue,
+            id: router.query.id
+          }
+        },
+        undefined,
+        { shallow: true }
+      )
+    },
+    [router]
+  )
+
+  // Handle menu item tab selection
+  const handleMenuTabChange = useCallback(
+    newValue => {
+      setSelectedTab(newValue)
+      handleMenuClose()
+
+      // Update URL with the selected tab parameter
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+            tab: newValue,
+            id: router.query.id
+          }
         },
         undefined,
         { shallow: true }
@@ -265,20 +324,22 @@ const InpatientDetails = () => {
                 {tabConfig.map(tab => (
                   <MenuItem
                     key={tab.value}
-                    onClick={() => {
-                      setSelectedTab(tab.value)
-                      handleMenuClose()
-                    }}
+                    onClick={() => handleMenuTabChange(tab.value)}
+                    selected={selectedTab === tab.value}
                   >
                     <Tooltip title={tab.label} arrow placement='top'>
                       <Typography
                         sx={{
-                          color: theme.palette.customColors.OnSurfaceVarient,
+                          color:
+                            selectedTab === tab.value
+                              ? theme.palette.primary.main
+                              : theme.palette.customColors.OnSurfaceVarient,
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           display: '-webkit-box',
                           WebkitLineClamp: 1,
-                          WebkitBoxOrient: 'vertical'
+                          WebkitBoxOrient: 'vertical',
+                          fontWeight: selectedTab === tab.value ? 'bold' : 'normal'
                         }}
                       >
                         {tab.label}

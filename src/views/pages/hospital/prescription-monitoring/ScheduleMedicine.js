@@ -14,6 +14,9 @@ import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUplo
 import dayjs from 'dayjs'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
+import Utility from 'src/utility'
+import { useRouter } from 'next/router'
+import moment from 'moment'
 
 export default function ScheduleMedicine({
   control,
@@ -37,6 +40,10 @@ export default function ScheduleMedicine({
   const theme = useTheme()
 
   const now = new Date()
+  const router = useRouter()
+  const { animal_admitted_date } = router.query
+
+  console.log('Utility animal_admitted_date', (animal_admitted_date))
 
   // Common styles for form fields
   const commonFieldStyles = {
@@ -276,7 +283,11 @@ export default function ScheduleMedicine({
                 <ControlledDatePicker
                   fullWidth={true}
                   sx={commonFieldStyles}
-                  minDate={selectedMedicineTo === 'Direct Administer' ? undefined : dayjs(now)}
+                  minDate={
+                    selectedMedicineTo === 'Direct Administer'
+                      ? dayjs(animal_admitted_date)
+                      : dayjs(animal_admitted_date)
+                  }
                   maxDate={selectedMedicineTo === 'Direct Administer' ? dayjs(now) : undefined}
                   size='large'
                   name='prescriptionStartDate'

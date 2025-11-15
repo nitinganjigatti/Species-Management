@@ -59,13 +59,16 @@ function PrescriptionLayout({ drawerType }) {
   const [isAdministerDosageModelOpen, setIsAdministerDosageModelOpen] = useState(false)
   const [inpatientId, setInpatientId] = useState(null)
   const [selectedMedicationsFromDetail, setSelectedMedicationsFromDetail] = useState([])
+  const [isStopMedicineLoading, setIsStopMedicineLoading] = useState(false)
+  const [isAddNewDosageLoading, setIsAddNewDosageLoading] = useState(false)
 
-  const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
-  const [selectedDate, setSelectedDate] = useState(today)
   const router = useRouter()
-  const { selectedHospital: hospital } = useHospital()
+  const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
+  const { medical_record_id, animal_id, date } = router.query
 
-  const { medical_record_id, animal_id } = router.query
+  const [selectedDate, setSelectedDate] = useState(date || today)
+
+  const { selectedHospital: hospital } = useHospital()
 
   const handleGetInpatientId = () => {
     try {
@@ -87,8 +90,28 @@ function PrescriptionLayout({ drawerType }) {
     setInpatientId(inpatientId)
   }, [window.location.href])
 
+  const updateURLParams = (key, value) => {
+    const currentQuery = { ...router.query }
+
+    if (value) {
+      currentQuery[key] = value
+    } else {
+      delete currentQuery[key]
+    }
+
+    router.push(
+      {
+        pathname: router.pathname,
+        query: currentQuery
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
+
   const handleDateChange = date => {
     setSelectedDate(date)
+    updateURLParams('date', date)
   }
 
   // Handle prescription card actions
@@ -104,6 +127,7 @@ function PrescriptionLayout({ drawerType }) {
   const handleStopMedicine = async data => {
     console.log('Stop medicine confirmed:', data)
     console.log('medicineData:', data.medicineData)
+    setIsStopMedicineLoading(true)
     try {
       const payload = {
         medical_record_id: medical_record_id,
@@ -134,39 +158,14 @@ function PrescriptionLayout({ drawerType }) {
     } catch (error) {
       console.error('Error stopping medicine:', error)
       Toaster({ type: 'error', message: error?.message || 'Failed to stop medicine' })
+    } finally {
+      setIsStopMedicineLoading(false)
     }
   }
 
-  const handleAddNewDosage = async formData => {
-    setIsAddDosageModelOpen(true)
+  const handleAddNewDosage = () => {
     if (!medicalMasterData) fetchMedicalMasterData()
-      try {
-        const payload = {
-          animal_id: animal_id,
-          hospital_case_id: inpatientId,
-          prescription_id: selectedSlotData?.data?.prescription_id,
-          medical_record_id: medical_record_id,
-          medicine_id: selectedSlotData?.data?.medicine_id,
-          medicine_name: selectedSlotData?.data?.name,
-          schedule_date: selectedDate,
-          dosage_times: formData?.schedules.map(item => ({
-            time: convertUTCToLocaltime(item?.time),
-            quantity: item?.dosageQuantity,
-            unit_id: fetchUnit(item?.dosageUnit)?.id
-          })),
-          apply_dosage: formData?.apply_dosage === 'till_end' ? 'till_prescription_ends' : 'only_for_this_day'
-        }
-  
-        const response = await schedulePrescription(payload)
-        if (response?.success) {
-          setIsScheduleDosageModelOpen(false)
-          Toaster({ type: 'success', message: response?.message })
-        } else {
-          Toaster({ type: 'error', message: response?.message })
-        }
-      } catch (error) {
-        console.error('Error:', error)
-      }
+    setIsAddDosageModelOpen(true)
   }
 
   const handleRefreshEntry = (entryId, medicineData) => {
@@ -240,14 +239,14 @@ function PrescriptionLayout({ drawerType }) {
               amount: item?.scheduled_quantity,
               wastage: item?.wastage_quantity,
               wastageNote: item?.wastage_note,
-              batchNumber: item?.batch_details[0]?.batch_number,
+              batchNumber: item?.batch_details,
               administeredBy: item?.user_full_name,
               administeredAt: item?.administritive_time,
               icon:
                 item?.status === 'Administered'
                   ? 'mdi:check-circle'
                   : item?.status === 'Skipped'
-                  ? 'jam:stop-sign'
+                  ? 'mdi:cancel-outline'
                   : item?.status === 'Stopped'
                   ? 'jam:stop-sign'
                   : 'mdi:clock-outline'
@@ -363,25 +362,29 @@ function PrescriptionLayout({ drawerType }) {
         record_date: '',
         animal_id: JSON.stringify([animal_id]),
         created_for: 'DIRECT_ADMINISTER',
-        prescription: [{
-          start_date: "2025-10-09T05:28:34.964Z",
-          end_date: "2025-10-09T05:28:34.964Z", 
-          schedule_doses: [{
-            id: '',
-            time: convertUTCToLocaltime(formData?.time),
-            quantity: formData?.quantity,
-            unit_id: fetchUnit(formData?.quantityUnit)?.id,
-            unit_name: fetchUnit(formData?.quantityUnit)?.unit_name,
-            string_id: fetchUnit(formData?.quantityUnit)?.string_id
-          }],
-        }],
+        prescription: [
+          {
+            start_date: '2025-10-09T05:28:34.964Z',
+            end_date: '2025-10-09T05:28:34.964Z',
+            schedule_doses: [
+              {
+                id: '',
+                time: convertUTCToLocaltime(formData?.time),
+                quantity: formData?.quantity,
+                unit_id: fetchUnit(formData?.quantityUnit)?.id,
+                unit_name: fetchUnit(formData?.quantityUnit)?.unit_name,
+                string_id: fetchUnit(formData?.quantityUnit)?.string_id
+              }
+            ]
+          }
+        ],
         request_from: 'hospital_module',
         medical_record_id: medical_record_id,
         is_unscheduled: 1,
         prescription_id: selectedSlotData?.data?.medicine_id,
         medicine_id: selectedSlotData?.data?.medicine_id,
         medical_record_type: 'SINGLE',
-        case_type: 1,
+        case_type: 1
       }
 
       // administerMedicine(payload)
@@ -404,7 +407,7 @@ function PrescriptionLayout({ drawerType }) {
   const fetchUnit = unit => {
     const unitData = medicalMasterData?.prescriptionMeasurementType?.find(item => item?.uom_abbr === unit)
 
-    return unitData?.id
+    return unitData
   }
 
   const handleScheduleSubmit = async formData => {
@@ -443,6 +446,8 @@ function PrescriptionLayout({ drawerType }) {
     console.log('Administer Medicine Form Submitted:', formData)
 
     try {
+      setIsAddNewDosageLoading(true)
+
       const payload = {
         animal_id: animal_id,
         hospital_case_id: inpatientId,
@@ -462,12 +467,15 @@ function PrescriptionLayout({ drawerType }) {
       const response = await schedulePrescription(payload)
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message })
+        getPrescriptionList()
         setIsAddDosageModelOpen(false)
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
     } catch (error) {
       console.error('Error:', error)
+    } finally {
+      setIsAddNewDosageLoading(false)
     }
   }
 
@@ -487,7 +495,7 @@ function PrescriptionLayout({ drawerType }) {
         q: '',
         ignored_ids: [],
         animal_id: animal_id,
-        medical_record_id: JSON.stringify([medical_record_id])
+        medical_record_id: [medical_record_id]
       }
 
       const response = await administerAllMedicines(payload)
@@ -857,6 +865,8 @@ function PrescriptionLayout({ drawerType }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
+
+        // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {
             ...medicineDetails,
@@ -870,6 +880,7 @@ function PrescriptionLayout({ drawerType }) {
         selectedDate={detailSelectedDate}
         medicalMasterData={medicalMasterData}
         isControlledSubstance={selectedSlotData?.data?.controlled_substance == 1}
+        submitLoader={isAddNewDosageLoading}
       />
 
       <MedicinePrescriptionCard
@@ -904,6 +915,7 @@ function PrescriptionLayout({ drawerType }) {
         }}
         dosageEntries={medicineDetails?.medicine_timings || []}
         dateOptions={detailDates}
+        isStopMedicineLoading={isStopMedicineLoading}
         onStopMedicine={handleStopMedicine}
         onAddNewDosage={handleAddNewDosage}
         onRefreshEntry={handleRefreshEntry}

@@ -13,6 +13,10 @@ const ControlledTimePicker = ({
   disabled = false,
   ampm = true,
   minutesStep = 1,
+
+  // minTime,
+  // maxTime,
+  // disableIgnoringDatePart = false,
   sx = {},
   size = 'large'
 }) => {
@@ -30,11 +34,45 @@ const ControlledTimePicker = ({
           views={views}
           disabled={disabled}
           ampm={ampm}
+
+          // minTime={minTime}
+          // maxTime={maxTime}
+          // disableIgnoringDatePart={disableIgnoringDatePart}
           minutesStep={minutesStep}
           error={!!error}
           size={size}
           helperText={error?.message}
           sx={sx}
+
+          // shouldDisableTime={(timeValue, view) => {
+          //   if (view === 'hours') {
+          //     if (minTime && maxTime) {
+          //       const hour = timeValue.hour()
+          //       const minHour = minTime.getHours()
+          //       const maxHour = maxTime.getHours()
+
+          //       return hour < minHour || hour > maxHour
+          //     }
+          //   }
+          //   if (view === 'minutes') {
+          //     if (minTime && maxTime) {
+          //       const hour = timeValue.hour()
+          //       const minute = timeValue.minute()
+          //       const minHour = minTime.getHours()
+          //       const maxHour = maxTime.getHours()
+          //       const minMinute = minTime.getMinutes()
+          //       const maxMinute = maxTime.getMinutes()
+
+          //       // If current hour is the min hour, disable minutes before min minute
+          //       if (hour === minHour && minute < minMinute) return true
+
+          //       // If current hour is the max hour, disable minutes after max minute
+          //       if (hour === maxHour && minute > maxMinute) return true
+          //     }
+          //   }
+
+          //   return false
+          // }}
         />
       )}
     />

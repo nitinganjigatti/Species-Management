@@ -23,6 +23,7 @@ import {
 } from 'src/lib/api/hospital/prescription'
 import Utility from 'src/utility'
 import moment from 'moment'
+import Toaster from 'src/components/Toaster'
 
 export default function AddMedicineToPrescription() {
   const theme = useTheme()
@@ -586,12 +587,14 @@ export default function AddMedicineToPrescription() {
 
       // For now, just log the payload
       if (response?.success) {
+        Toaster({ type: 'success', message: response?.message })
+
         // Reset form values to default after successful submission
         resetForm()
 
         return response
       } else {
-        console.error('Failed to add scheduled prescription:')
+        Toaster({ type: 'error', message: response?.message })
 
         return null
       }
@@ -718,11 +721,12 @@ export default function AddMedicineToPrescription() {
       const response = await addDirectAdministerPrescription(payload)
 
       if (response?.success) {
-        console.log('Direct Administer record added successfully!')
+        Toaster({ type: 'success', message: response?.message || 'Direct administer record added successfully' })
         resetForm()
 
         return response
       } else {
+        Toaster({ type: 'error', message: response?.message })
         console.error('Failed to add direct administer record')
 
         return null
@@ -866,7 +870,6 @@ export default function AddMedicineToPrescription() {
           <PrescriptionMedicineList
             medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
             temporarilySelectedMedicine={temporarilySelectedMedicine}
-
             // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
             selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
             onSelect={handleMedicineSelect}

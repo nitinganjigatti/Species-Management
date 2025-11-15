@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -70,23 +70,25 @@ const ScheduleDosage = ({
     applyDosage: yup.string().oneOf(['this_day', 'till_end'], 'Please select dosage application type')
   })
 
+  const defaultValues = {
+    schedules: [
+      {
+        time: '',
+        dosageQuantity: '',
+        dosageUnit: '',
+        dosageWeights: ''
+      }
+    ],
+    applyDosage: 'this_day' // Set default value
+  }
+
   const {
     control,
     handleSubmit,
     reset,
     formState: { errors }
   } = useForm({
-    defaultValues: {
-      schedules: [
-        {
-          time: '',
-          dosageQuantity: '',
-          dosageUnit: '',
-          dosageWeights: ''
-        }
-      ],
-      applyDosage: 'this_day' // Set default value
-    },
+    defaultValues: defaultValues,
     resolver: yupResolver(validationSchema),
     mode: 'onChange'
   })
@@ -104,8 +106,13 @@ const ScheduleDosage = ({
 
   const handleFormSubmit = data => {
     onSubmit(data)
-    handleClose()
+
+    // handleClose()
   }
+
+  useEffect(() => {
+    reset()
+  }, [])
 
   return (
     <Dialog
@@ -146,7 +153,11 @@ const ScheduleDosage = ({
               {label}
             </Typography>
           </Box>
-          <IconButton onClick={handleClose} sx={{ color: theme.palette.text.primary, padding: 0 }}>
+          <IconButton
+            onClick={handleClose}
+            disabled={submitLoader}
+            sx={{ color: theme.palette.text.primary, padding: 0 }}
+          >
             <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
         </Box>
@@ -217,6 +228,7 @@ const ScheduleDosage = ({
                         format='hh:mm A'
                         error={errors?.schedules?.[idx]?.time}
                         required
+                        disabled={submitLoader}
                       />
                     </Grid>
                     <Grid size={{ xs: fields.length > 1 ? 10 : 12, sm: fields.length > 1 ? 7 : 8 }}>
@@ -237,11 +249,16 @@ const ScheduleDosage = ({
                         getOptionValue={option => option.value}
                         required
                         selectWidth={100}
+                        disabled={submitLoader}
                       />
                     </Grid>
                     {fields.length > 1 && (
                       <Grid size={{ xs: 0.5 }} sx={{ display: 'flex', alignItems: 'center' }}>
-                        <IconButton onClick={() => remove(idx)} sx={{ color: theme.palette.text.primary, padding: 0 }}>
+                        <IconButton
+                          onClick={() => remove(idx)}
+                          disabled={submitLoader}
+                          sx={{ color: theme.palette.text.primary, padding: 0 }}
+                        >
                           <Icon icon='mdi:close' fontSize={24} />
                         </IconButton>
                       </Grid>
@@ -254,6 +271,7 @@ const ScheduleDosage = ({
                     startIcon={<Icon icon='mdi:plus' fontSize={24} />}
                     variant='outlined'
                     fullWidth
+                    disabled={submitLoader}
                     sx={{
                       fontSize: '1rem',
                       backgroundColor: theme.palette.customColors.SurfaceVariant,
@@ -261,7 +279,11 @@ const ScheduleDosage = ({
                       border: 'none',
                       borderRadius: '4px',
                       fontWeight: 500,
-                      py: '0.625rem'
+                      py: '0.625rem',
+                      '&.Mui-disabled': {
+                        backgroundColor: theme.palette.action.disabledBackground,
+                        color: theme.palette.action.disabled
+                      }
                     }}
                     onClick={e => {
                       e.preventDefault()
@@ -301,11 +323,12 @@ const ScheduleDosage = ({
                           <TreatmentTypeRadioButtons
                             label='Only for this day'
                             isSelected={field.value === 'this_day'}
-                            onClick={() => field.onChange('this_day')}
+                            onClick={() => !submitLoader && field.onChange('this_day')}
                             radioPosition='right'
                             selectedFontColor={theme.palette.customColors.OnSurfaceVariant}
                             textColor={theme.palette.customColors.Outline}
                             borderColor={theme.palette.customColors.OutlineVariant}
+                            disabled={submitLoader}
                           />
                         </Grid>
 
@@ -313,11 +336,12 @@ const ScheduleDosage = ({
                           <TreatmentTypeRadioButtons
                             label='Till prescription ends'
                             isSelected={field.value === 'till_end'}
-                            onClick={() => field.onChange('till_end')}
+                            onClick={() => !submitLoader && field.onChange('till_end')}
                             radioPosition='right'
                             selectedFontColor={theme.palette.customColors.OnSurfaceVariant}
                             textColor={theme.palette.customColors.Outline}
                             borderColor={theme.palette.customColors.OutlineVariant}
+                            disabled={submitLoader}
                           />
                         </Grid>
                       </Grid>
@@ -345,10 +369,19 @@ const ScheduleDosage = ({
           variant='contained'
           type='submit'
           loading={submitLoader}
+          disabled={submitLoader}
           onClick={handleSubmit(handleFormSubmit)}
-          sx={{ flex: 1, py: 2 }}
+          sx={{
+            flex: 1,
+            py: 2,
+            '&.Mui-disabled': {
+              backgroundColor: theme.palette.action.disabledBackground
+            }
+          }}
+          loadingPosition='start'
+          startIcon={submitLoader ? <Icon icon='mdi:loading' spin /> : null}
         >
-          Schedule
+          {submitLoader ? 'Scheduling...' : 'Schedule'}
         </LoadingButton>
       </Box>
     </Dialog>
