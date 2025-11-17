@@ -19,13 +19,6 @@ import {
 import { useRouter } from 'next/router'
 import Toaster from 'src/components/Toaster'
 
-const defaultTreatmentOptions = ['Physiotherapy', 'Wound Dressing', 'Immunotherapy', 'Watertherapy'].map(
-  (name, index) => ({
-    label: name,
-    value: `${name.toLowerCase().replace(/\s+/g, '-')}-${index}`
-  })
-)
-
 const formatTimestamp = isoString => {
   if (!isoString) return '-'
 
@@ -345,7 +338,7 @@ const OtherTreatment = () => {
   const [selectedTreatment, setSelectedTreatment] = useState(null)
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [treatmentGroups, setTreatmentGroups] = useState([])
-  const [treatmentOptions, setTreatmentOptions] = useState(defaultTreatmentOptions)
+  const [treatmentOptions, setTreatmentOptions] = useState([])
   const [treatmentOptionsLoading, setTreatmentOptionsLoading] = useState(false)
   const [treatmentSearchTerm, setTreatmentSearchTerm] = useState('')
   const [isCreatingTreatment, setIsCreatingTreatment] = useState(false)
@@ -452,6 +445,7 @@ const OtherTreatment = () => {
   useEffect(() => {
     if (!isAddDrawerOpen) {
       setTreatmentOptionsLoading(false)
+      setTreatmentOptions([])
 
       return
     }
@@ -472,14 +466,12 @@ const OtherTreatment = () => {
               id: record.id
             }))
           )
-        } else if (!treatmentSearchTerm) {
-          setTreatmentOptions(defaultTreatmentOptions)
         } else {
           setTreatmentOptions([])
         }
       } catch (error) {
-        if (isMounted && !treatmentSearchTerm) {
-          setTreatmentOptions(defaultTreatmentOptions)
+        if (isMounted) {
+          setTreatmentOptions([])
         }
       } finally {
         if (isMounted) {
