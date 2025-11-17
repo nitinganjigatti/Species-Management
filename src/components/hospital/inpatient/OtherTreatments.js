@@ -1,14 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Avatar, Box, Button, Drawer, IconButton, Paper, Skeleton, Tooltip, Typography } from '@mui/material'
+import { useRouter } from 'next/router'
+import { Avatar, Box, Button, Drawer, IconButton, Skeleton, Tooltip, Typography } from '@mui/material'
+import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material'
+
 import dayjs from 'dayjs'
+import { useForm, Controller } from 'react-hook-form'
 import { Icon } from '@iconify/react'
+
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
-import { useForm, Controller } from 'react-hook-form'
-import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import DialogConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
+import Toaster from 'src/components/Toaster'
+import Utility from 'src/utility'
+
 import {
   createTreatmentRecord,
   getTreatmentMasterList,
@@ -16,8 +22,6 @@ import {
   updateTreatmentRecord,
   deleteTreatmentRecord
 } from 'src/lib/api/hospital/treatmentMaster'
-import { useRouter } from 'next/router'
-import Toaster from 'src/components/Toaster'
 
 const formatTimestamp = isoString => {
   if (!isoString) return '-'
@@ -41,19 +45,24 @@ const formatTimestamp = isoString => {
 const formatClinicianTimestamp = isoString => {
   if (!isoString) return ''
 
-  return new Date(isoString).toLocaleString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit'
-  })
+  const timePart = Utility.convertUTCToLocaltime(isoString)
+  const datePart = Utility.convertUtcToLocalReadableDate(isoString)
+  const safeTime = timePart && timePart !== 'Invalid date' ? timePart : ''
+  const safeDate = datePart && datePart !== 'Invalid date' ? datePart : ''
+
+  if (safeTime && safeDate) {
+    return `${safeTime} • ${safeDate}`
+  }
+
+  return safeTime || safeDate || ''
 }
 
 const formatShortDate = isoString => {
   if (!isoString) return '-'
 
-  return dayjs(isoString).format('DD MMM YYYY')
+  const formatted = Utility.convertUtcToLocalReadableDate(isoString)
+
+  return formatted && formatted !== 'Invalid date' ? formatted : '-'
 }
 
 const getRecordTimestamp = record =>
@@ -126,7 +135,12 @@ const buildActivityFromSource = (activity = {}, fallbackRecord = {}, index = 0) 
       '—',
     timestamp,
     status: activity.status || fallbackRecord.status || 'completed',
-    title: activity.title || activity.treatment_name || fallbackRecord.treatment_name || fallbackRecord.name || 'Status Update',
+    title:
+      activity.title ||
+      activity.treatment_name ||
+      fallbackRecord.treatment_name ||
+      fallbackRecord.name ||
+      'Status Update',
     treatmentStartDate,
     notes: activity.notes ?? activity.description ?? activity.note ?? fallbackRecord.note ?? ''
   }
@@ -165,13 +179,17 @@ const buildTreatmentFromEntries = entries => {
     .sort((a, b) => getTimestampValue(b) - getTimestampValue(a))
     .find(activity => (activity.notes || activity.description)?.toString().trim())
 
-  const apiNotesCountValue = entries.find(entry => entry.notes_count !== undefined && entry.notes_count !== null)?.notes_count
-  const parsedApiNotesCount = apiNotesCountValue !== undefined && apiNotesCountValue !== null ? Number(apiNotesCountValue) : null
+  const apiNotesCountValue = entries.find(
+    entry => entry.notes_count !== undefined && entry.notes_count !== null
+  )?.notes_count
+  const parsedApiNotesCount =
+    apiNotesCountValue !== undefined && apiNotesCountValue !== null ? Number(apiNotesCountValue) : null
   const resolvedApiNotesCount = Number.isFinite(parsedApiNotesCount) ? parsedApiNotesCount : null
 
   return {
     id: deriveTreatmentId(latestEntry) || deriveTreatmentId(entries[0]) || 'treatment',
-    name: latestEntry?.treatment_name || latestEntry?.name || entries[0]?.treatment_name || entries[0]?.name || 'Treatment',
+    name:
+      latestEntry?.treatment_name || latestEntry?.name || entries[0]?.treatment_name || entries[0]?.name || 'Treatment',
     noteCount: activities.filter(activity => (activity.notes || activity.description)?.toString().trim()).length,
     noteSummary:
       latestActivityWithNotes?.notes?.toString().trim() ||
@@ -180,8 +198,10 @@ const buildTreatmentFromEntries = entries => {
     lastUpdated: getRecordTimestamp(latestEntry),
     clinician: {
       name: latestEntry?.clinician?.name || latestEntry?.clinician_name || latestEntry?.created_by_name || '—',
-      avatarUrl: latestEntry?.clinician?.avatarUrl || latestEntry?.clinician?.avatar_url || latestEntry?.profile_pic || '',
-      updatedAt: latestEntry?.clinician?.updatedAt || latestEntry?.clinician?.updated_at || getRecordTimestamp(latestEntry) || ''
+      avatarUrl:
+        latestEntry?.clinician?.avatarUrl || latestEntry?.clinician?.avatar_url || latestEntry?.profile_pic || '',
+      updatedAt:
+        latestEntry?.clinician?.updatedAt || latestEntry?.clinician?.updated_at || getRecordTimestamp(latestEntry) || ''
     },
     animalId: latestEntry?.animal_id || entries[0]?.animal_id || null,
     medicalRecordId: latestEntry?.medical_record_id || entries[0]?.medical_record_id || null,
@@ -228,9 +248,7 @@ const mapRecordsToGroups = (records = []) => {
   if (hasNestedTreatments) {
     return records
       .map((record, index) => {
-        const treatments = (record.treatments || [])
-          .map(entry => buildTreatmentFromEntries([entry]))
-          .filter(Boolean)
+        const treatments = (record.treatments || []).map(entry => buildTreatmentFromEntries([entry])).filter(Boolean)
 
         if (!treatments.length) return null
 
@@ -580,7 +598,8 @@ const OtherTreatment = () => {
     setEditDrawerOpen(true)
 
     loadTreatmentActivities({
-      treatmentMasterId: treatment.treatmentMasterId || treatment.treatment_master_id || treatment.treatmentId || treatment.id,
+      treatmentMasterId:
+        treatment.treatmentMasterId || treatment.treatment_master_id || treatment.treatmentId || treatment.id,
       medicalRecordId: treatment.medicalRecordId || treatment.medical_record_id,
       animalId: treatment.animalId
     })
@@ -608,7 +627,9 @@ const OtherTreatment = () => {
       return
     }
 
-    const formattedStartTime = editFormData.startDate ? dayjs(editFormData.startDate).format('DD MMM YYYY HH:mm:ss') : ''
+    const formattedStartTime = editFormData.startDate
+      ? dayjs(editFormData.startDate).format('DD MMM YYYY HH:mm:ss')
+      : ''
 
     const treatmentMasterId =
       selectedTreatment.treatmentMasterId ||
@@ -1464,7 +1485,12 @@ const EditTreatmentDrawer = ({
             {isActivitiesLoading ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {[1, 2].map(item => (
-                  <Skeleton key={`activity-skeleton-${item}`} variant='rounded' height={96} sx={{ borderRadius: '8px' }} />
+                  <Skeleton
+                    key={`activity-skeleton-${item}`}
+                    variant='rounded'
+                    height={96}
+                    sx={{ borderRadius: '8px' }}
+                  />
                 ))}
               </Box>
             ) : activityList.length === 0 ? (
