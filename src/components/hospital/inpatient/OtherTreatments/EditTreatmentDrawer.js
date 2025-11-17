@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import dayjs from 'dayjs'
 import { Box, Button, Drawer, IconButton, Skeleton, Typography } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { Close as CloseIcon } from '@mui/icons-material'
 import { Icon } from '@iconify/react'
 import { Controller, useForm } from 'react-hook-form'
@@ -23,6 +24,7 @@ const EditTreatmentDrawer = ({
   formatTimestamp,
   formatShortDate
 }) => {
+  const theme = useTheme()
   const { control, reset } = useForm({
     defaultValues: {
       editNotes: formData.notes || '',
@@ -42,16 +44,16 @@ const EditTreatmentDrawer = ({
   const commonFieldStyles = {
     '& .MuiOutlinedInput-root': {
       borderRadius: '8px',
-      backgroundColor: '#FFFFFF'
+      backgroundColor: theme.palette.primary.contrastText
     },
     '& .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#C3CEC7'
+      borderColor: theme.palette.customColors.OutlineVariant
     },
     '&:hover .MuiOutlinedInput-notchedOutline': {
       borderColor: '#A3B3AA'
     },
     '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#37BD69'
+      borderColor: theme.palette.primary.main
     }
   }
 
@@ -66,11 +68,18 @@ const EditTreatmentDrawer = ({
         '& .MuiDrawer-paper': {
           width: 540,
           maxWidth: '100%',
-          backgroundColor: '#FFFFFF'
+          backgroundColor: theme.palette.primary.contrastText
         }
       }}
     >
-      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: '#FFFFFF' }}>
+      <Box
+        sx={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: theme.palette.primary.contrastText
+        }}
+      >
         <Box
           sx={{
             display: 'flex',
@@ -78,19 +87,19 @@ const EditTreatmentDrawer = ({
             alignItems: 'center',
             padding: '24px',
             height: '77px',
-            borderBottom: '1px solid #C3CEC7'
+            borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
           }}
         >
           <Typography
             sx={{
               fontWeight: 500,
               fontSize: '24px',
-              color: '#44544A'
+              color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
             Edit Treatment
           </Typography>
-          <IconButton onClick={onClose} sx={{ color: '#1F515B', mr: -1 }}>
+          <IconButton onClick={onClose} sx={{ color: theme.palette.primary.light, mr: -1 }}>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -102,7 +111,7 @@ const EditTreatmentDrawer = ({
                 sx={{
                   fontWeight: 500,
                   fontSize: '24px',
-                  color: '#44544A',
+                  color: theme.palette.customColors.OnSurfaceVariant,
                   mb: '4px'
                 }}
               >
@@ -110,7 +119,7 @@ const EditTreatmentDrawer = ({
               </Typography>
               <Typography
                 sx={{
-                  color: '#44544A',
+                  color: theme.palette.customColors.OnSurfaceVariant,
                   fontWeight: 400,
                   fontSize: '14px'
                 }}
@@ -125,7 +134,7 @@ const EditTreatmentDrawer = ({
                   sx={{
                     fontWeight: 400,
                     fontSize: '14px',
-                    color: '#000000'
+                    color: theme.palette.primary.deepDark
                   }}
                 >
                   Treatment Start Date
@@ -152,7 +161,7 @@ const EditTreatmentDrawer = ({
                         '& .MuiInputBase-input': {
                           fontWeight: 500,
                           fontSize: '16px',
-                          color: '#44544A'
+                          color: theme.palette.customColors.OnSurfaceVariant
                         }
                       }}
                     />
@@ -168,7 +177,7 @@ const EditTreatmentDrawer = ({
                 rows={4}
                 placeholder='Add notes'
                 onChangeOverride={event => onChange('notes', event?.target?.value || '')}
-                inputBackgroundColor='#FFFFFF'
+                inputBackgroundColor={theme.palette.primary.contrastText}
                 sx={{
                   ...commonFieldStyles,
                   '& .MuiOutlinedInput-root': {
@@ -182,7 +191,7 @@ const EditTreatmentDrawer = ({
 
           <Box
             sx={{
-              borderTop: '1px solid #C3CEC7',
+              borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`,
               display: 'flex',
               flexDirection: 'column',
               gap: '12px',
@@ -193,7 +202,7 @@ const EditTreatmentDrawer = ({
               sx={{
                 fontWeight: 500,
                 fontSize: '20px',
-                color: '#44544A'
+                color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
               Activity
@@ -208,7 +217,7 @@ const EditTreatmentDrawer = ({
             ) : activityList.length === 0 ? (
               <Typography
                 sx={{
-                  color: '#7A8684',
+                  color: theme.palette.customColors.neutralSecondary,
                   fontWeight: 400,
                   fontSize: '14px'
                 }}
@@ -238,7 +247,9 @@ const EditTreatmentDrawer = ({
                         gap: '12px',
                         borderRadius: '8px',
                         padding: '12px',
-                        border: `1px solid ${isSelected ? '#37BD69' : '#FCF4AE'}`,
+                        border: `1px solid ${
+                          isSelected ? theme.palette.primary.main : theme.palette.customColors.Notes
+                        }`,
                         backgroundColor: isSelected ? '#DFF5E7' : '#FCF4AE66',
                         cursor: 'pointer'
                       }}
@@ -253,7 +264,7 @@ const EditTreatmentDrawer = ({
                       >
                         <Typography
                           sx={{
-                            color: '#44544A',
+                            color: theme.palette.customColors.OnSurfaceVariant,
                             fontWeight: 400,
                             fontSize: '14px'
                           }}
@@ -262,7 +273,7 @@ const EditTreatmentDrawer = ({
                         </Typography>
                         <IconButton
                           size='small'
-                          sx={{ color: '#44544A', p: 1 }}
+                          sx={{ color: theme.palette.customColors.OnSurfaceVariant, p: 1 }}
                           onClick={event => {
                             event.stopPropagation()
                             onActivityPrefill?.(activity)
@@ -273,7 +284,7 @@ const EditTreatmentDrawer = ({
                       </Box>
                       <Typography
                         sx={{
-                          color: '#7A8684',
+                          color: theme.palette.customColors.neutralSecondary,
                           fontWeight: 400,
                           fontSize: '12px',
                           lineHeight: '100%'
@@ -294,13 +305,13 @@ const EditTreatmentDrawer = ({
                       gap: '12px',
                       borderRadius: '8px',
                       padding: '16px',
-                      backgroundColor: '#EFF5F2'
+                      backgroundColor: theme.palette.customColors.Background
                     }}
                   >
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <Typography
                         sx={{
-                          color: '#44544A',
+                          color: theme.palette.customColors.OnSurfaceVariant,
                           fontWeight: 500,
                           fontSize: '16px'
                         }}
@@ -310,7 +321,7 @@ const EditTreatmentDrawer = ({
                       {activity.medicalRecordCode ? (
                         <Typography
                           sx={{
-                            color: '#7A8684',
+                            color: theme.palette.customColors.neutralSecondary,
                             fontWeight: 400,
                             fontSize: '12px'
                           }}
@@ -320,7 +331,7 @@ const EditTreatmentDrawer = ({
                       ) : null}
                       <Typography
                         sx={{
-                          color: '#7A8684',
+                          color: theme.palette.customColors.neutralSecondary,
                           fontWeight: 400,
                           fontSize: '12px',
                           lineHeight: '100%'
@@ -331,7 +342,7 @@ const EditTreatmentDrawer = ({
                     </Box>
                     <Typography
                       sx={{
-                        color: '#44544A',
+                        color: theme.palette.customColors.OnSurfaceVariant,
                         fontWeight: 400,
                         fontSize: '12px'
                       }}
@@ -344,7 +355,7 @@ const EditTreatmentDrawer = ({
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <Typography
                         sx={{
-                          color: '#7A8684',
+                          color: theme.palette.customColors.neutralSecondary,
                           fontWeight: 400,
                           fontSize: '12px'
                         }}
@@ -353,7 +364,7 @@ const EditTreatmentDrawer = ({
                       </Typography>
                       <Typography
                         sx={{
-                          color: '#44544A',
+                          color: theme.palette.customColors.OnSurfaceVariant,
                           fontWeight: 400,
                           fontSize: '14px'
                         }}
@@ -370,13 +381,13 @@ const EditTreatmentDrawer = ({
 
         <Box
           sx={{
-            boxShadow: '0px -1px 30px 0px #0000001A',
+            boxShadow: `0px -1px 30px 0px ${theme.palette.customColors.shadowColor || '#0000001A'}`,
             minHeight: '104px',
             padding: '24px',
             display: 'flex',
             alignItems: 'center',
             gap: 3,
-            backgroundColor: '#FFFFFF'
+            backgroundColor: theme.palette.primary.contrastText
           }}
         >
           <Button
@@ -386,8 +397,8 @@ const EditTreatmentDrawer = ({
             sx={{
               height: '56px',
               borderRadius: '8px',
-              borderColor: '#E93353',
-              color: '#E93353',
+              borderColor: theme.palette.customColors.Error,
+              color: theme.palette.customColors.Error,
               borderWidth: '1px',
               fontWeight: 600,
               '&:hover': {
@@ -407,8 +418,8 @@ const EditTreatmentDrawer = ({
               height: '56px',
               borderRadius: '8px',
               fontWeight: 600,
-              backgroundColor: '#1F515B',
-              boxShadow: '0px 4px 8px -4px #4C4E646B',
+              backgroundColor: theme.palette.primary.light,
+              boxShadow: `0px 4px 8px -4px ${theme.palette.customColors.shadowColor || '#4C4E646B'}`,
               '&:hover': {
                 backgroundColor: '#173D44'
               }

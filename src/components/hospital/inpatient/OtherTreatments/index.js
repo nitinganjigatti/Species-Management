@@ -4,6 +4,7 @@ import { Avatar, Box, Button, Skeleton, Tooltip, Typography } from '@mui/materia
 import { Add as AddIcon } from '@mui/icons-material'
 
 import dayjs from 'dayjs'
+import { useTheme } from '@mui/material/styles'
 
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import DialogConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
@@ -310,6 +311,7 @@ const mapDetailRecordsToActivities = (records = []) => {
 
 const OtherTreatment = () => {
   const router = useRouter()
+  const theme = useTheme()
   const { animal_id, medical_record_id, id: hospital_case_id } = router.query
   const [isAddDrawerOpen, setAddDrawerOpen] = useState(false)
   const [isEditDrawerOpen, setEditDrawerOpen] = useState(false)
@@ -724,7 +726,7 @@ const OtherTreatment = () => {
       >
         <Typography
           sx={{
-            color: '#44544A',
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontWeight: 500,
             fontSize: '20px',
             letterSpacing: 0
@@ -737,7 +739,7 @@ const OtherTreatment = () => {
           startIcon={<AddIcon />}
           onClick={handleOpenAddDrawer}
           sx={{
-            boxShadow: '0px 4px 8px -4px #4C4E646B',
+            boxShadow: `0px 4px 8px -4px ${theme.palette.customColors.shadowColor || '#4C4E646B'}`,
 
             // width: '258px',
             height: '42px',
@@ -769,7 +771,9 @@ const OtherTreatment = () => {
         )}
 
         {!isTreatmentsLoading && treatmentGroups.length === 0 && (
-          <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '14px' }}>No treatments found.</Typography>
+          <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 400, fontSize: '14px' }}>
+            No treatments found.
+          </Typography>
         )}
 
         {!isTreatmentsLoading && treatmentGroups.length > 0 && (
@@ -788,7 +792,7 @@ const OtherTreatment = () => {
                       fontWeight: 500,
                       fontSize: '14px',
                       letterSpacing: '0.1px',
-                      color: '#006D35'
+                      color: theme.palette.primary.dark
                     }}
                   >
                     {group.code}
@@ -823,7 +827,7 @@ const OtherTreatment = () => {
                           justifyContent: 'space-between',
                           borderRadius: '8px',
                           padding: '24px',
-                          background: '#EFF5F2',
+                          background: theme.palette.customColors.Background,
                           flexWrap: 'wrap',
                           alignItems: 'center'
                         }}
@@ -834,7 +838,7 @@ const OtherTreatment = () => {
                               fontWeight: 500,
                               fontSize: '20px',
                               letterSpacing: 0,
-                              color: '#44544A',
+                              color: theme.palette.customColors.OnSurfaceVariant,
                               width: { xs: '100%', md: '220px' },
                               maxWidth: { xs: '100%', md: '220px' },
                               flexShrink: 0,
@@ -880,14 +884,14 @@ const OtherTreatment = () => {
                                   sx={{
                                     fontWeight: 400,
                                     fontSize: '14px',
-                                    color: '#7A8684'
+                                    color: theme.palette.customColors.neutralSecondary
                                   }}
                                 >
                                   Notes:
                                 </Typography>
                                 <Typography
                                   sx={{
-                                    color: '#006D35',
+                                    color: theme.palette.primary.dark,
                                     fontWeight: 600,
                                     fontSize: '16px'
                                   }}
@@ -900,7 +904,7 @@ const OtherTreatment = () => {
                                 sx={{
                                   fontWeight: 400,
                                   fontSize: '14px',
-                                  color: '#7A8684'
+                                  color: theme.palette.customColors.neutralSecondary
                                 }}
                               >
                                 Notes
@@ -919,7 +923,7 @@ const OtherTreatment = () => {
                             sx={{
                               fontWeight: 400,
                               fontSize: '14px',
-                              color: '#44544A',
+                              color: theme.palette.customColors.OnSurfaceVariant,
                               letterSpacing: 0,
                               display: '-webkit-box',
                               WebkitLineClamp: 2,
@@ -933,7 +937,7 @@ const OtherTreatment = () => {
 
                           <Typography
                             sx={{
-                              color: '#7A8684',
+                              color: theme.palette.customColors.neutralSecondary,
                               fontWeight: 400,
                               fontSize: '12px'
                             }}
@@ -953,7 +957,7 @@ const OtherTreatment = () => {
                             avatarUrl={treatment.clinician.avatarUrl}
                             name={treatment.clinician.name}
                             description={formatClinicianTimestamp(treatment.clinician.createdAt)}
-                            textColor='#44544A'
+                            textColor={theme.palette.customColors.OnSurfaceVariant}
                           />
                         </Box>
                       </Box>

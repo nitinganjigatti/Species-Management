@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
 import { Box, Button, Drawer, IconButton, Typography } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { Close as CloseIcon } from '@mui/icons-material'
 import { useForm } from 'react-hook-form'
 
@@ -19,6 +20,7 @@ const AddTreatmentDrawer = ({
   onInputValueChange,
   isSubmitting
 }) => {
+  const theme = useTheme()
   const handleTreatmentInputChange = (value, reason) => {
     if (reason === 'input') {
       onInputValueChange?.(value || '')
@@ -76,16 +78,16 @@ const AddTreatmentDrawer = ({
   const commonFieldStyles = {
     '& .MuiOutlinedInput-root': {
       borderRadius: '8px',
-      backgroundColor: '#FFFFFF'
+      backgroundColor: theme.palette.primary.contrastText
     },
     '& .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#C3CEC7'
+      borderColor: theme.palette.customColors.OutlineVariant
     },
     '&:hover .MuiOutlinedInput-notchedOutline': {
       borderColor: '#A3B3AA'
     },
     '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#37BD69'
+      borderColor: theme.palette.primary.main
     }
   }
 
@@ -98,11 +100,18 @@ const AddTreatmentDrawer = ({
         '& .MuiDrawer-paper': {
           width: 480,
           maxWidth: '100%',
-          backgroundColor: '#FFFFFF'
+          backgroundColor: theme.palette.primary.contrastText
         }
       }}
     >
-      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: '#FFFFFF' }}>
+      <Box
+        sx={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: theme.palette.primary.contrastText
+        }}
+      >
         <Box
           sx={{
             display: 'flex',
@@ -110,20 +119,20 @@ const AddTreatmentDrawer = ({
             alignItems: 'center',
             padding: '24px',
             height: '77px',
-            borderBottom: '1px solid #C3CEC7'
+            borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
           }}
         >
           <Typography
             sx={{
               fontWeight: 500,
               fontSize: '24px',
-              color: '#44544A',
+              color: theme.palette.customColors.OnSurfaceVariant,
               letterSpacing: 0
             }}
           >
             Add Treatment
           </Typography>
-          <IconButton onClick={onClose} sx={{ color: '#1F515B', mr: -3 }}>
+          <IconButton onClick={onClose} sx={{ color: theme.palette.primary.light, mr: -3 }}>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -135,7 +144,7 @@ const AddTreatmentDrawer = ({
                 sx={{
                   fontWeight: 400,
                   fontSize: '14px',
-                  color: '#000000'
+                  color: theme.palette.primary.deepDark
                 }}
               >
                 Treatment Start Date
@@ -154,7 +163,7 @@ const AddTreatmentDrawer = ({
                   '& .MuiInputBase-input': {
                     fontWeight: 500,
                     fontSize: '16px',
-                    color: '#44544A'
+                    color: theme.palette.customColors.OnSurfaceVariant
                   }
                 }}
               />
@@ -165,7 +174,7 @@ const AddTreatmentDrawer = ({
                 sx={{
                   fontWeight: 500,
                   fontSize: '16px',
-                  color: '#44544A'
+                  color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
                 Treatment Name
@@ -184,7 +193,7 @@ const AddTreatmentDrawer = ({
                 }
                 onChangeOverride={handleTreatmentSelect}
                 onInputChange={handleTreatmentInputChange}
-                inputBackgroundColor='#FFFFFF'
+                inputBackgroundColor={theme.palette.primary.contrastText}
                 textFieldProps={{
                   placeholder: 'Select treatment',
                   sx: {
@@ -198,13 +207,13 @@ const AddTreatmentDrawer = ({
                     sx: {
                       fontWeight: 500,
                       fontSize: '16px',
-                      color: '#44544A'
+                      color: theme.palette.customColors.OnSurfaceVariant
                     }
                   }
                 }}
                 sx={{
                   '& .MuiInputBase-root': {
-                    backgroundColor: '#FFFFFF'
+                    backgroundColor: theme.palette.primary.contrastText
                   }
                 }}
               />
@@ -218,7 +227,7 @@ const AddTreatmentDrawer = ({
               rows={4}
               placeholder='Add notes'
               onChangeOverride={event => onChange('notes', event?.target?.value || '')}
-              inputBackgroundColor='#FFFFFF'
+              inputBackgroundColor={theme.palette.primary.contrastText}
               sx={{
                 ...commonFieldStyles,
                 '& .MuiOutlinedInput-root': {
@@ -232,12 +241,12 @@ const AddTreatmentDrawer = ({
 
         <Box
           sx={{
-            boxShadow: '0px -1px 30px 0px #0000001A',
+            boxShadow: `0px -1px 30px 0px ${theme.palette.customColors.shadowColor || '#0000001A'}`,
             height: '104px',
             padding: '24px',
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: '#FFFFFF'
+            backgroundColor: theme.palette.primary.contrastText
           }}
         >
           <Button
