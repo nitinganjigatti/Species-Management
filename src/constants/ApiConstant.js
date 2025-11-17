@@ -799,6 +799,8 @@ export const SCHEDULE_PRESCRIPTION = 'v1/hospital/add-additional-dosage-timing'
 
 export const STOP_PRESCRIPTION = 'medical/v2/restart-stop-medicine'
 
+export const UNDO_PRESCRIPTION = 'administer/reset'
+
 export const SKIP_PRESCRIPTION = 'administer/manage/medicine'
 
 export const ADMINISTER_PRESCRIPTION = 'administer/manage/medicine'
@@ -896,4 +898,5 @@ export const GET_ASSESSMENT_LIST_ANESTHESIA = `v1/hospital/anaesthesia/assessmen
 export const ADD_ANESTHESIA = `v1/hospital/anaesthesia/save`
 
 export const GET_ANESTHESIA_SETUP_LIST = `v1/hospital/anaesthesia/sections`
+
 export const DELETE_MONITORING_MONITORING = `v1/hospital/delete-scheduled-monitoring-parameter`

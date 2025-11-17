@@ -17,7 +17,8 @@ import {
   getPrescriptions,
   schedulePrescription,
   skipPrescription,
-  stopPrescription
+  stopPrescription,
+  undoPrescription
 } from 'src/lib/api/hospital/prescription'
 import Utility from 'src/utility'
 import { status } from 'nprogress'
@@ -63,6 +64,7 @@ function PrescriptionLayout({ drawerType }) {
   const [isStopMedicineLoading, setIsStopMedicineLoading] = useState(false)
   const [isAddNewDosageLoading, setIsAddNewDosageLoading] = useState(false)
   const [isAdministerOrSkipForMultipleSlotsOpen, setIsAdministerOrSkipForMultipleSlotsOpen] = useState(false)
+  const [isUndoLoading, setIsUndoLoading] = useState(false)
 
   const router = useRouter()
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
@@ -170,11 +172,33 @@ function PrescriptionLayout({ drawerType }) {
     setIsAddDosageModelOpen(true)
   }
 
-  const handleRefreshEntry = (entryId, medicineData) => {
-    console.log('Refresh entry:', entryId, medicineData)
+  const handleRefreshEntry = async (entryId, medicineData) => {
+    try {
+      setIsUndoLoading(true)
 
-    if (medicineData && detailSelectedDate) {
-      getDetails(medicineData, detailSelectedDate)
+      const payload = {
+        administer_id: entryId,
+        group_prescription_id: medicineDetails?.group_prescription_id || medicineDetails?.prescription_id
+      }
+
+      const response = await undoPrescription(payload)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Entry refreshed successfully' })
+
+        // Refresh the prescription list
+        getPrescriptionList()
+
+        // Refresh the details if the card is still open
+        if (prescriptionCardOpen) {
+          getDetails(medicineData, detailSelectedDate)
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing entry:', error)
+      Toaster({ type: 'error', message: error?.message || 'Failed to refresh entry' })
+    } finally {
+      setIsUndoLoading(false)
     }
   }
 

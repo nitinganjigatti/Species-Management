@@ -10,7 +10,8 @@ import {
   GET_PRESCRIPTION_LIST,
   SCHEDULE_PRESCRIPTION,
   SKIP_PRESCRIPTION,
-  STOP_PRESCRIPTION
+  STOP_PRESCRIPTION,
+  UNDO_PRESCRIPTION
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
@@ -94,6 +95,16 @@ export async function getMedicineBatches(params) {
 export async function stopPrescription(payLoad) {
   try {
     const response = await axiosPost({ url: `${STOP_PRESCRIPTION}`, body: payLoad })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error adding prescription:', error.message)
+  }
+}
+
+export async function undoPrescription(payLoad) {
+  try {
+    const response = await axiosPost({ url: `${UNDO_PRESCRIPTION}`, body: payLoad })
 
     return response?.data
   } catch (error) {
