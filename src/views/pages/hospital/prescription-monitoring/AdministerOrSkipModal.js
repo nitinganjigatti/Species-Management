@@ -172,6 +172,13 @@ const AdministerOrSkipModal = ({
     mode: 'onChange'
   })
 
+  useEffect(() => {
+    if (!open) {
+      // Reset form when modal closes
+      reset(defaultValues)
+    }
+  }, [open, reset])
+
   const slotStart = medicineData?.scheduledTime ? dayjs(medicineData.scheduledTime, 'hh:mm A') : null
 
   const slotEnd = slotStart ? slotStart.add(59, 'minute') : null
@@ -354,10 +361,6 @@ const AdministerOrSkipModal = ({
                 <Grid size={{ xs: 12, md: 6 }}>
                   <ControlledTimePicker
                     name='time'
-
-                    // minTime={slotStart?.toDate()}
-                    // maxTime={slotEnd?.toDate()}
-                    // disableIgnoringDatePart={true}
                     control={control}
                     label='Time'
                     format='hh:mm A'

@@ -168,8 +168,8 @@ const MedicinePrescriptionCard = ({
   const allSelected = pendingMedications?.length > 0 && selectedMedications.length === pendingMedications.length
 
   useEffect(() => {
-    if (stopMedicineModalOpen) setStopMedicineModalOpen(false)
-  }, [])
+    if (open && stopMedicineModalOpen) setStopMedicineModalOpen(false)
+  }, [open])
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue)

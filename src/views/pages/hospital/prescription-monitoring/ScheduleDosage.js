@@ -99,8 +99,15 @@ const ScheduleDosage = ({
     keyName: 'fieldId'
   })
 
+  useEffect(() => {
+    if (!handleOpen) {
+      // Reset form when modal closes
+      reset(defaultValues)
+    }
+  }, [handleOpen, reset])
+
   const handleClose = () => {
-    reset()
+    reset(defaultValues)
     handleSidebarClose()
   }
 

@@ -125,7 +125,7 @@ export default function ScheduleMedicine({
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Schedule Medicine
+              {selectedMedicineTo === 'Direct Administer' ? 'Direct Administer' : 'Schedule Medicine'}
             </Typography>
 
             <Box sx={{ mb: 3 }}>

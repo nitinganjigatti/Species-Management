@@ -700,8 +700,8 @@ export default function AddMedicineToPrescription() {
             delivery_route_id: deliveryRoute?.id || '',
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
-            start_date: toISTISOString(data.prescriptionStartDate),
-            end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
+            start_date: calculateStartDate(data.prescriptionStartDate, data.dosageDuration),
+            end_date: toISTISOString(data.prescriptionStartDate),
 
             restart_reason: '',
             stop_reason: '',
@@ -814,6 +814,33 @@ export default function AddMedicineToPrescription() {
 
     // Return proper ISO 8601 UTC string
     return endDate.toISOString()
+  }
+
+  const calculateStartDate = (endDate, dosageDuration) => {
+    if (!endDate || !dosageDuration?.value) return ''
+
+    const end = new Date(endDate)
+    const startDate = new Date(end)
+
+    switch (dosageDuration.unit) {
+      case 'days':
+        startDate.setDate(end.getDate() - dosageDuration.value)
+        break
+      case 'weeks':
+        startDate.setDate(end.getDate() - dosageDuration.value * 7)
+        break
+      case 'months':
+        startDate.setMonth(end.getMonth() - dosageDuration.value)
+        break
+      case 'years':
+        startDate.setFullYear(end.getFullYear() - dosageDuration.value)
+        break
+      default:
+        startDate.setDate(end.getDate() - dosageDuration.value)
+    }
+
+    // Return proper ISO 8601 UTC string
+    return startDate.toISOString()
   }
 
   return (
