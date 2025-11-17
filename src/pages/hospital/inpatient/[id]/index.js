@@ -43,7 +43,7 @@ const InpatientOverview = lazy(() => import('src/views/pages/hospital/inpatient/
 const InpatientMedicalSummary = lazy(() => import('src/components/hospital/inpatient/InpatientMedicalSummary'))
 const ClinicalAssessment = lazy(() => import('src/components/hospital/inpatient/ClinicalAssessment'))
 const ClinicalNotes = lazy(() => import('src/components/hospital/inpatient/ClinicalNotes'))
-const OtherTreatments = lazy(() => import('src/components/hospital/inpatient/OtherTreatments'))
+const OtherTreatments = lazy(() => import('src/components/hospital/inpatient/OtherTreatments/index'))
 const Symptoms = lazy(() => import('src/components/hospital/inpatient/Symptoms'))
 const InpatientSurgery = lazy(() => import('src/views/pages/hospital/inpatient/InpatientSurgery'))
 const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'))
