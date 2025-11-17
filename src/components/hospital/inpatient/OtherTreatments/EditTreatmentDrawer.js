@@ -211,7 +211,12 @@ const EditTreatmentDrawer = ({
             {isActivitiesLoading ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {[1, 2].map(item => (
-                  <Skeleton key={`activity-skeleton-${item}`} variant='rounded' height={96} sx={{ borderRadius: '8px' }} />
+                  <Skeleton
+                    key={`activity-skeleton-${item}`}
+                    variant='rounded'
+                    height={96}
+                    sx={{ borderRadius: '8px' }}
+                  />
                 ))}
               </Box>
             ) : activityList.length === 0 ? (
@@ -394,6 +399,7 @@ const EditTreatmentDrawer = ({
             variant='outlined'
             fullWidth
             onClick={onDelete}
+            disabled={!formData?.activeActivityId}
             sx={{
               height: '56px',
               borderRadius: '8px',
