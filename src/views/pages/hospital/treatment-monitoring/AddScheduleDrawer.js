@@ -12,40 +12,30 @@ import {
   Typography,
   useTheme
 } from '@mui/material'
-import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
-import {
-  addIntervalsForParameters,
-  getMonitoringParameters,
-  getTreatmentIntervals
-} from 'src/lib/api/hospital/treatmentMonitoring'
+import { addIntervalsForParameters } from 'src/lib/api/hospital/treatmentMonitoring'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 
-const AddScheduleDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringData }) => {
+const AddScheduleDrawer = ({
+  open,
+  setOpen,
+  hospitalCaseId,
+  refetchMonitoringData,
+  intervalList,
+  intervalLoading,
+  monitoringParams,
+  refetchMonitoringParams
+}) => {
   const theme = useTheme()
 
   const [selectedInterval, setSelectedInterval] = useState('1')
   const [addScheduleLoading, setScheduleLoading] = useState(false)
-
-  const {
-    data: monitoringParams,
-    isLoading: monitoringParamsLoading,
-    refetch: refetchMonitoringParams
-  } = useQuery({
-    queryKey: ['treatment-monitoring-parameters'],
-    queryFn: () => getMonitoringParameters(hospitalCaseId),
-    enabled: !!hospitalCaseId && open
-  })
-
-  useEffect(() => {
-    if (open) refetchMonitoringParams()
-  }, [open, refetchMonitoringParams])
 
   const monitoring = useMemo(() => {
     return (
@@ -56,20 +46,6 @@ const AddScheduleDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringDat
       })) || []
     )
   }, [monitoringParams])
-
-  const { data: treatmentIntervals, isLoading: intervalLoading } = useQuery({
-    queryKey: ['hospital-treatment-interval'],
-    queryFn: () => getTreatmentIntervals()
-  })
-
-  const intervalList = treatmentIntervals?.data?.map(
-    item =>
-      ({
-        id: item?.id,
-        label: item?.frequency_label,
-        duration: item?.duration_minutes
-      } || [])
-  )
 
   const {
     control,
@@ -142,6 +118,7 @@ const AddScheduleDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringDat
           setScheduleLoading(false)
           handleDrawerClose()
           refetchMonitoringData()
+          refetchMonitoringParams()
         } else {
           Toaster({ type: 'error', message: res?.message })
           setScheduleLoading(false)

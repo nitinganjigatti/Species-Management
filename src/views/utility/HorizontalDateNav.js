@@ -159,7 +159,7 @@ const HorizontalDateNav = ({
               }}
             >
               <Box display='flex' alignItems='center' gap={2}>
-                {dateItem === selectedDate && (
+                {Utility.formatDisplayDate(dateItem) === Utility.formatDisplayDate(new Date()) && (
                   <Box
                     sx={{
                       width: 8,

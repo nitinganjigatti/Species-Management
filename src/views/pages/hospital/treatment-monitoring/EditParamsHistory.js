@@ -88,7 +88,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
         assessment_value: formData?.observation_value,
         assessment_unit_id: formData?.value_unit,
         comments: formData?.note,
-        recorded_date_time: new Date()
+        recorded_date_time: formData?.observation_time
       }
 
       const res = await updateHospitalAssessmentHistory(data?.animal_id, payload)
@@ -101,7 +101,6 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
       }
     } catch (error) {
       console.error('Cannot Edit Assessment', error)
-      Toaster({ type: 'error', message: 'Something went wrong while updating' })
     } finally {
       setUpdateLoading(false)
     }
@@ -176,7 +175,6 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
           </Box>
 
           <Box sx={{ flex: 1, overflow: 'auto' }}>
-            {/* ✅ Button inside form ensures handleSubmit works */}
             <form onSubmit={handleSubmit(onSubmit)}>
               <Box
                 sx={{
@@ -304,8 +302,6 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
                   </Grid>
                 </Grid>
               </Box>
-
-              {/* ✅ Buttons moved INSIDE form so handleSubmit works */}
               <Box
                 sx={{
                   p: 4,

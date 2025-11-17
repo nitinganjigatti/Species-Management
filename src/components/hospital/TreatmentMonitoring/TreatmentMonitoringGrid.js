@@ -6,12 +6,38 @@ import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
 import AddScheduleDrawer from 'src/views/pages/hospital/treatment-monitoring/AddScheduleDrawer'
 import AddParameterDrawer from 'src/views/pages/hospital/treatment-monitoring/AddParameterDrawer'
 import { useRouter } from 'next/router'
-import { deleteMonitoringParameter, getTreatmentMonitoringData } from 'src/lib/api/hospital/treatmentMonitoring'
+import {
+  deleteMonitoringParameter,
+  getMonitoringParameters,
+  getTreatmentIntervals,
+  getTreatmentMonitoringData
+} from 'src/lib/api/hospital/treatmentMonitoring'
 import AddParameterDataEntry from 'src/views/pages/hospital/treatment-monitoring/AddParameterDataEntry'
 import { useQuery } from '@tanstack/react-query'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import dayjs from 'dayjs'
 import Toaster from 'src/components/Toaster'
+
+const getDatesFromUTCToToday = utcString => {
+  const admittedUTC = new Date(utcString + 'Z')
+  const admittedIST = new Date(admittedUTC.getTime() + 5.5 * 60 * 60 * 1000)
+  const admittedDate = new Date(admittedIST.toLocaleDateString('en-CA'))
+  const currentDateIST = new Date(new Date().toLocaleDateString('en-CA'))
+
+  const dates = []
+  let temp = new Date(admittedDate)
+
+  while (temp <= currentDateIST) {
+    dates.push(temp.toISOString().split('T')[0])
+    temp.setDate(temp.getDate() + 1)
+  }
+
+  if (dates.length === 0) {
+    dates.push(currentDateIST.toISOString().split('T')[0])
+  }
+
+  return dates
+}
 
 const convertUTCToIST = utcTime => {
   if (!utcTime) return ''
@@ -189,27 +215,39 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
 
   const isToday = dayjs(selectedDate).isSame(dayjs(), 'day')
 
-  // const [monitoringData, setMonitoringData] = useState([])
-
   const [paramsDetails, setParamsDetails] = useState({
     interval: '',
     date: '',
     parameter: null
   })
 
+  const { data: treatmentIntervals, isLoading: intervalLoading } = useQuery({
+    queryKey: ['hospital-treatment-interval'],
+    queryFn: () => getTreatmentIntervals()
+  })
+
+  const intervalList = treatmentIntervals?.data?.map(
+    item =>
+      ({
+        id: item?.id,
+        label: item?.frequency_label,
+        duration: item?.duration_minutes
+      } || [])
+  )
+
+  const {
+    data: monitoringParams,
+    isLoading: monitoringParamsLoading,
+    refetch: refetchMonitoringParams
+  } = useQuery({
+    queryKey: ['treatment-monitoring-parameters'],
+    queryFn: () => getMonitoringParameters(id),
+    enabled: !!id
+  })
+
   useEffect(() => {
     if (patientData?.admitted_at) {
-      const admittedDate = new Date(patientData.admitted_at)
-      const currentDate = new Date()
-
-      const datesArray = []
-      let tempDate = new Date(admittedDate)
-      while (tempDate <= currentDate) {
-        datesArray.push(tempDate.toISOString().split('T')[0])
-        tempDate.setDate(tempDate.getDate() + 1)
-      }
-
-      setDates(datesArray)
+      setDates(getDatesFromUTCToToday(patientData.admitted_at))
     }
   }, [patientData])
 
@@ -325,6 +363,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
           setDeleteLoading(false)
           setOpenDeleteDialog(false)
           monitoringRefetch()
+          refetchMonitoringParams()
         } else {
           setDeleteLoading(false)
           Toaster({ type: 'error', message: res?.message })
@@ -529,7 +568,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                         </Box>
                       </Box>
 
-                      {isToday && metric?.canEdit && (
+                      {metric?.canEdit && (
                         <IconButton
                           size='small'
                           onClick={() => {
@@ -568,6 +607,10 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
           monitoring={defaultMetrics}
           hospitalCaseId={id}
           refetchMonitoringData={monitoringRefetch}
+          intervalList={intervalList}
+          intervalLoading={intervalLoading}
+          monitoringParams={monitoringParams}
+          refetchMonitoringParams={refetchMonitoringParams}
         />
       )}
       {addParameterDrawerOpen && (
@@ -576,6 +619,9 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
           setOpen={setAddParameterDrawerOpen}
           hospitalCaseId={id}
           refetchMonitoringData={monitoringRefetch}
+          isToday={isToday}
+          selectedDate={selectedDate}
+          refetchMonitoringParams={refetchMonitoringParams}
         />
       )}
       {openParamsEntryDrawer && (
