@@ -26,20 +26,16 @@ import {
 const formatTimestamp = isoString => {
   if (!isoString) return '-'
 
-  const date = new Date(isoString)
+  const timePart = Utility.convertUTCToLocaltime(isoString)
+  const datePart = Utility.convertUtcToLocalReadableDate(isoString)
+  const safeTime = timePart && timePart !== 'Invalid date' ? timePart : ''
+  const safeDate = datePart && datePart !== 'Invalid date' ? datePart : ''
 
-  const timePart = date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit'
-  })
+  if (safeTime && safeDate) {
+    return `${safeTime} • ${safeDate}`
+  }
 
-  const datePart = date.toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  })
-
-  return `${timePart} • ${datePart}`
+  return safeTime || safeDate || '-'
 }
 
 const formatClinicianTimestamp = isoString => {
@@ -65,19 +61,12 @@ const formatShortDate = isoString => {
   return formatted && formatted !== 'Invalid date' ? formatted : '-'
 }
 
-const getRecordTimestamp = record =>
-  record?.lastUpdated ||
-  record?.last_updated ||
-  record?.updatedAt ||
-  record?.updated_at ||
-  record?.createdAt ||
-  record?.created_at ||
-  record?.timestamp ||
-  record?.start_time ||
-  null
+const getUpdatedTimestamp = record => record?.update_at || record?.updated_at || record?.updatedAt || null
+
+const getCreatedTimestamp = record => record?.created_at || record?.createdAt || null
 
 const getTimestampValue = record => {
-  const timestamp = typeof record === 'string' ? record : getRecordTimestamp(record)
+  const timestamp = typeof record === 'string' ? record : getUpdatedTimestamp(record)
   if (!timestamp) return -Infinity
   const parsed = dayjs(timestamp)
 
@@ -88,24 +77,26 @@ const deriveTreatmentId = entry => {
   if (!entry) return null
 
   return (
-    entry.treatment_id ||
-    entry.treatmentId ||
+    // entry.treatment_id ||
+    // entry.treatmentId ||
     entry.treatment_master_id ||
-    entry.id ||
+    // entry.id ||
     (entry.treatment_name ? entry.treatment_name.trim().toLowerCase().replace(/\s+/g, '-') : null)
   )
 }
 
 const buildActivityFromSource = (activity = {}, fallbackRecord = {}, index = 0) => {
   const timestamp =
-    activity.timestamp ||
+    activity.update_at ||
     activity.updated_at ||
     activity.updatedAt ||
-    activity.lastUpdated ||
-    activity.last_updated ||
+    fallbackRecord?.update_at ||
+    fallbackRecord?.updated_at ||
+    fallbackRecord?.updatedAt ||
     activity.created_at ||
     activity.createdAt ||
-    getRecordTimestamp(fallbackRecord) ||
+    fallbackRecord?.created_at ||
+    fallbackRecord?.createdAt ||
     null
 
   const fallbackIdBase =
@@ -120,27 +111,18 @@ const buildActivityFromSource = (activity = {}, fallbackRecord = {}, index = 0) 
     activity.treatmentStartDate ||
     activity.treatment_start_date ||
     activity.start_time ||
+    activity.created_at ||
     fallbackRecord.start_time ||
+    fallbackRecord?.created_at ||
     null
 
   return {
     id: activity.id || `${fallbackIdBase}-${index}`,
     description: activity.description ?? activity.notes ?? activity.note ?? fallbackRecord.note ?? '',
-    author:
-      activity.author ||
-      activity.created_by_name ||
-      activity.created_by_full_name ||
-      fallbackRecord.created_by_name ||
-      fallbackRecord.clinician?.name ||
-      '—',
+    author: activity.created_by_name || fallbackRecord.created_by_name || '—',
     timestamp,
     status: activity.status || fallbackRecord.status || 'completed',
-    title:
-      activity.title ||
-      activity.treatment_name ||
-      fallbackRecord.treatment_name ||
-      fallbackRecord.name ||
-      'Status Update',
+    title: activity.treatment_name || fallbackRecord.treatment_name || 'Status Update',
     treatmentStartDate,
     notes: activity.notes ?? activity.description ?? activity.note ?? fallbackRecord.note ?? ''
   }
@@ -157,8 +139,9 @@ const extractActivitiesFromRecord = record => {
         id: record?.id,
         description: record?.note,
         notes: record?.note,
-        timestamp: getRecordTimestamp(record),
-        author: record?.created_by_name,
+        update_at: getUpdatedTimestamp(record),
+        created_at: getCreatedTimestamp(record),
+        created_by_name: record?.created_by_name,
         treatmentStartDate: record?.start_time,
         status: record?.status,
         title: record?.treatment_name
@@ -195,13 +178,12 @@ const buildTreatmentFromEntries = entries => {
       latestActivityWithNotes?.notes?.toString().trim() ||
       latestActivityWithNotes?.description?.toString().trim() ||
       'No notes added yet.',
-    lastUpdated: getRecordTimestamp(latestEntry),
+    lastUpdated: getUpdatedTimestamp(latestEntry),
     clinician: {
       name: latestEntry?.clinician?.name || latestEntry?.clinician_name || latestEntry?.created_by_name || '—',
       avatarUrl:
         latestEntry?.clinician?.avatarUrl || latestEntry?.clinician?.avatar_url || latestEntry?.profile_pic || '',
-      updatedAt:
-        latestEntry?.clinician?.updatedAt || latestEntry?.clinician?.updated_at || getRecordTimestamp(latestEntry) || ''
+      createdAt: getCreatedTimestamp(latestEntry) || ''
     },
     animalId: latestEntry?.animal_id || entries[0]?.animal_id || null,
     medicalRecordId: latestEntry?.medical_record_id || entries[0]?.medical_record_id || null,
@@ -301,16 +283,9 @@ const mapDetailRecordsToActivities = (records = []) => {
   if (!records.length) return []
 
   return records.map((record, index) => {
-    const timestamp =
-      record.update_at ||
-      record.updated_at ||
-      record.updatedAt ||
-      record.created_at ||
-      record.createdAt ||
-      record.timestamp ||
-      null
+    const timestamp = record.update_at || record.updated_at || record.updatedAt || null
 
-    const treatmentStartDate = record.created_at || record.createdAt || timestamp || null
+    const treatmentStartDate = record.start_time || record.created_at || record.createdAt || timestamp || null
     const note = record.note || ''
 
     return {
@@ -980,7 +955,7 @@ const OtherTreatment = () => {
                           <UserInfoCard
                             avatarUrl={treatment.clinician.avatarUrl}
                             name={treatment.clinician.name}
-                            description={formatClinicianTimestamp(treatment.clinician.updatedAt)}
+                            description={formatClinicianTimestamp(treatment.clinician.createdAt)}
                             textColor='#44544A'
                           />
                         </Box>
