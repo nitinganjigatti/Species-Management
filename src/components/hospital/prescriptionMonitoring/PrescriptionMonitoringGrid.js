@@ -389,7 +389,7 @@ const PrescriptionMonitoringGrid = ({
         status: medication.status,
         timeSlots: medicationTimeSlots,
         controlled_substance: medication.controlled_substance,
-        canEdit: medication.can_edit,
+        canEdit: medication.canEdit,
         schedule:
           medication.schedule && Array.isArray(medication.schedule)
             ? medication.schedule.map(schedule => ({
