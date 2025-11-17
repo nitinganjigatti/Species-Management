@@ -59,9 +59,9 @@ const formatShortDate = isoString => {
   return formatted && formatted !== 'Invalid date' ? formatted : '-'
 }
 
-const getUpdatedTimestamp = record => record?.update_at || record?.updated_at || record?.updatedAt || null
+const getUpdatedTimestamp = record => record?.update_at || null
 
-const getCreatedTimestamp = record => record?.created_at || record?.createdAt || null
+const getCreatedTimestamp = record => record?.created_at || null
 
 const getTimestampValue = record => {
   const timestamp = typeof record === 'string' ? record : getUpdatedTimestamp(record)
@@ -75,27 +75,14 @@ const deriveTreatmentId = entry => {
   if (!entry) return null
 
   return (
-    // entry.treatment_id ||
-    // entry.treatmentId ||
     entry.treatment_master_id ||
-    // entry.id ||
     (entry.treatment_name ? entry.treatment_name.trim().toLowerCase().replace(/\s+/g, '-') : null)
   )
 }
 
 const buildActivityFromSource = (activity = {}, fallbackRecord = {}, index = 0) => {
   const timestamp =
-    activity.update_at ||
-    activity.updated_at ||
-    activity.updatedAt ||
-    fallbackRecord?.update_at ||
-    fallbackRecord?.updated_at ||
-    fallbackRecord?.updatedAt ||
-    activity.created_at ||
-    activity.createdAt ||
-    fallbackRecord?.created_at ||
-    fallbackRecord?.createdAt ||
-    null
+    activity.update_at || fallbackRecord?.update_at || activity.created_at || fallbackRecord?.created_at || null
 
   const fallbackIdBase =
     fallbackRecord.id ||
@@ -106,13 +93,7 @@ const buildActivityFromSource = (activity = {}, fallbackRecord = {}, index = 0) 
       : 'activity')
 
   const treatmentStartDate =
-    activity.treatmentStartDate ||
-    activity.treatment_start_date ||
-    activity.start_time ||
-    activity.created_at ||
-    fallbackRecord.start_time ||
-    fallbackRecord?.created_at ||
-    null
+    activity.start_time || activity.created_at || fallbackRecord?.start_time || fallbackRecord?.created_at || null
 
   return {
     id: activity.id || `${fallbackIdBase}-${index}`,
@@ -169,8 +150,7 @@ const buildTreatmentFromEntries = entries => {
 
   return {
     id: deriveTreatmentId(latestEntry) || deriveTreatmentId(entries[0]) || 'treatment',
-    name:
-      latestEntry?.treatment_name || latestEntry?.name || entries[0]?.treatment_name || entries[0]?.name || 'Treatment',
+    name: latestEntry?.treatment_name || entries[0]?.treatment_name || 'Treatment',
     noteCount: activities.filter(activity => (activity.notes || activity.description)?.toString().trim()).length,
     noteSummary:
       latestActivityWithNotes?.notes?.toString().trim() ||
@@ -178,9 +158,8 @@ const buildTreatmentFromEntries = entries => {
       'No notes added yet.',
     lastUpdated: getUpdatedTimestamp(latestEntry),
     clinician: {
-      name: latestEntry?.clinician?.name || latestEntry?.clinician_name || latestEntry?.created_by_name || '—',
-      avatarUrl:
-        latestEntry?.clinician?.avatarUrl || latestEntry?.clinician?.avatar_url || latestEntry?.profile_pic || '',
+      name: latestEntry?.created_by_name || '—',
+      avatarUrl: latestEntry?.profile_pic || '',
       createdAt: getCreatedTimestamp(latestEntry) || ''
     },
     animalId: latestEntry?.animal_id || entries[0]?.animal_id || null,
@@ -281,9 +260,9 @@ const mapDetailRecordsToActivities = (records = []) => {
   if (!records.length) return []
 
   return records.map((record, index) => {
-    const timestamp = record.update_at || record.updated_at || record.updatedAt || null
+    const timestamp = record.update_at || null
 
-    const treatmentStartDate = record.start_time || record.created_at || record.createdAt || timestamp || null
+    const treatmentStartDate = record.start_time || record.created_at || null
     const note = record.note || ''
 
     return {
