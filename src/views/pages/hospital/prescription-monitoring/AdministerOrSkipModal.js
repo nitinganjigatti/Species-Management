@@ -196,7 +196,9 @@ const AdministerOrSkipModal = ({
 
         updatedQuantity = value
 
-        const foundUnit = medicalMasterData?.prescriptionMeasurementType?.find(item => item?.unit_name === unitRaw)
+        const foundUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
+          item => item?.unit_name === unitRaw
+        )
         console.log('foundUnit', foundUnit)
 
         // Ensure the unit object has the expected structure
@@ -374,7 +376,7 @@ const AdministerOrSkipModal = ({
                     selectFieldName='quantityUnit'
                     control={control}
                     errors={errors}
-                    options={medicalMasterData?.prescriptionMeasurementType}
+                    options={medicalMasterData?.prescriptionDosageMeasurementType}
                     label='Quantity'
                     loading={mastersDataLoading}
                     placeholder='Enter quantity'
@@ -430,7 +432,7 @@ const AdministerOrSkipModal = ({
                             label='Unit'
                             control={control}
                             errors={errors}
-                            options={medicalMasterData?.prescriptionMeasurementType}
+                            options={medicalMasterData?.prescriptionDosageMeasurementType}
                             getOptionLabel={option => option.label}
                             getOptionValue={option => option.value}
                           />

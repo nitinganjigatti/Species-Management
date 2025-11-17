@@ -248,7 +248,7 @@ const ScheduleDosage = ({
                           [`schedules.${idx}.dosageQuantity`]: errors?.schedules?.[idx]?.dosageQuantity,
                           [`schedules.${idx}.dosageUnit`]: errors?.schedules?.[idx]?.dosageUnit
                         }}
-                        options={medicalMasterData?.prescriptionMeasurementType}
+                        options={medicalMasterData?.prescriptionDosageMeasurementType}
                         label='Quantity'
                         placeholder='Enter quantity'
                         type='number'
@@ -297,7 +297,7 @@ const ScheduleDosage = ({
                       append({
                         time: '',
                         dosageQuantity: '',
-                        dosageUnit: medicalMasterData?.prescriptionMeasurementType?.[0]?.unit_name || '',
+                        dosageUnit: medicalMasterData?.prescriptionDosageMeasurementType?.[0]?.unit_name || '',
                         dosageWeights: ''
                       })
                     }}

@@ -292,7 +292,12 @@ export default function AddMedicineToPrescription() {
 
           // prescriptionFrequency: frequencyData || [],
           prescriptionDosageMeasurementType:
-            response?.data?.prescriptionDosageMeasurementType?.map(item => ({ ...item, value: item.key })) || [],
+            response?.data?.prescriptionDosageMeasurementType?.map(item => ({
+              ...item,
+              value: item.key,
+              unit_name: item.label,
+              uom_abbr: item.key
+            })) || [],
           prescriptionDuration: response?.data?.prescriptionDuration?.map(item => ({ ...item, value: item.key })) || [],
           prescriptionMeasurementType:
             response?.data?.prescriptionMeasurementType?.map(item => ({
@@ -777,7 +782,7 @@ export default function AddMedicineToPrescription() {
   })
 
   const getUnitIdFromName = (unitName, medicalMasterData) => {
-    const unit = medicalMasterData?.prescriptionMeasurementType?.find(
+    const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
       item => item.unit_name === unitName || item.uom_abbr === unitName
     )
 
@@ -785,7 +790,7 @@ export default function AddMedicineToPrescription() {
   }
 
   const getStringIdFromUnitName = (unitName, medicalMasterData) => {
-    const unit = medicalMasterData?.prescriptionMeasurementType?.find(
+    const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
       item => item.unit_name === unitName || item.uom_abbr === unitName
     )
 

@@ -31,7 +31,6 @@ export default function ScheduleMedicine({
 }) {
   const {
     caseTypes,
-    prescriptionMeasurementType,
     prescriptionDosageMeasurementType,
     prescriptionDuration,
     prescriptionFrequency,
@@ -42,8 +41,6 @@ export default function ScheduleMedicine({
   const now = new Date()
   const router = useRouter()
   const { animal_admitted_date } = router.query
-
-  console.log('Utility animal_admitted_date', (animal_admitted_date))
 
   // Common styles for form fields
   const commonFieldStyles = {
@@ -201,7 +198,7 @@ export default function ScheduleMedicine({
                     selectFieldName={`schedules.${idx}.unit`}
                     control={control}
                     errors={errors}
-                    options={prescriptionMeasurementType}
+                    options={prescriptionDosageMeasurementType}
                     label='Quantity'
                     placeholder='Enter quantity'
                     type='number'
@@ -406,7 +403,7 @@ export default function ScheduleMedicine({
                       size='large'
                       control={control}
                       errors={errors}
-                      options={prescriptionMeasurementType}
+                      options={prescriptionDosageMeasurementType}
                       getOptionLabel={option => option.label}
                       getOptionValue={option => option.value}
                     />

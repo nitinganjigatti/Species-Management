@@ -299,7 +299,7 @@ function PrescriptionLayout({ drawerType }) {
     setIsAdministerOrSkipPopupLoading(true)
     console.log('handleAdministerOrSubmit data', data)
     try {
-      const wastageUnit = medicalMasterData?.prescriptionMeasurementType?.find(
+      const wastageUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
         item => item.uom_abbr === data?.wastageUnit
       )
 
@@ -411,7 +411,7 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const fetchUnit = unit => {
-    const unitData = medicalMasterData?.prescriptionMeasurementType?.find(item => item?.uom_abbr === unit)
+    const unitData = medicalMasterData?.prescriptionDosageMeasurementType?.find(item => item?.uom_abbr === unit)
 
     return unitData
   }

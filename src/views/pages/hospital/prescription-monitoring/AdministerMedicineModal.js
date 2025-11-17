@@ -170,7 +170,9 @@ const AdministerMedicineModal = ({
           const [value, unitRaw] = scheduleDosage.dosage.split(' ')
           updatedQuantity = value
 
-          const foundUnit = medicalMasterData?.prescriptionMeasurementType?.find(item => item?.unit_name === unitRaw)
+          const foundUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
+            item => item?.unit_name === unitRaw
+          )
           updatedQuantityUnit = foundUnit ? foundUnit.unit_name : ''
         }
 
@@ -322,14 +324,14 @@ const AdministerMedicineModal = ({
                           selectFieldName='quantityUnit'
                           control={control}
                           errors={errors}
-                          options={medicalMasterData?.prescriptionMeasurementType}
+                          options={medicalMasterData?.prescriptionDosageMeasurementType}
                           label='Quantity'
                           placeholder='Enter quantity'
                           type='number'
                           getOptionLabel={option => option.label}
                           getOptionValue={option => option.value}
                           // secondSelectFieldName='wastageUnit'
-                          // secondOptions={medicalMasterData?.prescriptionMeasurementType}
+                          // secondOptions={medicalMasterData?.prescriptionDosageMeasurementType}
                           // getSecondOptionLabel={option => option.label}
                           // getSecondOptionValue={option => option.value}
                           // secondSelectWidth={{ xs: 50, sm: 80 }}
@@ -388,7 +390,7 @@ const AdministerMedicineModal = ({
                           selectFieldName='quantityUnit'
                           control={control}
                           errors={errors}
-                          options={medicalMasterData?.prescriptionMeasurementType}
+                          options={medicalMasterData?.prescriptionDosageMeasurementType}
                           label='Quantity'
                           placeholder='Enter quantity'
                           type='number'
@@ -466,7 +468,7 @@ const AdministerMedicineModal = ({
                               label='Unit'
                               control={control}
                               errors={errors}
-                              options={medicalMasterData?.prescriptionMeasurementType}
+                              options={medicalMasterData?.prescriptionDosageMeasurementType}
                               getOptionLabel={option => option.label}
                               getOptionValue={option => option.value}
                               loading={mastersDataLoading}
