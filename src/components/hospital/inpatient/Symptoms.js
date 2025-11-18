@@ -47,7 +47,8 @@ const Symptoms = ({ selectedTab, patientData }) => {
         page_no: newPage,
         limit: 20,
         medical_type: 'complaint',
-        q: query
+        q: query,
+        hospital_case_id: patientData?.hospital_case_id
       }
 
       if (currentRecordOnly && patientData?.medical_record_id) {

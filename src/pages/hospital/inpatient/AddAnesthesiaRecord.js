@@ -228,33 +228,28 @@ export default function AddAnesthesiaRecord() {
   ]
 
   const physicalHealthStatusOptions = [
-    { label: 'Excellent', value: 'excellent' },
-    { label: 'Good', value: 'good' },
-    { label: 'Fair', value: 'fair' },
-    { label: 'Poor', value: 'poor' },
-    { label: 'Critical', value: 'critical' }
+    { label: 'Class I Normal Health', value: 'Class I Normal Health' },
+    { label: 'Class II Minor Health', value: 'Class II Minor Health' },
+    { label: 'Class III Major Health', value: 'Class III Major Health' }
   ]
 
   const bodyConditionOptions = [
-    { label: 'Emaciated', value: 'emaciated' },
-    { label: 'Thin', value: 'thin' },
-    { label: 'Ideal', value: 'ideal' },
-    { label: 'Overweight', value: 'overweight' },
-    { label: 'Obese', value: 'obese' }
+    { label: 'Fair/Thin ', value: 'Fair/Thin' },
+    { label: 'Good', value: 'Good' },
+    { label: 'Obese/Fat', value: 'Obese/Fat' },
+    { label: 'Poor/Emaciated', value: 'Poor/Emaciated' }
   ]
 
   const animalActivityOptions = [
-    { label: 'Very Active', value: 'very_active' },
-    { label: 'Active', value: 'active' },
-    { label: 'Moderate', value: 'moderate' },
-    { label: 'Sedentary', value: 'sedentary' },
-    { label: 'Inactive', value: 'inactive' }
+    { label: 'Calm', value: 'Calm' },
+    { label: 'Active', value: 'Active' },
+    { label: 'Excited', value: 'Excited' }
   ]
 
   const codeStatusOptions = [
-    { label: 'Full Code', value: 'full_code' },
-    { label: 'DNR (Do Not Resuscitate)', value: 'dnr' },
-    { label: 'Limited Interventions', value: 'limited_interventions' }
+    { label: 'R (Resuscitate)', value: 'R (Resuscitate)' },
+    { label: 'Y (Conditional)', value: 'Y (Conditional)' },
+    { label: 'G (Do not Resuscitate)', value: 'G (Do not Resuscitate)' }
   ]
 
   const recoveryTypeOptions = [
@@ -708,7 +703,7 @@ export default function AddAnesthesiaRecord() {
         custom: data.basicDetails.custom || []
       }
       formData.append('purpose', JSON.stringify(purposePayload))
-      //formData.append('pre_anaesthesia', JSON.stringify(preAnaesthesiaPayload))
+      // formData.append('pre_anaesthesia', JSON.stringify(preAnaesthesiaPayload))
       const anaesthesiaSetupPayload = []
       const currentSetupValues = methods.getValues('anesthesiaSetup') || {}
 
@@ -734,10 +729,10 @@ export default function AddAnesthesiaRecord() {
           return {
             field_id: f.field_id,
             field_key: f.field_key,
-            field_label: f.field_label,
-            input_type: f.input_type,
-            options: f.options || [],
-            units: f.units || [],
+            //field_label: f.field_label,
+            // input_type: f.input_type,
+            //options: f.options || [],
+            //units: f.units || [],
             field_value: field_value,
             unit: unit
           }
@@ -752,9 +747,9 @@ export default function AddAnesthesiaRecord() {
         }
         const sectionObj = {
           section_id: meta.section_id,
-          section_name: meta.section_name,
+          //section_name: meta.section_name,
           string_id: meta.string_id,
-          type: meta.type || 'anaesthesia_setup',
+          // type: meta.type || 'anaesthesia_setup',
           fields: fieldsArr
         }
 
