@@ -80,7 +80,7 @@ export default function AddMedicineToPrescription() {
       })
       .required('Dosage duration is required'),
 
-    notes: yup.string().trim().max(500, 'Notes cannot exceed 500 characters').required('Notes are required'),
+    notes: yup.string().trim().max(10000, 'Notes cannot exceed 500 characters').required('Notes are required'),
 
     // Fields specific to Direct Administer
 
@@ -119,7 +119,7 @@ export default function AddMedicineToPrescription() {
 
     batchImage: yup.mixed().nullable().notRequired(),
 
-    wastageNotes: yup.string().nullable().trim().max(500, 'Notes cannot exceed 500 characters').notRequired()
+    wastageNotes: yup.string().nullable().trim().max(10000, 'Notes cannot exceed 500 characters').notRequired()
   })
 
   const defaultValues = {
@@ -674,6 +674,7 @@ export default function AddMedicineToPrescription() {
         note: data.notes || '',
         request_from: 'hospital_module',
         medical_record_id: medical_record_id,
+        hospital_case_id: id,
         prescription: JSON.stringify([
           {
             id: temporarilySelectedMedicine?.id,
