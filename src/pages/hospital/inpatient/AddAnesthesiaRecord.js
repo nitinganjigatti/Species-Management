@@ -708,7 +708,7 @@ export default function AddAnesthesiaRecord() {
         custom: data.basicDetails.custom || []
       }
       formData.append('purpose', JSON.stringify(purposePayload))
-      formData.append('pre_anaesthesia', JSON.stringify(preAnaesthesiaPayload))
+      //formData.append('pre_anaesthesia', JSON.stringify(preAnaesthesiaPayload))
       const anaesthesiaSetupPayload = []
       const currentSetupValues = methods.getValues('anesthesiaSetup') || {}
 
@@ -763,7 +763,7 @@ export default function AddAnesthesiaRecord() {
         anaesthesiaSetupPayload.push(sectionObj)
       }
 
-      formData.append('anaesthesia_setup', JSON.stringify(anaesthesiaSetupPayload))
+      //formData.append('anaesthesia_setup', JSON.stringify(anaesthesiaSetupPayload))
 
       console.log('🔹 Final payload for API:', {
         hospital_case_id: hospital_case_id || '',
