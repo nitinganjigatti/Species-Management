@@ -14,7 +14,7 @@ const BottomSheetContainer = styled(Box)(({ theme }) => ({
   overflow: 'hidden'
 }))
 
-const StopMedicine = ({ open, onClose, onConfirm, medicineData }) => {
+const StopMedicine = ({ open, onClose, onConfirm, medicineData, isLoading }) => {
   const theme = useTheme()
 
   const {
@@ -44,7 +44,8 @@ const StopMedicine = ({ open, onClose, onConfirm, medicineData }) => {
         medicineData
       })
     }
-    handleClose()
+
+    // handleClose()
   }
 
   return (
@@ -67,7 +68,7 @@ const StopMedicine = ({ open, onClose, onConfirm, medicineData }) => {
         >
           Stop Medicine
         </Typography>
-        <IconButton onClick={handleClose} size='small'>
+        <IconButton onClick={handleClose} size='small' disabled={isLoading}>
           <Icon icon='mdi:close' color={theme.palette.customColors.OnPrimaryContainer} />
         </IconButton>
       </Box>
@@ -96,18 +97,20 @@ const StopMedicine = ({ open, onClose, onConfirm, medicineData }) => {
                   isSelected={field.value === 'yes'}
                   onClick={() => field.onChange('yes')}
                   radioPosition='right'
-                  sx={{ 
+                  sx={{
                     flex: 1
                   }}
+                  disabled={isLoading}
                 />
                 <TreatmentTypeRadioButtons
                   label='No'
                   isSelected={field.value === 'no'}
                   onClick={() => field.onChange('no')}
                   radioPosition='right'
-                  sx={{ 
+                  sx={{
                     flex: 1
                   }}
+                  disabled={isLoading}
                 />
               </Box>
             )}
@@ -135,6 +138,7 @@ const StopMedicine = ({ open, onClose, onConfirm, medicineData }) => {
             fullWidth
             rows={3}
             placeholder='No need of this medicine anymore'
+            disabled={isLoading}
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: '8px',
@@ -157,6 +161,7 @@ const StopMedicine = ({ open, onClose, onConfirm, medicineData }) => {
         <Button
           onClick={handleClose}
           variant='outlined'
+          disabled={isLoading}
           sx={{
             flex: 1,
             textTransform: 'none',
@@ -173,6 +178,7 @@ const StopMedicine = ({ open, onClose, onConfirm, medicineData }) => {
         <Button
           onClick={handleSubmit(onSubmit)}
           variant='contained'
+          disabled={isLoading}
           sx={{
             flex: 1,
             textTransform: 'none',
@@ -183,10 +189,21 @@ const StopMedicine = ({ open, onClose, onConfirm, medicineData }) => {
             backgroundColor: theme.palette.customColors.Tertiary,
             '&:hover': {
               backgroundColor: theme.palette.error.dark
+            },
+            '&.Mui-disabled': {
+              backgroundColor: theme.palette.action.disabledBackground,
+              color: theme.palette.action.disabled
             }
           }}
         >
-          STOP
+          {isLoading ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Icon icon='mdi:loading' spin />
+              STOPPING...
+            </Box>
+          ) : (
+            'STOP'
+          )}
         </Button>
       </Box>
     </BottomSheetContainer>

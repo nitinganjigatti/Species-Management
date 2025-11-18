@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Dialog, DialogContent, Box, Typography, IconButton, Grid, Card, CardContent } from '@mui/material'
+import { Drawer, Box, Typography, IconButton, Grid, Card, CardContent } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -17,8 +17,9 @@ import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMul
 import TreatmentTypeRadioButtons from '../utility/TreatmentTypeRadioButtons'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import Utility from 'src/utility'
+import dayjs from 'dayjs'
 
-const AdministerOrSkipModal = ({
+const AdministerOrSkipSidesheet = ({
   open,
   handleClose,
   onSubmit,
@@ -42,6 +43,25 @@ const AdministerOrSkipModal = ({
       then: schema => schema.required('Time is required for administration'),
       otherwise: schema => schema.notRequired()
     }),
+    
+    // time: yup.string().when('action', {
+    //   is: 'administer',
+    //   then: schema =>
+    //     schema
+    //       .required('Time is required for administration')
+    //       .test('valid-time-slot', 'Time must be within the scheduled slot', function (value) {
+    //         if (!value || !slotStart || !slotEnd) return true
+
+    //         const selectedTime = dayjs(value, 'hh:mm A')
+    //         if (!selectedTime.isValid()) return false
+
+    //         const isAfterOrEqual = selectedTime.isAfter(slotStart.subtract(1, 'minute'))
+    //         const isBeforeOrEqual = selectedTime.isBefore(slotEnd.add(1, 'minute'))
+
+    //         return isAfterOrEqual && isBeforeOrEqual
+    //       }),
+    //   otherwise: schema => schema.notRequired()
+    // }),
     quantity: yup.string().when('action', {
       is: 'administer',
       then: schema =>
@@ -153,6 +173,17 @@ const AdministerOrSkipModal = ({
   })
 
   useEffect(() => {
+    if (!open) {
+      // Reset form when sidesheet closes
+      reset(defaultValues)
+    }
+  }, [open, reset])
+
+  const slotStart = medicineData?.scheduledTime ? dayjs(medicineData.scheduledTime, 'hh:mm A') : null
+
+  const slotEnd = slotStart ? slotStart.add(59, 'minute') : null
+
+  useEffect(() => {
     if (medicineData && medicalMasterData) {
       let updatedQuantity = ''
       let updatedQuantityUnit = ''
@@ -165,7 +196,9 @@ const AdministerOrSkipModal = ({
 
         updatedQuantity = value
 
-        const foundUnit = medicalMasterData?.prescriptionMeasurementType?.find(item => item?.unit_name === unitRaw)
+        const foundUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
+          item => item?.unit_name === unitRaw
+        )
         console.log('foundUnit', foundUnit)
 
         // Ensure the unit object has the expected structure
@@ -182,7 +215,7 @@ const AdministerOrSkipModal = ({
 
   const actionType = watch('action')
 
-  const handleModalClose = () => {
+  const handleSidesheetClose = () => {
     reset()
     handleClose()
   }
@@ -192,343 +225,345 @@ const AdministerOrSkipModal = ({
   }
 
   return (
-    <Dialog
+    <Drawer
+      anchor='right'
       open={open}
-      onClose={handleModalClose}
-      slotProps={{
-        paper: {
-          sx: {
-            borderRadius: 1,
-            maxWidth: '562px'
-          }
+      onClose={handleSidesheetClose}
+      sx={{
+        '& .MuiDrawer-paper': {
+          width: { xs: '100%', sm: '562px' },
+          maxWidth: '100%',
+          background: theme.palette.customColors.Background
         }
       }}
     >
-      {/* Header */}
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          backgroundColor: theme.palette.customColors.OnPrimary
-        }}
-      >
-        {/* Title Bar */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        {/* Header */}
         <Box
           sx={{
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            p: 6,
-            borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-              <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Activity Icon' />
-              <Typography
-                sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-              >
-                Administer / Skip
-              </Typography>
-            </Box>
-          </Box>
-          <IconButton size='small' onClick={handleModalClose} sx={{ color: theme.palette.text.primary, p: 0 }}>
-            <Icon icon='mdi:close' fontSize={24} />
-          </IconButton>
-        </Box>
-
-        {/* Medicine Info Section */}
-        <Box
-          sx={{
-            display: 'flex',
-            flexFlow: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            px: 6,
-            py: 3,
+            flexDirection: 'column',
             backgroundColor: theme.palette.customColors.OnPrimary
           }}
         >
-          <Typography
+          {/* Title Bar */}
+          <Box
             sx={{
-              fontSize: '1rem',
-              fontWeight: 500,
-              color: theme.palette.primary.deepDark
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              p: 6,
+              borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
             }}
           >
-            {medicineData?.data?.name}
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CalendarTodayIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurfaceVariant }} />
-              <Typography
-                sx={{
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                {Utility.formatDisplayDate(scheduledDate)}
-              </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+                <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Activity Icon' />
+                <Typography
+                  sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  Administer / Skip
+                </Typography>
+              </Box>
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
-              <AccessTimeIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurfaceVariant }} />
-              <Typography
-                sx={{
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                {medicineData?.scheduledTime}
-              </Typography>
+            <IconButton size='small' onClick={handleSidesheetClose} sx={{ color: theme.palette.text.primary, p: 0 }}>
+              <Icon icon='mdi:close' fontSize={24} />
+            </IconButton>
+          </Box>
+
+          {/* Medicine Info Section */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexFlow: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              px: 6,
+              py: 3,
+              backgroundColor: theme.palette.customColors.OnPrimary
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: '1rem',
+                fontWeight: 500,
+                color: theme.palette.primary.deepDark
+              }}
+            >
+              {medicineData?.data?.name}
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CalendarTodayIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurfaceVariant }} />
+                <Typography
+                  sx={{
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  {Utility.formatDisplayDate(scheduledDate)}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                <AccessTimeIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurfaceVariant }} />
+                <Typography
+                  sx={{
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  {medicineData?.scheduledTime}
+                </Typography>
+              </Box>
             </Box>
           </Box>
         </Box>
-      </Box>
 
-      {/* Content */}
-      <DialogContent sx={{ p: 6 }}>
-        <Card
-          sx={{
-            borderRadius: 1,
-            border: `1px solid ${theme.palette.customColors.SurfaceVariant}`,
-            boxShadow: 0
-          }}
-        >
-          <CardContent sx={{ p: 6 }}>
-            <form onSubmit={handleSubmit(onFormSubmit)}>
-              <Grid container spacing={4}>
-                {/* Radio Buttons for Action Type */}
-                <Grid size={{ xs: 12 }}>
-                  <Controller
-                    name='action'
-                    control={control}
-                    render={({ field }) => (
-                      <Box sx={{ display: 'flex', gap: 2 }}>
-                        <TreatmentTypeRadioButtons
-                          label='Administer'
-                          isSelected={field.value === 'administer'}
-                          onClick={() => field.onChange('administer')}
-                          radioPosition='right'
-                          sx={{ flex: 1 }}
-                        />
-                        <TreatmentTypeRadioButtons
-                          label='Skipped'
-                          isSelected={field.value === 'skipped'}
-                          onClick={() => field.onChange('skipped')}
-                          radioPosition='right'
-                          borderColor={theme.palette.customColors.OutlineVariant}
-                          sx={{ flex: 1 }}
-                        />
-                      </Box>
-                    )}
-                  />
-                </Grid>
+        {/* Content */}
+        <Box sx={{ flex: 1, overflowY: 'auto', p: 6 }}>
+          <Card
+            sx={{
+              borderRadius: 1,
+              border: `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+              boxShadow: 0
+            }}
+          >
+            <CardContent sx={{ p: 6 }}>
+              <form onSubmit={handleSubmit(onFormSubmit)}>
+                <Grid container spacing={4}>
+                  {/* Radio Buttons for Action Type */}
+                  <Grid size={{ xs: 12 }}>
+                    <Controller
+                      name='action'
+                      control={control}
+                      render={({ field }) => (
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                          <TreatmentTypeRadioButtons
+                            label='Administer'
+                            isSelected={field.value === 'administer'}
+                            onClick={() => field.onChange('administer')}
+                            radioPosition='right'
+                            sx={{ flex: 1 }}
+                          />
+                          <TreatmentTypeRadioButtons
+                            label='Skipped'
+                            isSelected={field.value === 'skipped'}
+                            onClick={() => field.onChange('skipped')}
+                            radioPosition='right'
+                            borderColor={theme.palette.customColors.OutlineVariant}
+                            sx={{ flex: 1 }}
+                          />
+                        </Box>
+                      )}
+                    />
+                  </Grid>
 
-                {/* Common Fields - Time and Quantity */}
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <ControlledTimePicker
-                    name='time'
-                    control={control}
-                    label='Time'
-                    format='hh:mm A'
-                    sx={{ backgroundColor: theme.palette.customColors.Surface }}
-                    error={errors.time}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <ControlledSelectWithTextField
-                    textFieldName='quantity'
-                    selectFieldName='quantityUnit'
-                    control={control}
-                    errors={errors}
-                    options={medicalMasterData?.prescriptionMeasurementType}
-                    label='Quantity'
-                    loading={mastersDataLoading}
-                    placeholder='Enter quantity'
-                    type='number'
-                    getOptionLabel={option => option.label}
-                    getOptionValue={option => option.value}
-                    required={actionType === 'administer'}
-                    selectWidth={80}
-                  />
-                </Grid>
+                  {/* Common Fields - Time and Quantity */}
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <ControlledTimePicker
+                      name='time'
+                      control={control}
+                      label='Time'
+                      format='hh:mm A'
+                      sx={{ backgroundColor: theme.palette.customColors.Surface }}
+                      error={errors.time}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <ControlledSelectWithTextField
+                      textFieldName='quantity'
+                      selectFieldName='quantityUnit'
+                      control={control}
+                      errors={errors}
+                      options={medicalMasterData?.prescriptionDosageMeasurementType}
+                      label='Quantity'
+                      loading={mastersDataLoading}
+                      placeholder='Enter quantity'
+                      type='number'
+                      getOptionLabel={option => option.label}
+                      getOptionValue={option => option.value}
+                      required={actionType === 'administer'}
+                      selectWidth={80}
+                    />
+                  </Grid>
 
-                {/* Conditional Content based on Action Type */}
-                {actionType === 'administer' ? (
-                  <>
-                    {/* Wastage Section for Administer */}
-                    <Grid size={{ xs: 12 }}>
-                      <Typography
-                        sx={{
-                          fontSize: '1rem',
-                          fontWeight: 500,
-                          color: theme.palette.customColors.OnSurfaceVariant,
-                          mb: 3
-                        }}
-                      >
-                        Add wastage if any
+                  {/* Conditional Content based on Action Type */}
+                  {actionType === 'administer' ? (
+                    <>
+                      {/* Wastage Section for Administer */}
+                      <Grid size={{ xs: 12 }}>
                         <Typography
-                          component='span'
                           sx={{
                             fontSize: '1rem',
-                            color: theme.palette.customColors.neutralSecondary,
-                            ml: 1
+                            fontWeight: 500,
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            mb: 3
                           }}
                         >
-                          (Optional)
+                          Add wastage if any
+                          <Typography
+                            component='span'
+                            sx={{
+                              fontSize: '1rem',
+                              color: theme.palette.customColors.neutralSecondary,
+                              ml: 1
+                            }}
+                          >
+                            (Optional)
+                          </Typography>
                         </Typography>
-                      </Typography>
 
-                      <Grid container spacing={4}>
-                        <Grid size={{ xs: 12, md: 6 }}>
-                          <ControlledTextField
-                            name='wastageQuantity'
-                            control={control}
-                            errors={errors}
-                            label='Quantity'
-                            placeholder='Enter Quantity'
-                            type='number'
-                          />
-                        </Grid>
+                        <Grid container spacing={4}>
+                          <Grid size={{ xs: 12, md: 6 }}>
+                            <ControlledTextField
+                              name='wastageQuantity'
+                              control={control}
+                              errors={errors}
+                              label='Quantity'
+                              placeholder='Enter Quantity'
+                              type='number'
+                            />
+                          </Grid>
 
-                        <Grid size={{ xs: 12, md: 6 }}>
-                          <ControlledSelect
-                            name='wastageUnit'
-                            label='Unit'
-                            control={control}
-                            errors={errors}
-                            options={medicalMasterData?.prescriptionMeasurementType}
-                            getOptionLabel={option => option.label}
-                            getOptionValue={option => option.value}
-                          />
-                        </Grid>
+                          <Grid size={{ xs: 12, md: 6 }}>
+                            <ControlledSelect
+                              name='wastageUnit'
+                              label='Unit'
+                              control={control}
+                              errors={errors}
+                              options={medicalMasterData?.prescriptionDosageMeasurementType}
+                              getOptionLabel={option => option.label}
+                              getOptionValue={option => option.value}
+                            />
+                          </Grid>
 
-                        <Grid size={{ xs: 12 }}>
-                          <ControlledTextArea
-                            label='Notes'
-                            name='notes'
-                            control={control}
-                            errors={errors}
-                            placeholder='Enter Notes'
-                            rows={3}
-                          />
-                        </Grid>
+                          <Grid size={{ xs: 12 }}>
+                            <ControlledTextArea
+                              label='Notes'
+                              name='notes'
+                              control={control}
+                              errors={errors}
+                              placeholder='Enter Notes'
+                              rows={3}
+                            />
+                          </Grid>
 
-                        <Grid size={{ xs: 12 }}>
-                          <ControlledAutocomplete
-                            name='batchNumber'
-                            control={control}
-                            errors={errors}
-                            label={
-                              isControlledSubstance
-                                ? 'Enter batch number (required)'
-                                : 'Enter batch number if any (optional)'
-                            }
-                            options={batchList}
-                            getOptionLabel={option => {
-                              if (typeof option === 'string') return option
+                          <Grid size={{ xs: 12 }}>
+                            <ControlledAutocomplete
+                              name='batchNumber'
+                              control={control}
+                              errors={errors}
+                              label={
+                                isControlledSubstance
+                                  ? 'Enter batch number (required)'
+                                  : 'Enter batch number if any (optional)'
+                              }
+                              options={batchList}
+                              getOptionLabel={option => {
+                                if (typeof option === 'string') return option
 
-                              // Use the label property from your batch object
-                              return option?.label || option?.batch_no || ''
-                            }}
-                            getOptionValue={option => {
-                              if (typeof option === 'string') return option
+                                // Use the label property from your batch object
+                                return option?.label || option?.batch_no || ''
+                              }}
+                              getOptionValue={option => {
+                                if (typeof option === 'string') return option
 
-                              // Return the entire object so we have access to batch_no, id, etc.
-                              return option
-                            }}
-                            isOptionEqualToValue={(option, value) => {
-                              if (!option || !value) return false
+                                // Return the entire object so we have access to batch_no, id, etc.
+                                return option
+                              }}
+                              isOptionEqualToValue={(option, value) => {
+                                if (!option || !value) return false
 
-                              // Compare by id since that's unique
-                              const optionId = option?.id
-                              const valueId = value?.id
+                                // Compare by id since that's unique
+                                const optionId = option?.id
+                                const valueId = value?.id
 
-                              return optionId === valueId
-                            }}
-                            loading={batchLoading}
-                            onInputChange={handleBatchSearch}
-                            required={isControlledSubstance}
-                            autocompleteProps={{
-                              filterOptions: x => x,
-                              noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
-                            }}
-                          />
-                        </Grid>
+                                return optionId === valueId
+                              }}
+                              loading={batchLoading}
+                              onInputChange={handleBatchSearch}
+                              required={isControlledSubstance}
+                              autocompleteProps={{
+                                filterOptions: x => x,
+                                noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
+                              }}
+                            />
+                          </Grid>
 
-                        <Grid size={{ xs: 12 }}>
-                          <ControlledMultiFileUpload
-                            name='attachment'
-                            control={control}
-                            errors={errors}
-                            label='Batch Image'
-                            maxFiles={5}
-                            maxFileSize={5 * 1024 * 1024} // 5MB
-                            acceptedFileTypes='image/jpeg,image/png,image/jpg,application/pdf'
-                          />
+                          <Grid size={{ xs: 12 }}>
+                            <ControlledMultiFileUpload
+                              name='attachment'
+                              control={control}
+                              errors={errors}
+                              label='Batch Image'
+                              maxFiles={5}
+                              maxFileSize={5 * 1024 * 1024} // 5MB
+                              acceptedFileTypes='image/jpeg,image/png,image/jpg,application/pdf'
+                            />
+                          </Grid>
                         </Grid>
                       </Grid>
-                    </Grid>
-                  </>
-                ) : (
-                  <>
-                    {/* Reason for Skip Section */}
-                    <Grid size={{ xs: 12 }}>
-                      <ControlledTextArea
-                        label='Reason For Skip'
-                        name='skipReason'
-                        control={control}
-                        errors={errors}
-                        placeholder='Enter reason for skipping'
-                        rows={4}
-                        required={actionType === 'skipped'}
-                      />
-                    </Grid>
-                  </>
-                )}
+                    </>
+                  ) : (
+                    <>
+                      {/* Reason for Skip Section */}
+                      <Grid size={{ xs: 12 }}>
+                        <ControlledTextArea
+                          label='Reason For Skip'
+                          name='skipReason'
+                          control={control}
+                          errors={errors}
+                          placeholder='Enter reason for skipping'
+                          rows={4}
+                          required={actionType === 'skipped'}
+                        />
+                      </Grid>
+                    </>
+                  )}
 
-                {/* Hidden submit button for form submission */}
-                <button type='submit' style={{ display: 'none' }} />
-              </Grid>
-            </form>
-          </CardContent>
-        </Card>
-      </DialogContent>
+                  {/* Hidden submit button for form submission */}
+                  <button type='submit' style={{ display: 'none' }} />
+                </Grid>
+              </form>
+            </CardContent>
+          </Card>
+        </Box>
 
-      {/* Footer Buttons */}
-      <Box
-        sx={{
-          p: 6,
-          display: 'flex',
-          justifyContent: 'center',
-          gap: 6,
-          boxShadow: '0px -2px 6px rgba(0, 0, 0, 0.1)',
-          backgroundColor: theme.palette.background.paper
-        }}
-      >
-        <LoadingButton
-          variant='outlined'
-          type='button'
-          loading={submitLoader}
-          onClick={handleModalClose}
-          sx={{ flex: 1, py: 2 }}
+        {/* Footer Buttons */}
+        <Box
+          sx={{
+            p: 6,
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 6,
+            boxShadow: '0px -2px 6px rgba(0, 0, 0, 0.1)',
+            backgroundColor: theme.palette.background.paper
+          }}
         >
-          CANCEL
-        </LoadingButton>
-        <LoadingButton
-          variant='contained'
-          type='submit'
-          loading={submitLoader}
-          onClick={handleSubmit(onFormSubmit)}
-          sx={{ flex: 1, py: 2 }}
-        >
-          {actionType === 'administer' ? 'ADMINISTER' : 'SKIPPED'}
-        </LoadingButton>
+          <LoadingButton
+            variant='outlined'
+            type='button'
+            loading={submitLoader}
+            onClick={handleSidesheetClose}
+            sx={{ flex: 1, py: 2 }}
+          >
+            CANCEL
+          </LoadingButton>
+          <LoadingButton
+            variant='contained'
+            type='submit'
+            loading={submitLoader}
+            onClick={handleSubmit(onFormSubmit)}
+            sx={{ flex: 1, py: 2 }}
+          >
+            {actionType === 'administer' ? 'ADMINISTER' : 'SKIPPED'}
+          </LoadingButton>
+        </Box>
       </Box>
-    </Dialog>
+    </Drawer>
   )
 }
 
-export default AdministerOrSkipModal
+export default AdministerOrSkipSidesheet

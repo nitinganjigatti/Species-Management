@@ -80,15 +80,17 @@ const ClinicalAssessment = () => {
         setNoteRecord(null)
         setIsDrawerOpen(false)
 
+        fetchClinicalAssessments(1, searchQuery, getStatusFilter())
+
         // Optionally refresh activity list
-        const notesResponse = await getNotes({
-          entity: 'diagnosis',
-          medical_id: selectedAssessment?.medical_record_id,
-          record_id: selectedAssessment?.main_diagnosis_id
-        })
-        if (notesResponse?.success) {
-          setActivityListData(notesResponse?.data || [])
-        }
+        // const notesResponse = await getNotes({
+        //   entity: 'diagnosis',
+        //   medical_id: selectedAssessment?.medical_record_id,
+        //   record_id: selectedAssessment?.main_diagnosis_id
+        // })
+        // if (notesResponse?.success) {
+        //   setActivityListData(notesResponse?.data || [])
+        // }
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to update notes.' })
       }
@@ -117,6 +119,8 @@ const ClinicalAssessment = () => {
         setIsNotesOpen(false)
         setNoteRecord(null)
         setIsDrawerOpen(false)
+
+        fetchClinicalAssessments(1, searchQuery, getStatusFilter())
 
         // Optionally refresh activity list
         // const notesResponse = await getNotes({
@@ -293,7 +297,8 @@ const ClinicalAssessment = () => {
       main_id: selectedAssessment?.main_diagnosis_id || '',
       med_id: medical_record_id || '',
       type: 'DIAGNOSIS',
-      is_system_generated: false,
+      is_system_generated:
+        clinicalAsmnt?.toLowerCase() === selectedAssessment?.clinical_assessment?.toLowerCase() ? false : true,
       animal_id: animal_id || '',
       note: notes || '',
       clinical_assessment: clinicalAsmnt?.toLowerCase() || '',
@@ -420,7 +425,10 @@ const ClinicalAssessment = () => {
         <MUISwitch
           label='Current Medical Record Only'
           checked={currentRecordOnly}
-          onChange={e => setCurrentRecordOnly(e.target.checked)}
+          onChange={e => {
+            setRecords([])
+            setCurrentRecordOnly(e.target.checked)
+          }}
           size='small'
           sx={{ ml: 2.6 }}
         />
@@ -429,8 +437,8 @@ const ClinicalAssessment = () => {
       {/* Records List */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {/* Loading State */}
-        {isLoading && filteredRecords.length === 0 && <ClinicalAssessmentShimmer count={5} />}
-        {filteredRecords.map((record, index) => (
+        {isLoading && filteredRecords?.length === 0 && <ClinicalAssessmentShimmer count={5} />}
+        {filteredRecords?.map((record, index) => (
           <ClinicalAssessmentCard
             key={record.id || index}
             record={record}
@@ -442,8 +450,8 @@ const ClinicalAssessment = () => {
 
         {/* Infinite Scroll Loader */}
         {(isLoading || hasMore) && filteredRecords.length > 0 && (
-          <Box ref={loaderRef} display='flex' justifyContent='center' py={2}>
-            <ClinicalAssessmentShimmer count={3} />
+          <Box ref={loaderRef}>
+            <ClinicalAssessmentShimmer count={1} />
           </Box>
         )}
 

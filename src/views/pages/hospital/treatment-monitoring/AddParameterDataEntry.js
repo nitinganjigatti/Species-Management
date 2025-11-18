@@ -13,7 +13,7 @@ import {
   useTheme
 } from '@mui/material'
 import dayjs from 'dayjs'
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -33,6 +33,20 @@ import Utility from 'src/utility'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import moment from 'moment'
 import NoDataFound from 'src/views/utility/NoDataFound'
+
+const parseIntervalToTimeRange = interval => {
+  if (!interval) return null
+
+  let [time, meridiem] = interval.split(' ')
+  let hour = parseInt(time.split(':')[0]) || parseInt(time)
+  if (meridiem?.toLowerCase() === 'pm' && hour !== 12) hour += 12
+  if (meridiem?.toLowerCase() === 'am' && hour === 12) hour = 0
+
+  const start = dayjs().hour(hour).minute(0).second(0)
+  const end = start.add(59, 'minute')
+
+  return { start, end }
+}
 
 const defaultValues = {
   observation_time: dayjs(),
@@ -107,8 +121,8 @@ const AddParameterDataEntry = ({
         assessment_type_id: data?.parameter?.assessment_type_id
       }),
     enabled: open && activeTab === 1 && !!data?.parameter?.assessment_type_id,
-    keepPreviousData: true, // ✅ keeps old data visible during refetch
-    staleTime: 0, // ✅ always consider data stale
+    keepPreviousData: true,
+    staleTime: 0,
     refetchOnWindowFocus: false
   })
 
@@ -167,6 +181,7 @@ const AddParameterDataEntry = ({
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors }
   } = useForm({
     resolver: yupResolver(schema),
@@ -175,6 +190,16 @@ const AddParameterDataEntry = ({
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
+
+  useEffect(() => {
+    if (open && data?.interval) {
+      const { start } = parseIntervalToTimeRange(data?.interval)
+      reset({
+        ...defaultValues,
+        observation_time: start // set to start of interval (e.g., 9:00 AM)
+      })
+    }
+  }, [open, data?.interval])
 
   return (
     <>
@@ -325,7 +350,13 @@ const AddParameterDataEntry = ({
                           >
                             Observation Time
                           </Typography>
-                          <ControlledTimePicker control={control} name={'observation_time'} label='Time' />
+                          <ControlledTimePicker
+                            control={control}
+                            name={'observation_time'}
+                            label='Time'
+                            minTime={parseIntervalToTimeRange(data?.interval)?.start || null}
+                            maxTime={parseIntervalToTimeRange(data?.interval)?.end || null}
+                          />
                         </Box>
 
                         {/* Observation Fields */}

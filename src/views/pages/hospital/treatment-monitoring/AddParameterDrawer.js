@@ -3,7 +3,13 @@ import {
   Button,
   CircularProgress,
   Drawer,
+  FormControl,
+  FormControlLabel,
+  FormHelperText,
+  FormLabel,
   IconButton,
+  Radio,
+  RadioGroup,
   Skeleton,
   TextField,
   Typography,
@@ -22,10 +28,21 @@ import {
 } from 'src/lib/api/hospital/treatmentMonitoring'
 import { useHospital } from 'src/context/HospitalContext'
 import Toaster from 'src/components/Toaster'
+import NoDataFound from 'src/views/utility/NoDataFound'
+import dayjs from 'dayjs'
 
-const AddParameterDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringData }) => {
+const AddParameterDrawer = ({
+  open,
+  setOpen,
+  hospitalCaseId,
+  refetchMonitoringData,
+  selectedDate,
+  isToday,
+  refetchMonitoringParams
+}) => {
   const theme = useTheme()
   const { selectedHospital } = useHospital()
+  const isPastDate = dayjs(selectedDate).isBefore(dayjs(), 'day')
 
   const [selectedTemplates, setSelectedTemplates] = useState([])
   const [openSelectParamDrawer, setOpenSelectParamDrawer] = useState(false)
@@ -37,6 +54,8 @@ const AddParameterDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringDa
   const [saveLoading, setSaveLoading] = useState(false)
   const [applyLoading, setApplyLoading] = useState(false)
   const [monitoringLoading, setMonitoringLoading] = useState(false)
+  const [todayOnly, setTodayOnly] = useState(null)
+  const [todayOnlyError, setTodayOnlyError] = useState(false)
 
   useEffect(() => {
     const fetchMonitoringParameters = async () => {
@@ -47,7 +66,8 @@ const AddParameterDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringDa
             const apiParams =
               res?.data?.assessments?.map(item => ({
                 id: String(item?.assessment_type_id),
-                label: item?.label
+                label: item?.label,
+                isExisting: true
               })) || []
             setParameters(prev => {
               const combined = [...prev, ...apiParams]
@@ -121,7 +141,8 @@ const AddParameterDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringDa
             category =>
               category.assessment_types?.map(type => ({
                 id: String(type.assessment_type_id),
-                label: type.assessments_type_label
+                label: type.assessments_type_label,
+                isExisting: false
               })) || []
           ) || []
 
@@ -145,7 +166,7 @@ const AddParameterDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringDa
 
   const handleAddParameters = params => {
     setParameters(prev => {
-      const combined = [...prev, ...params.map(p => ({ ...p, id: String(p.id) }))]
+      const combined = [...prev, ...params.map(p => ({ ...p, id: String(p.id), isExisting: false }))]
       const unique = combined.filter((param, index, self) => index === self.findIndex(p => p.id === param.id))
 
       return unique
@@ -195,23 +216,37 @@ const AddParameterDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringDa
   }
 
   const onApplyClick = async () => {
+    if (isPastDate && todayOnly === null) {
+      setTodayOnlyError(true)
+
+      return
+    }
+
     setApplyLoading(true)
+    setTodayOnlyError(false)
 
     try {
+      const newParams = parameters.filter(param => !param.isExisting)
+
       const payload = {
-        hospital_case_id: hospitalCaseId
+        hospital_case_id: hospitalCaseId,
+        parameter_date: selectedDate,
+        today_only: todayOnly
       }
 
-      parameters.forEach((param, index) => {
-        payload[`assessment_ids[[${index}]`] = param.id
+      newParams.forEach((param, index) => {
+        payload[`assessment_ids[${index}]`] = param.id
       })
+
+      console.log(payload)
 
       await applyParamsToHospitalCaseId(payload).then(res => {
         if (res?.status === true) {
           Toaster({ type: 'success', message: res?.message })
           handleDrawerClose()
-          refetchMonitoringData()
           setApplyLoading(false)
+          refetchMonitoringData()
+          refetchMonitoringParams()
         } else {
           setApplyLoading(false)
           Toaster({ type: 'error', message: res?.message })
@@ -329,7 +364,14 @@ const AddParameterDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringDa
                       >
                         {item?.label}
                       </Typography>
-                      <IconButton onClick={() => handleRemoveParameter(item.id)}>
+                      <IconButton
+                        onClick={() => handleRemoveParameter(item.id)}
+                        disabled={item?.isExisting}
+                        sx={{
+                          opacity: item?.isExisting ? 0.5 : 1,
+                          cursor: item?.isExisting ? 'not-allowed' : 'pointer'
+                        }}
+                      >
                         <Icon icon={'zondicons:close-outline'} color={theme.palette.customColors.Error} />
                       </IconButton>
                     </Box>
@@ -410,8 +452,9 @@ const AddParameterDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringDa
                         cursor: 'pointer'
                       }}
                       onClick={() => {
-                        setParameters([])
-                        setSelectedAssessments([])
+                        setParameters(prev => prev.filter(item => item?.isExisting === true))
+                        setSelectedAssessments(prev => prev.filter(item => item?.isExisting === true))
+
                         setSelectedTemplates([])
                       }}
                     >
@@ -450,7 +493,7 @@ const AddParameterDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringDa
                     </Box>
                   ))}
                 </Box>
-              ) : (
+              ) : templateList?.length > 0 ? (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                   {templateList?.map((template, index) => {
                     const isSelected = selectedTemplates.includes(template.value)
@@ -480,6 +523,8 @@ const AddParameterDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringDa
                     )
                   })}
                 </Box>
+              ) : (
+                <NoDataFound />
               )}
             </Box>
           </Box>
@@ -489,26 +534,96 @@ const AddParameterDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringDa
               borderTop: `1px solid ${theme.palette.divider}`,
               backgroundColor: 'background.paper',
               display: 'flex',
-              justifyContent: 'center',
+              flexDirection: 'column',
               gap: 2,
               boxShadow: '0px -1px 30px 0px rgba(0, 0, 0, 0.1)'
             }}
           >
-            <Button
-              variant='outlined'
-              fullWidth
-              onClick={handleDrawerClose}
-              sx={{
-                borderColor: theme.palette.customColors.OnPrimaryContainer,
-                color: theme.palette.customColors.OnPrimaryContainer,
-                height: '56px'
-              }}
-            >
-              Cancel
-            </Button>
-            <Button variant='contained' fullWidth onClick={onApplyClick} sx={{ height: '56px' }}>
-              {applyLoading ? <CircularProgress size={24} /> : 'APPLY'}
-            </Button>
+            {isPastDate && (
+              <FormControl
+                required
+                component='fieldset'
+                variant='standard'
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1
+                }}
+              >
+                <FormLabel
+                  component='legend'
+                  sx={{
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  Select parameter schedule
+                </FormLabel>
+
+                <RadioGroup
+                  row
+                  value={todayOnly !== null ? String(todayOnly) : ''}
+                  onChange={e => {
+                    setTodayOnly(Number(e.target.value))
+                    setTodayOnlyError(false)
+                  }}
+                >
+                  <FormControlLabel
+                    value='1'
+                    control={<Radio />}
+                    label='Set for today'
+                    sx={{
+                      '& .MuiTypography-root': {
+                        fontSize: '0.95rem',
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }
+                    }}
+                  />
+                  <FormControlLabel
+                    value='0'
+                    control={<Radio />}
+                    label='Set for future days'
+                    sx={{
+                      '& .MuiTypography-root': {
+                        fontSize: '0.95rem',
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }
+                    }}
+                  />
+                </RadioGroup>
+
+                {todayOnlyError && (
+                  <FormHelperText
+                    sx={{
+                      color: theme.palette.error.main,
+                      fontSize: '0.85rem',
+                      marginLeft: 0.5
+                    }}
+                  >
+                    Please select one option.
+                  </FormHelperText>
+                )}
+              </FormControl>
+            )}
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Button
+                variant='outlined'
+                fullWidth
+                onClick={handleDrawerClose}
+                sx={{
+                  borderColor: theme.palette.customColors.OnPrimaryContainer,
+                  color: theme.palette.customColors.OnPrimaryContainer,
+                  height: '56px'
+                }}
+              >
+                Cancel
+              </Button>
+              <Button variant='contained' fullWidth onClick={onApplyClick} sx={{ height: '56px' }}>
+                {applyLoading ? <CircularProgress size={24} /> : 'APPLY'}
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Drawer>

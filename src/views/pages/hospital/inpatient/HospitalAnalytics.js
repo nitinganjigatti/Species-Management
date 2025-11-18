@@ -172,7 +172,7 @@ const HospitalAnalytics = ({ disabled = false }) => {
                       fontSize: '16px'
                     }}
                   >
-                    {selectedHospital?.site_id || '-'}
+                    {selectedHospital?.site_name || '-'}
                   </Typography>
                 )}
                 <Typography

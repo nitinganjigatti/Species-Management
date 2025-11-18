@@ -17,13 +17,11 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
     status: record.additional_info?.status || 'active',
     severity: record.additional_info?.severity || '',
     category: record.category,
-    activity: record.comment_count ? `+${record.comment_count}` : '+0',
-    clinicalAssessment:
-      record.clinical_assessment === 'diagnosis'
-        ? 'Diagnosis'
-        : record.clinical_assessment === 'differential'
-        ? 'Differential → Diagnosis'
-        : '',
+    activity: record.comment_count - 1 > 0 ? `+${record.comment_count - 1}` : null,
+    clinicalAssessment: record.clinical_assessment === 'diagnosis' ? 'Diagnosis' : 'Differential',
+
+    oldRecord: record?.notes_dump?.old_data?.clinical_assessment,
+    newRecord: record?.notes_dump?.new_data?.clinical_assessment,
     chronic: record.additional_info?.isChronic ? 'Yes' : 'No',
     prognosis: Utility.capitalizeFirstLetter(record?.prognosis),
     notes:
@@ -152,25 +150,36 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
 
         {/* Middle Content */}
         <Box sx={{ gridColumn: { xs: '1', sm: '2', md: '2' } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
-            <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
-              Activity:
-            </Typography>
-            <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurface, fontWeight: 600 }}>
-              {mappedRecord.activity}
-            </Typography>
-          </Box>
+          {mappedRecord.activity && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
+              <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
+                Activity:
+              </Typography>
+              <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurface, fontWeight: 600 }}>
+                {mappedRecord.activity}
+              </Typography>
+            </Box>
+          )}
 
-          {mappedRecord.clinicalAssessment && (
+          {(mappedRecord?.oldRecord || mappedRecord?.newRecord || mappedRecord?.clinicalAssessment) && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
                 Clinical Assessment :{' '}
               </Typography>
-              <Typography
-                sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient, fontWeight: 600 }}
-              >
-                {mappedRecord.clinicalAssessment}
-              </Typography>
+              {mappedRecord?.oldRecord && (
+                <Typography
+                  sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary, fontWeight: 600 }}
+                >
+                  {mappedRecord?.oldRecord}
+                </Typography>
+              )}
+              {(mappedRecord?.newRecord || mappedRecord?.clinicalAssessment) && (
+                <Typography
+                  sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient, fontWeight: 600 }}
+                >
+                  {mappedRecord?.oldRecord && '→'} {mappedRecord.newRecord || mappedRecord?.clinicalAssessment}
+                </Typography>
+              )}
             </Box>
           )}
 

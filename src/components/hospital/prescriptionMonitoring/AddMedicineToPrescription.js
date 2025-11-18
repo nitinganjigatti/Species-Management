@@ -23,6 +23,7 @@ import {
 } from 'src/lib/api/hospital/prescription'
 import Utility from 'src/utility'
 import moment from 'moment'
+import Toaster from 'src/components/Toaster'
 
 export default function AddMedicineToPrescription() {
   const theme = useTheme()
@@ -79,7 +80,7 @@ export default function AddMedicineToPrescription() {
       })
       .required('Dosage duration is required'),
 
-    notes: yup.string().trim().max(500, 'Notes cannot exceed 500 characters').required('Notes are required'),
+    notes: yup.string().trim().max(10000, 'Notes cannot exceed 500 characters').required('Notes are required'),
 
     // Fields specific to Direct Administer
 
@@ -118,7 +119,7 @@ export default function AddMedicineToPrescription() {
 
     batchImage: yup.mixed().nullable().notRequired(),
 
-    wastageNotes: yup.string().nullable().trim().max(500, 'Notes cannot exceed 500 characters').notRequired()
+    wastageNotes: yup.string().nullable().trim().max(10000, 'Notes cannot exceed 500 characters').notRequired()
   })
 
   const defaultValues = {
@@ -291,7 +292,12 @@ export default function AddMedicineToPrescription() {
 
           // prescriptionFrequency: frequencyData || [],
           prescriptionDosageMeasurementType:
-            response?.data?.prescriptionDosageMeasurementType?.map(item => ({ ...item, value: item.key })) || [],
+            response?.data?.prescriptionDosageMeasurementType?.map(item => ({
+              ...item,
+              value: item.key,
+              unit_name: item.label,
+              uom_abbr: item.key
+            })) || [],
           prescriptionDuration: response?.data?.prescriptionDuration?.map(item => ({ ...item, value: item.key })) || [],
           prescriptionMeasurementType:
             response?.data?.prescriptionMeasurementType?.map(item => ({
@@ -521,6 +527,7 @@ export default function AddMedicineToPrescription() {
       const payload = {
         medical_record_id: medical_record_id,
         request_from: 'hospital',
+        hospital_case_id: id,
         data: JSON.stringify([
           {
             id: temporarilySelectedMedicine?.id, // Prescription id
@@ -586,12 +593,14 @@ export default function AddMedicineToPrescription() {
 
       // For now, just log the payload
       if (response?.success) {
+        Toaster({ type: 'success', message: response?.message })
+
         // Reset form values to default after successful submission
         resetForm()
 
         return response
       } else {
-        console.error('Failed to add scheduled prescription:')
+        Toaster({ type: 'error', message: response?.message })
 
         return null
       }
@@ -665,6 +674,7 @@ export default function AddMedicineToPrescription() {
         note: data.notes || '',
         request_from: 'hospital_module',
         medical_record_id: medical_record_id,
+        hospital_case_id: id,
         prescription: JSON.stringify([
           {
             id: temporarilySelectedMedicine?.id,
@@ -697,8 +707,8 @@ export default function AddMedicineToPrescription() {
             delivery_route_id: deliveryRoute?.id || '',
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
-            start_date: toISTISOString(data.prescriptionStartDate),
-            end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
+            start_date: calculateStartDate(data.prescriptionStartDate, data.dosageDuration),
+            end_date: toISTISOString(data.prescriptionStartDate),
 
             restart_reason: '',
             stop_reason: '',
@@ -718,11 +728,12 @@ export default function AddMedicineToPrescription() {
       const response = await addDirectAdministerPrescription(payload)
 
       if (response?.success) {
-        console.log('Direct Administer record added successfully!')
+        Toaster({ type: 'success', message: response?.message || 'Direct administer record added successfully' })
         resetForm()
 
         return response
       } else {
+        Toaster({ type: 'error', message: response?.message })
         console.error('Failed to add direct administer record')
 
         return null
@@ -773,7 +784,7 @@ export default function AddMedicineToPrescription() {
   })
 
   const getUnitIdFromName = (unitName, medicalMasterData) => {
-    const unit = medicalMasterData?.prescriptionMeasurementType?.find(
+    const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
       item => item.unit_name === unitName || item.uom_abbr === unitName
     )
 
@@ -781,7 +792,7 @@ export default function AddMedicineToPrescription() {
   }
 
   const getStringIdFromUnitName = (unitName, medicalMasterData) => {
-    const unit = medicalMasterData?.prescriptionMeasurementType?.find(
+    const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
       item => item.unit_name === unitName || item.uom_abbr === unitName
     )
 
@@ -810,6 +821,33 @@ export default function AddMedicineToPrescription() {
 
     // Return proper ISO 8601 UTC string
     return endDate.toISOString()
+  }
+
+  const calculateStartDate = (endDate, dosageDuration) => {
+    if (!endDate || !dosageDuration?.value) return ''
+
+    const end = new Date(endDate)
+    const startDate = new Date(end)
+
+    switch (dosageDuration.unit) {
+      case 'days':
+        startDate.setDate(end.getDate() - dosageDuration.value)
+        break
+      case 'weeks':
+        startDate.setDate(end.getDate() - dosageDuration.value * 7)
+        break
+      case 'months':
+        startDate.setMonth(end.getMonth() - dosageDuration.value)
+        break
+      case 'years':
+        startDate.setFullYear(end.getFullYear() - dosageDuration.value)
+        break
+      default:
+        startDate.setDate(end.getDate() - dosageDuration.value)
+    }
+
+    // Return proper ISO 8601 UTC string
+    return startDate.toISOString()
   }
 
   return (
@@ -866,7 +904,6 @@ export default function AddMedicineToPrescription() {
           <PrescriptionMedicineList
             medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
             temporarilySelectedMedicine={temporarilySelectedMedicine}
-
             // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
             selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
             onSelect={handleMedicineSelect}

@@ -13,8 +13,14 @@ const ControlledTimePicker = ({
   disabled = false,
   ampm = true,
   minutesStep = 1,
+
+  // minTime,
+  // maxTime,
+  // disableIgnoringDatePart = false,
   sx = {},
-  size = 'large'
+  size = 'large',
+  minTime = null,
+  maxTime = null
 }) => {
   return (
     <Controller
@@ -30,11 +36,16 @@ const ControlledTimePicker = ({
           views={views}
           disabled={disabled}
           ampm={ampm}
+          // minTime={minTime}
+          // maxTime={maxTime}
+          // disableIgnoringDatePart={disableIgnoringDatePart}
           minutesStep={minutesStep}
           error={!!error}
           size={size}
           helperText={error?.message}
           sx={sx}
+          minTime={minTime}
+          maxTime={maxTime}
         />
       )}
     />

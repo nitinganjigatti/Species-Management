@@ -15,7 +15,11 @@ const MetricCard = ({
   prescriptionCardColorsConfig
 }) => (
   <>
-    <MUICheckbox checked={selected} onChange={onSelect} disabled={disabled} />
+    <MUICheckbox
+      checked={metric.canEdit === false || selected}
+      onChange={onSelect}
+      disabled={metric.canEdit === false || disabled}
+    />
     <MetricLabel
       onClick={onMedicineNameClick}
       disabled={disabled}

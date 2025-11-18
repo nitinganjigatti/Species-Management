@@ -14,6 +14,9 @@ import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUplo
 import dayjs from 'dayjs'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
+import Utility from 'src/utility'
+import { useRouter } from 'next/router'
+import moment from 'moment'
 
 export default function ScheduleMedicine({
   control,
@@ -28,7 +31,6 @@ export default function ScheduleMedicine({
 }) {
   const {
     caseTypes,
-    prescriptionMeasurementType,
     prescriptionDosageMeasurementType,
     prescriptionDuration,
     prescriptionFrequency,
@@ -37,6 +39,8 @@ export default function ScheduleMedicine({
   const theme = useTheme()
 
   const now = new Date()
+  const router = useRouter()
+  const { animal_admitted_date } = router.query
 
   // Common styles for form fields
   const commonFieldStyles = {
@@ -118,7 +122,7 @@ export default function ScheduleMedicine({
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Schedule Medicine
+              {selectedMedicineTo === 'Direct Administer' ? 'Direct Administer' : 'Schedule Medicine'}
             </Typography>
 
             <Box sx={{ mb: 3 }}>
@@ -127,7 +131,7 @@ export default function ScheduleMedicine({
                 name='frequency'
                 sx={commonFieldStyles}
                 size='large'
-                label='Set Frequency'
+                label='Set Frequency*'
                 control={control}
                 errors={errors}
                 options={prescriptionFrequency}
@@ -141,7 +145,7 @@ export default function ScheduleMedicine({
               <ControlledSelect
                 fullWidth={true}
                 name='doseType'
-                label='Select Dose Type'
+                label='Select Dose Type*'
                 sx={{
                   textAlign: 'left',
                   borderColor: `${theme.palette.customColors.OutlineVariant} !important`,
@@ -178,7 +182,7 @@ export default function ScheduleMedicine({
                 <Grid item size={4.5}>
                   <ControlledTimePicker
                     name={`schedules.${idx}.time`}
-                    label='Time'
+                    label='Time*'
                     control={control}
                     errors={errors}
                     placeholder='12:30 PM'
@@ -194,8 +198,8 @@ export default function ScheduleMedicine({
                     selectFieldName={`schedules.${idx}.unit`}
                     control={control}
                     errors={errors}
-                    options={prescriptionMeasurementType}
-                    label='Quantity'
+                    options={prescriptionDosageMeasurementType}
+                    label='Quantity*'
                     placeholder='Enter quantity'
                     type='number'
                     getOptionLabel={option => option.label}
@@ -255,7 +259,7 @@ export default function ScheduleMedicine({
             <Box sx={{ mb: 3 }}>
               <ControlledSelect
                 name='deliveryRoute'
-                label='Select Delivery Route'
+                label='Select Delivery Route*'
                 fullWidth={true}
                 sx={{
                   textAlign: 'left',
@@ -276,11 +280,15 @@ export default function ScheduleMedicine({
                 <ControlledDatePicker
                   fullWidth={true}
                   sx={commonFieldStyles}
-                  minDate={selectedMedicineTo === 'Direct Administer' ? undefined : dayjs(now)}
+                  minDate={
+                    selectedMedicineTo === 'Direct Administer'
+                      ? dayjs(animal_admitted_date)
+                      : dayjs(animal_admitted_date)
+                  }
                   maxDate={selectedMedicineTo === 'Direct Administer' ? dayjs(now) : undefined}
                   size='large'
                   name='prescriptionStartDate'
-                  label='Prescription Start Date'
+                  label='Prescription Start Date*'
                   control={control}
                   errors={errors}
                   required
@@ -292,7 +300,7 @@ export default function ScheduleMedicine({
               <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                 <ControlledTextField
                   name='dosageDuration.value'
-                  label='Dosage Duration'
+                  label='Dosage Duration*'
                   control={control}
                   errors={errors}
                   type='number'
@@ -309,7 +317,7 @@ export default function ScheduleMedicine({
               <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                 <ControlledSelect
                   name='dosageDuration.unit'
-                  label='Dosage Unit'
+                  label='Dosage Unit*'
                   sx={{
                     textAlign: 'left',
                     borderRadius: '4px'
@@ -337,7 +345,7 @@ export default function ScheduleMedicine({
                   }
                 }}
                 name='notes'
-                label='Enter Notes'
+                label='Enter Notes*'
                 control={control}
                 errors={errors}
                 rows={4}
@@ -395,7 +403,7 @@ export default function ScheduleMedicine({
                       size='large'
                       control={control}
                       errors={errors}
-                      options={prescriptionMeasurementType}
+                      options={prescriptionDosageMeasurementType}
                       getOptionLabel={option => option.label}
                       getOptionValue={option => option.value}
                     />
