@@ -262,7 +262,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
               </Typography>
 
               <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurface, fontWeight: 600 }}>
-                {record?.comment_count === 1 ? '1' : '+' + (record?.comment_count - 1)}
+                {record?.comment_count === '1' ? '1' : '+' + (record?.comment_count - 1)}
               </Typography>
             </Box>
           )}

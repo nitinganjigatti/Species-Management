@@ -21,7 +21,7 @@ import { alpha } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import PrescriptionMonitoringGrid from '../prescriptionMonitoring/PrescriptionMonitoringGrid'
 import VitalMonitoring from './Anesthesia/VitalMonitoring'
-import VitalMonitoringDetail from './Anesthesia/vitalForms/VitalMonitoringDEtail'
+import VitalMonitoringDetail from './Anesthesia/vitalForms/VitalMonitoringDetail'
 
 const surgeries = [
   'S1235/25',
@@ -373,7 +373,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
   )
 
   const handleAddSurgeryRecord = () => {
-    const { hospital_case_id, hospitalCaseId: queryHospitalCaseId, case_id, caseId, id } = router.query
+    const { hospital_case_id, hospitalCaseId: queryHospitalCaseId, case_id, caseId, id, animal_id } = router.query
 
     const resolveValue = value => (Array.isArray(value) ? value[0] : value)
 
@@ -391,7 +391,8 @@ function Anesthesia({ hospitalCaseId, patientData }) {
           query: {
             hospital_case_id: resolvedCaseId,
             medical_record_id: patientData?.medical_record_id,
-            hospital_id: patientData?.hospital_id
+            hospital_id: patientData?.hospital_id,
+            animal_id: animal_id
             //id: resolvedCaseId
           }
         }

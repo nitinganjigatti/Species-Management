@@ -245,7 +245,7 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [],
                 }}
               >
                 {purposeOptions?.map(option => (
-                  <ToggleButton key={option.id ?? option.name} value={option.name}>
+                  <ToggleButton key={option.id ?? option.name} value={String(option.id)}>
                     {option?.name}
                   </ToggleButton>
                 ))}

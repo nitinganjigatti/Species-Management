@@ -313,7 +313,7 @@ export default function AddAnesthesiaRecord() {
         mark_weight_as_approximate: false,
         pre_anesthesia_notes: '',
         clin_path: {
-          selected: {},
+          selected: [],
           custom: []
         }
       },
@@ -450,6 +450,12 @@ export default function AddAnesthesiaRecord() {
 
   //   useEffect(() => {
   //     // Hardcoded data based on your curl
+  //     // const apiClinSelected = detail.pre_anaesthesia?.clin_path?.selected || []
+
+  //     // const clinSelectedObj = apiClinSelected.reduce((acc, id) => {
+  //     //   acc[id] = true // or acc[String(id)] = true if you prefer
+  //     //   return acc
+  //     // }, {})
   //     reset({
   //       basicDetails: {
   //         location: 'Bangalore',
@@ -458,7 +464,7 @@ export default function AddAnesthesiaRecord() {
   //         estimated_time_unit: 'hr',
   //         veterinarian_id: '68',
   //         anesthetist_id: '70',
-  //         selected: ['Ultrasonography', 'Detailed physical examination'],
+  //         selected: ['24', '25'],
   //         custom: [],
   //         notes: 'notes 1'
   //       },
@@ -502,10 +508,15 @@ export default function AddAnesthesiaRecord() {
   //         weight_unit: 'kg',
   //         mark_weight_as_approximate: true, // because weight_type = "Estimated"
   //         pre_anesthesia_notes: 'notes for risk',
-
-  //         // you can adapt this part depending on how you finally wire clin_path UI
+  //         // clin_path: {
+  //         //     selected: clinSelectedObj,                 // 👈 {3:true,4:true,5:true}
+  //         //     custom: pre.clin_path?.custom || []
+  //         //   },
   //         clin_path: {
-  //           selected: ['16', '17'], // from curl: "selected":[16,17]
+  //           selected: {
+  //             16: true,
+  //             17: true
+  //           }, // from curl: "selected":[16,17]
   //           custom: ['item 1'] // from curl: "custom":["item 1"]
   //         }
   //       },
