@@ -219,8 +219,8 @@ const Symptoms = ({ selectedTab, patientData }) => {
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {loading ? (
-          <Box sx={{ display: 'flex', py: 2 }}>
-            <ClinicalAssessmentShimmer rows={8} />
+          <Box sx={{ display: 'flex', flexDirection: 'column', py: 2 }}>
+            <ClinicalAssessmentShimmer count={5} />
           </Box>
         ) : records?.length === 0 ? (
           <Box

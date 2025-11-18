@@ -135,7 +135,6 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [],
 
         <Grid container spacing={2}>
           <Grid item size={{ xs: 12, md: 4 }}>
-            {console.log(vetOptions, 'vetOptions')}
             <Controller
               name='basicDetails.veterinarian_id'
               control={control}

@@ -387,11 +387,12 @@ function Anesthesia({ hospitalCaseId, patientData }) {
 
     const href = resolvedCaseId
       ? {
-          pathname: '/hospital/inpatient/AddAnesthesiaRecord',
+          pathname: `/hospital/inpatient/AddAnesthesiaRecord/`,
           query: {
             hospital_case_id: resolvedCaseId,
             medical_record_id: patientData?.medical_record_id,
             hospital_id: patientData?.hospital_id
+            //id: resolvedCaseId
           }
         }
       : '/hospital/inpatient/AddAnesthesiaRecord'

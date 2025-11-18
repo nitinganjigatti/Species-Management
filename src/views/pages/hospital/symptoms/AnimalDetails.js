@@ -13,7 +13,9 @@ export default function AnimalDetails({
   admittedDays,
   location,
   vet,
-  isLoading
+  isLoading,
+  backgroundColor,
+  marginSpacing
 }) {
   const theme = useTheme()
 
@@ -30,7 +32,9 @@ export default function AnimalDetails({
         display: 'flex',
         flexDirection: { xs: 'column', md: 'row' },
         alignItems: { xs: 'flex-start', md: 'center' },
-        gap: { xs: 4, md: 12 }
+        gap: { xs: 4, md: 12 },
+        background: backgroundColor ? backgroundColor : theme.palette.common.white,
+        m: marginSpacing ? marginSpacing : 'unset'
       }}
     >
       <Box

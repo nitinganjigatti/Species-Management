@@ -31,6 +31,7 @@ import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
 import { getAssesmentList, addAnesthesia, getAnesthesiaSetupList } from 'src/lib/api/hospital/anesthesia'
 import Toaster from 'src/components/Toaster'
+import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 
 export const anesthesiaSchema = yup.object({
   basicDetails: yup.object({
@@ -68,15 +69,19 @@ const sections = [
   { id: 'attachments', label: 'Attachments', component: AttachmentsSection }
 ]
 
-export default function AddAnesthesiaRecord({ patientData }) {
+export default function AddAnesthesiaRecord() {
   const router = useRouter()
-  const { hospital_case_id, medical_record_id, hospital_id } = router.query
+  const { id, hospital_case_id, medical_record_id, hospital_id } = router.query
   const [expanded, setExpanded] = useState('basicDetails')
   const [isBasicDetailsValid, setIsBasicDetailsValid] = useState(false)
   const [isApiSuccess, setIsApiSuccess] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [assessmentList, setassessmentList] = useState([])
+  const [anesthesiaSetupList, setanesthesiaSetupList] = useState([])
+  const [clinPathList, setClinPathList] = useState([])
   const [doctors, setDoctors] = useState([])
+  const [patientLoading, setPatientLoading] = useState(false)
+  const [patientData, setPatientData] = useState(null)
   const sectionRefs = React.useRef({})
   const scrollContainerRef = React.useRef(null)
   const theme = useTheme()
@@ -112,16 +117,30 @@ export default function AddAnesthesiaRecord({ patientData }) {
   const fetchAssessmentList = async () => {
     const params = {
       type: 'purpose'
-      // anaesthesia_id: '7'
-      //hospital_id: hospital_id
-      // page:"",
-      // limit:"",
     }
     try {
       const response = await getAssesmentList(params)
-      console.log(response, 'response')
       if (response?.success && response?.data?.records?.length > 0) {
         setassessmentList(
+          response?.data?.records.map(item => ({
+            name: item?.name,
+            id: item?.id
+          }))
+        )
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {}
+  }
+
+  const fetchClinPathList = async () => {
+    const params = {
+      type: 'clin_path'
+    }
+    try {
+      const response = await getAssesmentList(params)
+      if (response?.success && response?.data?.records?.length > 0) {
+        setClinPathList(
           response?.data?.records.map(item => ({
             name: item?.name,
             id: item?.id
@@ -135,22 +154,13 @@ export default function AddAnesthesiaRecord({ patientData }) {
 
   const fetchAnesthesiaSetup = async () => {
     const params = {
-      type: 'anaesthesia_setup',
-      // anaesthesia_id: '6',
-      hospital_id: hospital_id
-      // page_no:"",
-      // limit:"",
+      type: 'anaesthesia_setup'
     }
     try {
       const response = await getAnesthesiaSetupList(params)
       console.log(response, 'response')
-      if (response?.success && response?.data?.records?.length > 0) {
-        setassessmentList(
-          response?.data?.records.map(item => ({
-            name: item?.name,
-            id: item?.id
-          }))
-        )
+      if (response?.success && response?.data?.result?.length > 0) {
+        setanesthesiaSetupList(response.data.result)
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
@@ -158,9 +168,32 @@ export default function AddAnesthesiaRecord({ patientData }) {
   }
 
   useEffect(() => {
+    const getPatientInfo = async () => {
+      setPatientLoading(true)
+      try {
+        await getPatientDetails(hospital_case_id).then(res => {
+          if (res?.success === true) {
+            setPatientData(res?.data)
+            setPatientLoading(false)
+          } else {
+            setPatientData(null)
+            setPatientLoading(false)
+          }
+        })
+      } catch (error) {
+        console.error('Cannot Fetch Patient Details', error)
+        setPatientLoading(false)
+      }
+    }
+
+    getPatientInfo()
+  }, [hospital_case_id])
+
+  useEffect(() => {
     getUserLists()
     fetchAssessmentList()
-    //fetchAnesthesiaSetup()
+    fetchAnesthesiaSetup()
+    fetchClinPathList()
   }, [])
 
   const drugOptions = [
@@ -253,10 +286,10 @@ export default function AddAnesthesiaRecord({ patientData }) {
       },
       anesthesiaSetup: {
         fluids: { checked: false, fluidType: '', quantity: '' },
-        catheterSetup: { checked: false, method: '' },
-        syringePump: { checked: false, rate: '' },
-        etIntubation: { checked: false, tubeSizes: '' },
-        nasalIntubation: { checked: false, fluidType: '', quantity: '' },
+        catheter_setup: { checked: false, method: '' },
+        syringe_pump: { checked: false, rate: '' },
+        et_intubation: { checked: false, tubeSizes: '' },
+        nasal_intubation: { checked: false, fluidType: '', quantity: '' },
         ventilation: { checked: false, mode: '' },
         monitoring: { checked: false, selected: [], otherItems: [] }
       },
@@ -276,10 +309,13 @@ export default function AddAnesthesiaRecord({ patientData }) {
         previous_endotracheal_tube_size: '',
         code_status: '',
         weight: '',
+        weight_unit: 'kg',
         mark_weight_as_approximate: false,
-        risk_concerns: '',
-        clin_path: [],
-        other_clin_path: []
+        pre_anesthesia_notes: '',
+        clin_path: {
+          selected: {},
+          custom: []
+        }
       },
       recoveryAndReversal: {
         reversalDrugs: []
@@ -412,6 +448,77 @@ export default function AddAnesthesiaRecord({ patientData }) {
     trigger
   ])
 
+  //   useEffect(() => {
+  //     // Hardcoded data based on your curl
+  //     reset({
+  //       basicDetails: {
+  //         location: 'Bangalore',
+  //         anaesthesia_datetime: '2025-11-17 00:00:00',
+  //         estimated_time_required: '10',
+  //         estimated_time_unit: 'hr',
+  //         veterinarian_id: '68',
+  //         anesthetist_id: '70',
+  //         selected: ['Ultrasonography', 'Detailed physical examination'],
+  //         custom: [],
+  //         notes: 'notes 1'
+  //       },
+  //       anesthesiaSetup: {
+  //         // from anaesthesia_setup array
+  //         fluids: {
+  //           checked: true,
+  //           fluidType: '12', // fluid_type
+  //           quantity: '10' // fluid_quantity
+  //         },
+  //         catheter_setup: {
+  //           checked: true,
+  //           method: 'IV' // catheter_type
+  //         },
+  //         syringe_pump: {
+  //           checked: true,
+  //           rate: '15' // syringe_rate
+  //         },
+  //         // others remain default / unchecked
+  //         et_intubation: { checked: false, tubeSizes: '' },
+  //         nasal_intubation: { checked: false, fluidType: '', quantity: '' },
+  //         ventilation: { checked: false, mode: '' },
+  //         monitoring: { checked: false, selected: [], otherItems: [] }
+  //       },
+  //       medicationsGas: {
+  //         medications: [],
+  //         gases: []
+  //       },
+  //       vitalMonitoring: [],
+  //       preAnesthesia: {
+  //         temperature: '100',
+  //         humidity: '120',
+  //         physical_health_status: 'excellent',
+  //         body_condition: 'ideal',
+  //         animal_activity: 'active',
+  //         fasting_time: '12',
+  //         fasting_unit: 'hours',
+  //         previous_endotracheal_tube_size: '0',
+  //         code_status: 'full_code',
+  //         weight: '90',
+  //         weight_unit: 'kg',
+  //         mark_weight_as_approximate: true, // because weight_type = "Estimated"
+  //         pre_anesthesia_notes: 'notes for risk',
+
+  //         // you can adapt this part depending on how you finally wire clin_path UI
+  //         clin_path: {
+  //           selected: ['16', '17'], // from curl: "selected":[16,17]
+  //           custom: ['item 1'] // from curl: "custom":["item 1"]
+  //         }
+  //       },
+  //       recoveryAndReversal: {
+  //         reversalDrugs: []
+  //       },
+  //       attachments: {
+  //         files: [],
+  //         comments: ''
+  //       }
+  //     })
+  //   }, [reset])
+
   const handleChange = async sectionId => {
     if (sectionId !== 'basicDetails' && !isApiSuccess) {
       const valid = await methods.trigger('basicDetails')
@@ -452,14 +559,131 @@ export default function AddAnesthesiaRecord({ patientData }) {
     }
   }
 
+  const toCamel = s => s.replace(/_([a-z])/g, g => g[1].toUpperCase())
+  const uiKeyForField = (sectionStringId, apiFieldKey) => {
+    const camel = toCamel(apiFieldKey)
+    const mapping = {
+      fluids: {
+        fluid_type: 'fluidType',
+        fluid_quantity: 'quantity',
+        quantity: 'quantity'
+      },
+      catheter_setup: {
+        catheter_type: 'method'
+      },
+      syringe_pump: {
+        syringe_rate: 'rate'
+      },
+      et_intubation: {
+        et_tube: 'tubeSizes'
+      },
+      nasal_intubation: {
+        nasal_tube: 'tubeSizes'
+      },
+      ventilation: {
+        ventilation_mode: 'mode'
+      }
+    }
+    return (mapping[sectionStringId] && mapping[sectionStringId][apiFieldKey]) || camel
+  }
+
   const onValid = async data => {
     setIsSubmitting(true)
 
     try {
+      const anesthesiaSetupValues = methods.getValues('anesthesiaSetup') || {}
+      const invalidSections = []
+
+      clearErrors('anesthesiaSetup')
+
+      let hasAnySetupError = false
+
+      for (const meta of anesthesiaSetupList || []) {
+        const sectionKey = meta.string_id
+        const sectionForm = anesthesiaSetupValues[sectionKey]
+
+        if (!sectionForm?.checked) continue
+
+        let sectionHasError = false
+        if (Array.isArray(meta.fields) && meta.fields.length > 0) {
+          for (const f of meta.fields) {
+            const uiKey = uiKeyForField(meta.string_id, f.field_key)
+            const v = sectionForm[uiKey]
+
+            const isEmpty = v === undefined || v === null || (typeof v === 'string' && v.trim() === '')
+
+            if (isEmpty) {
+              sectionHasError = true
+              hasAnySetupError = true
+
+              setError(`anesthesiaSetup.${sectionKey}.${uiKey}`, {
+                type: 'required',
+                message: `${f.field_label} is required`
+              })
+            }
+          }
+        }
+
+        if (Array.isArray(meta.monitoring_items) && meta.monitoring_items.length > 0) {
+          const mon = sectionForm.monitoring || {}
+          const selected = mon.selected || []
+          const otherItems = mon.otherItems || []
+
+          if (!selected.length && !otherItems.length) {
+            sectionHasError = true
+            hasAnySetupError = true
+
+            setError(`anesthesiaSetup.${sectionKey}.monitoring`, {
+              type: 'required',
+              message: 'Select at least one monitoring item or add an "Other" item'
+            })
+          }
+        }
+
+        if (sectionHasError) {
+          invalidSections.push(meta.section_name)
+        }
+      }
+
+      if (hasAnySetupError) {
+        Toaster({
+          type: 'error',
+          message: `Please fill all required fields for: ${invalidSections.join(', ')} or uncheck those sections.`
+        })
+        setIsSubmitting(false)
+        return
+      }
+
+      const pre = data.preAnesthesia || {}
+
+      const clinPathSelectedObj = pre.clin_path?.selected || {}
+      const clinPathSelectedIds = Object.entries(clinPathSelectedObj)
+        .filter(([, checked]) => !!checked)
+        .map(([id]) => Number(id))
+      const preAnaesthesiaPayload = {
+        temperature: pre.temperature || '',
+        humidity: pre.humidity || '',
+        physical_health_status: pre.physical_health_status || '',
+        body_condition: pre.body_condition || '',
+        animal_activity: pre.animal_activity || '',
+        fasting_time: pre.fasting_time || '',
+        fasting_unit: pre.fasting_unit || '',
+        previous_endotracheal_tube_size: pre.previous_endotracheal_tube_size || '',
+        code_status: pre.code_status || '',
+        weight: pre.weight || '',
+        weight_unit: pre.weight_unit || '',
+        weight_type: pre.mark_weight_as_approximate ? 'Estimated' : 'Actual',
+        pre_anesthesia_notes: pre.pre_anesthesia_notes || '',
+        clin_path: {
+          selected: clinPathSelectedIds,
+          custom: pre.clin_path?.custom || []
+        }
+      }
+
       const formData = new FormData()
 
-      formData.append('hospital_case_id', hospital_case_id || '234')
-      formData.append('medical_record_id', medical_record_id || '16427')
+      formData.append('hospital_case_id', hospital_case_id || '')
+      formData.append('medical_record_id', medical_record_id || '')
       formData.append('location', data.basicDetails.location)
       formData.append('anaesthesia_datetime', data.basicDetails.anaesthesia_datetime)
       formData.append('estimated_time_required', data.basicDetails.estimated_time_required)
@@ -467,13 +691,83 @@ export default function AddAnesthesiaRecord({ patientData }) {
       formData.append('veterinarian_id', data.basicDetails.veterinarian_id)
       formData.append('anesthetist_id', data.basicDetails.anesthetist_id)
       formData.append('notes', data.basicDetails.notes)
-
+      //formData.append('anaesthesia_id')
       const purposePayload = {
         selected: data.basicDetails.selected || [],
         custom: data.basicDetails.custom || []
       }
       formData.append('purpose', JSON.stringify(purposePayload))
-      console.log('🔹 Final payload for API:', Object.fromEntries(formData))
+      formData.append('pre_anaesthesia', JSON.stringify(preAnaesthesiaPayload))
+      const anaesthesiaSetupPayload = []
+      const currentSetupValues = methods.getValues('anesthesiaSetup') || {}
+
+      for (const meta of anesthesiaSetupList || []) {
+        const key = meta.string_id
+        const sectionForm = currentSetupValues[key] || {}
+
+        if (!sectionForm || sectionForm.checked !== true) continue
+
+        const fieldsArr = (meta.fields || []).map(f => {
+          const fieldFromObject =
+            (sectionForm.fields && sectionForm.fields[f.field_key] && sectionForm.fields[f.field_key].field_value) ??
+            null
+          const uiKey = uiKeyForField(meta.string_id, f.field_key)
+          const fieldFromFlat = sectionForm[uiKey] ?? null
+
+          const field_value = fieldFromObject ?? fieldFromFlat ?? ''
+          const unit =
+            (sectionForm.fields && sectionForm.fields[f.field_key] && sectionForm.fields[f.field_key].unit) ??
+            f.unit ??
+            null
+
+          return {
+            field_id: f.field_id,
+            field_key: f.field_key,
+            field_label: f.field_label,
+            input_type: f.input_type,
+            options: f.options || [],
+            units: f.units || [],
+            field_value: field_value,
+            unit: unit
+          }
+        })
+
+        let monitoringObj = undefined
+        if (Array.isArray(meta.monitoring_items) && meta.monitoring_items.length > 0) {
+          const monState = sectionForm.monitoring || {}
+          const selected = monState.selected || []
+          const custom = monState.otherItems || []
+          monitoringObj = { selected, custom }
+        }
+        const sectionObj = {
+          section_id: meta.section_id,
+          section_name: meta.section_name,
+          string_id: meta.string_id,
+          type: meta.type || 'anaesthesia_setup',
+          fields: fieldsArr
+        }
+
+        if (monitoringObj) sectionObj.monitoring = monitoringObj
+
+        anaesthesiaSetupPayload.push(sectionObj)
+      }
+
+      formData.append('anaesthesia_setup', JSON.stringify(anaesthesiaSetupPayload))
+
+      console.log('🔹 Final payload for API:', {
+        hospital_case_id: hospital_case_id || '',
+        medical_record_id: medical_record_id || '',
+        location: data.basicDetails.location,
+        anaesthesia_datetime: data.basicDetails.anaesthesia_datetime,
+        estimated_time_required: data.basicDetails.estimated_time_required,
+        estimated_time_unit: data.basicDetails.estimated_time_unit,
+        veterinarian_id: data.basicDetails.veterinarian_id,
+        anesthetist_id: data.basicDetails.anesthetist_id,
+        notes: data.basicDetails.notes,
+        purpose: purposePayload,
+        anaesthesia_setup: anaesthesiaSetupPayload
+      })
+
       const response = await addAnesthesia(formData)
 
       if (response?.status === true) {
@@ -484,6 +778,7 @@ export default function AddAnesthesiaRecord({ patientData }) {
         Toaster({ type: 'error', message: response?.message || 'Failed to save record' })
       }
     } catch (error) {
+      console.error(error)
       Toaster({ type: 'error', message: 'Something went wrong. Please try again.' })
     } finally {
       setIsSubmitting(false)
@@ -504,7 +799,7 @@ export default function AddAnesthesiaRecord({ patientData }) {
 
   // Determine if sections should be enabled
   const shouldEnableSections = isApiSuccess
-
+  console.log(id, 'id')
   return (
     <FormProvider {...methods}>
       <Box display='flex' flexDirection='column' gap={3} sx={{ p: 3 }}>
@@ -554,18 +849,26 @@ export default function AddAnesthesiaRecord({ patientData }) {
                 pl: 7
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%',
+                  gap: 1
+                }}
+              >
                 <Icon
                   style={{ cursor: 'pointer' }}
                   color={theme.palette.customColors.OnSurfaceVariant}
                   icon='material-symbols:arrow-back'
                 />
                 <Typography variant='h6' fontWeight={600}>
-                  Anesthesia Record - AN2345/25
+                  Anesthesia Record
+                  {/* - AN2345/25 */}
                 </Typography>
               </Box>
 
-              <Typography
+              {/* <Typography
                 sx={{
                   color: theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '12px',
@@ -574,19 +877,24 @@ export default function AddAnesthesiaRecord({ patientData }) {
                 }}
               >
                 Last Saved : 12 Aug 2025 · 12:00 PM
-              </Typography>
+              </Typography> */}
             </Box>
 
             <AnimalDetails
-              image='/icons/Activity.svg'
-              name='Luna'
-              scientificName='Felis catus'
-              identifierValue='CAT-202'
-              identifierName='Microchip'
-              admittedDays='2'
-              location='Zoo'
-              vet='test'
-              ageGender='24 || Male'
+              image={patientData?.animal_detail?.default_icon}
+              name={patientData?.animal_detail?.common_name}
+              scientificName={patientData?.animal_detail?.complete_name}
+              identifierValue={patientData?.animal_detail?.local_identifier_value}
+              identifierName={patientData?.animal_detail?.local_identifier_name}
+              admittedDays={patientData?.admitted_for_day}
+              location={patientData?.bed_name || 'N/A'}
+              vet={patientData?.attend_by_full_name || 'N/A'}
+              ageGender={`${patientData?.animal_detail?.age || 'N/A'}${
+                patientData?.animal_detail?.sex ? ` . ${patientData?.animal_detail?.sex}` : ''
+              }`}
+              isLoading={patientLoading}
+              backgroundColor={theme.palette.customColors.tableHeaderBg}
+              marginSpacing={'18px 24px 15px 24px'}
             />
 
             <Tabs
@@ -715,6 +1023,8 @@ export default function AddAnesthesiaRecord({ patientData }) {
                       onAddReversalDrug={onAddReversalDrug}
                       onUpdateReversalDrug={onUpdateReversalDrug}
                       onDeleteReversalDrug={onDeleteReversalDrug}
+                      anesthesiaSetupList={anesthesiaSetupList}
+                      clinPathOptions={clinPathList}
                     />
                   </AccordionDetails>
                 </Accordion>

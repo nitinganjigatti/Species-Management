@@ -11,7 +11,8 @@ function PreAnesthesia({
   physicalHealthStatusOptions = [],
   bodyConditionOptions = [],
   animalActivityOptions = [],
-  codeStatusOptions = []
+  codeStatusOptions = [],
+  clinPathOptions = []
 }) {
   const theme = useTheme()
   const {
@@ -129,6 +130,7 @@ function PreAnesthesia({
             label='Previous endotracheal tube size'
             name='preAnesthesia.previous_endotracheal_tube_size'
             placeholder='Previous endotracheal tube size'
+            type='number'
           />
         </Grid>
 
@@ -186,7 +188,7 @@ function PreAnesthesia({
             control={control}
             errors={errors}
             label='Risk / Concerns'
-            name='preAnesthesia.risk_concerns'
+            name='preAnesthesia.pre_anesthesia_notes'
             placeholder='Enter Risk / Concerns'
           />
         </Grid>
@@ -195,23 +197,17 @@ function PreAnesthesia({
           <StyledTypography>Clin Path</StyledTypography>
         </Grid>
 
-        <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-          {['CBC', 'Biochem', 'QUADS', 'UA', 'Other'].map(item => (
+        <Grid size={{ xs: 12 }} sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 2 }}>
+          {clinPathOptions.map(option => (
             <Controller
-              key={item}
-              name={`preAnesthesia.clin_path.${item.toLowerCase()}`}
+              key={option.id}
+              name={`preAnesthesia.clin_path.selected.${option.id}`}
               control={control}
               render={({ field }) => (
                 <MUICheckbox
                   checked={!!field.value}
-                  label={item}
+                  label={option.name}
                   onChange={(_, checked) => field.onChange(checked)}
-                  // optional label style
-                  // labelStyle={{
-                  //   fontSize: '14px',
-                  //   fontWeight: 400,
-                  //   color: theme.palette.customColors.neutralSecondary
-                  // }}
                 />
               )}
             />
@@ -220,9 +216,9 @@ function PreAnesthesia({
 
         <Grid size={{ xs: 12 }}>
           <Controller
-            name='preAnesthesia.other_clin_path'
+            name='preAnesthesia.clin_path.custom'
             control={control}
-            defaultValue={[]} // make sure to initialize as empty array
+            defaultValue={[]}
             render={({ field }) => (
               <CustomOtherPurposeSection
                 title='Add New other Item'

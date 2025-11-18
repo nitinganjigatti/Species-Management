@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react'
-
 import {
   Box,
   Button,
@@ -17,24 +16,7 @@ import {
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import { useFormContext } from 'react-hook-form'
 import { alpha, useTheme } from '@mui/material/styles'
-
-const monitoringOptions = [
-  'Pulse ox',
-  'Probe, rectal',
-  'Tongue',
-  'Thermometer',
-  'Heated Table',
-  'Bair hugger',
-  'Doppler',
-  'Stethoscope',
-  'ECG',
-  'BP',
-  'Capnography',
-  'Pediatric',
-  'Adult'
-]
-const ventilationOptions = ['No', 'Vetronics', 'Manual']
-const catheterOptions = ['IV', 'IO']
+import { useRouter } from 'next/router'
 
 const getTextFieldStyles = theme => {
   const outline = theme.palette.customColors?.SurfaceVariant || theme.palette.divider
@@ -45,15 +27,9 @@ const getTextFieldStyles = theme => {
     '& .MuiOutlinedInput-root': {
       borderRadius: '4px',
       backgroundColor: theme.palette.primary.contrastText,
-      '& fieldset': {
-        borderColor: outline
-      },
-      '&:hover fieldset': {
-        borderColor: theme.palette.primary.main
-      },
-      '&.Mui-focused fieldset': {
-        borderColor: theme.palette.primary.main
-      }
+      '& fieldset': { borderColor: outline },
+      '&:hover fieldset': { borderColor: theme.palette.primary.main },
+      '&.Mui-focused fieldset': { borderColor: theme.palette.primary.main }
     },
     '& .MuiInputLabel-root': {
       fontFamily: 'Inter',
@@ -71,9 +47,7 @@ const getTextFieldStyles = theme => {
         opacity: 1
       }
     },
-    '& .MuiFormLabel-root.MuiInputLabel-shrink': {
-      opacity: 1
-    },
+    '& .MuiFormLabel-root.MuiInputLabel-shrink': { opacity: 1 },
     '& .MuiInputBase-input': {
       fontFamily: 'Inter',
       fontWeight: 500,
@@ -82,10 +56,7 @@ const getTextFieldStyles = theme => {
       letterSpacing: 0,
       color: onSurface
     },
-    '& .MuiInputBase-input::placeholder': {
-      color: onSurface,
-      opacity: 1
-    }
+    '& .MuiInputBase-input::placeholder': { color: onSurface, opacity: 1 }
   }
 }
 
@@ -93,17 +64,14 @@ const radioTileGroupStyles = {
   display: 'flex',
   flexWrap: 'wrap',
   gap: '16px',
-  '& .MuiToggleButtonGroup-grouped': {
-    margin: 0
-  }
+  '& .MuiToggleButtonGroup-grouped': { margin: 0 }
 }
 
 const getRadioTileButtonStyles = theme => {
   const outline = theme.palette.customColors?.OutlineVariant || theme.palette.divider
   const onSurface = theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
-
   return {
-    width: '257.3333435058594px',
+    width: '257.333px',
     height: '56px',
     padding: '0 12px',
     justifyContent: 'space-between',
@@ -116,18 +84,11 @@ const getRadioTileButtonStyles = theme => {
     fontFamily: 'Inter',
     fontWeight: 500,
     fontSize: '16px',
-    lineHeight: 1,
-    letterSpacing: 0,
-    '&:hover': {
-      backgroundColor: theme.palette.primary.contrastText
-    },
+    '&:hover': { backgroundColor: theme.palette.primary.contrastText },
     '&.Mui-selected': {
       borderColor: `${theme.palette.primary.main} !important`,
       color: theme.palette.primary.dark || theme.palette.primary.main,
       backgroundColor: `${theme.palette.primary.contrastText} !important`
-    },
-    '&.Mui-selected:hover': {
-      backgroundColor: theme.palette.primary.contrastText
     }
   }
 }
@@ -136,24 +97,19 @@ const radioTileLabelStyles = {
   fontFamily: 'Inter',
   fontWeight: 500,
   fontSize: '16px',
-  lineHeight: 1,
-  letterSpacing: 0,
-  color: 'inherit'
+  letterSpacing: 0
 }
 
 const monitoringToggleGroupStyles = {
   display: 'flex',
   flexWrap: 'wrap',
   gap: '16px',
-  '& .MuiToggleButtonGroup-grouped': {
-    margin: 0
-  }
+  '& .MuiToggleButtonGroup-grouped': { margin: 0 }
 }
 
 const getMonitoringToggleButtonStyles = theme => {
   const outline = theme.palette.customColors?.OutlineVariant || theme.palette.divider
   const onSurface = theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
-
   return {
     width: '189px',
     height: '56px',
@@ -169,25 +125,10 @@ const getMonitoringToggleButtonStyles = theme => {
     fontFamily: 'Inter',
     fontWeight: 500,
     fontSize: '16px',
-    lineHeight: 1,
-    letterSpacing: 0,
-    '&:hover': {
-      backgroundColor: theme.palette.primary.contrastText
-    },
-    '&.Mui-selected': {
-      borderColor: `${theme.palette.primary.main} !important`,
-      backgroundColor: theme.palette.primary.contrastText
-    },
-    '&.Mui-selected:hover': {
-      backgroundColor: theme.palette.primary.contrastText
-    },
-    '& .MuiCheckbox-root': {
-      padding: 0,
-      color: outline
-    },
-    '& .MuiCheckbox-root.Mui-checked': {
-      color: theme.palette.primary.main
-    }
+    '&:hover': { backgroundColor: theme.palette.primary.contrastText },
+    '&.Mui-selected': { borderColor: `${theme.palette.primary.main} !important` },
+    '& .MuiCheckbox-root': { padding: 0, color: outline },
+    '& .MuiCheckbox-root.Mui-checked': { color: theme.palette.primary.main }
   }
 }
 
@@ -195,21 +136,15 @@ const getSectionTitleStyles = theme => ({
   fontFamily: 'Inter',
   fontWeight: 500,
   fontSize: '20px',
-  lineHeight: 1,
-  letterSpacing: 0,
   color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
 })
-
 const getFirstColumnTextStyles = theme => ({
   fontFamily: 'Inter',
   fontWeight: 500,
   fontSize: '16px',
-  lineHeight: 1,
-  letterSpacing: 0,
   color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
 })
-
-const getChipStyles = theme => ({
+const getChipStyles = theme => theme => ({
   width: '174px',
   minWidth: '174px',
   height: '48px',
@@ -223,57 +158,104 @@ const getChipStyles = theme => ({
   fontFamily: 'Inter',
   fontWeight: 500,
   fontSize: '16px',
-  letterSpacing: 0,
   color: theme.palette.primary.dark || theme.palette.primary.main,
-  '& .MuiChip-label': {
-    paddingInline: 0,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap'
-  },
-  '& .MuiChip-deleteIcon': {
-    width: '16px',
-    height: '16px',
-    fontSize: '16px',
-    color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary,
-    marginLeft: '8px'
-  }
+  '& .MuiChip-label': { paddingInline: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
 })
 
-const AnesthesiaSetUpSection = () => {
-  const { watch, setValue } = useFormContext()
+const uiKeyForField = (sectionStringId, apiFieldKey) => {
+  const camel = apiFieldKey.replace(/_([a-z])/g, g => g[1].toUpperCase())
+  const mapping = {
+    fluids: { fluid_type: 'fluidType', fluid_quantity: 'quantity', quantity: 'quantity' },
+    catheter_setup: { catheter_type: 'method' },
+    syringe_pump: { syringe_rate: 'rate' },
+    et_intubation: { et_tube: 'tubeSizes' },
+    nasal_intubation: { nasal_tube: 'tubeSizes' },
+    ventilation: { ventilation_mode: 'mode' }
+  }
+  return (mapping[sectionStringId] && mapping[sectionStringId][apiFieldKey]) || camel
+}
 
+const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
+  const {
+    watch,
+    setValue,
+    formState: { errors }
+  } = useFormContext()
   const theme = useTheme()
+  const router = useRouter()
+  const { id, animal_id } = router.query
+
   const textFieldStyles = useMemo(() => getTextFieldStyles(theme), [theme])
   const radioTileButtonStyles = useMemo(() => getRadioTileButtonStyles(theme), [theme])
   const monitoringToggleButtonStyles = useMemo(() => getMonitoringToggleButtonStyles(theme), [theme])
-  const sectionTitleStyles = useMemo(() => getSectionTitleStyles(theme), [theme])
   const firstColumnTextStyles = useMemo(() => getFirstColumnTextStyles(theme), [theme])
-  const chipStyles = useMemo(() => getChipStyles(theme), [theme])
+  const chipStyles = useMemo(() => getChipStyles(theme)(theme), [theme])
   const outlineColor = theme.palette.customColors?.OutlineVariant || theme.palette.divider
   const borderMutedColor = theme.palette.customColors?.customTableBorderBg || outlineColor
   const selectedBackground = theme.palette.customColors?.displaybgPrimary || alpha(theme.palette.primary.main, 0.12)
   const unselectedBackground = theme.palette.customColors?.bodyBg || theme.palette.background.default
   const displayBgSecondary = theme.palette.customColors?.displaybgSecondary || alpha(theme.palette.primary.main, 0.06)
   const onSurface = theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
-  const neutralSecondary = theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
   const contrastText = theme.palette.primary.contrastText
   const primaryMain = theme.palette.primary.main
   const primaryDark = theme.palette.primary.dark || theme.palette.primary.main
 
   const [newMonitoringItem, setNewMonitoringItem] = useState('')
 
-  const fluids = watch('anesthesiaSetup.fluids')
-  const catheterSetup = watch('anesthesiaSetup.catheterSetup')
-  const syringePump = watch('anesthesiaSetup.syringePump')
-  const etIntubation = watch('anesthesiaSetup.etIntubation')
-  const nasalIntubation = watch('anesthesiaSetup.nasalIntubation')
-  const ventilation = watch('anesthesiaSetup.ventilation')
-  const monitoring = watch('anesthesiaSetup.monitoring')
+  const rows = (anesthesiaSetupList || []).map(section => ({
+    key: section.string_id,
+    label: section.section_name,
+    meta: section
+  }))
 
   const toggleRowChecked = key => {
     const current = watch(`anesthesiaSetup.${key}.checked`)
-    setValue(`anesthesiaSetup.${key}.checked`, !current, { shouldDirty: true })
+    const newVal = !current
+    setValue(`anesthesiaSetup.${key}.checked`, newVal, { shouldDirty: true })
+
+    // if enabling, prefill values from API meta (if provided)
+    if (newVal) {
+      const meta = (anesthesiaSetupList || []).find(s => s.string_id === key)
+      if (!meta) return
+
+      const initialFlat = {}
+      const initialFieldsObject = {}
+
+      if (Array.isArray(meta.fields)) {
+        meta.fields.forEach(f => {
+          const uiKey = uiKeyForField(meta.string_id, f.field_key)
+          const fieldValue = f.field_value ?? ''
+          const unit = f.unit ?? ''
+          initialFlat[uiKey] = fieldValue
+          initialFieldsObject[f.field_key] = { field_value: fieldValue, unit }
+        })
+
+        setValue(
+          `anesthesiaSetup.${key}`,
+          {
+            ...(watch(`anesthesiaSetup.${key}`) || {}),
+            ...initialFlat,
+            fields: initialFieldsObject,
+            checked: true
+          },
+          { shouldDirty: true }
+        )
+      }
+
+      if (meta.monitoring_items) {
+        const selectedArr = meta.monitoring_items
+          .filter(mi => mi.is_selected === '1' || mi.is_selected === 1)
+          .map(mi => Number(mi.id))
+        const customArr = meta.monitoring_items
+          .filter(mi => !(mi.is_selected === '1' || mi.is_selected === 1))
+          .map(mi => mi.name)
+        setValue(
+          `anesthesiaSetup.${key}.monitoring`,
+          { selected: selectedArr, otherItems: customArr },
+          { shouldDirty: true }
+        )
+      }
+    }
   }
 
   const handleCheckboxToggle = key => event => {
@@ -281,401 +263,253 @@ const AnesthesiaSetUpSection = () => {
     setValue(`anesthesiaSetup.${key}.checked`, event.target.checked, { shouldDirty: true })
   }
 
-  const handleFieldChange = (section, field) => event => {
-    setValue(`anesthesiaSetup.${section}.${field}`, event.target.value, { shouldDirty: true, shouldValidate: false })
-  }
-
-  const isValidNumericValue = value => /^(\d+(\.\d*)?)?$/.test(value)
-
-  const handleNumericFieldChange = (section, field) => event => {
-    const nextValue = event.target.value
-    if (!isValidNumericValue(nextValue)) {
-      return
-    }
-
-    setValue(`anesthesiaSetup.${section}.${field}`, nextValue, { shouldDirty: true, shouldValidate: false })
-  }
-
-  const handleExclusiveToggle = (section, field) => (_, newValue) => {
-    setValue(`anesthesiaSetup.${section}.${field}`, newValue ?? '', { shouldDirty: true })
-  }
-
-  const handleMonitoringToggle = (_, newValues) => {
-    setValue('anesthesiaSetup.monitoring.selected', newValues, { shouldDirty: true })
-  }
-
-  const handleAddOtherItem = () => {
+  const handleAddOtherItem = section => {
     const v = newMonitoringItem.trim()
     if (!v) return
-    const list = monitoring?.otherItems || []
+    const list = watch(`anesthesiaSetup.${section}.monitoring.otherItems`) || []
     if (!list.includes(v)) {
-      setValue('anesthesiaSetup.monitoring.otherItems', [...list, v], { shouldDirty: true })
+      setValue(`anesthesiaSetup.${section}.monitoring.otherItems`, [...list, v], { shouldDirty: true })
     }
     setNewMonitoringItem('')
   }
 
-  const handleRemoveOtherItem = itemToRemove => {
-    const list = monitoring?.otherItems || []
+  const handleRemoveOtherItem = (section, itemToRemove) => {
+    const list = watch(`anesthesiaSetup.${section}.monitoring.otherItems`) || []
     setValue(
-      'anesthesiaSetup.monitoring.otherItems',
+      `anesthesiaSetup.${section}.monitoring.otherItems`,
       list.filter(i => i !== itemToRemove),
       { shouldDirty: true }
     )
   }
 
-  const handleNewItemKeyDown = e => {
+  const handleNewItemKeyDown = (e, section) => {
     if (e.key === 'Enter') {
       e.preventDefault()
-      handleAddOtherItem()
+      handleAddOtherItem(section)
     }
   }
 
-  const rows = [
-    { key: 'fluids', label: 'Fluids' },
-    { key: 'catheterSetup', label: 'Catheter set-up' },
-    { key: 'syringePump', label: 'Syringe pump' },
-    { key: 'etIntubation', label: 'ET intubation' },
-    { key: 'nasalIntubation', label: 'Nasal Intubation' },
-    { key: 'ventilation', label: 'Ventilation' },
-    { key: 'monitoring', label: 'Monitoring' }
-  ]
+  const renderRowContent = sectionMeta => {
+    const key = sectionMeta.string_id
+    const fields = sectionMeta.fields || []
 
-  const renderRowContent = key => {
-    switch (key) {
-      case 'fluids':
-        return (
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label='Fluid Type'
-                placeholder='Enter'
-                value={fluids?.fluidType || ''}
-                onChange={handleFieldChange('fluids', 'fluidType')}
-                InputLabelProps={{ shrink: true }}
-                sx={textFieldStyles}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label='Quantity'
-                placeholder='Enter'
-                value={fluids?.quantity || ''}
-                onChange={handleNumericFieldChange('fluids', 'quantity')}
-                type='number'
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                  inputMode: 'decimal',
-                  pattern: '[0-9]*',
-                  min: 0,
-                  endAdornment: (
-                    <InputAdornment position='end'>
-                      <Typography sx={{ ...firstColumnTextStyles, fontSize: '14px' }}>ml / hr</Typography>
-                    </InputAdornment>
-                  )
-                }}
-                sx={textFieldStyles}
-              />
-            </Grid>
-          </Grid>
-        )
-      case 'catheterSetup':
-        return (
-          <ToggleButtonGroup
-            exclusive
-            value={catheterSetup?.method || ''}
-            onChange={handleExclusiveToggle('catheterSetup', 'method')}
-            sx={radioTileGroupStyles}
-          >
-            {catheterOptions.map(option => {
-              const isSelected = catheterSetup?.method === option
+    if (fields.length > 0) {
+      return (
+        <Grid container spacing={3}>
+          {fields.map(f => {
+            const uiKey = uiKeyForField(sectionMeta.string_id, f.field_key)
+            const flatValue = watch(`anesthesiaSetup.${key}.${uiKey}`) ?? ''
+            const fieldError = errors?.anesthesiaSetup?.[key]?.[uiKey]
+
+            if (f.input_type === 'text') {
               return (
-                <ToggleButton key={option} value={option} sx={radioTileButtonStyles}>
-                  <Typography component='span' sx={radioTileLabelStyles}>
-                    {option}
-                  </Typography>
-                  <Radio
-                    checked={isSelected}
-                    disableRipple
-                    inputProps={{ readOnly: true }}
-                    sx={{
-                      pointerEvents: 'none',
-                      color: outlineColor,
-                      '&.Mui-checked': {
-                        color: primaryMain
-                      }
-                    }}
+                <Grid item xs={12} md={6} key={f.field_id}>
+                  <TextField
+                    fullWidth
+                    label={f.field_label}
+                    placeholder='Enter'
+                    value={flatValue}
+                    onChange={e => setValue(`anesthesiaSetup.${key}.${uiKey}`, e.target.value, { shouldDirty: true })}
+                    InputLabelProps={{ shrink: true }}
+                    sx={textFieldStyles}
+                    error={!!fieldError}
+                    helperText={fieldError?.message || ''}
                   />
-                </ToggleButton>
+                </Grid>
               )
-            })}
-          </ToggleButtonGroup>
-        )
-      case 'syringePump':
-        return (
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label='Rate'
-                placeholder='Enter'
-                value={syringePump?.rate || ''}
-                onChange={handleNumericFieldChange('syringePump', 'rate')}
-                type='number'
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                  inputMode: 'decimal',
-                  pattern: '[0-9]*',
-                  min: 0,
-                  endAdornment: (
-                    <InputAdornment position='end'>
-                      <Typography sx={{ ...firstColumnTextStyles, fontSize: '14px' }}>ml / hr</Typography>
-                    </InputAdornment>
-                  )
-                }}
-                sx={textFieldStyles}
-              />
-            </Grid>
-          </Grid>
-        )
-      case 'etIntubation':
-        return (
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6} sx={{ width: '270px' }}>
-              <TextField
-                fullWidth
-                label='Tube Size(s)'
-                placeholder='Enter'
-                value={etIntubation?.tubeSizes || ''}
-                onChange={handleNumericFieldChange('etIntubation', 'tubeSizes')}
-                type='number'
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                  inputMode: 'decimal',
-                  pattern: '[0-9]*',
-                  min: 0,
-                  endAdornment: (
-                    <InputAdornment position='end'>
-                      <Typography sx={{ ...firstColumnTextStyles, fontSize: '14px' }}>mm</Typography>
-                    </InputAdornment>
-                  )
-                }}
-                sx={textFieldStyles}
-              />
-            </Grid>
-          </Grid>
-        )
-      case 'nasalIntubation':
-        return (
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label='Fluid Type'
-                placeholder='Enter'
-                value={nasalIntubation?.fluidType || ''}
-                onChange={handleFieldChange('nasalIntubation', 'fluidType')}
-                InputLabelProps={{ shrink: true }}
-                sx={textFieldStyles}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label='Quantity'
-                placeholder='Enter'
-                value={nasalIntubation?.quantity || ''}
-                onChange={handleNumericFieldChange('nasalIntubation', 'quantity')}
-                type='number'
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                  inputMode: 'decimal',
-                  pattern: '[0-9]*',
-                  min: 0,
-                  endAdornment: (
-                    <InputAdornment position='end'>
-                      <Typography sx={{ ...firstColumnTextStyles, fontSize: '14px' }}>ml / hr</Typography>
-                    </InputAdornment>
-                  )
-                }}
-                sx={textFieldStyles}
-              />
-            </Grid>
-          </Grid>
-        )
-      case 'ventilation':
-        return (
-          <ToggleButtonGroup
-            exclusive
-            value={ventilation?.mode || ''}
-            onChange={handleExclusiveToggle('ventilation', 'mode')}
-            sx={radioTileGroupStyles}
-          >
-            {ventilationOptions.map(option => {
-              const isSelected = ventilation?.mode === option
+            }
+
+            if (f.input_type === 'number') {
               return (
-                <ToggleButton key={option} value={option} sx={radioTileButtonStyles}>
-                  <Typography component='span' sx={radioTileLabelStyles}>
-                    {option}
-                  </Typography>
-                  <Radio
-                    checked={isSelected}
-                    disableRipple
-                    inputProps={{ readOnly: true }}
-                    sx={{
-                      pointerEvents: 'none',
-                      color: outlineColor,
-                      '&.Mui-checked': {
-                        color: primaryMain
-                      }
+                <Grid item xs={12} md={6} key={f.field_id}>
+                  <TextField
+                    fullWidth
+                    label={f.field_label}
+                    placeholder='Enter'
+                    value={flatValue}
+                    onChange={e => setValue(`anesthesiaSetup.${key}.${uiKey}`, e.target.value, { shouldDirty: true })}
+                    type='number'
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      inputMode: 'decimal',
+                      pattern: '[0-9]*',
+                      min: 0,
+                      endAdornment:
+                        f.units && f.units.length > 0 ? (
+                          <InputAdornment position='end'>
+                            <Typography sx={{ fontSize: '14px' }}>{f.units[0]}</Typography>
+                          </InputAdornment>
+                        ) : null
                     }}
+                    sx={textFieldStyles}
+                    error={!!fieldError}
+                    helperText={fieldError?.message || ''}
                   />
-                </ToggleButton>
+                </Grid>
               )
-            })}
-          </ToggleButtonGroup>
-        )
-      case 'monitoring':
-        return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <ToggleButtonGroup
-              value={monitoring?.selected || []}
-              onChange={handleMonitoringToggle}
-              sx={monitoringToggleGroupStyles}
-            >
-              {monitoringOptions.map(option => {
-                const isSelected = (monitoring?.selected || []).includes(option)
-                return (
-                  <ToggleButton key={option} value={option} sx={monitoringToggleButtonStyles}>
-                    <Typography component='span' sx={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '16px' }}>
-                      {option}
+            }
+
+            if (f.input_type === 'radio') {
+              return (
+                <Grid item xs={12} key={f.field_id}>
+                  <ToggleButtonGroup
+                    exclusive
+                    value={flatValue || ''}
+                    onChange={(e, v) => setValue(`anesthesiaSetup.${key}.${uiKey}`, v ?? '', { shouldDirty: true })}
+                    sx={radioTileGroupStyles}
+                  >
+                    {f.options.map(opt => (
+                      <ToggleButton key={opt} value={opt} sx={radioTileButtonStyles}>
+                        <Typography component='span' sx={radioTileLabelStyles}>
+                          {opt}
+                        </Typography>
+                        <Radio
+                          checked={flatValue === opt}
+                          disableRipple
+                          inputProps={{ readOnly: true }}
+                          sx={{ pointerEvents: 'none' }}
+                        />
+                      </ToggleButton>
+                    ))}
+                  </ToggleButtonGroup>
+                  {fieldError?.message && (
+                    <Typography sx={{ mt: 0.5, fontSize: 12, color: theme.palette.error.main }}>
+                      {fieldError.message}
                     </Typography>
-                    <Checkbox
-                      checked={isSelected}
-                      disableRipple
-                      inputProps={{ readOnly: true }}
-                      sx={{ pointerEvents: 'none' }}
-                    />
-                  </ToggleButton>
-                )
-              })}
-            </ToggleButtonGroup>
-
-            {monitoring?.otherItems?.length > 0 && (
-              <Box>
-                <Typography sx={{ ...firstColumnTextStyles, mb: '10px' }}>Other Monitoring Items Added</Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '12px', mt: '10px', mb: '10px' }}>
-                  {monitoring.otherItems.map(item => (
-                    <Tooltip key={item} title={item} arrow placement='top'>
-                      <Chip
-                        label={item}
-                        onDelete={() => handleRemoveOtherItem(item)}
-                        deleteIcon={<CloseRoundedIcon />}
-                        sx={chipStyles}
-                      />
-                    </Tooltip>
-                  ))}
-                </Box>
-              </Box>
-            )}
-
-            <Box
-              sx={{
-                width: '430px',
-                height: '115px',
-                gap: '10px',
-                borderRadius: '8px',
-                padding: '16px',
-                border: `0.5px solid ${outlineColor}`,
-                backgroundColor: displayBgSecondary,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between'
-              }}
-            >
-              <Typography
-                sx={{
-                  fontFamily: 'Inter',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  lineHeight: 1,
-                  letterSpacing: 0,
-                  color: onSurface
-                }}
-              >
-                Add New Other Item
-              </Typography>
-              <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  )}
+                </Grid>
+              )
+            }
+            return (
+              <Grid item xs={12} md={6} key={f.field_id}>
                 <TextField
                   fullWidth
-                  placeholder='New Monitoring'
-                  value={newMonitoringItem}
-                  onChange={e => setNewMonitoringItem(e.target.value)}
-                  onKeyDown={handleNewItemKeyDown}
-                  sx={{
-                    ...textFieldStyles,
-                    '& .MuiInputBase-input': {
-                      fontFamily: 'Inter',
-                      fontWeight: 400,
-                      fontSize: '16px',
-                      lineHeight: 1,
-                      letterSpacing: 0,
-                      color: onSurface
-                    },
-                    '& .MuiInputBase-input::placeholder': {
-                      color: onSurface,
-                      opacity: 1,
-                      fontWeight: 400
-                    }
-                  }}
+                  label={f.field_label}
+                  placeholder='Enter'
+                  value={flatValue}
+                  onChange={e => setValue(`anesthesiaSetup.${key}.${uiKey}`, e.target.value, { shouldDirty: true })}
+                  InputLabelProps={{ shrink: true }}
+                  sx={textFieldStyles}
+                  error={!!fieldError}
+                  helperText={fieldError?.message || ''}
                 />
-                <Button
-                  variant='contained'
-                  onClick={handleAddOtherItem}
-                  disabled={!newMonitoringItem.trim()}
-                  sx={{
-                    width: '108px',
-                    height: '56px',
-                    borderRadius: '4px',
-                    padding: '9px 16px',
-                    fontFamily: 'Inter',
-                    fontWeight: 600,
-                    fontSize: '16px',
-                    lineHeight: 1,
-                    letterSpacing: 0,
-                    textTransform: 'none',
-                    backgroundColor: newMonitoringItem.trim() ? primaryDark : outlineColor,
-                    color: contrastText,
-                    '&:hover': {
-                      backgroundColor: newMonitoringItem.trim() ? primaryMain : outlineColor
-                    }
-                  }}
-                >
-                  ADD
-                </Button>
+              </Grid>
+            )
+          })}
+        </Grid>
+      )
+    }
+
+    if (Array.isArray(sectionMeta.monitoring_items) && sectionMeta.monitoring_items.length > 0) {
+      const monitoringState = watch(`anesthesiaSetup.${key}.monitoring`) || { selected: [], otherItems: [] }
+      const items = sectionMeta.monitoring_items.map(mi => ({ id: Number(mi.id), name: mi.name }))
+      const monitoringError = errors?.anesthesiaSetup?.[key]?.monitoring
+
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <ToggleButtonGroup
+            value={monitoringState.selected || []}
+            onChange={(e, newValues) =>
+              setValue(`anesthesiaSetup.${key}.monitoring.selected`, newValues || [], { shouldDirty: true })
+            }
+            sx={monitoringToggleGroupStyles}
+          >
+            {items.map(option => {
+              const isSelected = (monitoringState.selected || []).includes(option.id)
+              return (
+                <ToggleButton key={option.id} value={option.id} sx={monitoringToggleButtonStyles}>
+                  <Typography component='span' sx={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '16px' }}>
+                    {option.name}
+                  </Typography>
+                  <Checkbox
+                    checked={isSelected}
+                    disableRipple
+                    inputProps={{ readOnly: true }}
+                    sx={{ pointerEvents: 'none' }}
+                  />
+                </ToggleButton>
+              )
+            })}
+          </ToggleButtonGroup>
+          {monitoringError?.message && (
+            <Typography sx={{ mt: 0.5, fontSize: 12, color: theme.palette.error.main }}>
+              {monitoringError.message}
+            </Typography>
+          )}
+
+          {monitoringState.otherItems && monitoringState.otherItems.length > 0 && (
+            <Box>
+              <Typography sx={{ ...firstColumnTextStyles, mb: '10px' }}>Other Monitoring Items Added</Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '12px', mt: '10px', mb: '10px' }}>
+                {monitoringState.otherItems.map(item => (
+                  <Tooltip key={item} title={item} arrow placement='top'>
+                    <Chip
+                      label={item}
+                      onDelete={() => handleRemoveOtherItem(key, item)}
+                      deleteIcon={<CloseRoundedIcon />}
+                      sx={chipStyles}
+                    />
+                  </Tooltip>
+                ))}
               </Box>
             </Box>
+          )}
+
+          <Box
+            sx={{
+              width: '430px',
+              height: '115px',
+              gap: '10px',
+              borderRadius: '8px',
+              padding: '16px',
+              border: `0.5px solid ${outlineColor}`,
+              backgroundColor: displayBgSecondary,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Typography sx={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '14px', color: onSurface }}>
+              Add New Other Item
+            </Typography>
+            <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <TextField
+                fullWidth
+                placeholder='New Monitoring'
+                value={newMonitoringItem}
+                onChange={e => setNewMonitoringItem(e.target.value)}
+                onKeyDown={e => handleNewItemKeyDown(e, key)}
+                sx={{ ...textFieldStyles, '& .MuiInputBase-input': { color: onSurface } }}
+              />
+              <Button
+                variant='contained'
+                onClick={() => handleAddOtherItem(key)}
+                disabled={!newMonitoringItem.trim()}
+                sx={{
+                  width: '108px',
+                  height: '56px',
+                  borderRadius: '4px',
+                  backgroundColor: newMonitoringItem.trim() ? primaryDark : outlineColor,
+                  color: contrastText,
+                  '&:hover': { backgroundColor: newMonitoringItem.trim() ? primaryMain : outlineColor }
+                }}
+              >
+                ADD
+              </Button>
+            </Box>
           </Box>
-        )
-      default:
-        return null
+        </Box>
+      )
     }
+
+    return null
   }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-        {[
-          { key: 'fluids', label: 'Fluids' },
-          { key: 'catheterSetup', label: 'Catheter set-up' },
-          { key: 'syringePump', label: 'Syringe pump' },
-          { key: 'etIntubation', label: 'ET intubation' },
-          { key: 'nasalIntubation', label: 'Nasal Intubation' },
-          { key: 'ventilation', label: 'Ventilation' },
-          { key: 'monitoring', label: 'Monitoring' }
-        ].map(({ key, label }) => {
-          const checked = watch(`anesthesiaSetup.${key}.checked`)
+        {rows.map(({ key, label, meta }) => {
+          const checked = !!watch(`anesthesiaSetup.${key}.checked`)
           const backgroundColor = checked ? selectedBackground : unselectedBackground
           const borderColor = checked ? outlineColor : borderMutedColor
 
@@ -705,8 +539,7 @@ const AnesthesiaSetUpSection = () => {
                   maxWidth: { md: '240px' },
                   flexBasis: { md: '240px' },
                   flexShrink: 0,
-                  cursor: 'pointer',
-                  transition: 'max-width 0.24s ease, flex-basis 0.24s ease, width 0.24s ease'
+                  cursor: 'pointer'
                 }}
                 role='button'
                 tabIndex={0}
@@ -728,21 +561,10 @@ const AnesthesiaSetUpSection = () => {
                     width: '24px',
                     height: '24px',
                     color: primaryMain,
-                    '&.Mui-checked': {
-                      color: primaryMain
-                    }
+                    '&.Mui-checked': { color: primaryMain }
                   }}
                 />
-                <Typography
-                  sx={{
-                    fontFamily: 'Inter',
-                    fontWeight: 500,
-                    fontSize: '16px',
-                    lineHeight: 1,
-                    letterSpacing: 0,
-                    color: '#44544A'
-                  }}
-                >
+                <Typography sx={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '16px', color: '#44544A' }}>
                   {label}
                 </Typography>
               </Box>
@@ -760,7 +582,7 @@ const AnesthesiaSetUpSection = () => {
                 }}
                 aria-hidden={!checked}
               >
-                {checked && <Box sx={{ width: '100%' }}>{renderRowContent(key)}</Box>}
+                {checked && <Box sx={{ width: '100%' }}>{renderRowContent(meta)}</Box>}
               </Box>
             </Box>
           )
