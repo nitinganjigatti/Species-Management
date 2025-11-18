@@ -527,6 +527,7 @@ export default function AddMedicineToPrescription() {
       const payload = {
         medical_record_id: medical_record_id,
         request_from: 'hospital',
+        hospital_case_id: id,
         data: JSON.stringify([
           {
             id: temporarilySelectedMedicine?.id, // Prescription id

@@ -450,27 +450,34 @@ const PrescriptionMonitoringGrid = ({
 
   // On initial load, scroll current hour's slot flush right in container
   useEffect(() => {
-    if (!didInitialScroll) {
-      const currentHour24 = currentTime.getHours()
-      const currentHourLabel = getLabelForHour(currentHour24)
-      const currentHourElement = hourRefs.current[currentHourLabel]
-      const scrollContainer = scrollContainerRef.current
+    if (!didInitialScroll && displayMetrics.length > 0) {
+      const scrollToCurrentTime = () => {
+        const currentHour24 = currentTime.getHours()
+        const currentHourLabel = getLabelForHour(currentHour24)
+        const currentHourElement = hourRefs.current[currentHourLabel]
+        const scrollContainer = scrollContainerRef.current
 
-      if (currentHourElement && scrollContainer) {
-        const elOffsetLeft = currentHourElement.offsetLeft
-        const elWidth = currentHourElement.offsetWidth
-        const containerWidth = scrollContainer.clientWidth
-        let scrollLeftPos = elOffsetLeft + elWidth - containerWidth
-        if (scrollLeftPos < 0) scrollLeftPos = 0
+        if (currentHourElement && scrollContainer) {
+          const elOffsetLeft = currentHourElement.offsetLeft
+          const elWidth = currentHourElement.offsetWidth
+          const containerWidth = scrollContainer.clientWidth
+          let scrollLeftPos = elOffsetLeft + elWidth - containerWidth
+          if (scrollLeftPos < 0) scrollLeftPos = 0
 
-        scrollContainer.scrollTo({
-          left: scrollLeftPos,
-          behavior: 'smooth'
-        })
+          scrollContainer.scrollTo({
+            left: scrollLeftPos,
+            behavior: 'smooth'
+          })
+          setDidInitialScroll(true)
+        }
       }
-      setDidInitialScroll(true)
+
+      // Use setTimeout to ensure DOM is fully rendered
+      const timer = setTimeout(scrollToCurrentTime, 100)
+
+      return () => clearTimeout(timer)
     }
-  }, [didInitialScroll, currentTime])
+  }, [didInitialScroll, currentTime, displayMetrics]) // Added displayMetrics to dependencies
 
   // const allSchedules = defaultMetrics.flatMap(metric => metric.schedule)
 
