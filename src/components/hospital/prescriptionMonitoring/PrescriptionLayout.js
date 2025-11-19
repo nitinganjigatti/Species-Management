@@ -11,6 +11,7 @@ import {
   administerAllMedicines,
   administerDose,
   administerPrescription,
+  directAdministerForPatSlot,
   getDates,
   getMedicineBatches,
   getPrescriptionDetails,
@@ -381,17 +382,23 @@ function PrescriptionLayout({ drawerType }) {
     if (hospital?.id) getPrescriptionList()
   }, [hospital?.id, selectedDate, isCurrentMedicalRecord])
 
-  const handleAdministerSubmit = formData => {
+  function toISTISOString(date) {
+    if (!date) return ''
+
+    return moment(date).utcOffset('+05:30').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+  }
+
+  const handleAdministerSubmit = async formData => {
     console.log('Administer Medicine Form Submitted:', formData)
     try {
       const payload = {
-        record_date: '',
+        record_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
         animal_id: JSON.stringify([animal_id]),
         created_for: 'DIRECT_ADMINISTER',
-        prescription: [
+        prescription: JSON.stringify([
           {
-            start_date: '2025-10-09T05:28:34.964Z',
-            end_date: '2025-10-09T05:28:34.964Z',
+            start_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
+            end_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
             schedule_doses: [
               {
                 id: '',
@@ -403,7 +410,7 @@ function PrescriptionLayout({ drawerType }) {
               }
             ]
           }
-        ],
+        ]),
         request_from: 'hospital_module',
         medical_record_id: medical_record_id,
         is_unscheduled: 1,
@@ -413,11 +420,13 @@ function PrescriptionLayout({ drawerType }) {
         case_type: 1
       }
 
-      // administerMedicine(payload)
-      // getPrescriptionList()
-      //   if (prescriptionCardOpen) {
-      //     getDetails()
-      //   }
+      const response = await directAdministerForPatSlot(payload)
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message })
+        getPrescriptionList()
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
     } catch (error) {
       console.error('Error:', error)
     } finally {
@@ -441,7 +450,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleScheduleSubmit = async formData => {
-    console.log('Administer Medicine Form Submitted:', formData)
     setIsAddNewDosageLoading(true)
     try {
       const payload = {
@@ -457,7 +465,7 @@ function PrescriptionLayout({ drawerType }) {
           quantity: item?.dosageQuantity,
           unit_id: fetchUnit(item?.dosageUnit)?.id
         })),
-        apply_dosage: formData?.apply_dosage === 'till_end' ? 'till_prescription_ends' : 'only_for_this_day'
+        apply_dosage: formData?.apply_dosage
       }
 
       const response = await schedulePrescription(payload)
@@ -479,7 +487,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleAddDosageSubmit = async formData => {
-    console.log('Administer Medicine Form Submitted:', formData)
 
     try {
       setIsAddNewDosageLoading(true)
@@ -497,7 +504,7 @@ function PrescriptionLayout({ drawerType }) {
           quantity: item?.dosageQuantity,
           unit_id: fetchUnit(item?.dosageUnit)?.id
         })),
-        apply_dosage: formData?.apply_dosage === 'till_end' ? 'till_prescription_ends' : 'only_for_this_day'
+        apply_dosage: formData?.apply_dosage
       }
 
       const response = await schedulePrescription(payload)
@@ -873,6 +880,7 @@ function PrescriptionLayout({ drawerType }) {
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
+
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -947,6 +955,7 @@ function PrescriptionLayout({ drawerType }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
+
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {

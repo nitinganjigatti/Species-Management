@@ -37,14 +37,14 @@ const MedicationTimeCard = ({ time, dosage, amount, checked = false, onChange = 
       {/* Middle Section - Dosage Info */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}>
-          <Typography
+          {/* <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '14px'
             }}
           >
             {dosage}
-          </Typography>
+          </Typography> */}
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,

@@ -2,6 +2,20 @@ import React from 'react'
 import { Box, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 
+// Helper function to format time from "12 AM" to "12:00 AM"
+const formatScheduledTime = (timeStr) => {
+  if (!timeStr) return ''
+  
+  // Split the time string (e.g., "12 AM" -> ["12", "AM"])
+  const parts = timeStr.split(' ')
+  if (parts.length !== 2) return timeStr
+  
+  const [hour, period] = parts
+  
+  // Add ":00" to the hour part
+  return `${hour}:00 ${period}`
+}
+
 const TimeSlotCell = ({ hasSchedule, status, scheduledTime, dosage, onClick, config, theme }) => (
   <>
     {hasSchedule ? (
@@ -29,7 +43,7 @@ const TimeSlotCell = ({ hasSchedule, status, scheduledTime, dosage, onClick, con
                 color: config?.color
               }}
             >
-              {status}
+              {status ? status.charAt(0).toUpperCase() + status.slice(1) : ''}
             </Typography>
             <Typography
               sx={{
@@ -43,7 +57,7 @@ const TimeSlotCell = ({ hasSchedule, status, scheduledTime, dosage, onClick, con
               }}
               variant='caption'
             >
-              {scheduledTime}
+              {formatScheduledTime(scheduledTime)}
             </Typography>
           </Box>
         )}

@@ -183,6 +183,7 @@ const ClinicalAssessment = () => {
           page_no: pageNum,
           limit: PAGE_SIZE,
           animal_id: animal_id || '',
+          hospital_case_id: id || '',
           q: search,
           medical_record_id: currentRecordOnly && medical_record_id ? medical_record_id : ''
         })

@@ -108,7 +108,7 @@ const DosageHeader = styled(Box)(({ theme, variant }) => ({
   backgroundColor:
     variant === 'administered'
       ? theme.palette.customColors.OnBackground
-      : variant === 'skipped'
+      : variant === 'withheld'
       ? theme.palette.customColors.neutral05
       : variant === 'stopped'
       ? theme.palette.customColors.Tertiary20
@@ -335,19 +335,23 @@ const MedicinePrescriptionCard = ({
 
   const renderDosageEntry = entry => (
     <DosageSection key={entry.id} variant={entry.variant}>
-      <DosageHeader variant={entry.variant}>
+      <DosageHeader variant={entry.status}>
         <Box sx={{ display: 'flex', padding: '0 16px', alignItems: 'center', gap: '4px', flex: '1 0 0' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {entry.variant === 'administered' ? (
-              <CheckCircleIcon sx={{ fontSize: '24px' }} color={'primary'} />
+              <CheckCircleIcon sx={{ fontSize: '18px' }} color={'primary'} />
             ) : (
               <DoDisturbIcon
-                sx={{ fontSize: '24px' }}
-                color={
-                  entry.status === 'stopped'
-                    ? theme.palette.customColors.Tertiary
-                    : theme.palette.customColors.neutralSecondary
-                }
+                sx={{
+                  fontSize: '18px',
+                  color:
+                    entry.status?.toLowerCase() === 'stopped'
+                      ? theme.palette.customColors.Tertiary
+                      : theme.palette.customColors.neutralSecondary,
+                  '& path': {
+                    strokeWidth: 1.5
+                  }
+                }}
               />
             )}
             <Box
@@ -355,7 +359,6 @@ const MedicinePrescriptionCard = ({
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
-                alignItems: 'center',
                 gap: '2px',
                 flex: '1 0 0'
               }}
@@ -366,7 +369,7 @@ const MedicinePrescriptionCard = ({
                   fontWeight: 600,
                   fontSize: '16px',
                   color:
-                    entry.variant === 'stopped'
+                    entry.status?.toLowerCase() === 'stopped'
                       ? theme.palette.customColors.OnTertiaryContainer
                       : theme.palette.common.black,
                   textDecoration: entry.isStrikethrough ? 'line-through' : 'none'
@@ -379,18 +382,20 @@ const MedicinePrescriptionCard = ({
                 sx={{
                   fontSize: '14px',
                   color:
-                    entry.variant === 'stopped'
+                    entry.status?.toLowerCase() === 'stopped'
                       ? theme.palette.customColors.OnTertiaryContainer
                       : theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                {entry.status}
+                {entry?.status?.toLowerCase() === 'withheld'
+                  ? 'Skipped'
+                  : entry.status?.charAt(0).toUpperCase() + entry.status?.slice(1)}
               </Typography>
             </Box>
           </Box>
         </Box>
         <Box sx={{ display: 'flex', paddingRight: '16px', alignItems: 'center', gap: '20px' }}>
-          <Typography
+          {/* <Typography
             variant='body2'
             sx={{
               fontSize: '14px',
@@ -399,7 +404,7 @@ const MedicinePrescriptionCard = ({
             }}
           >
             {entry.dosage}
-          </Typography>
+          </Typography> */}
           <Typography
             variant='body1'
             sx={{
@@ -895,7 +900,7 @@ const MedicinePrescriptionCard = ({
                       onClick={handleStopMedicine}
                       disabled={isDetailLoading}
                       sx={{
-                        color: theme.palette.customColors.OnTertiaryContainer,
+                        color: theme.palette.customColors.Tertiary,
                         fontSize: '16px',
                         fontWeight: 500,
                         justifyContent: 'left',

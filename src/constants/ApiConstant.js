@@ -805,6 +805,8 @@ export const SKIP_PRESCRIPTION = 'administer/manage/medicine'
 
 export const ADMINISTER_PRESCRIPTION = 'administer/manage/medicine'
 
+export const DIRECT_ADMINISTER_FOR_PAST_SLOT = 'administer/v2/create-direct-adminster-record'
+
 export const ADMINISTER_ALL_MEDICINES = 'administer/manage/medicine/selectAll'
 
 export const ADD_DIRECT_ADMINISTER_PRESCRIPTION = 'administer/v2/create-direct-adminster-record'

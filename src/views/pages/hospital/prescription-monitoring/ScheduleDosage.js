@@ -56,7 +56,7 @@ const ScheduleDosageSidesheet = ({
       )
       .min(1, 'At least one schedule time is required')
       .required('Schedules are required'),
-    applyDosage: yup.string().oneOf(['this_day', 'till_end'], 'Please select dosage application type')
+    applyDosage: yup.string().oneOf(['only_for_this_day', 'till_prescription_ends'], 'Please select dosage application type')
   })
 
   const defaultValues = {
@@ -68,7 +68,7 @@ const ScheduleDosageSidesheet = ({
         dosageWeights: ''
       }
     ],
-    applyDosage: 'this_day' // Set default value
+    applyDosage: 'till_prescription_ends'
   }
 
   const {
@@ -311,16 +311,16 @@ const ScheduleDosageSidesheet = ({
                     </Typography>
 
                     <Controller
-                      name='applyDosage'
+                      name='apply_dosage'
                       control={control}
-                      defaultValue='this_day'
+                      defaultValue='only_for_this_day'
                       render={({ field }) => (
                         <Grid container spacing={4}>
                           <Grid size={{ xs: 12 }}>
                             <TreatmentTypeRadioButtons
                               label='Only for this day'
-                              isSelected={field.value === 'this_day'}
-                              onClick={() => !submitLoader && field.onChange('this_day')}
+                              isSelected={field.value === 'only_for_this_day'}
+                              onClick={() => !submitLoader && field.onChange('only_for_this_day')}
                               radioPosition='right'
                               selectedFontColor={theme.palette.customColors.OnSurfaceVariant}
                               textColor={theme.palette.customColors.Outline}
@@ -332,8 +332,8 @@ const ScheduleDosageSidesheet = ({
                           <Grid size={{ xs: 12 }}>
                             <TreatmentTypeRadioButtons
                               label='Till prescription ends'
-                              isSelected={field.value === 'till_end'}
-                              onClick={() => !submitLoader && field.onChange('till_end')}
+                              isSelected={field.value === 'till_prescription_ends'}
+                              onClick={() => !submitLoader && field.onChange('till_prescription_ends')}
                               radioPosition='right'
                               selectedFontColor={theme.palette.customColors.OnSurfaceVariant}
                               textColor={theme.palette.customColors.Outline}
