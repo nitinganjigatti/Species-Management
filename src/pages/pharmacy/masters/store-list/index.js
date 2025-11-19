@@ -46,6 +46,7 @@ import RenderUtility from 'src/utility/render'
 import DialogContentText from '@mui/material/DialogContentText'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { LoadingButton } from '@mui/lab'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const ListOfStores = () => {
   const theme = useTheme()
@@ -72,7 +73,6 @@ const ListOfStores = () => {
     message: ''
   })
 
-
   const addEventSidebarOpen = () => {
     setEditParams({ id: null, name: null, status: null })
     setResetForm(true)
@@ -98,7 +98,6 @@ const ListOfStores = () => {
     setTempPayload(null)
     setDeleteStore(false)
   }
-
 
   const columns = [
     {
@@ -488,8 +487,8 @@ const ListOfStores = () => {
                   sx={{
                     display: 'flex',
                     flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start', 
-                    alignItems: 'flex-start', 
+                    justifyContent: 'flex-start',
+                    alignItems: 'flex-start',
                     gap: { xs: 3, sm: 0 },
                     '& .MuiCardHeader-action': {
                       width: { xs: '100% ', sm: 'auto' }
@@ -505,7 +504,7 @@ const ListOfStores = () => {
                     ml: { md: 4 }
                   }}
                 >
-                  <Box
+                  {/* <Box
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -535,7 +534,19 @@ const ListOfStores = () => {
                         }
                       }}
                     />
-                  </Box>
+                  </Box> */}
+                  <MUISearch
+                    sx={{
+                      width: {
+                        xs: '100%',
+                        sm: '250px'
+                      }
+                    }}
+                    placeholder='Search...'
+                    onChange={e => handleSearch(e.target.value)}
+                    onClear={() => handleSearch('')}
+                    value={searchValue}
+                  />
                 </Grid>
                 <Grid
                   sx={{
@@ -791,7 +802,6 @@ const ListOfStores = () => {
                   </>
                 }
               />
-             
             </>
           )}
         </>

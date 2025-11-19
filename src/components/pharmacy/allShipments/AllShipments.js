@@ -24,6 +24,7 @@ import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const AllShipments = () => {
   const theme = useTheme()
@@ -287,62 +288,39 @@ const AllShipments = () => {
             // }}
             title={RenderUtility.pageTitle('All Shipments')}
           />
-          <Grid
-            item
-            sx={{
-              mx: { xs: 4 },
-              ml: { md: 4 }
-            }}
-          >
-            <Box
+          <Grid container>
+            <Grid
+              item
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-
-                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                borderRadius: '8px',
-                padding: '0 8px',
-                height: '40px',
-                width: {
-                  xs: '100%',
-                  sm: '250px'
-                }
+                px: 4
+              }}
+              size={{ xs: 12, sm: 6 }}
+            >
+              <MUISearch
+                sx={{ width: { xs: '100%', sm: '250px' } }}
+                onChange={e => handleSearch(e.target.value)}
+                onClear={() => handleSearch('')}
+                placeholder='Search...'
+                value={searchValue}
+              />
+            </Grid>
+            <Grid
+              sx={{
+                px: 4
               }}
             >
-              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-              <TextField
-                variant='outlined'
-                placeholder='Search...'
-                onChange={e => handleSearch(e.target.value)}
-                fullWidth
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    border: 'none',
-                    padding: '0',
-                    '& fieldset': {
-                      border: 'none'
-                    }
-                  }
-                }}
+              <CommonTable
+                onRowClick={onRowClick}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
               />
-            </Box>
-          </Grid>
-          <Grid
-            sx={{
-              mx: 4
-            }}
-          >
-            <CommonTable
-              onRowClick={onRowClick}
-              indexedRows={indexedRows}
-              total={total}
-              columns={columns}
-              paginationModel={paginationModel}
-              handleSortModel={handleSortModel}
-              setPaginationModel={setPaginationModel}
-              loading={loading}
-              searchValue={searchValue}
-            />
+            </Grid>
           </Grid>
         </Card>
       ) : (

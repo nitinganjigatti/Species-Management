@@ -31,6 +31,7 @@ import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import AllRequestedItemFilterDrawer from 'src/views/pages/pharmacy/reports/AllRequestedItemFilterDrawer'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const AllRequestedItemsReport = () => {
   const router = useRouter()
@@ -603,7 +604,7 @@ const AllRequestedItemsReport = () => {
                       }}
                     >
                       <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
-                        <TextField
+                        {/* <TextField
                           variant='outlined'
                           size='small'
                           placeholder='Search...'
@@ -626,6 +627,11 @@ const AllRequestedItemsReport = () => {
                               )
                             }
                           }}
+                        /> */}
+                        <MUISearch
+                          onChange={e => handleSearch(e.target.value)}
+                          onClear={() => handleSearch('')}
+                          value={searchValue}
                         />
                       </Grid>
 

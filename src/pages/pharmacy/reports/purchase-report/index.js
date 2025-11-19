@@ -33,6 +33,7 @@ import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const PurchaseReport = () => {
   const router = useRouter()
@@ -807,7 +808,7 @@ const PurchaseReport = () => {
                       }}
                     >
                       <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
-                        <TextField
+                        {/* <TextField
                           variant='outlined'
                           size='small'
                           placeholder='Search...'
@@ -830,6 +831,12 @@ const PurchaseReport = () => {
                               )
                             }
                           }}
+                        /> */}
+                        <MUISearch
+                          placeholder='Search...'
+                          value={searchValue}
+                          onChange={e => handleSearch(e.target.value)}
+                          onClear={() => handleSearch('')}
                         />
                       </Grid>
 

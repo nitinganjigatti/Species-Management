@@ -22,7 +22,6 @@ import { AddButton } from 'src/components/Buttons'
 
 import AddStates from 'src/views/pages/pharmacy/medicine/state/addState'
 
-
 import Error404 from 'src/pages/404'
 
 import { debounce } from 'lodash'
@@ -38,6 +37,7 @@ import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const ListOfStates = () => {
   const theme = useTheme()
@@ -375,7 +375,7 @@ const ListOfStates = () => {
                     ml: { md: 4 }
                   }}
                 >
-                  <Box
+                  {/* <Box
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -405,7 +405,19 @@ const ListOfStates = () => {
                         }
                       }}
                     />
-                  </Box>
+                  </Box> */}
+                  <MUISearch
+                    sx={{
+                      width: {
+                        xs: '100%',
+                        sm: '250px'
+                      }
+                    }}
+                    placeholder='Search...'
+                    onChange={e => handleSearch(e.target.value)}
+                    onClear={() => handleSearch('')}
+                    value={searchValue}
+                  />
                 </Grid>
 
                 <Grid sx={{ mx: 4 }}>

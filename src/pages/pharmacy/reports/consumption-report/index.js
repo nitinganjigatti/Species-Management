@@ -27,6 +27,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { format, subMonths } from 'date-fns'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const productTypes = [
   { id: 'allopathy', name: 'Allopathy' },
@@ -666,11 +667,15 @@ const ConsumptionReport = () => {
               </Grid>
 
               <Grid item size={{ xs: 12, sm: 7 }}>
-                <Grid container spacing={2} sx={{
-                  justifyContent: { xs: 'flex-end' }
-                }}>
+                <Grid
+                  container
+                  spacing={2}
+                  sx={{
+                    justifyContent: { xs: 'flex-end' }
+                  }}
+                >
                   <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
-                    <TextField
+                    {/* <TextField
                       variant='outlined'
                       size='small'
                       placeholder='Search...'
@@ -689,6 +694,11 @@ const ConsumptionReport = () => {
                           )
                         }
                       }}
+                    /> */}
+                    <MUISearch
+                      onChange={e => handleSearch(e.target.value)}
+                      onClear={() => handleSearch('')}
+                      value={searchValue}
                     />
                   </Grid>
 
@@ -754,7 +764,7 @@ const ConsumptionReport = () => {
         />
       )}
     </>
-  );
+  )
 }
 
 export default ConsumptionReport

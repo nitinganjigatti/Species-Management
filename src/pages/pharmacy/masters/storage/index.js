@@ -18,7 +18,6 @@ import { Box, Drawer, Grid, TextField } from '@mui/material'
 import Card from '@mui/material/Card'
 import IconButton from '@mui/material/IconButton'
 
-
 import { debounce } from 'lodash'
 
 import toast from 'react-hot-toast'
@@ -38,6 +37,7 @@ import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const StorageList = () => {
   const theme = useTheme()
@@ -87,7 +87,6 @@ const StorageList = () => {
     setEditParams({ id: id, name: name, active: active })
     setOpenDrawer(true)
   }
-
 
   const columns = [
     {
@@ -147,7 +146,6 @@ const StorageList = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-         
           {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -294,7 +292,7 @@ const StorageList = () => {
                     display: 'flex',
                     flexDirection: { xs: 'column', sm: 'row' },
                     justifyContent: 'flex-start',
-                    alignItems: 'flex-start', 
+                    alignItems: 'flex-start',
                     gap: { xs: 3, sm: 0 },
                     '& .MuiCardHeader-action': {
                       width: { xs: '100% ', sm: 'auto' }
@@ -310,7 +308,7 @@ const StorageList = () => {
                     ml: { md: 4 }
                   }}
                 >
-                  <Box
+                  {/* <Box
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -340,7 +338,19 @@ const StorageList = () => {
                         }
                       }}
                     />
-                  </Box>
+                  </Box> */}
+                  <MUISearch
+                    sx={{
+                      width: {
+                        xs: '100%',
+                        sm: '250px'
+                      }
+                    }}
+                    placeholder='Search...'
+                    onChange={e => handleSearch(e.target.value)}
+                    onClear={() => handleSearch('')}
+                    value={searchValue}
+                  />
                 </Grid>
                 <Grid
                   sx={{

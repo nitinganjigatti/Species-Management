@@ -34,6 +34,7 @@ import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import { STOCK_ADJUSTMENT_REASON_TYPES } from 'src/constants/PharmacyConstants'
 import LabelAndDescriptionWithElipsisModal from 'src/views/utility/LabelAndDescriptionWithElipsisModal'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const ListOfStockAdjusted = () => {
   const theme = useTheme()
@@ -316,7 +317,8 @@ const ListOfStockAdjusted = () => {
             '& .MuiCardHeader-action': {
               width: { xs: '100% ', sm: 'auto' }
             },
-            mx: { xs: -1, sm: 1 },
+
+            px: { xs: 3, md: 5 },
             mb: { xs: 2 },
             mt: 1
           }}
@@ -341,39 +343,16 @@ const ListOfStockAdjusted = () => {
             flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'space-between',
             alignItems: 'center',
-            mx: { xs: 3, md: 5 }
+            px: { xs: 3, md: 5 },
+            width: { xs: '100%', sm: '300px' }
           }}
         >
-          {/* Search Box */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              borderRadius: '8px',
-              padding: '0 8px',
-              width: { xs: '100%', sm: '250px' }, // Full width on small screens
-              height: '40px'
-            }}
-          >
-            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-            <TextField
-              variant='outlined'
-              placeholder='Search...'
-              value={searchValue}
-              onChange={e => handleSearch(e.target.value)}
-              fullWidth
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  border: 'none',
-                  padding: '0',
-                  '& fieldset': {
-                    border: 'none'
-                  }
-                }
-              }}
-            />
-          </Box>
+          <MUISearch
+            onChange={e => handleSearch(e.target.value)}
+            onClear={() => handleSearch('')}
+            placeholder='Search...'
+            value={searchValue}
+          />
         </Box>
 
         <Grid

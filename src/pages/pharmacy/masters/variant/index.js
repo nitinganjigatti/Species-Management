@@ -16,6 +16,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import RenderUtility from 'src/utility/render'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import Utility from 'src/utility'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const VariantList = () => {
   const theme = useTheme()
@@ -139,7 +140,6 @@ const VariantList = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          
           {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -281,8 +281,8 @@ const VariantList = () => {
             sx={{
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'flex-start', 
-              alignItems: 'flex-start', 
+              justifyContent: 'flex-start',
+              alignItems: 'flex-start',
               gap: { xs: 3, sm: 0 },
               '& .MuiCardHeader-action': {
                 width: { xs: '100% ', sm: 'auto' }
@@ -298,7 +298,7 @@ const VariantList = () => {
               ml: { md: 4 }
             }}
           >
-            <Box
+            {/* <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -328,7 +328,19 @@ const VariantList = () => {
                   }
                 }}
               />
-            </Box>
+            </Box> */}
+            <MUISearch
+              sx={{
+                width: {
+                  xs: '100%',
+                  sm: '250px'
+                }
+              }}
+              placeholder='Search...'
+              onChange={e => handleSearch(e.target.value)}
+              onClear={() => handleSearch('')}
+              value={searchValue}
+            />
           </Grid>
           <Grid
             sx={{

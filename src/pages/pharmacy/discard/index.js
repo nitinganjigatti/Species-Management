@@ -27,6 +27,7 @@ import RenderUtility from 'src/utility/render'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const ListOfDiscardProducts = () => {
   const theme = useTheme()
@@ -604,7 +605,7 @@ const ListOfDiscardProducts = () => {
                       }}
                     >
                       <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
-                        <TextField
+                        {/* <TextField
                           variant='outlined'
                           size='small'
                           placeholder='Search...'
@@ -627,6 +628,12 @@ const ListOfDiscardProducts = () => {
                               )
                             }
                           }}
+                        /> */}
+                        <MUISearch
+                          onChange={e => handleSearch(e.target.value)}
+                          onClear={() => handleSearch('')}
+                          placeholder='Search...'
+                          value={searchValue}
                         />
                       </Grid>
 

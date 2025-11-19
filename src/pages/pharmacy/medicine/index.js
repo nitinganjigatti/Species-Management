@@ -32,6 +32,7 @@ import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const ListOfMedicine = () => {
   const theme = useTheme()
@@ -659,19 +660,8 @@ const ListOfMedicine = () => {
                       </TabList>
                     </TabContext>
                   </Grid>
-                  <Grid
-                    item
-                    size={{ xs: 12, sm: 4, md: 4 }}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '8px',
-
-                      padding: '0 8px'
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                  <Grid item size={{ xs: 12, sm: 4, md: 4 }}>
+                    {/* <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
                     <TextField
                       variant='outlined'
                       value={searchValue}
@@ -688,6 +678,12 @@ const ListOfMedicine = () => {
                           }
                         }
                       }}
+                    /> */}
+                    <MUISearch
+                      onChange={e => handleSearch(e.target.value)}
+                      onClear={() => handleSearch('')}
+                      placeholder='Search...'
+                      value={searchValue}
                     />
                   </Grid>
                 </Grid>

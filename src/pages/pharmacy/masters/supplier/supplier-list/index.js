@@ -25,6 +25,7 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useTheme } from '@emotion/react'
 import RenderUtility from 'src/utility/render'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const Supplier = () => {
   const theme = useTheme()
@@ -33,7 +34,7 @@ const Supplier = () => {
   const [sort, setSort] = useState('desc')
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
-  const [searchText, setSearchText] = useState('')
+  const [searchValue, setSearchValue] = useState('')
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
 
@@ -86,7 +87,8 @@ const Supplier = () => {
 
   const searchTableData = useCallback(
     debounce(async (sort, column, q) => {
-      setSearchText(q)
+      setSearchValue(q)
+
       try {
         await getSupplierList(sort, column, q)
       } catch (error) {
@@ -106,12 +108,12 @@ const Supplier = () => {
   }
 
   const handleSearch = value => {
-    setSearchText(value)
+    setSearchValue(value)
     searchTableData(sort, sortColumn, value)
   }
 
   // useEffect(() => {
-  //   getSupplierList(searchText)
+  //   getSupplierList(searchValue)
   // }, [paginationModel])
 
   useEffect(() => {
@@ -245,7 +247,6 @@ const Supplier = () => {
 
   const headerAction = (
     <div>
-    
       {pharmacyRole && (
         <Grid item>
           <AddButtonContained
@@ -270,8 +271,8 @@ const Supplier = () => {
                 sx={{
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'row' },
-                  justifyContent: 'flex-start', 
-                  alignItems: 'flex-start', 
+                  justifyContent: 'flex-start',
+                  alignItems: 'flex-start',
                   gap: { xs: 3, sm: 0 },
                   '& .MuiCardHeader-action': {
                     width: { xs: '100% ', sm: 'auto' }
@@ -287,7 +288,7 @@ const Supplier = () => {
                   ml: { md: 4 }
                 }}
               >
-                <Box
+                {/* <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
@@ -317,7 +318,19 @@ const Supplier = () => {
                       }
                     }}
                   />
-                </Box>
+                </Box> */}
+                <MUISearch
+                  sx={{
+                    width: {
+                      xs: '100%',
+                      sm: '250px'
+                    }
+                  }}
+                  placeholder='Search...'
+                  onChange={e => handleSearch(e.target.value)}
+                  onClear={() => handleSearch('')}
+                  value={searchValue}
+                />
               </Grid>
               <Grid sx={{ mx: 4 }}>
                 <CommonTable
