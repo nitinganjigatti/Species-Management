@@ -180,16 +180,34 @@ export default function VitalMonitoringDetail({ data }) {
       <Box
         sx={{
           mt: 2,
-          backgroundColor: colors.noteBg,
-          borderRadius: '8px',
-          p: 2,
-          fontSize: '14px'
+          gap: '3px',
+          background: '#FCF4AE',
+          width: '100%',
+          px: 4,
+          py: 2,
+          borderRadius: '8px'
         }}
       >
-        <Typography variant='subtitle2' sx={{ fontWeight: 600, mb: 0.5 }}>
+        <Typography
+          sx={{
+            mb: '4px',
+            fontWeight: 400,
+            fontSize: '14px',
+            letterSpacing: 0,
+            color: theme.palette.customColors.neutralSecondary,
+            textTransform: 'capitalize'
+          }}
+        >
           Notes
         </Typography>
-        <Typography variant='body2' sx={{ lineHeight: 1.5 }}>
+        <Typography
+          sx={{
+            fontWeight: 500,
+            fontSize: '16px',
+            letterSpacing: 0,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
           Sample Fluid - 10 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
           labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
           aliquip ex ea commodo consequat.
