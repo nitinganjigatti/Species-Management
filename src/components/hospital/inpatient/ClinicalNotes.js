@@ -7,7 +7,7 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { addClinicalNotes, deleteClinicalNotes, getClinicalNotes } from 'src/lib/api/hospital/clinicalNotesApi'
 import InpatientClinicalNotes from 'src/views/pages/hospital/inpatient/InpatientClinicalNotes'
 
-const ClinicalNotes = () => {
+const ClinicalNotes = ({ patientData }) => {
   const [isSubmitLoading, setIsSubmitLoading] = useState(false)
   const [selectedItemToDelete, setSelectedItemToDelete] = useState(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -41,7 +41,11 @@ const ClinicalNotes = () => {
         data: res?.data?.result || []
       }
     } catch (error) {
-      throw new Error(error?.message || 'Error fetching clinical notes')
+      console.error('Error fetching clinical notes:', error?.message)
+      Toaster({
+        type: 'error',
+        message: error?.response?.data?.message || error?.message || 'An unexpected error occurred'
+      })
     }
   }
 
@@ -112,7 +116,7 @@ const ClinicalNotes = () => {
       }
     } catch (error) {
       console.error('Submit Error:', error?.message)
-      Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' })
+      Toaster({ type: 'error', message: error?.message || 'An unexpected error occurred' })
     } finally {
       setIsSubmitLoading(false)
     }
@@ -166,6 +170,7 @@ const ClinicalNotes = () => {
         lastClinicalNoteRef={lastClinicalNoteRef}
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
+        patientData={patientData}
       />
 
       {/* Confirmation Dialog for Deleting a Clinical Note */}
