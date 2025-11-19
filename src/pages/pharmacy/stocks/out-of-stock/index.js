@@ -20,6 +20,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 
 const StockOut = () => {
   const theme = useTheme()
@@ -37,6 +38,7 @@ const StockOut = () => {
   const [status, setStatus] = useState('low_stock')
   const [changeSwitch, setChangeSwitch] = useState()
   const [excelLoader, setExcelLoader] = useState(false)
+  const [tableLoader, setTableLoader] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -47,7 +49,8 @@ const StockOut = () => {
   const fetchTableData = useCallback(
     async (sort, q, column, status) => {
       try {
-        setLoading(true)
+        // setLoading(true)
+        setTableLoader(true)
 
         const params = {
           sort: sort || 'asc',
@@ -71,6 +74,7 @@ const StockOut = () => {
         setRows([])
       } finally {
         setLoading(false)
+        setTableLoader(false)
       }
     },
     [paginationModel]
@@ -348,21 +352,12 @@ const StockOut = () => {
         <Card>
           <CardHeader
             sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              px: { xs: 2, sm: 3, md: 5.5 },
+              px: 4,
               margin: 0
             }}
             title={changeSwitch ? RenderUtility.pageTitle('Out of Stock') : RenderUtility.pageTitle('Low Stock')}
           />
-          <Grid
-            container
-            spacing={3}
-            alignItems={{ xs: 'start', sm: 'center', md: 'center' }}
-            justifyContent={{ xs: 'start', sm: 'space-between', md: 'space-between' }}
-            px={{ xs: 2, sm: 3, md: 5.5 }}
-          >
+          <Grid container spacing={3} justifyContent={'space-between'} sx={{ px: 4 }}>
             <Grid
               item
               size={{ xs: 12, sm: 5, md: 3.5 }}
@@ -386,18 +381,33 @@ const StockOut = () => {
                 justifyContent: { xs: 'start', sm: 'end ' }
               }}
             >
-              <FormControlLabel
+              {/* <FormControlLabel
                 sx={{ m: 0 }}
                 control={<Switch defaultChecked={changeSwitch} onChange={handleSwitchChange} />}
                 label='Out Of Stock'
                 labelPlacement='end'
+              /> */}
+
+              <MUISwitch
+                label='Out Of Stock'
+                labelStyle={{
+                  color: theme.palette.customColors.customHeadingTextColor,
+                  fontSize: '14px',
+                  fontWeight: 400
+                }}
+                labelPlacement='end'
+                defaultChecked={changeSwitch}
+                onChange={handleSwitchChange}
+                formControlStyle={{
+                  margin: 0
+                }}
               />
             </Grid>
           </Grid>
 
           <Grid
             sx={{
-              px: { xs: 2, sm: 3, md: 5.5 }
+              px: 4
             }}
           >
             <CommonTable
@@ -408,7 +418,7 @@ const StockOut = () => {
               paginationModel={paginationModel}
               handleSortModel={handleSortModel}
               setPaginationModel={setPaginationModel}
-              loading={loading}
+              loading={tableLoader}
               searchValue={searchValue}
             />
           </Grid>

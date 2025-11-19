@@ -54,8 +54,9 @@ import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import MenuWithDots from 'src/components/MenuWithDots'
 import AddReOrderDialog from 'src/components/pharmacy/stockLocation/AddReOrderDialog'
 import StockConfigDetails from 'src/views/pages/pharmacy/stock/StockConfigDetails'
-import { flex } from '@mui/system'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
+import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
 
 const ListOfStocks = () => {
   const theme = useTheme()
@@ -110,7 +111,8 @@ const ListOfStocks = () => {
   const [openReOrderLevelDialog, setOpenReOrderLevelDialog] = useState(false)
   const [configReOrderMed, setConfigReOrderMed] = useState(null)
   const [dialogCheck, setDialogCheck] = useState(false)
-  const textFieldRef = useRef(null)
+
+  // const textFieldRef = useRef(null)
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -1049,11 +1051,7 @@ const ListOfStocks = () => {
                 <Card>
                   <CardHeader
                     sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      px: { xs: 2, sm: 3, md: 5.5 },
-                      margin: 0
+                      px: 4
                     }}
                     title={RenderUtility.pageTitle('Stock Report')}
                   />
@@ -1061,46 +1059,46 @@ const ListOfStocks = () => {
                   <Grid
                     container
                     spacing={3}
-                    alignItems={{ xs: 'start', sm: 'center' }}
-                    justifyContent={{ xs: 'start', sm: 'space-between' }}
-                    sx={{ px: { xs: 2, sm: 3, md: 5.5 } }}
+                    sx={{
+                      px: 4
+                    }}
                   >
-                    <Grid item size={{ xs: 12, sm: 4, md: 3 }}>
+                    <Grid item size={{ xs: 12, sm: 12, md: 3 }}>
                       <MUISearch
-                        // inputRef={textFieldRef}
+                        value={searchValue}
                         onChange={e => {
-                          changeSwitch
-                            ? handleBatchSearch(e.target.value, stockId, stockType, batchPaginationModel)
-                            : handleSearch(e.target.value, stockId, stockType, paginationModel)
-                        }}
-                        onClear={() => handleSearch('')}
+                          const value = e.target.value
+                          setSearchValue(value)
 
-                        // value={searchValue}
-                      ></MUISearch>
+                          if (changeSwitch) {
+                            handleBatchSearch(value, stockId, stockType, batchPaginationModel)
+                          } else {
+                            handleSearch(value, stockId, stockType, paginationModel)
+                          }
+                        }}
+                        onClear={() => {
+                          setSearchValue('') // clear input in the textfield
+                          if (changeSwitch) {
+                            handleBatchSearch('', stockId, stockType, batchPaginationModel) // fetch all data
+                          } else {
+                            handleSearch('', stockId, stockType, paginationModel) // fetch all data
+                          }
+                        }}
+                      />
                     </Grid>
-                    <Grid
-                      item
-                      size={{ xs: 12, sm: 8, md: 9 }}
-                      sx={{
-                        display: 'flex',
-                        justifyContent: { xs: 'start', sm: 'end ' },
-                        gap: '16px',
-                        alignItems: { xs: 'center', sm: 'center' }
-                      }}
-                    >
+                    <Grid item size={{ xs: 12, sm: 12, md: 9 }}>
                       <Grid
                         container
                         spacing={3}
                         alignItems={'center'}
-                        mt={{ xs: '0px', sm: '4px' }}
                         sx={{
                           display: 'flex',
-                          justifyContent: { xs: 'start', sm: 'end ' }
+                          justifyContent: { xs: 'space-between', md: 'end ' }
                         }}
                       >
                         {selectedPharmacy.type === 'central' && (
-                          <Grid item size={{ xs: 12, sm: 5, md: 'auto' }}>
-                            <FormControl
+                          <Grid item size={{ xs: 12, sm: 12, md: 4 }}>
+                            {/* <FormControl
                               sx={{
                                 display: 'flex',
                                 alignItems: 'center',
@@ -1168,28 +1166,56 @@ const ListOfStocks = () => {
                                   })}
                               </Select>
                               <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
-                            </FormControl>
+                            </FormControl> */}
+
+                            <MUIAutocomplete
+                              value={stockId}
+                              label='Stores'
+                              valueType='id'
+                              onChange={e => {
+                                let id = e || 'all'
+
+                                const type = stores.find(el => el.id === id)?.type || ''
+
+                                setStockType(type)
+
+                                setStockId(id)
+
+                                setStockReport([])
+                                setConfigureMedId('')
+                                setErrors('')
+                                setBatchSearchValue('')
+                                setBatchSort('asc')
+                                setBatchSortColumn('stock_items_name')
+                                setSort('asc')
+                                setSortColumn('stock_items_name')
+
+                                let storeId = id === 'all' ? 'all' : id
+
+                                changeSwitch
+                                  ? getStocksReportBatchWise({
+                                      batchSort: 'asc',
+                                      q: '',
+                                      batchColumn: 'stock_items_name',
+                                      id: storeId,
+                                      batchPaginationModel: { page: 0, pageSize: batchPaginationModel.pageSize }
+                                    })
+                                  : getStocksReport({
+                                      sort: 'asc',
+                                      q: '',
+                                      column: 'stock_items_name',
+                                      id: storeId,
+                                      type: type,
+                                      paginationModel: { page: 0, pageSize: paginationModel.pageSize }
+                                    })
+                              }}
+                              options={stores}
+                            />
                           </Grid>
                         )}
 
-                        <Grid
-                          item
-                          size={
-                            selectedPharmacy.type === 'central'
-                              ? { xs: 12, sm: 5, md: 4, lg: 3 }
-                              : { xs: 12, sm: 5, md: 4, lg: 3 }
-                          }
-                          sx={{
-                            display: 'flex',
-                            justifyContent: {
-                              xs: selectedPharmacy.type === 'central' ? 'space-between' : 'space-between',
-                              sm: 'flex-end'
-                            },
-                            alignItems: 'center',
-                            gap: { xs: '4px', md: '10px', lg: '14px' }
-                          }}
-                        >
-                          <FormControlLabel
+                        <Grid item>
+                          {/* <FormControlLabel
                             sx={{ m: 0 }}
                             control={
                               <Switch
@@ -1200,7 +1226,23 @@ const ListOfStocks = () => {
                             }
                             labelPlacement='start'
                             label='Batch Wise '
+                          /> */}
+                          <MUISwitch
+                            label='Batch Wise'
+                            labelStyle={{
+                              color: theme.palette.customColors.customHeadingTextColor,
+                              fontSize: '14px',
+                              fontWeight: 400
+                            }}
+                            labelPlacement='start'
+                            defaultChecked={changeSwitch}
+                            onChange={handleSwitchChange}
+                            formControlStyle={{
+                              margin: 0
+                            }}
                           />
+                        </Grid>
+                        <Grid>
                           <ExportButton
                             loading={excelLoader}
                             onClick={getBatchWiseDataToExport}
@@ -1214,7 +1256,7 @@ const ListOfStocks = () => {
                   {changeSwitch ? (
                     <Grid
                       sx={{
-                        px: { xs: 2, sm: 3, md: 5.5 }
+                        px: 4
                       }}
                     >
                       <CommonTable
@@ -1250,7 +1292,7 @@ const ListOfStocks = () => {
                   ) : (
                     <Grid
                       sx={{
-                        mx: { xs: 2, sm: 3.5, md: 5.5 }
+                        px: 4
                       }}
                     >
                       <CommonTable

@@ -29,6 +29,7 @@ import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDate
 import { ExportButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
 
 const ExpiringMedicine = () => {
   const theme = useTheme()
@@ -52,6 +53,8 @@ const ExpiringMedicine = () => {
   const [selectDays, setSelectDays] = useState(7)
 
   const [excelLoader, setExcelLoader] = useState(false)
+  const [tableLoader, setTableloader] = useState(false)
+
   const [stores, setStores] = useState([])
   const [errors, setErrors] = useState('')
 
@@ -136,7 +139,8 @@ const ExpiringMedicine = () => {
     async (sort, q, column, startDate, endDate, id) => {
       if (!searchTriggered && q) return
       try {
-        setLoading(true)
+        // setLoading(true)
+        setTableloader(true)
         let selectedStorePharmacy = selectedPharmacy?.type === 'local' ? selectedPharmacy?.id : id
 
         const params = {
@@ -160,11 +164,13 @@ const ExpiringMedicine = () => {
           setRows([])
         }
         setLoading(false)
+        setTableloader(false)
       } catch (error) {
         console.error('Error fetching table data:', error)
         setTotal(0)
         setRows([])
         setLoading(false)
+        setTableloader(false)
       }
     },
     [paginationModel, filterDates, searchTriggered, selectedPharmacy.id, storeId]
@@ -471,10 +477,7 @@ const ExpiringMedicine = () => {
             <CardHeader
               sx={{
                 display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-
-                px: { xs: 1.5, sm: 2.5, md: 5 },
+                px: 4,
                 m: 0
               }}
               title={RenderUtility.pageTitle('About To Expire')}
@@ -483,10 +486,10 @@ const ExpiringMedicine = () => {
               container
               spacing={3}
               sx={{
-                px: { xs: 1.5, sm: 2.5, md: 5 }
+                px: 4
               }}
             >
-              <Grid item size={{ xs: 12, sm: 3 }} sx={{ display: 'flex', alignItems: 'center' }}>
+              <Grid item size={{ xs: 12, sm: 12, md: 3 }} sx={{ display: 'flex', alignItems: 'center' }}>
                 <MUISearch
                   onChange={e => handleSearch(e.target.value)}
                   onClear={() => handleSearch('')}
@@ -494,21 +497,18 @@ const ExpiringMedicine = () => {
                 ></MUISearch>
               </Grid>
 
-              <Grid item size={{ xs: 12, sm: 9, md: 9 }}>
+              <Grid item size={{ xs: 12, sm: 12, md: 9 }}>
                 <Grid
                   container
                   spacing={3}
                   sx={{
                     display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row', md: 'row' },
                     justifyContent: { xs: 'space-between', sm: 'flex-end' }
-
-                    // gap: '10px'
                   }}
                 >
                   {selectedPharmacy.type === 'central' && (
-                    <Grid item size={{ xs: 12, sm: 4, md: 3 }} sx={{ display: 'flex', alignItems: 'center' }}>
-                      <FormControl
+                    <Grid item size={{ xs: 12, sm: 12, md: 4, lg: 3 }} sx={{ display: 'flex', alignItems: 'center' }}>
+                      {/* <FormControl
                         sx={{
                           width: { xs: 'stretch' },
                           mt: '3px'
@@ -538,21 +538,30 @@ const ExpiringMedicine = () => {
                             : null}
                         </Select>
                         <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
-                      </FormControl>
+                      </FormControl> */}
+                      <MUIAutocomplete
+                        label='Stores'
+                        value={storeId}
+                        valueType='id'
+                        onChange={e => {
+                          setStoreId(e)
+                        }}
+                        options={[{ id: 'all', name: 'All' }, ...stores]}
+                        getOptionLabel={option => option.name}
+                      />
                     </Grid>
                   )}
                   <Grid
                     item
                     size={{
                       xs: 12,
-                      sm: selectedPharmacy.type === 'central' ? 8 : 12,
-                      md: selectedPharmacy.type === 'central' ? 8 : 10
+                      md: selectedPharmacy.type === 'central' ? 7 : 'auto',
+                      lg: 'auto'
                     }}
                     sx={{
                       display: 'flex',
-                      gap: { xs: '6px', sm: '6px', md: '16px' },
-                      alignItems: 'center',
-                      justifyContent: 'space-between'
+                      gap: '12px',
+                      alignItems: 'center'
                     }}
                   >
                     <CommonDateRangePickers
@@ -562,11 +571,14 @@ const ExpiringMedicine = () => {
                       useCustomText={true}
                       customText='Select Near Expiry'
                     />
-                    <ExportButton
-                      loading={excelLoader}
-                      onClick={getDataToExport}
-                      disabled={total === 0 ? true : false}
-                    />
+
+                    <Grid item minWidth={'40px'}>
+                      <ExportButton
+                        loading={excelLoader}
+                        onClick={getDataToExport}
+                        disabled={total === 0 ? true : false}
+                      />
+                    </Grid>
                   </Grid>
                 </Grid>
               </Grid>
@@ -587,7 +599,7 @@ const ExpiringMedicine = () => {
 
             <Grid
               sx={{
-                px: { xs: 2, sm: 3, md: 5.5 }
+                px: 4
               }}
             >
               <CommonTable
@@ -598,7 +610,7 @@ const ExpiringMedicine = () => {
                 paginationModel={paginationModel}
                 handleSortModel={handleSortModel}
                 setPaginationModel={setPaginationModel}
-                loading={loading}
+                loading={tableLoader}
                 searchValue={searchValue}
               />
             </Grid>

@@ -17,6 +17,8 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
+import MUISelect from 'src/views/forms/form-fields/MUISelect'
+
 function Escrow({ value }) {
   const router = useRouter()
 
@@ -42,6 +44,12 @@ function Escrow({ value }) {
     return data
   }
   const { selectedPharmacy } = usePharmacyContext()
+
+  // const { control, handleSubmit, watch } = useForm({
+  //   defaultValues: {
+  //     stockType: 'dispute'
+  //   }
+  // })
 
   const onRowClick = params => {
     var data = params.row
@@ -440,12 +448,8 @@ function Escrow({ value }) {
           <Card>
             <CardHeader
               sx={{
-                display: 'flex',
-
-                justifyContent: 'flex-start',
-                alignItems: 'center',
-                px: { xs: 2, sm: 3, md: 5.5 },
-                m: '0px'
+                px: 4,
+                m: 0
               }}
               title={RenderUtility.pageTitle('Escrow List')}
             />
@@ -453,32 +457,40 @@ function Escrow({ value }) {
             <Grid
               container
               spacing={3}
-              sx={{ px: { xs: 2, sm: 3, md: 5.5 }, display: 'flex', justifyContent: 'space-between' }}
+              sx={{
+                px: 4,
+                display: 'flex',
+                justifyContent: 'space-between'
+              }}
             >
               <Grid
                 item
-                size={{ xs: 12, sm: 5, md: 3.5 }}
+                size={{ xs: 12, sm: 5, md: 6 }}
                 sx={{
                   display: 'flex',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  width: { xs: '100%', sm: '250px' }
                 }}
               >
                 <MUISearch
                   onChange={e => handleSearch(e.target.value)}
                   onClear={() => handleSearch('')}
                   value={searchValue}
-                ></MUISearch>
+                />
               </Grid>
               <Grid
                 item
                 size={{ xs: 12, sm: 6 }}
-                sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
+                sx={{
+                  display: 'flex',
+                  justifyContent: { xs: 'flex-start', sm: 'flex-end' },
+                  width: { xs: '100%', sm: '250px' }
+                }}
               >
-                <FormControl
+                {/* <FormControl
                   sx={{
                     width: {
                       xs: '100%',
-                      md: '240px',
                       sm: '240px'
                     }
                   }}
@@ -499,7 +511,26 @@ function Escrow({ value }) {
                     <MenuItem value='transit'>Transit</MenuItem>
                     <MenuItem value='dispute'>Dispute</MenuItem>
                   </Select>
-                </FormControl>
+                </FormControl> */}
+                <MUISelect
+                  sx={{
+                    width: {
+                      xs: '100%',
+                      sm: '240px'
+                    }
+                  }}
+                  value={stockType}
+                  label='Filter by stock type'
+                  options={[
+                    { id: 'all', name: 'All' },
+                    { id: 'transit', name: 'Transit' },
+                    { id: 'dispute', name: 'Dispute' }
+                  ]}
+                  onChange={e => {
+                    filterByStockType(e.target.value)
+                    setStockType(e.target.value)
+                  }}
+                />
               </Grid>
             </Grid>
 
@@ -520,7 +551,11 @@ function Escrow({ value }) {
               </Select>
             </FormControl> */}
 
-            <Grid sx={{ px: { xs: 2, sm: 3, md: 5.5 } }}>
+            <Grid
+              sx={{
+                px: 4
+              }}
+            >
               <CommonTable
                 onRowClick={onRowClick}
                 indexedRows={indexedRows}

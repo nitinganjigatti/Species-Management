@@ -29,6 +29,7 @@ import {
 } from '@mui/material'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
 
 const ExpiredMedicine = () => {
   const theme = useTheme()
@@ -45,6 +46,7 @@ const ExpiredMedicine = () => {
   const [loading, setLoading] = useState(false)
 
   const [excelLoader, setExcelLoader] = useState(false)
+  const [tableLoader, setTableLoader] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -77,7 +79,8 @@ const ExpiredMedicine = () => {
     async (sort, q, column, selectedStoreId) => {
       let selectedStorePharmacy = selectedPharmacy.type === 'local' ? selectedPharmacy.id : selectedStoreId
       try {
-        setLoading(true)
+        // setLoading(true)
+        setTableLoader(true)
 
         const params = {
           sort,
@@ -97,17 +100,20 @@ const ExpiredMedicine = () => {
                 res?.list_items?.sort((a, b) => a?.stock_item_name?.localeCompare(b?.stock_item_name))
               )
             )
+            setTableLoader(true)
           } else {
             setTotal(0)
             setRows([])
           }
         })
         setLoading(false)
+        setTableLoader(false)
       } catch (error) {
         console.log('error', error)
         setLoading(false)
         setTotal(0)
         setRows([])
+        setTableLoader(false)
       }
     },
     [paginationModel, selectedPharmacy.id, storeId]
@@ -333,62 +339,37 @@ const ExpiredMedicine = () => {
           <Card>
             <CardHeader
               sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                px: { xs: 2, sm: 3, md: 5.5 },
+                px: 4,
                 margin: 0
               }}
               title={RenderUtility.pageTitle('Expired Products')}
             />
 
-            <Grid
-              container
-              spacing={3}
-              alignItems={{ xs: 'start', sm: 'center', md: 'center' }}
-              justifyContent={{ xs: 'start', sm: 'space-between', md: 'space-between' }}
-              px={{ xs: 2, sm: 3, md: 5.5 }}
-            >
-              <Grid
-                item
-                size={{ xs: 12, sm: 5, md: 3.5 }}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  borderRadius: '8px'
-                }}
-              >
+            <Grid container spacing={3} alignItems={'center'} justifyContent={'space-between'} sx={{ px: 4 }}>
+              <Grid item size={{ xs: 12, md: 3.5 }}>
                 <MUISearch
                   onChange={e => handleSearch(e.target.value)}
                   onClear={() => handleSearch('')}
                   value={searchValue}
-                ></MUISearch>
+                />
               </Grid>
 
-              <Grid
-                item
-                size={{ xs: 12, sm: 6, md: 8 }}
-                sx={{
-                  display: 'flex',
-                  justifyContent: { xs: 'space-between', sm: 'end ' },
-                  gap: '16px'
-                }}
-              >
+              <Grid item size={{ xs: 12, sm: 12, md: 8 }}>
                 <Grid
                   container
-                  spacing={3}
                   sx={{
                     display: 'flex',
                     justifyContent: {
-                      xs: 'flex-start',
-                      sm: selectedPharmacy.type === 'central' ? 'space-between' : 'flex-end'
+                      xs: selectedPharmacy.type === 'central' ? 'space-between' : 'flex-end',
+                      md: 'flex-end'
                     },
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    gap: '12px'
                   }}
                 >
                   {selectedPharmacy.type === 'central' && (
-                    <Grid item size={{ xs: 10, sm: 10, md: 10 }}>
-                      <FormControl sx={{ width: '100%' }}>
+                    <Grid item size={{ xs: 'grow', md: 5 }}>
+                      {/* <FormControl sx={{ width: '100%' }}>
                         <InputLabel id='controlled-select-label'>Stores</InputLabel>
                         <Select
                           onChange={e => {
@@ -421,23 +402,22 @@ const ExpiredMedicine = () => {
                             : null}
                         </Select>
                         <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
-                      </FormControl>
+                      </FormControl> */}
+                      <MUIAutocomplete
+                        value={storeId}
+                        label='Stores'
+                        valueType='id'
+                        onChange={e => {
+                          let id = e
+
+                          setStoreId(id)
+                        }}
+                        options={stores}
+                      />
                     </Grid>
                   )}
 
-                  <Grid
-                    item
-                    size={{ xs: 2, sm: 2, md: 2 }}
-                    sx={{
-                      my: selectedPharmacy.type === 'central' ? 0 : 2,
-                      display: 'flex',
-                      justifyContent: {
-                        xs: selectedPharmacy.type === 'central' ? 'flex-end' : 'flex-start',
-                        sm: 'flex-end'
-                      },
-                      alignItems: 'center'
-                    }}
-                  >
+                  <Grid item>
                     <ExportButton
                       loading={excelLoader}
                       onClick={getDataToExport}
@@ -450,7 +430,7 @@ const ExpiredMedicine = () => {
 
             <Grid
               sx={{
-                px: { xs: 2, sm: 3, md: 5.5 }
+                px: 4
               }}
             >
               <CommonTable
@@ -461,7 +441,7 @@ const ExpiredMedicine = () => {
                 paginationModel={paginationModel}
                 handleSortModel={handleSortModel}
                 setPaginationModel={setPaginationModel}
-                loading={loading}
+                loading={tableLoader}
                 searchValue={searchValue}
               />
             </Grid>
