@@ -328,6 +328,12 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
     setSelectedDate(date)
   }
 
+  useEffect(() => {
+    if (selectedDate) {
+      monitoringRefetch()
+    }
+  }, [selectedDate])
+
   const handleParamDelete = async () => {
     setDeleteLoading(true)
 

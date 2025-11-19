@@ -269,7 +269,7 @@ const AddPatientForm = () => {
         destination_site_id: selectedAnimal?.site_id,
         comments: data?.purposeOfVisit,
         admit_date: moment(data?.admission_date).format('YYYY-MM-DD'),
-        admit_time: moment(data?.admission_time).format('HH:mm'),
+        admit_time: dayjs(data?.admission_time).format('HH:mm'),
         room_id: data?.room?.value
       }
 
@@ -376,7 +376,8 @@ const AddPatientForm = () => {
                       border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                       borderRadius: 1,
                       p: 4,
-                      background: theme.palette.customColors.Surface
+                      background: theme.palette.customColors.Surface,
+                      cursor: 'pointer'
                     }}
                     onClick={() => setAnimalDrawer(true)}
                   >
