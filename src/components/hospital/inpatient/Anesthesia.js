@@ -12,6 +12,7 @@ import {
   TableRow,
   Paper
 } from '@mui/material'
+import Skeleton from '@mui/material/Skeleton'
 import { Box, Grid } from '@mui/system'
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useTheme } from '@mui/material/styles'
@@ -568,6 +569,17 @@ function Anesthesia({ hospitalCaseId, patientData }) {
     [activeRecordId, refetchAnesthesiaDetail]
   )
 
+  const renderTabSkeletons = useCallback(
+    (count = 4) => (
+      <Box sx={{ display: 'flex', gap: 1.5 }}>
+        {Array.from({ length: count }).map((_, index) => (
+          <Skeleton key={`tab-skeleton-${index}`} variant='rounded' width={110 + (index % 3) * 12} height={48} />
+        ))}
+      </Box>
+    ),
+    []
+  )
+
   const renderRecordTabs = () => {
     if (!shouldFetchRecords) {
       return (
@@ -580,11 +592,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
     }
 
     if (isRecordsLoading) {
-      return (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap' }}>
-          Loading anesthesia records...
-        </Typography>
-      )
+      return renderTabSkeletons()
     }
 
     if (anesthesiaError) {
@@ -744,9 +752,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
           <Box sx={{ display: 'inline-flex', gap: '10px', pr: 1, alignItems: 'center' }}>
             {renderRecordTabs()}
             {isFetchingNextPage && anesthesiaRecords.length ? (
-              <Typography sx={{ color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap' }}>
-                Loading more...
-              </Typography>
+              <Skeleton variant='rounded' width={90} height={32} />
             ) : null}
           </Box>
         </Box>
