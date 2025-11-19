@@ -13,42 +13,18 @@ import {
   Paper
 } from '@mui/material'
 import { Box, Grid } from '@mui/system'
-import React, { useState } from 'react'
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useTheme } from '@mui/material/styles'
 import MediaCard from 'src/views/utility/MediaCard'
 import { useRouter } from 'next/router'
 import { alpha } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import PrescriptionMonitoringGrid from '../prescriptionMonitoring/PrescriptionMonitoringGrid'
 import VitalMonitoring from './Anesthesia/VitalMonitoring'
 import VitalMonitoringDetail from './Anesthesia/vitalForms/VitalMonitoringDetail'
-
-const surgeries = [
-  'S1235/25',
-  'S2345/25',
-  'S6598/15',
-  'S7346/20',
-  'S1628/23',
-  'S2347/25',
-  'S9460/10',
-  'S5814/15',
-  'S6312/25',
-  'S3842/10',
-  'S6245/23',
-  'S9730/7',
-  'S2278/20',
-  'S9370/13',
-  'S7765/24',
-  'S5458/12'
-]
-
-const basicDetails = {
-  location: 'Feline care hospital and care centre',
-  dateAndTimeOfAnesthesia: '12 Aug 2024 • 12:00 PM',
-  estimatedTimeRequired: '2 hours',
-  Veterinarian: 'Dr.Nihal Mehta, Dr.Megha H, Dr.Shlok Karthikeyan',
-  Anesthetists: 'Dr. Madhav Mehta'
-}
+import { getAnesthesiaList } from 'src/lib/api/hospital/anesthesia'
+import Utility from 'src/utility'
 
 const anesthesiaDetails = {
   fluids: 'Sample Fluid - 10 ml/hr',
@@ -162,27 +138,6 @@ const mediaItems = [
   }
 ]
 
-const purposes = [
-  'Endoscopy',
-  'CT Scan',
-  'MRI',
-  'Endoscopy',
-  'CT Scan',
-  'MRI',
-  'Endoscopy',
-  'CT Scan',
-  'MRI',
-  'Endoscopy',
-  'CT Scan',
-  'MRI',
-  'Endoscopy',
-  'CT Scan',
-  'MRI',
-  'Endoscopy',
-  'CT Scan',
-  'MRI'
-]
-
 const monitoring = [
   'Pulse ox',
   'Probe, rectal',
@@ -198,6 +153,102 @@ const monitoring = [
   'Pediatric',
   'Adult'
 ]
+
+const PAGE_SIZE = 10
+const SCROLL_FETCH_THRESHOLD = 140
+
+const resolveValue = value => (Array.isArray(value) ? value[0] : value)
+
+const resolveHospitalCaseId = (propValue, query) => {
+  if (propValue !== undefined && propValue !== null && propValue !== '') {
+    const resolved = resolveValue(propValue)
+
+    if (resolved !== undefined && resolved !== null && resolved !== '') {
+      return resolved
+    }
+  }
+
+  const possibleKeys = ['hospital_case_id', 'hospitalCaseId', 'case_id', 'caseId', 'id']
+
+  for (const key of possibleKeys) {
+    if (query?.[key] !== undefined) {
+      const resolved = resolveValue(query[key])
+
+      if (resolved !== undefined && resolved !== null && resolved !== '') {
+        return resolved
+      }
+    }
+  }
+
+  return undefined
+}
+
+const resolveMedicalRecordId = (patientData, query) => {
+  const medicalRecordFromPatient = resolveValue(patientData?.medical_record_id)
+
+  if (medicalRecordFromPatient) {
+    return medicalRecordFromPatient
+  }
+
+  const possibleKeys = [
+    'medical_record_id',
+    'medicalRecordId',
+    'medicalRecordID',
+    'medical_recordId',
+    'med_id',
+    'medical_id'
+  ]
+
+  for (const key of possibleKeys) {
+    if (query?.[key] !== undefined) {
+      const resolved = resolveValue(query[key])
+
+      if (resolved !== undefined && resolved !== null && resolved !== '') {
+        return resolved
+      }
+    }
+  }
+
+  return undefined
+}
+
+const getRecordIdentifier = record => {
+  if (!record || typeof record !== 'object') return ''
+
+  if (record.anaesthesia_id) return String(record.anaesthesia_id)
+  if (record.id) return String(record.id)
+  if (record.code) return String(record.code)
+
+  return ''
+}
+
+const getStableRecordId = (record, index = 0) => {
+  const identifier = getRecordIdentifier(record)
+
+  if (identifier) return identifier
+  if (record?.code) return String(record.code)
+
+  return `record-${index}`
+}
+
+const formatDateTime = value => {
+  if (!value) return '--'
+
+  const formatted = Utility.convertUTCToLocalDateTime(value)
+
+  return formatted && formatted !== 'Invalid date' ? formatted : String(value)
+}
+
+const formatStaffNames = list => {
+  if (!Array.isArray(list) || !list.length) return '--'
+
+  const names = list
+    .map(item => item?.full_name || item?.name)
+    .filter(Boolean)
+    .join(', ')
+
+  return names || '--'
+}
 
 const MediaScroller = () => {
   return (
@@ -242,6 +293,226 @@ const MediaScroller = () => {
 function Anesthesia({ hospitalCaseId, patientData }) {
   const theme = useTheme()
   const router = useRouter()
+  const scrollContainerRef = useRef(null)
+
+  const resolvedHospitalCaseId = useMemo(
+    () => resolveHospitalCaseId(hospitalCaseId, router?.query),
+    [hospitalCaseId, router?.query]
+  )
+
+  const resolvedMedicalRecordId = useMemo(
+    () => resolveMedicalRecordId(patientData, router?.query),
+    [patientData, router?.query]
+  )
+
+  const shouldFetchRecords = Boolean(resolvedHospitalCaseId && resolvedMedicalRecordId)
+
+  const {
+    data: anesthesiaPages,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: isAnesthesiaLoading,
+    error: anesthesiaError,
+    isFetching: isFetchingRecords
+  } = useInfiniteQuery({
+    queryKey: ['anesthesiaRecords', resolvedHospitalCaseId, resolvedMedicalRecordId],
+    queryFn: ({ pageParam = 1 }) =>
+      getAnesthesiaList({
+        params: {
+          hospital_case_id: resolvedHospitalCaseId,
+          medical_record_id: resolvedMedicalRecordId,
+          limit: PAGE_SIZE,
+          page_no: pageParam
+        }
+      }),
+    getNextPageParam: lastPage => {
+      const pagination = lastPage?.data
+
+      if (!pagination) return undefined
+
+      const currentPage = Number(pagination.page_no) || 0
+      const totalPages = Number(pagination.total_pages) || 0
+
+      return currentPage < totalPages ? currentPage + 1 : undefined
+    },
+    enabled: shouldFetchRecords
+  })
+
+  const anesthesiaRecords = useMemo(() => {
+    if (!anesthesiaPages?.pages?.length) return []
+
+    return anesthesiaPages.pages.flatMap(page => (Array.isArray(page?.data?.records) ? page.data.records : []))
+  }, [anesthesiaPages])
+
+  const [activeRecordId, setActiveRecordId] = useState('')
+
+  useEffect(() => {
+    if (!anesthesiaRecords.length) {
+      setActiveRecordId('')
+
+      return
+    }
+
+    setActiveRecordId(prev => {
+      if (prev && anesthesiaRecords.some((record, index) => getStableRecordId(record, index) === prev)) {
+        return prev
+      }
+
+      return getStableRecordId(anesthesiaRecords[0], 0)
+    })
+  }, [anesthesiaRecords])
+
+  const activeRecord = useMemo(() => {
+    if (!anesthesiaRecords.length) return null
+
+    if (activeRecordId) {
+      const found = anesthesiaRecords.find((record, index) => getStableRecordId(record, index) === activeRecordId)
+
+      if (found) return found
+    }
+
+    return anesthesiaRecords[0]
+  }, [anesthesiaRecords, activeRecordId])
+
+  const recordCode = activeRecord?.code || '--'
+  const lastUpdatedValue = formatDateTime(activeRecord?.updated_at || activeRecord?.created_at)
+
+  const basicDetails = useMemo(() => {
+    const estimatedTime = activeRecord?.estimated_time_required
+      ? `${activeRecord.estimated_time_required} ${activeRecord.estimated_time_unit || ''}`.trim()
+      : '--'
+
+    return {
+      location: activeRecord?.location || '--',
+      dateAndTimeOfAnesthesia: formatDateTime(activeRecord?.anaesthesia_datetime),
+      estimatedTimeRequired: estimatedTime || '--',
+      Veterinarian: formatStaffNames(activeRecord?.veterinarians),
+      Anesthetists: formatStaffNames(activeRecord?.anesthetists)
+    }
+  }, [activeRecord])
+
+  const purposeItems = useMemo(() => {
+    if (!Array.isArray(activeRecord?.purpose)) return []
+
+    return activeRecord.purpose
+      .map(item => item?.name)
+      .filter(name => typeof name === 'string' && name.trim() !== '')
+  }, [activeRecord])
+
+  const notesText = activeRecord?.notes?.trim() ? activeRecord.notes : '--'
+
+  const isRecordsLoading = isAnesthesiaLoading || (isFetchingRecords && !anesthesiaRecords.length)
+
+  const handleScrollFetch = useCallback(() => {
+    if (!hasNextPage || isFetchingNextPage) return
+
+    const node = scrollContainerRef.current
+
+    if (!node) return
+
+    const { scrollLeft, scrollWidth, clientWidth } = node
+
+    if (scrollWidth - (scrollLeft + clientWidth) < SCROLL_FETCH_THRESHOLD) {
+      fetchNextPage()
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage])
+
+  useEffect(() => {
+    const node = scrollContainerRef.current
+
+    if (!node) return
+
+    const onScroll = () => {
+      handleScrollFetch()
+    }
+
+    node.addEventListener('scroll', onScroll)
+
+    return () => {
+      node.removeEventListener('scroll', onScroll)
+    }
+  }, [handleScrollFetch])
+
+  useEffect(() => {
+    if (!shouldFetchRecords) return
+
+    handleScrollFetch()
+  }, [handleScrollFetch, shouldFetchRecords, anesthesiaRecords.length])
+
+  const renderRecordTabs = () => {
+    if (!shouldFetchRecords) {
+      return (
+        <Typography
+          sx={{ color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap' }}
+        >
+          Provide hospital case & medical record IDs to view anesthesia records.
+        </Typography>
+      )
+    }
+
+    if (isRecordsLoading) {
+      return (
+        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap' }}>
+          Loading anesthesia records...
+        </Typography>
+      )
+    }
+
+    if (anesthesiaError) {
+      const message =
+        anesthesiaError?.response?.data?.message || anesthesiaError?.message || 'Failed to load anesthesia records.'
+
+      return (
+        <Typography color='error' sx={{ whiteSpace: 'nowrap' }}>
+          {message}
+        </Typography>
+      )
+    }
+
+    if (!anesthesiaRecords.length) {
+      return (
+        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap' }}>
+          No anesthesia records found.
+        </Typography>
+      )
+    }
+
+    return anesthesiaRecords.map((record, index) => {
+      const label = record?.code || `Record ${index + 1}`
+      const selectionId = getStableRecordId(record, index)
+      const isActive = selectionId === activeRecordId
+
+      return (
+        <Box
+          key={selectionId}
+          onClick={() => setActiveRecordId(selectionId)}
+          sx={{
+            flexShrink: 0,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            px: '16px',
+            height: '48px',
+            borderRadius: '8px',
+            backgroundColor: isActive
+              ? theme.palette.secondary.dark
+              : theme.palette.customColors.mdAntzNeutral,
+            cursor: 'pointer'
+          }}
+        >
+          <Typography
+            sx={{
+              color: isActive ? theme.palette.primary.contrastText : theme.palette.customColors.neutralPrimary,
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {label}
+          </Typography>
+        </Box>
+      )
+    })
+  }
 
   const medicationData = [
     {
@@ -373,17 +644,8 @@ function Anesthesia({ hospitalCaseId, patientData }) {
   )
 
   const handleAddSurgeryRecord = () => {
-    const { hospital_case_id, hospitalCaseId: queryHospitalCaseId, case_id, caseId, id, animal_id } = router.query
-
-    const resolveValue = value => (Array.isArray(value) ? value[0] : value)
-
-    const resolvedCaseId =
-      resolveValue(hospitalCaseId) ||
-      resolveValue(hospital_case_id) ||
-      resolveValue(queryHospitalCaseId) ||
-      resolveValue(case_id) ||
-      resolveValue(caseId) ||
-      resolveValue(id)
+    const resolvedCaseId = resolvedHospitalCaseId
+    const animalId = resolveValue(router?.query?.animal_id)
 
     const href = resolvedCaseId
       ? {
@@ -392,16 +654,13 @@ function Anesthesia({ hospitalCaseId, patientData }) {
             hospital_case_id: resolvedCaseId,
             medical_record_id: patientData?.medical_record_id,
             hospital_id: patientData?.hospital_id,
-            animal_id: animal_id
-            //id: resolvedCaseId
+            animal_id: animalId
           }
         }
       : '/hospital/inpatient/AddAnesthesiaRecord'
 
     router.push(href)
   }
-
-  const [activeSurgery, setActiveSurgery] = useState(surgeries[0])
 
   const DetailsHeader = ({ text }) => (
     <Box sx={{ backgroundColor: '#E8F4F299', padding: '8px', borderRadius: '4px' }}>
@@ -429,6 +688,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
         }}
       >
         <Box
+          ref={scrollContainerRef}
           sx={{
             flex: '1 1 auto',
             minWidth: 0,
@@ -436,37 +696,13 @@ function Anesthesia({ hospitalCaseId, patientData }) {
             scrollbarColor: 'transparent transparent'
           }}
         >
-          <Box sx={{ display: 'inline-flex', gap: '10px', pr: 1 }}>
-            {surgeries.map(surgery => (
-              <Box
-                key={surgery}
-                onClick={() => setActiveSurgery(surgery)}
-                sx={{
-                  flexShrink: 0,
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  px: '16px',
-                  height: '48px',
-                  borderRadius: '8px',
-                  backgroundColor:
-                    activeSurgery === surgery ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
-                  cursor: 'pointer'
-                }}
-              >
-                <Typography
-                  sx={{
-                    color:
-                      activeSurgery === surgery
-                        ? theme.palette.primary.contrastText
-                        : theme.palette.customColors.neutralPrimary,
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  {surgery}
-                </Typography>
-              </Box>
-            ))}
+          <Box sx={{ display: 'inline-flex', gap: '10px', pr: 1, alignItems: 'center' }}>
+            {renderRecordTabs()}
+            {isFetchingNextPage && anesthesiaRecords.length ? (
+              <Typography sx={{ color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap' }}>
+                Loading more...
+              </Typography>
+            ) : null}
           </Box>
         </Box>
 
@@ -508,7 +744,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                   color: theme.palette.customColors.OnPrimaryContainer
                 }}
               >
-                MED-123456
+                {recordCode}
               </Typography>
 
               <Typography
@@ -518,7 +754,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Last updated : 12 Aug 2025 . 12:00 PM
+                Last updated : {lastUpdatedValue}
               </Typography>
             </Box>
 
@@ -576,21 +812,25 @@ function Anesthesia({ hospitalCaseId, patientData }) {
             Purpose of Anaesthesia
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            {purposes.map((item, index) => (
-              <Chip
-                key={index}
-                label={item}
-                sx={{
-                  backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
-                  color: theme.palette.customColors.OnPrimaryContainer,
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
-                  borderRadius: '6px',
-                  '& .MuiChip-label': { px: 2, py: 0.5 }
-                }}
-              />
-            ))}
+            {purposeItems.length ? (
+              purposeItems.map((item, index) => (
+                <Chip
+                  key={`${item}-${index}`}
+                  label={item}
+                  sx={{
+                    backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
+                    color: theme.palette.customColors.OnPrimaryContainer,
+                    fontWeight: 500,
+                    fontSize: '14px',
+                    border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
+                    borderRadius: '6px',
+                    '& .MuiChip-label': { px: 2, py: 0.5 }
+                  }}
+                />
+              ))
+            ) : (
+              <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>No purpose added.</Typography>
+            )}
           </Box>
         </Box>
 
@@ -600,8 +840,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 500 }}>
-              Patient exhibited signs of discomfort; adjusted anesthesia levels accordingly. Monitored vitals closely
-              throughout the procedure. Dr. Megha assisted with intubation.
+              {notesText}
             </Typography>
           </Box>
         </Box>

@@ -1,4 +1,9 @@
-import { GET_ASSESSMENT_LIST_ANESTHESIA, ADD_ANESTHESIA, GET_ANESTHESIA_SETUP_LIST } from 'src/constants/ApiConstant'
+import {
+  GET_ASSESSMENT_LIST_ANESTHESIA,
+  ADD_ANESTHESIA,
+  GET_ANESTHESIA_SETUP_LIST,
+  GET_ANESTHESIA_LIST
+} from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
 export const getAssesmentList = async params => {
@@ -15,6 +20,12 @@ export const addAnesthesia = async payload => {
 
 export const getAnesthesiaSetupList = async params => {
   const response = await axiosGet({ url: `${GET_ANESTHESIA_SETUP_LIST}`, params })
+
+  return response?.data
+}
+
+export const getAnesthesiaList = async ({ params }) => {
+  const response = await axiosGet({ url: `${GET_ANESTHESIA_LIST}`, params })
 
   return response?.data
 }

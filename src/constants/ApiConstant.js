@@ -901,4 +901,6 @@ export const ADD_ANESTHESIA = `v1/hospital/anaesthesia/save`
 
 export const GET_ANESTHESIA_SETUP_LIST = `v1/hospital/anaesthesia/sections`
 
+export const GET_ANESTHESIA_LIST = `v1/hospital/anaesthesia/list`
+
 export const DELETE_MONITORING_MONITORING = `v1/hospital/delete-scheduled-monitoring-parameter`
