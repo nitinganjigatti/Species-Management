@@ -73,8 +73,8 @@ export const getTreatmentMonitoringData = async params => {
   return response?.data
 }
 
-export const getMonitoringParameters = async id => {
-  const response = await axiosGet({ url: `${GET_MONITORING_PARAMETERS}/${id}` })
+export const getMonitoringParameters = async (id, params) => {
+  const response = await axiosGet({ url: `${GET_MONITORING_PARAMETERS}/${id}`, params })
 
   return response?.data
 }

@@ -61,7 +61,7 @@ const AddParameterDrawer = ({
     const fetchMonitoringParameters = async () => {
       setMonitoringLoading(true)
       try {
-        await getMonitoringParameters(hospitalCaseId).then(res => {
+        await getMonitoringParameters(hospitalCaseId, { monitoring_date: selectedDate }).then(res => {
           if (res?.status === true) {
             const apiParams =
               res?.data?.assessments?.map(item => ({

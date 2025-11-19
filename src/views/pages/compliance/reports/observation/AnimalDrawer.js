@@ -25,7 +25,8 @@ const AnimalDrawer = ({
   handleFilterClick = () => {},
   handleSortClick = () => {},
   module = 'housing',
-  filters = {}
+  filters = {},
+  sortType
 }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
@@ -69,7 +70,7 @@ const AnimalDrawer = ({
   }
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, remove } = useInfiniteQuery({
-    queryKey: ['animal-List-Observation-Report', search, activeTab, filters],
+    queryKey: ['animal-List-Observation-Report', search, activeTab, filters, sortType],
     queryFn: async ({ pageParam = 1 }) => {
       if (module === 'housing') {
         const params = {
@@ -99,7 +100,9 @@ const AnimalDrawer = ({
           tsn_id: filters?.Species || [],
           site_id: filters?.Site || [],
           section_id: filters?.Section || [],
-          enclosure_id: filters?.Enclosure || []
+          enclosure_id: filters?.Enclosure || [],
+          sort: sortType?.sort,
+          column: sortType?.column
         }
 
         console.log(params)

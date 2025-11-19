@@ -359,8 +359,14 @@ const AddScheduleDrawer = ({
             >
               Cancel
             </Button>
-            <Button variant='contained' fullWidth onClick={handleSubmit(onSubmit)} sx={{ height: '56px' }}>
-              {addScheduleLoading ? <CircularProgress /> : 'SAVE'}
+            <Button
+              variant='contained'
+              fullWidth
+              onClick={handleSubmit(onSubmit)}
+              sx={{ height: '56px' }}
+              disabled={addScheduleLoading}
+            >
+              {addScheduleLoading ? <CircularProgress size={30} /> : 'SAVE'}
             </Button>
           </Box>
         </Box>

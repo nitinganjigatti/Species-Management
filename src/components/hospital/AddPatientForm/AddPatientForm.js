@@ -22,7 +22,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import AnimalDrawer from 'src/views/pages/compliance/reports/observation/AnimalDrawer'
-import { getRoomsAndEnclosures } from 'src/lib/api/hospital/roomsAndEnclosures'
+import { getHospitalRoomsList, getRoomsAndEnclosures } from 'src/lib/api/hospital/roomsAndEnclosures'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import DoctorsDrawer from '../PatientAdmissionForm/DoctorsDrawer'
@@ -51,7 +51,8 @@ const defaultValues = {
   selectedAnimal: null,
   selectedDoctor: null,
   admission_date: dayjs(),
-  admission_time: dayjs()
+  admission_time: dayjs(),
+  room: null
 }
 
 const treatmentType = [
@@ -84,7 +85,8 @@ const schema = yup.object().shape({
   }),
   holdingEnclosure: yup.object().required('Holding Enclosure is required'),
   selectedAnimal: yup.mixed().nullable().required('Animal is required'),
-  selectedDoctor: yup.mixed().nullable().required('Doctor is required')
+  selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
+  room: yup.object().required('Room is required')
 })
 
 const AddPatientForm = () => {
@@ -100,13 +102,15 @@ const AddPatientForm = () => {
   const [selectedDoctor, setSelectedDoctor] = useState(null)
   const [doctorDrawerOpen, setDoctorDrawerOpen] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
-  const [search, setSearch] = useState('')
-  const [currentSort, setCurrentSort] = useState('recent')
-
+  const [currentSort, setCurrentSort] = useState({ column: 'animal_id', sort: 'asc' })
+  const [bedsLoading, setBedsLoading] = useState(false)
+  const [searchEnclosure, setSearchEnclosure] = useState('')
+  const [rooms, setRooms] = useState([])
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
   const [loading, setLoading] = useState(false)
   const [isSortBottomSheetOpen, setIsSortBottomSheetOpen] = useState(false)
+  const [searchRoom, setSearchRoom] = useState('')
 
   const [selectedOptions, setSelectedOptions] = useState({
     Gender: [],
@@ -118,7 +122,6 @@ const AddPatientForm = () => {
 
   const applyFilters = selectedOptions => {
     setSelectedOptions(selectedOptions)
-    console.log('Applied Filters:', selectedOptions)
     setOpenFilterDrawer(false)
   }
 
@@ -138,7 +141,6 @@ const AddPatientForm = () => {
     setValue,
     trigger,
     clearErrors,
-    getValues,
     reset
   } = useForm({
     defaultValues,
@@ -152,33 +154,68 @@ const AddPatientForm = () => {
   const watchTreatmentType = watch('treatmentType')
 
   useEffect(() => {
-    const getHospitalBeds = async () => {
+    const getHospitalRooms = async () => {
       try {
-        await getRoomsAndEnclosures({
+        await getHospitalRoomsList({
           hospital_id: selectedHospital?.id,
           page: 1,
           per_page: 20,
-          is_occupied: 'available',
-          search
+          q: searchRoom,
+          availability: 'available'
         }).then(res => {
           if (res?.success === true) {
-            setHoldingEnclosures(
+            setRooms(
               res?.data?.records?.map(item => ({
-                label: item?.bed_name,
+                label: item?.room_name,
                 value: item?.id
               }))
             )
           }
         })
       } catch (error) {
-        console.error(error, 'cannot Fetch hospital beds listing')
+        console.error(error, 'cannot Fetch hospital rooms listing')
+      }
+    }
+
+    getHospitalRooms()
+  }, [selectedHospital, searchRoom])
+
+  const selectedRoom = watch('room')
+
+  useEffect(() => {
+    const getHospitalBeds = async () => {
+      if (!selectedRoom?.value) return
+      setBedsLoading(true)
+      try {
+        const res = await getRoomsAndEnclosures({
+          hospital_id: selectedHospital?.id,
+          room_id: selectedRoom.value,
+          page: 1,
+          is_occupied: 'available',
+          q: searchEnclosure
+        })
+        if (res?.success === true) {
+          setHoldingEnclosures(
+            res?.data?.records?.map(item => ({
+              label: item?.bed_name,
+              value: item?.id
+            }))
+          )
+        }
+      } catch (error) {
+        console.error('Cannot fetch hospital beds listing', error)
+        setBedsLoading(false)
+      } finally {
+        setBedsLoading(false)
       }
     }
 
     getHospitalBeds()
-  }, [search, selectedHospital?.id])
+  }, [selectedRoom, selectedHospital, searchEnclosure])
 
-  const debouncedSearch = React.useMemo(() => debounce(val => setSearch(val), 1000), [])
+  const debouncedSearch = React.useMemo(() => debounce(val => setSearchRoom(val), 1000), [])
+
+  const debouncedEnclosureSearch = React.useMemo(() => debounce(val => setSearchEnclosure(val), 1000), [])
 
   useEffect(() => {
     const getAnimalIds = async () => {
@@ -232,7 +269,8 @@ const AddPatientForm = () => {
         destination_site_id: selectedAnimal?.site_id,
         comments: data?.purposeOfVisit,
         admit_date: moment(data?.admission_date).format('YYYY-MM-DD'),
-        admit_time: moment(data?.admission_time).format('HH:mm')
+        admit_time: moment(data?.admission_time).format('HH:mm'),
+        room_id: data?.room?.value
       }
 
       await addHospitalPatient(params).then(res => {
@@ -392,245 +430,256 @@ const AddPatientForm = () => {
                   )}
                 />
               </Box>
-              <Box
-                sx={{
-                  mt: 7,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 6
-                }}
-              >
-                <Grid container spacing={6} alignItems={'baseline'}>
-                  <Grid size={{ xs: 12, md: 8 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+
+              <Grid container spacing={6} sx={{ mt: 7 }}>
+                <Grid container spacing={4}>
+                  <Grid size={{ xs: 12 }}>
                     <Typography
                       sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
                       Date and Time
                     </Typography>
-                    <Grid container spacing={6}>
-                      <Grid size={{ xs: 6, sm: 6 }}>
-                        <ControlledDatePicker
-                          control={control}
-                          name={'admission_date'}
-                          label='Date'
-                          defaultValue={dayjs()}
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 6, sm: 6 }}>
-                        <ControlledTimePicker control={control} name={'admission_time'} label='Time' />
-                      </Grid>
-                    </Grid>
                   </Grid>
-                  <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography
-                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                    >
-                      Visit Type
-                    </Typography>
-                    <ControlledSelect
+
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <ControlledDatePicker
                       control={control}
-                      name={'visitType'}
-                      errors={errors}
-                      label={'Select Visit Type'}
-                      options={visitTypes}
-                      getOptionLabel={option => option.label}
-                      getOptionValue={option => option.value}
+                      name={'admission_date'}
+                      label='Date'
+                      defaultValue={dayjs()}
                     />
                   </Grid>
-                  <Grid size={{ xs: 12 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography
-                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                    >
-                      Purpose of visit
-                    </Typography>
-                    <ControlledTextArea
-                      control={control}
-                      name={'purposeOfVisit'}
-                      errors={errors}
-                      sx={{ borderRadius: 1 }}
-                      label={'Enter Enter'}
-                    />
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <ControlledTimePicker control={control} name={'admission_time'} label='Time' />
                   </Grid>
                 </Grid>
-                <Controller
-                  name='medicalRecordChoice'
-                  control={control}
-                  render={({ field }) => (
-                    <Grid
-                      container
-                      spacing={4}
-                      sx={{
-                        background: alpha(theme.palette.customColors.SecondaryContainer, 0.16),
-                        p: 6,
-                        borderRadius: 1
-                      }}
-                    >
-                      <Grid size={{ xs: 12 }}>
-                        <Typography
-                          sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                        >
-                          Medical Record ID
-                        </Typography>
-                      </Grid>
-                      {medicalRecordType?.map((item, index) => (
-                        <Grid key={index} size={{ xs: 12, sm: 6 }}>
-                          <TreatmentTypeRadioButtons
-                            label={item?.label}
-                            radioPosition='right'
-                            backgroundColor={theme.palette.customColors.OnPrimary}
-                            borderColor={theme.palette.customColors.Outline}
-                            isSelected={field.value === item?.value}
-                            onClick={() => field.onChange(item?.value)}
-                            selectedBackgroundColor={theme.palette.customColors.OnPrimaryContainer}
-                            selectedFontColor='#FFF'
-                            selectedBorderColor='none'
-                          />
-                        </Grid>
-                      ))}
-                      {watchMedicalChoice === 'existing' && (
-                        <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Grid size={{ xs: 12 }}>
+                  <Controller
+                    name='medicalRecordChoice'
+                    control={control}
+                    render={({ field }) => (
+                      <Grid
+                        container
+                        spacing={4}
+                        sx={{
+                          background: alpha(theme.palette.customColors.SecondaryContainer, 0.16),
+                          p: 6,
+                          borderRadius: 1
+                        }}
+                      >
+                        <Grid size={{ xs: 12 }}>
                           <Typography
                             sx={{
-                              fontSize: '16px',
+                              fontSize: '20px',
                               fontWeight: 500,
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
-                            Select ID
+                            Medical Record ID
                           </Typography>
-                          <ControlledSelect
-                            control={control}
-                            name={'medicalRecordId'}
-                            errors={errors}
-                            label={'Select ID'}
-                            options={
-                              !selectedAnimal
-                                ? [{ label: ' Select Animal first', value: '' }]
-                                : medicalId.length > 0
-                                ? medicalId
-                                : [{ label: 'No medical IDs available', value: '' }]
-                            }
-                            getOptionLabel={option => option.label}
-                            getOptionValue={option => option.value}
-                            sx={{ background: theme.palette.customColors.Surface }}
-                          />
                         </Grid>
-                      )}
-                    </Grid>
-                  )}
-                />
-              </Box>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  mt: 7
-                }}
-              >
-                <Grid container spacing={6}>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                      <Typography
-                        sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                        {medicalRecordType?.map((item, index) => (
+                          <Grid key={index} size={{ xs: 12, sm: 6 }}>
+                            <TreatmentTypeRadioButtons
+                              label={item?.label}
+                              radioPosition='right'
+                              backgroundColor={theme.palette.customColors.OnPrimary}
+                              borderColor={theme.palette.customColors.Outline}
+                              isSelected={field.value === item?.value}
+                              onClick={() => field.onChange(item?.value)}
+                              selectedBackgroundColor={theme.palette.customColors.OnPrimaryContainer}
+                              selectedFontColor='#FFF'
+                              selectedBorderColor='none'
+                            />
+                          </Grid>
+                        ))}
+                        {watchMedicalChoice === 'existing' && (
+                          <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                            <Typography
+                              sx={{
+                                fontSize: '16px',
+                                fontWeight: 500,
+                                color: theme.palette.customColors.OnSurfaceVariant
+                              }}
+                            >
+                              Select ID
+                            </Typography>
+                            <ControlledSelect
+                              control={control}
+                              name={'medicalRecordId'}
+                              errors={errors}
+                              label={'Select ID'}
+                              options={
+                                !selectedAnimal
+                                  ? [{ label: ' Select Animal first', value: '' }]
+                                  : medicalId.length > 0
+                                  ? medicalId
+                                  : [{ label: 'No medical IDs available', value: '' }]
+                              }
+                              getOptionLabel={option => option.label}
+                              getOptionValue={option => option.value}
+                              sx={{ background: theme.palette.customColors.Surface }}
+                            />
+                          </Grid>
+                        )}
+                      </Grid>
+                    )}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Typography
+                    sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    Visit Type
+                  </Typography>
+                  <ControlledSelect
+                    control={control}
+                    name={'visitType'}
+                    errors={errors}
+                    label={'Select Visit Type'}
+                    options={visitTypes}
+                    getOptionLabel={option => option.label}
+                    getOptionValue={option => option.value}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography
+                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      Attending chief doctor
+                    </Typography>
+                    {selectedDoctor === null ? (
+                      <Box
+                        sx={{
+                          // background: theme.palette.customColors.Surface,
+                          borderRadius: 1,
+                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                          p: 3,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          minHeight: '56px',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => setDoctorDrawerOpen(true)}
                       >
-                        Attending chief doctor
-                      </Typography>
-                      {selectedDoctor === null ? (
+                        <Typography
+                          sx={{
+                            fontSize: '1rem',
+                            fontWeight: 400,
+                            color: errors?.selectedDoctor
+                              ? theme.palette.error.main
+                              : theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
+                          Select doctor
+                        </Typography>
+                        <Icon
+                          icon='mdi:chevron-down'
+                          fontSize={24}
+                          color={theme.palette.customColors.OnSurfaceVariant}
+                        />
+                      </Box>
+                    ) : (
+                      <>
                         <Box
                           sx={{
-                            // background: theme.palette.customColors.Surface,
+                            background: theme.palette.customColors.OnPrimary,
                             borderRadius: 1,
                             border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                            p: 3,
+                            px: 3,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             minHeight: '56px',
                             cursor: 'pointer'
                           }}
-                          onClick={() => setDoctorDrawerOpen(true)}
                         >
-                          <Typography
-                            sx={{
-                              fontSize: '1rem',
-                              fontWeight: 400,
-                              color: errors?.selectedDoctor
-                                ? theme.palette.error.main
-                                : theme.palette.customColors.OnSurfaceVariant
-                            }}
-                          >
-                            Select doctor
-                          </Typography>
-                          <Icon
-                            icon='mdi:chevron-down'
-                            fontSize={24}
-                            color={theme.palette.customColors.OnSurfaceVariant}
+                          <UserAvatarDetails
+                            profile_image={selectedDoctor?.default_icon}
+                            user_name={selectedDoctor?.name}
+                            role={selectedDoctor?.role_name}
                           />
+                          <IconButton onClick={handleRemoveDoctor}>
+                            <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
+                          </IconButton>
                         </Box>
-                      ) : (
-                        <>
-                          <Box
-                            sx={{
-                              background: theme.palette.customColors.OnPrimary,
-                              borderRadius: 1,
-                              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                              px: 3,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              minHeight: '56px',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <UserAvatarDetails
-                              profile_image={selectedDoctor?.default_icon}
-                              user_name={selectedDoctor?.name}
-                              role={selectedDoctor?.role_name}
-                            />
-                            <IconButton onClick={handleRemoveDoctor}>
-                              <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
-                            </IconButton>
-                          </Box>
-                        </>
-                      )}
-                    </Box>
-                    {errors.selectedDoctor && (
-                      <Typography
-                        sx={{
-                          color: theme.palette.error.main,
-                          mt: '3px',
-                          mx: '14px',
-                          fontSize: '0.75rem',
-                          fontWeight: 400
-                        }}
-                      >
-                        {errors.selectedDoctor.message}
-                      </Typography>
+                      </>
                     )}
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  </Box>
+                  {errors.selectedDoctor && (
                     <Typography
-                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                      sx={{
+                        color: theme.palette.error.main,
+                        mt: '3px',
+                        mx: '14px',
+                        fontSize: '0.75rem',
+                        fontWeight: 400
+                      }}
                     >
-                      Holding enclosure
+                      {errors.selectedDoctor.message}
                     </Typography>
-                    <ControlledAutocomplete
-                      name='holdingEnclosure'
-                      label='Select area/cell/enclosure'
-                      control={control}
-                      errors={errors}
-                      options={holdingEnclosures}
-                      getOptionValue={option => option.value || ''}
-                      getOptionLabel={option => option.label || ''}
-                      isOptionEqualToValue={(option, value) => option.value === value?.value}
-                      required
-                      onInputChange={val => debouncedSearch(val)}
-                      sx={{ borderRadius: 1 }}
-                      fullWidth
-                    />
-                  </Grid>
+                  )}
                 </Grid>
-              </Box>
+                <Grid size={{ xs: 12 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Typography
+                    sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    Purpose of visit
+                  </Typography>
+                  <ControlledTextArea
+                    control={control}
+                    name={'purposeOfVisit'}
+                    errors={errors}
+                    sx={{ borderRadius: 1 }}
+                    label={'Enter Enter'}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Typography
+                    sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    Room
+                  </Typography>
+                  <ControlledAutocomplete
+                    name='room'
+                    label='Select Room'
+                    control={control}
+                    errors={errors}
+                    options={rooms}
+                    getOptionValue={option => option.value || ''}
+                    getOptionLabel={option => option.label || ''}
+                    isOptionEqualToValue={(option, value) => option.value === value?.value}
+                    required
+                    onInputChange={val => debouncedSearch(val)}
+                    sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Typography
+                    sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    Holding Unit
+                  </Typography>
+                  <ControlledAutocomplete
+                    name='holdingEnclosure'
+                    label='Select Holding Unit'
+                    control={control}
+                    errors={errors}
+                    options={holdingEnclosures}
+                    getOptionValue={option => option.value || ''}
+                    getOptionLabel={option => option.label || ''}
+                    isOptionEqualToValue={(option, value) => option.value === value?.value}
+                    required
+                    onInputChange={val => debouncedEnclosureSearch(val)}
+                    sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
+                    fullWidth
+                    loading={bedsLoading}
+                  />
+                </Grid>
+              </Grid>
             </form>
           </CardContent>
         </Card>
@@ -701,6 +750,7 @@ const AddPatientForm = () => {
           handleSortClick={handleSortClick}
           module='hospital'
           filters={selectedOptions}
+          sortType={currentSort}
         />
       )}
       {doctorDrawerOpen && (
@@ -710,8 +760,8 @@ const AddPatientForm = () => {
         <SortBottomSheet
           open={isSortBottomSheetOpen}
           onClose={() => setIsSortBottomSheetOpen(false)}
-          currentSort={currentSort}
-          onSortChange={setCurrentSort}
+          currentSort={currentSort.sort === 'asc' ? 'recent' : 'oldest'}
+          onSortChange={sortObj => setCurrentSort(sortObj)}
         />
       )}
       <AddPatientFiltersDrawer
@@ -720,6 +770,7 @@ const AddPatientForm = () => {
         onSubmitLoading={loading}
         onApplyFilters={applyFilters}
         setFilterCount={setFilterCount}
+        filterCount={filterCount}
         initialSelectedOptions={selectedOptions}
       />
     </>

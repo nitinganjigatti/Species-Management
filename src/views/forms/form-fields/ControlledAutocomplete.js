@@ -31,7 +31,8 @@ const ControlledAutocomplete = ({
   formHelperTextBackgroundColor = 'inherit',
   inputBackgroundColor = 'inherit',
   sx = {},
-  showIcons = true
+  showIcons = true,
+  disabled = false
 }) => {
   if (!options) return null
 
@@ -66,6 +67,7 @@ const ControlledAutocomplete = ({
           <Autocomplete
             {...field}
             freeSolo={showIcons}
+            disabled={disabled}
             selectOnFocus
             clearOnBlur={false}
             handleHomeEndKeys

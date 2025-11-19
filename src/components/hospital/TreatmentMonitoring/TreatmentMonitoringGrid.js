@@ -17,37 +17,16 @@ import { useQuery } from '@tanstack/react-query'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import dayjs from 'dayjs'
 import Toaster from 'src/components/Toaster'
-
-const getDatesFromUTCToToday = utcString => {
-  const admittedUTC = new Date(utcString + 'Z')
-  const admittedIST = new Date(admittedUTC.getTime() + 5.5 * 60 * 60 * 1000)
-  const admittedDate = new Date(admittedIST.toLocaleDateString('en-CA'))
-  const currentDateIST = new Date(new Date().toLocaleDateString('en-CA'))
-
-  const dates = []
-  let temp = new Date(admittedDate)
-
-  while (temp <= currentDateIST) {
-    dates.push(temp.toISOString().split('T')[0])
-    temp.setDate(temp.getDate() + 1)
-  }
-
-  if (dates.length === 0) {
-    dates.push(currentDateIST.toISOString().split('T')[0])
-  }
-
-  return dates
-}
+import Utility from 'src/utility'
 
 const convertUTCToIST = utcTime => {
   if (!utcTime) return ''
   const today = new Date().toISOString().split('T')[0]
-  const utcDateTime = `${today}T${utcTime}Z` // mark as UTC
+  const utcDateTime = `${today}T${utcTime}Z`
 
-  // Just create the Date — JS automatically converts to local (IST)
   const localDate = new Date(utcDateTime)
 
-  return localDate.toTimeString().split(' ')[0] // e.g. "11:04:33"
+  return localDate.toTimeString().split(' ')[0]
 }
 
 // Utility functions
@@ -200,6 +179,8 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   const hourRefs = useRef({})
   const router = useRouter()
 
+  console.log(patientData)
+
   const { id, medical_record_id, animal_id } = router.query
   const today = new Date().toISOString().split('T')[0]
 
@@ -246,10 +227,8 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   })
 
   useEffect(() => {
-    if (patientData?.admitted_at) {
-      setDates(getDatesFromUTCToToday(patientData.admitted_at))
-    }
-  }, [patientData])
+    refetchMonitoringParams()
+  }, [id])
 
   const timeSlots = useMemo(() => {
     const slots = []
@@ -284,8 +263,8 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
       const slots = createTimeSlotStructure(timeSlots)
 
       item.assessment_details?.forEach(detail => {
-        const istRecordTime = convertUTCToIST(detail?.record_time)
-        const slotLabel = getTimeSlotLabelFromRecord(istRecordTime)
+        const istRecordTime = detail?.record_time_ist
+        const slotLabel = getLabelForHour(parseInt(istRecordTime.split(':')[0]))
         const slot = slots.find(s => s.time === slotLabel)
         if (slot) {
           slot.isActive = true
@@ -293,7 +272,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
             value: detail.assessment_value,
             unit: detail.unit_name,
             total: Number(detail.total_records || 1),
-            recorded_time: dayjs(istRecordTime, 'HH:mm:ss').format('hh:mm A')
+            recorded_time: dayjs(detail.record_time_ist, 'HH:mm').format('hh:mm A')
           }
         }
       })
@@ -305,6 +284,12 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
       }
     })
   }, [monitoringDataListings, createTimeSlotStructure, timeSlots])
+
+  useEffect(() => {
+    if (monitoringDataListings?.header_date?.between_date) {
+      setDates(monitoringDataListings.header_date.between_date)
+    }
+  }, [monitoringDataListings])
 
   const defaultMetrics = useMemo(() => monitoringData, [monitoringData])
 
@@ -375,6 +360,17 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
     }
   }
 
+  // --- Admission Time (UTC → IST) Handling ---
+  const admittedAtLocal = patientData?.admitted_at
+    ? Utility.convertUTCToLocal(patientData.admitted_at) // "YYYY-MM-DD HH:mm:ss"
+    : null
+
+  const admittedAtHourIST = admittedAtLocal ? dayjs(admittedAtLocal, 'YYYY-MM-DD HH:mm:ss').hour() : null
+
+  const isAdmittedDay = admittedAtLocal
+    ? dayjs(selectedDate).isSame(dayjs(admittedAtLocal, 'YYYY-MM-DD HH:mm:ss'), 'day')
+    : false
+
   const renderedMetrics = useMemo(() => {
     return displayMetrics?.map(metric => (
       <TimeSlotGrid key={metric?.id} numColumns={timeSlots.length}>
@@ -389,16 +385,24 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
           const currentHour = new Date().getHours()
           let bgColor = theme.palette.customColors.OnPrimary
 
-          let isDisabled = false
-          if (isToday && hour > currentHour) {
-            isDisabled = true
-          }
+          const isFutureTodaySlot = isToday && hour > currentHour
+          const isBeforeAdmitTime = isAdmittedDay && admittedAtHourIST !== null && hour < admittedAtHourIST
+          const isAfterAdmitTime = !isBeforeAdmitTime
 
-          let showPlus = !isDisabled
+          // Disable ONLY future slots. Nothing else.
+          const isDisabled = isFutureTodaySlot
+
+          let showPlus = true
+
+          // hide plus only in future today slots
+          if (isFutureTodaySlot) showPlus = false
 
           if (durationMinutes) {
             const intervalHours = durationMinutes / 60
-            if (hour % intervalHours === 0) {
+            const isIntervalSlot = hour % intervalHours === 0
+
+            // Yellow should appear everywhere AFTER admitted time — even future hours
+            if (isIntervalSlot && isAfterAdmitTime) {
               bgColor = alpha(theme.palette.customColors.antzNotes, 0.64)
             }
           }
@@ -476,7 +480,12 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
       <Grid container spacing={2} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
         <Grid container spacing={6}>
           <Grid item size={{ xs: 12, sm: 12, md: 10 }}>
-            <HorizontalDateNav onDateSelect={handleDateChange} selectedDate={selectedDate} dates={dates} />
+            <HorizontalDateNav
+              onDateSelect={handleDateChange}
+              selectedDate={selectedDate}
+              dates={dates}
+              isLoading={monitoringLoading}
+            />
           </Grid>
           <Grid item size={{ xs: 12, sm: 12, md: 2 }}>
             {isToday ? (
