@@ -64,7 +64,7 @@ function PrescriptionLayout({ drawerType }) {
   const [selectedMedicationsFromDetail, setSelectedMedicationsFromDetail] = useState([])
   const [isStopMedicineLoading, setIsStopMedicineLoading] = useState(false)
   const [isAddNewDosageLoading, setIsAddNewDosageLoading] = useState(false)
-  const [isAdministerOrSkipForMultipleSlotsOpen, setIsAdministerOrSkipForMultipleSlotsOpen] = useState(true)
+  const [isAdministerOrSkipForMultipleSlotsOpen, setIsAdministerOrSkipForMultipleSlotsOpen] = useState(false)
   const [isUndoLoading, setIsUndoLoading] = useState(false)
   const [selectedMetrics, setSelectedMetrics] = useState([])
 
@@ -674,7 +674,7 @@ function PrescriptionLayout({ drawerType }) {
     }
   }, [])
 
-  const handleAdministerOrSkipOpen = data => {
+  const handleAdministerOrSkipOpen = (data, type) => {
     setSelectedSlotData(data)
 
     // setSelectedMedicine(data)
@@ -682,7 +682,11 @@ function PrescriptionLayout({ drawerType }) {
       fetchMedicalMasterData()
     }
     setBatchList([])
-    setIsAdministerOrSkipPopupOpen(true)
+    if (type === 'multiple') {
+      setIsAdministerOrSkipForMultipleSlotsOpen(true)
+    } else {
+      setIsAdministerOrSkipPopupOpen(true)
+    }
   }
 
   const handleAdministerSelectedFromDrawer = async (selectedItems, medicineData) => {

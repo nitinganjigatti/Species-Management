@@ -160,7 +160,7 @@ const TimeHeader = styled(Box)(({ theme }) => ({
 
 const TimeTooltip = styled(Box)(({ theme }) => ({
   position: 'absolute',
-  top: '2px',
+  top: '100%',
   left: '50%',
   transform: 'translateX(-50%)',
   backgroundColor: 'transparent',
@@ -177,17 +177,48 @@ const TimeTooltip = styled(Box)(({ theme }) => ({
   '&::after': {
     content: '""',
     position: 'absolute',
-    top: '100%',
+    top: '-6px', // Position above the tooltip
     left: '50%',
     transform: 'translateX(-50%)',
     width: 0,
     height: 0,
     borderLeft: '6px solid transparent',
     borderRight: '6px solid transparent',
-    borderTop: '6px solid #E35163',
-    borderBottom: 'none'
+    borderBottom: '6px solid #E35163', // Changed to borderBottom for upward arrow
+    borderTop: 'none'
   }
 }))
+
+// const TimeTooltip = styled(Box)(({ theme }) => ({
+//   position: 'absolute',
+//   top: '2px',
+//   left: '50%',
+//   transform: 'translateX(-50%)',
+//   backgroundColor: 'transparent',
+//   border: '1px solid',
+//   borderColor: theme.palette.customColors.Error,
+//   color: theme.palette.customColors.Error,
+//   padding: '4px 8px',
+//   fontSize: '12px',
+//   fontWeight: 600,
+//   borderRadius: '8px',
+//   zIndex: 1000,
+//   whiteSpace: 'nowrap',
+//   boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+//   '&::after': {
+//     content: '""',
+//     position: 'absolute',
+//     top: '100%',
+//     left: '50%',
+//     transform: 'translateX(-50%)',
+//     width: 0,
+//     height: 0,
+//     borderLeft: '6px solid transparent',
+//     borderRight: '6px solid transparent',
+//     borderTop: '6px solid #E35163',
+//     borderBottom: 'none'
+//   }
+// }))
 
 const ShimmerCheckbox = styled(Box)(({ theme }) => ({
   width: '100px',
@@ -394,6 +425,7 @@ const PrescriptionMonitoringGrid = ({
         schedule:
           medication.schedule && Array.isArray(medication.schedule)
             ? medication.schedule.map(schedule => ({
+                ...schedule,
                 schedule_id: schedule.schedule_id,
                 time: schedule.time,
                 dosage: schedule.dosage,
@@ -721,14 +753,25 @@ const PrescriptionMonitoringGrid = ({
               disabled={displayMetrics?.length === 0}
               onChange={handleSelectAll}
             />
-            {/* <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                Pending Dosage:
-              </Typography>
-              <Typography sx={{ weight: 600, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}>
-                7
-              </Typography>
-            </Box> */}
+            {selectedMetrics.length > 0 && (
+              <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                  Pending Dosage:
+                </Typography>
+                <Typography sx={{ weight: 600, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}>
+                  {selectedMetrics.reduce((total, metric) => {
+                    if (metric?.progress) {
+                      const [completed, totalDoses] = metric.progress.split('/').map(Number)
+                      const pending = totalDoses - completed
+
+                      return total + (isNaN(pending) ? 0 : pending)
+                    }
+
+                    return total
+                  }, 0)}
+                </Typography>
+              </Box>
+            )}
           </Box>
           <MUISwitch
             checked={isCurrentMedicalRecord}
@@ -840,7 +883,11 @@ const PrescriptionMonitoringGrid = ({
                                 const isFuture = isScheduledFuture(selectedDate, scheduledTime)
                                 if (!isFuture) {
                                   // Open administer/skip modal
-                                  handleAdministerOrSkipOpen(data)
+                                  if (timeSlot?.value?.administrative_ids?.length > 1) {
+                                    handleAdministerOrSkipOpen(data, 'multiple')
+                                  } else {
+                                    handleAdministerOrSkipOpen(data, 'single')
+                                  }
                                   // onOpenPrescriptionCard(timeSlot)
                                 } else {
                                   console.log('Cannot administer/skip future scheduled medications')

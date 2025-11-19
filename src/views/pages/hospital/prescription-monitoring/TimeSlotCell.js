@@ -31,7 +31,7 @@ const TimeSlotCell = ({ hasSchedule, status, scheduledTime, dosage, onClick, con
         }}
       >
         {status !== 'pending' && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <Typography
               sx={{
                 fontWeight: 500,
