@@ -70,7 +70,8 @@ const AddParameterDataEntry = ({
   hospitalCaseId,
   animalId,
   refetchMonitoringData,
-  selectedDate
+  selectedDate,
+  monitoringRefetch
 }) => {
   const theme = useTheme()
 
@@ -145,6 +146,7 @@ const AddParameterDataEntry = ({
 
   const handleDrawerClose = () => {
     setOpen(false)
+    monitoringRefetch()
   }
 
   const onSubmit = async params => {

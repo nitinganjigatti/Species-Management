@@ -179,8 +179,6 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   const hourRefs = useRef({})
   const router = useRouter()
 
-  console.log(patientData)
-
   const { id, medical_record_id, animal_id } = router.query
   const today = new Date().toISOString().split('T')[0]
 
@@ -649,6 +647,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
           animalId={animal_id}
           refetchMonitoringData={monitoringRefetch}
           selectedDate={selectedDate}
+          monitoringRefetch={monitoringRefetch}
         />
       )}
       {openDeleteDialog && (
