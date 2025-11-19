@@ -16,6 +16,7 @@ import {
 import { Box, styled } from '@mui/system'
 import React, { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
+import MUISelect from 'src/views/forms/form-fields/MUISelect'
 
 const leftMenu = [
   { id: 1, name: 'Pharmacy' },
@@ -316,7 +317,7 @@ const ConsumptionReportDrawer = ({
                 </>
               ) : selectedMenu.name === 'Drug Type' ? (
                 <>
-                  <FormControl fullWidth>
+                  {/* <FormControl fullWidth>
                     <Select
                       value={selectedOptions['Drug Type'] || 'all'}
                       onChange={handleDrugTypeChange}
@@ -342,7 +343,19 @@ const ConsumptionReportDrawer = ({
                         </MenuItem>
                       ))}
                     </Select>
-                  </FormControl>
+                  </FormControl> */}
+                  <MUISelect
+                    value={selectedOptions['Drug Type'] || 'all'}
+                    onChange={handleDrugTypeChange}
+                    sx={{
+                      '& .MuiSelect-select': {
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        color: '#839D8D'
+                      }
+                    }}
+                    options={drugTypeOptions}
+                  />
                 </>
               ) : null}
             </Box>
@@ -374,7 +387,7 @@ const ConsumptionReportDrawer = ({
         </LoadingButton>
       </Box>
     </Drawer>
-  );
+  )
 }
 
 export default ConsumptionReportDrawer

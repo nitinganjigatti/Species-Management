@@ -21,6 +21,8 @@ import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { deleteFulfillItem } from 'src/lib/api/pharmacy/getRequestItemsList'
 import toast from 'react-hot-toast'
 import { LoadingButton } from '@mui/lab'
+import MUISelect from 'src/views/forms/form-fields/MUISelect'
+import { justifyContent } from '@mui/system'
 
 export default function ShipmentRequests({ updateUrlParams }) {
   const { selectedPharmacy } = usePharmacyContext()
@@ -442,11 +444,8 @@ export default function ShipmentRequests({ updateUrlParams }) {
     <TabContext value={shipmentTab}>
       <Grid
         container
+        spacing={3}
         sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row', sm: 'row' },
-
-          justifyContent: 'space-between',
           mt: 6
         }}
       >
@@ -484,15 +483,15 @@ export default function ShipmentRequests({ updateUrlParams }) {
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row', md: 'row' },
             width: '100%',
-            justifyContent: { xs: 'space-between', md: 'flex-end' },
+            justifyContent: { xs: 'space-between' },
             gap: { xs: 2, md: 3, sm: 1 },
             py: 1,
             alignItems: 'center'
           }}
         >
           {shipmentTab === 'Ready To Ship' && (
-            <Grid item>
-              <FormControl fullWidth size='small'>
+            <Grid item size={{ xs: 12, sm: 6 }}>
+              {/* <FormControl sx={{ width: { xs: '100%', sm: '250px' } }} size='small'>
                 <InputLabel sx={{ py: '2px' }}>Priority</InputLabel>
                 <Select
                   value={priority}
@@ -506,14 +505,29 @@ export default function ShipmentRequests({ updateUrlParams }) {
                   <MenuItem value='high'>High</MenuItem>
                   <MenuItem value='emergency'>Emergency</MenuItem>
                 </Select>
-              </FormControl>
+              </FormControl> */}
+              <MUISelect
+                sx={{ width: { xs: '100%', sm: '250px' } }}
+                value={priority}
+                label='Priority'
+                options={[
+                  { id: 'all', name: 'All' },
+                  { id: 'high', name: 'High' },
+                  { id: 'emergency', name: 'Emergency' }
+                ]}
+                onChange={e => {
+                  setPriority(e.target.value)
+                  setPaginationModel({ page: 0, pageSize: 50 })
+                }}
+              />
             </Grid>
           )}
           {shipmentTab === 'Ready To Ship' &&
           (indexedRows?.length > 0 || selectedRows?.length > 0) &&
           (selectedPharmacy?.permission.key === 'ADD' || selectedPharmacy?.permission.key === 'allow_full_access') ? (
-            <Grid item xs={12} sm='auto' md='auto' lg={5}>
+            <Grid item size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', justifyContent: 'end' }}>
               <Button
+                sx={{ width: { xs: '100%', sm: '250px' } }}
                 fullWidth
                 disabled={selectedRows?.length === 0}
                 size='big'
