@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Dialog, DialogContent, Box, Typography, IconButton, Grid, Card, CardContent, Checkbox } from '@mui/material'
+import { Drawer, Box, Typography, IconButton, Grid, Card, CardContent, Checkbox } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -24,7 +24,7 @@ const AdministerOrSkipForMultipleSlots = ({
   onSubmit,
   submitLoader,
   medicineData,
-  timeSlots = [], // Array of time slots with { time, dosage, amount, id }
+  timeSlots = [],
   medicalMasterData,
   mastersDataLoading,
   batchList = [],
@@ -151,7 +151,6 @@ return value && value.batch_no && typeof value.batch_no === 'string'
   const isSlotInFuture = slot => {
     if (!scheduledDate || !slot.time) return false
 
-    // Parse the scheduled date and slot time
     const slotDateTime = dayjs(`${Utility.formatDate(scheduledDate)} ${slot.time}`, 'YYYY-MM-DD hh:mm A')
     const now = dayjs()
 
@@ -163,13 +162,9 @@ return value && value.batch_no && typeof value.batch_no === 'string'
     
     if (checked) {
       newSelectedSlots = [...selectedSlots, slot.id]
-
-      // Initialize the time picker with the slot's scheduled time
       setValue(`slotTime_${slot.id}`, slot.time)
     } else {
       newSelectedSlots = selectedSlots.filter(id => id !== slot.id)
-
-      // Clear the time picker value
       setValue(`slotTime_${slot.id}`, '')
     }
     
@@ -184,7 +179,6 @@ return value && value.batch_no && typeof value.batch_no === 'string'
   }
 
   const onFormSubmit = data => {
-    // Add selected slots with their administration times to the data
     const formattedData = {
       ...data,
       selectedTimeSlots: selectedSlots.map(slotId => {
@@ -193,15 +187,14 @@ return value && value.batch_no && typeof value.batch_no === 'string'
         
         return {
           id: slotId,
-          scheduledTime: slot.time, // Original scheduled time
-          administeredTime: administrationTime, // Actual administered time (for administer action)
+          scheduledTime: slot.time,
+          administeredTime: administrationTime,
           dosage: slot.dosage,
           amount: slot.amount
         }
       })
     }
 
-    // Remove individual slotTime fields from the data
     Object.keys(formattedData).forEach(key => {
       if (key.startsWith('slotTime_')) {
         delete formattedData[key]
@@ -212,14 +205,18 @@ return value && value.batch_no && typeof value.batch_no === 'string'
   }
 
   return (
-    <Dialog
+    <Drawer
+      anchor='right'
       open={open}
       onClose={handleModalClose}
       slotProps={{
         paper: {
           sx: {
-            borderRadius: 1,
-            maxWidth: '562px'
+            width: { xs: '100vw', md: 600 },
+            maxWidth: '100vw',
+            height: '100vh',
+            display: 'flex',
+            flexDirection: 'column'
           }
         }
       }}
@@ -307,8 +304,8 @@ return value && value.batch_no && typeof value.batch_no === 'string'
         </Box>
       </Box>
 
-      {/* Content */}
-      <DialogContent sx={{ p: 6 }}>
+      {/* Scrollable Content */}
+      <Box sx={{ flex: 1, overflowY: 'auto', p: 6 }}>
         <Card
           sx={{
             borderRadius: 1,
@@ -367,8 +364,6 @@ return value && value.batch_no && typeof value.batch_no === 'string'
                               : theme.palette.customColors.Background,
                             border: isSelected ? `1px solid ${theme.palette.primary.main}` : 'none',
                             borderRadius: 1,
-
-                            // minHeight: '56px',
                             opacity: isDisabled ? 0.5 : 1,
                             cursor: isDisabled ? 'not-allowed' : 'default'
                           }}
@@ -376,8 +371,6 @@ return value && value.batch_no && typeof value.batch_no === 'string'
                           {/* Left Section - Time or Time Picker */}
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flex: 1 }}>
                             {actionType === 'administer' ? (
-
-                              // Time Picker for selected slots in administer mode
                               <Box sx={{ flex: 1, maxWidth: '180px', m: 2 }}>
                                 <ControlledTimePicker
                                   name={`slotTime_${slot.id}`}
@@ -396,8 +389,6 @@ return value && value.batch_no && typeof value.batch_no === 'string'
                                 />
                               </Box>
                             ) : (
-
-                              // Static time display for non-selected or skipped mode
                               <>
                                 <AccessTimeIcon
                                   sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '20px' }}
@@ -611,9 +602,9 @@ return optionId === valueId
             </form>
           </CardContent>
         </Card>
-      </DialogContent>
+      </Box>
 
-      {/* Footer Buttons */}
+      {/* Footer Buttons - Sticky at bottom */}
       <Box
         sx={{
           p: 6,
@@ -643,7 +634,7 @@ return optionId === valueId
           {actionType === 'administer' ? 'ADMINISTER' : 'SKIPPED'}
         </LoadingButton>
       </Box>
-    </Dialog>
+    </Drawer>
   )
 }
 
@@ -662,11 +653,12 @@ export default AdministerOrSkipForMultipleSlots
 // import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 // import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 // import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
-// import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
+// import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 // import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 // import TreatmentTypeRadioButtons from '../utility/TreatmentTypeRadioButtons'
 // import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 // import Utility from 'src/utility'
+// import dayjs from 'dayjs'
 
 // const AdministerOrSkipForMultipleSlots = ({
 //   open,
@@ -696,31 +688,6 @@ export default AdministerOrSkipForMultipleSlots
 //         schema
 //           .min(1, 'Please select at least one time slot')
 //           .required('Please select at least one time slot'),
-//       otherwise: schema => schema.notRequired()
-//     }),
-
-//     quantity: yup.string().when('action', {
-//       is: 'administer',
-//       then: schema =>
-//         schema
-//           .required('Quantity is required for administration')
-//           .test('is-valid-number', 'Quantity must be a valid number', value => {
-//             if (!value) return false
-//             const num = parseFloat(value)
-            
-// return !isNaN(num) && num > 0
-//           })
-//           .test('min-value', 'Quantity must be greater than 0', value => {
-//             if (!value) return false
-            
-// return parseFloat(value) > 0
-//           }),
-//       otherwise: schema => schema.notRequired()
-//     }),
-
-//     quantityUnit: yup.string().when('action', {
-//       is: 'administer',
-//       then: schema => schema.required('Quantity unit is required for administration'),
 //       otherwise: schema => schema.notRequired()
 //     }),
 
@@ -787,8 +754,6 @@ export default AdministerOrSkipForMultipleSlots
 //   const defaultValues = {
 //     action: 'administer',
 //     selectedTimeSlots: [],
-//     quantity: '',
-//     quantityUnit: '',
 //     wastageQuantity: '',
 //     wastageUnit: '',
 //     notes: '',
@@ -822,36 +787,32 @@ export default AdministerOrSkipForMultipleSlots
 //     }
 //   }, [open, reset])
 
-//   useEffect(() => {
-//     if (medicineData && medicalMasterData) {
-//       let updatedQuantity = ''
-//       let updatedQuantityUnit = ''
-
-//       if (medicineData?.dosage) {
-//         const [value, unitRaw] = medicineData.dosage.split(' ')
-//         updatedQuantity = value
-
-//         const foundUnit = medicalMasterData?.prescriptionMeasurementType?.find(item => item?.unit_name === unitRaw)
-//         updatedQuantityUnit = foundUnit ? { ...foundUnit, value: foundUnit.key, label: foundUnit.unit_name } : null
-//       }
-
-//       reset(prev => ({
-//         ...prev,
-//         quantity: updatedQuantity,
-//         quantityUnit: updatedQuantityUnit?.unit_name
-//       }))
-//     }
-//   }, [medicineData, medicalMasterData, reset])
-
 //   const actionType = watch('action')
 
-//   const handleSlotToggle = (slotId, checked) => {
+//   // Check if a time slot is in the future
+//   const isSlotInFuture = slot => {
+//     if (!scheduledDate || !slot.time) return false
+
+//     // Parse the scheduled date and slot time
+//     const slotDateTime = dayjs(`${Utility.formatDate(scheduledDate)} ${slot.time}`, 'YYYY-MM-DD hh:mm A')
+//     const now = dayjs()
+
+//     return slotDateTime.isAfter(now)
+//   }
+
+//   const handleSlotToggle = (slot, checked) => {
 //     let newSelectedSlots = []
     
 //     if (checked) {
-//       newSelectedSlots = [...selectedSlots, slotId]
+//       newSelectedSlots = [...selectedSlots, slot.id]
+
+//       // Initialize the time picker with the slot's scheduled time
+//       setValue(`slotTime_${slot.id}`, slot.time)
 //     } else {
-//       newSelectedSlots = selectedSlots.filter(id => id !== slotId)
+//       newSelectedSlots = selectedSlots.filter(id => id !== slot.id)
+
+//       // Clear the time picker value
+//       setValue(`slotTime_${slot.id}`, '')
 //     }
     
 //     setSelectedSlots(newSelectedSlots)
@@ -865,20 +826,30 @@ export default AdministerOrSkipForMultipleSlots
 //   }
 
 //   const onFormSubmit = data => {
-//     // Add selected slots to the data
+//     // Add selected slots with their administration times to the data
 //     const formattedData = {
 //       ...data,
 //       selectedTimeSlots: selectedSlots.map(slotId => {
 //         const slot = timeSlots.find(s => s.id === slotId)
+//         const administrationTime = data[`slotTime_${slotId}`] || slot.time
         
-// return {
+//         return {
 //           id: slotId,
-//           time: slot.time,
+//           scheduledTime: slot.time, // Original scheduled time
+//           administeredTime: administrationTime, // Actual administered time (for administer action)
 //           dosage: slot.dosage,
 //           amount: slot.amount
 //         }
 //       })
 //     }
+
+//     // Remove individual slotTime fields from the data
+//     Object.keys(formattedData).forEach(key => {
+//       if (key.startsWith('slotTime_')) {
+//         delete formattedData[key]
+//       }
+//     })
+
 //     onSubmit(formattedData)
 //   }
 
@@ -1020,87 +991,124 @@ export default AdministerOrSkipForMultipleSlots
 //                 {/* Time Slots Selection */}
 //                 <Grid size={{ xs: 12 }}>
 //                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-//                     {timeSlots.map((slot, index) => (
-//                       <Box
-//                         key={slot.id || index}
-//                         sx={{
-//                           display: 'flex',
-//                           alignItems: 'center',
-//                           justifyContent: 'space-between',
-//                           paddingLeft: 4,
-//                           backgroundColor: selectedSlots.includes(slot.id)
-//                             ? theme.palette.customColors.Surface
-//                             : theme.palette.customColors.Background,
-//                           border: selectedSlots.includes(slot.id)
-//                             ? `1px solid ${theme.palette.primary.main}`
-//                             : 'none',
-//                           borderRadius: 2,
-//                           minHeight: '56px'
-//                         }}
-//                       >
-//                         {/* Left Section - Time */}
-//                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-//                           <AccessTimeIcon
-//                             sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '20px' }}
-//                           />
-//                           <Typography
-//                             sx={{
-//                               fontWeight: 600,
-//                               color: theme.palette.customColors.OnSurfaceVariant,
-//                               fontSize: '1rem'
-//                             }}
-//                           >
-//                             {slot.time}
-//                           </Typography>
-//                         </Box>
+//                     {timeSlots.map((slot, index) => {
+//                       const isFutureSlot = isSlotInFuture(slot)
+//                       const isDisabled = actionType === 'administer' && isFutureSlot
+//                       const isSelected = selectedSlots.includes(slot.id)
 
-//                         {/* Middle Section - Dosage Info */}
-//                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
-//                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}>
-//                             <Typography
-//                               sx={{
-//                                 color: theme.palette.customColors.OnSurfaceVariant,
-//                                 fontSize: '0.875rem'
-//                               }}
-//                             >
-//                               {slot.dosage}
-//                             </Typography>
-//                             <Typography
-//                               sx={{
-//                                 color: theme.palette.customColors.OnSurfaceVariant,
-//                                 fontSize: '1rem',
-//                                 fontWeight: 500
-//                               }}
-//                             >
-//                               {slot.amount}
-//                             </Typography>
+//                       return (
+//                         <Box
+//                           key={slot.id || index}
+//                           sx={{
+//                             display: 'flex',
+//                             alignItems: 'center',
+//                             justifyContent: 'space-between',
+//                             paddingLeft: 4,
+//                             backgroundColor: isSelected
+//                               ? theme.palette.customColors.Surface
+//                               : theme.palette.customColors.Background,
+//                             border: isSelected ? `1px solid ${theme.palette.primary.main}` : 'none',
+//                             borderRadius: 1,
+
+//                             // minHeight: '56px',
+//                             opacity: isDisabled ? 0.5 : 1,
+//                             cursor: isDisabled ? 'not-allowed' : 'default'
+//                           }}
+//                         >
+//                           {/* Left Section - Time or Time Picker */}
+//                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flex: 1 }}>
+//                             {actionType === 'administer' ? (
+
+//                               // Time Picker for selected slots in administer mode
+//                               <Box sx={{ flex: 1, maxWidth: '180px', m: 2 }}>
+//                                 <ControlledTimePicker
+//                                   name={`slotTime_${slot.id}`}
+//                                   control={control}
+//                                   format='hh:mm A'
+//                                   sx={{
+//                                     flex: 1,
+//                                     backgroundColor: 'white',
+//                                     borderRadius: 1,
+//                                     '& .MuiInputBase-root': {
+//                                       fontSize: '1rem',
+//                                       fontWeight: 600
+//                                     }
+//                                   }}
+//                                   error={errors[`slotTime_${slot.id}`]}
+//                                 />
+//                               </Box>
+//                             ) : (
+
+//                               // Static time display for non-selected or skipped mode
+//                               <>
+//                                 <AccessTimeIcon
+//                                   sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '20px' }}
+//                                 />
+//                                 <Typography
+//                                   sx={{
+//                                     fontWeight: 600,
+//                                     color: theme.palette.customColors.OnSurfaceVariant,
+//                                     fontSize: '1rem'
+//                                   }}
+//                                 >
+//                                   {slot.time}
+//                                 </Typography>
+//                               </>
+//                             )}
 //                           </Box>
 
-//                           {/* Right Section - Checkbox */}
-//                           <Box
-//                             sx={{
-//                               display: 'flex',
-//                               alignItems: 'center',
-//                               height: '56px',
-//                               backgroundColor: theme.palette.customColors.neutral05,
-//                               padding: '0 16px',
-//                               borderRadius: '0 8px 8px 0'
-//                             }}
-//                           >
-//                             <Checkbox
-//                               checked={selectedSlots.includes(slot.id)}
-//                               onChange={e => handleSlotToggle(slot.id, e.target.checked)}
+//                           {/* Middle Section - Dosage Info */}
+//                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+//                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}>
+//                               <Typography
+//                                 sx={{
+//                                   color: theme.palette.customColors.OnSurfaceVariant,
+//                                   fontSize: '0.875rem'
+//                                 }}
+//                               >
+//                                 {slot.dosage}
+//                               </Typography>
+//                               <Typography
+//                                 sx={{
+//                                   color: theme.palette.customColors.OnSurfaceVariant,
+//                                   fontSize: '1rem',
+//                                   fontWeight: 500
+//                                 }}
+//                               >
+//                                 {slot.amount}
+//                               </Typography>
+//                             </Box>
+
+//                             {/* Right Section - Checkbox */}
+//                             <Box
 //                               sx={{
-//                                 padding: '4px',
-//                                 '&.Mui-checked': {
-//                                   color: theme.palette.primary.main
-//                                 }
+//                                 display: 'flex',
+//                                 alignItems: 'center',
+//                                 height: actionType === 'administer' ? '72px' : '56px',
+//                                 backgroundColor: theme.palette.customColors.neutral05,
+//                                 padding: '0 16px',
+//                                 borderRadius: '0 8px 8px 0'
 //                               }}
-//                             />
+//                             >
+//                               <Checkbox
+//                                 checked={isSelected}
+//                                 onChange={e => handleSlotToggle(slot, e.target.checked)}
+//                                 disabled={isDisabled}
+//                                 sx={{
+//                                   padding: '4px',
+//                                   '&.Mui-checked': {
+//                                     color: theme.palette.primary.main
+//                                   },
+//                                   '&.Mui-disabled': {
+//                                     cursor: 'not-allowed'
+//                                   }
+//                                 }}
+//                               />
+//                             </Box>
 //                           </Box>
 //                         </Box>
-//                       </Box>
-//                     ))}
+//                       )
+//                     })}
 //                   </Box>
 //                   {errors.selectedTimeSlots && (
 //                     <Typography sx={{ color: 'error.main', fontSize: '0.75rem', mt: 1, ml: 3.5 }}>
@@ -1112,25 +1120,6 @@ export default AdministerOrSkipForMultipleSlots
 //                 {/* Conditional Content based on Action Type */}
 //                 {actionType === 'administer' ? (
 //                   <>
-//                     {/* Quantity Section - Only for Administer */}
-//                     <Grid size={{ xs: 12 }}>
-//                       <ControlledSelectWithTextField
-//                         textFieldName='quantity'
-//                         selectFieldName='quantityUnit'
-//                         control={control}
-//                         errors={errors}
-//                         options={medicalMasterData?.prescriptionMeasurementType}
-//                         label='Quantity'
-//                         loading={mastersDataLoading}
-//                         placeholder='Enter quantity'
-//                         type='number'
-//                         getOptionLabel={option => option.label}
-//                         getOptionValue={option => option.value}
-//                         required={actionType === 'administer'}
-//                         selectWidth={80}
-//                       />
-//                     </Grid>
-
 //                     {/* Wastage Section for Administer */}
 //                     <Grid size={{ xs: 12 }}>
 //                       <Typography
@@ -1175,7 +1164,7 @@ export default AdministerOrSkipForMultipleSlots
 //                             options={medicalMasterData?.prescriptionMeasurementType}
 //                             getOptionLabel={option => option.label}
 //                             getOptionValue={option => option.value}
-//                           />
+//                           /> 
 //                         </Grid>
 
 //                         <Grid size={{ xs: 12 }}>

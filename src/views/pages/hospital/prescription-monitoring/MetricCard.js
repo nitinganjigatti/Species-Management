@@ -1,7 +1,8 @@
 import React from 'react'
-import { Box, Typography } from '@mui/material'
+import { Avatar, Box, Typography } from '@mui/material'
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import Icon from 'src/@core/components/icon'
+import RenderUtility from 'src/utility/render'
 
 const MetricCard = ({
   metric,
@@ -36,7 +37,7 @@ const MetricCard = ({
       }}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <Typography
+        <Box
           sx={{
             fontFamily: 'Inter, sans-serif',
             fontWeight: 500,
@@ -74,12 +75,18 @@ const MetricCard = ({
               height='16px'
             />
           )}
+          {metric?.controlled_substance == 1 && (
+            <Box sx={{ ml: '4px' }}>{RenderUtility?.renderControlLabel(metric?.controlled_substance == 1, 'CS')}</Box>
+          )}
+
           {metric?.name}
-        </Typography>
+        </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 1 }}>
           <Icon icon='wi:time-9' width='12px' height='12px' />
           <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.secondaryBg }}>
-            {metric?.progress?.split('/')[1] ? `${metric?.progress?.split('/')[1]} times` : '-'}
+            {metric?.progress?.split('/')[1]
+              ? `${metric?.progress?.split('/')[1]} ${parseInt(metric?.progress?.split('/')[1]) > 1 ? 'times' : 'time'}`
+              : '-'}
           </Typography>
           <Typography
             sx={{

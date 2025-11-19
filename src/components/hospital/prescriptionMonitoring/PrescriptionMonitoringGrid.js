@@ -244,7 +244,9 @@ const PrescriptionMonitoringGrid = ({
   isAdministerLoading,
   isSkipLoading,
   handleAdministerOrSkipOpen,
-  addPrescriptionToTimeslot
+  addPrescriptionToTimeslot,
+  selectedMetrics,
+  setSelectedMetrics
 }) => {
   const theme = useTheme()
   const router = useRouter()
@@ -257,8 +259,6 @@ const PrescriptionMonitoringGrid = ({
   const [didInitialScroll, setDidInitialScroll] = useState(false)
   const [isAdministerOrSkipPopupOpen, setIsAdministerOrSkipPopupOpen] = useState(false)
   const [isAdministerOrSkipPopupLoading, setIsAdministerOrSkipPopupLoading] = useState(false)
-  // Array of selected metric objects
-  const [selectedMetrics, setSelectedMetrics] = useState([])
   const [isAdminstrationLoading, setIsAdminstrationLoading] = useState(false)
   // const [selectedMedicine, setSelectedMedicine] = useState(null)
 
@@ -373,7 +373,8 @@ const PrescriptionMonitoringGrid = ({
                 administered_time: schedule.administered_time,
                 compliance_note: schedule.compliance_note,
                 scheduledTime: schedule?.time,
-                medicine_id: schedule?.medicine_id
+                medicine_id: schedule?.medicine_id,
+                administrative_ids: schedule?.administrative_ids || []
               }
             : undefined
         }
@@ -711,22 +712,24 @@ const PrescriptionMonitoringGrid = ({
           size={{ xs: 12, sm: 12 }}
           sx={{ display: 'flex', alignItems: 'center', my: 4, justifyContent: 'space-between' }}
         >
-          {/* <Box sx={{ display: 'flex', gap: '4px' }}>
-            <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-              Pending Dosage:
-            </Typography>
-            <Typography sx={{ weight: 600, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}>
-              7
-            </Typography>
-          </Box> */}
-          <MUICheckbox
-            label='Select all'
-            labelStyle={isAllSelected && { color: 'green' }}
-            checked={isAllSelected}
-            indeterminate={isIndeterminate}
-            disabled={displayMetrics?.length === 0}
-            onChange={handleSelectAll}
-          />
+          <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <MUICheckbox
+              label='Select all'
+              labelStyle={isAllSelected && { color: 'green' }}
+              checked={isAllSelected}
+              indeterminate={isIndeterminate}
+              disabled={displayMetrics?.length === 0}
+              onChange={handleSelectAll}
+            />
+            {/* <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                Pending Dosage:
+              </Typography>
+              <Typography sx={{ weight: 600, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}>
+                7
+              </Typography>
+            </Box> */}
+          </Box>
           <MUISwitch
             checked={isCurrentMedicalRecord}
             onChange={() => setIsCurrentMedicalRecord(!isCurrentMedicalRecord)}

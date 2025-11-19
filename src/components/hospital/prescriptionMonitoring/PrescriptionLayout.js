@@ -64,8 +64,9 @@ function PrescriptionLayout({ drawerType }) {
   const [selectedMedicationsFromDetail, setSelectedMedicationsFromDetail] = useState([])
   const [isStopMedicineLoading, setIsStopMedicineLoading] = useState(false)
   const [isAddNewDosageLoading, setIsAddNewDosageLoading] = useState(false)
-  const [isAdministerOrSkipForMultipleSlotsOpen, setIsAdministerOrSkipForMultipleSlotsOpen] = useState(false)
+  const [isAdministerOrSkipForMultipleSlotsOpen, setIsAdministerOrSkipForMultipleSlotsOpen] = useState(true)
   const [isUndoLoading, setIsUndoLoading] = useState(false)
+  const [selectedMetrics, setSelectedMetrics] = useState([])
 
   const router = useRouter()
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
@@ -414,7 +415,7 @@ function PrescriptionLayout({ drawerType }) {
         request_from: 'hospital_module',
         medical_record_id: medical_record_id,
         is_unscheduled: 1,
-        prescription_id: selectedSlotData?.data?.medicine_id,
+        prescription_id: selectedSlotData?.data?.prescription_id,
         medicine_id: selectedSlotData?.data?.medicine_id,
         medical_record_type: 'SINGLE',
         case_type: 1
@@ -438,7 +439,7 @@ function PrescriptionLayout({ drawerType }) {
     if (!date) return ''
     const stillUtc = moment.utc(date).toDate()
 
-    const local = moment(stillUtc).local(true).format('hh:mm:A') // 👈 adds leading zero + spaces around colons
+    const local = moment(stillUtc).local(true).format('hh : mm : A') // 👈 adds leading zero + spaces around colons
 
     return local
   }
@@ -487,7 +488,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleAddDosageSubmit = async formData => {
-
     try {
       setIsAddNewDosageLoading(true)
 
@@ -547,6 +547,7 @@ function PrescriptionLayout({ drawerType }) {
       const response = await administerAllMedicines(payload)
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Medicines administered successfully' })
+        setSelectedMetrics([])
         getPrescriptionList()
       } else {
         Toaster({ type: 'error', message: 'Something went wrong' }) // TODO: Update to error message
@@ -567,11 +568,21 @@ function PrescriptionLayout({ drawerType }) {
         data
           ?.flatMap(item => item?.timeSlots || []) // merge all timeSlots from all items
           .map(slot => {
-            if (slot?.value?.schedule_id && (!slot?.value?.status || slot?.value?.status?.toLowerCase() === 'pending'))
-              return slot?.value?.schedule_id
-          }) // extract schedule_id
-          .filter(Boolean) // remove null/undefined
+            if (
+              slot?.value?.administrative_ids &&
+              slot?.value?.administrative_ids.length > 0 &&
+              (!slot?.value?.status || slot?.value?.status?.toLowerCase() === 'pending')
+            ) {
+              return slot?.value?.administrative_ids
+            }
+
+            return null
+          }) // extract administrative_ids arrays
+          .filter(Boolean) // remove null values
+          .flat() // flatten the array of arrays into single array
       )
+
+      console.log('administerIds', administerIds)
 
       const payload = {
         medical_record_id: JSON.stringify([medical_record_id]),
@@ -588,6 +599,7 @@ function PrescriptionLayout({ drawerType }) {
       const response = await administerDose(payload)
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message })
+        setSelectedMetrics([])
         getPrescriptionList()
       } else {
         Toaster({ type: 'error', message: response?.message })
@@ -880,7 +892,6 @@ function PrescriptionLayout({ drawerType }) {
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
-
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -895,6 +906,8 @@ function PrescriptionLayout({ drawerType }) {
             handleSkip={handleSkip}
             handleAdministerOrSkipOpen={handleAdministerOrSkipOpen}
             addPrescriptionToTimeslot={addPrescriptionToTimeslot}
+            selectedMetrics={selectedMetrics}
+            setSelectedMetrics={setSelectedMetrics}
           />
         </Grid>
       </Grid>
@@ -955,7 +968,6 @@ function PrescriptionLayout({ drawerType }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
-
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {
