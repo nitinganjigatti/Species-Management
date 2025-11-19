@@ -19,13 +19,13 @@ import { useTheme } from '@mui/material/styles'
 import MediaCard from 'src/views/utility/MediaCard'
 import { useRouter } from 'next/router'
 import { alpha } from '@mui/material/styles'
-import Icon from 'src/@core/components/icon'
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import VitalMonitoringDetail from './Anesthesia/vitalForms/VitalMonitoringDetail'
-import { getAnesthesiaList, getAnesthesiaDetail } from 'src/lib/api/hospital/anesthesia'
+import { getAnesthesiaList, getAnesthesiaDetail, deleteAnesthesia } from 'src/lib/api/hospital/anesthesia'
 import Utility from 'src/utility'
 import dayjs from 'dayjs'
-
+import toast from 'react-hot-toast'
+import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 
 const PAGE_SIZE = 10
 const SCROLL_FETCH_THRESHOLD = 140
@@ -140,9 +140,7 @@ const formatStaffNames = list => {
 
 const MediaScroller = ({ items = [] }) => {
   if (!items.length) {
-    return (
-      <Typography sx={{ color: 'text.secondary', px: 2 }}>No attachments available.</Typography>
-    )
+    return <Typography sx={{ color: 'text.secondary', px: 2 }}>No attachments available.</Typography>
   }
 
   return (
@@ -185,6 +183,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
   const theme = useTheme()
   const router = useRouter()
   const scrollContainerRef = useRef(null)
+  const queryClient = useQueryClient()
 
   const resolvedHospitalCaseId = useMemo(
     () => resolveHospitalCaseId(hospitalCaseId, router?.query),
@@ -237,6 +236,8 @@ function Anesthesia({ hospitalCaseId, patientData }) {
   }, [anesthesiaPages])
 
   const [activeRecordId, setActiveRecordId] = useState('')
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   useEffect(() => {
     if (!anesthesiaRecords.length) {
@@ -275,10 +276,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
 
   const recordCode = anesthesiaDetail?.code || activeRecord?.code || '--'
   const lastUpdatedValue = formatDateTime(
-    anesthesiaDetail?.updated_at ||
-      anesthesiaDetail?.created_at ||
-      activeRecord?.updated_at ||
-      activeRecord?.created_at
+    anesthesiaDetail?.updated_at || anesthesiaDetail?.created_at || activeRecord?.updated_at || activeRecord?.created_at
   )
 
   const basicDetails = useMemo(() => {
@@ -305,16 +303,16 @@ function Anesthesia({ hospitalCaseId, patientData }) {
 
     if (!Array.isArray(activeRecord?.purpose)) return []
 
-    return activeRecord.purpose
-      .map(item => item?.name)
-      .filter(name => typeof name === 'string' && name.trim() !== '')
+    return activeRecord.purpose.map(item => item?.name).filter(name => typeof name === 'string' && name.trim() !== '')
   }, [anesthesiaDetail, activeRecord])
 
   const notesText = anesthesiaDetail?.notes?.trim()
     ? anesthesiaDetail.notes
     : activeRecord?.notes?.trim()
-      ? activeRecord.notes
-      : '--'
+    ? activeRecord.notes
+    : '--'
+
+  const activeRecordAnesthesiaId = activeRecord?.anaesthesia_id || activeRecord?.id || ''
 
   const anesthesiaSetupSections = useMemo(() => {
     if (!Array.isArray(anesthesiaDetail?.anaesthesia_setup)) return []
@@ -363,7 +361,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
     if (!preAnesthesiaDetail) return []
 
     const weightText = preAnesthesiaDetail.weight
-      ? `${preAnesthesiaDetail.weight} ${preAnesthesiaDetail.weight_unit || ''}${preAnesthesiaDetail.weight_type ? ` (${preAnesthesiaDetail.weight_type})` : ''}`.trim()
+      ? `${preAnesthesiaDetail.weight} ${preAnesthesiaDetail.weight_unit || ''}${
+          preAnesthesiaDetail.weight_type ? ` (${preAnesthesiaDetail.weight_type})` : ''
+        }`.trim()
       : '--'
 
     return [
@@ -569,6 +569,36 @@ function Anesthesia({ hospitalCaseId, patientData }) {
     [activeRecordId, refetchAnesthesiaDetail]
   )
 
+  const handleDeleteClick = useCallback(() => {
+    if (!activeRecordAnesthesiaId || deleteLoading) return
+
+    setDeleteDialogOpen(true)
+  }, [activeRecordAnesthesiaId, deleteLoading])
+
+  const handleDeleteDialogClose = useCallback(() => {
+    if (deleteLoading) return
+
+    setDeleteDialogOpen(false)
+  }, [deleteLoading])
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!activeRecordAnesthesiaId) return
+
+    try {
+      setDeleteLoading(true)
+      await deleteAnesthesia(activeRecordAnesthesiaId)
+      toast.success('Anesthesia deleted successfully.')
+      setDeleteDialogOpen(false)
+      setActiveRecordId('')
+      await queryClient.invalidateQueries(['anesthesiaRecords', resolvedHospitalCaseId, resolvedMedicalRecordId])
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Failed to delete anesthesia record.'
+      toast.error(message)
+    } finally {
+      setDeleteLoading(false)
+    }
+  }, [activeRecordAnesthesiaId, queryClient, resolvedHospitalCaseId, resolvedMedicalRecordId])
+
   const renderTabSkeletons = useCallback(
     (count = 4) => (
       <Box sx={{ display: 'flex', gap: 1.5 }}>
@@ -583,9 +613,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
   const renderRecordTabs = () => {
     if (!shouldFetchRecords) {
       return (
-        <Typography
-          sx={{ color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap' }}
-        >
+        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap' }}>
           Provide hospital case & medical record IDs to view anesthesia records.
         </Typography>
       )
@@ -631,9 +659,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
             px: '16px',
             height: '48px',
             borderRadius: '8px',
-            backgroundColor: isActive
-              ? theme.palette.secondary.dark
-              : theme.palette.customColors.mdAntzNeutral,
+            backgroundColor: isActive ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
             cursor: 'pointer'
           }}
         >
@@ -731,234 +757,156 @@ function Anesthesia({ hospitalCaseId, patientData }) {
   )
 
   return (
-    <Box sx={{ mt: '32px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-
-          gap: '24px'
-        }}
-      >
+    <>
+      <Box sx={{ mt: '32px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
         <Box
-          ref={scrollContainerRef}
           sx={{
-            flex: '1 1 auto',
-            minWidth: 0,
-            overflowX: 'auto',
-            scrollbarColor: 'transparent transparent'
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: '24px'
           }}
         >
-          <Box sx={{ display: 'inline-flex', gap: '10px', pr: 1, alignItems: 'center' }}>
-            {renderRecordTabs()}
-            {isFetchingNextPage && anesthesiaRecords.length ? (
-              <Skeleton variant='rounded' width={90} height={32} />
-            ) : null}
-          </Box>
-        </Box>
-
-        <Button
-          onClick={handleAddSurgeryRecord}
-          variant='contained'
-          sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
-        >
-          Add Anesthesia
-        </Button>
-      </Box>
-
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: '24px',
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Anesthesia Details
-          </Typography>
-
           <Box
+            ref={scrollContainerRef}
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap'
+              flex: '1 1 auto',
+              minWidth: 0,
+              overflowX: 'auto',
+              scrollbarColor: 'transparent transparent'
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <Typography
-                sx={{
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  color: theme.palette.customColors.OnPrimaryContainer
-                }}
-              >
-                {recordCode}
-              </Typography>
-
-              <Typography
-                sx={{
-                  fontWeight: 400,
-                  fontSize: '12px',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                Last updated : {lastUpdatedValue}
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center', cursor: 'pointer' }}>
-              <Icon color={theme.palette.primary.dark} icon='mdi:pencil-outline' fontSize={20} />
-              <Icon color={theme.palette.primary.dark} icon='mdi:delete-outline' fontSize={20} />
+            <Box sx={{ display: 'inline-flex', gap: '10px', pr: 1, alignItems: 'center' }}>
+              {renderRecordTabs()}
+              {isFetchingNextPage && anesthesiaRecords.length ? (
+                <Skeleton variant='rounded' width={90} height={32} />
+              ) : null}
             </Box>
           </Box>
+
+          <Button
+            onClick={handleAddSurgeryRecord}
+            variant='contained'
+            sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
+          >
+            Add Anesthesia
+          </Button>
         </Box>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <DetailsHeader text={'Basic details'} />
-          <Grid sx={{ px: '8px' }} container spacing={4}>
-            {Object.entries(basicDetails).map(([label, value]) => (
-              <Grid item size={{ xs: 6, md: 4 }} key={label}>
-                <Tooltip title={label.replace(/([A-Z])/g, ' $1')} placement='bottom-start' arrow>
-                  <Typography
-                    sx={{
-                      mb: '4px',
-                      fontWeight: 400,
-                      fontSize: '14px',
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.neutralSecondary,
-                      textTransform: 'capitalize',
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {label.replace(/([A-Z])/g, ' $1')}
-                  </Typography>
-                </Tooltip>
-                <Tooltip title={value} placement='bottom-start' arrow>
-                  <Typography
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '16px',
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {value}
-                  </Typography>
-                </Tooltip>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}>
-            Purpose of Anaesthesia
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            {purposeItems.length ? (
-              purposeItems.map((item, index) => (
-                <Chip
-                  key={`${item}-${index}`}
-                  label={item}
-                  sx={{
-                    backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
-                    color: theme.palette.customColors.OnPrimaryContainer,
-                    fontWeight: 500,
-                    fontSize: '14px',
-                    border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
-                    borderRadius: '6px',
-                    '& .MuiChip-label': { px: 2, py: 0.5 }
-                  }}
-                />
-              ))
-            ) : (
-              <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>No purpose added.</Typography>
-            )}
-          </Box>
-        </Box>
-
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
-          <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '14px', fontWeight: 400 }}>
-            Notes
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 500 }}>
-              {notesText}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <Typography
+              sx={{
+                fontWeight: 500,
+                fontSize: '24px',
+                letterSpacing: 0,
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              Anesthesia Details
             </Typography>
-          </Box>
-        </Box>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <DetailsHeader text={'Anesthesia Set Up'} />
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {nonMonitoringSetupSections.length ? (
-              nonMonitoringSetupSections.map(section => (
-                <Box key={section.id} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <Typography sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-                    {section.sectionName}
-                  </Typography>
-                  <Grid sx={{ px: '8px' }} container spacing={4}>
-                    {section.fields.map(field => (
-                      <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={field.key}>
-                        <Tooltip title={field.label} placement='bottom-start' arrow>
-                          <Typography
-                            sx={{
-                              mb: '4px',
-                              fontWeight: 400,
-                              fontSize: '14px',
-                              letterSpacing: 0,
-                              color: theme.palette.customColors.neutralSecondary,
-                              textTransform: 'capitalize',
-                              textOverflow: 'ellipsis',
-                              overflow: 'hidden',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            {field.label}
-                          </Typography>
-                        </Tooltip>
-                        <Tooltip title={field.value} placement='bottom-start' arrow>
-                          <Typography
-                            sx={{
-                              fontWeight: 500,
-                              fontSize: '16px',
-                              letterSpacing: 0,
-                              color: theme.palette.customColors.OnSurfaceVariant,
-                              textOverflow: 'ellipsis',
-                              overflow: 'hidden',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            {field.value}
-                          </Typography>
-                        </Tooltip>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Box>
-              ))
-            ) : (
-              <Typography sx={{ color: theme.palette.customColors.neutralSecondary, px: 2 }}>
-                No anesthesia setup data available.
-              </Typography>
-            )}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    color: theme.palette.customColors.OnPrimaryContainer
+                  }}
+                >
+                  {recordCode}
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: '12px',
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  Last updated : {lastUpdatedValue}
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <Box
+                  component='img'
+                  src='/icons/pencil_outlined.svg'
+                  alt='Edit'
+                  sx={{ width: 18, height: 18, cursor: 'pointer' }}
+                />
+                <Box
+                  component='img'
+                  src='/icons/delete_outlined.svg'
+                  alt='Delete'
+                  sx={{
+                    width: 24,
+                    height: 16,
+                    cursor: activeRecordAnesthesiaId ? 'pointer' : 'not-allowed',
+                    opacity: activeRecordAnesthesiaId ? 1 : 0.4
+                  }}
+                  onClick={handleDeleteClick}
+                />
+              </Box>
+            </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px', mt: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <DetailsHeader text={'Basic details'} />
+            <Grid sx={{ px: '8px' }} container spacing={4}>
+              {Object.entries(basicDetails).map(([label, value]) => (
+                <Grid item size={{ xs: 6, md: 4 }} key={label}>
+                  <Tooltip title={label.replace(/([A-Z])/g, ' $1')} placement='bottom-start' arrow>
+                    <Typography
+                      sx={{
+                        mb: '4px',
+                        fontWeight: 400,
+                        fontSize: '14px',
+                        letterSpacing: 0,
+                        color: theme.palette.customColors.neutralSecondary,
+                        textTransform: 'capitalize',
+                        textOverflow: 'ellipsis',
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {label.replace(/([A-Z])/g, ' $1')}
+                    </Typography>
+                  </Tooltip>
+                  <Tooltip title={value} placement='bottom-start' arrow>
+                    <Typography
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: '16px',
+                        letterSpacing: 0,
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        textOverflow: 'ellipsis',
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {value}
+                    </Typography>
+                  </Tooltip>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}>
-              Monitoring
+              Purpose of Anaesthesia
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-              {monitoringItems.length ? (
-                monitoringItems.map((item, index) => (
+              {purposeItems.length ? (
+                purposeItems.map((item, index) => (
                   <Chip
                     key={`${item}-${index}`}
                     label={item}
@@ -974,407 +922,114 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                   />
                 ))
               ) : (
-                <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>No monitoring added.</Typography>
+                <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>No purpose added.</Typography>
               )}
             </Box>
           </Box>
-        </Box>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <DetailsHeader text={'Pre Anesthesia'} />
 
-          <Box
-            sx={{
-              px: '8px',
-              //height: '20px',
-              display: 'flex',
-              flexWrap: 'wrap',
-              columnGap: '4px',
-              rowGap: '10px',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}
-          >
-            <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+            <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '14px', fontWeight: 400 }}>
+              Notes
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
               <Typography
-                sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
+                sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 500 }}
               >
-                Environmental Condition
+                {notesText}
               </Typography>
             </Box>
-            <Grid sx={{ px: '0px' }} container spacing={4}>
-              {environmentalDetails.length ? (
-                environmentalDetails.map(item => (
-                  <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label}>
-                    <Tooltip title={item.label} placement='bottom-start' arrow>
-                      <Typography
-                        sx={{
-                          mb: '4px',
-                          fontWeight: 400,
-                          fontSize: '14px',
-                          letterSpacing: 0,
-                          color: theme.palette.customColors.neutralSecondary,
-                          textTransform: 'capitalize',
-                          textOverflow: 'ellipsis',
-                          overflow: 'hidden',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {item.label}
-                      </Typography>
-                    </Tooltip>
-                    <Tooltip title={item.value} placement='bottom-start' arrow>
-                      <Typography
-                        sx={{
-                          fontWeight: 500,
-                          fontSize: '16px',
-                          letterSpacing: 0,
-                          color: theme.palette.customColors.OnSurfaceVariant,
-                          textOverflow: 'ellipsis',
-                          overflow: 'hidden',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {item.value}
-                      </Typography>
-                    </Tooltip>
-                  </Grid>
-                ))
-              ) : (
-                <Grid item size={{ xs: 12 }}>
-                  <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>No data available.</Typography>
-                </Grid>
-              )}
-            </Grid>
-          </Box>
-
-          <Divider />
-
-          <Box
-            sx={{
-              px: '8px',
-              //height: '20px',
-              display: 'flex',
-              flexWrap: 'wrap',
-              columnGap: '4px',
-              rowGap: '10px',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}
-          >
-            <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-              <Typography
-                sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
-              >
-                Pre Anesthetic Examination
-              </Typography>
-            </Box>
-            <Grid sx={{ px: '0px' }} container spacing={4}>
-              {examDetails.length ? (
-                examDetails.map(item => (
-                  <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label}>
-                    <Tooltip title={item.label} placement='bottom-start' arrow>
-                      <Typography
-                        sx={{
-                          mb: '4px',
-                          fontWeight: 400,
-                          fontSize: '14px',
-                          letterSpacing: 0,
-                          color: theme.palette.customColors.neutralSecondary,
-                          textTransform: 'capitalize',
-                          textOverflow: 'ellipsis',
-                          overflow: 'hidden',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {item.label}
-                      </Typography>
-                    </Tooltip>
-                    <Tooltip title={item.value} placement='bottom-start' arrow>
-                      <Typography
-                        sx={{
-                          fontWeight: 500,
-                          fontSize: '16px',
-                          letterSpacing: 0,
-                          color: theme.palette.customColors.OnSurfaceVariant,
-                          textOverflow: 'ellipsis',
-                          overflow: 'hidden',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {item.value}
-                      </Typography>
-                    </Tooltip>
-                  </Grid>
-                ))
-              ) : (
-                <Grid item size={{ xs: 12 }}>
-                  <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>No data available.</Typography>
-                </Grid>
-              )}
-            </Grid>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mt: 2 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                <Typography
-                  sx={{
-                    mb: '4px',
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    letterSpacing: 0,
-                    color: theme.palette.customColors.neutralSecondary,
-                    textTransform: 'capitalize',
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  Risk of Concern
-                </Typography>
-                <Tooltip title={riskOfConcernText} placement='bottom-start' arrow>
-                  <Typography
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '16px',
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {riskOfConcernText}
-                  </Typography>
-                </Tooltip>
-              </Box>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                <Typography
-                  sx={{
-                    mb: '4px',
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    letterSpacing: 0,
-                    color: theme.palette.customColors.neutralSecondary,
-                    textTransform: 'capitalize',
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  Clin Path
-                </Typography>
-                <Tooltip title={clinPathText} placement='bottom-start' arrow>
-                  <Typography
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '16px',
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {clinPathText}
-                  </Typography>
-                </Tooltip>
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <DetailsHeader text={'Medication & Gas'} />
-          <Box sx={{ mb: 4 }}>
-            <Typography
-              variant='subtitle1'
-              sx={{
-                fontWeight: 600,
-                mb: 1,
-                color: theme.palette.text.primary
-              }}
-            >
-              Medication - {medicationRecords.length}
-            </Typography>
-
-            <TableContainer
-              component={Paper}
-              variant='outlined'
-              sx={{
-                borderRadius: '8px!important',
-                overflow: 'hidden',
-                boxShadow: 'none',
-                border: `1px solid ${theme.palette.customColors.OutlineVariant}`
-              }}
-            >
-              <Table size='small' sx={tableStyles}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Drug</TableCell>
-                    <TableCell>Purpose/Stage</TableCell>
-                    <TableCell>Amount</TableCell>
-                    <TableCell>Route</TableCell>
-                    <TableCell>Delivery Time</TableCell>
-                    <TableCell>Delivery Status</TableCell>
-                    <TableCell>Max Effect</TableCell>
-                    <TableCell>Notes</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {medicationRecords.length ? (
-                    medicationRecords.map(record => (
-                      <TableRow key={record.id}>
-                        <TableCell>{renderCell(record.drug)}</TableCell>
-                        <TableCell>{renderCell(record.purpose)}</TableCell>
-                        <TableCell>{renderCell(record.amount)}</TableCell>
-                        <TableCell>{renderCell(record.route)}</TableCell>
-                        <TableCell>{renderCell(record.deliveryTime)}</TableCell>
-                        <TableCell>{renderCell(record.deliveryStatus)}</TableCell>
-                        <TableCell>{renderCell(record.maxEffect)}</TableCell>
-                        <TableCell>{renderCell(record.notes)}</TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={8}>
-                        <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>No medication data.</Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-
-          <Box>
-            <Typography
-              variant='subtitle1'
-              sx={{
-                fontWeight: 600,
-                mb: 1,
-                color: theme.palette.text.primary
-              }}
-            >
-              Gas - {gasRecords.length}
-            </Typography>
-
-            <TableContainer
-              component={Paper}
-              variant='outlined'
-              sx={{
-                borderRadius: '8px!important',
-                overflow: 'hidden',
-                boxShadow: 'none',
-                border: `1px solid ${theme.palette.customColors.OutlineVariant}`
-              }}
-            >
-              <Table size='small' sx={tableStyles}>
-                <TableHead>
-                  <TableRow sx={{ height: '55px' }}>
-                    <TableCell>Gas</TableCell>
-                    <TableCell>O2 L/Min</TableCell>
-                    <TableCell>Concentration %</TableCell>
-                    <TableCell>Route</TableCell>
-                    <TableCell>Start Time</TableCell>
-                    <TableCell>End Time</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {gasRecords.length ? (
-                    gasRecords.map(record => (
-                      <TableRow key={record.id}>
-                        <TableCell>{renderCell(record.gas)}</TableCell>
-                        <TableCell>{renderCell(record.o2)}</TableCell>
-                        <TableCell>{renderCell(record.concentration)}</TableCell>
-                        <TableCell>{renderCell(record.route)}</TableCell>
-                        <TableCell>{renderCell(record.startTime)}</TableCell>
-                        <TableCell>{renderCell(record.endTime)}</TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6}>
-                        <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>No gas data.</Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-        </Box>
-
-        <Grid xs={12}>
-          {/* <PrescriptionMonitoringGrid
-          // onOpenPrescriptionCard={handleOpenPrescriptionCard}
-          // medications={medicationData}
-          // isLoading={isPrescriptionListLoading}
-          // // medications={medication}
-          // dates={dates}
-          // selectedDate={selectedDate}
-          // handleDateChange={handleDateChange}
-          /> */}
-          <VitalMonitoringDetail data={vitalMonitoringData} />
-        </Grid>
-
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <DetailsHeader text={'Recovery & Reversal'} />
-          <Box sx={{ mb: 4 }}>
-            <Typography
-              variant='subtitle1'
-              sx={{
-                fontWeight: 600,
-                mb: 1,
-                color: theme.palette.text.primary
-              }}
-            >
-              Reversal drug - {reversalRecords.length}
-            </Typography>
-
-            <TableContainer
-              component={Paper}
-              variant='outlined'
-              sx={{
-                borderRadius: '8px!important',
-                overflow: 'hidden',
-                boxShadow: 'none',
-                border: `1px solid ${theme.palette.customColors.OutlineVariant}`
-              }}
-            >
-              <Table size='small' sx={tableStyles}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Drug Name</TableCell>
-                    <TableCell>Amount</TableCell>
-                    <TableCell>Route</TableCell>
-                    <TableCell>Delivery Time</TableCell>
-                    <TableCell>Delivery </TableCell>
-                    <TableCell>Max Effect</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {reversalRecords.length ? (
-                    reversalRecords.map(record => (
-                      <TableRow key={record.id}>
-                        <TableCell>{renderCell(record.drug)}</TableCell>
-                        <TableCell>{renderCell(record.amount)}</TableCell>
-                        <TableCell>{renderCell(record.route)}</TableCell>
-                        <TableCell>{renderCell(record.deliveryTime)}</TableCell>
-                        <TableCell>{renderCell(record.deliveryStatus)}</TableCell>
-                        <TableCell>{renderCell(record.maxEffect)}</TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6}>
-                        <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>No reversal data.</Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
           </Box>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <DetailsHeader text={'Anesthesia Set Up'} />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {nonMonitoringSetupSections.length ? (
+                nonMonitoringSetupSections.map(section => (
+                  <Box key={section.id} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Typography sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
+                      {section.sectionName}
+                    </Typography>
+                    <Grid sx={{ px: '8px' }} container spacing={4}>
+                      {section.fields.map(field => (
+                        <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={field.key}>
+                          <Tooltip title={field.label} placement='bottom-start' arrow>
+                            <Typography
+                              sx={{
+                                mb: '4px',
+                                fontWeight: 400,
+                                fontSize: '14px',
+                                letterSpacing: 0,
+                                color: theme.palette.customColors.neutralSecondary,
+                                textTransform: 'capitalize',
+                                textOverflow: 'ellipsis',
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {field.label}
+                            </Typography>
+                          </Tooltip>
+                          <Tooltip title={field.value} placement='bottom-start' arrow>
+                            <Typography
+                              sx={{
+                                fontWeight: 500,
+                                fontSize: '16px',
+                                letterSpacing: 0,
+                                color: theme.palette.customColors.OnSurfaceVariant,
+                                textOverflow: 'ellipsis',
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {field.value}
+                            </Typography>
+                          </Tooltip>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Box>
+                ))
+              ) : (
+                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, px: 2 }}>
+                  No anesthesia setup data available.
+                </Typography>
+              )}
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px', mt: 2 }}>
+              <Typography
+                sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
+              >
+                Monitoring
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                {monitoringItems.length ? (
+                  monitoringItems.map((item, index) => (
+                    <Chip
+                      key={`${item}-${index}`}
+                      label={item}
+                      sx={{
+                        backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
+                        color: theme.palette.customColors.OnPrimaryContainer,
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
+                        borderRadius: '6px',
+                        '& .MuiChip-label': { px: 2, py: 0.5 }
+                      }}
+                    />
+                  ))
+                ) : (
+                  <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
+                    No monitoring added.
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <DetailsHeader text={'Pre Anesthesia'} />
+
             <Box
               sx={{
                 px: '8px',
@@ -1391,12 +1046,12 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                 <Typography
                   sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
                 >
-                  Recovery Details
+                  Environmental Condition
                 </Typography>
               </Box>
               <Grid sx={{ px: '0px' }} container spacing={4}>
-                {recoveryInfoList.length ? (
-                  recoveryInfoList.map(item => (
+                {environmentalDetails.length ? (
+                  environmentalDetails.map(item => (
                     <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label}>
                       <Tooltip title={item.label} placement='bottom-start' arrow>
                         <Typography
@@ -1434,35 +1089,15 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                   ))
                 ) : (
                   <Grid item size={{ xs: 12 }}>
-                    <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>No recovery data.</Typography>
+                    <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
+                      No data available.
+                    </Typography>
                   </Grid>
                 )}
               </Grid>
             </Box>
 
             <Divider />
-          </Box>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <Box
-              sx={{
-                px: '8px',
-                display: 'flex',
-                flexWrap: 'wrap',
-                columnGap: '4px',
-                rowGap: '10px',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}
-            >
-              <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                <Typography
-                  sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
-                >
-                  Recovery Details
-                </Typography>
-              </Box>
-            </Box>
 
             <Box
               sx={{
@@ -1476,97 +1111,18 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                 alignItems: 'center'
               }}
             >
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mt: 2 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                  <Typography
-                    sx={{
-                      mb: '4px',
-                      fontWeight: 400,
-                      fontSize: '14px',
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.neutralSecondary,
-                      textTransform: 'capitalize',
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Describe the Problem
-                  </Typography>
-                  <Tooltip title={recoveryProblemText} placement='bottom-start' arrow>
-                    <Typography
-                      sx={{
-                        fontWeight: 400,
-                        fontSize: '16px',
-                        letterSpacing: 0,
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        textOverflow: 'ellipsis',
-                        overflow: 'hidden',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      {recoveryProblemText}
-                    </Typography>
-                  </Tooltip>
-                </Box>
-              </Box>
-              <Box sx={{ gap: '3px', background: '#FCF4AE', width: '100%', px: 4, py: 2, borderRadius: '8px' }}>
+              <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                 <Typography
-                  sx={{
-                    mb: '4px',
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    letterSpacing: 0,
-                    color: theme.palette.customColors.neutralSecondary,
-                    textTransform: 'capitalize',
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap'
-                  }}
+                  sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
                 >
-                  Notes
+                  Pre Anesthetic Examination
                 </Typography>
-                <Tooltip title={recoveryNotesText} placement='bottom-start' arrow>
-                  <Typography
-                    sx={{
-                      fontWeight: 500,
-                      fontSize: '16px',
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {recoveryNotesText}
-                  </Typography>
-                </Tooltip>
               </Box>
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <Box
-                sx={{
-                  px: '8px',
-                  mt: 3,
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  columnGap: '4px',
-                  rowGap: '10px',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}
-              >
-                <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                  <Typography
-                    sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
-                  >
-                    Anesthesia Ratings
-                  </Typography>
-                </Box>
-                <Grid sx={{ px: '0px' }} container spacing={4}>
-                  {Object.entries(anaesthesiaRatings).map(([label, value]) => (
-                    <Grid item size={{ xs: 12, sm: 6, md: 3 }} key={label}>
-                      <Tooltip title={label.replace(/([A-Z])/g, ' $1')} placement='bottom-start' arrow>
+              <Grid sx={{ px: '0px' }} container spacing={4}>
+                {examDetails.length ? (
+                  examDetails.map(item => (
+                    <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label}>
+                      <Tooltip title={item.label} placement='bottom-start' arrow>
                         <Typography
                           sx={{
                             mb: '4px',
@@ -1580,10 +1136,10 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                             whiteSpace: 'nowrap'
                           }}
                         >
-                          {label.replace(/([A-Z])/g, ' $1')}
+                          {item.label}
                         </Typography>
                       </Tooltip>
-                      <Tooltip title={value} placement='bottom-start' arrow>
+                      <Tooltip title={item.value} placement='bottom-start' arrow>
                         <Typography
                           sx={{
                             fontWeight: 500,
@@ -1595,23 +1151,535 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                             whiteSpace: 'nowrap'
                           }}
                         >
-                          {value}
+                          {item.value}
                         </Typography>
                       </Tooltip>
                     </Grid>
-                  ))}
-                </Grid>
+                  ))
+                ) : (
+                  <Grid item size={{ xs: 12 }}>
+                    <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
+                      No data available.
+                    </Typography>
+                  </Grid>
+                )}
+              </Grid>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mt: 2 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <Typography
+                    sx={{
+                      mb: '4px',
+                      fontWeight: 400,
+                      fontSize: '14px',
+                      letterSpacing: 0,
+                      color: theme.palette.customColors.neutralSecondary,
+                      textTransform: 'capitalize',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Risk of Concern
+                  </Typography>
+                  <Tooltip title={riskOfConcernText} placement='bottom-start' arrow>
+                    <Typography
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: '16px',
+                        letterSpacing: 0,
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        textOverflow: 'ellipsis',
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {riskOfConcernText}
+                    </Typography>
+                  </Tooltip>
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <Typography
+                    sx={{
+                      mb: '4px',
+                      fontWeight: 400,
+                      fontSize: '14px',
+                      letterSpacing: 0,
+                      color: theme.palette.customColors.neutralSecondary,
+                      textTransform: 'capitalize',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Clin Path
+                  </Typography>
+                  <Tooltip title={clinPathText} placement='bottom-start' arrow>
+                    <Typography
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: '16px',
+                        letterSpacing: 0,
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        textOverflow: 'ellipsis',
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {clinPathText}
+                    </Typography>
+                  </Tooltip>
+                </Box>
               </Box>
             </Box>
           </Box>
-        </Box>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <DetailsHeader text={'ATTACHMENTS'} />
-          <MediaScroller items={attachments} />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <DetailsHeader text={'Medication & Gas'} />
+            <Box sx={{ mb: 4 }}>
+              <Typography
+                variant='subtitle1'
+                sx={{
+                  fontWeight: 600,
+                  mb: 1,
+                  color: theme.palette.text.primary
+                }}
+              >
+                Medication - {medicationRecords.length}
+              </Typography>
+
+              <TableContainer
+                component={Paper}
+                variant='outlined'
+                sx={{
+                  borderRadius: '8px!important',
+                  overflow: 'hidden',
+                  boxShadow: 'none',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                }}
+              >
+                <Table size='small' sx={tableStyles}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Drug</TableCell>
+                      <TableCell>Purpose/Stage</TableCell>
+                      <TableCell>Amount</TableCell>
+                      <TableCell>Route</TableCell>
+                      <TableCell>Delivery Time</TableCell>
+                      <TableCell>Delivery Status</TableCell>
+                      <TableCell>Max Effect</TableCell>
+                      <TableCell>Notes</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {medicationRecords.length ? (
+                      medicationRecords.map(record => (
+                        <TableRow key={record.id}>
+                          <TableCell>{renderCell(record.drug)}</TableCell>
+                          <TableCell>{renderCell(record.purpose)}</TableCell>
+                          <TableCell>{renderCell(record.amount)}</TableCell>
+                          <TableCell>{renderCell(record.route)}</TableCell>
+                          <TableCell>{renderCell(record.deliveryTime)}</TableCell>
+                          <TableCell>{renderCell(record.deliveryStatus)}</TableCell>
+                          <TableCell>{renderCell(record.maxEffect)}</TableCell>
+                          <TableCell>{renderCell(record.notes)}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={8}>
+                          <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
+                            No medication data.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+
+            <Box>
+              <Typography
+                variant='subtitle1'
+                sx={{
+                  fontWeight: 600,
+                  mb: 1,
+                  color: theme.palette.text.primary
+                }}
+              >
+                Gas - {gasRecords.length}
+              </Typography>
+
+              <TableContainer
+                component={Paper}
+                variant='outlined'
+                sx={{
+                  borderRadius: '8px!important',
+                  overflow: 'hidden',
+                  boxShadow: 'none',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                }}
+              >
+                <Table size='small' sx={tableStyles}>
+                  <TableHead>
+                    <TableRow sx={{ height: '55px' }}>
+                      <TableCell>Gas</TableCell>
+                      <TableCell>O2 L/Min</TableCell>
+                      <TableCell>Concentration %</TableCell>
+                      <TableCell>Route</TableCell>
+                      <TableCell>Start Time</TableCell>
+                      <TableCell>End Time</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {gasRecords.length ? (
+                      gasRecords.map(record => (
+                        <TableRow key={record.id}>
+                          <TableCell>{renderCell(record.gas)}</TableCell>
+                          <TableCell>{renderCell(record.o2)}</TableCell>
+                          <TableCell>{renderCell(record.concentration)}</TableCell>
+                          <TableCell>{renderCell(record.route)}</TableCell>
+                          <TableCell>{renderCell(record.startTime)}</TableCell>
+                          <TableCell>{renderCell(record.endTime)}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6}>
+                          <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
+                            No gas data.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          </Box>
+
+          <Grid xs={12}>
+            {/* <PrescriptionMonitoringGrid
+          // onOpenPrescriptionCard={handleOpenPrescriptionCard}
+          // medications={medicationData}
+          // isLoading={isPrescriptionListLoading}
+          // // medications={medication}
+          // dates={dates}
+          // selectedDate={selectedDate}
+          // handleDateChange={handleDateChange}
+          /> */}
+            <VitalMonitoringDetail data={vitalMonitoringData} />
+          </Grid>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <DetailsHeader text={'Recovery & Reversal'} />
+            <Box sx={{ mb: 4 }}>
+              <Typography
+                variant='subtitle1'
+                sx={{
+                  fontWeight: 600,
+                  mb: 1,
+                  color: theme.palette.text.primary
+                }}
+              >
+                Reversal drug - {reversalRecords.length}
+              </Typography>
+
+              <TableContainer
+                component={Paper}
+                variant='outlined'
+                sx={{
+                  borderRadius: '8px!important',
+                  overflow: 'hidden',
+                  boxShadow: 'none',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                }}
+              >
+                <Table size='small' sx={tableStyles}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Drug Name</TableCell>
+                      <TableCell>Amount</TableCell>
+                      <TableCell>Route</TableCell>
+                      <TableCell>Delivery Time</TableCell>
+                      <TableCell>Delivery </TableCell>
+                      <TableCell>Max Effect</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {reversalRecords.length ? (
+                      reversalRecords.map(record => (
+                        <TableRow key={record.id}>
+                          <TableCell>{renderCell(record.drug)}</TableCell>
+                          <TableCell>{renderCell(record.amount)}</TableCell>
+                          <TableCell>{renderCell(record.route)}</TableCell>
+                          <TableCell>{renderCell(record.deliveryTime)}</TableCell>
+                          <TableCell>{renderCell(record.deliveryStatus)}</TableCell>
+                          <TableCell>{renderCell(record.maxEffect)}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6}>
+                          <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
+                            No reversal data.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Box
+                sx={{
+                  px: '8px',
+                  //height: '20px',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  columnGap: '4px',
+                  rowGap: '10px',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
+                <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                  <Typography
+                    sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
+                  >
+                    Recovery Details
+                  </Typography>
+                </Box>
+                <Grid sx={{ px: '0px' }} container spacing={4}>
+                  {recoveryInfoList.length ? (
+                    recoveryInfoList.map(item => (
+                      <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label}>
+                        <Tooltip title={item.label} placement='bottom-start' arrow>
+                          <Typography
+                            sx={{
+                              mb: '4px',
+                              fontWeight: 400,
+                              fontSize: '14px',
+                              letterSpacing: 0,
+                              color: theme.palette.customColors.neutralSecondary,
+                              textTransform: 'capitalize',
+                              textOverflow: 'ellipsis',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {item.label}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title={item.value} placement='bottom-start' arrow>
+                          <Typography
+                            sx={{
+                              fontWeight: 500,
+                              fontSize: '16px',
+                              letterSpacing: 0,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              textOverflow: 'ellipsis',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {item.value}
+                          </Typography>
+                        </Tooltip>
+                      </Grid>
+                    ))
+                  ) : (
+                    <Grid item size={{ xs: 12 }}>
+                      <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
+                        No recovery data.
+                      </Typography>
+                    </Grid>
+                  )}
+                </Grid>
+              </Box>
+
+              <Divider />
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Box
+                sx={{
+                  px: '8px',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  columnGap: '4px',
+                  rowGap: '10px',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
+                <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                  <Typography
+                    sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
+                  >
+                    Recovery Details
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box
+                sx={{
+                  px: '8px',
+                  //height: '20px',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  columnGap: '4px',
+                  rowGap: '10px',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mt: 2 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                    <Typography
+                      sx={{
+                        mb: '4px',
+                        fontWeight: 400,
+                        fontSize: '14px',
+                        letterSpacing: 0,
+                        color: theme.palette.customColors.neutralSecondary,
+                        textTransform: 'capitalize',
+                        textOverflow: 'ellipsis',
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      Describe the Problem
+                    </Typography>
+                    <Tooltip title={recoveryProblemText} placement='bottom-start' arrow>
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '16px',
+                          letterSpacing: 0,
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          textOverflow: 'ellipsis',
+                          overflow: 'hidden',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {recoveryProblemText}
+                      </Typography>
+                    </Tooltip>
+                  </Box>
+                </Box>
+                <Box sx={{ gap: '3px', background: '#FCF4AE', width: '100%', px: 4, py: 2, borderRadius: '8px' }}>
+                  <Typography
+                    sx={{
+                      mb: '4px',
+                      fontWeight: 400,
+                      fontSize: '14px',
+                      letterSpacing: 0,
+                      color: theme.palette.customColors.neutralSecondary,
+                      textTransform: 'capitalize',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Notes
+                  </Typography>
+                  <Tooltip title={recoveryNotesText} placement='bottom-start' arrow>
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: '16px',
+                        letterSpacing: 0,
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        textOverflow: 'ellipsis',
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {recoveryNotesText}
+                    </Typography>
+                  </Tooltip>
+                </Box>
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <Box
+                  sx={{
+                    px: '8px',
+                    mt: 3,
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    columnGap: '4px',
+                    rowGap: '10px',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    <Typography
+                      sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
+                    >
+                      Anesthesia Ratings
+                    </Typography>
+                  </Box>
+                  <Grid sx={{ px: '0px' }} container spacing={4}>
+                    {Object.entries(anaesthesiaRatings).map(([label, value]) => (
+                      <Grid item size={{ xs: 12, sm: 6, md: 3 }} key={label}>
+                        <Tooltip title={label.replace(/([A-Z])/g, ' $1')} placement='bottom-start' arrow>
+                          <Typography
+                            sx={{
+                              mb: '4px',
+                              fontWeight: 400,
+                              fontSize: '14px',
+                              letterSpacing: 0,
+                              color: theme.palette.customColors.neutralSecondary,
+                              textTransform: 'capitalize',
+                              textOverflow: 'ellipsis',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {label.replace(/([A-Z])/g, ' $1')}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title={value} placement='bottom-start' arrow>
+                          <Typography
+                            sx={{
+                              fontWeight: 500,
+                              fontSize: '16px',
+                              letterSpacing: 0,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              textOverflow: 'ellipsis',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {value}
+                          </Typography>
+                        </Tooltip>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <DetailsHeader text={'ATTACHMENTS'} />
+            <MediaScroller items={attachments} />
+          </Box>
         </Box>
       </Box>
-    </Box>
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        loading={deleteLoading}
+        handleClose={handleDeleteDialogClose}
+        action={handleDeleteConfirm}
+        message='Are you sure you want to delete this anesthesia record?'
+      />
+    </>
   )
 }
 
