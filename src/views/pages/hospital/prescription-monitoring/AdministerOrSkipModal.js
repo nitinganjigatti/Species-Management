@@ -35,113 +35,111 @@ const AdministerOrSkipSidesheet = ({
 }) => {
   const theme = useTheme()
 
-  // Yup validation schema
-  const validationSchema = yup.object().shape({
-    action: yup.string().oneOf(['administer', 'skipped']).required('Action is required'),
-    time: yup.string().when('action', {
-      is: 'administer',
-      then: schema => schema.required('Time is required for administration'),
-      otherwise: schema => schema.notRequired()
-    }),
-    
-    // time: yup.string().when('action', {
-    //   is: 'administer',
-    //   then: schema =>
-    //     schema
-    //       .required('Time is required for administration')
-    //       .test('valid-time-slot', 'Time must be within the scheduled slot', function (value) {
-    //         if (!value || !slotStart || !slotEnd) return true
-
-    //         const selectedTime = dayjs(value, 'hh:mm A')
-    //         if (!selectedTime.isValid()) return false
-
-    //         const isAfterOrEqual = selectedTime.isAfter(slotStart.subtract(1, 'minute'))
-    //         const isBeforeOrEqual = selectedTime.isBefore(slotEnd.add(1, 'minute'))
-
-    //         return isAfterOrEqual && isBeforeOrEqual
-    //       }),
-    //   otherwise: schema => schema.notRequired()
-    // }),
-    quantity: yup.string().when('action', {
-      is: 'administer',
-      then: schema =>
-        schema
-          .required('Quantity is required for administration')
-          .test('is-valid-number', 'Quantity must be a valid number', value => {
-            if (!value) return false
-            const num = parseFloat(value)
-
-            return !isNaN(num) && num > 0
-          })
-          .test('min-value', 'Quantity must be greater than 0', value => {
-            if (!value) return false
-
-            return parseFloat(value) > 0
-          }),
-      otherwise: schema => schema.notRequired()
-    }),
-    quantityUnit: yup.string().when('action', {
-      is: 'administer',
-      then: schema => schema.required('Quantity unit is required for administration'),
-      otherwise: schema => schema.notRequired()
-    }),
-    skipReason: yup.string().when('action', {
-      is: 'skipped',
-      then: schema =>
-        schema
-          .required('Skip reason is required when skipping medication')
-          .min(5, 'Skip reason must be at least 5 characters long')
-          .max(500, 'Skip reason cannot exceed 500 characters'),
-      otherwise: schema => schema.notRequired()
-    }),
-    wastageQuantity: yup
-      .string()
-      .test('is-valid-number', 'Wastage quantity must be a valid number', value => {
-        if (!value) return true // Optional field
-        const num = parseFloat(value)
-
-        return !isNaN(num) && num >= 0
-      })
-      .test('wastage-unit-consistency', 'Wastage unit is required when wastage quantity is provided', function (value) {
-        const { wastageUnit } = this.parent
-        if (value && !wastageUnit) {
-          return this.createError({ message: 'Wastage unit is required when wastage quantity is provided' })
-        }
-
-        return true
+  const validationSchema = yup.object().shape(
+    {
+      action: yup.string().oneOf(['administer', 'skipped']).required('Action is required'),
+      time: yup.string().when('action', {
+        is: 'administer',
+        then: schema => schema.required('Time is required for administration'),
+        otherwise: schema => schema.notRequired()
       }),
-    wastageUnit: yup
-      .string()
-      .test(
-        'wastage-quantity-consistency',
-        'Wastage quantity is required when wastage unit is provided',
-        function (value) {
-          const { wastageQuantity } = this.parent
-          if (value && !wastageQuantity) {
-            return this.createError({ message: 'Wastage quantity is required when wastage unit is provided' })
-          }
+      
+      // time: yup.string().when('action', {
+      //   is: 'administer',
+      //   then: schema =>
+      //     schema
+      //       .required('Time is required for administration')
+      //       .test('valid-time-slot', 'Time must be within the scheduled slot', function (value) {
+      //         if (!value || !slotStart || !slotEnd) return true
 
-          return true
-        }
-      ),
-    notes: yup.string().max(10000, 'Notes cannot exceed 10000 characters'),
+      //         const selectedTime = dayjs(value, 'hh:mm A')
+      //         if (!selectedTime.isValid()) return false
 
-    batchNumber: yup.mixed().when('action', {
-      is: 'administer',
-      then: schema =>
-        isControlledSubstance
-          ? schema
-              .required('Batch number is required for controlled substances')
-              .test('valid-batch-object', 'Please select a valid batch', value => {
-                if (!value) return false
+      //         const isAfterOrEqual = selectedTime.isAfter(slotStart.subtract(1, 'minute'))
+      //         const isBeforeOrEqual = selectedTime.isBefore(slotEnd.add(1, 'minute'))
 
-                // Check if it's a valid batch object with batch_no
-                return value && value.batch_no && typeof value.batch_no === 'string'
-              })
-          : schema.nullable().notRequired(),
-      otherwise: schema => schema.nullable().notRequired()
-    })
-  })
+      //         return isAfterOrEqual && isBeforeOrEqual
+      //       }),
+      //   otherwise: schema => schema.notRequired()
+      // }),
+
+      quantity: yup.string().when('action', {
+        is: 'administer',
+        then: schema =>
+          schema
+            .required('Quantity is required for administration')
+            .test('is-valid-number', 'Quantity must be a valid number', value => {
+              if (!value) return false
+              const num = parseFloat(value)
+
+              return !isNaN(num) && num > 0
+            })
+            .test('min-value', 'Quantity must be greater than 0', value => {
+              if (!value) return false
+
+              return parseFloat(value) > 0
+            }),
+        otherwise: schema => schema.notRequired()
+      }),
+      quantityUnit: yup.string().when('action', {
+        is: 'administer',
+        then: schema => schema.required('Quantity unit is required for administration'),
+        otherwise: schema => schema.notRequired()
+      }),
+      skipReason: yup.string().when('action', {
+        is: 'skipped',
+        then: schema =>
+          schema
+            .required('Skip reason is required when skipping medication')
+            .min(5, 'Skip reason must be at least 5 characters long')
+            .max(500, 'Skip reason cannot exceed 500 characters'),
+        otherwise: schema => schema.notRequired()
+      }),
+
+      // Fixed wastageQuantity validation
+      wastageQuantity: yup
+        .string()
+        .test('is-valid-number', 'Wastage quantity must be a valid number', value => {
+          if (!value) return true // Optional field
+          const num = parseFloat(value)
+
+          return !isNaN(num) && num >= 0
+        })
+        .when('wastageUnit', {
+          is: wastageUnit => wastageUnit && wastageUnit.length > 0,
+          then: schema => schema.required('Wastage quantity is required when wastage unit is provided'),
+          otherwise: schema => schema.notRequired()
+        }),
+
+      // Fixed wastageUnit validation
+      wastageUnit: yup.string().when('wastageQuantity', {
+        is: wastageQuantity => wastageQuantity && wastageQuantity.length > 0,
+        then: schema => schema.required('Wastage unit is required when wastage quantity is provided'),
+        otherwise: schema => schema.notRequired()
+      }),
+
+      notes: yup.string().max(10000, 'Notes cannot exceed 10000 characters'),
+
+      batchNumber: yup.mixed().when('action', {
+        is: 'administer',
+        then: schema =>
+          isControlledSubstance
+            ? schema
+                .required('Batch number is required for controlled substances')
+                .test('valid-batch-object', 'Please select a valid batch', value => {
+                  if (!value) return false
+
+                  return value && value.batch_no && typeof value.batch_no === 'string'
+                })
+            : schema.nullable().notRequired(),
+        otherwise: schema => schema.nullable().notRequired()
+      })
+    },
+    [
+      // Add cyclic dependencies here
+      ['wastageQuantity', 'wastageUnit']
+    ]
+  )
 
   const defaultValues = {
     action: 'administer',
@@ -187,24 +185,38 @@ const AdministerOrSkipSidesheet = ({
     if (medicineData && medicalMasterData) {
       let updatedQuantity = ''
       let updatedQuantityUnit = ''
-
+  
       if (medicineData?.dosage) {
         console.log('medicineData?.dosage', medicineData?.dosage)
-
-        const [value, unitRaw] = medicineData.dosage.split(' ')
+  
+        // Split only on the first space to handle cases like "6 today tesr"
+        const firstSpaceIndex = medicineData.dosage.indexOf(' ')
+        let value, unitRaw
+        
+        if (firstSpaceIndex !== -1) {
+          value = medicineData.dosage.substring(0, firstSpaceIndex)
+          unitRaw = medicineData.dosage.substring(firstSpaceIndex + 1)
+        } else {
+          // If no space, treat entire string as value
+          value = medicineData.dosage
+          unitRaw = ''
+        }
+        
         console.log('value, unitRaw', value, unitRaw)
-
+  
         updatedQuantity = value
-
+        console.log('foundUnit', unitRaw)
+        console.log('foundUnit', medicalMasterData?.prescriptionDosageMeasurementType)
+  
         const foundUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
-          item => item?.unit_name === unitRaw
+          item => item?.unit_name?.toLowerCase() === unitRaw.toLowerCase()
         )
         console.log('foundUnit', foundUnit)
-
+  
         // Ensure the unit object has the expected structure
         updatedQuantityUnit = foundUnit ? { ...foundUnit, value: foundUnit.key, label: foundUnit.unit_name } : null
       }
-
+  
       reset(prev => ({
         ...prev,
         quantity: updatedQuantity,

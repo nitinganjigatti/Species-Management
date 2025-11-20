@@ -126,6 +126,10 @@ function PrescriptionLayout({ drawerType }) {
     setPrescriptionCardOpen(true)
   }
 
+  const handleOpenPrescriptionCardForMultipleSlots = data => {
+    getDetails(data)
+  }
+
   const handleClosePrescriptionCard = () => {
     setPrescriptionCardOpen(false)
   }
@@ -246,8 +250,9 @@ function PrescriptionLayout({ drawerType }) {
 
       const payload = {
         prescription_id: data?.id || medicineDetails?.prescription_id,
-        date: detailSelectedDate,
-        group_prescription_id: data?.id || medicineDetails?.prescription_id
+        date: data?.customDate || detailSelectedDate,
+        group_prescription_id: data?.id || medicineDetails?.prescription_id,
+        administrative_ids: data?.administrative_ids || ''
       }
 
       const response = await getPrescriptionDetails(payload)
@@ -343,16 +348,19 @@ function PrescriptionLayout({ drawerType }) {
         purpose: data.action === 'administer' ? 'administer' : 'withheld',
         side_effect: 0,
         administer_id: JSON.stringify([selectedSlotData?.timeSlot?.schedule_id]),
-        batch_details: JSON.stringify([
-          {
-            id: data?.batchNumber?.id,
-            batch_no: data?.batchNumber?.batch_no,
-            animal_id: [animal_id],
-            wastage_quantity: data?.wastageQuantity,
-            reason: data?.skipReason,
-            wastage_unit_id: wastageUnit?.id
-          }
-        ]),
+
+        batch_details:
+          data?.batchNumber?.batch_no &&
+          JSON.stringify([
+            {
+              id: data?.batchNumber?.id || '1', // As per backend request default value is added
+              batch_no: data?.batchNumber?.batch_no,
+              animal_id: [animal_id],
+              wastage_quantity: data?.wastageQuantity,
+              reason: data?.skipReason,
+              wastage_unit_id: wastageUnit?.id
+            }
+          ]),
         administritive_time: time24,
         group_prescription_id: data?.group_prescription_id || data?.id
       }
@@ -684,6 +692,12 @@ function PrescriptionLayout({ drawerType }) {
     setBatchList([])
     if (type === 'multiple') {
       setIsAdministerOrSkipForMultipleSlotsOpen(true)
+      handleOpenPrescriptionCardForMultipleSlots({
+        prescription_id: data?.id,
+        customDate: selectedDate,
+        group_prescription_id: data?.id,
+        administrative_ids: data?.timeSlot?.administrative_ids ? data.timeSlot.administrative_ids.join(',') : ''
+      })
     } else {
       setIsAdministerOrSkipPopupOpen(true)
     }
@@ -896,6 +910,7 @@ function PrescriptionLayout({ drawerType }) {
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
+
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -972,6 +987,7 @@ function PrescriptionLayout({ drawerType }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
+
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {
@@ -1056,7 +1072,7 @@ function PrescriptionLayout({ drawerType }) {
 
       <AdministerOrSkipForMultipleSlots
         open={isAdministerOrSkipForMultipleSlotsOpen}
-        handleClose={() => setIsAdministerOrSkipForMultipleSlotsOpen(false)}
+        onClose={() => setIsAdministerOrSkipForMultipleSlotsOpen(false)}
         onSubmit={handleAdministerOrSkipForMulipleSlotsSubmit}
         submitLoader={isAdministerOrSkipPopupLoading}
         medicineData={{
@@ -1066,14 +1082,18 @@ function PrescriptionLayout({ drawerType }) {
           },
           dosage: '10 mg/kg'
         }}
-        timeSlots={timeSlots}
-        medicalMasterData={medicalMasterData}
-        mastersDataLoading={medicalMasterDataLoading}
-        batchList={batchList}
-        batchLoading={batchLoading}
-        handleBatchSearch={handleBatchSearch}
-        isControlledSubstance={false} // Set to true for controlled substances that require batch number
-        scheduledDate={selectedDate}
+        dosageEntries={medicineDetails?.medicine_timings || []}
+        onStopMedicine={handleStopMedicine}
+        onAddNewDosage={handleAddNewDosage}
+        onRefreshEntry={handleRefreshEntry}
+        isDetailLoading={isDetailLoading}
+        selectedDate={detailSelectedDate}
+        onAdministerSelected={handleAdministerSelectedFromDrawer}
+        onSkipSelected={handleSkipSelectedFromDrawer}
+        isAdministerLoading={isAdministerLoading}
+        isSkipLoading={isSkipLoading}
+        selectedMedications={selectedMedicationsFromDetail}
+        setSelectedMedications={setSelectedMedicationsFromDetail}
       />
     </Box>
   )

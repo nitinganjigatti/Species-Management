@@ -125,7 +125,7 @@ const TimeSlot = styled(Box, {
   position: 'relative',
   margin: 0,
   padding: 0,
-  minWidth: '184px',
+  width: '184px',
   height: '70px',
   marginTop: theme.spacing(0.5),
   backgroundColor: config?.backgroundColor,
