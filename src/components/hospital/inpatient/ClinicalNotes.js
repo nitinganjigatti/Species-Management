@@ -16,13 +16,14 @@ const ClinicalNotes = ({ patientData }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
 
-  const { animal_id } = router.query
+  const { id, animal_id } = router.query
 
   // Query parameters for fetching clinical notes
   const queryParams = useMemo(
     () => ({
       type: 'all',
       limit: 10,
+      hospital_case_id: id,
       medical_type: 'clinical_notes'
     }),
     []

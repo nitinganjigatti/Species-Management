@@ -145,7 +145,7 @@ const InpatientClinicalNotes = props => {
 
                 <UserAvatarDetails
                   user_name={data?.created_by_user_name}
-                  date={Utility.convertUtcToLocalReadableDate(data?.created_at)}
+                  date={data?.created_at}
                   show_time
                   size='medium'
                   profile_image={data?.user_created_profile_pic}
