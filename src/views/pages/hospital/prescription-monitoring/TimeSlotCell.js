@@ -66,9 +66,9 @@ const TimeSlotCell = ({ hasSchedule, status, scheduledTime, dosage, onClick, con
             sx={{
               fontSize: '14px',
               mx: status === 'pending' && 'auto',
-              lineHeight: 1,
+              lineHeight: 1.5,
               letterSpacing: 0,
-              textAlign: 'right',
+              textAlign: 'center',
               color: theme.palette.customColors.neutralSecondary,
 
               // Ellipsis styles

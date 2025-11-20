@@ -29,7 +29,8 @@ import { getMedicalMasterData } from 'src/lib/api/hospital/medicalMaster'
 import { debounce, set } from 'lodash'
 import ScheduleDosage from 'src/views/pages/hospital/prescription-monitoring/ScheduleDosage'
 import moment from 'moment'
-import AdministerOrSkipForMultipleSlots from 'src/views/pages/hospital/prescription-monitoring/AdministerOrSkipForMultipleSlots'
+import MedicinePrescriptionCardForMultipleTimeSlots from 'src/views/pages/hospital/prescription-monitoring/MedicinePrescriptionCarForMultipleTimeSlots'
+import dayjs from 'dayjs'
 
 function PrescriptionLayout({ drawerType }) {
   const [openSchedule, setOpenSchedule] = useState(false)
@@ -67,6 +68,7 @@ function PrescriptionLayout({ drawerType }) {
   const [isAdministerOrSkipForMultipleSlotsOpen, setIsAdministerOrSkipForMultipleSlotsOpen] = useState(false)
   const [isUndoLoading, setIsUndoLoading] = useState(false)
   const [selectedMetrics, setSelectedMetrics] = useState([])
+  const [administrativeIds, setAdministrativeIds] = useState([])
 
   const router = useRouter()
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
@@ -127,6 +129,7 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleOpenPrescriptionCardForMultipleSlots = data => {
+    console.log('handleOpenPrescriptionCardForMultipleSlots data', data)
     getDetails(data)
   }
 
@@ -196,7 +199,7 @@ function PrescriptionLayout({ drawerType }) {
         getPrescriptionList()
 
         // Refresh the details if the card is still open
-        if (prescriptionCardOpen) {
+        if (prescriptionCardOpen || isAdministerOrSkipForMultipleSlotsOpen) {
           getDetails(medicineData, detailSelectedDate)
         }
       }
@@ -252,7 +255,7 @@ function PrescriptionLayout({ drawerType }) {
         prescription_id: data?.id || medicineDetails?.prescription_id,
         date: data?.customDate || detailSelectedDate,
         group_prescription_id: data?.id || medicineDetails?.prescription_id,
-        administrative_ids: data?.administrative_ids || ''
+        administrative_ids: data?.administrative_ids || administrativeIds || ''
       }
 
       const response = await getPrescriptionDetails(payload)
@@ -334,11 +337,17 @@ function PrescriptionLayout({ drawerType }) {
         item => item.uom_abbr === data?.wastageUnit
       )
 
-      const formattedTime = Utility?.convertUTCToLocaltime(data.time)
-
-      const time24 = new Date(`1970-01-01 ${formattedTime}`).toLocaleTimeString('en-GB', {
-        hour12: false
-      })
+      let time24
+      if (data.time) {
+        // If data.time is a dayjs object, format it directly
+        if (dayjs.isDayjs(data.time)) {
+          time24 = data.time.format('HH:mm:ss')
+        } else {
+          // If it's a string like "12:00 AM", parse it and convert to 24-hour format
+          const parsedTime = dayjs(data.time, 'hh:mm A')
+          time24 = parsedTime.format('HH:mm:ss')
+        }
+      }
 
       // Process the form data based on action type
       const payload = {
@@ -445,9 +454,23 @@ function PrescriptionLayout({ drawerType }) {
 
   function convertUTCToLocaltime(date) {
     if (!date) return ''
-    const stillUtc = moment.utc(date).toDate()
 
-    const local = moment(stillUtc).local(true).format('hh : mm : A') // 👈 adds leading zero + spaces around colons
+    // If it's a dayjs object, format it directly
+    if (dayjs.isDayjs(date)) {
+      return date.format('hh : mm : A')
+    }
+
+    // If it's a string in 12-hour format like "12:00 AM"
+    if (typeof date === 'string' && /AM|PM/i.test(date)) {
+      const parsedTime = dayjs(date, 'hh:mm A')
+      if (parsedTime.isValid()) {
+        return parsedTime.format('hh : mm : A')
+      }
+    }
+
+    // Fallback to original moment logic for other cases (UTC dates)
+    const stillUtc = moment.utc(date).toDate()
+    const local = moment(stillUtc).local(true).format('hh : mm : A')
 
     return local
   }
@@ -692,11 +715,14 @@ function PrescriptionLayout({ drawerType }) {
     setBatchList([])
     if (type === 'multiple') {
       setIsAdministerOrSkipForMultipleSlotsOpen(true)
+      console.log('data for multiple slots:', data?.data?.id)
+      setAdministrativeIds()
+      const administrative_ids = data?.timeSlot?.administrative_ids ? data.timeSlot.administrative_ids.join(',') : ''
+      if (administrative_ids) setAdministrativeIds(administrative_ids)
       handleOpenPrescriptionCardForMultipleSlots({
-        prescription_id: data?.id,
+        id: data?.data?.id,
         customDate: selectedDate,
-        group_prescription_id: data?.id,
-        administrative_ids: data?.timeSlot?.administrative_ids ? data.timeSlot.administrative_ids.join(',') : ''
+        administrative_ids: administrative_ids
       })
     } else {
       setIsAdministerOrSkipPopupOpen(true)
@@ -734,7 +760,7 @@ function PrescriptionLayout({ drawerType }) {
         getPrescriptionList()
 
         // Refresh the drawer details
-        if (prescriptionCardOpen && medicineData) {
+        if (prescriptionCardOpen || isAdministerOrSkipForMultipleSlotsOpen) {
           getDetails(medicineData, detailSelectedDate)
         }
 
@@ -910,7 +936,6 @@ function PrescriptionLayout({ drawerType }) {
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
-
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -987,7 +1012,6 @@ function PrescriptionLayout({ drawerType }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
-
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {
@@ -1069,31 +1093,49 @@ function PrescriptionLayout({ drawerType }) {
           dosage: selectedSlotData?.timeSlot?.dosage || ''
         }}
       />
-
-      <AdministerOrSkipForMultipleSlots
+      <MedicinePrescriptionCardForMultipleTimeSlots
         open={isAdministerOrSkipForMultipleSlotsOpen}
-        onClose={() => setIsAdministerOrSkipForMultipleSlotsOpen(false)}
-        onSubmit={handleAdministerOrSkipForMulipleSlotsSubmit}
-        submitLoader={isAdministerOrSkipPopupLoading}
+        onClose={() => {
+          setIsAdministerOrSkipForMultipleSlotsOpen(false)
+          setAdministrativeIds('')
+        }}
+        isDetailLoading={isDetailLoading}
+        selectedMedications={selectedMedicationsFromDetail}
+        setSelectedMedications={setSelectedMedicationsFromDetail}
         medicineData={{
-          name: 'Levothyroxine',
-          data: {
-            name: 'Levothyroxine'
-          },
-          dosage: '10 mg/kg'
+          ...medicineDetails,
+          name: medicineDetails?.medicine_name || '-',
+          medId: medicineDetails?.medical_record_code || '-',
+          startDate: medicineDetails?.start_date || '-',
+          endDate: medicineDetails?.end_date || '-',
+          dosage: medicineDetails?.dose_count ? `${medicineDetails?.dose_count} Times` : '-',
+          frequency: medicineDetails?.frequency || '-',
+          duration: medicineDetails?.duration || '-',
+          deliveryRoute: medicineDetails?.delivery_route_name || '-',
+          notes: medicineDetails?.notes || '-',
+          lastEdited:
+            medicineDetails?.updated_at || medicineDetails?.created_at
+              ? `Last edited on ${Utility.convertUTCToLocaltime(
+                  medicineDetails?.updated_at || medicineDetails?.created_at
+                )} • ${Utility.formatDisplayDate(medicineDetails?.updated_at || medicineDetails?.created_at)}`
+              : '-',
+          defaultTab: 2,
+          prescription_id: medicineDetails?.prescription_id,
+          group_prescription_id: medicineDetails?.group_prescription_id,
+          medicine_id: medicineDetails?.medicine_id,
+          id: medicineDetails?.id
         }}
         dosageEntries={medicineDetails?.medicine_timings || []}
+        isStopMedicineLoading={isStopMedicineLoading}
         onStopMedicine={handleStopMedicine}
         onAddNewDosage={handleAddNewDosage}
         onRefreshEntry={handleRefreshEntry}
-        isDetailLoading={isDetailLoading}
+        handleDateChange={handleDetailDateChange}
         selectedDate={detailSelectedDate}
         onAdministerSelected={handleAdministerSelectedFromDrawer}
         onSkipSelected={handleSkipSelectedFromDrawer}
         isAdministerLoading={isAdministerLoading}
         isSkipLoading={isSkipLoading}
-        selectedMedications={selectedMedicationsFromDetail}
-        setSelectedMedications={setSelectedMedicationsFromDetail}
       />
     </Box>
   )

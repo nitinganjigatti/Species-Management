@@ -1,12 +1,24 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Typography, IconButton, Avatar, Button, Drawer, useTheme, useMediaQuery, Skeleton } from '@mui/material'
+import {
+  Box,
+  Typography,
+  IconButton,
+  Avatar,
+  Tab,
+  Drawer,
+  useTheme,
+  useMediaQuery,
+  Skeleton,
+} from '@mui/material'
 import { styled } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import MedicationTimeCard from './MedicationTimeCard'
+import Utility from 'src/utility'
 import { LoadingButton } from '@mui/lab'
 import DoDisturbIcon from '@mui/icons-material/DoDisturb'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import Utility from 'src/utility'
+import AccessTimeIcon from '@mui/icons-material/AccessTime'
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 
 // Custom styled components for drawer content
 const DrawerContent = styled(Box)(({ theme }) => ({
@@ -23,6 +35,45 @@ const HeaderSection = styled(Box)(({ theme }) => ({
   padding: '24px 0px',
   flexDirection: 'column',
   backgroundColor: theme.palette.background.paper
+}))
+
+const InfoGroupContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  padding: '20px',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  width: '100%',
+  borderRadius: '8px 8px 0 0',
+  backgroundColor: theme.palette.customColors.displaybgPrimary
+}))
+
+const InfoItem = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  flex: '1 0 0'
+})
+
+const NotesContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  padding: '8px 20px',
+  alignItems: 'center',
+  gap: '4px',
+  width: '100%',
+  borderRadius: '0 0 8px 8px',
+  backgroundColor: theme.palette.customColors.Notes
+}))
+
+const DateTab = styled(Tab)(({ theme, selected }) => ({
+  padding: '15px 24px',
+  borderBottom: selected
+    ? `2px solid ${theme.palette.primary.main}`
+    : `0.5px solid ${theme.palette.customColors.OutlineVariant}`,
+  borderRight: `0.5px solid ${theme.palette.customColors.OutlineVariant}`,
+  color: selected ? theme.palette.primary.main : theme.palette.customColors.neutralSecondary,
+  fontWeight: 600,
+  fontSize: '14px',
+  minHeight: 'auto'
 }))
 
 const DosageSection = styled(Box)(({ theme, variant }) => ({
@@ -54,8 +105,16 @@ const DosageHeader = styled(Box)(({ theme, variant }) => ({
       : theme.palette.customColors.neutral05
 }))
 
+const LoadingOverlay = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  padding: '40px',
+  width: '100%'
+}))
+
 // Main Component
-const MedicinePrescriptionCard = ({
+const MedicinePrescriptionCardForMultipleTimeSlots = ({
   open,
   onClose,
   medicineData = {},
@@ -187,7 +246,6 @@ const MedicinePrescriptionCard = ({
   const handleClose = () => {
     setSelectedMedications([])
     setIsSelectionMode(false)
-
     onClose()
   }
 
@@ -405,11 +463,11 @@ const MedicinePrescriptionCard = ({
             </Typography>
           </Box>
         </Box>
-        {entry?.status?.toLowerCase() != 'stopped' && (
+        {/* {entry?.status?.toLowerCase() != 'stopped' && (
           <IconButton size='small' onClick={() => handleRefreshEntry(entry.id)}>
             <Icon icon='mdi:refresh' fontSize='16px' color={theme.palette.customColors.Tertiary} />
           </IconButton>
-        )}
+        )} */}
       </Box>
     </DosageSection>
   )
@@ -420,103 +478,104 @@ const MedicinePrescriptionCard = ({
         anchor='right'
         open={open}
         onClose={handleClose}
-        slotProps={{
-          paper: {
-            sx: {
-              width: isMobile ? '100vw' : 600,
-              maxWidth: '100vw',
-              height: '100vh',
-              px: '24px',
-              py: '0px'
+        sx={{
+            '& .MuiDrawer-paper': {
+              width: { xs: '100%', sm: '562px' },
+              maxWidth: '100%',
+              background: theme.palette.customColors.Background
             }
-          }
-        }}
+          }}
       >
         <DrawerContent>
+          {/* Header Section - Same as before */}
           {isDetailLoading ? (
             <HeaderShimmer theme={theme} />
           ) : (
-            <HeaderSection>
               <Box
                 sx={{
                   display: 'flex',
-                  alignItems: 'flex-start',
-                  justifyContent: 'space-between'
+                  flexDirection: 'column',
+                  backgroundColor: theme.palette.customColors.OnPrimary,
                 }}
               >
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 0 0' }}>
-                  <Typography
-                    variant='h5'
-                    sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                  >
-                    {medicine.name}
-                  </Typography>
+                {/* Title Bar */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    py: 4,
+                    px: 6,
+                    justifyContent: 'space-between',
+                    borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+                      <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
+                      <Typography
+                        sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                      >
+                        Administer medicine
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <IconButton size='small' onClick={handleClose} sx={{ color: theme.palette.text.primary, p: 0 }}>
+                    <Icon icon='mdi:close' fontSize={24} />
+                  </IconButton>
                 </Box>
-                <IconButton onClick={handleClose}>
-                  <Icon icon='mdi:close' fontSize='24px' color={theme.palette.customColors.OnPrimaryContainer} />
-                </IconButton>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flex: '1 0 0' }}>
-                  <Box
+
+                {/* Medicine Info Section */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexFlow: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    py: 4,
+                    px: 6,
+                    backgroundColor: theme.palette.customColors.OnPrimary
+                  }}
+                >
+                  <Typography
                     sx={{
-                      width: '16px',
-                      height: '16px',
-                      borderRadius: '30px',
-                      backgroundColor: theme.palette.customColors.OnSurface,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
+                      fontSize: '1rem',
+                      fontWeight: 500,
+                      color: theme.palette.primary.deepDark
                     }}
                   >
-                    <Icon icon='material-symbols:ecg-heart-outline-sharp' fontSize='10px' color='white' />
-                  </Box>
-                  <Typography
-                    variant='body2'
-                    sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.OnSurface }}
-                  >
-                    {medicine.medId}
+                    {medicineData?.data?.name}
                   </Typography>
-                  <Box
-                    sx={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '10px',
-                      backgroundColor: theme.palette.primary.main
-                    }}
-                  />
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Icon
-                      icon='material-symbols:line-start-circle'
-                      fontSize='20px'
-                      color={theme.palette.primary.main}
-                    />
-                    <Typography
-                      variant='body2'
-                      sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
-                    >
-                      {Utility.formatDisplayDate(medicine.startDate)}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Icon
-                      icon='material-symbols:line-end-square'
-                      fontSize='20px'
-                      color={theme.palette.customColors.Error}
-                    />
-                    <Typography
-                      variant='body2'
-                      sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
-                    >
-                      {Utility.formatDisplayDate(medicine.endDate)}
-                    </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CalendarTodayIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurfaceVariant }} />
+                      <Typography
+                        sx={{
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }}
+                      >
+                        {Utility?.formatDisplayDate(selectedDate)}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                      <AccessTimeIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurfaceVariant }} />
+                      <Typography
+                        sx={{
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }}
+                      >
+                        {medicineData?.scheduledTime}
+                      </Typography>
+                    </Box>
                   </Box>
                 </Box>
               </Box>
-            </HeaderSection>
           )}
+
+          {/* Bottom Container */}
           <Box
             sx={{
               width: '100%',
@@ -524,7 +583,11 @@ const MedicinePrescriptionCard = ({
               flexDirection: 'column',
               gap: '16px',
               flex: 1,
-              overflowY: 'auto'
+              px: 6,
+              pt: 8,
+              overflowY: 'auto',
+
+            //   backgroundColor: theme.palette.customColors.Background
             }}
           >
             {isDetailLoading ? (
@@ -578,52 +641,6 @@ const MedicinePrescriptionCard = ({
                     })
                   )
                 })}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: '16px',
-                    marginTop: 'auto',
-                    mt: 2,
-                    mb: 12
-                  }}
-                >
-                  <Button
-                    variant='text'
-                    startIcon={<Icon icon='jam:stop-sign' />}
-                    onClick={handleStopMedicine}
-                    disabled={isDetailLoading}
-                    sx={{
-                      color: theme.palette.customColors.Tertiary,
-                      fontSize: '16px',
-                      fontWeight: 500,
-                      justifyContent: 'left',
-                      transform: 'none',
-                      textTransform: 'none',
-                      width: 'auto'
-                    }}
-                  >
-                    Stop Medicine
-                  </Button>
-                  {handleAddNewDosageTimeCheck(selectedDate) && (
-                    <Button
-                      variant='text'
-                      startIcon={<Icon icon='mdi:plus' />}
-                      onClick={handleAddNewDosage}
-                      disabled={isDetailLoading}
-                      sx={{
-                        color: theme.palette.customColors.OnSurface,
-                        fontSize: '16px',
-                        fontWeight: 500,
-                        transform: 'none',
-                        textTransform: 'none'
-                      }}
-                    >
-                      Add New Dosage
-                    </Button>
-                  )}
-                </Box>
               </Box>
             )}
           </Box>
@@ -635,7 +652,8 @@ const MedicinePrescriptionCard = ({
                 bottom: 0,
                 left: 0,
                 right: 0,
-                mx: '-24px'
+                mx: '-24px',
+                px: 6,
               }}
             >
               {!stopMedicineModalOpen && (
@@ -679,7 +697,36 @@ const MedicinePrescriptionCard = ({
   )
 }
 
-export default MedicinePrescriptionCard
+export default MedicinePrescriptionCardForMultipleTimeSlots
+
+// Shimmer Components
+const HeaderShimmer = ({ theme }) => (
+  <HeaderSection>
+    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 0 0' }}>
+        <Skeleton variant='text' width='70%' height={32} />
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flex: '1 0 0' }}>
+            <Skeleton variant='circular' width={16} height={16} />
+            <Skeleton variant='text' width='100px' height={20} />
+            <Skeleton variant='circular' width={8} height={8} />
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Skeleton variant='circular' width={20} height={20} />
+              <Skeleton variant='text' width='80px' height={20} />
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Skeleton variant='circular' width={20} height={20} />
+              <Skeleton variant='text' width='80px' height={20} />
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+      <Skeleton variant='circular' width={32} height={32} />
+    </Box>
+  </HeaderSection>
+)
 
 const DosageEntriesShimmer = ({ theme }) => (
   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
@@ -763,34 +810,6 @@ const DosageEntriesShimmer = ({ theme }) => (
       </Box>
     ))}
   </Box>
-)
-
-const HeaderShimmer = ({ theme }) => (
-  <HeaderSection>
-    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 0 0' }}>
-        <Skeleton variant='text' width='70%' height={32} />
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flex: '1 0 0' }}>
-            <Skeleton variant='circular' width={16} height={16} />
-            <Skeleton variant='text' width='100px' height={20} />
-            <Skeleton variant='circular' width={8} height={8} />
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Skeleton variant='circular' width={20} height={20} />
-              <Skeleton variant='text' width='80px' height={20} />
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Skeleton variant='circular' width={20} height={20} />
-              <Skeleton variant='text' width='80px' height={20} />
-            </Box>
-          </Box>
-        </Box>
-      </Box>
-      <Skeleton variant='circular' width={32} height={32} />
-    </Box>
-  </HeaderSection>
 )
 
 const ButtonsShimmer = ({ theme }) => (
