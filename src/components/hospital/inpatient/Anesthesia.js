@@ -51,7 +51,6 @@ const getRecordIdentifier = record => {
   if (record.anaesthesia_id) return String(record.anaesthesia_id)
   if (record.id) return String(record.id)
   if (record.code) return String(record.code)
-
   return ''
 }
 
@@ -88,16 +87,19 @@ const MediaScroller = ({ items = [] }) => {
 
   return (
     <Box
-      sx={{
+      sx={theme => ({
         width: '100%',
         overflowX: 'auto',
         py: 2,
         '&::-webkit-scrollbar': { height: '2px !important' },
         '&::-webkit-scrollbar-track': { background: 'transparent' },
-        '&::-webkit-scrollbar-thumb': { background: '#BDBDBD', borderRadius: '6px' },
+        '&::-webkit-scrollbar-thumb': {
+          background: theme.palette.customColors.OutlineSecondary,
+          borderRadius: '6px'
+        },
         scrollbarWidth: 'thin',
-        scrollbarColor: '#BDBDBD transparent'
-      }}
+        scrollbarColor: `${theme.palette.customColors.OutlineSecondary} transparent`
+      })}
     >
       <Box
         sx={{
@@ -134,7 +136,6 @@ function Anesthesia({ hospitalCaseId, patientData }) {
 
   const resolvedMedicalRecordId = useMemo(() => {
     const queryValue = normalizeQueryValue(router?.query?.medical_record_id)
-
     if (hasValue(queryValue)) return queryValue
 
     return patientData?.medical_record_id
@@ -687,7 +688,13 @@ function Anesthesia({ hospitalCaseId, patientData }) {
   }
 
   const DetailsHeader = ({ text }) => (
-    <Box sx={{ backgroundColor: '#E8F4F299', padding: '8px', borderRadius: '4px' }}>
+    <Box
+      sx={theme => ({
+        backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 0.6),
+        padding: '8px',
+        borderRadius: '4px'
+      })}
+    >
       <Typography
         sx={{
           fontWeight: 500,
@@ -1515,7 +1522,16 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                     </Tooltip>
                   </Box>
                 </Box>
-                <Box sx={{ gap: '3px', background: '#FCF4AE', width: '100%', px: 4, py: 2, borderRadius: '8px' }}>
+              <Box
+                sx={theme => ({
+                  gap: '3px',
+                  background: theme.palette.customColors.Notes,
+                  width: '100%',
+                  px: 4,
+                  py: 2,
+                  borderRadius: '8px'
+                })}
+              >
                   <Typography
                     sx={{
                       mb: '4px',
