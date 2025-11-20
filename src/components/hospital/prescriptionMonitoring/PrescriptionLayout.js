@@ -729,8 +729,7 @@ function PrescriptionLayout({ drawerType }) {
     }
   }
 
-  const handleAdministerSelectedFromDrawer = async (selectedItems, medicineData) => {
-    console.log('Administer selected medications from drawer:', selectedItems, medicineData)
+  const handleAdministerSelectedFromDrawer = async (selectedItems, medicineData, formData) => {
 
     try {
       setIsAdministerLoading(true)
@@ -936,6 +935,7 @@ function PrescriptionLayout({ drawerType }) {
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
+
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -1012,6 +1012,7 @@ function PrescriptionLayout({ drawerType }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
+
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {
@@ -1136,6 +1137,12 @@ function PrescriptionLayout({ drawerType }) {
         onSkipSelected={handleSkipSelectedFromDrawer}
         isAdministerLoading={isAdministerLoading}
         isSkipLoading={isSkipLoading}
+        medicalMasterData={medicalMasterData}
+        mastersDataLoading={medicalMasterDataLoading}
+        batchList={batchList}
+        batchLoading={batchLoading}
+        handleBatchSearch={handleBatchSearch}
+        isControlledSubstance={false}
       />
     </Box>
   )
