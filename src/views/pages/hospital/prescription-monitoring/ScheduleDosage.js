@@ -11,6 +11,11 @@ import { Controller, useForm, useFieldArray } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import Utility from 'src/utility'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+
+// Enable custom parse format plugin for dayjs
+dayjs.extend(customParseFormat)
 
 const ScheduleDosageSidesheet = ({
   label = 'Schedule Dosage',
@@ -56,13 +61,15 @@ const ScheduleDosageSidesheet = ({
       )
       .min(1, 'At least one schedule time is required')
       .required('Schedules are required'),
-    applyDosage: yup.string().oneOf(['only_for_this_day', 'till_prescription_ends'], 'Please select dosage application type')
+    applyDosage: yup
+      .string()
+      .oneOf(['only_for_this_day', 'till_prescription_ends'], 'Please select dosage application type')
   })
 
   const defaultValues = {
     schedules: [
       {
-        time: '',
+        time: null,
         dosageQuantity: '',
         dosageUnit: '',
         dosageWeights: ''
@@ -70,6 +77,28 @@ const ScheduleDosageSidesheet = ({
     ],
     applyDosage: 'till_prescription_ends'
   }
+
+  // Convert time format from "08 AM" or "08:00 AM" to dayjs object
+  const convertTimeToMuiFormat = timeString => {
+    if (!timeString) return null
+
+    // Handle format like "08 AM" or "08:00 AM"
+    let formattedTime = timeString.trim()
+
+    // If it's in format "08 AM", convert to "08:00 AM"
+    if (!/:\d{2}/.test(formattedTime)) {
+      formattedTime = formattedTime.replace(/^(\d{1,2})\s*(AM|PM)$/i, '$1:00 $2')
+    }
+
+    // Parse using dayjs with the format
+    const parsedTime = dayjs(formattedTime, 'hh:mm A')
+
+    return parsedTime.isValid() ? parsedTime : null
+  }
+
+  // Calculate slot start and end times
+  const slotStart = scheduleDosage?.scheduledTime ? convertTimeToMuiFormat(scheduleDosage.scheduledTime) : null
+  const slotEnd = slotStart ? slotStart.add(59, 'minute') : null
 
   const {
     control,
@@ -95,13 +124,41 @@ const ScheduleDosageSidesheet = ({
     }
   }, [handleOpen, reset])
 
+  // Set default time if scheduledTime is present
+  useEffect(() => {
+    if (scheduleDosage?.scheduledTime) {
+      const defaultTime = convertTimeToMuiFormat(scheduleDosage.scheduledTime)
+
+      reset(prev => ({
+        ...prev,
+        schedules: [
+          {
+            time: defaultTime,
+            dosageQuantity: '',
+            dosageUnit: medicalMasterData?.prescriptionDosageMeasurementType?.[0]?.unit_name || '',
+            dosageWeights: ''
+          }
+        ]
+      }))
+    }
+  }, [scheduleDosage?.scheduledTime, medicalMasterData, reset])
+
   const handleClose = () => {
     reset(defaultValues)
     handleSidebarClose()
   }
 
   const handleFormSubmit = data => {
-    onSubmit(data)
+    // Convert dayjs time objects back to string format
+    const formattedData = {
+      ...data,
+      schedules: data.schedules.map(schedule => ({
+        ...schedule,
+        time: schedule.time ? dayjs(schedule.time).format('hh:mm A') : ''
+      }))
+    }
+
+    onSubmit(formattedData)
 
     // handleClose()
   }
@@ -226,6 +283,8 @@ const ScheduleDosageSidesheet = ({
                           error={errors?.schedules?.[idx]?.time}
                           required
                           disabled={submitLoader}
+                          minTime={slotStart}
+                          maxTime={slotEnd}
                         />
                       </Grid>
                       <Grid size={{ xs: fields.length > 1 ? 10 : 12, sm: fields.length > 1 ? 7 : 8 }}>
@@ -285,7 +344,7 @@ const ScheduleDosageSidesheet = ({
                       onClick={e => {
                         e.preventDefault()
                         append({
-                          time: '',
+                          time: null,
                           dosageQuantity: '',
                           dosageUnit: medicalMasterData?.prescriptionDosageMeasurementType?.[0]?.unit_name || '',
                           dosageWeights: ''
