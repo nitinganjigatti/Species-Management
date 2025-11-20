@@ -374,34 +374,6 @@ const AdministerMedicineSidesheet = ({
                           loading={mastersDataLoading}
                         />
                       </Grid>
-                      <Grid size={{ xs: 12 }}>
-                        <Button
-                          variant='outlined'
-                          fullWidth
-                          sx={{
-                            fontSize: '1rem',
-                            backgroundColor: theme.palette.customColors.displaybgPrimary,
-                            color: theme.palette.customColors.OnSurface,
-                            border: 'none',
-                            borderRadius: '4px',
-                            fontWeight: 400,
-                            py: '1.125rem'
-                          }}
-                        >
-                          Calculated dosage
-                          <Typography
-                            component='span'
-                            sx={{
-                              fontSize: '1.25rem',
-                              fontWeight: 500,
-                              color: theme.palette.customColors.OnSurfaceVariant,
-                              ml: 2
-                            }}
-                          >
-                            310 mg
-                          </Typography>
-                        </Button>
-                      </Grid>
                     </>
                   ) : (
                     <>

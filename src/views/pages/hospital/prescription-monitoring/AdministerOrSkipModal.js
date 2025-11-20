@@ -240,7 +240,7 @@ const AdministerOrSkipSidesheet = ({
         ...prev,
         time: updatedTime,
         quantity: updatedQuantity,
-        quantityUnit: updatedQuantityUnit?.unit_name
+        quantityUnit: updatedQuantityUnit?.key
       }))
     }
   }, [medicineData, medicalMasterData, reset])
@@ -406,7 +406,8 @@ const AdministerOrSkipSidesheet = ({
                       format='hh:mm A'
                       sx={{ backgroundColor: theme.palette.customColors.Surface }}
                       error={errors.time}
-                      disabled={disableTimeField}
+                      
+                      // disabled={disableTimeField}
                       minTime={slotStart}
                       maxTime={slotEnd}
                     />

@@ -367,7 +367,7 @@ function PrescriptionLayout({ drawerType }) {
               animal_id: [animal_id],
               wastage_quantity: data?.wastageQuantity,
               reason: data?.skipReason,
-              wastage_unit_id: wastageUnit?.id
+              wastage_unit_id: wastageUnit?.id || ''
             }
           ]),
         administritive_time: time24,
