@@ -13,6 +13,7 @@ import {
   Paper
 } from '@mui/material'
 import Skeleton from '@mui/material/Skeleton'
+import LoadingSkeleton from 'src/components/hospital/inpatient/Anesthesia/LoadingSkeleton'
 import { Box, Grid } from '@mui/system'
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useTheme } from '@mui/material/styles'
@@ -707,6 +708,10 @@ function Anesthesia({ hospitalCaseId, patientData }) {
       </Typography>
     </Box>
   )
+
+  if (isRecordsLoading) {
+    return <LoadingSkeleton />
+  }
 
   return (
     <>
