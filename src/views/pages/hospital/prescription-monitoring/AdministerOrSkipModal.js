@@ -1,5 +1,16 @@
 import React, { useEffect } from 'react'
-import { Drawer, Box, Typography, IconButton, Grid, Card, CardContent } from '@mui/material'
+import {
+  Drawer,
+  Box,
+  Typography,
+  IconButton,
+  Grid,
+  Card,
+  CardContent,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
+} from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -8,6 +19,7 @@ import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
@@ -43,25 +55,6 @@ const AdministerOrSkipSidesheet = ({
         then: schema => schema.required('Time is required for administration'),
         otherwise: schema => schema.notRequired()
       }),
-      
-      // time: yup.string().when('action', {
-      //   is: 'administer',
-      //   then: schema =>
-      //     schema
-      //       .required('Time is required for administration')
-      //       .test('valid-time-slot', 'Time must be within the scheduled slot', function (value) {
-      //         if (!value || !slotStart || !slotEnd) return true
-
-      //         const selectedTime = dayjs(value, 'hh:mm A')
-      //         if (!selectedTime.isValid()) return false
-
-      //         const isAfterOrEqual = selectedTime.isAfter(slotStart.subtract(1, 'minute'))
-      //         const isBeforeOrEqual = selectedTime.isBefore(slotEnd.add(1, 'minute'))
-
-      //         return isAfterOrEqual && isBeforeOrEqual
-      //       }),
-      //   otherwise: schema => schema.notRequired()
-      // }),
 
       quantity: yup.string().when('action', {
         is: 'administer',
@@ -185,14 +178,14 @@ const AdministerOrSkipSidesheet = ({
     if (medicineData && medicalMasterData) {
       let updatedQuantity = ''
       let updatedQuantityUnit = ''
-  
+
       if (medicineData?.dosage) {
         console.log('medicineData?.dosage', medicineData?.dosage)
-  
+
         // Split only on the first space to handle cases like "6 today tesr"
         const firstSpaceIndex = medicineData.dosage.indexOf(' ')
         let value, unitRaw
-        
+
         if (firstSpaceIndex !== -1) {
           value = medicineData.dosage.substring(0, firstSpaceIndex)
           unitRaw = medicineData.dosage.substring(firstSpaceIndex + 1)
@@ -201,22 +194,22 @@ const AdministerOrSkipSidesheet = ({
           value = medicineData.dosage
           unitRaw = ''
         }
-        
+
         console.log('value, unitRaw', value, unitRaw)
-  
+
         updatedQuantity = value
         console.log('foundUnit', unitRaw)
         console.log('foundUnit', medicalMasterData?.prescriptionDosageMeasurementType)
-  
+
         const foundUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
           item => item?.unit_name?.toLowerCase() === unitRaw.toLowerCase()
         )
         console.log('foundUnit', foundUnit)
-  
+
         // Ensure the unit object has the expected structure
         updatedQuantityUnit = foundUnit ? { ...foundUnit, value: foundUnit.key, label: foundUnit.unit_name } : null
       }
-  
+
       reset(prev => ({
         ...prev,
         quantity: updatedQuantity,
@@ -404,118 +397,144 @@ const AdministerOrSkipSidesheet = ({
                   {/* Conditional Content based on Action Type */}
                   {actionType === 'administer' ? (
                     <>
-                      {/* Wastage Section for Administer */}
+                      {/* Wastage Section for Administer with Accordion */}
                       <Grid size={{ xs: 12 }}>
-                        <Typography
+                        <Accordion
+                          defaultExpanded={isControlledSubstance}
+                          disableGutters
                           sx={{
-                            fontSize: '1rem',
-                            fontWeight: 500,
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            mb: 3
+                            border: 'none',
+                            boxShadow: 'none'
                           }}
                         >
-                          Add wastage if any
-                          <Typography
-                            component='span'
+                          <AccordionSummary
+                            expandIcon={<ExpandMoreIcon />}
+                            aria-controls='wastage-content'
+                            id='wastage-header'
                             sx={{
-                              fontSize: '1rem',
-                              color: theme.palette.customColors.neutralSecondary,
-                              ml: 1
+                              px: 0,
+                              minHeight: 'auto',
+                              '& .MuiAccordionSummary-content': {
+                                margin: '0.5rem 0'
+                              },
+                              '& .MuiAccordionSummary-content.Mui-expanded': {
+                                margin: '0.5rem 0 1rem'
+                              }
                             }}
                           >
-                            (Optional)
-                          </Typography>
-                        </Typography>
-
-                        <Grid container spacing={4}>
-                          <Grid size={{ xs: 12, md: 6 }}>
-                            <ControlledTextField
-                              name='wastageQuantity'
-                              control={control}
-                              errors={errors}
-                              label='Quantity'
-                              placeholder='Enter Quantity'
-                              type='number'
-                            />
-                          </Grid>
-
-                          <Grid size={{ xs: 12, md: 6 }}>
-                            <ControlledSelect
-                              name='wastageUnit'
-                              label='Unit'
-                              control={control}
-                              errors={errors}
-                              options={medicalMasterData?.prescriptionDosageMeasurementType}
-                              getOptionLabel={option => option.label}
-                              getOptionValue={option => option.value}
-                            />
-                          </Grid>
-
-                          <Grid size={{ xs: 12 }}>
-                            <ControlledTextArea
-                              label='Notes'
-                              name='notes'
-                              control={control}
-                              errors={errors}
-                              placeholder='Enter Notes'
-                              rows={3}
-                            />
-                          </Grid>
-
-                          <Grid size={{ xs: 12 }}>
-                            <ControlledAutocomplete
-                              name='batchNumber'
-                              control={control}
-                              errors={errors}
-                              label={
-                                isControlledSubstance
-                                  ? 'Enter batch number (required)'
-                                  : 'Enter batch number if any (optional)'
-                              }
-                              options={batchList}
-                              getOptionLabel={option => {
-                                if (typeof option === 'string') return option
-
-                                // Use the label property from your batch object
-                                return option?.label || option?.batch_no || ''
+                            <Typography
+                              sx={{
+                                fontSize: '1rem',
+                                fontWeight: 500,
+                                color: theme.palette.customColors.OnSurfaceVariant
                               }}
-                              getOptionValue={option => {
-                                if (typeof option === 'string') return option
+                            >
+                              Add wastage if any
+                              <Typography
+                                component='span'
+                                sx={{
+                                  fontSize: '1rem',
+                                  color: theme.palette.customColors.neutralSecondary,
+                                  ml: 1
+                                }}
+                              >
+                                (Optional)
+                              </Typography>
+                            </Typography>
+                          </AccordionSummary>
+                          <AccordionDetails sx={{ px: 0, py: 1 }}>
+                            <Grid container spacing={4}>
+                              <Grid size={{ xs: 12, md: 6 }}>
+                                <ControlledTextField
+                                  name='wastageQuantity'
+                                  control={control}
+                                  errors={errors}
+                                  label='Quantity'
+                                  placeholder='Enter Quantity'
+                                  type='number'
+                                />
+                              </Grid>
 
-                                // Return the entire object so we have access to batch_no, id, etc.
-                                return option
-                              }}
-                              isOptionEqualToValue={(option, value) => {
-                                if (!option || !value) return false
+                              <Grid size={{ xs: 12, md: 6 }}>
+                                <ControlledSelect
+                                  name='wastageUnit'
+                                  label='Unit'
+                                  control={control}
+                                  errors={errors}
+                                  options={medicalMasterData?.prescriptionDosageMeasurementType}
+                                  getOptionLabel={option => option.label}
+                                  getOptionValue={option => option.value}
+                                  loading={mastersDataLoading}
+                                />
+                              </Grid>
 
-                                // Compare by id since that's unique
-                                const optionId = option?.id
-                                const valueId = value?.id
+                              <Grid size={{ xs: 12 }}>
+                                <ControlledTextArea
+                                  label='Notes'
+                                  name='notes'
+                                  control={control}
+                                  errors={errors}
+                                  placeholder='Enter Notes'
+                                  rows={3}
+                                />
+                              </Grid>
 
-                                return optionId === valueId
-                              }}
-                              loading={batchLoading}
-                              onInputChange={handleBatchSearch}
-                              required={isControlledSubstance}
-                              autocompleteProps={{
-                                filterOptions: x => x,
-                                noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
-                              }}
-                            />
-                          </Grid>
+                              <Grid size={{ xs: 12 }}>
+                                <ControlledAutocomplete
+                                  name='batchNumber'
+                                  control={control}
+                                  errors={errors}
+                                  label={
+                                    isControlledSubstance
+                                      ? 'Enter batch number (required)'
+                                      : 'Enter batch number if any (optional)'
+                                  }
+                                  options={batchList}
+                                  getOptionLabel={option => {
+                                    if (typeof option === 'string') return option
 
-                          <Grid size={{ xs: 12 }}>
-                            <ControlledMultiFileUpload
-                              name='attachment'
-                              control={control}
-                              errors={errors}
-                              label='Batch Image'
-                              maxFiles={5}
-                              maxFileSize={5 * 1024 * 1024} // 5MB
-                              acceptedFileTypes='image/jpeg,image/png,image/jpg,application/pdf'
-                            />
-                          </Grid>
-                        </Grid>
+                                    // Use the label property from your batch object
+                                    return option?.label || option?.batch_no || ''
+                                  }}
+                                  getOptionValue={option => {
+                                    if (typeof option === 'string') return option
+
+                                    // Return the entire object so we have access to batch_no, id, etc.
+                                    return option
+                                  }}
+                                  isOptionEqualToValue={(option, value) => {
+                                    if (!option || !value) return false
+
+                                    // Compare by id since that's unique
+                                    const optionId = option?.id
+                                    const valueId = value?.id
+
+                                    return optionId === valueId
+                                  }}
+                                  loading={batchLoading}
+                                  onInputChange={handleBatchSearch}
+                                  required={isControlledSubstance}
+                                  autocompleteProps={{
+                                    filterOptions: x => x,
+                                    noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
+                                  }}
+                                />
+                              </Grid>
+
+                              <Grid size={{ xs: 12 }}>
+                                <ControlledMultiFileUpload
+                                  name='attachment'
+                                  control={control}
+                                  errors={errors}
+                                  label='Batch Image'
+                                  maxFiles={5}
+                                  maxFileSize={5 * 1024 * 1024} // 5MB
+                                  acceptedFileTypes='image/jpeg,image/png,image/jpg,application/pdf'
+                                />
+                              </Grid>
+                            </Grid>
+                          </AccordionDetails>
+                        </Accordion>
                       </Grid>
                     </>
                   ) : (
