@@ -129,9 +129,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
   const queryClient = useQueryClient()
 
   const resolvedHospitalCaseId = useMemo(() => {
-    const directId = normalizeQueryValue(hospitalCaseId)
-
-    return hasValue(directId) ? directId : undefined
+    return hasValue(hospitalCaseId) ? hospitalCaseId : undefined
   }, [hospitalCaseId])
 
   const resolvedMedicalRecordId = useMemo(() => {
