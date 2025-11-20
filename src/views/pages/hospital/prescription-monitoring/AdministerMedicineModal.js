@@ -29,6 +29,11 @@ import ControlledSelectWithTextField from 'src/views/forms/form-fields/Controlle
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import Utility from 'src/utility'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+
+// Enable custom parse format plugin for dayjs
+dayjs.extend(customParseFormat)
 
 const AdministerMedicineSidesheet = ({
   scheduleDosage,
@@ -48,89 +53,73 @@ const AdministerMedicineSidesheet = ({
   console.log('isControlledSubstance', isControlledSubstance)
 
   // Yup validation schema
-  const validationSchema = yup.object().shape({
-    time: yup.string().required('Time is required'),
-    quantity: yup
-      .string()
-      .required('Quantity is required')
-      .test('is-valid-number', 'Quantity must be a valid number', value => {
-        if (!value) return false
-        const num = parseFloat(value)
+  const validationSchema = yup.object().shape(
+    {
+      time: yup.string().required('Time is required'),
+      quantity: yup
+        .string()
+        .required('Quantity is required')
+        .test('is-valid-number', 'Quantity must be a valid number', value => {
+          if (!value) return false
+          const num = parseFloat(value)
 
-        return !isNaN(num) && num > 0
-      })
-      .test('min-value', 'Quantity must be greater than 0', value => {
-        if (!value) return false
+          return !isNaN(num) && num > 0
+        })
+        .test('min-value', 'Quantity must be greater than 0', value => {
+          if (!value) return false
 
-        return parseFloat(value) > 0
+          return parseFloat(value) > 0
+        }),
+      quantityUnit: yup.string().required('Quantity unit is required'),
+
+      // Fixed wastageQuantity validation
+      wastageQuantity: yup
+        .string()
+        .test('is-valid-number', 'Wastage quantity must be a valid number', value => {
+          if (!value) return true // Optional field
+          const num = parseFloat(value)
+
+          return !isNaN(num) && num >= 0
+        })
+        .when('wastageUnit', {
+          is: wastageUnit => wastageUnit && wastageUnit.length > 0,
+          then: schema => schema.required('Wastage quantity is required when wastage unit is provided'),
+          otherwise: schema => schema.notRequired()
+        }),
+
+      // Fixed wastageUnit validation
+      wastageUnit: yup.string().when('wastageQuantity', {
+        is: wastageQuantity => wastageQuantity && wastageQuantity.length > 0,
+        then: schema => schema.required('Wastage unit is required when wastage unit is provided'),
+        otherwise: schema => schema.notRequired()
       }),
-    quantityUnit: yup.string().required('Quantity unit is required'),
-    wastageQuantity: yup
-      .string()
-      .test('is-valid-number', 'Wastage quantity must be a valid number', value => {
-        if (!value) return true // Optional field
-        const num = parseFloat(value)
-
-        return !isNaN(num) && num >= 0
-      })
-      .test('wastage-unit-consistency', 'Wastage unit is required when wastage quantity is provided', function (value) {
-        const { wastageUnit } = this.parent
-        if (value && !wastageUnit) {
-          return this.createError({ message: 'Wastage unit is required when wastage quantity is provided' })
-        }
-
-        return true
-      }),
-    wastageUnit: yup
-      .string()
-      .test(
-        'wastage-quantity-consistency',
-        'Wastage quantity is required when wastage unit is provided',
-        function (value) {
-          const { wastageQuantity } = this.parent
-          if (value && !wastageQuantity) {
-            return this.createError({ message: 'Wastage quantity is required when wastage unit is provided' })
+      notes: yup.string().max(10000, 'Notes cannot exceed 10000 characters'),
+      batchNumber: yup
+        .mixed()
+        .nullable()
+        .test('batch-validation', 'Batch number is required for controlled substances', function (value) {
+          // Only validate if it's a controlled substance
+          if (!isControlledSubstance) {
+            return true // Skip validation entirely for non-controlled substances
           }
 
-          return true
-        }
-      ),
-    notes: yup.string().max(10000, 'Notes cannot exceed 10000 characters'),
-    batchNumber: yup
-      .mixed()
-      .nullable()
-      .test('batch-validation', 'Batch number is required for controlled substances', function (value) {
-        // Only validate if it's a controlled substance
-        if (!isControlledSubstance) {
-          return true // Skip validation entirely for non-controlled substances
-        }
+          // For controlled substances, check if value exists and is valid
+          if (!value) {
+            return false
+          }
 
-        // For controlled substances, check if value exists and is valid
-        if (!value) {
-          return false
-        }
-
-        // Check if it's a valid batch object with batch_no
-        return !!(value && value.batch_no && typeof value.batch_no === 'string')
-      })
-  })
-
-  // batchNumber: yup
-  //   .mixed()
-  //   .test('batch-validation', 'Batch number is required for controlled substances', function (value) {
-  //     if (isControlledSubstance) {
-  //       if (!value) return false
-
-  //       // Check if it's a valid batch object with batch_no
-  //       return value && value.batch_no && typeof value.batch_no === 'string'
-  //     }
-
-  //     return true
-  //   })
-  // })
+          // Check if it's a valid batch object with batch_no
+          return !!(value && value.batch_no && typeof value.batch_no === 'string')
+        })
+    },
+    [
+      // Add cyclic dependencies here
+      ['wastageQuantity', 'wastageUnit']
+    ]
+  )
 
   const defaultValues = {
-    time: '',
+    time: null,
     quantity: '',
     quantityUnit: '',
     wastageQuantity: '',
@@ -151,414 +140,476 @@ const AdministerMedicineSidesheet = ({
     mode: 'onChange'
   })
 
+  useEffect(() => {
+    if (!handleSidebarOpen) {
+      // Reset form when sidesheet closes
+      reset(defaultValues)
+    }
+  }, [handleSidebarOpen, reset])
 
-    useEffect(() => {
-      if (!handleSidebarOpen) {
-        // Reset form when sidesheet closes
-        reset(defaultValues)
+  // Convert time format from "03 AM" or "02:00 AM" to dayjs object
+  const convertTimeToMuiFormat = timeString => {
+    if (!timeString) return null
+
+    // Handle format like "03 AM" or "03:00 AM"
+    let formattedTime = timeString.trim()
+
+    // If it's in format "03 AM", convert to "03:00 AM"
+    if (!/:\d{2}/.test(formattedTime)) {
+      formattedTime = formattedTime.replace(/^(\d{1,2})\s*(AM|PM)$/i, '$1:00 $2')
+    }
+
+    // Parse using dayjs with the format
+    const parsedTime = dayjs(formattedTime, 'hh:mm A')
+
+    return parsedTime.isValid() ? parsedTime : null
+  }
+
+  // Calculate slot start and end times
+  const slotStart = scheduleDosage?.scheduledTime ? convertTimeToMuiFormat(scheduleDosage.scheduledTime) : null
+  const slotEnd = slotStart ? slotStart.add(59, 'minute') : null
+
+  // Set default quantity, unit, and time from scheduleDosage
+  useEffect(() => {
+    if (scheduleDosage && medicalMasterData) {
+      let updatedQuantity = ''
+      let updatedQuantityUnit = ''
+      let updatedTime = null
+
+      // Handle time conversion and set default time
+      if (scheduleDosage?.scheduledTime) {
+        updatedTime = convertTimeToMuiFormat(scheduleDosage.scheduledTime)
       }
-    }, [handleSidebarOpen, reset])
 
-    // Set default quantity and unit from scheduleDosage
-    useEffect(() => {
-      if (scheduleDosage && medicalMasterData) {
-        let updatedQuantity = ''
-        let updatedQuantityUnit = ''
+      if (scheduleDosage?.dosage) {
+        // Split only on the first space to handle cases like "6 today test"
+        const firstSpaceIndex = scheduleDosage.dosage.indexOf(' ')
+        let value, unitRaw
 
-        if (scheduleDosage?.dosage) {
-          const [value, unitRaw] = scheduleDosage.dosage.split(' ')
-          updatedQuantity = value
-
-          const foundUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
-            item => item?.unit_name === unitRaw
-          )
-          updatedQuantityUnit = foundUnit ? foundUnit.unit_name : ''
+        if (firstSpaceIndex !== -1) {
+          value = scheduleDosage.dosage.substring(0, firstSpaceIndex)
+          unitRaw = scheduleDosage.dosage.substring(firstSpaceIndex + 1)
+        } else {
+          // If no space, treat entire string as value
+          value = scheduleDosage.dosage
+          unitRaw = ''
         }
 
-        reset(prev => ({
-          ...prev,
-          quantity: updatedQuantity,
-          quantityUnit: updatedQuantityUnit
-        }))
+        updatedQuantity = value
+
+        const foundUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
+          item => item?.unit_name?.toLowerCase() === unitRaw.toLowerCase()
+        )
+
+        updatedQuantityUnit = foundUnit ? foundUnit.unit_name : ''
       }
-    }, [scheduleDosage, medicalMasterData, reset])
 
-    const handleClose = () => {
-      reset(defaultValues)
-      handleSidebarClose()
+      reset(prev => ({
+        ...prev,
+        time: updatedTime,
+        quantity: updatedQuantity,
+        quantityUnit: updatedQuantityUnit
+      }))
     }
+  }, [scheduleDosage, medicalMasterData, reset])
 
-    const handleFormSubmit = data => {
-      onSubmit(data)
-      handleClose()
+  const handleClose = () => {
+    reset(defaultValues)
+    handleSidebarClose()
+  }
+
+  const handleFormSubmit = data => {
+    // Convert dayjs time object back to string format if needed
+    const formattedData = {
+      ...data,
+      time: data.time ? dayjs(data.time).format('hh:mm A') : ''
     }
+    onSubmit(formattedData)
+    handleClose()
+  }
 
-    const handleSkip = () => {
-      handleSidebarClose()
-    }
+  const handleSkip = () => {
+    handleSidebarClose()
+  }
 
-    return (
-      <Drawer
-        anchor='right'
-        open={handleSidebarOpen}
-        onClose={handleClose}
-        sx={{
-          '& .MuiDrawer-paper': {
-            width: { xs: '100%', sm: '562px' },
-            maxWidth: '100%',
-            background: theme.palette.customColors.Background
-          }
-        }}
-      >
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          {/* Header */}
+  return (
+    <Drawer
+      anchor='right'
+      open={handleSidebarOpen}
+      onClose={handleClose}
+      sx={{
+        '& .MuiDrawer-paper': {
+          width: { xs: '100%', sm: '562px' },
+          maxWidth: '100%',
+          background: theme.palette.customColors.Background
+        }
+      }}
+    >
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        {/* Header */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: theme.palette.customColors.OnPrimary
+          }}
+        >
+          {/* Title Bar */}
           <Box
             sx={{
               display: 'flex',
-              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              p: 6,
+              borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+                <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
+                <Typography
+                  sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  Administer medicine
+                </Typography>
+              </Box>
+            </Box>
+            <IconButton size='small' onClick={handleClose} sx={{ color: theme.palette.text.primary, p: 0 }}>
+              <Icon icon='mdi:close' fontSize={24} />
+            </IconButton>
+          </Box>
+
+          {/* Medicine Info Section */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexFlow: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              px: 6,
+              py: 3,
               backgroundColor: theme.palette.customColors.OnPrimary
             }}
           >
-            {/* Title Bar */}
-            <Box
+            <Typography
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                p: 6,
-                borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                fontSize: '1rem',
+                fontWeight: 500,
+                color: theme.palette.primary.deepDark
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-                  <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
-                  <Typography
-                    sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                  >
-                    Administer medicine
-                  </Typography>
-                </Box>
+              {scheduleDosage?.data?.name}
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CalendarTodayIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurfaceVariant }} />
+                <Typography
+                  sx={{
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  {Utility?.formatDisplayDate(selectedDate)}
+                </Typography>
               </Box>
-              <IconButton size='small' onClick={handleClose} sx={{ color: theme.palette.text.primary, p: 0 }}>
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-
-            {/* Medicine Info Section */}
-            <Box
-              sx={{
-                display: 'flex',
-                flexFlow: 'wrap',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                px: 6,
-                py: 3,
-                backgroundColor: theme.palette.customColors.OnPrimary
-              }}
-            >
-              <Typography
-                sx={{
-                  fontSize: '1rem',
-                  fontWeight: 500,
-                  color: theme.palette.primary.deepDark
-                }}
-              >
-                {scheduleDosage?.data?.name}
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CalendarTodayIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurfaceVariant }} />
-                  <Typography
-                    sx={{
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      color: theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    {Utility?.formatDisplayDate(selectedDate)}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
-                  <AccessTimeIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurfaceVariant }} />
-                  <Typography
-                    sx={{
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      color: theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    {scheduleDosage?.scheduledTime}
-                  </Typography>
-                </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                <AccessTimeIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurfaceVariant }} />
+                <Typography
+                  sx={{
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  {scheduleDosage?.scheduledTime}
+                </Typography>
               </Box>
             </Box>
           </Box>
+        </Box>
 
-          {/* Content */}
-          <Box sx={{ flex: 1, overflowY: 'auto', p: 6 }}>
-            <Card
-              sx={{
-                borderRadius: 1,
-                border: `1px solid ${theme.palette.customColors.SurfaceVariant}`,
-                boxShadow: 0
-              }}
-            >
-              <CardContent sx={{ p: 6 }}>
-                <form onSubmit={handleSubmit(handleFormSubmit)}>
-                  <Grid container spacing={4}>
-                    {scheduleDosage ? (
-                      <>
-                        <Grid size={{ xs: 12, md: 4 }}>
-                          <ControlledTimePicker
-                            name={'time'}
-                            control={control}
-                            label='Select Time'
-                            format='hh:mm A'
-                            error={errors.time}
-                            required
-                          />
-                        </Grid>
-                        <Grid size={{ xs: 12, md: 8 }}>
-                          <ControlledSelectWithTextField
-                            textFieldName='quantity'
-                            selectFieldName='quantityUnit'
-                            control={control}
-                            errors={errors}
-                            options={medicalMasterData?.prescriptionDosageMeasurementType}
-                            label='Quantity'
-                            placeholder='Enter quantity'
-                            type='number'
-                            getOptionLabel={option => option.label}
-                            getOptionValue={option => option.value}
-
-                            // secondSelectFieldName='wastageUnit'
-                            // secondOptions={medicalMasterData?.prescriptionDosageMeasurementType}
-                            // getSecondOptionLabel={option => option.label}
-                            // getSecondOptionValue={option => option.value}
-                            // secondSelectWidth={{ xs: 50, sm: 80 }}
-                            required
-                            selectWidth={{ xs: 50, sm: 80 }}
-                            showEmptyMenuItem={{ xs: false, md: true }}
-                            showEmptyMenuItemLabel={{ xs: false, md: true }}
-                            loading={mastersDataLoading}
-                          />
-                        </Grid>
-                        <Grid size={{ xs: 12 }}>
-                          <Button
-                            variant='outlined'
-                            fullWidth
-                            sx={{
-                              fontSize: '1rem',
-                              backgroundColor: theme.palette.customColors.displaybgPrimary,
-                              color: theme.palette.customColors.OnSurface,
-                              border: 'none',
-                              borderRadius: '4px',
-                              fontWeight: 400,
-                              py: '1.125rem'
-                            }}
-                          >
-                            Calculated dosage
-                            <Typography
-                              component='span'
-                              sx={{
-                                fontSize: '1.25rem',
-                                fontWeight: 500,
-                                color: theme.palette.customColors.OnSurfaceVariant,
-                                ml: 2
-                              }}
-                            >
-                              310 mg
-                            </Typography>
-                          </Button>
-                        </Grid>
-                      </>
-                    ) : (
-                      <>
-                        <Grid size={{ xs: 12, md: 6 }}>
-                          <ControlledTimePicker
-                            name={'time'}
-                            control={control}
-                            label='Select Time'
-                            format='hh:mm A'
-                            sx={{ backgroundColor: theme.palette.customColors.Surface }}
-                            error={errors.time}
-                            required
-                          />
-                        </Grid>
-                        <Grid size={{ xs: 12, md: 6 }}>
-                          <ControlledSelectWithTextField
-                            textFieldName='quantity'
-                            selectFieldName='quantityUnit'
-                            control={control}
-                            errors={errors}
-                            options={medicalMasterData?.prescriptionDosageMeasurementType}
-                            label='Quantity'
-                            placeholder='Enter quantity'
-                            type='number'
-                            getOptionLabel={option => option.label}
-                            getOptionValue={option => option.value}
-                            required
-                            selectWidth={80}
-                            loading={mastersDataLoading}
-                          />
-                        </Grid>
-                      </>
-                    )}
-
-                    <Grid xs={12}>
-                      <Accordion
-                        defaultExpanded={scheduleDosage === undefined}
-                        disableGutters
-                        sx={{
-                          border: 'none',
-                          boxShadow: 'none'
-                        }}
-                      >
-                        <AccordionSummary
-                          expandIcon={scheduleDosage ? <ExpandMoreIcon /> : null}
-                          aria-controls='panel1-content'
-                          id='panel1-header'
-                          sx={{
-                            px: 0,
-                            minHeight: 'auto',
-                            pointerEvents: scheduleDosage ? 'auto' : 'none',
-                            '& .MuiAccordionSummary-content': {
-                              margin: '0.5rem 0'
-                            },
-                            '& .MuiAccordionSummary-content.Mui-expanded': {
-                              margin: '0.5rem 0 1rem'
-                            }
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              fontSize: '1rem',
-                              fontWeight: 500,
-                              color: theme.palette.customColors.OnSurfaceVariant
-                            }}
-                          >
-                            Add wastage if any
-                            <Typography
-                              component='span'
-                              sx={{
-                                fontSize: '1rem',
-                                color: theme.palette.customColors.neutralSecondary,
-                                ml: 1
-                              }}
-                            >
-                              (Optional)
-                            </Typography>
-                          </Typography>
-                        </AccordionSummary>
-                        <AccordionDetails sx={{ px: 0, py: 1 }}>
-                          <Grid container spacing={4}>
-                            <Grid size={{ xs: 12, md: 6 }}>
-                              <ControlledTextField
-                                name='wastageQuantity'
-                                control={control}
-                                errors={errors}
-                                label='Quantity'
-                                placeholder='Enter Quantity'
-                                type='number'
-                              />
-                            </Grid>
-
-                            <Grid size={{ xs: 12, md: 6 }}>
-                              <ControlledSelect
-                                name='wastageUnit'
-                                label='Unit'
-                                control={control}
-                                errors={errors}
-                                options={medicalMasterData?.prescriptionDosageMeasurementType}
-                                getOptionLabel={option => option.label}
-                                getOptionValue={option => option.value}
-                                loading={mastersDataLoading}
-                              />
-                            </Grid>
-
-                            <Grid size={{ xs: 12 }}>
-                              <ControlledTextArea
-                                label='Notes'
-                                name='notes'
-                                control={control}
-                                errors={errors}
-                                placeholder='Enter Notes'
-                                rows={3}
-                              />
-                            </Grid>
-                            <Grid size={{ xs: 12 }}>
-                              <ControlledAutocomplete
-                                name='batchNumber'
-                                control={control}
-                                errors={errors}
-                                label={
-                                  isControlledSubstance
-                                    ? 'Enter batch number (required)'
-                                    : 'Enter batch number if any (optional)'
-                                }
-                                options={batchList}
-                                getOptionLabel={option => {
-                                  if (typeof option === 'string') return option
-
-                                  return option?.batch_no || ''
-                                }}
-                                getOptionValue={option => {
-                                  if (typeof option === 'string') return option
-
-                                  return option?.batch_no || ''
-                                }}
-                                isOptionEqualToValue={(option, value) => {
-                                  if (!option || !value) return false
-                                  const optionVal = typeof option === 'string' ? option : option?.batch_no
-                                  const valueVal = typeof value === 'string' ? value : value?.batch_no
-
-                                  return optionVal === valueVal
-                                }}
-                                loading={batchLoading}
-                                onInputChange={handleBatchSearch}
-                                required={isControlledSubstance}
-                                autocompleteProps={{
-                                  filterOptions: x => x,
-                                  noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
-                                }}
-                              />
-                            </Grid>
-                            <Grid size={{ xs: 12 }}>
-                              <ControlledMultiFileUpload
-                                name='attachment'
-                                control={control}
-                                errors={errors}
-                                label='Batch Image'
-                                maxFiles={5}
-                                maxFileSize={5 * 1024 * 1024} // 5MB
-                                acceptedFileTypes='image/jpeg,image/png,image/jpg,application/pdf'
-                              />
-                            </Grid>
-                          </Grid>
-                        </AccordionDetails>
-                      </Accordion>
-                    </Grid>
-                  </Grid>
-
-                  {/* Hidden submit button for form submission */}
-                  <button type='submit' style={{ display: 'none' }} />
-                </form>
-              </CardContent>
-            </Card>
-          </Box>
-
-          {/* Footer */}
-          <Box
+        {/* Content */}
+        <Box sx={{ flex: 1, overflowY: 'auto', p: 6 }}>
+          <Card
             sx={{
-              p: 6,
-              display: 'flex',
-              justifyContent: 'center',
-              gap: 6,
-              boxShadow: '0px -2px 6px rgba(0, 0, 0, 0.1)',
-              backgroundColor: theme.palette.background.paper
+              borderRadius: 1,
+              border: `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+              boxShadow: 0
             }}
           >
-            {scheduleDosage ? (
+            <CardContent sx={{ p: 6 }}>
+              <form onSubmit={handleSubmit(handleFormSubmit)}>
+                <Grid container spacing={4}>
+                  {scheduleDosage ? (
+                    <>
+                      <Grid size={{ xs: 12, md: 4 }}>
+                        <ControlledTimePicker
+                          name={'time'}
+                          control={control}
+                          label='Select Time'
+                          format='hh:mm A'
+                          error={errors.time}
+                          required
+                          minTime={slotStart}
+                          maxTime={slotEnd}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 8 }}>
+                        <ControlledSelectWithTextField
+                          textFieldName='quantity'
+                          selectFieldName='quantityUnit'
+                          control={control}
+                          errors={errors}
+                          options={medicalMasterData?.prescriptionDosageMeasurementType}
+                          label='Quantity'
+                          placeholder='Enter quantity'
+                          type='number'
+                          getOptionLabel={option => option.label}
+                          getOptionValue={option => option.value}
+                          required
+                          selectWidth={{ xs: 50, sm: 80 }}
+                          showEmptyMenuItem={{ xs: false, md: true }}
+                          showEmptyMenuItemLabel={{ xs: false, md: true }}
+                          loading={mastersDataLoading}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12 }}>
+                        <Button
+                          variant='outlined'
+                          fullWidth
+                          sx={{
+                            fontSize: '1rem',
+                            backgroundColor: theme.palette.customColors.displaybgPrimary,
+                            color: theme.palette.customColors.OnSurface,
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontWeight: 400,
+                            py: '1.125rem'
+                          }}
+                        >
+                          Calculated dosage
+                          <Typography
+                            component='span'
+                            sx={{
+                              fontSize: '1.25rem',
+                              fontWeight: 500,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              ml: 2
+                            }}
+                          >
+                            310 mg
+                          </Typography>
+                        </Button>
+                      </Grid>
+                    </>
+                  ) : (
+                    <>
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <ControlledTimePicker
+                          name={'time'}
+                          control={control}
+                          label='Select Time'
+                          format='hh:mm A'
+                          sx={{ backgroundColor: theme.palette.customColors.Surface }}
+                          error={errors.time}
+                          required
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <ControlledSelectWithTextField
+                          textFieldName='quantity'
+                          selectFieldName='quantityUnit'
+                          control={control}
+                          errors={errors}
+                          options={medicalMasterData?.prescriptionDosageMeasurementType}
+                          label='Quantity'
+                          placeholder='Enter quantity'
+                          type='number'
+                          getOptionLabel={option => option.label}
+                          getOptionValue={option => option.value}
+                          required
+                          selectWidth={80}
+                          loading={mastersDataLoading}
+                        />
+                      </Grid>
+                    </>
+                  )}
+
+                  <Grid xs={12}>
+                    <Accordion
+                      defaultExpanded={scheduleDosage === undefined || isControlledSubstance}
+                      disableGutters
+                      sx={{
+                        border: 'none',
+                        boxShadow: 'none'
+                      }}
+                    >
+                      <AccordionSummary
+                        expandIcon={scheduleDosage ? <ExpandMoreIcon /> : null}
+                        aria-controls='panel1-content'
+                        id='panel1-header'
+                        sx={{
+                          px: 0,
+                          minHeight: 'auto',
+                          pointerEvents: scheduleDosage ? 'auto' : 'none',
+                          '& .MuiAccordionSummary-content': {
+                            margin: '0.5rem 0'
+                          },
+                          '& .MuiAccordionSummary-content.Mui-expanded': {
+                            margin: '0.5rem 0 1rem'
+                          }
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: '1rem',
+                            fontWeight: 500,
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
+                          Add wastage if any
+                          <Typography
+                            component='span'
+                            sx={{
+                              fontSize: '1rem',
+                              color: theme.palette.customColors.neutralSecondary,
+                              ml: 1
+                            }}
+                          >
+                            (Optional)
+                          </Typography>
+                        </Typography>
+                      </AccordionSummary>
+                      <AccordionDetails sx={{ px: 0, py: 1 }}>
+                        <Grid container spacing={4}>
+                          <Grid size={{ xs: 12, md: 6 }}>
+                            <ControlledTextField
+                              name='wastageQuantity'
+                              control={control}
+                              errors={errors}
+                              label='Quantity'
+                              placeholder='Enter Quantity'
+                              type='number'
+                            />
+                          </Grid>
+
+                          <Grid size={{ xs: 12, md: 6 }}>
+                            <ControlledSelect
+                              name='wastageUnit'
+                              label='Unit'
+                              control={control}
+                              errors={errors}
+                              options={medicalMasterData?.prescriptionDosageMeasurementType}
+                              getOptionLabel={option => option.label}
+                              getOptionValue={option => option.value}
+                              loading={mastersDataLoading}
+                            />
+                          </Grid>
+
+                          <Grid size={{ xs: 12 }}>
+                            <ControlledTextArea
+                              label='Notes'
+                              name='notes'
+                              control={control}
+                              errors={errors}
+                              placeholder='Enter Notes'
+                              rows={3}
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12 }}>
+                            <ControlledAutocomplete
+                              name='batchNumber'
+                              control={control}
+                              errors={errors}
+                              label={
+                                isControlledSubstance
+                                  ? 'Enter batch number (required)'
+                                  : 'Enter batch number if any (optional)'
+                              }
+                              options={batchList}
+                              getOptionLabel={option => {
+                                if (typeof option === 'string') return option
+
+                                return option?.batch_no || ''
+                              }}
+                              getOptionValue={option => {
+                                if (typeof option === 'string') return option
+
+                                return option?.batch_no || ''
+                              }}
+                              isOptionEqualToValue={(option, value) => {
+                                if (!option || !value) return false
+                                const optionVal = typeof option === 'string' ? option : option?.batch_no
+                                const valueVal = typeof value === 'string' ? value : value?.batch_no
+
+                                return optionVal === valueVal
+                              }}
+                              loading={batchLoading}
+                              onInputChange={handleBatchSearch}
+                              required={isControlledSubstance}
+                              autocompleteProps={{
+                                filterOptions: x => x,
+                                noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
+                              }}
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12 }}>
+                            <ControlledMultiFileUpload
+                              name='attachment'
+                              control={control}
+                              errors={errors}
+                              label='Batch Image'
+                              maxFiles={5}
+                              maxFileSize={5 * 1024 * 1024} // 5MB
+                              acceptedFileTypes='image/jpeg,image/png,image/jpg,application/pdf'
+                            />
+                          </Grid>
+                        </Grid>
+                      </AccordionDetails>
+                    </Accordion>
+                  </Grid>
+                </Grid>
+
+                {/* Hidden submit button for form submission */}
+                <button type='submit' style={{ display: 'none' }} />
+              </form>
+            </CardContent>
+          </Card>
+        </Box>
+
+        {/* Footer */}
+        <Box
+          sx={{
+            p: 6,
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 6,
+            boxShadow: '0px -2px 6px rgba(0, 0, 0, 0.1)',
+            backgroundColor: theme.palette.background.paper
+          }}
+        >
+          {scheduleDosage ? (
+            <LoadingButton
+              variant='contained'
+              type='submit'
+              loading={submitLoader}
+              onClick={handleSubmit(handleFormSubmit)}
+              sx={{ flex: 1, py: 2 }}
+            >
+              ADMINISTER
+            </LoadingButton>
+          ) : (
+            <>
+              <LoadingButton
+                variant='outlined'
+                type='button'
+                loading={submitLoader}
+                sx={{ flex: 1, py: 2 }}
+                onClick={handleSkip}
+              >
+                SKIPPED
+              </LoadingButton>
               <LoadingButton
                 variant='contained'
                 type='submit'
@@ -568,32 +619,12 @@ const AdministerMedicineSidesheet = ({
               >
                 ADMINISTER
               </LoadingButton>
-            ) : (
-              <>
-                <LoadingButton
-                  variant='outlined'
-                  type='button'
-                  loading={submitLoader}
-                  sx={{ flex: 1, py: 2 }}
-                  onClick={handleSkip}
-                >
-                  SKIPPED
-                </LoadingButton>
-                <LoadingButton
-                  variant='contained'
-                  type='submit'
-                  loading={submitLoader}
-                  onClick={handleSubmit(handleFormSubmit)}
-                  sx={{ flex: 1, py: 2 }}
-                >
-                  ADMINISTER
-                </LoadingButton>
-              </>
-            )}
-          </Box>
+            </>
+          )}
         </Box>
-      </Drawer>
-    )
+      </Box>
+    </Drawer>
+  )
 }
 
 export default AdministerMedicineSidesheet

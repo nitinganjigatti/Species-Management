@@ -30,6 +30,10 @@ import TreatmentTypeRadioButtons from '../utility/TreatmentTypeRadioButtons'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import Utility from 'src/utility'
 import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+
+// Enable custom parse format plugin for dayjs
+dayjs.extend(customParseFormat)
 
 const AdministerOrSkipSidesheet = ({
   open,
@@ -43,7 +47,8 @@ const AdministerOrSkipSidesheet = ({
   batchLoading,
   handleBatchSearch,
   isControlledSubstance = false,
-  scheduledDate
+  scheduledDate,
+  disableTimeField = true // New prop to control time field disabled state
 }) => {
   const theme = useTheme()
 
@@ -107,7 +112,7 @@ const AdministerOrSkipSidesheet = ({
       // Fixed wastageUnit validation
       wastageUnit: yup.string().when('wastageQuantity', {
         is: wastageQuantity => wastageQuantity && wastageQuantity.length > 0,
-        then: schema => schema.required('Wastage unit is required when wastage quantity is provided'),
+        then: schema => schema.required('Wastage unit is required when wastage unit is provided'),
         otherwise: schema => schema.notRequired()
       }),
 
@@ -136,7 +141,7 @@ const AdministerOrSkipSidesheet = ({
 
   const defaultValues = {
     action: 'administer',
-    time: '',
+    time: null,
     quantity: '',
     quantityUnit: '',
     wastageQuantity: '',
@@ -146,10 +151,6 @@ const AdministerOrSkipSidesheet = ({
     attachment: null,
     skipReason: ''
   }
-
-  useEffect(() => {
-    reset(defaultValues)
-  }, [])
 
   const {
     control,
@@ -174,10 +175,35 @@ const AdministerOrSkipSidesheet = ({
 
   const slotEnd = slotStart ? slotStart.add(59, 'minute') : null
 
+  // Convert time format from "03 AM" to dayjs object
+  const convertTimeToMuiFormat = timeString => {
+    if (!timeString) return null
+
+    // Handle format like "03 AM" or "03:00 AM"
+    // First, check if it already has minutes
+    let formattedTime = timeString.trim()
+
+    // If it's in format "03 AM", convert to "03:00 AM"
+    if (!/:\d{2}/.test(formattedTime)) {
+      formattedTime = formattedTime.replace(/^(\d{1,2})\s*(AM|PM)$/i, '$1:00 $2')
+    }
+
+    // Parse using dayjs with the format
+    const parsedTime = dayjs(formattedTime, 'hh:mm A')
+
+    return parsedTime.isValid() ? parsedTime : null
+  }
+
   useEffect(() => {
     if (medicineData && medicalMasterData) {
       let updatedQuantity = ''
       let updatedQuantityUnit = ''
+      let updatedTime = null
+
+      // Handle time conversion
+      if (medicineData?.scheduledTime) {
+        updatedTime = convertTimeToMuiFormat(medicineData.scheduledTime)
+      }
 
       if (medicineData?.dosage) {
         console.log('medicineData?.dosage', medicineData?.dosage)
@@ -212,6 +238,7 @@ const AdministerOrSkipSidesheet = ({
 
       reset(prev => ({
         ...prev,
+        time: updatedTime,
         quantity: updatedQuantity,
         quantityUnit: updatedQuantityUnit?.unit_name
       }))
@@ -221,12 +248,17 @@ const AdministerOrSkipSidesheet = ({
   const actionType = watch('action')
 
   const handleSidesheetClose = () => {
-    reset()
+    reset(defaultValues)
     handleClose()
   }
 
   const onFormSubmit = data => {
-    onSubmit(data)
+    // Convert dayjs time object back to string format if needed
+    const formattedData = {
+      ...data,
+      time: data.time ? dayjs(data.time).format('hh:mm A') : ''
+    }
+    onSubmit(formattedData)
   }
 
   return (
@@ -374,6 +406,9 @@ const AdministerOrSkipSidesheet = ({
                       format='hh:mm A'
                       sx={{ backgroundColor: theme.palette.customColors.Surface }}
                       error={errors.time}
+                      disabled={disableTimeField}
+                      minTime={slotStart}
+                      maxTime={slotEnd}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
