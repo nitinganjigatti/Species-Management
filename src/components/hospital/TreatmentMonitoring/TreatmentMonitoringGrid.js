@@ -347,7 +347,9 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
     }
   }
 
-  const admittedAtLocal = patientData?.admitted_at ? Utility.convertUTCToLocal(patientData.admitted_at) : null
+  const admittedAtLocal = monitoringDataListings?.current_day_schedule_date_time
+    ? Utility.convertUTCToLocal(monitoringDataListings?.current_day_schedule_date_time)
+    : null
 
   const admittedAtHourIST = admittedAtLocal ? dayjs(admittedAtLocal, 'YYYY-MM-DD HH:mm:ss').hour() : null
 
