@@ -97,7 +97,7 @@ const InpatientDetails = () => {
 
   useEffect(() => {
     if (patientResponse?.data?.created_at) {
-      const admittedDate = patientResponse.data.created_at
+      const admittedDate = patientResponse.data.admitted_at
       console.log('✅ useEffect triggered - admittedDate:', admittedDate)
       updateUrlWithAdmittedDate(admittedDate)
     }
