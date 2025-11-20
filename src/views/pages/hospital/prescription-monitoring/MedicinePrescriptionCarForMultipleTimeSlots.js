@@ -182,31 +182,6 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
     {
       action: yup.string().oneOf(['administer', 'skipped']).required('Action is required'),
 
-      //   quantity: yup.string().when('action', {
-      //     is: 'administer',
-      //     then: schema =>
-      //       schema
-      //         .required('Quantity is required for administration')
-      //         .test('is-valid-number', 'Quantity must be a valid number', value => {
-      //           if (!value) return false
-      //           const num = parseFloat(value)
-
-      //           return !isNaN(num) && num > 0
-      //         })
-      //         .test('min-value', 'Quantity must be greater than 0', value => {
-      //           if (!value) return false
-
-      //           return parseFloat(value) > 0
-      //         }),
-      //     otherwise: schema => schema.notRequired()
-      //   }),
-
-      //   quantityUnit: yup.string().when('action', {
-      //     is: 'administer',
-      //     then: schema => schema.required('Quantity unit is required for administration'),
-      //     otherwise: schema => schema.notRequired()
-      //   }),
-
       skipReason: yup.string().when('action', {
         is: 'skipped',
         then: schema =>
@@ -444,10 +419,10 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
   }
 
   const formatTimeFromUTC = utcTimeString => {
-    return new Date(`1970-01-01 ${utcTimeString} UTC`).toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit', 
-      hour12: true 
+    return new Date(`1970-01-01 ${utcTimeString} UTC`).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
     })
   }
 
@@ -664,7 +639,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                     color: theme.palette.primary.deepDark
                   }}
                 >
-                  {medicineData?.data?.name}
+                  {medicineData?.name}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -719,122 +694,113 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
             ) : (
               <Box
                 sx={{
-                  width: '100%',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '16px',
+                  mb: 12,
                   backgroundColor: theme.palette.customColors.OnPrimary,
-                  p: '24px',
                   border: `1px solid ${theme.palette.customColors.SurfaceVariant}`,
                   borderRadius: '8px'
                 }}
               >
-                {dosageEntries?.map(item => {
-                  const isPending = !item?.status || item?.status?.toLowerCase() === 'pending'
-                  const isSelected = selectedMedications.includes(item?.administritive_id)
+                <Box
+                  sx={{
+                    width: '100%',
+                    p: '24px'
+                  }}
+                >
+                  <Controller
+                    name='action'
+                    control={control}
+                    render={({ field }) => (
+                      <Box sx={{ display: 'flex', gap: 2 }}>
+                        <TreatmentTypeRadioButtons
+                          label='Administer'
+                          isSelected={field.value === 'administer'}
+                          onClick={() => field.onChange('administer')}
+                          radioPosition='right'
+                          sx={{ flex: 1 }}
+                        />
+                        <TreatmentTypeRadioButtons
+                          label='Skipped'
+                          isSelected={field.value === 'skipped'}
+                          onClick={() => field.onChange('skipped')}
+                          radioPosition='right'
+                          borderColor={theme.palette.customColors.OutlineVariant}
+                          sx={{ flex: 1 }}
+                        />
+                      </Box>
+                    )}
+                  />
+                </Box>
 
-                  return isPending ? (
-                    <MedicationTimeCard
-                      key={item?.administritive_id}
-                      time={formatTime(item?.scheduled_time)}
-                      dosage={`${item?.scheduled_quantity} ${item?.scheduled_unit_name}`}
-                      amount={`${item?.scheduled_quantity} ${item?.scheduled_unit_name}`}
-                      checked={isSelected}
-                      onChange={checked => handleMedicationSelect(item?.administritive_id, checked)}
-                    />
-                  ) : (
-                    renderDosageEntry({
-                      id: item?.administritive_id,
-                      time: formatTime(item?.administritive_time || item?.scheduled_time),
-                      status: item?.status || 'Pending',
-                      dosage: `${item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
-                      amount: `${item?.quantity_administered || item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
-                      variant:
-                        item?.status?.toLowerCase() === 'administered'
-                          ? 'administered'
-                          : item?.status?.toLowerCase() === 'skipped'
-                          ? 'skipped'
-                          : 'stopped',
-                      icon:
-                        item?.status?.toLowerCase() === 'administered'
-                          ? CheckCircleIcon
-                          : item?.status?.toLowerCase() === 'skipped'
-                          ? DoDisturbIcon
-                          : DoDisturbIcon,
-                      wastage: item?.wastage_quantity ? `Wastage: ${item?.wastage_quantity}` : null,
-                      wastageNote: item?.notes || '',
-                      batchNumber: item?.batch_details?.[0]?.batch_number || null,
-                      administeredBy: item?.user_full_name || 'Unknown',
-                      administeredAt: item?.administritive_date
-                        ? new Date(item.administritive_date).toLocaleString()
-                        : '',
-                      isStrikethrough: item?.status?.toLowerCase() === 'stopped',
-                      batch_details: item?.batch_details
-                    })
-                  )
-                })}
+                {/* Dosage Entries Section */}
+                <Box
+                  sx={{
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px',
+                    px: '24px',
+                    pb: selectedMedications?.length == 1 ? 0 : 6
+                  }}
+                >
+                  {dosageEntries?.map(item => {
+                    const isPending = !item?.status || item?.status?.toLowerCase() === 'pending'
+                    const isSelected = selectedMedications.includes(item?.administritive_id)
 
-                {/* Accordion Form - Show only when single selection */}
+                    return isPending ? (
+                      <MedicationTimeCard
+                        key={item?.administritive_id}
+                        time={formatTime(item?.scheduled_time)}
+                        dosage={`${item?.scheduled_quantity} ${item?.scheduled_unit_name}`}
+                        amount={`${item?.scheduled_quantity} ${item?.scheduled_unit_name}`}
+                        checked={isSelected}
+                        onChange={checked => handleMedicationSelect(item?.administritive_id, checked)}
+                        isControlledSubstance={isControlledSubstance}
+                      />
+                    ) : (
+                      renderDosageEntry({
+                        id: item?.administritive_id,
+                        time: formatTime(item?.administritive_time || item?.scheduled_time),
+                        status: item?.status || 'Pending',
+                        dosage: `${item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
+                        amount: `${item?.quantity_administered || item?.scheduled_quantity} ${
+                          item?.scheduled_unit_name
+                        }`,
+                        variant:
+                          item?.status?.toLowerCase() === 'administered'
+                            ? 'administered'
+                            : item?.status?.toLowerCase() === 'skipped'
+                            ? 'skipped'
+                            : 'stopped',
+                        icon:
+                          item?.status?.toLowerCase() === 'administered'
+                            ? CheckCircleIcon
+                            : item?.status?.toLowerCase() === 'skipped'
+                            ? DoDisturbIcon
+                            : DoDisturbIcon,
+                        wastage: item?.wastage_quantity ? `Wastage: ${item?.wastage_quantity}` : null,
+                        wastageNote: item?.notes || '',
+                        batchNumber: item?.batch_details?.[0]?.batch_number || null,
+                        administeredBy: item?.user_full_name || 'Unknown',
+                        administeredAt: item?.administritive_date
+                          ? new Date(item.administritive_date).toLocaleString()
+                          : '',
+                        isStrikethrough: item?.status?.toLowerCase() === 'stopped',
+                        batch_details: item?.batch_details
+                      })
+                    )
+                  })}
+                </Box>
+
+                {/* Form Fields - Show only when single selection */}
                 {isSingleSelection && (
-                  <Card
-                    sx={{
-                      borderRadius: 1,
-                      border: `1px solid ${theme.palette.customColors.SurfaceVariant}`,
-                      boxShadow: 0,
-                      mt: 2
-                    }}
-                  >
+                  <Box>
                     <CardContent sx={{ p: 6 }}>
                       <form onSubmit={handleSubmit(onFormSubmit)}>
                         <Grid container spacing={4}>
-                          {/* Radio Buttons for Action Type */}
-                          <Grid size={{ xs: 12 }}>
-                            <Controller
-                              name='action'
-                              control={control}
-                              render={({ field }) => (
-                                <Box sx={{ display: 'flex', gap: 2 }}>
-                                  <TreatmentTypeRadioButtons
-                                    label='Administer'
-                                    isSelected={field.value === 'administer'}
-                                    onClick={() => field.onChange('administer')}
-                                    radioPosition='right'
-                                    sx={{ flex: 1 }}
-                                  />
-                                  <TreatmentTypeRadioButtons
-                                    label='Skipped'
-                                    isSelected={field.value === 'skipped'}
-                                    onClick={() => field.onChange('skipped')}
-                                    radioPosition='right'
-                                    borderColor={theme.palette.customColors.OutlineVariant}
-                                    sx={{ flex: 1 }}
-                                  />
-                                </Box>
-                              )}
-                            />
-                          </Grid>
-
                           {actionType === 'administer' ? (
                             <>
-                              {/* Quantity Field */}
-                              {/* <Grid size={{ xs: 12 }}>
-                                <ControlledSelectWithTextField
-                                  textFieldName='quantity'
-                                  selectFieldName='quantityUnit'
-                                  control={control}
-                                  errors={errors}
-                                  options={medicalMasterData?.prescriptionDosageMeasurementType}
-                                  label='Quantity'
-                                  loading={mastersDataLoading}
-                                  placeholder='Enter quantity'
-                                  type='number'
-                                  getOptionLabel={option => option.label}
-                                  getOptionValue={option => option.value}
-                                  required={actionType === 'administer'}
-                                  selectWidth={80}
-                                />
-                              </Grid> */}
-
                               {/* Wastage Section with Accordion */}
                               <Grid size={{ xs: 12 }}>
                                 <Accordion
@@ -990,7 +956,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                         </Grid>
                       </form>
                     </CardContent>
-                  </Card>
+                  </Box>
                 )}
               </Box>
             )}
@@ -1075,7 +1041,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
 
 export default MedicinePrescriptionCardForMultipleTimeSlots
 
-// Shimmer Components remain the same
+// Shimmer Components
 const HeaderShimmer = ({ theme }) => (
   <HeaderSection>
     <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>

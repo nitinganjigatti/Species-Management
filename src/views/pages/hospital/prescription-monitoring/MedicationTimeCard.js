@@ -1,9 +1,16 @@
 import React, { useState } from 'react'
-import { Box, Typography, Checkbox, Paper } from '@mui/material'
+import { Box, Typography, Checkbox, Radio, Paper } from '@mui/material'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import { useTheme } from '@mui/material/styles'
 
-const MedicationTimeCard = ({ time, dosage, amount, checked = false, onChange = () => {} }) => {
+const MedicationTimeCard = ({
+  time,
+  dosage,
+  amount,
+  checked = false,
+  onChange = () => {},
+  isControlledSubstance = false
+}) => {
   const theme = useTheme()
 
   return (
@@ -56,7 +63,7 @@ const MedicationTimeCard = ({ time, dosage, amount, checked = false, onChange = 
           </Typography>
         </Box>
 
-        {/* Right Section - Checkbox */}
+        {/* Right Section - Radio or Checkbox */}
         <Box
           sx={{
             display: 'flex',
@@ -67,16 +74,29 @@ const MedicationTimeCard = ({ time, dosage, amount, checked = false, onChange = 
             borderRadius: '0 8px 8px 0'
           }}
         >
-          <Checkbox
-            checked={checked}
-            onChange={e => onChange(e.target.checked)}
-            sx={{
-              padding: '4px',
-              '&.Mui-checked': {
-                color: theme.palette.customColors.Primary
-              }
-            }}
-          />
+          {isControlledSubstance ? (
+            <Radio
+              checked={checked}
+              onChange={e => onChange(e.target.checked)}
+              sx={{
+                padding: '4px',
+                '&.Mui-checked': {
+                  color: theme.palette.customColors.Primary
+                }
+              }}
+            />
+          ) : (
+            <Checkbox
+              checked={checked}
+              onChange={e => onChange(e.target.checked)}
+              sx={{
+                padding: '4px',
+                '&.Mui-checked': {
+                  color: theme.palette.customColors.Primary
+                }
+              }}
+            />
+          )}
         </Box>
       </Box>
     </Box>

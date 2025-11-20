@@ -935,7 +935,6 @@ function PrescriptionLayout({ drawerType }) {
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
-
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -1012,7 +1011,6 @@ function PrescriptionLayout({ drawerType }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
-
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {
@@ -1142,7 +1140,7 @@ function PrescriptionLayout({ drawerType }) {
         batchList={batchList}
         batchLoading={batchLoading}
         handleBatchSearch={handleBatchSearch}
-        isControlledSubstance={false}
+        isControlledSubstance={medicineDetails?.controlled_substance == 1}
       />
     </Box>
   )
