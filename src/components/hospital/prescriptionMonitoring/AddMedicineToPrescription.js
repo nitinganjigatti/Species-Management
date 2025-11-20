@@ -45,8 +45,6 @@ export default function AddMedicineToPrescription() {
       .required('Please select medicine type'),
     frequency: yup.string().required('Please select a frequency'),
 
-    doseType: yup.string().required('Please select a dose type'),
-
     schedules: yup
       .array()
       .of(
@@ -80,7 +78,7 @@ export default function AddMedicineToPrescription() {
       })
       .required('Dosage duration is required'),
 
-    notes: yup.string().trim().max(10000, 'Notes cannot exceed 500 characters').required('Notes are required'),
+    notes: yup.string().trim().max(10000, 'Notes cannot exceed 500 characters').notRequired(),
 
     // Fields specific to Direct Administer
 
@@ -127,7 +125,8 @@ export default function AddMedicineToPrescription() {
     selectedMedicine: null,
     selectMedicineType: 'Schedule',
     frequency: '',
-    doseType: '',
+
+    // doseType: '',
     schedules: [
       {
         time: '',
@@ -573,7 +572,7 @@ export default function AddMedicineToPrescription() {
             administer_date: toISTISOString(data.prescriptionStartDate),
 
             batch_list: [],
-            dose_type: data.doseType
+            dose_type: 'fixed_dose'
 
             // controlled_substance: temporarilySelectedMedicine?.controlled_substance || 0,
             // side_effect: false,
@@ -718,7 +717,7 @@ export default function AddMedicineToPrescription() {
             administer_date: toISTISOString(data.prescriptionStartDate)?.slice(0, 10) || '',
 
             batch_list: batchListPayload,
-            dose_type: data.doseType,
+            dose_type: 'fixed_dose',
             files: data.batchImage ? [data.batchImage] : []
           }
         ])

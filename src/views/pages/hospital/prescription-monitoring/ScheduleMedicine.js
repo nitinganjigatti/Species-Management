@@ -141,7 +141,7 @@ export default function ScheduleMedicine({
               />
             </Box>
 
-            <Box sx={{ mb: 3 }}>
+            {/* <Box sx={{ mb: 3 }}>
               <ControlledSelect
                 fullWidth={true}
                 name='doseType'
@@ -163,7 +163,7 @@ export default function ScheduleMedicine({
                 getOptionValue={option => option.value}
                 required
               />
-            </Box>
+            </Box> */}
 
             {fields.map((field, idx) => (
               <Grid
@@ -345,7 +345,7 @@ export default function ScheduleMedicine({
                   }
                 }}
                 name='notes'
-                label='Enter Notes*'
+                label='Enter Notes'
                 control={control}
                 errors={errors}
                 rows={4}
