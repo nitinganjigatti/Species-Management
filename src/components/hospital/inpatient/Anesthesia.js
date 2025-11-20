@@ -130,18 +130,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
 
   const resolvedHospitalCaseId = useMemo(() => {
     const directId = normalizeQueryValue(hospitalCaseId)
-    if (hasValue(directId)) return directId
 
-    const query = router?.query || {}
-    const fallbackId =
-      normalizeQueryValue(query.hospital_case_id) ??
-      normalizeQueryValue(query.hospitalCaseId) ??
-      normalizeQueryValue(query.case_id) ??
-      normalizeQueryValue(query.caseId) ??
-      normalizeQueryValue(query.id)
-
-    return hasValue(fallbackId) ? fallbackId : undefined
-  }, [hospitalCaseId, router?.query])
+    return hasValue(directId) ? directId : undefined
+  }, [hospitalCaseId])
 
   const resolvedMedicalRecordId = useMemo(() => {
     const queryValue = normalizeQueryValue(router?.query?.medical_record_id)
