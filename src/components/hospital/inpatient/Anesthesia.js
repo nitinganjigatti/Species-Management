@@ -33,72 +33,17 @@ const ANESTHESIA_DETAIL_ID = 4
 
 const formatValueWithUnit = (value, unit) => {
   if (value === undefined || value === null || value === '') return '--'
-
   return unit ? `${value} ${unit}`.trim() : `${value}`
 }
 
 const formatTimeOnly = time => {
   if (!time) return '--'
-
   const parsed = dayjs(`1970-01-01T${time}`)
-
   return parsed.isValid() ? parsed.format('hh:mm A') : time
 }
 
-const resolveValue = value => (Array.isArray(value) ? value[0] : value)
-
-const resolveHospitalCaseId = (propValue, query) => {
-  if (propValue !== undefined && propValue !== null && propValue !== '') {
-    const resolved = resolveValue(propValue)
-
-    if (resolved !== undefined && resolved !== null && resolved !== '') {
-      return resolved
-    }
-  }
-
-  const possibleKeys = ['hospital_case_id', 'hospitalCaseId', 'case_id', 'caseId', 'id']
-
-  for (const key of possibleKeys) {
-    if (query?.[key] !== undefined) {
-      const resolved = resolveValue(query[key])
-
-      if (resolved !== undefined && resolved !== null && resolved !== '') {
-        return resolved
-      }
-    }
-  }
-
-  return undefined
-}
-
-const resolveMedicalRecordId = (patientData, query) => {
-  const medicalRecordFromPatient = resolveValue(patientData?.medical_record_id)
-
-  if (medicalRecordFromPatient) {
-    return medicalRecordFromPatient
-  }
-
-  const possibleKeys = [
-    'medical_record_id',
-    'medicalRecordId',
-    'medicalRecordID',
-    'medical_recordId',
-    'med_id',
-    'medical_id'
-  ]
-
-  for (const key of possibleKeys) {
-    if (query?.[key] !== undefined) {
-      const resolved = resolveValue(query[key])
-
-      if (resolved !== undefined && resolved !== null && resolved !== '') {
-        return resolved
-      }
-    }
-  }
-
-  return undefined
-}
+const normalizeQueryValue = value => (Array.isArray(value) ? value[0] : value)
+const hasValue = value => value !== undefined && value !== null && value !== ''
 
 const getRecordIdentifier = record => {
   if (!record || typeof record !== 'object') return ''
@@ -121,9 +66,7 @@ const getStableRecordId = (record, index = 0) => {
 
 const formatDateTime = value => {
   if (!value) return '--'
-
   const formatted = Utility.convertUTCToLocalDateTime(value)
-
   return formatted && formatted !== 'Invalid date' ? formatted : String(value)
 }
 
@@ -185,15 +128,28 @@ function Anesthesia({ hospitalCaseId, patientData }) {
   const scrollContainerRef = useRef(null)
   const queryClient = useQueryClient()
 
-  const resolvedHospitalCaseId = useMemo(
-    () => resolveHospitalCaseId(hospitalCaseId, router?.query),
-    [hospitalCaseId, router?.query]
-  )
+  const resolvedHospitalCaseId = useMemo(() => {
+    const directId = normalizeQueryValue(hospitalCaseId)
+    if (hasValue(directId)) return directId
 
-  const resolvedMedicalRecordId = useMemo(
-    () => resolveMedicalRecordId(patientData, router?.query),
-    [patientData, router?.query]
-  )
+    const query = router?.query || {}
+    const fallbackId =
+      normalizeQueryValue(query.hospital_case_id) ??
+      normalizeQueryValue(query.hospitalCaseId) ??
+      normalizeQueryValue(query.case_id) ??
+      normalizeQueryValue(query.caseId) ??
+      normalizeQueryValue(query.id)
+
+    return hasValue(fallbackId) ? fallbackId : undefined
+  }, [hospitalCaseId, router?.query])
+
+  const resolvedMedicalRecordId = useMemo(() => {
+    const queryValue = normalizeQueryValue(router?.query?.medical_record_id)
+
+    if (hasValue(queryValue)) return queryValue
+
+    return patientData?.medical_record_id
+  }, [router?.query, patientData?.medical_record_id])
 
   const shouldFetchRecords = Boolean(resolvedHospitalCaseId && resolvedMedicalRecordId)
 
@@ -724,7 +680,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
 
   const handleAddSurgeryRecord = () => {
     const resolvedCaseId = resolvedHospitalCaseId
-    const animalId = resolveValue(router?.query?.animal_id)
+    const animalId = normalizeQueryValue(router?.query?.animal_id)
 
     const href = resolvedCaseId
       ? {
