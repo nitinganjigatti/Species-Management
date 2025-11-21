@@ -41,15 +41,15 @@ const useDrawerState = () => {
 }
 const InpatientOverview = lazy(() => import('src/views/pages/hospital/inpatient/InpatientOverview'))
 const InpatientMedicalSummary = lazy(() => import('src/components/hospital/inpatient/InpatientMedicalSummary'))
+const TreatmentLayout = lazy(() => import('src/components/hospital/TreatmentMonitoring/TreatmentLayout'))
+const Symptoms = lazy(() => import('src/components/hospital/inpatient/Symptoms'))
 const ClinicalAssessment = lazy(() => import('src/components/hospital/inpatient/ClinicalAssessment'))
 const ClinicalNotes = lazy(() => import('src/components/hospital/inpatient/ClinicalNotes'))
 const OtherTreatments = lazy(() => import('src/components/hospital/inpatient/OtherTreatments/index'))
-const Symptoms = lazy(() => import('src/components/hospital/inpatient/Symptoms'))
+const PrescriptionLayout = lazy(() => import('src/components/hospital/prescriptionMonitoring/PrescriptionLayout'))
+const Anesthesia = lazy(() => import('src/components/hospital/inpatient/Anesthesia'))
 const InpatientSurgery = lazy(() => import('src/views/pages/hospital/inpatient/InpatientSurgery'))
 const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'))
-const PrescriptionLayout = lazy(() => import('src/components/hospital/prescriptionMonitoring/PrescriptionLayout'))
-const TreatmentLayout = lazy(() => import('src/components/hospital/TreatmentMonitoring/TreatmentLayout'))
-const Anesthesia = lazy(() => import('src/components/hospital/inpatient/Anesthesia'))
 
 const InpatientDetails = () => {
   const router = useRouter()
