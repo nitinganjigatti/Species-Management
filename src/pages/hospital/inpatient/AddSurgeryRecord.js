@@ -1,18 +1,22 @@
-import { Breadcrumbs, Typography } from '@mui/material'
-import { Box } from '@mui/system'
-import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/router'
+
+import { Breadcrumbs, Typography, Card } from '@mui/material'
+import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
+
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import dayjs from 'dayjs'
 import { useQuery } from '@tanstack/react-query'
+
 import AddAnaesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnaesthesiaRecord'
 import SurgeryRecordForm from 'src/components/hospital/inpatient/SurgeryRecordForm'
 import SurgeryRecordTemplateList from 'src/views/pages/hospital/inpatient/SurgeryRecordTemplateList'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import Toaster from 'src/components/Toaster'
+
 import {
   addSurgeryRecord,
   getSurgeryMaster,
@@ -118,13 +122,7 @@ const mapTemplateRecord = record => {
 }
 
 const extractSurgeryTemplates = response => {
-  const candidates = [
-    response,
-    response?.data,
-    response?.data?.data,
-    response?.data?.templates,
-    response?.templates
-  ]
+  const candidates = [response, response?.data, response?.data?.data, response?.data?.templates, response?.templates]
 
   let records = []
   for (const candidate of candidates) {
@@ -523,40 +521,57 @@ const AddSurgeryRecord = () => {
           Add Surgery
         </Typography>
       </Breadcrumbs>
-      <Typography
-        sx={{ fontWeight: 500, fontSize: '24px', letterSpacing: 0, color: theme.palette.customColors.OnSurfaceVariant }}
-      >
-        Add Surgery Record Page
-      </Typography>
 
-      <AnimalInfoCard data={data} />
-      <Box
-        sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
-        component='form'
-        onSubmit={handleSubmit(onSubmit)}
+      <Card
+        sx={{
+          p: '24px',
+          borderRadius: '8px',
+          display: 'flex',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          gap: '32px'
+        }}
       >
-        <SurgeryRecordForm
-          control={control}
-          errors={errors}
-          templates={templateNames}
-          activeTemplate={activeTemplate}
-          setOpenSurgeryTemplateDrawer={setOpenSurgeryTemplateDrawer}
-          setOpenAddAnaesthesiaDrawer={setOpenAddAnaesthesiaDrawer}
-          richNote={richNote}
-          onRichNoteChange={setRichNote}
-          isSubmitting={isSubmitting}
-          procedureOptions={procedureOptions}
-          procedureLoading={isProceduresLoading}
-          onProcedureInputChange={handleProcedureInputChange}
-          onProcedureClear={handleProcedureClear}
-          procedureGetOptionLabel={procedureGetOptionLabel}
-          procedureIsOptionEqualToValue={procedureIsOptionEqualToValue}
-          onSaveTemplate={handleSaveTemplate}
-          isSavingTemplate={isSavingTemplate}
-          clearFieldErrors={clearErrors}
-          onTemplateSelect={handleTemplateSelect}
-        />
-      </Box>
+        <Typography
+          sx={{
+            fontWeight: 500,
+            fontSize: '24px',
+            letterSpacing: 0,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          Add Surgery Record
+        </Typography>
+
+        <AnimalInfoCard data={data} />
+        <Box
+          sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+          component='form'
+          onSubmit={handleSubmit(onSubmit)}
+        >
+          <SurgeryRecordForm
+            control={control}
+            errors={errors}
+            templates={templateNames}
+            activeTemplate={activeTemplate}
+            setOpenSurgeryTemplateDrawer={setOpenSurgeryTemplateDrawer}
+            setOpenAddAnaesthesiaDrawer={setOpenAddAnaesthesiaDrawer}
+            richNote={richNote}
+            onRichNoteChange={setRichNote}
+            isSubmitting={isSubmitting}
+            procedureOptions={procedureOptions}
+            procedureLoading={isProceduresLoading}
+            onProcedureInputChange={handleProcedureInputChange}
+            onProcedureClear={handleProcedureClear}
+            procedureGetOptionLabel={procedureGetOptionLabel}
+            procedureIsOptionEqualToValue={procedureIsOptionEqualToValue}
+            onSaveTemplate={handleSaveTemplate}
+            isSavingTemplate={isSavingTemplate}
+            clearFieldErrors={clearErrors}
+            onTemplateSelect={handleTemplateSelect}
+          />
+        </Box>
+      </Card>
 
       <AddAnaesthesiaRecordDrawer
         setOpenAddAnaesthesiaDrawer={setOpenAddAnaesthesiaDrawer}

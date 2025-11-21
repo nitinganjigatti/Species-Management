@@ -6,7 +6,7 @@ const AnimalInfoCard = ({ data }) => {
   const theme = useTheme()
 
   return (
-    <Card sx={{ p: '24px', borderRadius: '8px' }}>
+    <Card sx={{ p: '24px', borderRadius: '8px', backgroundColor: theme.palette.customColors.displaybgPrimary }}>
       {/* Animal Image */}
       <Grid container spacing={5} sx={{ alignItems: 'center' }}>
         <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
@@ -80,7 +80,7 @@ const AnimalInfoCard = ({ data }) => {
                   fontWeight: 400,
                   fontSize: '14px',
                   letterSpacing: 0,
-                  color: theme.palette.customColors.OnSurfaceVariant,
+                  color: theme.palette.customColors.neutralSecondary,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap'

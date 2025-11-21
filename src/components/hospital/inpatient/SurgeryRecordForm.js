@@ -7,7 +7,7 @@ import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePick
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
-import RichTextEditor from 'src/components/RichTextEditorTwo'
+import RichTextEditor from 'src/components/RichTextEditor'
 
 // Save Template UI Component
 const SaveTemplateUI = ({ onClose, onSave, loading = false }) => {
@@ -134,75 +134,103 @@ const SurgeryRecordForm = ({
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <Card sx={{ p: '16px 24px 24px 24px', borderRadius: '8px' }}>
-        <Grid container spacing={'24px'}>
-          <Grid item size={{ xs: 12 }}>
-            <Typography
-              sx={{
-                fontWeight: 500,
-                fontSize: '20px',
-                letterSpacing: 0,
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              Date and time of surgery
+    <>
+      <Grid container spacing={'24px'}>
+        <Grid item size={{ xs: 12 }}>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: '20px',
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Date and time of surgery
+            <Typography sx={{ color: theme.palette.customColors.Error }} variant='span'>
+              *
             </Typography>
-          </Grid>
-          <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-            <ControlledDatePicker
-              sx={{ width: '100%' }}
-              name={'date'}
-              label='Date *'
-              control={control}
-              renderInput={params => (
-                <ControlledTextField {...params} fullWidth error={!!errors.date} helperText={errors.date?.message} />
-              )}
-            />
-          </Grid>
-          <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-            <ControlledTimePicker
-              label='Start Time *'
-              name={'startTime'}
-              control={control}
-              renderInput={params => (
-                <ControlledTextField
-                  {...params}
-                  fullWidth
-                  error={!!errors.startTime}
-                  helperText={errors.startTime?.message}
-                />
-              )}
-            />
-          </Grid>
-          <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-            <ControlledTimePicker
-              name={'endTime'}
-              control={control}
-              label='End Time *'
-              renderInput={params => (
-                <ControlledTextField
-                  {...params}
-                  fullWidth
-                  error={!!errors.endTime}
-                  helperText={errors.endTime?.message}
-                />
-              )}
-            />
-          </Grid>
-          <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-            <ControlledTextField
-              name={'duration'}
-              label='Duration *'
-              control={control}
-              errors={errors}
-              onChangeOverride={() => clearFieldErrors?.('duration')}
-            />
-          </Grid>
+          </Typography>
         </Grid>
-      </Card>
+        <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+          <ControlledDatePicker
+            sx={{
+              width: '100%',
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '4px',
+                height: '56px'
+              }
+            }}
+            name={'date'}
+            label='Date'
+            control={control}
+            renderInput={params => (
+              <ControlledTextField {...params} fullWidth error={!!errors.date} helperText={errors.date?.message} />
+            )}
+          />
+        </Grid>
+        <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+          <ControlledTimePicker
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '4px',
+                height: '56px'
+              }
+            }}
+            label='Start Time'
+            name={'startTime'}
+            control={control}
+            renderInput={params => (
+              <ControlledTextField
+                {...params}
+                borderRadius='4px'
+                fullWidth
+                error={!!errors.startTime}
+                helperText={errors.startTime?.message}
+              />
+            )}
+          />
+        </Grid>
+        <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+          <ControlledTimePicker
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '4px',
+                height: '56px'
+              }
+            }}
+            name={'endTime'}
+            control={control}
+            label='End Time'
+            renderInput={params => (
+              <ControlledTextField
+                {...params}
+                borderRadius='4px'
+                fullWidth
+                error={!!errors.endTime}
+                helperText={errors.endTime?.message}
+              />
+            )}
+          />
+        </Grid>
+        <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+          <ControlledTextField
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '4px',
+                height: '56px'
+              }
+            }}
+            name={'duration'}
+            label='Surgery Duration'
+            control={control}
+            errors={errors}
+            borderRadius='4px'
+            onChangeOverride={() => clearFieldErrors?.('duration')}
+          />
+        </Grid>
+      </Grid>
 
-      <Card sx={{ display: 'flex', flexDirection: 'column', gap: '24px', p: '16px 24px', borderRadius: '8px' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <Typography
           sx={{
             fontWeight: 500,
@@ -212,14 +240,44 @@ const SurgeryRecordForm = ({
           }}
         >
           Surgery details
+          <Typography sx={{ color: theme.palette.customColors.Error }} variant='span'>
+            *
+          </Typography>
         </Typography>
-        <Grid container spacing={2}>
+        <Grid container spacing={'24px'}>
           <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
             <ControlledAutocomplete
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '4px',
+                  height: '56px'
+                }
+              }}
+              control={control}
+              errors={errors}
+              name={'surgeon'}
+              label='Name of Surgeon'
+              options={procedureOptions}
+              loading={procedureLoading}
+              onInputChange={onProcedureInputChange}
+              onItemClear={onProcedureClear}
+              getOptionLabel={procedureGetOptionLabel}
+              isOptionEqualToValue={procedureIsOptionEqualToValue}
+              onChangeOverride={() => clearFieldErrors?.('procedure')}
+            />
+          </Grid>
+          <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+            <ControlledAutocomplete
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '4px',
+                  height: '56px'
+                }
+              }}
               control={control}
               errors={errors}
               name={'procedure'}
-              label='Procedure *'
+              label='Name of Procedure'
               options={procedureOptions}
               loading={procedureLoading}
               onInputChange={onProcedureInputChange}
@@ -231,19 +289,33 @@ const SurgeryRecordForm = ({
           </Grid>
           <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
             <ControlledTextField
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '4px',
+                  height: '56px'
+                }
+              }}
               name={'typeOfSurgery'}
-              label='Type of surgery *'
+              label='Type of Surgery'
               control={control}
               errors={errors}
+              borderRadius='4px'
               onChangeOverride={() => clearFieldErrors?.('typeOfSurgery')}
             />
           </Grid>
           <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
             <ControlledTextField
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '4px',
+                  height: '56px'
+                }
+              }}
               name={'surgicalApproach'}
-              label='Surgical approach *'
+              label='Surgical Approach'
               control={control}
               errors={errors}
+              borderRadius='4px'
               onChangeOverride={() => clearFieldErrors?.('surgicalApproach')}
             />
           </Grid>
@@ -332,7 +404,7 @@ const SurgeryRecordForm = ({
                 scrollbarColor: 'transparent transparent'
               }}
             >
-              <Box sx={{ display: 'inline-flex', gap: '10px', pr: 1 }}>
+              <Box sx={{ display: 'inline-flex', gap: '12px', pr: 1 }}>
                 {templates.map(template => {
                   const templateLabel = typeof template === 'string' ? template : String(template || '')
                   if (!templateLabel) {
@@ -347,9 +419,9 @@ const SurgeryRecordForm = ({
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        px: '16px',
-                        height: '48px',
-                        borderRadius: '8px',
+                        p: '8px 24px',
+                        height: '40px',
+                        borderRadius: '4px',
                         backgroundColor:
                           activeTemplate === templateLabel
                             ? theme.palette.secondary.dark
@@ -377,15 +449,21 @@ const SurgeryRecordForm = ({
         </Box>
 
         <ControlledTextField
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '4px',
+              height: '56px'
+            }
+          }}
           name={'complication'}
           control={control}
           errors={errors}
           label={'Complication *'}
+          borderRadius='4px'
           onChangeOverride={() => clearFieldErrors?.('complication')}
         />
-      </Card>
 
-      {/* <Card sx={{ borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* <Card sx={{ borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <Typography
           sx={{
             fontWeight: 500,
@@ -444,100 +522,114 @@ const SurgeryRecordForm = ({
         </Box>
       </Card> */}
 
-      <Card sx={{ borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        <Typography
+        <Card sx={{ borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: '24px',
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Care Instructions
+          </Typography>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <Typography
+              sx={{
+                fontWeight: 500,
+                fontSize: '16px',
+                letterSpacing: 0,
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              Enter diet instructions
+            </Typography>
+            <ControlledTextField
+              control={control}
+              name={'dietInstructions'}
+              errors={errors}
+              borderRadius='4px'
+              placeholder={'Enter text'}
+            />
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <Typography
+              sx={{
+                fontWeight: 500,
+                fontSize: '16px',
+                letterSpacing: 0,
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              Enter restriction activities with duration
+            </Typography>
+            <ControlledTextField
+              control={control}
+              name={'restrictions'}
+              errors={errors}
+              borderRadius='4px'
+              placeholder={'Enter text'}
+            />
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <Typography
+              sx={{
+                fontWeight: 500,
+                fontSize: '16px',
+                letterSpacing: 0,
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              Additional notes
+            </Typography>
+            <ControlledTextField
+              sx={{ borderRadius: '4px', backgroundColor: '#FCF4AE99' }}
+              placeholder={'Enter text'}
+              control={control}
+              name={'additionalNotes'}
+              errors={errors}
+              borderRadius='4px'
+            />
+          </Box>
+        </Card>
+
+        <Card
           sx={{
-            fontWeight: 500,
-            fontSize: '24px',
-            letterSpacing: 0,
-            color: theme.palette.customColors.OnSurfaceVariant
+            borderRadius: '8px',
+            padding: '24px',
+            paddingTop: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px'
           }}
         >
-          Care Instructions
-        </Typography>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: '20px',
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Attachments
+          </Typography>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: '16px',
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Enter diet instructions
-          </Typography>
-          <ControlledTextField control={control} name={'dietInstructions'} errors={errors} placeholder={'Enter text'} />
-        </Box>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: '16px',
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Enter restriction activities with duration
-          </Typography>
-          <ControlledTextField control={control} name={'restrictions'} errors={errors} placeholder={'Enter text'} />
-        </Box>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: '16px',
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Additional notes
-          </Typography>
-          <ControlledTextField
-            sx={{ borderRadius: '12px', backgroundColor: '#FCF4AE99' }}
-            placeholder={'Enter text'}
+          <ControlledMultiFileUpload
+            name='attachments'
             control={control}
-            name={'additionalNotes'}
-            errors={errors}
+            label='Upload files'
+            acceptedFileTypes='images,pdf,csv,audio,videos'
           />
+        </Card>
+
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button type='submit' variant='contained' disabled={isSubmitting} sx={{ minWidth: 160 }}>
+            {isSubmitting ? 'Submitting...' : 'Submit'}
+          </Button>
         </Box>
-      </Card>
-
-      <Card
-        sx={{
-          borderRadius: '8px',
-          padding: '24px',
-          paddingTop: '16px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '24px'
-        }}
-      >
-        <Typography
-          sx={{
-            fontWeight: 500,
-            fontSize: '20px',
-            letterSpacing: 0,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          Attachments
-        </Typography>
-
-        <ControlledMultiFileUpload
-          name='attachments'
-          control={control}
-          label='Upload files'
-          acceptedFileTypes='images,pdf,csv,audio,videos'
-        />
-      </Card>
-
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button type='submit' variant='contained' disabled={isSubmitting} sx={{ minWidth: 160 }}>
-          {isSubmitting ? 'Submitting...' : 'Submit'}
-        </Button>
       </Box>
-    </Box>
+    </>
   )
 }
 
