@@ -12,15 +12,15 @@ import dayjs from 'dayjs'
 import { useQuery } from '@tanstack/react-query'
 
 import AddAnaesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnaesthesiaRecord'
-import SurgeryRecordTemplateList from 'src/views/pages/hospital/inpatient/SurgeryRecordTemplateList'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import Toaster from 'src/components/Toaster'
+import RichTextEditor from 'src/components/RichTextEditor'
+import SurgeryRecordTemplateList from 'src/views/pages/hospital/inpatient/SurgeryRecordTemplateList'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
-import RichTextEditor from 'src/components/RichTextEditor'
 
 import {
   addSurgeryRecord,
@@ -249,6 +249,13 @@ const getSurgeryIdentifier = value => {
   return value?.value ?? value?.id ?? value?.surgery_id ?? value?.surgeryId ?? ''
 }
 
+const getAutocompleteLabel = value => {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+
+  return value?.label ?? ''
+}
+
 const formatDateValue = value => (value ? dayjs(value).format('YYYY-MM-DD') : '')
 
 const formatTimeValue = value => (value ? dayjs(value).format('HH:mm:ss') : '')
@@ -317,6 +324,7 @@ const AddSurgeryRecord = () => {
       startTime: null,
       endTime: null,
       procedure: null,
+      surgeon: null,
       typeOfSurgery: '',
       surgicalApproach: '',
       duration: '',
@@ -550,6 +558,14 @@ const AddSurgeryRecord = () => {
     [handleSaveTemplate, setShowSaveTemplate]
   )
 
+  const handleAddNewAnaesthesia = useCallback(() => {
+    setOpenAddAnaesthesiaDrawer(true)
+  }, [setOpenAddAnaesthesiaDrawer])
+
+  const handleSelectAnaesthesiaRecord = useCallback(() => {
+    setOpenAddAnaesthesiaDrawer(true)
+  }, [setOpenAddAnaesthesiaDrawer])
+
   const onSubmit = async formValues => {
     const hospitalCaseId = resolveHospitalCaseId(router.query)
 
@@ -571,6 +587,7 @@ const AddSurgeryRecord = () => {
     payload.append('surgery_id', getSafeString(surgeryId))
     payload.append('type_of_surgery', getSafeString(formValues.typeOfSurgery))
     payload.append('surgical_approach', getSafeString(formValues.surgicalApproach))
+    payload.append('surgeon_name', getSafeString(getAutocompleteLabel(formValues.surgeon)))
     payload.append('surgery_notes', getSafeString(getRichTextHtml(richNote)))
     payload.append('complications', getSafeString(formValues.complication))
     payload.append('care_diet_instructions', getSafeString(formValues.dietInstructions))
@@ -799,7 +816,7 @@ const AddSurgeryRecord = () => {
                   }}
                   control={control}
                   errors={errors}
-                  name={'procedure'}
+                  name={'surgeon'}
                   label='Name of Surgeon'
                   options={procedureOptions}
                   loading={isProceduresLoading}
@@ -807,7 +824,7 @@ const AddSurgeryRecord = () => {
                   onItemClear={handleProcedureClear}
                   getOptionLabel={procedureGetOptionLabel}
                   isOptionEqualToValue={procedureIsOptionEqualToValue}
-                  onChangeOverride={() => clearErrors?.('procedure')}
+                  onChangeOverride={() => clearErrors?.('surgeon')}
                 />
               </Grid>
               <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
@@ -998,6 +1015,64 @@ const AddSurgeryRecord = () => {
               onChangeOverride={() => clearErrors?.('complication')}
             />
           </Box>
+        </Box>
+      </Card>
+
+      <Card
+        sx={{
+          borderRadius: '8px',
+          padding: '24px',
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: { xs: 'flex-start', md: 'center' },
+          justifyContent: 'space-between',
+          gap: '24px',
+          boxShadow: 'none'
+        }}
+      >
+        <Typography
+          sx={{
+            fontWeight: 500,
+            fontSize: '24px',
+            letterSpacing: 0,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          Anesthesia Details
+          <Typography component='span' sx={{ color: theme.palette.customColors.Error, ml: 1 }}>
+            *
+          </Typography>
+        </Typography>
+        <Box
+          sx={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}
+        >
+          <Button
+            variant='outlined'
+            startIcon={<Icon icon='mdi:plus' fontSize={20} />}
+            onClick={handleAddNewAnaesthesia}
+            sx={{
+              width: '240px',
+              height: '48px',
+              borderRadius: '8px',
+              borderColor: theme.palette.primary.main,
+              color: theme.palette.primary.main,
+              fontWeight: 600,
+              letterSpacing: 0,
+              textTransform: 'uppercase'
+            }}
+          >
+            ADD NEW
+          </Button>
+          <Button
+            variant='contained'
+            onClick={handleSelectAnaesthesiaRecord}
+            sx={{
+              width: '240px',
+              height: '48px'
+            }}
+          >
+            SELECT FROM RECORD
+          </Button>
         </Box>
       </Card>
 
