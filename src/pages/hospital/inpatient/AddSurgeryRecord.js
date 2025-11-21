@@ -12,6 +12,7 @@ import dayjs from 'dayjs'
 import { useQuery } from '@tanstack/react-query'
 
 import AddAnaesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnaesthesiaRecord'
+import SelectAnesthesiaRecordDrawer from 'src/components/hospital/inpatient/SelectAnesthesiaRecordDrawer'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import Toaster from 'src/components/Toaster'
 import RichTextEditor from 'src/components/RichTextEditor'
@@ -341,6 +342,8 @@ const AddSurgeryRecord = () => {
   const [showSaveTemplate, setShowSaveTemplate] = useState(false)
   const [openAddAnaesthesiaDrawer, setOpenAddAnaesthesiaDrawer] = useState(false)
   const [openSurgeryTemplateDrawer, setOpenSurgeryTemplateDrawer] = useState(false)
+  const [openSelectAnesthesiaDrawer, setOpenSelectAnesthesiaDrawer] = useState(false)
+  const [selectedAnesthesiaRecord, setSelectedAnesthesiaRecord] = useState(null)
   const [richNote, setRichNote] = useState(() => createEmptyRichTextValue())
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSavingTemplate, setIsSavingTemplate] = useState(false)
@@ -563,8 +566,22 @@ const AddSurgeryRecord = () => {
   }, [setOpenAddAnaesthesiaDrawer])
 
   const handleSelectAnaesthesiaRecord = useCallback(() => {
-    setOpenAddAnaesthesiaDrawer(true)
-  }, [setOpenAddAnaesthesiaDrawer])
+    setOpenSelectAnesthesiaDrawer(true)
+  }, [])
+
+  const handleAnesthesiaRecordSelect = useCallback(record => {
+    setSelectedAnesthesiaRecord(record)
+  }, [])
+
+  const handleConfirmAnesthesiaRecord = useCallback(
+    record => {
+      if (record) {
+        setSelectedAnesthesiaRecord(record)
+      }
+      setOpenSelectAnesthesiaDrawer(false)
+    },
+    []
+  )
 
   const onSubmit = async formValues => {
     const hospitalCaseId = resolveHospitalCaseId(router.query)
@@ -1214,6 +1231,13 @@ const AddSurgeryRecord = () => {
       <AddAnaesthesiaRecordDrawer
         setOpenAddAnaesthesiaDrawer={setOpenAddAnaesthesiaDrawer}
         openAddAnaesthesiaDrawer={openAddAnaesthesiaDrawer}
+      />
+      <SelectAnesthesiaRecordDrawer
+        open={openSelectAnesthesiaDrawer}
+        onClose={() => setOpenSelectAnesthesiaDrawer(false)}
+        initialSelectedId={selectedAnesthesiaRecord?.id || null}
+        onSelect={handleAnesthesiaRecordSelect}
+        onConfirm={handleConfirmAnesthesiaRecord}
       />
       <SurgeryRecordTemplateList
         setOpenSurgeryTemplateDrawer={setOpenSurgeryTemplateDrawer}
