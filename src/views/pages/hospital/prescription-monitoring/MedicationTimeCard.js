@@ -9,7 +9,8 @@ const MedicationTimeCard = ({
   amount,
   checked = false,
   onChange = () => {},
-  isControlledSubstance = false
+  isControlledSubstance = false,
+  disabled = false
 }) => {
   const theme = useTheme()
 
@@ -19,7 +20,7 @@ const MedicationTimeCard = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-
+        opacity: disabled ? 0.5 : 1,
         paddingLeft: '16px',
         backgroundColor: checked ? theme.palette.customColors.Surface : theme.palette.customColors.Background,
         border: checked ? `1px solid ${theme.palette.primary.main}` : 'none',
@@ -78,6 +79,7 @@ const MedicationTimeCard = ({
             <Radio
               checked={checked}
               onChange={e => onChange(e.target.checked)}
+              disabled={disabled}
               sx={{
                 padding: '4px',
                 '&.Mui-checked': {
@@ -89,6 +91,7 @@ const MedicationTimeCard = ({
             <Checkbox
               checked={checked}
               onChange={e => onChange(e.target.checked)}
+              disabled={disabled}
               sx={{
                 padding: '4px',
                 '&.Mui-checked': {

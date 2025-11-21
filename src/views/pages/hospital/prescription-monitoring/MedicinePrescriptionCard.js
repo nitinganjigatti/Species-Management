@@ -310,27 +310,38 @@ const MedicinePrescriptionCard = ({
     // Parse the date string properly (DD/MM/YYYY format)
     const [datePart, timePart] = dateTimeString.split(', ')
     const [day, month, year] = datePart.split('/')
-
-    // Create date object (month is 0-indexed in JavaScript)
-    const date = new Date(year, month - 1, day, ...timePart.split(':'))
-
+  
+    // Create date object in UTC (month is 0-indexed in JavaScript)
+    const utcDate = new Date(Date.UTC(year, month - 1, day, ...timePart.split(':')))
+  
+    // Convert UTC to local time
+    const localDate = new Date(utcDate.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }))
+  
     // Format date part: 02 Jan 2025
-    const formattedDate = date.toLocaleDateString('en-GB', {
+    const formattedDate = localDate.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
       year: 'numeric'
     })
-
+  
     // Format time part: 12 : 35 PM
-    const formattedTime = date
+    const formattedTime = localDate
       .toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: true
       })
       .replace(':', ' : ')
-
+  
     return `${formattedDate} • ${formattedTime}`
+  }
+
+  const formatTimeFromUTC = utcTimeString => {
+    return new Date(`1970-01-01 ${utcTimeString} UTC`).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    })
   }
 
   const renderDosageEntry = entry => (
@@ -375,7 +386,7 @@ const MedicinePrescriptionCard = ({
                   textDecoration: entry.isStrikethrough ? 'line-through' : 'none'
                 }}
               >
-                {entry.time}
+                {formatTimeFromUTC(entry.time)}
               </Typography>
               <Typography
                 variant='body2'
@@ -834,6 +845,17 @@ const MedicinePrescriptionCard = ({
                   const isPending = !item?.status || item?.status?.toLowerCase() === 'pending'
                   const isSelected = selectedMedications.includes(item?.administritive_id)
 
+                  const isFutureTime = () => {
+                    if (!selectedDate || !item?.scheduled_time) return false
+
+                    const datePart = selectedDate.split(' ')[0] // e.g., "2025-11-10"
+                    const [hours, minutes] = item.scheduled_time.split(':')
+                    const scheduledDateTime = new Date(`${datePart}T${hours}:${minutes}:00`)
+                    const now = new Date()
+
+                    return scheduledDateTime > now
+                  }
+
                   return isPending ? (
                     <MedicationTimeCard
                       key={item?.administritive_id}
@@ -842,6 +864,7 @@ const MedicinePrescriptionCard = ({
                       amount={`${item?.scheduled_quantity} ${item?.scheduled_unit_name}`}
                       checked={isSelected}
                       onChange={checked => handleMedicationSelect(item?.administritive_id, checked)}
+                      disabled={isFutureTime()}
                     />
                   ) : (
                     renderDosageEntry({
@@ -866,9 +889,7 @@ const MedicinePrescriptionCard = ({
                       wastageNote: item?.notes || '',
                       batchNumber: item?.batch_details?.[0]?.batch_number || null,
                       administeredBy: item?.user_full_name || 'Unknown',
-                      administeredAt: item?.administritive_date
-                        ? new Date(item.administritive_date).toLocaleString()
-                        : '',
+                      administeredAt: item?.modified_at ? new Date(item.modified_at).toLocaleString() : '',
                       isStrikethrough: item?.status?.toLowerCase() === 'stopped',
                       batch_details: item?.batch_details
                     })

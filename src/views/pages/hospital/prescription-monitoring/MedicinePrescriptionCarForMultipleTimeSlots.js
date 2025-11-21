@@ -402,25 +402,32 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
   if (!open) return null
 
   const formatDisplayDateTime = dateTimeString => {
+    // Parse the date string properly (DD/MM/YYYY format)
     const [datePart, timePart] = dateTimeString.split(', ')
     const [day, month, year] = datePart.split('/')
-
-    const date = new Date(year, month - 1, day, ...timePart.split(':'))
-
-    const formattedDate = date.toLocaleDateString('en-GB', {
+  
+    // Create date object in UTC (month is 0-indexed in JavaScript)
+    const utcDate = new Date(Date.UTC(year, month - 1, day, ...timePart.split(':')))
+  
+    // Convert UTC to local time
+    const localDate = new Date(utcDate.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }))
+  
+    // Format date part: 02 Jan 2025
+    const formattedDate = localDate.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
       year: 'numeric'
     })
-
-    const formattedTime = date
+  
+    // Format time part: 12 : 35 PM
+    const formattedTime = localDate
       .toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: true
       })
       .replace(':', ' : ')
-
+  
     return `${formattedDate} • ${formattedTime}`
   }
 
@@ -754,6 +761,17 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                     const isPending = !item?.status || item?.status?.toLowerCase() === 'pending'
                     const isSelected = selectedMedications.includes(item?.administritive_id)
 
+                    const isFutureTime = () => {
+                      if (!selectedDate || !item?.scheduled_time) return false
+
+                      const datePart = selectedDate.split(' ')[0] // e.g., "2025-11-10"
+                      const [hours, minutes] = item.scheduled_time.split(':')
+                      const scheduledDateTime = new Date(`${datePart}T${hours}:${minutes}:00`)
+                      const now = new Date()
+
+                      return scheduledDateTime > now
+                    }
+
                     return isPending ? (
                       <MedicationTimeCard
                         key={item?.administritive_id}
@@ -763,6 +781,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                         checked={isSelected}
                         onChange={checked => handleMedicationSelect(item?.administritive_id, checked)}
                         isControlledSubstance={isControlledSubstance}
+                        disabled={isFutureTime()}
                       />
                     ) : (
                       renderDosageEntry({
