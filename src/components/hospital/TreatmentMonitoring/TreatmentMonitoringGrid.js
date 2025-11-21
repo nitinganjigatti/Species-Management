@@ -36,7 +36,7 @@ const formatInterval = interval => {
   return `${hour}:00 ${ampm}`
 }
 
-const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday) => {
+const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday, theme) => {
   useEffect(() => {
     if (!isToday) return
 
@@ -52,8 +52,8 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday) => {
         bottom: -27px;      
         transform: translateX(-50%);
         background-color: white;
-        border: 1px solid #E35163;
-        color: #E35163;
+        border: 1px solid ${theme.palette.customColors.Error};
+        color: ${theme.palette.customColors.Error};
         padding: 4px 8px;
         font-size: 12px;
         font-weight: 600;
@@ -76,7 +76,7 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday) => {
           height: 0;
           border-left: 6px solid transparent;
           border-right: 6px solid transparent;
-          border-bottom: 6px solid #E35163;
+          border-bottom: 6px solid ${theme.palette.customColors.Error};
           border-top: none;
         }
       `
@@ -220,7 +220,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
     return slots
   }, [])
 
-  useRealtimeTooltip(scrollContainerRef, timeSlots, isToday)
+  useRealtimeTooltip(scrollContainerRef, timeSlots, isToday, theme)
 
   const createTimeSlotStructure = useCallback(slots => slots.map(time => ({ time, isActive: false })), [])
 
@@ -643,7 +643,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                             })
                             setOpenDeleteDialog(true)
                           }}
-                          sx={{ color: '#6c757d', ml: 1 }}
+                          sx={{ color: theme.palette.customColors.OnPrimaryContainer, ml: 1 }}
                         >
                           <Icon icon={'mdi-close'} fontSize={20} />
                         </IconButton>

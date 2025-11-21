@@ -37,7 +37,6 @@ const AddParameterDrawer = ({
   hospitalCaseId,
   refetchMonitoringData,
   selectedDate,
-  isToday,
   refetchMonitoringParams
 }) => {
   const theme = useTheme()
@@ -237,8 +236,6 @@ const AddParameterDrawer = ({
       newParams.forEach((param, index) => {
         payload[`assessment_ids[${index}]`] = param.id
       })
-
-      console.log(payload)
 
       await applyParamsToHospitalCaseId(payload).then(res => {
         if (res?.status === true) {
