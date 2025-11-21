@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { Breadcrumbs, Typography, Card } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
+import { Icon } from '@iconify/react'
 
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -532,16 +533,28 @@ const AddSurgeryRecord = () => {
           gap: '32px'
         }}
       >
-        <Typography
+        <Box
           sx={{
-            fontWeight: 500,
-            fontSize: '24px',
-            letterSpacing: 0,
-            color: theme.palette.customColors.OnSurfaceVariant
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '10px',
+            cursor: 'pointer',
+            width: 'fit-content'
           }}
+          onClick={() => router.back()}
         >
-          Add Surgery Record
-        </Typography>
+          <Icon icon='mdi:arrow-left' color={theme.palette.customColors.OnSurfaceVariant} fontSize={24} />
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: '24px',
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Add Surgery Record
+          </Typography>
+        </Box>
 
         <AnimalInfoCard data={data} />
         <Box

@@ -521,113 +521,116 @@ const SurgeryRecordForm = ({
           </Typography>
         </Box>
       </Card> */}
+      </Box>
 
-        <Card sx={{ borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: '24px',
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Care Instructions
-          </Typography>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <Typography
-              sx={{
-                fontWeight: 500,
-                fontSize: '16px',
-                letterSpacing: 0,
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              Enter diet instructions
-            </Typography>
-            <ControlledTextField
-              control={control}
-              name={'dietInstructions'}
-              errors={errors}
-              borderRadius='4px'
-              placeholder={'Enter text'}
-            />
-          </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <Typography
-              sx={{
-                fontWeight: 500,
-                fontSize: '16px',
-                letterSpacing: 0,
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              Enter restriction activities with duration
-            </Typography>
-            <ControlledTextField
-              control={control}
-              name={'restrictions'}
-              errors={errors}
-              borderRadius='4px'
-              placeholder={'Enter text'}
-            />
-          </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <Typography
-              sx={{
-                fontWeight: 500,
-                fontSize: '16px',
-                letterSpacing: 0,
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              Additional notes
-            </Typography>
-            <ControlledTextField
-              sx={{ borderRadius: '4px', backgroundColor: '#FCF4AE99' }}
-              placeholder={'Enter text'}
-              control={control}
-              name={'additionalNotes'}
-              errors={errors}
-              borderRadius='4px'
-            />
-          </Box>
-        </Card>
-
-        <Card
+      <Card sx={{ borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <Typography
           sx={{
-            borderRadius: '8px',
-            padding: '24px',
-            paddingTop: '16px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '24px'
+            fontWeight: 500,
+            fontSize: '24px',
+            letterSpacing: 0,
+            color: theme.palette.customColors.OnSurfaceVariant
           }}
         >
+          Care Instructions
+        </Typography>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <Typography
             sx={{
               fontWeight: 500,
-              fontSize: '20px',
+              fontSize: '16px',
               letterSpacing: 0,
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Attachments
+            Enter diet instructions
           </Typography>
-
-          <ControlledMultiFileUpload
-            name='attachments'
+          <ControlledTextField
             control={control}
-            label='Upload files'
-            acceptedFileTypes='images,pdf,csv,audio,videos'
+            name={'dietInstructions'}
+            errors={errors}
+            borderRadius='4px'
+            placeholder={'Enter text'}
           />
-        </Card>
-
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Button type='submit' variant='contained' disabled={isSubmitting} sx={{ minWidth: 160 }}>
-            {isSubmitting ? 'Submitting...' : 'Submit'}
-          </Button>
         </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: '16px',
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Enter restriction activities with duration
+          </Typography>
+          <ControlledTextField
+            control={control}
+            name={'restrictions'}
+            errors={errors}
+            borderRadius='4px'
+            placeholder={'Enter text'}
+          />
+        </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: '16px',
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Additional notes
+          </Typography>
+          <ControlledTextField
+            sx={{ borderRadius: '4px', backgroundColor: '#FCF4AE99' }}
+            placeholder={'Enter text'}
+            control={control}
+            name={'additionalNotes'}
+            errors={errors}
+            borderRadius='4px'
+          />
+        </Box>
+      </Card>
+
+      <Card
+        sx={{
+          borderRadius: '8px',
+          padding: '24px',
+          paddingTop: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px'
+        }}
+      >
+        <Typography
+          sx={{
+            fontWeight: 500,
+            fontSize: '20px',
+            letterSpacing: 0,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          Attachments
+        </Typography>
+
+        <ControlledMultiFileUpload
+          name='attachments'
+          control={control}
+          label='Upload files'
+          acceptedFileTypes='images,pdf,csv,audio,videos'
+        />
+      </Card>
+
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Button type='submit' variant='contained' disabled={isSubmitting} sx={{ minWidth: 160 }}>
+          {isSubmitting ? 'Submitting...' : 'Submit'}
+        </Button>
+        <Button type='submit' variant='contained' disabled={isSubmitting} sx={{ minWidth: 160 }}>
+          {isSubmitting ? 'Submitting...' : 'Submit'}
+        </Button>
       </Box>
     </>
   )
