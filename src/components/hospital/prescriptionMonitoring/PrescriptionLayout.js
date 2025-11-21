@@ -785,6 +785,14 @@ function PrescriptionLayout({ drawerType }) {
     }
   }
 
+  const handleSkipSelectedFromDrawerForMultipleSlots = async (selectedItems, medicineData, formData) => {
+    if (selectedItems?.length === 1 && medicineDetails?.controlled_substance == 1) {
+      handleAdministerOrSubmit(formData)
+    } else {
+      handleSkipSelectedFromDrawer(selectedItems, medicineData)
+    }
+  }
+
   const handleSkipSelectedFromDrawer = async (selectedItems, medicineData) => {
     console.log('Skip selected medications from drawer:', selectedItems, medicineData)
 
@@ -819,6 +827,8 @@ function PrescriptionLayout({ drawerType }) {
         // Refresh the drawer details
         if (prescriptionCardOpen && medicineData) {
           getDetails(medicineData, detailSelectedDate)
+        } else if (isAdministerOrSkipForMultipleSlotsOpen && medicineData) {
+          getDetails(medicineData, selectedDate)
         }
 
         // Close the drawer after successful action
@@ -945,6 +955,7 @@ function PrescriptionLayout({ drawerType }) {
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
+
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -1021,6 +1032,7 @@ function PrescriptionLayout({ drawerType }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
+
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {
@@ -1142,7 +1154,7 @@ function PrescriptionLayout({ drawerType }) {
         handleDateChange={handleDetailDateChange}
         selectedDate={detailSelectedDate}
         onAdministerSelected={handleAdministerSelectedFromDrawerForMultipleSlots}
-        onSkipSelected={handleSkipSelectedFromDrawer}
+        onSkipSelected={handleSkipSelectedFromDrawerForMultipleSlots}
         isAdministerLoading={isAdministerLoading}
         isSkipLoading={isSkipLoading}
         medicalMasterData={medicalMasterData}
