@@ -49,7 +49,7 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday) => {
       tooltipElement = document.createElement('div')
       tooltipElement.style.cssText = `
         position: absolute;
-        top: 0px;
+        bottom: -27px;      
         transform: translateX(-50%);
         background-color: white;
         border: 1px solid #E35163;
@@ -69,15 +69,15 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday) => {
         .tooltip-arrow::after {
           content: "";
           position: absolute;
-          top: 100%;
+          top: -25%;
           left: 50%;
           transform: translateX(-50%);
           width: 0;
           height: 0;
           border-left: 6px solid transparent;
           border-right: 6px solid transparent;
-          border-top: 6px solid #E35163;
-          border-bottom: none;
+          border-bottom: 6px solid #E35163;
+          border-top: none;
         }
       `
       document.head.appendChild(style)
@@ -653,7 +653,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                 </FixedColumn>
 
                 <ScrollableContainer ref={scrollContainerRef}>
-                  <TimeSlotGrid numColumns={timeSlots.length} sx={{ mb: 6 }}>
+                  <TimeSlotGrid numColumns={timeSlots.length} sx={{ mb: 8 }}>
                     {timeSlots.map(time => (
                       <TimeHeader key={time} data-hour={time} ref={el => (hourRefs.current[time] = el)}>
                         {time}
@@ -794,9 +794,7 @@ const HeaderContainer = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2, 3),
   background: theme.palette.customColors.lightBg,
   borderRadius: '4px',
-
-  // height: '56px',
-  marginBottom: theme.spacing(6),
+  marginBottom: theme.spacing(8),
   width: '100%'
 }))
 
