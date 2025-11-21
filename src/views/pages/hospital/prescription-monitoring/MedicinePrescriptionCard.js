@@ -932,7 +932,7 @@ const MedicinePrescriptionCard = ({
                   )
                 })}
 
-                {stopMedicineModalOpen ? (
+                {stopMedicineModalOpen && !isStopDatePassed(medicineData?.stop_date) ? (
                   <StopMedicine
                     onClose={() => setStopMedicineModalOpen(false)}
                     onConfirm={handleStopMedicineConfirm}
