@@ -72,7 +72,7 @@ function PrescriptionLayout({ drawerType }) {
 
   const router = useRouter()
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
-  const { medical_record_id, animal_id, date } = router.query
+  const { id, medical_record_id, animal_id, date } = router.query
 
   const [selectedDate, setSelectedDate] = useState(date || today)
 
@@ -199,8 +199,10 @@ function PrescriptionLayout({ drawerType }) {
         getPrescriptionList()
 
         // Refresh the details if the card is still open
-        if (prescriptionCardOpen || isAdministerOrSkipForMultipleSlotsOpen) {
+        if (prescriptionCardOpen) {
           getDetails(medicineData, detailSelectedDate)
+        } else if (isAdministerOrSkipForMultipleSlotsOpen) {
+          getDetails(medicineData, selectedDate)
         }
       }
     } catch (error) {
@@ -222,7 +224,8 @@ function PrescriptionLayout({ drawerType }) {
         type: 'active',
         medical_record_id: medical_record_id || '',
         generate_for_date: selectedDate,
-        medical_record_id: isCurrentMedicalRecord ? medical_record_id : ''
+        medical_record_id: isCurrentMedicalRecord ? medical_record_id : '',
+        hospital_case_id: id || ''
       }
 
       const response = await getPrescriptions(payload)
@@ -234,13 +237,15 @@ function PrescriptionLayout({ drawerType }) {
 
         const prescriptions = response?.data?.prescriptions?.map(item => ({
           ...item,
-          status: status?.toLowerCase()
+          status: item?.status ? item?.status?.toLowerCase() : null
         }))
         setMedicationData(prescriptions)
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
     } catch (error) {
+      console.error('Error fetching prescription list:', error)
+
       Toaster({ type: 'error', message: error || 'Something went wrong' })
     } finally {
       setIsPrescriptionListLoading(false)
@@ -337,17 +342,11 @@ function PrescriptionLayout({ drawerType }) {
         item => item.uom_abbr === data?.wastageUnit
       )
 
-      let time24
-      if (data.time) {
-        // If data.time is a dayjs object, format it directly
-        if (dayjs.isDayjs(data.time)) {
-          time24 = data.time.format('HH:mm:ss')
-        } else {
-          // If it's a string like "12:00 AM", parse it and convert to 24-hour format
-          const parsedTime = dayjs(data.time, 'hh:mm A')
-          time24 = parsedTime.format('HH:mm:ss')
-        }
-      }
+      let time24 = data.time
+        ? dayjs.isDayjs(data.time)
+          ? data.time.format('HH:mm:ss')
+          : dayjs(data.time, 'hh:mm A').format('HH:mm:ss')
+        : dayjs().format('HH:mm:ss')
 
       // Process the form data based on action type
       const payload = {
@@ -729,8 +728,7 @@ function PrescriptionLayout({ drawerType }) {
     }
   }
 
-  const handleAdministerSelectedFromDrawer = async (selectedItems, medicineData, formData) => {
-
+  const handleAdministerSelectedFromDrawer = async (selectedItems, medicineData) => {
     try {
       setIsAdministerLoading(true)
 
@@ -759,8 +757,10 @@ function PrescriptionLayout({ drawerType }) {
         getPrescriptionList()
 
         // Refresh the drawer details
-        if (prescriptionCardOpen || isAdministerOrSkipForMultipleSlotsOpen) {
+        if (prescriptionCardOpen) {
           getDetails(medicineData, detailSelectedDate)
+        } else if (isAdministerOrSkipForMultipleSlotsOpen) {
+          getDetails(medicineData, selectedDate)
         }
 
         // Close the drawer after successful action
@@ -773,6 +773,14 @@ function PrescriptionLayout({ drawerType }) {
       Toaster({ type: 'error', message: error?.message || 'Something went wrong' })
     } finally {
       setIsAdministerLoading(false)
+    }
+  }
+
+  const handleAdministerSelectedFromDrawerForMultipleSlots = async (selectedItems, medicineData, formData) => {
+    if (selectedItems?.length === 1 && medicineDetails?.controlled_substance == 1) {
+      handleAdministerOrSubmit(formData)
+    } else {
+      handleAdministerSelectedFromDrawer(selectedItems, medicineData)
     }
   }
 
@@ -1131,7 +1139,7 @@ function PrescriptionLayout({ drawerType }) {
         onRefreshEntry={handleRefreshEntry}
         handleDateChange={handleDetailDateChange}
         selectedDate={detailSelectedDate}
-        onAdministerSelected={handleAdministerSelectedFromDrawer}
+        onAdministerSelected={handleAdministerSelectedFromDrawerForMultipleSlots}
         onSkipSelected={handleSkipSelectedFromDrawer}
         isAdministerLoading={isAdministerLoading}
         isSkipLoading={isSkipLoading}
