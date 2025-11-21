@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useCallback } from 'react'
-import { useTheme, Card, Typography, IconButton, Drawer, Box, Grid } from '@mui/material'
+import { useTheme, Card, Typography, IconButton, Drawer, Box, Grid, alpha } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
 
@@ -78,7 +78,7 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
     shouldUnregister: false
   })
 
-  // Handle form submission to create hospital details
+  // Handle form submission to add hospital details
   const onSubmit = useCallback(
     async formData => {
       const payload = {
@@ -87,17 +87,14 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
         is_internal_hospital: formData.is_internal_hospital || 1,
         site_id: formData.site_id?.site_id ?? null
       }
-      console.log('payload', payload)
 
-      try {
-        await handleSubmitData(payload)
+      const success = await handleSubmitData(payload)
+
+      if (success) {
         reset(defaultValues)
-        handleSidebarClose()
-      } catch (error) {
-        console.error('Error submitting form:', error)
       }
     },
-    [handleSidebarClose, reset, handleSubmitData]
+    [reset, handleSubmitData]
   )
 
   // Handle drawer close with form reset
@@ -228,7 +225,7 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
               p: 4,
               display: 'flex',
               justifyContent: 'center',
-              boxShadow: '0px -2px 6px rgba(0, 0, 0, 0.1)',
+              boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark, 0.1)}`,
               backgroundColor: theme.palette.background.paper
             }}
           >

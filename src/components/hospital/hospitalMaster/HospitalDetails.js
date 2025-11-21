@@ -74,6 +74,7 @@ const HospitalDetails = () => {
 
     const { page = '1', limit = '50', q = '', active } = router.query
 
+    // Only update if values actually changed
     setFilters(prev => {
       const newFilters = {
         page: Number(page) || 1,
@@ -82,7 +83,6 @@ const HospitalDetails = () => {
         active: active !== undefined ? Number(active) : undefined
       }
 
-      // Only update if values actually changed
       if (
         prev.page !== newFilters.page ||
         prev.limit !== newFilters.limit ||
@@ -120,7 +120,15 @@ const HospitalDetails = () => {
     staleTime: 60 * 1000,
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
-    refetchOnReconnect: false
+    refetchOnReconnect: false,
+
+    onError: error => {
+      console.error('Error fetching hospital list:', error?.message)
+      Toaster({
+        type: 'error',
+        message: error?.response?.data?.message || error?.message || 'Failed to load hospital list'
+      })
+    }
   })
 
   const rows = useMemo(() => hospitalData?.data?.hospitals || [], [hospitalData?.data?.hospitals])
@@ -185,32 +193,38 @@ const HospitalDetails = () => {
   const handleSidebarClose = useCallback(() => setOpenDrawer(false), [])
 
   //  Add Hospital
-  const handleSubmitData = useCallback(
-    async payload => {
-      setSubmitLoader(true)
+  const handleSubmitData = async payload => {
+    setSubmitLoader(true)
 
-      try {
-        const response = await addHospitalMaster(payload)
+    try {
+      const response = await addHospitalMaster(payload)
 
-        if (response?.success) {
-          Toaster({ type: 'success', message: response.message || 'Hospital created successfully' })
+      if (response?.success) {
+        // refetchHospitals()
+        // Invalidate hospital list cache
+        queryClient.invalidateQueries(['hospital-list'])
 
-          // refetchHospitals()
-          // Invalidate hospital list cache
-          queryClient.invalidateQueries(['hospital-list'])
-        } else {
-          Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
-        }
-      } catch (error) {
-        console.error('Error adding hospital:', error)
-        Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' })
-      } finally {
-        setSubmitLoader(false)
         setOpenDrawer(false)
+        Toaster({ type: 'success', message: response?.message || 'Hospital created successfully' })
+
+        return true
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to create Hospital ' })
+
+        return false
       }
-    },
-    [queryClient]
-  )
+    } catch (error) {
+      console.error('Error adding hospital:', error?.message)
+      Toaster({
+        type: 'error',
+        message: error?.response?.data?.message || error?.message || 'An unexpected error occurred'
+      })
+
+      return false
+    } finally {
+      setSubmitLoader(false)
+    }
+  }
 
   //  Add serial numbers to each row based on current pagination
   const indexedRows = useMemo(() => {
