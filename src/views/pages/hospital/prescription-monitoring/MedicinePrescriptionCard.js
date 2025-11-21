@@ -336,6 +336,42 @@ const MedicinePrescriptionCard = ({
     return `${formattedDate} • ${formattedTime}`
   }
 
+  const isStopDatePassed = stopDateString => {
+    if (!stopDateString) return false
+
+    try {
+      // Parse the backend date string (YYYY-MM-DD HH:mm:ss format)
+      const [datePart, timePart] = stopDateString.split(' ')
+      const [year, month, day] = datePart.split('-')
+      const [hours, minutes, seconds] = timePart.split(':')
+
+      // Create UTC date from backend string
+      const stopDateUTC = new Date(
+        Date.UTC(
+          parseInt(year),
+          parseInt(month) - 1,
+          parseInt(day),
+          parseInt(hours),
+          parseInt(minutes),
+          parseInt(seconds)
+        )
+      )
+
+      // Convert to local time
+      const stopDateLocal = new Date(stopDateUTC)
+
+      // Get current local time
+      const now = new Date()
+
+      // Check if stop date is in the past
+      return stopDateLocal < now
+    } catch (error) {
+      console.error('Error parsing stop date:', error)
+
+      return false
+    }
+  }
+
   const formatTimeFromUTC = utcTimeString => {
     return new Date(`1970-01-01 ${utcTimeString} UTC`).toLocaleTimeString('en-US', {
       hour: 'numeric',
@@ -915,23 +951,27 @@ const MedicinePrescriptionCard = ({
                       mb: 12
                     }}
                   >
-                    <Button
-                      variant='text'
-                      startIcon={<Icon icon='jam:stop-sign' />}
-                      onClick={handleStopMedicine}
-                      disabled={isDetailLoading}
-                      sx={{
-                        color: theme.palette.customColors.Tertiary,
-                        fontSize: '16px',
-                        fontWeight: 500,
-                        justifyContent: 'left',
-                        transform: 'none',
-                        textTransform: 'none',
-                        width: 'auto'
-                      }}
-                    >
-                      Stop Medicine
-                    </Button>
+                    {!isStopDatePassed(medicineData?.stop_date) ? (
+                      <Button
+                        variant='text'
+                        startIcon={<Icon icon='jam:stop-sign' />}
+                        onClick={handleStopMedicine}
+                        disabled={isDetailLoading}
+                        sx={{
+                          color: theme.palette.customColors.Tertiary,
+                          fontSize: '16px',
+                          fontWeight: 500,
+                          justifyContent: 'left',
+                          transform: 'none',
+                          textTransform: 'none',
+                          width: 'auto'
+                        }}
+                      >
+                        Stop Medicine
+                      </Button>
+                    ) : (
+                      <Box></Box>
+                    )}
                     {handleAddNewDosageTimeCheck(selectedDate) && (
                       <Button
                         variant='text'

@@ -801,8 +801,6 @@ export const STOP_PRESCRIPTION = 'medical/v2/restart-stop-medicine'
 
 export const UNDO_PRESCRIPTION = 'administer/reset'
 
-export const SKIP_PRESCRIPTION = 'administer/manage/medicine'
-
 export const ADMINISTER_PRESCRIPTION = 'administer/manage/medicine'
 
 export const DIRECT_ADMINISTER_FOR_PAST_SLOT = 'administer/v2/create-direct-adminster-record'

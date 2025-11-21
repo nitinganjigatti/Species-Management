@@ -113,16 +113,6 @@ export async function undoPrescription(payLoad) {
   }
 }
 
-export async function skipPrescription(payLoad) {
-  try {
-    const response = await axiosFormPost({ url: `${SKIP_PRESCRIPTION}`, body: payLoad })
-
-    return response?.data
-  } catch (error) {
-    console.error('Error adding prescription:', error.message)
-  }
-}
-
 export async function administerDose(payLoad) {
   try {
     const response = await axiosFormPost({ url: `${ADMINISTER_PRESCRIPTION}`, body: payLoad })

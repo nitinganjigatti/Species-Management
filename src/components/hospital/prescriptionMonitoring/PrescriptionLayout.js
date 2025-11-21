@@ -7,17 +7,14 @@ import { useRouter } from 'next/router'
 import { useHospital } from 'src/context/HospitalContext'
 import Toaster from 'src/components/Toaster'
 import {
-  addDirectAdministerPrescription,
   administerAllMedicines,
   administerDose,
-  administerPrescription,
   directAdministerForPatSlot,
   getDates,
   getMedicineBatches,
   getPrescriptionDetails,
   getPrescriptions,
   schedulePrescription,
-  skipPrescription,
   stopPrescription,
   undoPrescription
 } from 'src/lib/api/hospital/prescription'
@@ -356,6 +353,7 @@ function PrescriptionLayout({ drawerType }) {
         purpose: data.action === 'administer' ? 'administer' : 'withheld',
         side_effect: 0,
         administer_id: JSON.stringify([selectedSlotData?.timeSlot?.schedule_id]),
+        request_from: 'hospital_module',
 
         batch_details:
           data?.batchNumber?.batch_no &&
@@ -565,6 +563,7 @@ function PrescriptionLayout({ drawerType }) {
       const payload = {
         administer_date: Utility.convertUTCToLocalDate(new Date().toISOString().slice(0, 10)),
         type: 'single',
+        request_from: 'hospital_module',
         purpose: purpose,
         administritive_time: new Date().toLocaleTimeString('en-GB', { hour12: false }),
         select_all: 1,
@@ -618,6 +617,7 @@ function PrescriptionLayout({ drawerType }) {
         medical_record_id: JSON.stringify([medical_record_id]),
         medicine_id: data?.length > 1 ? JSON.stringify(medicineIds) : JSON.stringify([data[0]?.medicine_id]),
         type: 'single',
+        request_from: 'hospital_module',
         purpose: purpose,
         side_effect: 0,
         administer_id: administerIds,
@@ -740,6 +740,7 @@ function PrescriptionLayout({ drawerType }) {
         medicine_id: JSON.stringify([medicineData?.medicine_id]),
         type: 'single',
         purpose: 'administer',
+        request_from: 'hospital_module',
         side_effect: 0,
         administer_id: administerIds,
         batch_details: [],
@@ -799,6 +800,7 @@ function PrescriptionLayout({ drawerType }) {
         type: 'single',
         purpose: 'withheld', // "withheld" for skip
         side_effect: 0,
+        request_from: 'hospital_module',
         administer_id: administerIds,
         batch_details: [],
         administritive_time: new Date().toLocaleTimeString('en-GB', { hour12: false }),

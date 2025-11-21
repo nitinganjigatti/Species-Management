@@ -71,7 +71,7 @@ export default function AddMedicineToPrescription() {
         value: yup
           .number()
           .transform((value, originalValue) => (originalValue === '' ? undefined : value))
-          .min(1, 'Duration must be at least 1')
+          .min(0, 'Duration must be at least 1')
           .max(365, 'Duration cannot exceed 365')
           .required('Duration value is required'),
         unit: yup.string().required('Please select duration unit')
@@ -156,6 +156,7 @@ export default function AddMedicineToPrescription() {
     handleSubmit,
     setValue,
     watch,
+    getValues,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -717,6 +718,7 @@ export default function AddMedicineToPrescription() {
             administer_date: toISTISOString(data.prescriptionStartDate)?.slice(0, 10) || '',
 
             batch_list: batchListPayload,
+            request_from: 'hospital_module',
             dose_type: 'fixed_dose',
             files: data.batchImage ? [data.batchImage] : []
           }
@@ -919,6 +921,8 @@ export default function AddMedicineToPrescription() {
           <ScheduleMedicine
             medicalMasterData={medicalMasterData}
             control={control}
+            setValue={setValue}
+            getValues={getValues}
             errors={errors}
             isMedicineSelected={temporarilySelectedMedicine?.id}
             selectedMedicineTo={watch('selectMedicineType')}

@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Box, Typography, Button, Grid, Paper, IconButton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import { useFieldArray, watch } from 'react-hook-form'
+import { useFieldArray, useWatch } from 'react-hook-form'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
@@ -27,7 +27,10 @@ export default function ScheduleMedicine({
   batchList = [],
   batchLoading,
   handleBatchSearch,
-  isControlledSubstance = false
+  isControlledSubstance = false,
+  setValue,
+  getValues,
+  reset
 }) {
   const {
     caseTypes,
@@ -37,6 +40,8 @@ export default function ScheduleMedicine({
     prescriptionDeliveryRoute
   } = medicalMasterData
   const theme = useTheme()
+  const previousUnitsRef = useRef([])
+  const hasSetDefaults = useRef(false)
 
   const now = new Date()
   const router = useRouter()
@@ -56,6 +61,95 @@ export default function ScheduleMedicine({
     name: 'schedules',
     keyName: 'fieldId' // add this to avoid key prop conflicts
   })
+
+  // Watch all schedules to sync units
+  const allSchedules = useWatch({
+    control,
+    name: 'schedules'
+  })
+
+  // Sync unit across all schedules when any one changes
+  useEffect(() => {
+    if (allSchedules && allSchedules.length > 0) {
+      const currentUnits = allSchedules.map(schedule => schedule?.unit || '')
+
+      // Find which unit changed by comparing with previous values
+      let changedIndex = -1
+      let newUnit = null
+
+      for (let i = 0; i < currentUnits.length; i++) {
+        if (previousUnitsRef.current[i] !== currentUnits[i] && currentUnits[i]) {
+          changedIndex = i
+          newUnit = currentUnits[i]
+          break
+        }
+      }
+
+      // If a unit was changed and there are multiple schedules, sync all units
+      if (changedIndex !== -1 && newUnit && allSchedules.length > 1) {
+        allSchedules.forEach((schedule, idx) => {
+          if (idx !== changedIndex && schedule?.unit !== newUnit) {
+            setValue(`schedules.${idx}.unit`, newUnit, { shouldValidate: false })
+          }
+        })
+      }
+
+      // Update the ref with current units
+      previousUnitsRef.current = currentUnits
+    }
+  }, [allSchedules?.map(s => s?.unit).join(','), allSchedules?.length, setValue])
+
+  // Set default values when medicine is selected
+  useEffect(() => {
+    if (isMedicineSelected && medicalMasterData && !hasSetDefaults.current) {
+      const currentTime = dayjs()
+      const defaultUnit = prescriptionDosageMeasurementType?.[0]?.value || ''
+
+      // Set default frequency (first item)
+      if (prescriptionFrequency && prescriptionFrequency.length > 0) {
+        setValue('frequency', prescriptionFrequency[0].value)
+      }
+
+      // Set default schedule with current time
+      setValue('schedules', [
+        {
+          time: currentTime,
+          quantity: '',
+          unit: defaultUnit
+        }
+      ])
+
+      // Set default prescription start date to today
+      setValue('prescriptionStartDate', dayjs())
+
+      // Set default dosage duration to 1
+      setValue('dosageDuration.value', '1')
+
+      // Set default dosage unit (first item)
+      if (prescriptionDuration && prescriptionDuration.length > 0) {
+        setValue('dosageDuration.unit', prescriptionDuration[0].value)
+      }
+
+      // Initialize the ref with the default unit
+      previousUnitsRef.current = [defaultUnit]
+
+      hasSetDefaults.current = true
+    }
+  }, [
+    isMedicineSelected,
+    medicalMasterData,
+    prescriptionDosageMeasurementType,
+    prescriptionFrequency,
+    prescriptionDuration,
+    setValue
+  ])
+
+  // Reset the flag when medicine is deselected
+  useEffect(() => {
+    if (!isMedicineSelected) {
+      hasSetDefaults.current = false
+    }
+  }, [isMedicineSelected])
 
   return (
     <Box
@@ -250,7 +344,12 @@ export default function ScheduleMedicine({
               }}
               onClick={e => {
                 e.preventDefault()
-                append({ time: '', quantity: '', unit: '' })
+
+                // Use the current first schedule's unit for new entries
+                const currentSchedules = getValues('schedules')
+
+                const currentUnit = currentSchedules?.[0]?.unit || prescriptionDosageMeasurementType?.[0]?.value || ''
+                append({ time: dayjs(), quantity: '', unit: currentUnit })
               }}
             >
               Add Time
@@ -317,7 +416,8 @@ export default function ScheduleMedicine({
               <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                 <ControlledSelect
                   name='dosageDuration.unit'
-                  label='Dosage Unit*'
+
+                  // label='Dosage Unit*'
                   sx={{
                     textAlign: 'left',
                     borderRadius: '4px'

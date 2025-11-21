@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Drawer, Box, Typography, IconButton, Grid, Card, CardContent, Divider, Button } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
@@ -28,6 +28,7 @@ const ScheduleDosageSidesheet = ({
   medicalMasterData
 }) => {
   const theme = useTheme()
+  const previousUnitsRef = useRef([])
 
   // Validation schema based on reference component
   const validationSchema = yup.object({
@@ -104,6 +105,9 @@ const ScheduleDosageSidesheet = ({
     control,
     handleSubmit,
     reset,
+    watch,
+    setValue,
+    getValues,
     formState: { errors }
   } = useForm({
     defaultValues: defaultValues,
@@ -117,10 +121,45 @@ const ScheduleDosageSidesheet = ({
     keyName: 'fieldId'
   })
 
+  // Watch all dosage units
+  const allSchedules = watch('schedules')
+
+  // Sync dosageUnit across all schedules when any one changes
+  useEffect(() => {
+    if (allSchedules && allSchedules.length > 0) {
+      const currentUnits = allSchedules.map(schedule => schedule?.dosageUnit || '')
+      
+      // Find which unit changed by comparing with previous values
+      let changedIndex = -1
+      let newUnit = null
+      
+      for (let i = 0; i < currentUnits.length; i++) {
+        if (previousUnitsRef.current[i] !== currentUnits[i] && currentUnits[i]) {
+          changedIndex = i
+          newUnit = currentUnits[i]
+          break
+        }
+      }
+      
+      // If a unit was changed and there are multiple schedules, sync all units
+      if (changedIndex !== -1 && newUnit && allSchedules.length > 1) {
+        allSchedules.forEach((schedule, idx) => {
+          if (idx !== changedIndex && schedule?.dosageUnit !== newUnit) {
+            setValue(`schedules.${idx}.dosageUnit`, newUnit, { shouldValidate: false })
+          }
+        })
+      }
+      
+      // Update the ref with current units
+      previousUnitsRef.current = currentUnits
+    }
+  }, [allSchedules?.map(s => s?.dosageUnit).join(','), allSchedules?.length, setValue])
+
   useEffect(() => {
     if (!handleOpen) {
       // Reset form when sidesheet closes
       reset(defaultValues)
+      previousUnitsRef.current = []
     }
   }, [handleOpen, reset])
 
@@ -128,6 +167,7 @@ const ScheduleDosageSidesheet = ({
   useEffect(() => {
     if (scheduleDosage?.scheduledTime) {
       const defaultTime = convertTimeToMuiFormat(scheduleDosage.scheduledTime)
+      const defaultUnit = medicalMasterData?.prescriptionDosageMeasurementType?.[0]?.unit_name || ''
 
       reset(prev => ({
         ...prev,
@@ -135,16 +175,20 @@ const ScheduleDosageSidesheet = ({
           {
             time: defaultTime,
             dosageQuantity: '',
-            dosageUnit: medicalMasterData?.prescriptionDosageMeasurementType?.[0]?.unit_name || '',
+            dosageUnit: defaultUnit,
             dosageWeights: ''
           }
         ]
       }))
+      
+      // Initialize the ref with the default unit
+      previousUnitsRef.current = [defaultUnit]
     }
   }, [scheduleDosage?.scheduledTime, medicalMasterData, reset])
 
   const handleClose = () => {
     reset(defaultValues)
+    previousUnitsRef.current = []
     handleSidebarClose()
   }
 
@@ -343,10 +387,18 @@ const ScheduleDosageSidesheet = ({
                       }}
                       onClick={e => {
                         e.preventDefault()
+
+                        // Use the current first schedule's dosageUnit for new entries
+                        const currentSchedules = getValues('schedules')
+
+                        const currentUnit =
+                          currentSchedules?.[0]?.dosageUnit ||
+                          medicalMasterData?.prescriptionDosageMeasurementType?.[0]?.unit_name ||
+                          ''
                         append({
                           time: null,
                           dosageQuantity: '',
-                          dosageUnit: medicalMasterData?.prescriptionDosageMeasurementType?.[0]?.unit_name || '',
+                          dosageUnit: currentUnit,
                           dosageWeights: ''
                         })
                       }}
