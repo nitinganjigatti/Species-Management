@@ -76,7 +76,7 @@ const SortBottomSheet = ({ open, onClose, currentSort, onSortChange }) => {
           <Divider sx={{ mb: 3 }} />
 
           {/* Sort Options */}
-          <Box sx={{ px: 4, pb: 4 }}>
+          <Box sx={{ px: 4, pb: 4, display: 'flex', flexDirection: 'column', gap: 1 }}>
             {sortOptions.map(option => (
               <Box
                 key={option.value}

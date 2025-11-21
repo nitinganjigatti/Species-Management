@@ -624,7 +624,14 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
 
                   {displayMetrics?.map(metric => (
                     <MetricLabel key={metric.assessment_type_id}>
-                      <Box>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          gap: 1
+                        }}
+                      >
                         <MetricName>{metric.label}</MetricName>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Icon icon={'f7:waveform-path-ecg'} fontSize={16} />
@@ -802,7 +809,7 @@ const MetricLabel = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  padding: theme.spacing(2, 2.5),
+  padding: theme.spacing(2, 3),
   backgroundColor: theme.palette.customColors.lightBg,
   borderRadius: theme.spacing(1),
   height: '72px',
