@@ -173,7 +173,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [paramData, setParamData] = useState(null)
-  const [deleteScope, setDeleteScope] = useState('today')
+  const [deleteScope, setDeleteScope] = useState('only_today')
 
   const isToday = dayjs(selectedDate).isSame(dayjs(), 'day')
 
@@ -327,6 +327,10 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
           .minute(dayjs().minute())
           .second(dayjs().second())
           .format('YYYY-MM-DD HH:mm:ss')
+      }
+
+      if (isToday) {
+        payload.remove_parameter_period = deleteScope
       }
 
       await deleteMonitoringParameter(payload).then(res => {
@@ -488,7 +492,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
         sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}
       >
         <FormControlLabel
-          value='today'
+          value='only_today'
           control={<Radio />}
           label={
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
@@ -506,7 +510,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
         />
 
         <FormControlLabel
-          value='future'
+          value='from_today_onwards'
           control={<Radio />}
           label={
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
