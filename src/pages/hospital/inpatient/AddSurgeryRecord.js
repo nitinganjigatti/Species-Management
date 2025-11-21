@@ -218,532 +218,6 @@ const SaveTemplateUI = ({ onClose, onSave, loading = false }) => {
   )
 }
 
-const SurgeryRecordForm = ({
-  control,
-  errors,
-  templates,
-  activeTemplate,
-  setOpenSurgeryTemplateDrawer,
-  setOpenAddAnaesthesiaDrawer,
-  richNote,
-  onRichNoteChange = () => {},
-  isSubmitting = false,
-  procedureOptions = [],
-  procedureLoading = false,
-  onProcedureInputChange = () => {},
-  onProcedureClear = () => {},
-  procedureGetOptionLabel = option => option?.label || '',
-  procedureIsOptionEqualToValue = (option, value) => option?.value === value?.value,
-  onSaveTemplate = async () => false,
-  isSavingTemplate = false,
-  clearFieldErrors,
-  onTemplateSelect = () => {}
-}) => {
-  const theme = useTheme()
-  const [showSaveTemplate, setShowSaveTemplate] = useState(false)
-
-  const handleSaveTemplate = async templateName => {
-    const success = await onSaveTemplate(templateName)
-
-    if (success) {
-      setShowSaveTemplate(false)
-    }
-  }
-
-  return (
-    <>
-      <Grid container spacing={'24px'}>
-        <Grid item size={{ xs: 12 }}>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: '20px',
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Date and time of surgery
-            <Typography sx={{ color: theme.palette.customColors.Error }} variant='span'>
-              *
-            </Typography>
-          </Typography>
-        </Grid>
-        <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-          <ControlledDatePicker
-            sx={{
-              width: '100%',
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '4px',
-                height: '56px'
-              }
-            }}
-            name={'date'}
-            label='Date'
-            control={control}
-            renderInput={params => (
-              <ControlledTextField {...params} fullWidth error={!!errors.date} helperText={errors.date?.message} />
-            )}
-          />
-        </Grid>
-        <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-          <ControlledTimePicker
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '4px',
-                height: '56px'
-              }
-            }}
-            label='Start Time'
-            name={'startTime'}
-            control={control}
-            renderInput={params => (
-              <ControlledTextField
-                {...params}
-                fullWidth
-                error={!!errors.startTime}
-                helperText={errors.startTime?.message}
-              />
-            )}
-          />
-        </Grid>
-        <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-          <ControlledTimePicker
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '4px',
-                height: '56px'
-              }
-            }}
-            name={'endTime'}
-            control={control}
-            label='End Time'
-            renderInput={params => (
-              <ControlledTextField
-                {...params}
-                fullWidth
-                error={!!errors.endTime}
-                helperText={errors.endTime?.message}
-              />
-            )}
-          />
-        </Grid>
-        <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-          <ControlledTextField
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '4px',
-                height: '56px'
-              }
-            }}
-            name={'duration'}
-            label='Surgery Duration'
-            control={control}
-            errors={errors}
-            onChangeOverride={() => clearFieldErrors?.('duration')}
-          />
-        </Grid>
-      </Grid>
-
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        <Typography
-          sx={{
-            fontWeight: 500,
-            fontSize: '20px',
-            letterSpacing: 0,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          Surgery details
-          <Typography sx={{ color: theme.palette.customColors.Error }} variant='span'>
-            *
-          </Typography>
-        </Typography>
-        <Grid container spacing={'24px'}>
-          <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
-            <ControlledAutocomplete
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '4px',
-                  height: '56px'
-                }
-              }}
-              control={control}
-              errors={errors}
-              name={'procedure'}
-              label='Name of Surgeon'
-              options={procedureOptions}
-              loading={procedureLoading}
-              onInputChange={onProcedureInputChange}
-              onItemClear={onProcedureClear}
-              getOptionLabel={procedureGetOptionLabel}
-              isOptionEqualToValue={procedureIsOptionEqualToValue}
-              onChangeOverride={() => clearFieldErrors?.('procedure')}
-            />
-          </Grid>
-          <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
-            <ControlledAutocomplete
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '4px',
-                  height: '56px'
-                }
-              }}
-              control={control}
-              errors={errors}
-              name={'procedure'}
-              label='Name of Procedure'
-              options={procedureOptions}
-              loading={procedureLoading}
-              onInputChange={onProcedureInputChange}
-              onItemClear={onProcedureClear}
-              getOptionLabel={procedureGetOptionLabel}
-              isOptionEqualToValue={procedureIsOptionEqualToValue}
-              onChangeOverride={() => clearFieldErrors?.('procedure')}
-            />
-          </Grid>
-          <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
-            <ControlledTextField
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '4px',
-                  height: '56px'
-                }
-              }}
-              name={'typeOfSurgery'}
-              label='Type of Surgery'
-              control={control}
-              errors={errors}
-              borderRadius='4px'
-              onChangeOverride={() => clearFieldErrors?.('typeOfSurgery')}
-            />
-          </Grid>
-          <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
-            <ControlledTextField
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '4px',
-                  height: '56px'
-                }
-              }}
-              name={'surgicalApproach'}
-              label='Surgical Approach'
-              control={control}
-              errors={errors}
-              borderRadius='4px'
-              onChangeOverride={() => clearFieldErrors?.('surgicalApproach')}
-            />
-          </Grid>
-        </Grid>
-
-        <Box
-          sx={{
-            backgroundColor: '#E8F4F266',
-            padding: '20px',
-            borderRadius: '8px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px'
-          }}
-        >
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <Typography
-              sx={{
-                fontWeight: 500,
-                fontSize: '16px',
-                letterSpacing: 0,
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              Enter surgery notes
-            </Typography>
-
-            {/* <ControlledTextArea placeholder={'Enter text'} control={control} name={'notes'} rows={3} errors={errors} /> */}
-
-            <RichTextEditor value={richNote} onChange={onRichNoteChange} placeholder='Enter text...' />
-          </Box>
-
-          {showSaveTemplate ? (
-            <SaveTemplateUI
-              onClose={() => setShowSaveTemplate(false)}
-              onSave={handleSaveTemplate}
-              loading={isSavingTemplate}
-            />
-          ) : (
-            <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center', mb: '8px', cursor: 'pointer' }}>
-              <Avatar
-                src='/icons/FloppyDisk.svg'
-                variant='square'
-                sx={{ objectFit: 'contain', height: '24px', width: '24px' }}
-              />
-              <Typography
-                onClick={() => setShowSaveTemplate(true)}
-                sx={{
-                  fontWeight: 600,
-                  fontSize: '16px',
-                  letterSpacing: 0,
-                  color: theme.palette.primary.dark
-                }}
-              >
-                Save as template
-              </Typography>
-            </Box>
-          )}
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography
-                sx={{
-                  fontWeight: 400,
-                  fontSize: '16px',
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                Select from templates
-              </Typography>
-              <Box
-                onClick={() => setOpenSurgeryTemplateDrawer(true)}
-                sx={{ display: 'flex', gap: '12px', alignItems: 'center', cursor: 'pointer' }}
-              >
-                <Typography sx={{ color: theme.palette.primary.dark }}>See all</Typography>
-                <Icon icon='fa:angle-right' color={theme.palette.primary.dark} fontSize={24} />
-              </Box>
-            </Box>
-            {/* LEFT: takes remaining space + horizontal scroll */}
-            <Box
-              sx={{
-                flex: '1 1 auto',
-                minWidth: 0,
-                overflowX: 'auto',
-                scrollbarColor: 'transparent transparent'
-              }}
-            >
-              <Box sx={{ display: 'inline-flex', gap: '10px', pr: 1 }}>
-                {templates.map(template => {
-                  const templateLabel = typeof template === 'string' ? template : String(template || '')
-                  if (!templateLabel) {
-                    return null
-                  }
-                  return (
-                    <Box
-                      key={templateLabel}
-                      onClick={() => onTemplateSelect(templateLabel)}
-                      sx={{
-                        flexShrink: 0,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        p: '8px 24px',
-                        height: '40px',
-                        borderRadius: '8px',
-                        backgroundColor:
-                          activeTemplate === templateLabel
-                            ? theme.palette.secondary.dark
-                            : theme.palette.customColors.mdAntzNeutral,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          color:
-                            activeTemplate === templateLabel
-                              ? theme.palette.primary.contrastText
-                              : theme.palette.customColors.neutralPrimary,
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {templateLabel}
-                      </Typography>
-                    </Box>
-                  )
-                })}
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-
-        <ControlledTextField
-          name={'complication'}
-          control={control}
-          errors={errors}
-          label={'Complication *'}
-          borderRadius='4px'
-          onChangeOverride={() => clearFieldErrors?.('complication')}
-        />
-
-        {/* <Card sx={{ borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <Typography
-          sx={{
-            fontWeight: 500,
-            fontSize: '20px',
-            letterSpacing: 0,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          Anaesthesia details
-        </Typography>
-        <Box
-          onClick={() => setOpenAddAnaesthesiaDrawer(true)}
-          sx={{
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            width: '100%',
-            height: '54px',
-            paddingTop: '17px',
-            paddingBottom: '18px',
-            paddingLeft: '4px',
-            borderRadius: '4px',
-            position: 'relative',
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              borderRadius: '4px',
-              background: `
-               linear-gradient(90deg, ${theme.palette.customColors.Outline} 0px 5px, transparent 5px 13px) 0 0 / 13px 1px,
-               linear-gradient(180deg, ${theme.palette.customColors.Outline} 0px 5px, transparent 5px 13px) calc(100% - 1px) 0 / 1px 13px,
-               linear-gradient(270deg, ${theme.palette.customColors.Outline} 0px 5px, transparent 5px 13px) 0 calc(100% - 1px) / 13px 1px,
-               linear-gradient(0deg, ${theme.palette.customColors.Outline} 0px 5px, transparent 5px 13px) 0 0 / 1px 13px
-             `,
-              backgroundRepeat: 'repeat-x, repeat-y, repeat-x, repeat-y',
-              pointerEvents: 'none'
-            }
-          }}
-        >
-          <Icon icon='mdi:plus' color={theme.palette.customColors.OnSurfaceVariant} fontSize={24} />
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: '16px',
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Add anaesthesia record{' '}
-          </Typography>
-        </Box>
-      </Card> */}
-
-        <Card sx={{ borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: '24px',
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Care Instructions
-          </Typography>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <Typography
-              sx={{
-                fontWeight: 500,
-                fontSize: '16px',
-                letterSpacing: 0,
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              Enter diet instructions
-            </Typography>
-            <ControlledTextField
-              control={control}
-              name={'dietInstructions'}
-              errors={errors}
-              borderRadius='4px'
-              placeholder={'Enter text'}
-            />
-          </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <Typography
-              sx={{
-                fontWeight: 500,
-                fontSize: '16px',
-                letterSpacing: 0,
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              Enter restriction activities with duration
-            </Typography>
-            <ControlledTextField
-              control={control}
-              name={'restrictions'}
-              errors={errors}
-              borderRadius='4px'
-              placeholder={'Enter text'}
-            />
-          </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <Typography
-              sx={{
-                fontWeight: 500,
-                fontSize: '16px',
-                letterSpacing: 0,
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              Additional notes
-            </Typography>
-            <ControlledTextField
-              sx={{ borderRadius: '4px', backgroundColor: '#FCF4AE99' }}
-              placeholder={'Enter text'}
-              control={control}
-              name={'additionalNotes'}
-              errors={errors}
-              borderRadius='4px'
-            />
-          </Box>
-        </Card>
-
-        <Card
-          sx={{
-            borderRadius: '8px',
-            padding: '24px',
-            paddingTop: '16px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '24px'
-          }}
-        >
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: '20px',
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Attachments
-          </Typography>
-
-          <ControlledMultiFileUpload
-            name='attachments'
-            control={control}
-            label='Upload files'
-            acceptedFileTypes='images,pdf,csv,audio,videos'
-          />
-        </Card>
-
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Button type='submit' variant='contained' disabled={isSubmitting} sx={{ minWidth: 160 }}>
-            {isSubmitting ? 'Submitting...' : 'Submit'}
-          </Button>
-          <Button type='submit' variant='contained' disabled={isSubmitting} sx={{ minWidth: 160 }}>
-            {isSubmitting ? 'Submitting...' : 'Submit'}
-          </Button>
-        </Box>
-      </Box>
-    </>
-  )
-}
-
 const extractSurgeryTemplates = response => {
   const candidates = [response, response?.data, response?.data?.data, response?.data?.templates, response?.templates]
 
@@ -856,6 +330,7 @@ const AddSurgeryRecord = () => {
   })
 
   const [activeTemplate, setActiveTemplate] = useState('')
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false)
   const [openAddAnaesthesiaDrawer, setOpenAddAnaesthesiaDrawer] = useState(false)
   const [openSurgeryTemplateDrawer, setOpenSurgeryTemplateDrawer] = useState(false)
   const [richNote, setRichNote] = useState(() => createEmptyRichTextValue())
@@ -1062,6 +537,19 @@ const AddSurgeryRecord = () => {
     [richNote, refetchSurgeryTemplates, applyTemplateToRichNote]
   )
 
+  const handleSaveTemplateInline = useCallback(
+    async templateName => {
+      const success = await handleSaveTemplate(templateName)
+
+      if (success) {
+        setShowSaveTemplate(false)
+      }
+
+      return success
+    },
+    [handleSaveTemplate, setShowSaveTemplate]
+  )
+
   const onSubmit = async formValues => {
     const hospitalCaseId = resolveHospitalCaseId(router.query)
 
@@ -1147,6 +635,7 @@ const AddSurgeryRecord = () => {
 
       <Card
         sx={{
+          boxShadow: 'none',
           p: '24px',
           borderRadius: '8px',
           display: 'flex',
@@ -1184,29 +673,468 @@ const AddSurgeryRecord = () => {
           component='form'
           onSubmit={handleSubmit(onSubmit)}
         >
-          <SurgeryRecordForm
+          <Grid container spacing={'24px'}>
+            <Grid item size={{ xs: 12 }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: '20px',
+                  letterSpacing: 0,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                Date and time of surgery
+                <Typography sx={{ color: theme.palette.customColors.Error }} variant='span'>
+                  *
+                </Typography>
+              </Typography>
+            </Grid>
+            <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+              <ControlledDatePicker
+                sx={{
+                  width: '100%',
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '4px',
+                    height: '56px'
+                  }
+                }}
+                name={'date'}
+                label='Date'
+                control={control}
+                renderInput={params => (
+                  <ControlledTextField
+                    {...params}
+                    fullWidth
+                    error={!!errors.date}
+                    helperText={errors.date?.message}
+                    borderRadius='4px'
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+              <ControlledTimePicker
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '4px',
+                    height: '56px'
+                  }
+                }}
+                label='Start Time'
+                name={'startTime'}
+                control={control}
+                renderInput={params => (
+                  <ControlledTextField
+                    {...params}
+                    fullWidth
+                    error={!!errors.startTime}
+                    helperText={errors.startTime?.message}
+                    borderRadius='4px'
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+              <ControlledTimePicker
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '4px',
+                    height: '56px'
+                  }
+                }}
+                name={'endTime'}
+                control={control}
+                label='End Time'
+                renderInput={params => (
+                  <ControlledTextField
+                    {...params}
+                    fullWidth
+                    error={!!errors.endTime}
+                    helperText={errors.endTime?.message}
+                    borderRadius='4px'
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+              <ControlledTextField
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '4px',
+                    height: '56px'
+                  }
+                }}
+                name={'duration'}
+                label='Surgery Duration'
+                control={control}
+                errors={errors}
+                borderRadius='4px'
+                onChangeOverride={() => clearErrors?.('duration')}
+              />
+            </Grid>
+          </Grid>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <Typography
+              sx={{
+                fontWeight: 500,
+                fontSize: '20px',
+                letterSpacing: 0,
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              Surgery details
+              <Typography sx={{ color: theme.palette.customColors.Error }} variant='span'>
+                *
+              </Typography>
+            </Typography>
+            <Grid container spacing={'24px'}>
+              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+                <ControlledAutocomplete
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px',
+                      height: '56px'
+                    }
+                  }}
+                  control={control}
+                  errors={errors}
+                  name={'procedure'}
+                  label='Name of Surgeon'
+                  options={procedureOptions}
+                  loading={isProceduresLoading}
+                  onInputChange={handleProcedureInputChange}
+                  onItemClear={handleProcedureClear}
+                  getOptionLabel={procedureGetOptionLabel}
+                  isOptionEqualToValue={procedureIsOptionEqualToValue}
+                  onChangeOverride={() => clearErrors?.('procedure')}
+                />
+              </Grid>
+              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+                <ControlledAutocomplete
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px',
+                      height: '56px'
+                    }
+                  }}
+                  control={control}
+                  errors={errors}
+                  name={'procedure'}
+                  label='Name of Procedure'
+                  options={procedureOptions}
+                  loading={isProceduresLoading}
+                  onInputChange={handleProcedureInputChange}
+                  onItemClear={handleProcedureClear}
+                  getOptionLabel={procedureGetOptionLabel}
+                  isOptionEqualToValue={procedureIsOptionEqualToValue}
+                  onChangeOverride={() => clearErrors?.('procedure')}
+                />
+              </Grid>
+              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+                <ControlledTextField
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px',
+                      height: '56px'
+                    }
+                  }}
+                  name={'typeOfSurgery'}
+                  label='Type of Surgery'
+                  control={control}
+                  errors={errors}
+                  borderRadius='4px'
+                  onChangeOverride={() => clearErrors?.('typeOfSurgery')}
+                />
+              </Grid>
+              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+                <ControlledTextField
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px',
+                      height: '56px'
+                    }
+                  }}
+                  name={'surgicalApproach'}
+                  label='Surgical Approach'
+                  control={control}
+                  errors={errors}
+                  borderRadius='4px'
+                  onChangeOverride={() => clearErrors?.('surgicalApproach')}
+                />
+              </Grid>
+            </Grid>
+
+            <Box
+              sx={{
+                backgroundColor: '#E8F4F266',
+                padding: '20px',
+                borderRadius: '8px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px'
+              }}
+            >
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <Typography
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: '16px',
+                    letterSpacing: 0,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  Enter surgery notes
+                </Typography>
+
+                <RichTextEditor value={richNote} onChange={setRichNote} placeholder='Enter text...' />
+              </Box>
+
+              {showSaveTemplate ? (
+                <SaveTemplateUI
+                  onClose={() => setShowSaveTemplate(false)}
+                  onSave={handleSaveTemplateInline}
+                  loading={isSavingTemplate}
+                />
+              ) : (
+                <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center', mb: '8px', cursor: 'pointer' }}>
+                  <Avatar
+                    src='/icons/FloppyDisk.svg'
+                    variant='square'
+                    sx={{ objectFit: 'contain', height: '24px', width: '24px' }}
+                  />
+                  <Typography
+                    onClick={() => setShowSaveTemplate(true)}
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '16px',
+                      letterSpacing: 0,
+                      color: theme.palette.primary.dark
+                    }}
+                  >
+                    Save as template
+                  </Typography>
+                </Box>
+              )}
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: '16px',
+                      letterSpacing: 0,
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    Select from templates
+                  </Typography>
+                  <Box
+                    onClick={() => setOpenSurgeryTemplateDrawer(true)}
+                    sx={{ display: 'flex', gap: '12px', alignItems: 'center', cursor: 'pointer' }}
+                  >
+                    <Typography sx={{ color: theme.palette.primary.dark }}>See all</Typography>
+                    <Icon icon='fa:angle-right' color={theme.palette.primary.dark} fontSize={24} />
+                  </Box>
+                </Box>
+                <Box
+                  sx={{
+                    flex: '1 1 auto',
+                    minWidth: 0,
+                    overflowX: 'auto',
+                    scrollbarColor: 'transparent transparent'
+                  }}
+                >
+                  <Box sx={{ display: 'inline-flex', gap: '10px', pr: 1 }}>
+                    {templateNames.map(template => {
+                      const templateLabel = typeof template === 'string' ? template : String(template || '')
+                      if (!templateLabel) {
+                        return null
+                      }
+                      return (
+                        <Box
+                          key={templateLabel}
+                          onClick={() => handleTemplateSelect(templateLabel)}
+                          sx={{
+                            flexShrink: 0,
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            p: '8px 24px',
+                            height: '40px',
+                            borderRadius: '8px',
+                            backgroundColor:
+                              activeTemplate === templateLabel
+                                ? theme.palette.secondary.dark
+                                : theme.palette.customColors.mdAntzNeutral,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              color:
+                                activeTemplate === templateLabel
+                                  ? theme.palette.primary.contrastText
+                                  : theme.palette.customColors.neutralPrimary,
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {templateLabel}
+                          </Typography>
+                        </Box>
+                      )
+                    })}
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+
+            <ControlledTextField
+              name={'complication'}
+              control={control}
+              errors={errors}
+              label={'Complication *'}
+              borderRadius='4px'
+              onChangeOverride={() => clearErrors?.('complication')}
+            />
+          </Box>
+        </Box>
+      </Card>
+
+      <Card
+        sx={{
+          borderRadius: '8px',
+          padding: '24px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px',
+          boxShadow: 'none'
+        }}
+      >
+        <Typography
+          sx={{
+            fontWeight: 500,
+            fontSize: '24px',
+            letterSpacing: 0,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          Care Instructions
+        </Typography>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: '16px',
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Enter diet instructions
+          </Typography>
+          <ControlledTextField
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '8px',
+                height: '63px'
+              }
+            }}
             control={control}
+            name={'dietInstructions'}
             errors={errors}
-            templates={templateNames}
-            activeTemplate={activeTemplate}
-            setOpenSurgeryTemplateDrawer={setOpenSurgeryTemplateDrawer}
-            setOpenAddAnaesthesiaDrawer={setOpenAddAnaesthesiaDrawer}
-            richNote={richNote}
-            onRichNoteChange={setRichNote}
-            isSubmitting={isSubmitting}
-            procedureOptions={procedureOptions}
-            procedureLoading={isProceduresLoading}
-            onProcedureInputChange={handleProcedureInputChange}
-            onProcedureClear={handleProcedureClear}
-            procedureGetOptionLabel={procedureGetOptionLabel}
-            procedureIsOptionEqualToValue={procedureIsOptionEqualToValue}
-            onSaveTemplate={handleSaveTemplate}
-            isSavingTemplate={isSavingTemplate}
-            clearFieldErrors={clearErrors}
-            onTemplateSelect={handleTemplateSelect}
+            borderRadius='4px'
+            placeholder={'Enter text'}
+          />
+        </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: '16px',
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Enter restriction activities with duration
+          </Typography>
+          <ControlledTextField
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '8px',
+                height: '63px'
+              }
+            }}
+            control={control}
+            name={'restrictions'}
+            errors={errors}
+            borderRadius='4px'
+            placeholder={'Enter text'}
+          />
+        </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: '16px',
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Additional notes
+          </Typography>
+          <ControlledTextField
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '8px',
+                height: '63px'
+              },
+              backgroundColor: '#FCF4AE99'
+            }}
+            placeholder={'Enter text'}
+            control={control}
+            name={'additionalNotes'}
+            errors={errors}
+            borderRadius='4px'
           />
         </Box>
       </Card>
+
+      <Card
+        sx={{
+          boxShadow: 'none',
+          borderRadius: '8px',
+          padding: '24px',
+          paddingTop: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px'
+        }}
+      >
+        <Typography
+          sx={{
+            fontWeight: 500,
+            fontSize: '20px',
+            letterSpacing: 0,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          Attachments
+        </Typography>
+
+        <ControlledMultiFileUpload
+          name='attachments'
+          control={control}
+          label='Upload files'
+          acceptedFileTypes='images,pdf,csv,audio,videos'
+        />
+      </Card>
+
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Button type='submit' variant='contained' disabled={isSubmitting} sx={{ minWidth: 160 }}>
+          {isSubmitting ? 'Submitting...' : 'Submit'}
+        </Button>
+      </Box>
 
       <AddAnaesthesiaRecordDrawer
         setOpenAddAnaesthesiaDrawer={setOpenAddAnaesthesiaDrawer}
