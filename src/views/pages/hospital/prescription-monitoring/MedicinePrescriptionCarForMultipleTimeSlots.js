@@ -301,10 +301,16 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
   // Handle individual medication selection
   const handleMedicationSelect = (medicationId, checked) => {
     setSelectedMedications(prev => {
-      if (checked) {
-        return [...prev, medicationId]
+      // For controlled substances, only allow single selection (radio behavior)
+      if (isControlledSubstance) {
+        return checked ? [medicationId] : []
       } else {
-        return prev.filter(id => id !== medicationId)
+        // For non-controlled substances, allow multiple selection (checkbox behavior)
+        if (checked) {
+          return [...prev, medicationId]
+        } else {
+          return prev.filter(id => id !== medicationId)
+        }
       }
     })
   }
