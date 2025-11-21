@@ -19,11 +19,13 @@ import {
   addDirectAdministerPrescription,
   addPrescription,
   getFrequency,
-  getMedicineBatches
+  getMedicineBatches,
+  getPrescriptions
 } from 'src/lib/api/hospital/prescription'
 import Utility from 'src/utility'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
+import { useHospital } from 'src/context/HospitalContext'
 
 export default function AddMedicineToPrescription() {
   const theme = useTheme()
@@ -187,11 +189,14 @@ export default function AddMedicineToPrescription() {
   const [batchSearchQuery, setBatchSearchQuery] = useState('')
   const [batchLoading, setBatchLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPrescriptionListLoading, setIsPrescriptionListLoading] = useState(false)
+  const [medicationData, setMedicationData] = useState([])
+
+  const { selectedHospital: hospital } = useHospital()
 
   const debouncedBatchSearch = useCallback(
     debounce(async (medicineId, query = '') => {
       if (!medicineId) {
-        console.log('No medicineId provided, skipping batch fetch')
         setBatchList([])
 
         return
@@ -223,7 +228,6 @@ export default function AddMedicineToPrescription() {
 
   const fetchMedicineBatches = useCallback(
     (medicineId, query = '') => {
-      console.log('Fetching batches for medicineId:', medicineId, 'with query:', query)
       debouncedBatchSearch(medicineId, query)
     },
     [debouncedBatchSearch]
@@ -270,13 +274,9 @@ export default function AddMedicineToPrescription() {
   // Add batch search handler - wrap in useCallback to maintain debounce
   const handleBatchSearch = useCallback(
     value => {
-      console.log('Batch search triggered with value:', value)
       setBatchSearchQuery(value)
       if (temporarilySelectedMedicine?.id) {
-        console.log('Calling fetchMedicineBatches for medicine:', temporarilySelectedMedicine.id)
         fetchMedicineBatches(temporarilySelectedMedicine.id, value)
-      } else {
-        console.log('No medicine selected, skipping batch search')
       }
     },
     [temporarilySelectedMedicine?.id, fetchMedicineBatches]
@@ -324,7 +324,6 @@ export default function AddMedicineToPrescription() {
     try {
       const response = await getFrequency()
       if (response?.success) {
-        console.log('Frequency Response:', response?.data)
         setFrequencyData(response?.data?.map(item => ({ ...item, value: item.id })) || [])
         setMedicalMasterData(prevData => ({
           ...prevData,
@@ -443,6 +442,13 @@ export default function AddMedicineToPrescription() {
     fetchMedicalMasterData()
   }, [])
 
+  // Fetch prescription list when required params are available
+  useEffect(() => {
+    if (hospital?.id && animal_id && id) {
+      getPrescriptionList()
+    }
+  }, [hospital?.id, animal_id, id])
+
   useEffect(() => {
     const getPatientInfo = async () => {
       setPatientLoading(true)
@@ -464,6 +470,41 @@ export default function AddMedicineToPrescription() {
 
     getPatientInfo()
   }, [id])
+
+  const getPrescriptionList = async () => {
+    try {
+      setIsPrescriptionListLoading(true)
+
+      const payload = {
+        hospital_id: hospital?.id || '',
+        animal_id: animal_id || '',
+        medical_type: 'prescription',
+        type: 'active',
+        medical_record_id: medical_record_id || '',
+        generate_for_date: new Date().toISOString().split('T')[0],
+        medical_record_id: '',
+        hospital_case_id: id || ''
+      }
+
+      const response = await getPrescriptions(payload)
+
+      if (response?.success) {
+        const prescriptions = response?.data?.prescriptions?.map(item => ({
+          ...item,
+          status: item?.status ? item?.status?.toLowerCase() : null
+        }))
+        setMedicationData(prescriptions)
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {
+      console.error('Error fetching prescription list:', error)
+
+      Toaster({ type: 'error', message: error || 'Something went wrong' })
+    } finally {
+      setIsPrescriptionListLoading(false)
+    }
+  }
 
   // Add this after the existing useEffect for getPatientInfo
   useEffect(() => {
@@ -598,6 +639,9 @@ export default function AddMedicineToPrescription() {
         // Reset form values to default after successful submission
         resetForm()
 
+        // Refresh prescription list
+        await getPrescriptionList()
+
         return response
       } else {
         Toaster({ type: 'error', message: response?.message })
@@ -725,12 +769,14 @@ export default function AddMedicineToPrescription() {
         ])
       }
 
-      console.log('Direct Administer Payload:', payload)
       const response = await addDirectAdministerPrescription(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Direct administer record added successfully' })
         resetForm()
+
+        // Refresh prescription list
+        await getPrescriptionList()
 
         return response
       } else {
@@ -748,22 +794,13 @@ export default function AddMedicineToPrescription() {
     }
   }
 
-  // useEffect(() => {
-  //   if (Object.keys(errors).length > 0) {
-  //     console.log('Form validation errors:', errors)
-  //   }
-  // }, [errors])
-
   const submitHandler = handleSubmit(async data => {
     try {
-      console.log('Form data to submit:', data)
 
       const isDirectAdminister = data.selectMedicineType === 'Direct Administer'
       let response = null
-      console.log('isDirectAdminister:', isDirectAdminister)
       if (isDirectAdminister) {
         response = await handleDirectAdminister(data, medicalMasterData, medical_record_id, temporarilySelectedMedicine)
-        console.log('Direct Administer Response:', response)
       } else {
         response = await handleScheduledPrescription(
           data,
@@ -905,6 +942,7 @@ export default function AddMedicineToPrescription() {
           <PrescriptionMedicineList
             medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
             temporarilySelectedMedicine={temporarilySelectedMedicine}
+
             // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
             selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
             onSelect={handleMedicineSelect}
@@ -915,6 +953,7 @@ export default function AddMedicineToPrescription() {
             loading={medicineLoading}
             searching={searching}
             error={errors.selectedMedicine?.message || errors.selectedMedicineId?.message}
+            prescribedMedicines={medicationData} // Added this line
           />
         </Grid>
         <Grid size={{ xs: 12, md: 5, lg: 5 }}>

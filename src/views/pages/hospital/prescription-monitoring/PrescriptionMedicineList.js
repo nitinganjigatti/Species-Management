@@ -8,7 +8,8 @@ import {
   Typography,
   CircularProgress,
   IconButton,
-  Radio
+  Radio,
+  Tooltip
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
@@ -37,9 +38,20 @@ export default function PrescriptionMedicineList({
   handleScroll,
   loading,
   searching,
-  error
+  error,
+  prescribedMedicines = []
 }) {
   const theme = useTheme()
+
+  const isMedicinePrescribed = medicineId => {
+    const isPrescribed = prescribedMedicines.some(prescription => prescription?.schedule?.[0]?.medicine_id === medicineId.toString())
+
+    // if (isPrescribed) {
+    //   console.log(` Medicine ${medicineId} is already prescribed`)
+    // }
+
+    return isPrescribed
+  }
 
   return (
     <Box sx={{ pt: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -122,8 +134,10 @@ export default function PrescriptionMedicineList({
           medicineList.map((medicine, index) => {
             const isSelected = selectedMedicine?.includes(medicine?.id)
             const isTemporarilySelected = temporarilySelectedMedicine?.id === medicine?.id
+            const isPrescribed = isMedicinePrescribed(medicine?.id)
+            const isDisabled = isPrescribed
 
-            return (
+            const MedicineRow = (
               <Box
                 key={medicine?.id}
                 sx={{
@@ -134,14 +148,18 @@ export default function PrescriptionMedicineList({
                   py: 3.7,
                   display: 'flex',
                   alignItems: 'center',
-                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  opacity: isDisabled ? 0.5 : 1,
+                  cursor: isDisabled ? 'not-allowed' : 'pointer',
+                  pointerEvents: isDisabled ? 'none' : 'auto'
                 }}
               >
                 <FormControlLabel
                   control={
                     <Radio
                       checked={isSelected || isTemporarilySelected}
-                      onChange={() => onSelect(medicine)}
+                      onChange={() => !isDisabled && onSelect(medicine)}
+                      disabled={isDisabled}
                       sx={{
                         transform: 'scale(0.8)',
                         padding: '4px'
@@ -153,7 +171,7 @@ export default function PrescriptionMedicineList({
                     flex: 1,
                     m: 0,
                     '& .MuiFormControlLabel-label': {
-                      color: theme.palette.customColors.OnSurfaceVariant,
+                      color: isDisabled ? theme.palette.text.disabled : theme.palette.customColors.OnSurfaceVariant,
                       fontSize: '16px',
                       fontWeight: 600
                     }
@@ -162,8 +180,7 @@ export default function PrescriptionMedicineList({
                 <Typography
                   sx={{
                     width: '200px',
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontFamily: 'Inter',
+                    color: isDisabled ? theme.palette.text.disabled : theme.palette.customColors.OnSurfaceVariant,
                     fontWeight: 500,
                     fontStyle: 'italic',
                     fontSize: '14px',
@@ -176,6 +193,16 @@ export default function PrescriptionMedicineList({
                 </Typography>
               </Box>
             )
+
+            if (isDisabled) {
+              return (
+                <Tooltip key={medicine?.id} title='This medicine is already prescribed' placement='left' arrow>
+                  {MedicineRow}
+                </Tooltip>
+              )
+            }
+
+            return MedicineRow
           })
         )}
 
