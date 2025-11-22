@@ -43,6 +43,20 @@ const ComposeReportNavigation = ({
     openInNewTab: true
   }
 
+  const userReports = {
+    title: 'User Reports',
+    path: '/reports/users/',
+    icon: 'mdi:chart-bar',
+    openInNewTab: true
+  }
+
+  const assessmentDashboard = {
+    title: 'Assessment Dashboard',
+    path: '/reports/assessment-dashboard/',
+    icon: 'mdi:chart-bar',
+    openInNewTab: true
+  }
+
   const reportNavigationArray = []
   if (enable_specie_report || enable_daily_report || enable_animal_report) {
     reportNavigationArray.push(reportTitle)
@@ -64,6 +78,12 @@ const ComposeReportNavigation = ({
   }
   if (enable_specie_report) {
     reportNavigationArray.push(keyinsights)
+  }
+  if (enable_daily_report) {
+    reportNavigationArray.push(userReports)
+  }
+  if (enable_animal_assessment_report) {
+    reportNavigationArray.push(assessmentDashboard)
   }
 
   return reportNavigationArray

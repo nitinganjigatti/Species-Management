@@ -27,6 +27,22 @@ module.exports = {
       {
         source: '/reports/keyinsights/',
         destination: '/reports/keyinsights/index.html'
+      },
+      {
+        source: '/reports/users',
+        destination: '/reports/users/index.html'
+      },
+      {
+        source: '/reports/users/',
+        destination: '/reports/users/index.html'
+      },
+      {
+        source: '/reports/assessment-dashboard',
+        destination: '/reports/assessment-dashboard/index.html'
+      },
+      {
+        source: '/reports/assessment-dashboard/',
+        destination: '/reports/assessment-dashboard/index.html'
       }
     ]
   },

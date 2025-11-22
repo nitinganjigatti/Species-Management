@@ -1,55 +1,64 @@
 #!/bin/bash
 
-# Multi-Repository React Dashboard Deployment Script
+# Multi-Repository React Dashboard Deployment Script with Auth
 # Called from Next.js deploy.sh
-# Usage: ./deploy-react-dashboard.sh <branch> <environment> <nextjs-app-dir>
-# Example: ./deploy-react-dashboard.sh dev development /var/www/apps/antz_web
+# Usage: ./deploy-react-dashboard-auth.sh <username> <password> <branch> <environment> <nextjs-app-dir>
+# Example: ./deploy-react-dashboard-auth.sh myuser mypass dev development /var/www/apps/antz_web
 
 set -e  # Exit on any error
 
 # ========================================
 # REPOSITORY CONFIGURATION
 # Add new repositories here with their destination paths
-# Format: "repository_url|destination_path"
+# Format: "https_repository_url|destination_path"
+# NOTE: Use HTTPS URLs (not SSH) for authentication
 # ========================================
 declare -a DEPLOYMENTS=(
-  "git@github.com:Antz-Ai-Dashboards/antz-key-insights.git|public/reports/keyinsights"
-  "git@github.com:Antz-Ai-Dashboards/antz-user-dashboard.git|public/reports/users"
-  "git@github.com:Antz-Ai-Dashboards/antz-assessment-dashboard.git|public/reports/assessment-dashboard"
+  "https://github.com/Antz-Ai-Dashboards/antz-key-insights.git|public/reports/keyinsights"
+  "https://github.com/Antz-Ai-Dashboards/antz-user-dashboard.git|public/reports/users"
   # Add more repositories here as needed
-  # "git@github.com:Antz-Ai-Dashboards/another-dashboard.git|public/reports/another"
+  # "https://github.com/Antz-Ai-Dashboards/another-dashboard.git|public/reports/another"
 )
 
-# Parse arguments - handle both 2 and 3 argument cases
-if [ $# -eq 2 ]; then
-  # 2 arguments: environment nextjs-dir (branch defaults to main)
+# Parse arguments - require username and password
+if [ $# -eq 4 ]; then
+  # 4 arguments: username password environment nextjs-dir (branch defaults to main)
+  GIT_USERNAME=$1
+  GIT_PASSWORD=$2
   BRANCH="main"
-  ENVIRONMENT=$1
-  NEXTJS_APP_DIR=$2
-elif [ $# -eq 3 ]; then
-  # 3 arguments: branch environment nextjs-dir
-  BRANCH=$1
-  ENVIRONMENT=$2
-  NEXTJS_APP_DIR=$3
+  ENVIRONMENT=$3
+  NEXTJS_APP_DIR=$4
+elif [ $# -eq 5 ]; then
+  # 5 arguments: username password branch environment nextjs-dir
+  GIT_USERNAME=$1
+  GIT_PASSWORD=$2
+  BRANCH=$3
+  ENVIRONMENT=$4
+  NEXTJS_APP_DIR=$5
 else
-  echo "❌ Usage: ./deploy-react-dashboard.sh <environment> <nextjs-app-dir>"
-  echo "   Or: ./deploy-react-dashboard.sh <branch> <environment> <nextjs-app-dir>"
+  echo "❌ Usage: ./deploy-react-dashboard-auth.sh <username> <password> <environment> <nextjs-app-dir>"
+  echo "   Or: ./deploy-react-dashboard-auth.sh <username> <password> <branch> <environment> <nextjs-app-dir>"
   echo ""
   echo "Examples:"
-  echo "  ./deploy-react-dashboard.sh production /var/www/apps/source-code/antz_web"
-  echo "  ./deploy-react-dashboard.sh dev development /var/www/apps/source-code/antz_web"
+  echo "  ./deploy-react-dashboard-auth.sh myuser mypass production /var/www/apps/source-code/antz_web"
+  echo "  ./deploy-react-dashboard-auth.sh myuser mypass dev development /var/www/apps/source-code/antz_web"
   exit 1
 fi
 
 echo ""
 echo "========================================="
-echo "🎨 Multi-Dashboard Deployment"
+echo "🎨 Multi-Dashboard Deployment (Auth)"
 echo "========================================="
+echo "Username: $GIT_USERNAME"
 echo "Branch: $BRANCH"
 echo "Environment: $ENVIRONMENT"
 echo "Next.js Directory: $NEXTJS_APP_DIR"
 echo "Total Dashboards: ${#DEPLOYMENTS[@]}"
 echo "========================================="
+
+# URL encode username and password for git
+ENCODED_USERNAME=$(printf %s "$GIT_USERNAME" | jq -sRr @uri)
+ENCODED_PASSWORD=$(printf %s "$GIT_PASSWORD" | jq -sRr @uri)
 
 # Load NVM
 export NVM_DIR=~/.nvm
@@ -64,15 +73,18 @@ declare -a DEPLOYMENT_RESULTS=()
 
 # Function to deploy a single dashboard
 deploy_dashboard() {
-  local REPO=$1
+  local REPO_BASE=$1
   local DEST_PATH=$2
-  local REPO_NAME=$(basename "$REPO" .git)
+  local REPO_NAME=$(basename "$REPO_BASE" .git)
+
+  # Build authenticated URL by injecting credentials
+  local REPO_URL="https://${ENCODED_USERNAME}:${ENCODED_PASSWORD}@${REPO_BASE#https://}"
 
   echo ""
   echo "========================================="
   echo "📦 Deploying: $REPO_NAME"
   echo "========================================="
-  echo "Repository: $REPO"
+  echo "Repository: $REPO_BASE"
   echo "Destination: $DEST_PATH"
   echo "========================================="
 
@@ -87,7 +99,7 @@ deploy_dashboard() {
 
   # Clone repository to temp directory
   echo "📥 Cloning repository..."
-  if ! git clone --depth 1 -b "$BRANCH" "$REPO" "$TEMP_BUILD_DIR"; then
+  if ! git clone --depth 1 -b "$BRANCH" "$REPO_URL" "$TEMP_BUILD_DIR" 2>&1 | grep -v "Password"; then
     echo "❌ Failed to clone repository: $REPO_NAME"
     rm -rf "$TEMP_BUILD_DIR"
     return 1
@@ -167,12 +179,12 @@ deploy_dashboard() {
 # Loop through all configured deployments
 for deployment in "${DEPLOYMENTS[@]}"; do
   # Split the configuration into repo and destination
-  IFS='|' read -r REPO DEST_PATH <<< "$deployment"
+  IFS='|' read -r REPO_BASE DEST_PATH <<< "$deployment"
 
-  REPO_NAME=$(basename "$REPO" .git)
+  REPO_NAME=$(basename "$REPO_BASE" .git)
 
   # Deploy the dashboard
-  if deploy_dashboard "$REPO" "$DEST_PATH"; then
+  if deploy_dashboard "$REPO_BASE" "$DEST_PATH"; then
     SUCCESSFUL_DEPLOYMENTS=$((SUCCESSFUL_DEPLOYMENTS + 1))
     DEPLOYMENT_RESULTS+=("✅ $REPO_NAME")
   else
