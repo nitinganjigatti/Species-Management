@@ -12,6 +12,8 @@ import dayjs from 'dayjs'
 import { useQuery } from '@tanstack/react-query'
 
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { useAuth } from 'src/hooks/useAuth'
 import AddAnaesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnaesthesiaRecord'
 import SelectAnesthesiaRecordDrawer from 'src/components/hospital/inpatient/SelectAnesthesiaRecordDrawer'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
@@ -403,6 +405,7 @@ const schema = yup.object().shape({
 const AddSurgeryRecord = () => {
   const router = useRouter()
   const theme = useTheme()
+  const auth = useAuth()
 
   const resolvedHospitalCaseId = useMemo(() => resolveHospitalCaseId(router.query), [router.query])
   const [patientData, setPatientData] = useState(null)
@@ -410,6 +413,7 @@ const AddSurgeryRecord = () => {
     () => (patientData?.admitted_at ? dayjs(patientData.admitted_at) : null),
     [patientData?.admitted_at]
   )
+  const userZooId = useMemo(() => auth?.userData?.user?.zoos?.[0]?.zoo_id, [auth?.userData])
   const defaultNow = useMemo(() => dayjs(), [])
   const formResolver = useMemo(() => yupResolver(schema, { context: { admissionDateTime } }), [admissionDateTime])
 
@@ -453,6 +457,7 @@ const AddSurgeryRecord = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSavingTemplate, setIsSavingTemplate] = useState(false)
   const [procedureSearchTerm, setProcedureSearchTerm] = useState('')
+  const [surgeonSearchTerm, setSurgeonSearchTerm] = useState('')
   const selectedDate = watch('date')
   const startTimeValue = watch('startTime')
   const endTimeValue = watch('endTime')
@@ -522,6 +527,55 @@ const AddSurgeryRecord = () => {
 
     return Array.from(unique.values())
   }, [surgeryMasterResponse])
+
+  const {
+    data: surgeonsResponse,
+    isFetching: isSurgeonsLoading
+  } = useQuery({
+    queryKey: ['surgeon-list', surgeonSearchTerm, userZooId],
+    queryFn: async () => {
+      const zooId = userZooId
+
+      if (!zooId) {
+        return []
+      }
+
+      const params = { zoo_id: zooId }
+      const trimmed = surgeonSearchTerm.trim()
+
+      if (trimmed) {
+        params.q = trimmed
+      }
+
+      const res = await getUserList(params)
+
+      if (res?.success) {
+        return Array.isArray(res?.data) ? res.data : []
+      }
+
+      throw new Error(res?.message || 'Failed to fetch surgeons')
+    },
+    keepPreviousData: true,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+    enabled: Boolean(userZooId),
+    onError: error => {
+      console.error('Failed to fetch surgeons:', error)
+      Toaster({ type: 'error', message: error?.message || 'Failed to load surgeon list' })
+    }
+  })
+
+  const surgeonOptions = useMemo(() => {
+    if (!Array.isArray(surgeonsResponse)) return []
+
+    return surgeonsResponse
+      .map(user => ({
+        label: getSafeString(user?.user_name),
+        value: getSafeString(user?.user_id),
+        default_icon: user?.user_profile_pic
+      }))
+      .filter(item => item.label && item.value)
+  }, [surgeonsResponse])
 
   const surgeryTemplates = useMemo(() => extractSurgeryTemplates(surgeryTemplatesResponse), [surgeryTemplatesResponse])
 
@@ -681,6 +735,33 @@ const AddSurgeryRecord = () => {
     const selectedId = getSurgeryIdentifier(selected)
 
     if (optionId !== '' && selectedId !== '') {
+      return String(optionId) === String(selectedId)
+    }
+
+    return option?.label === selected?.label
+  }, [])
+
+  const handleSurgeonInputChange = useCallback(value => {
+    if (typeof value === 'string') {
+      setSurgeonSearchTerm(value)
+    } else {
+      setSurgeonSearchTerm('')
+    }
+  }, [])
+
+  const handleSurgeonClear = useCallback(() => {
+    setSurgeonSearchTerm('')
+  }, [])
+
+  const surgeonGetOptionLabel = useCallback(option => option?.label || '', [])
+
+  const surgeonIsOptionEqualToValue = useCallback((option, selected) => {
+    if (!option || !selected) return false
+
+    const optionId = option?.value ?? option?.id
+    const selectedId = selected?.value ?? selected?.id
+
+    if (optionId !== undefined && selectedId !== undefined) {
       return String(optionId) === String(selectedId)
     }
 
@@ -994,6 +1075,7 @@ const AddSurgeryRecord = () => {
                 control={control}
                 errors={errors}
                 borderRadius='4px'
+                readOnly
                 onChangeOverride={() => clearErrors?.('duration')}
               />
             </Grid>
@@ -1015,28 +1097,28 @@ const AddSurgeryRecord = () => {
             </Typography>
             <Grid container spacing={'24px'}>
               <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
-                <ControlledAutocomplete
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '4px',
-                      height: '56px'
-                    }
-                  }}
-                  control={control}
-                  errors={errors}
-                  name={'surgeon'}
-                  label='Name of Surgeon'
-                  options={procedureOptions}
-                  loading={isProceduresLoading}
-                  onInputChange={handleProcedureInputChange}
-                  onItemClear={handleProcedureClear}
-                  getOptionLabel={procedureGetOptionLabel}
-                  isOptionEqualToValue={procedureIsOptionEqualToValue}
-                  onChangeOverride={() => clearErrors?.('surgeon')}
-                />
-              </Grid>
-              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
-                <ControlledAutocomplete
+              <ControlledAutocomplete
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '4px',
+                    height: '56px'
+                  }
+                }}
+                control={control}
+                errors={errors}
+                name={'surgeon'}
+                label='Name of Surgeon'
+                options={surgeonOptions}
+                loading={isSurgeonsLoading}
+                onInputChange={handleSurgeonInputChange}
+                onItemClear={handleSurgeonClear}
+                getOptionLabel={surgeonGetOptionLabel}
+                isOptionEqualToValue={surgeonIsOptionEqualToValue}
+                onChangeOverride={() => clearErrors?.('surgeon')}
+              />
+            </Grid>
+            <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+              <ControlledAutocomplete
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '4px',
