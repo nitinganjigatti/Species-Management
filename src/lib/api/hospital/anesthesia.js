@@ -7,7 +7,6 @@ import {
   GET_VITAL_MONITORING_LIST,
   GET_ANESTHESIA_DETAIL,
   GET_ANESTHESIA_LIST,
-  GET_ANESTHESIA_DETAIL,
   DELETE_ANESTHESIA
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'

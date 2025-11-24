@@ -299,7 +299,7 @@ const sections = [
 
 export default function AddAnesthesiaRecord() {
   const router = useRouter()
-  const { id, hospital_case_id, medical_record_id, hospital_id } = router.query
+  const { id, hospital_case_id, medical_record_id, hospital_id, anaesthesia_id } = router.query
   const [expanded, setExpanded] = useState('basicDetails')
   const [isBasicDetailsValid, setIsBasicDetailsValid] = useState(false)
   const [isApiSuccess, setIsApiSuccess] = useState(false)
@@ -317,7 +317,6 @@ export default function AddAnesthesiaRecord() {
   const sectionRefs = React.useRef({})
   const scrollContainerRef = React.useRef(null)
   const theme = useTheme()
-  let anaesthesia_id = 78
 
   const getUserLists = async (query = '') => {
     try {
@@ -575,6 +574,22 @@ export default function AddAnesthesiaRecord() {
     resolver: yupResolver(anesthesiaSchema),
     reValidateMode: 'onChange'
   })
+
+  const handleCancel = () => {
+    const href = router?.query?.hospital_case_id
+      ? {
+          pathname: `/hospital/inpatient/${router?.query?.hospital_case_id}/`,
+          query: {
+            medical_record_id: patientData?.medical_record_id,
+            animal_id: router?.query?.animal_id,
+            animal_admitted_date: router?.query?.animal_admitted_date,
+            tab: router?.query?.tab
+          }
+        }
+      : `/hospital/inpatient/${router?.query?.hospital_case_id}/`
+
+    router.push(href)
+  }
 
   const {
     handleSubmit,
@@ -2155,7 +2170,9 @@ export default function AddAnesthesiaRecord() {
       const blocks = formColumnsToVitalMonitoringBlocks(columns, vitalMonitorList)
 
       const formData = new FormData()
-
+      if (anaesthesia_id) {
+        formData.append('anaesthesia_id', anaesthesia_id)
+      }
       formData.append('hospital_case_id', hospital_case_id || '')
       formData.append('medical_record_id', medical_record_id || '')
       formData.append('location', data.basicDetails.location)
@@ -2400,7 +2417,7 @@ export default function AddAnesthesiaRecord() {
                     key={sec.id}
                     label={sec.label}
                     value={sec.id}
-                    //disabled={isDisabled}
+                    disabled={isDisabled}
                     sx={{
                       color:
                         sec.id !== 'basicDetails' && !shouldEnableSections
@@ -2449,14 +2466,14 @@ export default function AddAnesthesiaRecord() {
                   ref={el => (sectionRefs.current[id] = el)}
                   sx={{
                     mb: 2,
-                    borderRadius: '8px'
-                    // boxShadow: 0,
-                    // '&:before': { display: 'none' },
-                    // ...(isDisabled && {
-                    //   opacity: 0.6,
-                    //   pointerEvents: 'none',
-                    //   backgroundColor: theme.palette.common.white
-                    // })
+                    borderRadius: '8px',
+                    boxShadow: 0,
+                    '&:before': { display: 'none' },
+                    ...(isDisabled && {
+                      opacity: 0.6,
+                      pointerEvents: 'none',
+                      backgroundColor: theme.palette.common.white
+                    })
                   }}
                 >
                   <AccordionSummary
@@ -2530,6 +2547,7 @@ export default function AddAnesthesiaRecord() {
             </Box>
           }
           onAdd={handleSubmit(onValid, onInvalid)}
+          onCancel={handleCancel}
           width={200}
           height={50}
           isSubmitLoading={isSubmitting}

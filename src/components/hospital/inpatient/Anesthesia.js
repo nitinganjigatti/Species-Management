@@ -528,6 +528,28 @@ function Anesthesia({ hospitalCaseId, patientData }) {
     setDeleteDialogOpen(false)
   }, [deleteLoading])
 
+  const handleEditClick = value => {
+    const resolvedCaseId = resolvedHospitalCaseId
+    const animalId = normalizeQueryValue(router?.query?.animal_id)
+
+    const href = resolvedCaseId
+      ? {
+          pathname: `/hospital/inpatient/AddAnesthesiaRecord/`,
+          query: {
+            hospital_case_id: resolvedCaseId,
+            medical_record_id: patientData?.medical_record_id,
+            hospital_id: patientData?.hospital_id,
+            animal_id: animalId,
+            animal_admitted_date: router?.query?.animal_admitted_date,
+            tab: router?.query?.tab,
+            anaesthesia_id: value?.anaesthesia_id
+          }
+        }
+      : '/hospital/inpatient/AddAnesthesiaRecord'
+
+    router.push(href)
+  }
+
   const handleDeleteConfirm = useCallback(async () => {
     if (!activeRecordAnesthesiaId) return
 
@@ -680,7 +702,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
             hospital_case_id: resolvedCaseId,
             medical_record_id: patientData?.medical_record_id,
             hospital_id: patientData?.hospital_id,
-            animal_id: animalId
+            animal_id: animalId,
+            animal_admitted_date: router?.query?.animal_admitted_date,
+            tab: router?.query?.tab
           }
         }
       : '/hospital/inpatient/AddAnesthesiaRecord'
@@ -797,7 +821,8 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                   component='img'
                   src='/icons/pencil_outlined.svg'
                   alt='Edit'
-                  sx={{ width: 18, height: 18, cursor: 'pointer' }}
+                  sx={{ width: 24, height: 24, cursor: 'pointer' }}
+                  onClick={() => handleEditClick(anesthesiaDetail)}
                 />
                 <Box
                   component='img'
@@ -805,7 +830,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                   alt='Delete'
                   sx={{
                     width: 24,
-                    height: 16,
+                    height: 24,
                     cursor: activeRecordAnesthesiaId ? 'pointer' : 'not-allowed',
                     opacity: activeRecordAnesthesiaId ? 1 : 0.4
                   }}
@@ -1527,16 +1552,16 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                     </Tooltip>
                   </Box>
                 </Box>
-              <Box
-                sx={theme => ({
-                  gap: '3px',
-                  background: theme.palette.customColors.Notes,
-                  width: '100%',
-                  px: 4,
-                  py: 2,
-                  borderRadius: '8px'
-                })}
-              >
+                <Box
+                  sx={theme => ({
+                    gap: '3px',
+                    background: theme.palette.customColors.Notes,
+                    width: '100%',
+                    px: 4,
+                    py: 2,
+                    borderRadius: '8px'
+                  })}
+                >
                   <Typography
                     sx={{
                       mb: '4px',
