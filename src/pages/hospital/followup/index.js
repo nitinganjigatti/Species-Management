@@ -1,38 +1,34 @@
 import { useTheme } from '@emotion/react'
 import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem } from '@mui/material'
-import { minWidth } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
-import { differenceInDays } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { visitTypeOptions } from 'src/constants/Constants'
+import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
 import { useHospital } from 'src/context/HospitalContext'
-import { getFollowUpPatientsListings, getPatientsMortalityListings } from 'src/lib/api/hospital/inpatient'
+import { getFollowUpPatientsListings } from 'src/lib/api/hospital/inpatient'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
-import { VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
 
-const HospitalDischarged = () => {
+const HospitalFollowUp = () => {
   const theme = useTheme()
   const router = useRouter()
 
   const { selectedHospital } = useHospital()
 
   const [searchValue, setSearchValue] = useState('')
-  const [selectedVisitType, setSelectedVisitType] = useState('')
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
   const [filterDate, setFilterDate] = useState({})
 
   const [selectedOptions, setSelectedOptions] = useState({
-    User: [],
+    'Chief Veterinarian': [],
     'Origin Site': []
   })
 
@@ -70,25 +66,17 @@ const HospitalDischarged = () => {
   }
 
   const { data, isFetching, refetch } = useQuery({
-    queryKey: [
-      'patients-discharge-follow-up-listings',
-      filters,
-      selectedVisitType,
-      selectedHospital?.id,
-      filterDate,
-      selectedOptions
-    ],
+    queryKey: ['patients-discharge-follow-up-listings', filters, selectedHospital?.id, filterDate, selectedOptions],
     queryFn: () =>
       getFollowUpPatientsListings({
         page_no: filters?.page,
         limit: filters?.limit,
         q: filters?.q,
         hospital_id: 1,
-        visit_type: selectedVisitType,
         hospital_id: selectedHospital?.id,
         from_date: formatDate(filterDate.startDate),
         to_date: formatDate(filterDate.endDate),
-        users: prepareFilterParams('User'),
+        users: prepareFilterParams('Chief Veterinarian'),
         origin_site: prepareFilterParams('Origin Site')
       })
   })
@@ -169,7 +157,7 @@ const HospitalDischarged = () => {
       )
     },
     {
-      width: 300,
+      width: 350,
       minWidth: 20,
       sortable: false,
       field: 'animal_name',
@@ -315,18 +303,6 @@ const HospitalDischarged = () => {
                   filterDates={filterDate}
                   onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
                 />
-                <Select
-                  size='small'
-                  value={selectedVisitType}
-                  displayEmpty
-                  onChange={e => setSelectedVisitType(e.target.value)}
-                >
-                  {visitTypeOptions?.map((item, index) => (
-                    <MenuItem key={index} value={item?.value}>
-                      {item?.label}
-                    </MenuItem>
-                  ))}
-                </Select>
                 <FilterButtonWithNotification
                   onClick={() => setOpenFilterDrawer(true)}
                   appliedFiltersCount={filterCount}
@@ -362,8 +338,17 @@ const HospitalDischarged = () => {
           </Card>
         </Box>
       </Box>
+      {openFilterDrawer && (
+        <InpatientFilterDrawer
+          open={openFilterDrawer}
+          onClose={() => setOpenFilterDrawer(false)}
+          onApplyFilters={applyFilters}
+          setFilterCount={setFilterCount}
+          initialSelectedOptions={selectedOptions}
+        />
+      )}
     </>
   )
 }
 
-export default HospitalDischarged
+export default HospitalFollowUp

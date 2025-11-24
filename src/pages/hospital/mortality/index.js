@@ -1,15 +1,12 @@
 import { useTheme } from '@emotion/react'
 import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem } from '@mui/material'
-import { minWidth } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
-import { differenceInDays } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import MortalityFilterDrawer from 'src/components/hospital/drawer/MortalityFilterDrawer'
+import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
 import { visitTypeOptions } from 'src/constants/Constants'
-import { AuthContext } from 'src/context/AuthContext'
 import { useHospital } from 'src/context/HospitalContext'
 import { getPatientsMortalityListings } from 'src/lib/api/hospital/inpatient'
 import Utility from 'src/utility'
@@ -21,7 +18,7 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
 
-const HospitalDischarged = () => {
+const HospitalMortality = () => {
   const theme = useTheme()
   const router = useRouter()
 
@@ -34,7 +31,7 @@ const HospitalDischarged = () => {
   const [filterDate, setFilterDate] = useState({})
 
   const [selectedOptions, setSelectedOptions] = useState({
-    User: [],
+    'Chief Veterinarian': [],
     'Origin Site': []
   })
 
@@ -90,7 +87,7 @@ const HospitalDischarged = () => {
         hospital_id: selectedHospital?.id,
         from_date: formatDate(filterDate.startDate),
         to_date: formatDate(filterDate.endDate),
-        users: prepareFilterParams('User'),
+        users: prepareFilterParams('Chief Veterinarian'),
         origin_site: prepareFilterParams('Origin Site')
       })
   })
@@ -171,7 +168,7 @@ const HospitalDischarged = () => {
       )
     },
     {
-      width: 300,
+      width: 350,
       minWidth: 20,
       sortable: false,
       field: 'animal_name',
@@ -220,7 +217,7 @@ const HospitalDischarged = () => {
                 py: 4
               }}
             >
-              <>{params?.row?.reason || ''}</>
+              <>{params?.row?.reason || 'NA'}</>
             </Typography>
           </Tooltip>
         </>
@@ -229,33 +226,40 @@ const HospitalDischarged = () => {
     {
       width: 200,
       minWidth: 20,
-      field: 'admitted_at',
+      field: 'notes',
       sortable: false,
       headerName: 'Mortality Summary',
       align: 'left',
       headerAlign: 'left',
-
       renderCell: params => (
         <>
-          <Box>
+          <Tooltip title={params?.row?.notes}>
             <Typography
-              sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
+              variant='body2'
+              sx={{
+                fontSize: '14px',
+                fontWeight: 400,
+                fontFamily: 'Inter',
+                color: theme.palette.customColors.OnSurfaceVariant,
+                display: '-webkit-box',
+                WebkitLineClamp: 4,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'normal',
+                py: 4
+              }}
             >
-              {Utility.convertUtcToLocalReadableDate(params?.row?.admitted_at)}
+              <>{params?.row?.notes || 'NA'}</>
             </Typography>
-            <Typography
-              sx={{ fontSize: '12px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
-            >
-              {Utility.convertUTCToLocaltime(params?.row?.admitted_at)}
-            </Typography>
-          </Box>
+          </Tooltip>
         </>
       )
     },
     {
       width: 200,
       minWidth: 20,
-      field: 'admitted_at',
+      field: 'date_of_death',
       sortable: false,
       headerName: 'Mortality Date And Time',
       align: 'left',
@@ -267,12 +271,12 @@ const HospitalDischarged = () => {
             <Typography
               sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
             >
-              {Utility.convertUtcToLocalReadableDate(params?.row?.admitted_at)}
+              {Utility.convertUtcToLocalReadableDate(params?.row?.date_of_death)}
             </Typography>
             <Typography
               sx={{ fontSize: '12px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
             >
-              {Utility.convertUTCToLocaltime(params?.row?.admitted_at)}
+              {Utility.convertUTCToLocaltime(params?.row?.date_of_death)}
             </Typography>
           </Box>
         </>
@@ -314,18 +318,9 @@ const HospitalDischarged = () => {
       headerAlign: 'left',
 
       renderCell: params => {
-        const admittedAt = params?.row?.admitted_at
-        let days = '-'
-
-        if (admittedAt) {
-          const admittedDate = new Date(admittedAt)
-          const today = new Date()
-          days = differenceInDays(today, admittedDate)
-        }
-
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {days} {days !== '-' ? 'days' : ''}
+            {params?.row?.duration_days} {params?.row?.duration_days > 1 ? 'Days' : 'Day'}
           </Typography>
         )
       }
@@ -374,7 +369,7 @@ const HospitalDischarged = () => {
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>
-            <CardHeader title={RenderUtility?.pageTitle('Inpatients')} />
+            <CardHeader title={RenderUtility?.pageTitle('Mortality')} />
             <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between' }}>
               <Box sx={{ ml: 2 }}>
                 <Search
@@ -444,7 +439,7 @@ const HospitalDischarged = () => {
         </Box>
       </Box>
       {openFilterDrawer && (
-        <MortalityFilterDrawer
+        <InpatientFilterDrawer
           open={openFilterDrawer}
           onClose={() => setOpenFilterDrawer(false)}
           onApplyFilters={applyFilters}
@@ -456,4 +451,4 @@ const HospitalDischarged = () => {
   )
 }
 
-export default HospitalDischarged
+export default HospitalMortality
