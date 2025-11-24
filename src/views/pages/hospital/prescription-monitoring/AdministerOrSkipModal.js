@@ -1,5 +1,16 @@
 import React, { useEffect } from 'react'
-import { Drawer, Box, Typography, IconButton, Grid, Card, CardContent } from '@mui/material'
+import {
+  Drawer,
+  Box,
+  Typography,
+  IconButton,
+  Grid,
+  Card,
+  CardContent,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
+} from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -8,6 +19,7 @@ import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
@@ -18,6 +30,10 @@ import TreatmentTypeRadioButtons from '../utility/TreatmentTypeRadioButtons'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import Utility from 'src/utility'
 import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+
+// Enable custom parse format plugin for dayjs
+dayjs.extend(customParseFormat)
 
 const AdministerOrSkipSidesheet = ({
   open,
@@ -31,121 +47,101 @@ const AdministerOrSkipSidesheet = ({
   batchLoading,
   handleBatchSearch,
   isControlledSubstance = false,
-  scheduledDate
+  scheduledDate,
+  disableTimeField = true // New prop to control time field disabled state
 }) => {
   const theme = useTheme()
 
-  // Yup validation schema
-  const validationSchema = yup.object().shape({
-    action: yup.string().oneOf(['administer', 'skipped']).required('Action is required'),
-    time: yup.string().when('action', {
-      is: 'administer',
-      then: schema => schema.required('Time is required for administration'),
-      otherwise: schema => schema.notRequired()
-    }),
-    
-    // time: yup.string().when('action', {
-    //   is: 'administer',
-    //   then: schema =>
-    //     schema
-    //       .required('Time is required for administration')
-    //       .test('valid-time-slot', 'Time must be within the scheduled slot', function (value) {
-    //         if (!value || !slotStart || !slotEnd) return true
-
-    //         const selectedTime = dayjs(value, 'hh:mm A')
-    //         if (!selectedTime.isValid()) return false
-
-    //         const isAfterOrEqual = selectedTime.isAfter(slotStart.subtract(1, 'minute'))
-    //         const isBeforeOrEqual = selectedTime.isBefore(slotEnd.add(1, 'minute'))
-
-    //         return isAfterOrEqual && isBeforeOrEqual
-    //       }),
-    //   otherwise: schema => schema.notRequired()
-    // }),
-    quantity: yup.string().when('action', {
-      is: 'administer',
-      then: schema =>
-        schema
-          .required('Quantity is required for administration')
-          .test('is-valid-number', 'Quantity must be a valid number', value => {
-            if (!value) return false
-            const num = parseFloat(value)
-
-            return !isNaN(num) && num > 0
-          })
-          .test('min-value', 'Quantity must be greater than 0', value => {
-            if (!value) return false
-
-            return parseFloat(value) > 0
-          }),
-      otherwise: schema => schema.notRequired()
-    }),
-    quantityUnit: yup.string().when('action', {
-      is: 'administer',
-      then: schema => schema.required('Quantity unit is required for administration'),
-      otherwise: schema => schema.notRequired()
-    }),
-    skipReason: yup.string().when('action', {
-      is: 'skipped',
-      then: schema =>
-        schema
-          .required('Skip reason is required when skipping medication')
-          .min(5, 'Skip reason must be at least 5 characters long')
-          .max(500, 'Skip reason cannot exceed 500 characters'),
-      otherwise: schema => schema.notRequired()
-    }),
-    wastageQuantity: yup
-      .string()
-      .test('is-valid-number', 'Wastage quantity must be a valid number', value => {
-        if (!value) return true // Optional field
-        const num = parseFloat(value)
-
-        return !isNaN(num) && num >= 0
-      })
-      .test('wastage-unit-consistency', 'Wastage unit is required when wastage quantity is provided', function (value) {
-        const { wastageUnit } = this.parent
-        if (value && !wastageUnit) {
-          return this.createError({ message: 'Wastage unit is required when wastage quantity is provided' })
-        }
-
-        return true
+  const validationSchema = yup.object().shape(
+    {
+      action: yup.string().oneOf(['administer', 'skipped']).required('Action is required'),
+      time: yup.string().when('action', {
+        is: 'administer',
+        then: schema => schema.required('Time is required for administration'),
+        otherwise: schema => schema.notRequired()
       }),
-    wastageUnit: yup
-      .string()
-      .test(
-        'wastage-quantity-consistency',
-        'Wastage quantity is required when wastage unit is provided',
-        function (value) {
-          const { wastageQuantity } = this.parent
-          if (value && !wastageQuantity) {
-            return this.createError({ message: 'Wastage quantity is required when wastage unit is provided' })
-          }
 
-          return true
-        }
-      ),
-    notes: yup.string().max(10000, 'Notes cannot exceed 10000 characters'),
+      quantity: yup.string().when('action', {
+        is: 'administer',
+        then: schema =>
+          schema
+            .required('Quantity is required for administration')
+            .test('is-valid-number', 'Quantity must be a valid number', value => {
+              if (!value) return false
+              const num = parseFloat(value)
 
-    batchNumber: yup.mixed().when('action', {
-      is: 'administer',
-      then: schema =>
-        isControlledSubstance
-          ? schema
-              .required('Batch number is required for controlled substances')
-              .test('valid-batch-object', 'Please select a valid batch', value => {
-                if (!value) return false
+              return !isNaN(num) && num > 0
+            })
+            .test('min-value', 'Quantity must be greater than 0', value => {
+              if (!value) return false
 
-                // Check if it's a valid batch object with batch_no
-                return value && value.batch_no && typeof value.batch_no === 'string'
-              })
-          : schema.nullable().notRequired(),
-      otherwise: schema => schema.nullable().notRequired()
-    })
-  })
+              return parseFloat(value) > 0
+            }),
+        otherwise: schema => schema.notRequired()
+      }),
+      quantityUnit: yup.string().when('action', {
+        is: 'administer',
+        then: schema => schema.required('Quantity unit is required for administration'),
+        otherwise: schema => schema.notRequired()
+      }),
+      skipReason: yup.string().when('action', {
+        is: 'skipped',
+        then: schema =>
+          schema
+            .required('Skip reason is required when skipping medication')
+            .min(5, 'Skip reason must be at least 5 characters long')
+            .max(500, 'Skip reason cannot exceed 500 characters'),
+        otherwise: schema => schema.notRequired()
+      }),
+
+      // Fixed wastageQuantity validation
+      wastageQuantity: yup
+        .string()
+        .test('is-valid-number', 'Wastage quantity must be a valid number', value => {
+          if (!value) return true // Optional field
+          const num = parseFloat(value)
+
+          return !isNaN(num) && num >= 0
+        })
+        .when('wastageUnit', {
+          is: wastageUnit => wastageUnit && wastageUnit.length > 0,
+          then: schema => schema.required('Wastage quantity is required when wastage unit is provided'),
+          otherwise: schema => schema.notRequired()
+        }),
+
+      // Fixed wastageUnit validation
+      wastageUnit: yup.string().when('wastageQuantity', {
+        is: wastageQuantity => wastageQuantity && wastageQuantity.length > 0,
+        then: schema => schema.required('Wastage unit is required when wastage unit is provided'),
+        otherwise: schema => schema.notRequired()
+      }),
+
+      notes: yup.string().max(10000, 'Notes cannot exceed 10000 characters'),
+
+      batchNumber: yup.mixed().when('action', {
+        is: 'administer',
+        then: schema =>
+          isControlledSubstance
+            ? schema
+                .required('Batch number is required for controlled substances')
+                .test('valid-batch-object', 'Please select a valid batch', value => {
+                  if (!value) return false
+
+                  return value && value.batch_no && typeof value.batch_no === 'string'
+                })
+            : schema.nullable().notRequired(),
+        otherwise: schema => schema.nullable().notRequired()
+      })
+    },
+    [
+      // Add cyclic dependencies here
+      ['wastageQuantity', 'wastageUnit']
+    ]
+  )
 
   const defaultValues = {
     action: 'administer',
-    time: '',
+    time: null,
     quantity: '',
     quantityUnit: '',
     wastageQuantity: '',
@@ -155,10 +151,6 @@ const AdministerOrSkipSidesheet = ({
     attachment: null,
     skipReason: ''
   }
-
-  useEffect(() => {
-    reset(defaultValues)
-  }, [])
 
   const {
     control,
@@ -183,21 +175,97 @@ const AdministerOrSkipSidesheet = ({
 
   const slotEnd = slotStart ? slotStart.add(59, 'minute') : null
 
+  // Convert time format from "03 AM" to dayjs object
+  const convertTimeToMuiFormat = timeString => {
+    if (!timeString) return null
+
+    // Handle format like "03 AM" or "03:00 AM"
+    // First, check if it already has minutes
+    let formattedTime = timeString.trim()
+
+    // If it's in format "03 AM", convert to "03:00 AM"
+    if (!/:\d{2}/.test(formattedTime)) {
+      formattedTime = formattedTime.replace(/^(\d{1,2})\s*(AM|PM)$/i, '$1:00 $2')
+    }
+
+    // Parse using dayjs with the format
+    const parsedTime = dayjs(formattedTime, 'hh:mm A')
+
+    return parsedTime.isValid() ? parsedTime : null
+  }
+
+  const formatTimeTo12Hour = timeString => {
+    if (!timeString) return ''
+
+    try {
+      // Remove any extra spaces and split by space
+      const cleanedTime = timeString.trim().toUpperCase()
+      const parts = cleanedTime.split(' ')
+
+      if (parts.length < 2) return timeString
+
+      let timePart = parts[0]
+      const period = parts[1] // AM or PM
+
+      // Split hours and minutes if present
+      let hours,
+        minutes = '00'
+
+      if (timePart.includes(':')) {
+        ;[hours, minutes] = timePart.split(':')
+      } else {
+        hours = timePart
+      }
+
+      // Convert hours to number and handle formatting
+      let hoursNum = parseInt(hours)
+
+      // Pad hours with leading zero if needed
+      const formattedHours = String(hoursNum).padStart(2, '0')
+
+      return `${formattedHours}:${minutes} ${period}`
+    } catch (error) {
+      console.error('Error formatting time:', error)
+
+      return timeString
+    }
+  }
+
   useEffect(() => {
     if (medicineData && medicalMasterData) {
       let updatedQuantity = ''
       let updatedQuantityUnit = ''
+      let updatedTime = null
+
+      // Handle time conversion
+      if (medicineData?.scheduledTime) {
+        updatedTime = convertTimeToMuiFormat(medicineData.scheduledTime)
+      }
 
       if (medicineData?.dosage) {
         console.log('medicineData?.dosage', medicineData?.dosage)
 
-        const [value, unitRaw] = medicineData.dosage.split(' ')
+        // Split only on the first space to handle cases like "6 today tesr"
+        const firstSpaceIndex = medicineData.dosage.indexOf(' ')
+        let value, unitRaw
+
+        if (firstSpaceIndex !== -1) {
+          value = medicineData.dosage.substring(0, firstSpaceIndex)
+          unitRaw = medicineData.dosage.substring(firstSpaceIndex + 1)
+        } else {
+          // If no space, treat entire string as value
+          value = medicineData.dosage
+          unitRaw = ''
+        }
+
         console.log('value, unitRaw', value, unitRaw)
 
         updatedQuantity = value
+        console.log('foundUnit', unitRaw)
+        console.log('foundUnit', medicalMasterData?.prescriptionDosageMeasurementType)
 
         const foundUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
-          item => item?.unit_name === unitRaw
+          item => item?.unit_name?.toLowerCase() === unitRaw.toLowerCase()
         )
         console.log('foundUnit', foundUnit)
 
@@ -207,8 +275,9 @@ const AdministerOrSkipSidesheet = ({
 
       reset(prev => ({
         ...prev,
+        time: updatedTime,
         quantity: updatedQuantity,
-        quantityUnit: updatedQuantityUnit?.unit_name
+        quantityUnit: updatedQuantityUnit?.key
       }))
     }
   }, [medicineData, medicalMasterData, reset])
@@ -216,12 +285,17 @@ const AdministerOrSkipSidesheet = ({
   const actionType = watch('action')
 
   const handleSidesheetClose = () => {
-    reset()
+    reset(defaultValues)
     handleClose()
   }
 
   const onFormSubmit = data => {
-    onSubmit(data)
+    // Convert dayjs time object back to string format if needed
+    const formattedData = {
+      ...data,
+      time: data.time ? dayjs(data.time).format('hh:mm A') : ''
+    }
+    onSubmit(formattedData)
   }
 
   return (
@@ -305,7 +379,7 @@ const AdministerOrSkipSidesheet = ({
                   {Utility.formatDisplayDate(scheduledDate)}
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <AccessTimeIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurfaceVariant }} />
                 <Typography
                   sx={{
@@ -314,7 +388,7 @@ const AdministerOrSkipSidesheet = ({
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  {medicineData?.scheduledTime}
+                  {formatTimeTo12Hour(medicineData?.scheduledTime)}
                 </Typography>
               </Box>
             </Box>
@@ -369,6 +443,9 @@ const AdministerOrSkipSidesheet = ({
                       format='hh:mm A'
                       sx={{ backgroundColor: theme.palette.customColors.Surface }}
                       error={errors.time}
+                      // disabled={disableTimeField}
+                      minTime={slotStart}
+                      maxTime={slotEnd}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -392,118 +469,144 @@ const AdministerOrSkipSidesheet = ({
                   {/* Conditional Content based on Action Type */}
                   {actionType === 'administer' ? (
                     <>
-                      {/* Wastage Section for Administer */}
+                      {/* Wastage Section for Administer with Accordion */}
                       <Grid size={{ xs: 12 }}>
-                        <Typography
+                        <Accordion
+                          defaultExpanded={isControlledSubstance}
+                          disableGutters
                           sx={{
-                            fontSize: '1rem',
-                            fontWeight: 500,
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            mb: 3
+                            border: 'none',
+                            boxShadow: 'none'
                           }}
                         >
-                          Add wastage if any
-                          <Typography
-                            component='span'
+                          <AccordionSummary
+                            expandIcon={<ExpandMoreIcon />}
+                            aria-controls='wastage-content'
+                            id='wastage-header'
                             sx={{
-                              fontSize: '1rem',
-                              color: theme.palette.customColors.neutralSecondary,
-                              ml: 1
+                              px: 0,
+                              minHeight: 'auto',
+                              '& .MuiAccordionSummary-content': {
+                                margin: '0.5rem 0'
+                              },
+                              '& .MuiAccordionSummary-content.Mui-expanded': {
+                                margin: '0.5rem 0 1rem'
+                              }
                             }}
                           >
-                            (Optional)
-                          </Typography>
-                        </Typography>
-
-                        <Grid container spacing={4}>
-                          <Grid size={{ xs: 12, md: 6 }}>
-                            <ControlledTextField
-                              name='wastageQuantity'
-                              control={control}
-                              errors={errors}
-                              label='Quantity'
-                              placeholder='Enter Quantity'
-                              type='number'
-                            />
-                          </Grid>
-
-                          <Grid size={{ xs: 12, md: 6 }}>
-                            <ControlledSelect
-                              name='wastageUnit'
-                              label='Unit'
-                              control={control}
-                              errors={errors}
-                              options={medicalMasterData?.prescriptionDosageMeasurementType}
-                              getOptionLabel={option => option.label}
-                              getOptionValue={option => option.value}
-                            />
-                          </Grid>
-
-                          <Grid size={{ xs: 12 }}>
-                            <ControlledTextArea
-                              label='Notes'
-                              name='notes'
-                              control={control}
-                              errors={errors}
-                              placeholder='Enter Notes'
-                              rows={3}
-                            />
-                          </Grid>
-
-                          <Grid size={{ xs: 12 }}>
-                            <ControlledAutocomplete
-                              name='batchNumber'
-                              control={control}
-                              errors={errors}
-                              label={
-                                isControlledSubstance
-                                  ? 'Enter batch number (required)'
-                                  : 'Enter batch number if any (optional)'
-                              }
-                              options={batchList}
-                              getOptionLabel={option => {
-                                if (typeof option === 'string') return option
-
-                                // Use the label property from your batch object
-                                return option?.label || option?.batch_no || ''
+                            <Typography
+                              sx={{
+                                fontSize: '1rem',
+                                fontWeight: 500,
+                                color: theme.palette.customColors.OnSurfaceVariant
                               }}
-                              getOptionValue={option => {
-                                if (typeof option === 'string') return option
+                            >
+                              Add wastage if any
+                              <Typography
+                                component='span'
+                                sx={{
+                                  fontSize: '1rem',
+                                  color: theme.palette.customColors.neutralSecondary,
+                                  ml: 1
+                                }}
+                              >
+                                (Optional)
+                              </Typography>
+                            </Typography>
+                          </AccordionSummary>
+                          <AccordionDetails sx={{ px: 0, py: 1 }}>
+                            <Grid container spacing={4}>
+                              <Grid size={{ xs: 12, md: 6 }}>
+                                <ControlledTextField
+                                  name='wastageQuantity'
+                                  control={control}
+                                  errors={errors}
+                                  label='Quantity'
+                                  placeholder='Enter Quantity'
+                                  type='number'
+                                />
+                              </Grid>
 
-                                // Return the entire object so we have access to batch_no, id, etc.
-                                return option
-                              }}
-                              isOptionEqualToValue={(option, value) => {
-                                if (!option || !value) return false
+                              <Grid size={{ xs: 12, md: 6 }}>
+                                <ControlledSelect
+                                  name='wastageUnit'
+                                  label='Unit'
+                                  control={control}
+                                  errors={errors}
+                                  options={medicalMasterData?.prescriptionDosageMeasurementType}
+                                  getOptionLabel={option => option.label}
+                                  getOptionValue={option => option.value}
+                                  loading={mastersDataLoading}
+                                />
+                              </Grid>
 
-                                // Compare by id since that's unique
-                                const optionId = option?.id
-                                const valueId = value?.id
+                              <Grid size={{ xs: 12 }}>
+                                <ControlledTextArea
+                                  label='Notes'
+                                  name='notes'
+                                  control={control}
+                                  errors={errors}
+                                  placeholder='Enter Notes'
+                                  rows={3}
+                                />
+                              </Grid>
 
-                                return optionId === valueId
-                              }}
-                              loading={batchLoading}
-                              onInputChange={handleBatchSearch}
-                              required={isControlledSubstance}
-                              autocompleteProps={{
-                                filterOptions: x => x,
-                                noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
-                              }}
-                            />
-                          </Grid>
+                              <Grid size={{ xs: 12 }}>
+                                <ControlledAutocomplete
+                                  name='batchNumber'
+                                  control={control}
+                                  errors={errors}
+                                  label={
+                                    isControlledSubstance
+                                      ? 'Enter batch number (required)'
+                                      : 'Enter batch number if any (optional)'
+                                  }
+                                  options={batchList}
+                                  getOptionLabel={option => {
+                                    if (typeof option === 'string') return option
 
-                          <Grid size={{ xs: 12 }}>
-                            <ControlledMultiFileUpload
-                              name='attachment'
-                              control={control}
-                              errors={errors}
-                              label='Batch Image'
-                              maxFiles={5}
-                              maxFileSize={5 * 1024 * 1024} // 5MB
-                              acceptedFileTypes='image/jpeg,image/png,image/jpg,application/pdf'
-                            />
-                          </Grid>
-                        </Grid>
+                                    // Use the label property from your batch object
+                                    return option?.label || option?.batch_no || ''
+                                  }}
+                                  getOptionValue={option => {
+                                    if (typeof option === 'string') return option
+
+                                    // Return the entire object so we have access to batch_no, id, etc.
+                                    return option
+                                  }}
+                                  isOptionEqualToValue={(option, value) => {
+                                    if (!option || !value) return false
+
+                                    // Compare by id since that's unique
+                                    const optionId = option?.id
+                                    const valueId = value?.id
+
+                                    return optionId === valueId
+                                  }}
+                                  loading={batchLoading}
+                                  onInputChange={handleBatchSearch}
+                                  required={isControlledSubstance}
+                                  autocompleteProps={{
+                                    filterOptions: x => x,
+                                    noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
+                                  }}
+                                />
+                              </Grid>
+
+                              <Grid size={{ xs: 12 }}>
+                                <ControlledMultiFileUpload
+                                  name='attachment'
+                                  control={control}
+                                  errors={errors}
+                                  label='Batch Image'
+                                  maxFiles={5}
+                                  maxFileSize={5 * 1024 * 1024} // 5MB
+                                  acceptedFileTypes='image/jpeg,image/png,image/jpg,application/pdf'
+                                />
+                              </Grid>
+                            </Grid>
+                          </AccordionDetails>
+                        </Accordion>
                       </Grid>
                     </>
                   ) : (

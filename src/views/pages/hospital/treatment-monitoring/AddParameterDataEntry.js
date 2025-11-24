@@ -57,7 +57,9 @@ const defaultValues = {
 
 const getSchema = resType =>
   yup.object().shape({
-    observation_value: yup.mixed().required('Observation Value is required'),
+    observation_value: ['numeric_value', 'numeric_scale', 'text', 'list'].includes(resType)
+      ? yup.string().required('Observation Value is required')
+      : yup.mixed().notRequired(),
     observation_time: yup.string().required('Observation time is required'),
     value_unit: resType === 'numeric_value' ? yup.string().required('Unit is required') : yup.mixed().notRequired()
   })
@@ -70,7 +72,8 @@ const AddParameterDataEntry = ({
   hospitalCaseId,
   animalId,
   refetchMonitoringData,
-  selectedDate
+  selectedDate,
+  monitoringRefetch
 }) => {
   const theme = useTheme()
 
@@ -145,6 +148,7 @@ const AddParameterDataEntry = ({
 
   const handleDrawerClose = () => {
     setOpen(false)
+    monitoringRefetch()
   }
 
   const onSubmit = async params => {
@@ -168,6 +172,9 @@ const AddParameterDataEntry = ({
           Toaster({ type: 'success', message: res?.message })
           handleDrawerClose()
           refetchMonitoringData()
+        } else {
+          setAddLoading(false)
+          Toaster({ type: 'error', message: res?.message })
         }
       })
     } catch (error) {

@@ -12,6 +12,7 @@ import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import AddTreatmentDrawer from './AddTreatmentDrawer'
 import EditTreatmentDrawer from './EditTreatmentDrawer'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 import {
   createTreatmentRecord,
@@ -144,6 +145,7 @@ const buildTreatmentFromEntries = entries => {
   const apiNotesCountValue = entries.find(
     entry => entry.notes_count !== undefined && entry.notes_count !== null
   )?.notes_count
+
   const parsedApiNotesCount =
     apiNotesCountValue !== undefined && apiNotesCountValue !== null ? Number(apiNotesCountValue) : null
   const resolvedApiNotesCount = Number.isFinite(parsedApiNotesCount) ? parsedApiNotesCount : null
@@ -711,7 +713,7 @@ const OtherTreatment = () => {
             letterSpacing: 0
           }}
         >
-          Treatments - {totalTreatments}
+          Treatments {totalTreatments > 0 ? ` - ${totalTreatments}` : ''}
         </Typography>
         <Button
           variant='contained'
@@ -750,9 +752,7 @@ const OtherTreatment = () => {
         )}
 
         {!isTreatmentsLoading && treatmentGroups.length === 0 && (
-          <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 400, fontSize: '14px' }}>
-            No treatments found.
-          </Typography>
+          <NoDataFound variant='Seal' height={300} width={300} />
         )}
 
         {!isTreatmentsLoading && treatmentGroups.length > 0 && (

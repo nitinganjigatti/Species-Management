@@ -20,8 +20,6 @@ const HospitalDischarged = () => {
   const theme = useTheme()
   const router = useRouter()
 
-  const authData = useContext(AuthContext)
-
   const [searchValue, setSearchValue] = useState('')
   const [selectedVisitType, setSelectedVisitType] = useState('')
 

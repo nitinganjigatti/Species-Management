@@ -16,7 +16,8 @@ const AddPatientFiltersDrawer = ({
   onSubmitLoading,
   onApplyFilters,
   setFilterCount,
-  initialSelectedOptions
+  initialSelectedOptions,
+  filterCount
 }) => {
   const auth = useAuth()
 

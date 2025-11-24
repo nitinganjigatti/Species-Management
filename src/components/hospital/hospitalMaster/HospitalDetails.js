@@ -5,6 +5,7 @@ import styled from '@emotion/styled'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { debounce } from 'lodash'
+import { useQueryClient } from '@tanstack/react-query'
 
 // Custom Components
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -36,6 +37,7 @@ const statusOptions = [
 const HospitalDetails = () => {
   const theme = useTheme()
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -72,6 +74,7 @@ const HospitalDetails = () => {
 
     const { page = '1', limit = '50', q = '', active } = router.query
 
+    // Only update if values actually changed
     setFilters(prev => {
       const newFilters = {
         page: Number(page) || 1,
@@ -80,7 +83,6 @@ const HospitalDetails = () => {
         active: active !== undefined ? Number(active) : undefined
       }
 
-      // Only update if values actually changed
       if (
         prev.page !== newFilters.page ||
         prev.limit !== newFilters.limit ||
@@ -116,7 +118,17 @@ const HospitalDetails = () => {
       }),
     keepPreviousData: true,
     staleTime: 60 * 1000,
-    refetchOnWindowFocus: true
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: false,
+
+    onError: error => {
+      console.error('Error fetching hospital list:', error?.message)
+      Toaster({
+        type: 'error',
+        message: error?.response?.data?.message || error?.message || 'Failed to load hospital list'
+      })
+    }
   })
 
   const rows = useMemo(() => hospitalData?.data?.hospitals || [], [hospitalData?.data?.hospitals])
@@ -180,30 +192,39 @@ const HospitalDetails = () => {
   const addEventSidebarOpen = useCallback(() => setOpenDrawer(true), [])
   const handleSidebarClose = useCallback(() => setOpenDrawer(false), [])
 
-  //  Add / Update Hospital
-  const handleSubmitData = useCallback(
-    async payload => {
-      setSubmitLoader(true)
+  //  Add Hospital
+  const handleSubmitData = async payload => {
+    setSubmitLoader(true)
 
-      try {
-        const response = await addHospitalMaster(payload)
+    try {
+      const response = await addHospitalMaster(payload)
 
-        if (response?.success) {
-          Toaster({ type: 'success', message: response.message || 'Hospital created successfully' })
-          refetchHospitals()
-        } else {
-          Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
-        }
-      } catch (error) {
-        console.error('Error adding hospital:', error)
-        Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' })
-      } finally {
-        setSubmitLoader(false)
+      if (response?.success) {
+        // refetchHospitals()
+        // Invalidate hospital list cache
+        queryClient.invalidateQueries(['hospital-list'])
+
         setOpenDrawer(false)
+        Toaster({ type: 'success', message: response?.message || 'Hospital created successfully' })
+
+        return true
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to create Hospital ' })
+
+        return false
       }
-    },
-    [refetchHospitals]
-  )
+    } catch (error) {
+      console.error('Error adding hospital:', error?.message)
+      Toaster({
+        type: 'error',
+        message: error?.response?.data?.message || error?.message || 'An unexpected error occurred'
+      })
+
+      return false
+    } finally {
+      setSubmitLoader(false)
+    }
+  }
 
   //  Add serial numbers to each row based on current pagination
   const indexedRows = useMemo(() => {
@@ -214,114 +235,112 @@ const HospitalDetails = () => {
   }, [rows, filters.page, filters.limit])
 
   //  Table columns definition
-  const columns = useMemo(() => {
-    return [
-      {
-        minWidth: 50,
-        field: 'id',
-        headerName: 'Sl.No',
-        sortable: false,
-        renderCell: params => (
-          <StyledTypography fontSize={'0.75rem'} sx={{ pl: 3 }}>
-            {params.row.sl_no}
-          </StyledTypography>
-        )
-      },
-      {
-        minWidth: 250,
-        field: 'hospital_name',
-        headerName: 'Hospital Name',
-        sortable: false,
-        renderCell: params => (
-          <TextEllipsisWithModal
-            enableDialog={false}
-            text={params.row.hospital_name ?? '-'}
-            style={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '1rem',
-              fontWeight: 400,
-              pl: 1.4,
-              maxWidth: '220px'
-            }}
+  const columns = [
+    {
+      minWidth: 50,
+      field: 'id',
+      headerName: 'Sl.No',
+      sortable: false,
+      renderCell: params => (
+        <StyledTypography fontSize={'0.75rem'} sx={{ pl: 3 }}>
+          {params.row.sl_no}
+        </StyledTypography>
+      )
+    },
+    {
+      minWidth: 250,
+      field: 'hospital_name',
+      headerName: 'Hospital Name',
+      sortable: false,
+      renderCell: params => (
+        <TextEllipsisWithModal
+          enableDialog={false}
+          text={params.row.hospital_name ?? '-'}
+          style={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '1rem',
+            fontWeight: 400,
+            pl: 1.4,
+            maxWidth: '220px'
+          }}
+        />
+      )
+    },
+    {
+      minWidth: 100,
+      field: 'total_rooms',
+      headerName: 'Rooms',
+      sortable: false,
+      renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params.row.total_rooms ?? '-'}</StyledTypography>
+    },
+    {
+      minWidth: 120,
+      field: 'total_occupants',
+      headerName: 'Occupants',
+      sortable: false,
+      renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params.row.total_occupants ?? '-'}</StyledTypography>
+    },
+    {
+      minWidth: 140,
+      field: 'active',
+      headerName: 'Status',
+      sortable: false,
+      renderCell: params => <StatusChip chipStyles={{ ml: 1.4 }} status={params.row.active} />
+    },
+    {
+      minWidth: 200,
+      field: 'site_name',
+      headerName: 'Site Name',
+      sortable: false,
+      renderCell: params => (
+        <TextEllipsisWithModal
+          enableDialog={false}
+          text={params.row.site_name ?? '-'}
+          style={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '1rem',
+            fontWeight: 400,
+            pl: 1.4,
+            maxWidth: '230px'
+          }}
+        />
+      )
+    },
+    {
+      minWidth: 230,
+      field: 'created_by_name',
+      headerName: 'Added By',
+      sortable: false,
+      renderCell: params => (
+        <Box sx={{ pl: 1.4 }}>
+          <UserAvatarDetails
+            user_name={params.row.created_by_name}
+            date={params.row.created_at}
+            dateType={'created'}
+            size='medium'
+            profile_image={params.row.profile_image}
           />
-        )
-      },
-      {
-        minWidth: 100,
-        field: 'total_rooms',
-        headerName: 'Rooms',
-        sortable: false,
-        renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params.row.total_rooms ?? '-'}</StyledTypography>
-      },
-      {
-        minWidth: 120,
-        field: 'total_occupants',
-        headerName: 'Occupants',
-        sortable: false,
-        renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params.row.total_occupants ?? '-'}</StyledTypography>
-      },
-      {
-        minWidth: 140,
-        field: 'active',
-        headerName: 'Status',
-        sortable: false,
-        renderCell: params => <StatusChip chipStyles={{ ml: 1.4 }} status={params.row.active} />
-      },
-      {
-        minWidth: 200,
-        field: 'site_name',
-        headerName: 'Site Name',
-        sortable: false,
-        renderCell: params => (
-          <TextEllipsisWithModal
-            enableDialog={false}
-            text={params.row.site_name ?? '-'}
-            style={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '1rem',
-              fontWeight: 400,
-              pl: 1.4,
-              maxWidth: '230px'
-            }}
+        </Box>
+      )
+    },
+    {
+      minWidth: 230,
+      field: 'updated_by_name',
+      headerName: 'Updated By',
+      sortable: false,
+      renderCell: params => (
+        <Box sx={{ pl: 1.4 }}>
+          <UserAvatarDetails
+            user_name={params.row.updated_by_name}
+            date={params.row.updated_at}
+            dateType={'updated'}
+            size='medium'
+            profile_image={params.row.updated_user_profile_image}
           />
-        )
-      },
-      {
-        minWidth: 230,
-        field: 'created_by_name',
-        headerName: 'Added By',
-        sortable: false,
-        renderCell: params => (
-          <Box sx={{ pl: 1.4 }}>
-            <UserAvatarDetails
-              user_name={params.row.created_by_name}
-              date={params.row.created_at}
-              dateType={'created'}
-              size='medium'
-              profile_image={params.row.profile_image}
-            />
-          </Box>
-        )
-      },
-      {
-        minWidth: 230,
-        field: 'updated_by_name',
-        headerName: 'Updated By',
-        sortable: false,
-        renderCell: params => (
-          <Box sx={{ pl: 1.4 }}>
-            <UserAvatarDetails
-              user_name={params.row.updated_by_name}
-              date={params.row.updated_at}
-              dateType={'updated'}
-              size='medium'
-              profile_image={params.row.updated_user_profile_image}
-            />
-          </Box>
-        )
-      }
-    ]
-  }, [theme.palette.customColors.OnSurfaceVariant])
+        </Box>
+      )
+    }
+  ]
 
   // getRowClassName function
   const getRowClassName = params => {

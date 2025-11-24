@@ -30,7 +30,9 @@ const ControlledAutocomplete = ({
   autocompleteProps = {},
   formHelperTextBackgroundColor = 'inherit',
   inputBackgroundColor = 'inherit',
-  sx = {}
+  sx = {},
+  showIcons = true,
+  disabled = false
 }) => {
   if (!options) return null
 
@@ -64,7 +66,8 @@ const ControlledAutocomplete = ({
         render={({ field }) => (
           <Autocomplete
             {...field}
-            freeSolo
+            freeSolo={showIcons}
+            disabled={disabled}
             selectOnFocus
             clearOnBlur={false}
             handleHomeEndKeys
@@ -106,7 +109,7 @@ const ControlledAutocomplete = ({
             renderOption={renderOption}
             sx={{
               '& .MuiInputBase-root': {
-                backgroundColor: inputBackgroundColor,
+                backgroundColor: inputBackgroundColor
               },
               ...sx
             }}

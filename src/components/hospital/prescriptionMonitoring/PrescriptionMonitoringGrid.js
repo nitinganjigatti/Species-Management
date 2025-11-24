@@ -125,7 +125,7 @@ const TimeSlot = styled(Box, {
   position: 'relative',
   margin: 0,
   padding: 0,
-  minWidth: '184px',
+  width: '184px',
   height: '70px',
   marginTop: theme.spacing(0.5),
   backgroundColor: config?.backgroundColor,
@@ -160,7 +160,7 @@ const TimeHeader = styled(Box)(({ theme }) => ({
 
 const TimeTooltip = styled(Box)(({ theme }) => ({
   position: 'absolute',
-  top: '2px',
+  top: '100%',
   left: '50%',
   transform: 'translateX(-50%)',
   backgroundColor: 'transparent',
@@ -177,17 +177,48 @@ const TimeTooltip = styled(Box)(({ theme }) => ({
   '&::after': {
     content: '""',
     position: 'absolute',
-    top: '100%',
+    top: '-6px', // Position above the tooltip
     left: '50%',
     transform: 'translateX(-50%)',
     width: 0,
     height: 0,
     borderLeft: '6px solid transparent',
     borderRight: '6px solid transparent',
-    borderTop: '6px solid #E35163',
-    borderBottom: 'none'
+    borderBottom: '6px solid #E35163', // Changed to borderBottom for upward arrow
+    borderTop: 'none'
   }
 }))
+
+// const TimeTooltip = styled(Box)(({ theme }) => ({
+//   position: 'absolute',
+//   top: '2px',
+//   left: '50%',
+//   transform: 'translateX(-50%)',
+//   backgroundColor: 'transparent',
+//   border: '1px solid',
+//   borderColor: theme.palette.customColors.Error,
+//   color: theme.palette.customColors.Error,
+//   padding: '4px 8px',
+//   fontSize: '12px',
+//   fontWeight: 600,
+//   borderRadius: '8px',
+//   zIndex: 1000,
+//   whiteSpace: 'nowrap',
+//   boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+//   '&::after': {
+//     content: '""',
+//     position: 'absolute',
+//     top: '100%',
+//     left: '50%',
+//     transform: 'translateX(-50%)',
+//     width: 0,
+//     height: 0,
+//     borderLeft: '6px solid transparent',
+//     borderRight: '6px solid transparent',
+//     borderTop: '6px solid #E35163',
+//     borderBottom: 'none'
+//   }
+// }))
 
 const ShimmerCheckbox = styled(Box)(({ theme }) => ({
   width: '100px',
@@ -244,7 +275,9 @@ const PrescriptionMonitoringGrid = ({
   isAdministerLoading,
   isSkipLoading,
   handleAdministerOrSkipOpen,
-  addPrescriptionToTimeslot
+  addPrescriptionToTimeslot,
+  selectedMetrics,
+  setSelectedMetrics
 }) => {
   const theme = useTheme()
   const router = useRouter()
@@ -257,8 +290,6 @@ const PrescriptionMonitoringGrid = ({
   const [didInitialScroll, setDidInitialScroll] = useState(false)
   const [isAdministerOrSkipPopupOpen, setIsAdministerOrSkipPopupOpen] = useState(false)
   const [isAdministerOrSkipPopupLoading, setIsAdministerOrSkipPopupLoading] = useState(false)
-  // Array of selected metric objects
-  const [selectedMetrics, setSelectedMetrics] = useState([])
   const [isAdminstrationLoading, setIsAdminstrationLoading] = useState(false)
   // const [selectedMedicine, setSelectedMedicine] = useState(null)
 
@@ -373,7 +404,8 @@ const PrescriptionMonitoringGrid = ({
                 administered_time: schedule.administered_time,
                 compliance_note: schedule.compliance_note,
                 scheduledTime: schedule?.time,
-                medicine_id: schedule?.medicine_id
+                medicine_id: schedule?.medicine_id,
+                administrative_ids: schedule?.administrative_ids || []
               }
             : undefined
         }
@@ -393,6 +425,7 @@ const PrescriptionMonitoringGrid = ({
         schedule:
           medication.schedule && Array.isArray(medication.schedule)
             ? medication.schedule.map(schedule => ({
+                ...schedule,
                 schedule_id: schedule.schedule_id,
                 time: schedule.time,
                 dosage: schedule.dosage,
@@ -711,22 +744,35 @@ const PrescriptionMonitoringGrid = ({
           size={{ xs: 12, sm: 12 }}
           sx={{ display: 'flex', alignItems: 'center', my: 4, justifyContent: 'space-between' }}
         >
-          {/* <Box sx={{ display: 'flex', gap: '4px' }}>
-            <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-              Pending Dosage:
-            </Typography>
-            <Typography sx={{ weight: 600, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}>
-              7
-            </Typography>
-          </Box> */}
-          <MUICheckbox
-            label='Select all'
-            labelStyle={isAllSelected && { color: 'green' }}
-            checked={isAllSelected}
-            indeterminate={isIndeterminate}
-            disabled={displayMetrics?.length === 0}
-            onChange={handleSelectAll}
-          />
+          <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <MUICheckbox
+              label='Select all'
+              labelStyle={isAllSelected && { color: 'green' }}
+              checked={isAllSelected}
+              indeterminate={isIndeterminate}
+              disabled={displayMetrics?.length === 0}
+              onChange={handleSelectAll}
+            />
+            {selectedMetrics.length > 0 && (
+              <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                  Pending Dosage:
+                </Typography>
+                <Typography sx={{ weight: 600, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}>
+                  {selectedMetrics.reduce((total, metric) => {
+                    if (metric?.progress) {
+                      const [completed, totalDoses] = metric.progress.split('/').map(Number)
+                      const pending = totalDoses - completed
+
+                      return total + (isNaN(pending) ? 0 : pending)
+                    }
+
+                    return total
+                  }, 0)}
+                </Typography>
+              </Box>
+            )}
+          </Box>
           <MUISwitch
             checked={isCurrentMedicalRecord}
             onChange={() => setIsCurrentMedicalRecord(!isCurrentMedicalRecord)}
@@ -837,7 +883,11 @@ const PrescriptionMonitoringGrid = ({
                                 const isFuture = isScheduledFuture(selectedDate, scheduledTime)
                                 if (!isFuture) {
                                   // Open administer/skip modal
-                                  handleAdministerOrSkipOpen(data)
+                                  if (timeSlot?.value?.administrative_ids?.length > 1) {
+                                    handleAdministerOrSkipOpen(data, 'multiple')
+                                  } else {
+                                    handleAdministerOrSkipOpen(data, 'single')
+                                  }
                                   // onOpenPrescriptionCard(timeSlot)
                                 } else {
                                   console.log('Cannot administer/skip future scheduled medications')

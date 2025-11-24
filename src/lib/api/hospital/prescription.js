@@ -3,6 +3,7 @@ import {
   ADD_PRESCRIPTION,
   ADMINISTER_ALL_MEDICINES,
   ADMINISTER_PRESCRIPTION,
+  DIRECT_ADMINISTER_FOR_PAST_SLOT,
   GET_BATCH_LIST,
   GET_FREQUENCY,
   GET_PRESCRIPTION_DETAILS,
@@ -112,16 +113,6 @@ export async function undoPrescription(payLoad) {
   }
 }
 
-export async function skipPrescription(payLoad) {
-  try {
-    const response = await axiosFormPost({ url: `${SKIP_PRESCRIPTION}`, body: payLoad })
-
-    return response?.data
-  } catch (error) {
-    console.error('Error adding prescription:', error.message)
-  }
-}
-
 export async function administerDose(payLoad) {
   try {
     const response = await axiosFormPost({ url: `${ADMINISTER_PRESCRIPTION}`, body: payLoad })
@@ -145,6 +136,16 @@ export async function administerAllMedicines(payLoad) {
 export async function schedulePrescription(payLoad) {
   try {
     const response = await axiosPost({ url: `${SCHEDULE_PRESCRIPTION}`, body: payLoad })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error adding prescription:', error.message)
+  }
+}
+
+export async function directAdministerForPatSlot(payLoad) {
+  try {
+    const response = await axiosFormPost({ url: `${DIRECT_ADMINISTER_FOR_PAST_SLOT}`, body: payLoad })
 
     return response?.data
   } catch (error) {

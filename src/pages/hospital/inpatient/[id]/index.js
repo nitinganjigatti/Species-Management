@@ -41,15 +41,15 @@ const useDrawerState = () => {
 }
 const InpatientOverview = lazy(() => import('src/views/pages/hospital/inpatient/InpatientOverview'))
 const InpatientMedicalSummary = lazy(() => import('src/components/hospital/inpatient/InpatientMedicalSummary'))
+const TreatmentLayout = lazy(() => import('src/components/hospital/TreatmentMonitoring/TreatmentLayout'))
+const Symptoms = lazy(() => import('src/components/hospital/inpatient/Symptoms'))
 const ClinicalAssessment = lazy(() => import('src/components/hospital/inpatient/ClinicalAssessment'))
 const ClinicalNotes = lazy(() => import('src/components/hospital/inpatient/ClinicalNotes'))
 const OtherTreatments = lazy(() => import('src/components/hospital/inpatient/OtherTreatments/index'))
-const Symptoms = lazy(() => import('src/components/hospital/inpatient/Symptoms'))
+const PrescriptionLayout = lazy(() => import('src/components/hospital/prescriptionMonitoring/PrescriptionLayout'))
+const Anesthesia = lazy(() => import('src/components/hospital/inpatient/Anesthesia'))
 const InpatientSurgery = lazy(() => import('src/views/pages/hospital/inpatient/InpatientSurgery'))
 const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'))
-const PrescriptionLayout = lazy(() => import('src/components/hospital/prescriptionMonitoring/PrescriptionLayout'))
-const TreatmentLayout = lazy(() => import('src/components/hospital/TreatmentMonitoring/TreatmentLayout'))
-const Anesthesia = lazy(() => import('src/components/hospital/inpatient/Anesthesia'))
 
 const InpatientDetails = () => {
   const router = useRouter()
@@ -97,7 +97,7 @@ const InpatientDetails = () => {
 
   useEffect(() => {
     if (patientResponse?.data?.created_at) {
-      const admittedDate = patientResponse.data.created_at
+      const admittedDate = patientResponse.data.admitted_at
       console.log('✅ useEffect triggered - admittedDate:', admittedDate)
       updateUrlWithAdmittedDate(admittedDate)
     }
@@ -140,15 +140,15 @@ const InpatientDetails = () => {
     () => [
       { label: 'Overview', value: 'overview', component: InpatientOverview },
       { label: 'Medical Summary', value: 'medicalSummary', component: InpatientMedicalSummary },
-      { label: 'Treatment Monitoring', value: 'treatmentMonitoring', component: TreatmentLayout },
+      { label: 'Monitoring', value: 'treatmentMonitoring', component: TreatmentLayout },
+      { label: 'Symptoms', value: 'symptoms', component: Symptoms },
       { label: 'Clinical Assessment', value: 'clinicalAssessment', component: ClinicalAssessment },
       { label: 'Clinical Notes', value: 'clinicalNotes', component: ClinicalNotes },
       { label: 'Other Treatments', value: 'otherTreatments', component: OtherTreatments },
-      { label: 'Symptoms', value: 'symptoms', component: Symptoms },
-      { label: 'Surgery', value: 'surgery', component: InpatientSurgery },
-      { label: 'Discharge', value: 'discharge', component: InpatientDischarge },
       { label: 'Prescription', value: 'prescriptionMonitoring', component: PrescriptionLayout },
-      { label: 'Anesthesia', value: 'anesthesia', component: Anesthesia }
+      { label: 'Anesthesia', value: 'anesthesia', component: Anesthesia },
+      { label: 'Surgery', value: 'surgery', component: InpatientSurgery },
+      { label: 'Discharge', value: 'discharge', component: InpatientDischarge }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
@@ -296,8 +296,8 @@ const InpatientDetails = () => {
                     sx: {
                       maxHeight: '60vh',
                       overflowY: 'auto',
-                      maxWidth: { xs: '70vw', sm: '40vw', md: '30vw' },
-                      width: { xs: '70vw', sm: '40vw', md: '30vw' }
+                      maxWidth: { xs: '60vw', sm: '30vw', md: '30vw', lg: '15vw' },
+                      width: { xs: '60vw', sm: '30vw', md: '30vw', lg: '15vw' }
                     }
                   }
                 }}

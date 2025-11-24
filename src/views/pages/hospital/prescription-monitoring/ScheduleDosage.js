@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Drawer, Box, Typography, IconButton, Grid, Card, CardContent, Divider, Button } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
@@ -11,6 +11,11 @@ import { Controller, useForm, useFieldArray } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import Utility from 'src/utility'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+
+// Enable custom parse format plugin for dayjs
+dayjs.extend(customParseFormat)
 
 const ScheduleDosageSidesheet = ({
   label = 'Schedule Dosage',
@@ -23,6 +28,7 @@ const ScheduleDosageSidesheet = ({
   medicalMasterData
 }) => {
   const theme = useTheme()
+  const previousUnitsRef = useRef([])
 
   // Validation schema based on reference component
   const validationSchema = yup.object({
@@ -56,25 +62,52 @@ const ScheduleDosageSidesheet = ({
       )
       .min(1, 'At least one schedule time is required')
       .required('Schedules are required'),
-    applyDosage: yup.string().oneOf(['this_day', 'till_end'], 'Please select dosage application type')
+    applyDosage: yup
+      .string()
+      .oneOf(['only_for_this_day', 'till_prescription_ends'], 'Please select dosage application type')
   })
 
   const defaultValues = {
     schedules: [
       {
-        time: '',
+        time: null,
         dosageQuantity: '',
         dosageUnit: '',
         dosageWeights: ''
       }
     ],
-    applyDosage: 'this_day' // Set default value
+    applyDosage: 'till_prescription_ends'
   }
+
+  // Convert time format from "08 AM" or "08:00 AM" to dayjs object
+  const convertTimeToMuiFormat = timeString => {
+    if (!timeString) return null
+
+    // Handle format like "08 AM" or "08:00 AM"
+    let formattedTime = timeString.trim()
+
+    // If it's in format "08 AM", convert to "08:00 AM"
+    if (!/:\d{2}/.test(formattedTime)) {
+      formattedTime = formattedTime.replace(/^(\d{1,2})\s*(AM|PM)$/i, '$1:00 $2')
+    }
+
+    // Parse using dayjs with the format
+    const parsedTime = dayjs(formattedTime, 'hh:mm A')
+
+    return parsedTime.isValid() ? parsedTime : null
+  }
+
+  // Calculate slot start and end times
+  const slotStart = scheduleDosage?.scheduledTime ? convertTimeToMuiFormat(scheduleDosage.scheduledTime) : null
+  const slotEnd = slotStart ? slotStart.add(59, 'minute') : null
 
   const {
     control,
     handleSubmit,
     reset,
+    watch,
+    setValue,
+    getValues,
     formState: { errors }
   } = useForm({
     defaultValues: defaultValues,
@@ -88,20 +121,88 @@ const ScheduleDosageSidesheet = ({
     keyName: 'fieldId'
   })
 
+  // Watch all dosage units
+  const allSchedules = watch('schedules')
+
+  // Sync dosageUnit across all schedules when any one changes
+  useEffect(() => {
+    if (allSchedules && allSchedules.length > 0) {
+      const currentUnits = allSchedules.map(schedule => schedule?.dosageUnit || '')
+      
+      // Find which unit changed by comparing with previous values
+      let changedIndex = -1
+      let newUnit = null
+      
+      for (let i = 0; i < currentUnits.length; i++) {
+        if (previousUnitsRef.current[i] !== currentUnits[i] && currentUnits[i]) {
+          changedIndex = i
+          newUnit = currentUnits[i]
+          break
+        }
+      }
+      
+      // If a unit was changed and there are multiple schedules, sync all units
+      if (changedIndex !== -1 && newUnit && allSchedules.length > 1) {
+        allSchedules.forEach((schedule, idx) => {
+          if (idx !== changedIndex && schedule?.dosageUnit !== newUnit) {
+            setValue(`schedules.${idx}.dosageUnit`, newUnit, { shouldValidate: false })
+          }
+        })
+      }
+      
+      // Update the ref with current units
+      previousUnitsRef.current = currentUnits
+    }
+  }, [allSchedules?.map(s => s?.dosageUnit).join(','), allSchedules?.length, setValue])
+
   useEffect(() => {
     if (!handleOpen) {
       // Reset form when sidesheet closes
       reset(defaultValues)
+      previousUnitsRef.current = []
     }
   }, [handleOpen, reset])
 
+  // Set default time if scheduledTime is present
+  useEffect(() => {
+    if (scheduleDosage?.scheduledTime) {
+      const defaultTime = convertTimeToMuiFormat(scheduleDosage.scheduledTime)
+      const defaultUnit = medicalMasterData?.prescriptionDosageMeasurementType?.[0]?.unit_name || ''
+
+      reset(prev => ({
+        ...prev,
+        schedules: [
+          {
+            time: defaultTime,
+            dosageQuantity: '',
+            dosageUnit: defaultUnit,
+            dosageWeights: ''
+          }
+        ]
+      }))
+      
+      // Initialize the ref with the default unit
+      previousUnitsRef.current = [defaultUnit]
+    }
+  }, [scheduleDosage?.scheduledTime, medicalMasterData, reset])
+
   const handleClose = () => {
     reset(defaultValues)
+    previousUnitsRef.current = []
     handleSidebarClose()
   }
 
   const handleFormSubmit = data => {
-    onSubmit(data)
+    // Convert dayjs time objects back to string format
+    const formattedData = {
+      ...data,
+      schedules: data.schedules.map(schedule => ({
+        ...schedule,
+        time: schedule.time ? dayjs(schedule.time).format('hh:mm A') : ''
+      }))
+    }
+
+    onSubmit(formattedData)
 
     // handleClose()
   }
@@ -226,6 +327,8 @@ const ScheduleDosageSidesheet = ({
                           error={errors?.schedules?.[idx]?.time}
                           required
                           disabled={submitLoader}
+                          minTime={slotStart}
+                          maxTime={slotEnd}
                         />
                       </Grid>
                       <Grid size={{ xs: fields.length > 1 ? 10 : 12, sm: fields.length > 1 ? 7 : 8 }}>
@@ -284,10 +387,18 @@ const ScheduleDosageSidesheet = ({
                       }}
                       onClick={e => {
                         e.preventDefault()
+
+                        // Use the current first schedule's dosageUnit for new entries
+                        const currentSchedules = getValues('schedules')
+
+                        const currentUnit =
+                          currentSchedules?.[0]?.dosageUnit ||
+                          medicalMasterData?.prescriptionDosageMeasurementType?.[0]?.unit_name ||
+                          ''
                         append({
-                          time: '',
+                          time: null,
                           dosageQuantity: '',
-                          dosageUnit: medicalMasterData?.prescriptionDosageMeasurementType?.[0]?.unit_name || '',
+                          dosageUnit: currentUnit,
                           dosageWeights: ''
                         })
                       }}
@@ -311,16 +422,16 @@ const ScheduleDosageSidesheet = ({
                     </Typography>
 
                     <Controller
-                      name='applyDosage'
+                      name='apply_dosage'
                       control={control}
-                      defaultValue='this_day'
+                      defaultValue='only_for_this_day'
                       render={({ field }) => (
                         <Grid container spacing={4}>
                           <Grid size={{ xs: 12 }}>
                             <TreatmentTypeRadioButtons
                               label='Only for this day'
-                              isSelected={field.value === 'this_day'}
-                              onClick={() => !submitLoader && field.onChange('this_day')}
+                              isSelected={field.value === 'only_for_this_day'}
+                              onClick={() => !submitLoader && field.onChange('only_for_this_day')}
                               radioPosition='right'
                               selectedFontColor={theme.palette.customColors.OnSurfaceVariant}
                               textColor={theme.palette.customColors.Outline}
@@ -332,8 +443,8 @@ const ScheduleDosageSidesheet = ({
                           <Grid size={{ xs: 12 }}>
                             <TreatmentTypeRadioButtons
                               label='Till prescription ends'
-                              isSelected={field.value === 'till_end'}
-                              onClick={() => !submitLoader && field.onChange('till_end')}
+                              isSelected={field.value === 'till_prescription_ends'}
+                              onClick={() => !submitLoader && field.onChange('till_prescription_ends')}
                               radioPosition='right'
                               selectedFontColor={theme.palette.customColors.OnSurfaceVariant}
                               textColor={theme.palette.customColors.Outline}

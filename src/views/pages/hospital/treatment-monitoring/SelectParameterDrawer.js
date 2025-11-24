@@ -33,24 +33,25 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments, setSelected
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
   const debouncedSearch = useMemo(() => debounce(setSearch, 500), [])
 
-  const {
-    data: filterData,
-    isLoading: filterLoading,
-    isError: filterError
-  } = useQuery({
+  const { data: filterData, isLoading: filterLoading } = useQuery({
     queryKey: ['hospital-parameters-filter'],
     queryFn: () => getHospitalParamsFilterOptions({ ref_type: 'animal' })
   })
 
   useEffect(() => {
     if (filterData?.success === true) {
-      const filters = filterData?.data?.map(item => ({
+      const backendFilters = filterData?.data?.map(item => ({
         label: item?.label,
         value: item?.assessment_category_id,
         count: item?.assessment_type_count
       }))
+
+      const filters = [
+        { label: 'All', value: '', count: backendFilters.reduce((acc, f) => acc + f.count, 0) },
+        ...backendFilters
+      ]
       setParamsFilters(filters)
-      if (filters.length > 0) setActiveTab(filters[0].value)
+      setActiveTab('')
     }
   }, [filterData])
 
@@ -90,7 +91,7 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments, setSelected
 
   useEffect(() => {
     if (!open) {
-      queryClient.cancelQueries(['animal-List-Observation-Report', search])
+      queryClient.cancelQueries(['get-parameters-based-on-filters', search])
       remove()
       cooldownRef.current = false
     }
@@ -98,6 +99,8 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments, setSelected
 
   const list = useMemo(() => data?.pages?.flatMap(page => page.parameters) || [], [data])
   const total = useMemo(() => data?.pages?.[0]?.total_count || 0, [data])
+
+  console.log(total)
 
   const loadMore = useCallback(() => {
     if (cooldownRef.current) return
@@ -236,36 +239,44 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments, setSelected
                     pb: 1
                   }}
                 >
-                  {paramsFilters.map((item, index) => (
-                    <Button
-                      key={index}
-                      onClick={() => handleTabClick(item.value)}
-                      sx={{
-                        textTransform: 'none',
-                        borderRadius: '2',
-                        px: 3,
-                        py: 1.5,
-                        fontWeight: 500,
-                        fontSize: '14px',
-                        whiteSpace: 'nowrap',
-                        minWidth: 'auto',
-                        flexShrink: 0,
-                        border: 'none',
-                        backgroundColor: activeTab === item.value ? '#1F515B' : '#0000000D',
-                        color: activeTab === item.value ? '#FFFFFF' : '#666666',
-                        '&:hover':
-                          activeTab === item.value
+                  {paramsFilters.map((item, index) => {
+                    const isActive = activeTab === item.value
+                    const showCount = item.value === '' ? total : item.count
+
+                    return (
+                      <Button
+                        key={index}
+                        onClick={() => handleTabClick(item.value)}
+                        sx={{
+                          textTransform: 'none',
+                          borderRadius: '2',
+                          px: 3,
+                          py: 1.5,
+                          fontWeight: 500,
+                          fontSize: '14px',
+                          whiteSpace: 'nowrap',
+                          minWidth: 'auto',
+                          flexShrink: 0,
+                          border: 'none',
+                          backgroundColor: isActive
+                            ? theme.palette.customColors.OnPrimaryContainer
+                            : theme.palette.customColors.mdAntzNeutral,
+                          color: isActive
+                            ? theme.palette.customColors.OnPrimary
+                            : theme.palette.customColors.OnPrimaryContainer,
+                          '&:hover': isActive
                             ? {
-                                backgroundColor: '#1F515B !important'
+                                backgroundColor: `${theme.palette.customColors.OnPrimaryContainer} !important`
                               }
                             : {
-                                backgroundColor: '#e0ecee'
+                                backgroundColor: theme.palette.customColors.OutlineVariant
                               }
-                      }}
-                    >
-                      {item.label} ({item.count})
-                    </Button>
-                  ))}
+                        }}
+                      >
+                        {item.label} ({showCount})
+                      </Button>
+                    )
+                  })}
                 </Box>
               )}
               {isFetching && list.length === 0 ? (

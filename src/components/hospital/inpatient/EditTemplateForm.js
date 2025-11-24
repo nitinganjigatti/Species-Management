@@ -7,7 +7,7 @@ import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import { LoadingButton } from '@mui/lab'
-import RichTextEditor from 'src/components/RichTextEditorTwo'
+import RichTextEditor from 'src/components/RichTextEditor'
 
 // Validation schema
 const schema = yup.object().shape({

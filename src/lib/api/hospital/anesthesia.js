@@ -5,7 +5,10 @@ import {
   MEDICAL_MASTER_DATA,
   GET_MEDICAL_DELIVERY_ROUTE,
   GET_VITAL_MONITORING_LIST,
-  GET_ANESTHESIA_DETAIL
+  GET_ANESTHESIA_DETAIL,
+  GET_ANESTHESIA_LIST,
+  GET_ANESTHESIA_DETAIL,
+  DELETE_ANESTHESIA
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
@@ -47,6 +50,24 @@ export const getvitalMonitoringList = async params => {
 
 export const getAnesthesiaDetails = async (id, params) => {
   const response = await axiosGet({ url: `${GET_ANESTHESIA_DETAIL}/${id}`, params })
+
+  return response?.data
+}
+
+export const getAnesthesiaList = async ({ params }) => {
+  const response = await axiosGet({ url: `${GET_ANESTHESIA_LIST}`, params })
+
+  return response?.data
+}
+
+export const getAnesthesiaDetail = async id => {
+  const response = await axiosGet({ url: `${GET_ANESTHESIA_DETAIL}/${id}` })
+
+  return response?.data
+}
+
+export const deleteAnesthesia = async id => {
+  const response = await axiosPost({ url: `${DELETE_ANESTHESIA}/${id}`, body: {} })
 
   return response?.data
 }

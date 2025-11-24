@@ -108,7 +108,7 @@ const DosageHeader = styled(Box)(({ theme, variant }) => ({
   backgroundColor:
     variant === 'administered'
       ? theme.palette.customColors.OnBackground
-      : variant === 'skipped'
+      : variant === 'withheld'
       ? theme.palette.customColors.neutral05
       : variant === 'stopped'
       ? theme.palette.customColors.Tertiary20
@@ -310,44 +310,95 @@ const MedicinePrescriptionCard = ({
     // Parse the date string properly (DD/MM/YYYY format)
     const [datePart, timePart] = dateTimeString.split(', ')
     const [day, month, year] = datePart.split('/')
-
-    // Create date object (month is 0-indexed in JavaScript)
-    const date = new Date(year, month - 1, day, ...timePart.split(':'))
-
+  
+    // Create date object in UTC (month is 0-indexed in JavaScript)
+    const utcDate = new Date(Date.UTC(year, month - 1, day, ...timePart.split(':')))
+  
+    // Convert UTC to local time
+    const localDate = new Date(utcDate.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }))
+  
     // Format date part: 02 Jan 2025
-    const formattedDate = date.toLocaleDateString('en-GB', {
+    const formattedDate = localDate.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
       year: 'numeric'
     })
-
+  
     // Format time part: 12 : 35 PM
-    const formattedTime = date
+    const formattedTime = localDate
       .toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: true
       })
       .replace(':', ' : ')
-
+  
     return `${formattedDate} • ${formattedTime}`
+  }
+
+  const isStopDatePassed = stopDateString => {
+    if (!stopDateString) return false
+
+    try {
+      // Parse the backend date string (YYYY-MM-DD HH:mm:ss format)
+      const [datePart, timePart] = stopDateString.split(' ')
+      const [year, month, day] = datePart.split('-')
+      const [hours, minutes, seconds] = timePart.split(':')
+
+      // Create UTC date from backend string
+      const stopDateUTC = new Date(
+        Date.UTC(
+          parseInt(year),
+          parseInt(month) - 1,
+          parseInt(day),
+          parseInt(hours),
+          parseInt(minutes),
+          parseInt(seconds)
+        )
+      )
+
+      // Convert to local time
+      const stopDateLocal = new Date(stopDateUTC)
+
+      // Get current local time
+      const now = new Date()
+
+      // Check if stop date is in the past
+      return stopDateLocal < now
+    } catch (error) {
+      console.error('Error parsing stop date:', error)
+
+      return false
+    }
+  }
+
+  const formatTimeFromUTC = utcTimeString => {
+    return new Date(`1970-01-01 ${utcTimeString} UTC`).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    })
   }
 
   const renderDosageEntry = entry => (
     <DosageSection key={entry.id} variant={entry.variant}>
-      <DosageHeader variant={entry.variant}>
+      <DosageHeader variant={entry.status}>
         <Box sx={{ display: 'flex', padding: '0 16px', alignItems: 'center', gap: '4px', flex: '1 0 0' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {entry.variant === 'administered' ? (
-              <CheckCircleIcon sx={{ fontSize: '24px' }} color={'primary'} />
+              <CheckCircleIcon sx={{ fontSize: '18px' }} color={'primary'} />
             ) : (
               <DoDisturbIcon
-                sx={{ fontSize: '24px' }}
-                color={
-                  entry.status === 'stopped'
-                    ? theme.palette.customColors.Tertiary
-                    : theme.palette.customColors.neutralSecondary
-                }
+                sx={{
+                  fontSize: '18px',
+                  color:
+                    entry.status?.toLowerCase() === 'stopped'
+                      ? theme.palette.customColors.Tertiary
+                      : theme.palette.customColors.neutralSecondary,
+                  '& path': {
+                    strokeWidth: 1.5
+                  }
+                }}
               />
             )}
             <Box
@@ -355,7 +406,6 @@ const MedicinePrescriptionCard = ({
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
-                alignItems: 'center',
                 gap: '2px',
                 flex: '1 0 0'
               }}
@@ -366,31 +416,33 @@ const MedicinePrescriptionCard = ({
                   fontWeight: 600,
                   fontSize: '16px',
                   color:
-                    entry.variant === 'stopped'
+                    entry.status?.toLowerCase() === 'stopped'
                       ? theme.palette.customColors.OnTertiaryContainer
                       : theme.palette.common.black,
                   textDecoration: entry.isStrikethrough ? 'line-through' : 'none'
                 }}
               >
-                {entry.time}
+                {formatTimeFromUTC(entry.time)}
               </Typography>
               <Typography
                 variant='body2'
                 sx={{
                   fontSize: '14px',
                   color:
-                    entry.variant === 'stopped'
+                    entry.status?.toLowerCase() === 'stopped'
                       ? theme.palette.customColors.OnTertiaryContainer
                       : theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                {entry.status}
+                {entry?.status?.toLowerCase() === 'withheld'
+                  ? 'Skipped'
+                  : entry.status?.charAt(0).toUpperCase() + entry.status?.slice(1)}
               </Typography>
             </Box>
           </Box>
         </Box>
         <Box sx={{ display: 'flex', paddingRight: '16px', alignItems: 'center', gap: '20px' }}>
-          <Typography
+          {/* <Typography
             variant='body2'
             sx={{
               fontSize: '14px',
@@ -399,7 +451,7 @@ const MedicinePrescriptionCard = ({
             }}
           >
             {entry.dosage}
-          </Typography>
+          </Typography> */}
           <Typography
             variant='body1'
             sx={{
@@ -829,6 +881,17 @@ const MedicinePrescriptionCard = ({
                   const isPending = !item?.status || item?.status?.toLowerCase() === 'pending'
                   const isSelected = selectedMedications.includes(item?.administritive_id)
 
+                  const isFutureTime = () => {
+                    if (!selectedDate || !item?.scheduled_time) return false
+
+                    const datePart = selectedDate.split(' ')[0] // e.g., "2025-11-10"
+                    const [hours, minutes] = item.scheduled_time.split(':')
+                    const scheduledDateTime = new Date(`${datePart}T${hours}:${minutes}:00`)
+                    const now = new Date()
+
+                    return scheduledDateTime > now
+                  }
+
                   return isPending ? (
                     <MedicationTimeCard
                       key={item?.administritive_id}
@@ -837,6 +900,7 @@ const MedicinePrescriptionCard = ({
                       amount={`${item?.scheduled_quantity} ${item?.scheduled_unit_name}`}
                       checked={isSelected}
                       onChange={checked => handleMedicationSelect(item?.administritive_id, checked)}
+                      disabled={isFutureTime()}
                     />
                   ) : (
                     renderDosageEntry({
@@ -861,16 +925,14 @@ const MedicinePrescriptionCard = ({
                       wastageNote: item?.notes || '',
                       batchNumber: item?.batch_details?.[0]?.batch_number || null,
                       administeredBy: item?.user_full_name || 'Unknown',
-                      administeredAt: item?.administritive_date
-                        ? new Date(item.administritive_date).toLocaleString()
-                        : '',
+                      administeredAt: item?.modified_at ? new Date(item.modified_at).toLocaleString() : '',
                       isStrikethrough: item?.status?.toLowerCase() === 'stopped',
                       batch_details: item?.batch_details
                     })
                   )
                 })}
 
-                {stopMedicineModalOpen ? (
+                {stopMedicineModalOpen && !isStopDatePassed(medicineData?.stop_date) ? (
                   <StopMedicine
                     onClose={() => setStopMedicineModalOpen(false)}
                     onConfirm={handleStopMedicineConfirm}
@@ -889,23 +951,27 @@ const MedicinePrescriptionCard = ({
                       mb: 12
                     }}
                   >
-                    <Button
-                      variant='text'
-                      startIcon={<Icon icon='jam:stop-sign' />}
-                      onClick={handleStopMedicine}
-                      disabled={isDetailLoading}
-                      sx={{
-                        color: theme.palette.customColors.OnTertiaryContainer,
-                        fontSize: '16px',
-                        fontWeight: 500,
-                        justifyContent: 'left',
-                        transform: 'none',
-                        textTransform: 'none',
-                        width: 'auto'
-                      }}
-                    >
-                      Stop Medicine
-                    </Button>
+                    {!isStopDatePassed(medicineData?.stop_date) ? (
+                      <Button
+                        variant='text'
+                        startIcon={<Icon icon='jam:stop-sign' />}
+                        onClick={handleStopMedicine}
+                        disabled={isDetailLoading}
+                        sx={{
+                          color: theme.palette.customColors.Tertiary,
+                          fontSize: '16px',
+                          fontWeight: 500,
+                          justifyContent: 'left',
+                          transform: 'none',
+                          textTransform: 'none',
+                          width: 'auto'
+                        }}
+                      >
+                        Stop Medicine
+                      </Button>
+                    ) : (
+                      <Box></Box>
+                    )}
                     {handleAddNewDosageTimeCheck(selectedDate) && (
                       <Button
                         variant='text'

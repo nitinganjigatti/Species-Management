@@ -2,6 +2,8 @@ import {
   ADD_HOSPITAL_PATIENT,
   EDIT_PATIENT_DETAILS,
   GET_ANIMAL_TOTAL_HOSPITAL_VISIT,
+  GET_FOLLOWUP_PATIENTS_LISTS,
+  GET_MORTALITY_PATIENTS_LISTS,
   GET_NEW_ANIMAL_LIST_WITH_FILTERS,
   GET_OVERVIEW_MEDIA_FILES,
   GET_SPECIES_FOR_HOSPITAL
@@ -40,6 +42,18 @@ export const getAllSpeciesListForHospital = async params => {
 
 export async function getOverviewMediaItems({ id }) {
   const response = await axiosGet({ url: `${GET_OVERVIEW_MEDIA_FILES}/${id}` })
+
+  return response?.data
+}
+
+export async function getPatientsMortalityListings(params) {
+  const response = await axiosGet({ url: `${GET_MORTALITY_PATIENTS_LISTS}`, params })
+
+  return response?.data
+}
+
+export async function getFollowUpPatientsListings(params) {
+  const response = await axiosGet({ url: `${GET_FOLLOWUP_PATIENTS_LISTS}`, params })
 
   return response?.data
 }

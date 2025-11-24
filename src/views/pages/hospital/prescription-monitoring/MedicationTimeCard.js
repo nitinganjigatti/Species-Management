@@ -1,9 +1,17 @@
 import React, { useState } from 'react'
-import { Box, Typography, Checkbox, Paper } from '@mui/material'
+import { Box, Typography, Checkbox, Radio, Paper } from '@mui/material'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import { useTheme } from '@mui/material/styles'
 
-const MedicationTimeCard = ({ time, dosage, amount, checked = false, onChange = () => {} }) => {
+const MedicationTimeCard = ({
+  time,
+  dosage,
+  amount,
+  checked = false,
+  onChange = () => {},
+  isControlledSubstance = false,
+  disabled = false
+}) => {
   const theme = useTheme()
 
   return (
@@ -12,7 +20,7 @@ const MedicationTimeCard = ({ time, dosage, amount, checked = false, onChange = 
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-
+        opacity: disabled ? 0.5 : 1,
         paddingLeft: '16px',
         backgroundColor: checked ? theme.palette.customColors.Surface : theme.palette.customColors.Background,
         border: checked ? `1px solid ${theme.palette.primary.main}` : 'none',
@@ -37,14 +45,14 @@ const MedicationTimeCard = ({ time, dosage, amount, checked = false, onChange = 
       {/* Middle Section - Dosage Info */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}>
-          <Typography
+          {/* <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '14px'
             }}
           >
             {dosage}
-          </Typography>
+          </Typography> */}
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -56,7 +64,7 @@ const MedicationTimeCard = ({ time, dosage, amount, checked = false, onChange = 
           </Typography>
         </Box>
 
-        {/* Right Section - Checkbox */}
+        {/* Right Section - Radio or Checkbox */}
         <Box
           sx={{
             display: 'flex',
@@ -67,16 +75,31 @@ const MedicationTimeCard = ({ time, dosage, amount, checked = false, onChange = 
             borderRadius: '0 8px 8px 0'
           }}
         >
-          <Checkbox
-            checked={checked}
-            onChange={e => onChange(e.target.checked)}
-            sx={{
-              padding: '4px',
-              '&.Mui-checked': {
-                color: theme.palette.customColors.Primary
-              }
-            }}
-          />
+          {isControlledSubstance ? (
+            <Radio
+              checked={checked}
+              onChange={e => onChange(e.target.checked)}
+              disabled={disabled}
+              sx={{
+                padding: '4px',
+                '&.Mui-checked': {
+                  color: theme.palette.customColors.Primary
+                }
+              }}
+            />
+          ) : (
+            <Checkbox
+              checked={checked}
+              onChange={e => onChange(e.target.checked)}
+              disabled={disabled}
+              sx={{
+                padding: '4px',
+                '&.Mui-checked': {
+                  color: theme.palette.customColors.Primary
+                }
+              }}
+            />
+          )}
         </Box>
       </Box>
     </Box>

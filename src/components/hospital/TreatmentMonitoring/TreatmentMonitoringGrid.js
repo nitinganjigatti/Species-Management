@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
-import { Box, Typography, IconButton, Grid, Button, Skeleton } from '@mui/material'
+import { Box, Typography, IconButton, Grid, Button, Skeleton, FormControlLabel, Radio, RadioGroup } from '@mui/material'
 import { alpha, styled, useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
@@ -17,38 +17,7 @@ import { useQuery } from '@tanstack/react-query'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import dayjs from 'dayjs'
 import Toaster from 'src/components/Toaster'
-
-const getDatesFromUTCToToday = utcString => {
-  const admittedUTC = new Date(utcString + 'Z')
-  const admittedIST = new Date(admittedUTC.getTime() + 5.5 * 60 * 60 * 1000)
-  const admittedDate = new Date(admittedIST.toLocaleDateString('en-CA'))
-  const currentDateIST = new Date(new Date().toLocaleDateString('en-CA'))
-
-  const dates = []
-  let temp = new Date(admittedDate)
-
-  while (temp <= currentDateIST) {
-    dates.push(temp.toISOString().split('T')[0])
-    temp.setDate(temp.getDate() + 1)
-  }
-
-  if (dates.length === 0) {
-    dates.push(currentDateIST.toISOString().split('T')[0])
-  }
-
-  return dates
-}
-
-const convertUTCToIST = utcTime => {
-  if (!utcTime) return ''
-  const today = new Date().toISOString().split('T')[0]
-  const utcDateTime = `${today}T${utcTime}Z` // mark as UTC
-
-  // Just create the Date — JS automatically converts to local (IST)
-  const localDate = new Date(utcDateTime)
-
-  return localDate.toTimeString().split(' ')[0] // e.g. "11:04:33"
-}
+import Utility from 'src/utility'
 
 // Utility functions
 const getLabelForHour = hour => {
@@ -67,7 +36,7 @@ const formatInterval = interval => {
   return `${hour}:00 ${ampm}`
 }
 
-const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday) => {
+const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday, theme) => {
   useEffect(() => {
     if (!isToday) return
 
@@ -80,11 +49,11 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday) => {
       tooltipElement = document.createElement('div')
       tooltipElement.style.cssText = `
         position: absolute;
-        top: 0px;
+        bottom: -27px;      
         transform: translateX(-50%);
         background-color: white;
-        border: 1px solid #E35163;
-        color: #E35163;
+        border: 1px solid ${theme.palette.customColors.Error};
+        color: ${theme.palette.customColors.Error};
         padding: 4px 8px;
         font-size: 12px;
         font-weight: 600;
@@ -100,15 +69,15 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday) => {
         .tooltip-arrow::after {
           content: "";
           position: absolute;
-          top: 100%;
+          top: -25%;
           left: 50%;
           transform: translateX(-50%);
           width: 0;
           height: 0;
           border-left: 6px solid transparent;
           border-right: 6px solid transparent;
-          border-top: 6px solid #E35163;
-          border-bottom: none;
+          border-bottom: 6px solid ${theme.palette.customColors.Error};
+          border-top: none;
         }
       `
       document.head.appendChild(style)
@@ -186,14 +155,6 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday) => {
   }, [scrollContainerRef, timeSlots, isToday])
 }
 
-const getTimeSlotLabelFromRecord = recordTime => {
-  if (!recordTime) return ''
-  const [hourStr] = recordTime.split(':')
-  const hour = parseInt(hourStr, 10)
-
-  return getLabelForHour(hour)
-}
-
 const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   const theme = useTheme()
   const scrollContainerRef = useRef(null)
@@ -212,6 +173,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [paramData, setParamData] = useState(null)
+  const [deleteScope, setDeleteScope] = useState('only_today')
 
   const isToday = dayjs(selectedDate).isSame(dayjs(), 'day')
 
@@ -246,10 +208,8 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   })
 
   useEffect(() => {
-    if (patientData?.admitted_at) {
-      setDates(getDatesFromUTCToToday(patientData.admitted_at))
-    }
-  }, [patientData])
+    refetchMonitoringParams()
+  }, [id])
 
   const timeSlots = useMemo(() => {
     const slots = []
@@ -260,7 +220,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
     return slots
   }, [])
 
-  useRealtimeTooltip(scrollContainerRef, timeSlots, isToday)
+  useRealtimeTooltip(scrollContainerRef, timeSlots, isToday, theme)
 
   const createTimeSlotStructure = useCallback(slots => slots.map(time => ({ time, isActive: false })), [])
 
@@ -284,8 +244,8 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
       const slots = createTimeSlotStructure(timeSlots)
 
       item.assessment_details?.forEach(detail => {
-        const istRecordTime = convertUTCToIST(detail?.record_time)
-        const slotLabel = getTimeSlotLabelFromRecord(istRecordTime)
+        const istRecordTime = detail?.record_time_ist
+        const slotLabel = getLabelForHour(parseInt(istRecordTime.split(':')[0]))
         const slot = slots.find(s => s.time === slotLabel)
         if (slot) {
           slot.isActive = true
@@ -293,7 +253,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
             value: detail.assessment_value,
             unit: detail.unit_name,
             total: Number(detail.total_records || 1),
-            recorded_time: dayjs(istRecordTime, 'HH:mm:ss').format('hh:mm A')
+            recorded_time: dayjs(detail.record_time_ist, 'HH:mm').format('hh:mm A')
           }
         }
       })
@@ -305,6 +265,12 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
       }
     })
   }, [monitoringDataListings, createTimeSlotStructure, timeSlots])
+
+  useEffect(() => {
+    if (monitoringDataListings?.header_date?.between_date) {
+      setDates(monitoringDataListings.header_date.between_date)
+    }
+  }, [monitoringDataListings])
 
   const defaultMetrics = useMemo(() => monitoringData, [monitoringData])
 
@@ -343,6 +309,12 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
     setSelectedDate(date)
   }
 
+  useEffect(() => {
+    if (selectedDate) {
+      monitoringRefetch()
+    }
+  }, [selectedDate])
+
   const handleParamDelete = async () => {
     setDeleteLoading(true)
 
@@ -355,6 +327,10 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
           .minute(dayjs().minute())
           .second(dayjs().second())
           .format('YYYY-MM-DD HH:mm:ss')
+      }
+
+      if (isToday) {
+        payload.remove_parameter_period = deleteScope
       }
 
       await deleteMonitoringParameter(payload).then(res => {
@@ -375,6 +351,16 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
     }
   }
 
+  const admittedAtLocal = monitoringDataListings?.current_day_schedule_date_time
+    ? Utility.convertUTCToLocal(monitoringDataListings?.current_day_schedule_date_time)
+    : null
+
+  const admittedAtHourIST = admittedAtLocal ? dayjs(admittedAtLocal, 'YYYY-MM-DD HH:mm:ss').hour() : null
+
+  const isAdmittedDay = admittedAtLocal
+    ? dayjs(selectedDate).isSame(dayjs(admittedAtLocal, 'YYYY-MM-DD HH:mm:ss'), 'day')
+    : false
+
   const renderedMetrics = useMemo(() => {
     return displayMetrics?.map(metric => (
       <TimeSlotGrid key={metric?.id} numColumns={timeSlots.length}>
@@ -389,16 +375,26 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
           const currentHour = new Date().getHours()
           let bgColor = theme.palette.customColors.OnPrimary
 
-          let isDisabled = false
-          if (isToday && hour > currentHour) {
-            isDisabled = true
-          }
+          const isFutureTodaySlot = isToday && hour > currentHour
+          const isBeforeAdmitTime = isAdmittedDay && admittedAtHourIST !== null && hour < admittedAtHourIST
+          const isAfterAdmitTime = !isBeforeAdmitTime
 
-          let showPlus = !isDisabled
+          // Disable ONLY future slots. Nothing else.
+          const isDisabled = isFutureTodaySlot
+
+          let showPlus = true
+
+          // hide plus only in future today slots
+          if (isFutureTodaySlot) showPlus = false
+          let isYellow = false
 
           if (durationMinutes) {
             const intervalHours = durationMinutes / 60
-            if (hour % intervalHours === 0) {
+            const isIntervalSlot = hour % intervalHours === 0
+
+            // Yellow should appear everywhere AFTER admitted time — even future hours
+            if (isIntervalSlot && isAfterAdmitTime) {
+              isYellow = true
               bgColor = alpha(theme.palette.customColors.antzNotes, 0.64)
             }
           }
@@ -409,7 +405,9 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
               sx={{
                 backgroundColor: timeSlot.record ? alpha(theme.palette.customColors.SecondaryContainer, 0.24) : bgColor,
                 border: timeSlot.record
-                  ? `1px solid${theme.palette.customColors.OutlineVariant}`
+                  ? `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  : isYellow
+                  ? `1px solid ${theme.palette.customColors.OutlineVariant}`
                   : `1px dashed ${theme.palette.customColors.OutlineVariant}`,
                 opacity: isDisabled ? 0.5 : 1,
                 cursor: isDisabled ? 'not-allowed' : 'pointer',
@@ -452,8 +450,8 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                       <Typography
                         sx={{
                           fontSize: '0.85rem',
-                          fontWeight: 500,
-                          color: theme.palette.customColors.OnSurfaceVariant
+                          fontWeight: 600,
+                          color: theme.palette.customColors.OnPrimaryContainer
                         }}
                       >
                         +{timeSlot.record.total - 1}
@@ -471,21 +469,87 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
     ))
   }, [displayMetrics, timeSlots, selectedDate])
 
+  const renderDeleteForm = (
+    <Box
+      sx={{
+        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+        width: '100%',
+        p: 3,
+        borderRadius: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: 2
+      }}
+    >
+      <Typography sx={{ fontSize: '1rem', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
+        How would you like to apply this change?
+      </Typography>
+
+      <RadioGroup
+        value={deleteScope}
+        onChange={e => setDeleteScope(e.target.value)}
+        sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}
+      >
+        <FormControlLabel
+          value='only_today'
+          control={<Radio />}
+          label={
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <Typography sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.neutralPrimary }}>
+                Only for Today
+              </Typography>
+              <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
+                Remove only for today.
+              </Typography>
+            </Box>
+          }
+          sx={{
+            alignItems: 'flex-start'
+          }}
+        />
+
+        <FormControlLabel
+          value='from_today_onwards'
+          control={<Radio />}
+          label={
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <Typography sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.neutralPrimary }}>
+                From Today Onward
+              </Typography>
+              <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
+                Remove this parameter for today and future days.
+              </Typography>
+            </Box>
+          }
+          sx={{
+            alignItems: 'flex-start'
+          }}
+        />
+      </RadioGroup>
+    </Box>
+  )
+
   return (
     <>
       <Grid container spacing={2} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
-        <Grid container spacing={6}>
-          <Grid item size={{ xs: 12, sm: 12, md: 10 }}>
-            <HorizontalDateNav onDateSelect={handleDateChange} selectedDate={selectedDate} dates={dates} />
+        <Grid container spacing={6} rowSpacing={4}>
+          <Grid item size={{ xs: 12, sm: 12, md: 9 }}>
+            <HorizontalDateNav
+              onDateSelect={handleDateChange}
+              selectedDate={selectedDate}
+              dates={dates}
+              isLoading={monitoringLoading}
+            />
           </Grid>
-          <Grid item size={{ xs: 12, sm: 12, md: 2 }}>
+          <Grid item size={{ xs: 12, sm: 12, md: 3 }}>
             {isToday ? (
               <Button
                 sx={{ height: '48px', width: '100%', fontSize: '0.8rem' }}
                 variant='contained'
                 onClick={() => setOpenScheduleDrawer(true)}
               >
-                Schedule
+                {monitoringDataListings?.is_scheduled_for_particular_day ? 'Edit Schedule' : 'Schedule'}
               </Button>
             ) : (
               <Button
@@ -505,7 +569,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
             )}
           </Grid>
         </Grid>
-        <Grid size={{ xs: 12 }} sx={{ mt: 6 }}>
+        <Grid size={{ xs: 12 }} sx={{ mt: 4 }}>
           {monitoringLoading ? (
             <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4 }}>
               <Box sx={{ width: '180px', display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -554,13 +618,20 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                       Monitoring
                     </Typography>
                     <IconButton size='small' onClick={() => setAddParameterDrawerOpen(true)}>
-                      <Icon icon={'ei:plus'} fontSize={30} color={theme.palette.primary.main} fontWeight={600} />
+                      <Icon icon={'icons8:plus'} fontSize={30} color={theme.palette.primary.main} />
                     </IconButton>
                   </HeaderContainer>
 
                   {displayMetrics?.map(metric => (
                     <MetricLabel key={metric.assessment_type_id}>
-                      <Box>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          gap: 1
+                        }}
+                      >
                         <MetricName>{metric.label}</MetricName>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Icon icon={'f7:waveform-path-ecg'} fontSize={16} />
@@ -572,10 +643,14 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                         <IconButton
                           size='small'
                           onClick={() => {
+                            const hasEntries = metric?.timeSlots?.some(slot => slot.record)
+                            setParamData({
+                              ...metric,
+                              hasEntries
+                            })
                             setOpenDeleteDialog(true)
-                            setParamData(metric)
                           }}
-                          sx={{ color: '#6c757d', ml: 1 }}
+                          sx={{ color: theme.palette.customColors.OnPrimaryContainer, ml: 1 }}
                         >
                           <Icon icon={'mdi-close'} fontSize={20} />
                         </IconButton>
@@ -585,7 +660,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                 </FixedColumn>
 
                 <ScrollableContainer ref={scrollContainerRef}>
-                  <TimeSlotGrid numColumns={timeSlots.length} sx={{ mb: 6 }}>
+                  <TimeSlotGrid numColumns={timeSlots.length} sx={{ mb: 8 }}>
                     {timeSlots.map(time => (
                       <TimeHeader key={time} data-hour={time} ref={el => (hourRefs.current[time] = el)}>
                         {time}
@@ -634,24 +709,34 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
           animalId={animal_id}
           refetchMonitoringData={monitoringRefetch}
           selectedDate={selectedDate}
+          monitoringRefetch={monitoringRefetch}
         />
       )}
       {openDeleteDialog && (
         <ConfirmationDialog
           dialogBoxStatus={openDeleteDialog}
           onClose={() => setOpenDeleteDialog(false)}
-          description='Are you sure you want to delete this parameter'
+          title={`Remove ${paramData?.label} parameter`}
+          description={
+            paramData?.hasEntries
+              ? 'This parameter has recorded entries. Removing it will also delete all recorded values'
+              : null
+          }
           cancelText='CANCEL'
           cancelBtnStyle={{
             borderColor: theme.palette.customColors.OnPrimaryContainer,
-            color: theme.palette.customColors.OnPrimaryContainer
+            color: theme.palette.customColors.OnPrimaryContainer,
+            width: '100%'
           }}
-          confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2 }}
+          confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2, height: '56px', width: '100%' }}
           image='/images/warning-icon.svg'
-          imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
+          imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 3 }}
           confirmAction={handleParamDelete}
           loading={deleteLoading}
-          ConfirmationText='DELETE'
+          ConfirmationText='CONFIRM'
+          imgHeight='36px'
+          imgWidth='36px'
+          formComponent={isToday ? renderDeleteForm : null}
         />
       )}
     </>
@@ -702,7 +787,7 @@ const TimeSlotGrid = styled(Box)(({ theme, numColumns }) => ({
   alignItems: 'stretch',
   width: 'max-content',
   marginBottom: theme.spacing(2),
-  position: 'relative', // Critical for tooltip positioning
+  position: 'relative',
   [theme.breakpoints.down('md')]: {
     gridTemplateColumns: `repeat(${numColumns}, minmax(120px, 1fr))`,
     gap: theme.spacing(1.5)
@@ -713,11 +798,10 @@ const HeaderContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  padding: theme.spacing(2, 2.5),
+  padding: theme.spacing(2, 3),
   background: theme.palette.customColors.lightBg,
-  borderRadius: 1,
-  height: '56px',
-  marginBottom: theme.spacing(6),
+  borderRadius: '4px',
+  marginBottom: theme.spacing(8),
   width: '100%'
 }))
 
@@ -725,9 +809,9 @@ const MetricLabel = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  padding: theme.spacing(2, 2.5),
+  padding: theme.spacing(2, 3),
   backgroundColor: theme.palette.customColors.lightBg,
-  borderRadius: 1,
+  borderRadius: theme.spacing(1),
   height: '72px',
   marginBottom: theme.spacing(2),
   width: '100%'
@@ -750,9 +834,8 @@ const TimeSlot = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   backgroundColor: 'white',
-  borderRadius: '6px',
+  borderRadius: theme.spacing(1),
   borderColor: theme.palette.customColors.OutlineVariant,
-  fontSize: '13px',
   fontWeight: 500,
   color: theme.palette.customColors.OutlineVariant,
   cursor: 'pointer',
@@ -760,10 +843,6 @@ const TimeSlot = styled(Box)(({ theme }) => ({
   position: 'relative',
   minWidth: '160px',
   height: '72px',
-  '&:hover': {
-    backgroundColor: '#f8f9fa',
-    borderColor: '#dee2e6'
-  },
   [theme.breakpoints.down('md')]: {
     fontSize: '11px',
     minWidth: '120px'
@@ -773,13 +852,13 @@ const TimeSlot = styled(Box)(({ theme }) => ({
 const TimeHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'center',
+  padding: theme.spacing(2, 3),
   textAlign: 'center',
   fontSize: '16px',
   fontWeight: 500,
   color: theme.palette.customColors.deepDark,
   background: theme.palette.customColors.lightBg,
-  borderRadius: 1,
+  borderRadius: '4px',
   position: 'relative',
   minWidth: '160px',
   height: '56px',

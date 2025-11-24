@@ -28,69 +28,75 @@ const ControlledTextField = ({
   sx = {},
   size = 'large'
 }) => {
-  const error = get(errors, name)
-  const helperText = error?.message || ''
+  // const error = get(errors, name)
+  // const helperText = error?.message || ''
 
   return (
     <Controller
       name={name}
       control={control}
       rules={{ required }}
-      render={({ field }) => (
-        <TextField
-          {...field}
-          fullWidth={fullWidth}
-          value={dateReader && field.value ? Utility?.formatDisplayDate(field.value) : field.value}
-          type={type}
-          label={label}
-          placeholder={placeholder}
-          onWheel={event => event.target.blur()}
-          disabled={disabled}
-          error={Boolean(error)}
-          helperText={helperText}
-          onChange={e => {
-            let value = e?.target ? e.target.value : e
-            if (type === 'number') {
-              // disable negative values
-              if (value === '' || Number(value) >= 0) {
-                field.onChange(value)
-                if (onChangeOverride) onChangeOverride(value, e)
+      render={({ field, fieldState }) => {
+        const error = fieldState.error
+        const helperText = error?.message || ''
+
+        return (
+          <TextField
+            {...field}
+            fullWidth={fullWidth}
+            value={dateReader && field.value ? Utility?.formatDisplayDate(field.value) : field.value}
+            type={type}
+            label={label}
+            placeholder={placeholder}
+            onWheel={event => event.target.blur()}
+            disabled={disabled}
+            error={Boolean(error)}
+            helperText={helperText}
+            onChange={e => {
+              let value = e?.target ? e.target.value : e
+              if (type === 'number') {
+                // disable negative values
+                if (value === '' || Number(value) >= 0) {
+                  field.onChange(value)
+                  if (onChangeOverride) onChangeOverride(value, e)
+                }
+
+                return
               }
-              return
-            }
-            field.onChange(value)
-            if (onChangeOverride) onChangeOverride(value, e)
-          }}
-          onKeyDown={onKeyDown}
-          onPaste={onPaste}
-          onInput={onInput}
-          slotProps={{
-            input: {
-              readOnly,
-              ...inputSlotProps
-            },
-            htmlInput: inputProps,
-            formHelperText: {
-              sx: {
-                // backgroundColor: formHelperTextBackgroundColor,
-                margin: 0,
-                px: '14px',
-                pt: '3px'
+              field.onChange(value)
+              if (onChangeOverride) onChangeOverride(value, e)
+            }}
+            onKeyDown={onKeyDown}
+            onPaste={onPaste}
+            onInput={onInput}
+            slotProps={{
+              input: {
+                readOnly,
+                ...inputSlotProps
+              },
+              htmlInput: inputProps,
+              formHelperText: {
+                sx: {
+                  // backgroundColor: formHelperTextBackgroundColor,
+                  margin: 0,
+                  px: '14px',
+                  pt: '3px'
+                }
               }
-            }
-          }}
-          sx={{
-            ...sx,
-            '& .MuiFormControl-root .MuiTextField-root': {
-              borderRadius: borderRadius
-            },
-            '& .MuiInputBase-input': {
-              borderRadius: borderRadius,
-              backgroundColor: inputBackgroundColor ? inputBackgroundColor : 'inherit'
-            }
-          }}
-        />
-      )}
+            }}
+            sx={{
+              ...sx,
+              '& .MuiFormControl-root .MuiTextField-root': {
+                borderRadius: borderRadius
+              },
+              '& .MuiInputBase-input': {
+                borderRadius: borderRadius,
+                backgroundColor: inputBackgroundColor ? inputBackgroundColor : 'inherit'
+              }
+            }}
+          />
+        )
+      }}
     />
   )
 }

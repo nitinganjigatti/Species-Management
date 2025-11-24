@@ -6,6 +6,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  CircularProgress,
   Grid,
   IconButton,
   Skeleton,
@@ -36,6 +37,7 @@ import dayjs from 'dayjs'
 import moment from 'moment'
 import { useHospital } from 'src/context/HospitalContext'
 import { debounce } from 'lodash'
+import Utility from 'src/utility'
 
 const treatmentType = [
   { label: 'OPD (outpatient)', value: 'opd' },
@@ -93,6 +95,7 @@ const PatientAdmitForm = () => {
   const [rejectionReason, setRejectionReason] = useState('')
   const [rooms, setRooms] = useState([])
   const [searchRoom, setSearchRoom] = useState('')
+  const [bedsLoading, setBedsLoading] = useState(false)
   const [searchEnclosure, setSearchEnclosure] = useState('')
 
   useEffect(() => {
@@ -116,6 +119,8 @@ const PatientAdmitForm = () => {
 
     getPatientInfo()
   }, [id])
+
+  console.log(patientData)
 
   useEffect(() => {
     const getHospitalRooms = async () => {
@@ -149,6 +154,7 @@ const PatientAdmitForm = () => {
   useEffect(() => {
     const getHospitalBeds = async () => {
       if (!selectedRoom?.value) return
+      setBedsLoading(true)
       try {
         const res = await getRoomsAndEnclosures({
           hospital_id: selectedHospital?.id,
@@ -167,6 +173,9 @@ const PatientAdmitForm = () => {
         }
       } catch (error) {
         console.error('Cannot fetch hospital beds listing', error)
+        setBedsLoading(false)
+      } finally {
+        setBedsLoading(false)
       }
     }
 
@@ -202,6 +211,29 @@ const PatientAdmitForm = () => {
     } catch (error) {
       console.error(error, 'Cannot Admit Patient')
       setSubmitLoader(false)
+    }
+  }
+
+  const selectedDate = watch('admission_date')
+
+  const createdAtLocal = dayjs(Utility.convertUTCToLocal(patientData?.created_at))
+  const now = dayjs()
+
+  const minDate = createdAtLocal.startOf('day')
+  const maxDate = now.endOf('day')
+
+  let minTime = null
+  let maxTime = null
+
+  if (selectedDate) {
+    const isCreatedDate = dayjs(selectedDate).isSame(createdAtLocal, 'day')
+    const isToday = dayjs(selectedDate).isSame(now, 'day')
+
+    if (isCreatedDate) {
+      minTime = createdAtLocal
+    }
+    if (isToday) {
+      maxTime = now
     }
   }
 
@@ -341,7 +373,7 @@ const PatientAdmitForm = () => {
                       <Typography
                         sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnPrimaryContainer }}
                       >
-                        {patientData?.purpose_of_visit}
+                        {patientData?.purpose_of_visit ? patientData?.purpose_of_visit : 'NA'}
                       </Typography>
                       <UserAvatarDetails
                         user_name={patientData?.created_by_full_name}
@@ -404,10 +436,18 @@ const PatientAdmitForm = () => {
                           name={'admission_date'}
                           label='Date'
                           defaultValue={dayjs()}
+                          minDate={minDate}
+                          maxDate={maxDate}
                         />
                       </Grid>
                       <Grid size={{ sm: 6, xs: 6 }}>
-                        <ControlledTimePicker control={control} name={'admission_time'} label='Time' />
+                        <ControlledTimePicker
+                          control={control}
+                          name={'admission_time'}
+                          label='Time'
+                          minTime={minTime}
+                          maxTime={maxTime}
+                        />
                       </Grid>
                     </Grid>
                   </Grid>
@@ -535,6 +575,8 @@ const PatientAdmitForm = () => {
                       onInputChange={val => debouncedEnclosureSearch(val)}
                       sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
                       fullWidth
+                      // disabled={bedsLoading}
+                      loading={bedsLoading}
                     />
                   </Grid>
                 </Grid>
@@ -578,6 +620,7 @@ const PatientAdmitForm = () => {
             sx={{ backgroundColor: theme.palette.primary.main, borderRadius: 0.5, minWidth: '160px' }}
             onClick={handleSubmit(onSubmit)}
             loading={submitLoader}
+            loadingIndicator={<CircularProgress size={24} sx={{ color: '#ffffff' }} />}
           >
             ADMIT
           </LoadingButton>

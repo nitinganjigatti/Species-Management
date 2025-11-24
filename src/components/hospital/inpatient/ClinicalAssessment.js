@@ -49,8 +49,8 @@ const ClinicalAssessment = () => {
   const [clinicalAsmnt, setClinicalAsmnt] = useState('')
   const [prognosisVal, setPrognosisValue] = useState('')
   const [chronicVal, setChronicVal] = useState(false)
-  const [notes, setNotes] = useState('')
   const [status, setStatus] = useState('active')
+  const [notes, setNotes] = useState('')
   const [temporarilySelected, setTemporarilySelected] = useState(null)
 
   const { id, animal_id, medical_record_id } = router.query
@@ -183,6 +183,7 @@ const ClinicalAssessment = () => {
           page_no: pageNum,
           limit: PAGE_SIZE,
           animal_id: animal_id || '',
+          hospital_case_id: id || '',
           q: search,
           medical_record_id: currentRecordOnly && medical_record_id ? medical_record_id : ''
         })
@@ -254,7 +255,10 @@ const ClinicalAssessment = () => {
   }
 
   const handleAssessmentClick = async assessment => {
-    setSelectedAssessment(assessment)
+    setSelectedAssessment({
+      ...assessment,
+      additional_info: { ...assessment.additional_info, isChronic: assessment.additional_info.isChronic ? 'Yes' : 'No' }
+    })
     setTemporarilySelected(assessment)
     setClinicalAsmnt(assessment?.additional_info?.clinical_assessment || 'primary')
     setPrognosisValue(
@@ -293,18 +297,38 @@ const ClinicalAssessment = () => {
   }
 
   const updateAssessment = async () => {
+    console.log('selectedAssessment', selectedAssessment)
+    console.log('chronicVal', chronicVal)
+
+    // Check if any values have been modified
+    const isClinicalAsmntChanged =
+      clinicalAsmnt?.toLowerCase() !== selectedAssessment?.clinical_assessment?.toLowerCase()
+    console.log('isClinicalAsmntChanged', isClinicalAsmntChanged)
+
+    const isPrognosisChanged =
+      prognosisVal?.toLowerCase() !== selectedAssessment?.additional_info?.prognosis?.toLowerCase()
+    console.log('isPrognosisChanged', isPrognosisChanged)
+
+    const isChronicChanged = chronicVal !== selectedAssessment?.additional_info?.isChronic
+    console.log('isChronicChanged', isChronicChanged)
+
+    const isStatusChanged = status?.toLowerCase() !== selectedAssessment?.additional_info?.status?.toLowerCase()
+    console.log('isStatusChanged', isStatusChanged)
+
+    // Set is_system_generated to true if any value has changed
+    const isSystemGenerated = isClinicalAsmntChanged || isPrognosisChanged || isChronicChanged || isStatusChanged
+
     const payload = {
       main_id: selectedAssessment?.main_diagnosis_id || '',
       med_id: medical_record_id || '',
       type: 'DIAGNOSIS',
-      is_system_generated:
-        clinicalAsmnt?.toLowerCase() === selectedAssessment?.clinical_assessment?.toLowerCase() ? false : true,
+      is_system_generated: isSystemGenerated,
       animal_id: animal_id || '',
       note: notes || '',
       clinical_assessment: clinicalAsmnt?.toLowerCase() || '',
       prognosis: clinicalAsmnt?.toLowerCase() === 'diagnosis' ? prognosisVal.toLowerCase() : '',
-      isChronic: clinicalAsmnt?.toLowerCase() === 'diagnosis' ? chronicVal === 'Yes' : '',
-      status: status?.toLowerCase() === 'inactive' ? 'closed' : 'active'
+      chronic: clinicalAsmnt?.toLowerCase() === 'diagnosis' ? (chronicVal === 'Yes' ? 1 : 0) : '',
+      status: status?.toLowerCase() === 'inactive' ? 'resolved' : 'active'
     }
 
     setIsSubmitLoading(true)
@@ -318,11 +342,11 @@ const ClinicalAssessment = () => {
         setIsDrawerOpen(false)
         setIsSaveDialogOpen(false)
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Something went wrong' }) // TODO: Replace with actual error message
+        Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
       }
     } catch (error) {
       console.error('Submit Error:', error)
-      Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' }) // TODO: Replace with actual error message
+      Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' })
     } finally {
       setIsSubmitLoading(false)
     }
@@ -421,17 +445,19 @@ const ClinicalAssessment = () => {
             </Button>
           </Box>
         </Box>
-
-        <MUISwitch
-          label='Current Medical Record Only'
-          checked={currentRecordOnly}
-          onChange={e => {
-            setRecords([])
-            setCurrentRecordOnly(e.target.checked)
-          }}
-          size='small'
-          sx={{ ml: 2.6 }}
-        />
+        <Box>
+          <MUISwitch
+            label='Current Medical Record Only'
+            checked={currentRecordOnly}
+            onChange={e => {
+              setRecords([])
+              setPage(1)
+              setCurrentRecordOnly(e.target.checked)
+            }}
+            size='small'
+            sx={{ ml: 2.6 }}
+          />
+        </Box>
       </Box>
 
       {/* Records List */}

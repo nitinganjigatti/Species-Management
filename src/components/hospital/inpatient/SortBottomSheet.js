@@ -76,19 +76,18 @@ const SortBottomSheet = ({ open, onClose, currentSort, onSortChange }) => {
           <Divider sx={{ mb: 3 }} />
 
           {/* Sort Options */}
-          <Box sx={{ px: 4, pb: 4 }}>
+          <Box sx={{ px: 4, pb: 4, display: 'flex', flexDirection: 'column', gap: 1 }}>
             {sortOptions.map(option => (
-              <Box 
-                key={option.value} 
-                sx={{ 
+              <Box
+                key={option.value}
+                sx={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: 3,
                   p: 4,
                   borderRadius: '8px',
-                  backgroundColor: currentSort === option.value 
-                    ? theme.palette.customColors.OnBackground
-                    : 'transparent',
+                  backgroundColor:
+                    currentSort === option.value ? theme.palette.customColors.OnBackground : 'transparent',
                   cursor: 'pointer',
                   transition: 'background-color 0.2s ease',
                   '&:hover': {
@@ -96,7 +95,10 @@ const SortBottomSheet = ({ open, onClose, currentSort, onSortChange }) => {
                   }
                 }}
                 onClick={() => {
-                  onSortChange(option.value)
+                  onSortChange({
+                    column: 'animal_id',
+                    sort: option.value === 'recent' ? 'asc' : 'desc'
+                  })
                   onClose()
                 }}
               >
@@ -108,17 +110,17 @@ const SortBottomSheet = ({ open, onClose, currentSort, onSortChange }) => {
                     alignItems: 'center',
                     width: '24px',
                     height: '24px',
-                    borderRadius: '8px',
+                    borderRadius: '8px'
                   }}
                 >
-                  <img 
-                    src={option.icon} 
+                  <img
+                    src={option.icon}
                     alt={option.label}
                     style={{
                       width: '24px',
-                      height: '24px',
+                      height: '24px'
 
-                      // filter: currentSort === option.value 
+                      // filter: currentSort === option.value
                       //   ? 'brightness(0) invert(1)' // Makes SVG white when selected
                       //   : 'none'
                     }}
@@ -127,9 +129,9 @@ const SortBottomSheet = ({ open, onClose, currentSort, onSortChange }) => {
 
                 {/* Text */}
                 <Box sx={{ flex: 1 }}>
-                  <Typography 
-                    sx={{ 
-                      fontSize: '16px', 
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
                       fontWeight: 500,
                       color: theme.palette.customColors.OnSurfaceVarient
                     }}

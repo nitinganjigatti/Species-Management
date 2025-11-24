@@ -723,6 +723,10 @@ export const GET_PATIENT_SURGERY_LIST = 'v1/hospital/patient-surgery-list'
 
 export const GET_HOSPITAL_PATIENTS_LISTS = `v1/hospital/get-hospital-patients`
 
+export const GET_MORTALITY_PATIENTS_LISTS = `v1/hospital/get-mortality-discharge-list`
+
+export const GET_FOLLOWUP_PATIENTS_LISTS = `v1/hospital/get-followup-discharge-list`
+
 export const GET_PATIENTS_DETAILS = `v1/hospital/patient-details/`
 
 export const EDIT_PATIENT_DETAILS = `v1/hospital/edit-patient-details`
@@ -801,9 +805,9 @@ export const STOP_PRESCRIPTION = 'medical/v2/restart-stop-medicine'
 
 export const UNDO_PRESCRIPTION = 'administer/reset'
 
-export const SKIP_PRESCRIPTION = 'administer/manage/medicine'
-
 export const ADMINISTER_PRESCRIPTION = 'administer/manage/medicine'
+
+export const DIRECT_ADMINISTER_FOR_PAST_SLOT = 'administer/v2/create-direct-adminster-record'
 
 export const ADMINISTER_ALL_MEDICINES = 'administer/manage/medicine/selectAll'
 
@@ -898,6 +902,10 @@ export const GET_ASSESSMENT_LIST_ANESTHESIA = `v1/hospital/anaesthesia/assessmen
 export const ADD_ANESTHESIA = `v1/hospital/anaesthesia/save`
 
 export const GET_ANESTHESIA_SETUP_LIST = `v1/hospital/anaesthesia/sections`
+
+export const GET_ANESTHESIA_LIST = `v1/hospital/anaesthesia/list`
+
+export const DELETE_ANESTHESIA = `v1/hospital/anaesthesia/delete`
 
 export const DELETE_MONITORING_MONITORING = `v1/hospital/delete-scheduled-monitoring-parameter`
 

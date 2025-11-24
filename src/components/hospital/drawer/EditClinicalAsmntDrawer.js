@@ -153,7 +153,7 @@ const EditClinicalAsmntDrawer = ({
                   }}
                 >
                   <MenuItem value='Active'>Active</MenuItem>
-                  <MenuItem value='Inactive'>Inactive</MenuItem>
+                  <MenuItem value='Inactive'>Resolved</MenuItem>
                 </Select>
               </Box>
 
