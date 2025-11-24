@@ -6,28 +6,48 @@ import { differenceInDays } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import MortalityFilterDrawer from 'src/components/hospital/drawer/MortalityFilterDrawer'
 import { visitTypeOptions } from 'src/constants/Constants'
 import { AuthContext } from 'src/context/AuthContext'
-import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
+import { useHospital } from 'src/context/HospitalContext'
+import { getPatientsMortalityListings } from 'src/lib/api/hospital/inpatient'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
+import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
 import { VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
+import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
 
 const HospitalDischarged = () => {
   const theme = useTheme()
   const router = useRouter()
 
+  const { selectedHospital } = useHospital()
+
   const [searchValue, setSearchValue] = useState('')
   const [selectedVisitType, setSelectedVisitType] = useState('')
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [filterCount, setFilterCount] = useState(0)
+  const [filterDate, setFilterDate] = useState({})
+
+  const [selectedOptions, setSelectedOptions] = useState({
+    User: [],
+    'Origin Site': []
+  })
 
   const [filters, setFilters] = useState({
     page: 1,
     limit: 50,
     q: ''
   })
+
+  const applyFilters = selectedOptions => {
+    setSelectedOptions(selectedOptions)
+    setOpenFilterDrawer(false)
+  }
 
   useEffect(() => {
     const { page = '1', limit = '50', q = '' } = router.query
@@ -41,16 +61,37 @@ const HospitalDischarged = () => {
     setSearchValue(q)
   }, [router.query])
 
+  const prepareFilterParams = key => {
+    return selectedOptions[key]?.length > 0 ? selectedOptions[key].join(',') : undefined
+  }
+
+  const formatDate = dateString => {
+    if (!dateString) return null
+
+    return new Date(dateString).toISOString().split('T')[0]
+  }
+
   const { data, isFetching, refetch } = useQuery({
-    queryKey: ['outpatients-listings', filters, selectedVisitType],
+    queryKey: [
+      'patients-mortality-listings',
+      filters,
+      selectedVisitType,
+      selectedHospital?.id,
+      filterDate,
+      selectedOptions
+    ],
     queryFn: () =>
-      getIncomingPatients({
+      getPatientsMortalityListings({
         page_no: filters?.page,
         limit: filters?.limit,
-        search: filters?.q,
+        q: filters?.q,
         hospital_id: 1,
         visit_type: selectedVisitType,
-        patient_category: 'discharge'
+        hospital_id: selectedHospital?.id,
+        from_date: formatDate(filterDate.startDate),
+        to_date: formatDate(filterDate.endDate),
+        users: prepareFilterParams('User'),
+        origin_site: prepareFilterParams('Origin Site')
       })
   })
 
@@ -103,11 +144,16 @@ const HospitalDischarged = () => {
     [debouncedSearch]
   )
 
+  const handleSearchClear = () => {
+    setSearchValue('')
+    debouncedSearch('')
+  }
+
   const getSlNo = index => (filters.page - 1) * filters.limit + index + 1
 
   const indexedRows = rows.map((row, index) => ({
     ...row,
-    id: +row?.hospital_case_id,
+    id: +row?.discharge_id,
     sl_no: getSlNo(index)
   }))
 
@@ -134,16 +180,16 @@ const HospitalDischarged = () => {
         <>
           <AnimalCard
             data={{
-              default_icon: params.row?.default_icon,
-              sex: params.row?.sex,
-              type: params.row?.type,
-              local_identifier_name: params.row?.local_identifier_name,
-              local_identifier_value: params.row?.local_identifier_value,
-              animal_id: params.row?.animal_id,
-              common_name: params.row?.common_name,
-              scientific_name: params.row?.scientific_name,
-              age: params.row?.age,
-              site_name: params.row?.site_name
+              default_icon: params.row?.animal_detail?.default_icon,
+              sex: params.row?.animal_detail?.sex,
+              type: params.row?.animal_detail?.type,
+              local_identifier_name: params.row?.animal_detail?.local_identifier_name,
+              local_identifier_value: params.row?.animal_detail?.local_identifier_value,
+              animal_id: params.row?.animal_detail?.animal_id,
+              common_name: params.row?.animal_detail?.common_name,
+              scientific_name: params.row?.animal_detail?.scientific_name,
+              age: params.row?.animal_detail?.age,
+              site_name: params.row?.animal_detail?.site_name
             }}
           />
         </>
@@ -152,12 +198,12 @@ const HospitalDischarged = () => {
     {
       width: 250,
       minWidth: 20,
-      field: 'purpose_of_visit',
+      field: 'reason',
       sortable: false,
-      headerName: 'Discharge Summary',
+      headerName: 'Reason',
       renderCell: params => (
         <>
-          <Tooltip title={params.row.purpose_of_visit}>
+          <Tooltip title={params?.row?.reason}>
             <Typography
               variant='body2'
               sx={{
@@ -174,7 +220,7 @@ const HospitalDischarged = () => {
                 py: 4
               }}
             >
-              <>{params.row.purpose_of_visit || ''}</>
+              <>{params?.row?.reason || ''}</>
             </Typography>
           </Tooltip>
         </>
@@ -185,7 +231,33 @@ const HospitalDischarged = () => {
       minWidth: 20,
       field: 'admitted_at',
       sortable: false,
-      headerName: 'Discharged',
+      headerName: 'Mortality Summary',
+      align: 'left',
+      headerAlign: 'left',
+
+      renderCell: params => (
+        <>
+          <Box>
+            <Typography
+              sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
+            >
+              {Utility.convertUtcToLocalReadableDate(params?.row?.admitted_at)}
+            </Typography>
+            <Typography
+              sx={{ fontSize: '12px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
+            >
+              {Utility.convertUTCToLocaltime(params?.row?.admitted_at)}
+            </Typography>
+          </Box>
+        </>
+      )
+    },
+    {
+      width: 200,
+      minWidth: 20,
+      field: 'admitted_at',
+      sortable: false,
+      headerName: 'Mortality Date And Time',
       align: 'left',
       headerAlign: 'left',
 
@@ -273,13 +345,13 @@ const HospitalDischarged = () => {
     {
       width: 200,
       minWidth: 20,
-      field: 'holding_enclosure_name',
+      field: 'attend_by_full_name',
       sortable: false,
-      headerName: 'Location',
+      headerName: 'Chief Doctor',
       renderCell: params => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.holding_enclosure_name ? params?.row?.holding_enclosure_name : '-'}
+            {params?.row?.attend_by_full_name}
           </Typography>
         </>
       )
@@ -297,23 +369,33 @@ const HospitalDischarged = () => {
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
           <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
           <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Discharged</Typography>
+          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Mortality</Typography>
         </Breadcrumbs>
-        <Box>{/* This is for Hospital Card */}</Box>
+        <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>
-            <CardHeader title={RenderUtility?.pageTitle('Discharged')} />
+            <CardHeader title={RenderUtility?.pageTitle('Inpatients')} />
             <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between' }}>
               <Box sx={{ ml: 2 }}>
                 <Search
                   borderRadius='4px'
                   width='343px'
-                  placeholder='Search by medical Id or animal id'
+                  placeholder='Search by medical Id / AID / animal identifier'
                   value={searchValue}
+                  onClear={handleSearchClear}
                   onChange={e => handleSearch(e.target.value)}
+                  textFielsSX={{
+                    '& .MuiInputBase-input::placeholder': {
+                      fontSize: '13px'
+                    }
+                  }}
                 />
               </Box>
-              <Box sx={{ mr: 2 }}>
+              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <CommonDateRangePickers
+                  filterDates={filterDate}
+                  onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
+                />
                 <Select
                   size='small'
                   value={selectedVisitType}
@@ -326,7 +408,10 @@ const HospitalDischarged = () => {
                     </MenuItem>
                   ))}
                 </Select>
-                <Box></Box>
+                <FilterButtonWithNotification
+                  onClick={() => setOpenFilterDrawer(true)}
+                  appliedFiltersCount={filterCount}
+                />
               </Box>
             </Box>
             <Grid
@@ -347,6 +432,10 @@ const HospitalDischarged = () => {
                 externalTableStyle={{
                   '& .MuiDataGrid-cell': {
                     padding: 4
+                  },
+                  '& .MuiDataGrid-row:hover': {
+                    // backgroundColor: 'transparent',
+                    cursor: 'pointer'
                   }
                 }}
               />
@@ -354,6 +443,15 @@ const HospitalDischarged = () => {
           </Card>
         </Box>
       </Box>
+      {openFilterDrawer && (
+        <MortalityFilterDrawer
+          open={openFilterDrawer}
+          onClose={() => setOpenFilterDrawer(false)}
+          onApplyFilters={applyFilters}
+          setFilterCount={setFilterCount}
+          initialSelectedOptions={selectedOptions}
+        />
+      )}
     </>
   )
 }
