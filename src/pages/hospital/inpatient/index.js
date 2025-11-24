@@ -32,7 +32,7 @@ const HospitalInpatient = () => {
   const [filterDate, setFilterDate] = useState({})
 
   const [selectedOptions, setSelectedOptions] = useState({
-    User: [],
+    'Chief Veterinarian': [],
     'Origin Site': []
   })
 
@@ -70,7 +70,7 @@ const HospitalInpatient = () => {
   }
 
   const { data, isFetching, refetch } = useQuery({
-    queryKey: ['inpatients-listings', filters, selectedVisitType, selectedHospital?.id],
+    queryKey: ['inpatients-listings', filters, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions],
     queryFn: () =>
       getIncomingPatients({
         page_no: filters?.page,
@@ -78,7 +78,11 @@ const HospitalInpatient = () => {
         search: filters?.q,
         hospital_id: selectedHospital?.id,
         visit_type: selectedVisitType,
-        patient_category: 'inpatient'
+        patient_category: 'inpatient',
+        from_date: formatDate(filterDate.startDate),
+        to_date: formatDate(filterDate.endDate),
+        users: prepareFilterParams('Chief Veterinarian'),
+        origin_site: prepareFilterParams('Origin Site')
       })
   })
 
