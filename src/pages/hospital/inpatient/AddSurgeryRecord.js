@@ -540,7 +540,7 @@ const AddSurgeryRecord = () => {
         return []
       }
 
-      const params = { zoo_id: zooId }
+      const params = { zoo_id: zooId, permission: 'medical_records_access' }
       const trimmed = surgeonSearchTerm.trim()
 
       if (trimmed) {
