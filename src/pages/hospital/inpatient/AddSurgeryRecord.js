@@ -262,6 +262,15 @@ const formatDateValue = value => (value ? dayjs(value).format('YYYY-MM-DD') : ''
 
 const formatTimeValue = value => (value ? dayjs(value).format('HH:mm:ss') : '')
 
+const combineDateAndTime = (dateValue, timeValue) => {
+  const date = dayjs(dateValue)
+  const time = dayjs(timeValue)
+
+  if (!date.isValid() || !time.isValid()) return null
+
+  return date.hour(time.hour()).minute(time.minute()).second(time.second()).millisecond(0)
+}
+
 const resolveHospitalCaseId = query => {
   const possibleKeys = ['hospital_case_id', 'hospitalCaseId', 'case_id', 'caseId', 'hospitalCaseID', 'id']
 
@@ -316,9 +325,71 @@ const buildAnimalInfoData = patientData => {
 
 // ✅ Validation schema
 const schema = yup.object().shape({
-  date: yup.date().required('Date is required'),
-  startTime: yup.date().required('Start time is required'),
-  endTime: yup.date().required('End time is required'),
+  date: yup
+    .mixed()
+    .test('date-required', 'Date is required', value => Boolean(value) && dayjs(value).isValid())
+    .test('date-after-admission', 'Date cannot be before admission date', function (value) {
+      const admissionDateTime = this?.options?.context?.admissionDateTime
+      if (!value || !dayjs(value).isValid() || !admissionDateTime) return true
+
+      return !dayjs(value).startOf('day').isBefore(dayjs(admissionDateTime).startOf('day'))
+    })
+    .test('date-not-in-future', 'Date cannot be in the future', value => {
+      if (!value || !dayjs(value).isValid()) return true
+
+      return !dayjs(value).startOf('day').isAfter(dayjs().startOf('day'))
+    }),
+  startTime: yup
+    .mixed()
+    .test('start-required', 'Start time is required', value => Boolean(value) && dayjs(value).isValid())
+    .test('start-after-admission', 'Start time cannot be before admission time', function (value) {
+      const admissionDateTime = this?.options?.context?.admissionDateTime
+      const selectedDate = this?.parent?.date
+      if (!value || !admissionDateTime || !selectedDate) return true
+
+      const startDateTime = combineDateAndTime(selectedDate, value)
+
+      return startDateTime && !startDateTime.isBefore(dayjs(admissionDateTime))
+    })
+    .test('start-not-in-future', 'Start time cannot be in the future', function (value) {
+      const selectedDate = this?.parent?.date
+      if (!value || !selectedDate) return true
+
+      const startDateTime = combineDateAndTime(selectedDate, value)
+
+      return startDateTime && !startDateTime.isAfter(dayjs())
+    }),
+  endTime: yup
+    .mixed()
+    .test('end-required', 'End time is required', value => Boolean(value) && dayjs(value).isValid())
+    .test('end-after-start', 'End time must be after start time', function (value) {
+      const { startTime, date } = this?.parent || {}
+      if (!value || !startTime || !date) return true
+
+      const startDateTime = combineDateAndTime(date, startTime)
+      const endDateTime = combineDateAndTime(date, value)
+
+      if (!startDateTime || !endDateTime) return true
+
+      return endDateTime.isAfter(startDateTime)
+    })
+    .test('end-after-admission', 'End time cannot be before admission time', function (value) {
+      const admissionDateTime = this?.options?.context?.admissionDateTime
+      const selectedDate = this?.parent?.date
+      if (!value || !admissionDateTime || !selectedDate) return true
+
+      const endDateTime = combineDateAndTime(selectedDate, value)
+
+      return endDateTime && !endDateTime.isBefore(dayjs(admissionDateTime))
+    })
+    .test('end-not-in-future', 'End time cannot be in the future', function (value) {
+      const selectedDate = this?.parent?.date
+      if (!value || !selectedDate) return true
+
+      const endDateTime = combineDateAndTime(selectedDate, value)
+
+      return endDateTime && !endDateTime.isAfter(dayjs())
+    }),
   procedure: yup
     .mixed()
     .nullable()
@@ -334,19 +405,28 @@ const AddSurgeryRecord = () => {
   const theme = useTheme()
 
   const resolvedHospitalCaseId = useMemo(() => resolveHospitalCaseId(router.query), [router.query])
+  const [patientData, setPatientData] = useState(null)
+  const admissionDateTime = useMemo(
+    () => (patientData?.admitted_at ? dayjs(patientData.admitted_at) : null),
+    [patientData?.admitted_at]
+  )
+  const defaultNow = useMemo(() => dayjs(), [])
+  const formResolver = useMemo(() => yupResolver(schema, { context: { admissionDateTime } }), [admissionDateTime])
 
   const {
     control,
     handleSubmit,
     reset,
     clearErrors,
+    setValue,
+    watch,
     formState: { errors }
   } = useForm({
-    resolver: yupResolver(schema),
+    resolver: formResolver,
     mode: 'onChange',
     reValidateMode: 'onChange',
     defaultValues: {
-      date: null,
+      date: defaultNow,
       startTime: null,
       endTime: null,
       procedure: null,
@@ -373,7 +453,10 @@ const AddSurgeryRecord = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSavingTemplate, setIsSavingTemplate] = useState(false)
   const [procedureSearchTerm, setProcedureSearchTerm] = useState('')
-  const [patientData, setPatientData] = useState(null)
+  const selectedDate = watch('date')
+  const startTimeValue = watch('startTime')
+  const endTimeValue = watch('endTime')
+  const durationValue = watch('duration')
 
   const {
     data: surgeryTemplatesResponse,
@@ -492,6 +575,49 @@ const AddSurgeryRecord = () => {
   }, [resolvedHospitalCaseId])
 
   const animalInfoData = useMemo(() => buildAnimalInfoData(patientData), [patientData])
+  const minDate = useMemo(() => (admissionDateTime ? admissionDateTime.startOf('day') : null), [admissionDateTime])
+  const maxDate = dayjs()
+  const maxTimeForSelectedDate = useMemo(() => {
+    if (!selectedDate) return null
+    const now = dayjs()
+
+    return dayjs(selectedDate).startOf('day').isSame(now.startOf('day')) ? now : null
+  }, [selectedDate])
+
+  useEffect(() => {
+    if (!selectedDate || !startTimeValue || !endTimeValue) {
+      if (durationValue) {
+        setValue('duration', '', { shouldValidate: true, shouldDirty: true })
+      }
+      return
+    }
+
+    const startDateTime = combineDateAndTime(selectedDate, startTimeValue)
+    const endDateTime = combineDateAndTime(selectedDate, endTimeValue)
+
+    if (!startDateTime || !endDateTime || !endDateTime.isAfter(startDateTime)) {
+      if (durationValue) {
+        setValue('duration', '', { shouldValidate: true, shouldDirty: true })
+      }
+      return
+    }
+
+    const diffMinutes = endDateTime.diff(startDateTime, 'minute')
+    if (diffMinutes <= 0) {
+      if (durationValue) {
+        setValue('duration', '', { shouldValidate: true, shouldDirty: true })
+      }
+      return
+    }
+
+    const hours = Math.floor(diffMinutes / 60)
+    const minutes = diffMinutes % 60
+    const label = hours && minutes ? `${hours}h ${minutes}m` : hours ? `${hours}h` : `${minutes || 0}m`
+
+    if (label !== durationValue) {
+      setValue('duration', label, { shouldValidate: true, shouldDirty: true })
+    }
+  }, [selectedDate, startTimeValue, endTimeValue, durationValue, setValue])
 
   const applyTemplateToRichNote = useCallback(
     template => {
@@ -795,6 +921,8 @@ const AddSurgeryRecord = () => {
                 name={'date'}
                 label='Date'
                 control={control}
+                minDate={minDate}
+                maxDate={maxDate}
                 renderInput={params => (
                   <ControlledTextField
                     {...params}
@@ -817,6 +945,7 @@ const AddSurgeryRecord = () => {
                 label='Start Time'
                 name={'startTime'}
                 control={control}
+                maxTime={maxTimeForSelectedDate}
                 renderInput={params => (
                   <ControlledTextField
                     {...params}
@@ -839,6 +968,8 @@ const AddSurgeryRecord = () => {
                 name={'endTime'}
                 control={control}
                 label='End Time'
+                minTime={startTimeValue || null}
+                maxTime={maxTimeForSelectedDate}
                 renderInput={params => (
                   <ControlledTextField
                     {...params}
