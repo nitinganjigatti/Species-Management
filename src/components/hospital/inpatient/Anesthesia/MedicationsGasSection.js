@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Button, Typography, styled, Box, useTheme, IconButton, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { Add as AddIcon } from '@mui/icons-material'
@@ -8,6 +8,8 @@ import AddGasDrawer from './AddGasDrawer'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import dayjs from 'dayjs'
+import { deliveryRouteList } from 'src/lib/api/hospital/anesthesia'
+import { getProductList } from 'src/lib/api/pharmacy/dispenseProduct'
 
 function MedicationsGasSection({
   onAddMedication,
@@ -16,19 +18,67 @@ function MedicationsGasSection({
   onUpdateGas,
   onDeleteMedication,
   onDeleteGas,
-  drugOptions,
-  gasOptions,
-  unitOptions,
-  deliveryRouteOptions
+  purposeStageOptions,
+  unitList
 }) {
   const theme = useTheme()
   const [drawerType, setDrawerType] = useState(null)
   const [editIndex, setEditIndex] = useState(null)
   const [submitLoader, setSubmitLoader] = useState(false)
 
+  const [deliveryRouteOptions, setdeliveryRouteList] = useState([])
+  const [medicationGasList, setmedicationGasList] = useState([])
+
   const { watch } = useFormContext()
   const medications = watch('medicationsGas.medications') || []
   const gases = watch('medicationsGas.gases') || []
+
+  const fetchDeliveryList = async () => {
+    try {
+      const response = await deliveryRouteList()
+      console.log(response, 'response')
+      if (response?.success && response?.data?.length > 0) {
+        setdeliveryRouteList(response?.data)
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {}
+  }
+
+  const fetchMedicationGasList = async () => {
+    const params = {
+      sort: 'asc',
+      q: '',
+      limit: 50,
+      column: 'package'
+    }
+    try {
+      const response = await getProductList({ params })
+      if (response?.success && response?.data?.list_items?.length > 0) {
+        setmedicationGasList(response?.data?.list_items)
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {}
+  }
+
+  useEffect(() => {
+    if (drawerType) {
+      fetchDeliveryList()
+      fetchMedicationGasList()
+    }
+  }, [drawerType])
+
+  const getUnitAbbr = unitId => {
+    const unit = unitList?.find(item => String(item.id) === String(unitId))
+    return unit?.uom_abbr || '-'
+  }
+
+  const safeFormat = v => {
+    if (!v) return '-'
+    const d = dayjs(v)
+    return d.isValid() ? d.format('hh:mm A') : '-'
+  }
 
   const medicationColumns = [
     {
@@ -45,19 +95,21 @@ function MedicationsGasSection({
       minWidth: 220,
       flex: 1,
       sortable: false,
-      renderCell: params => (
-        <TextEllipsisWithModal
-          enableDialog={false}
-          text={params.row.drug_name?.drug_name ?? '-'}
-          style={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '14px',
-            fontWeight: 500,
-            pl: 2,
-            maxWidth: '200px'
-          }}
-        />
-      )
+      renderCell: params => {
+        return (
+          <TextEllipsisWithModal
+            enableDialog={false}
+            text={params.row.drug_name?.name ?? '-'}
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '14px',
+              fontWeight: 500,
+              pl: 2,
+              maxWidth: '200px'
+            }}
+          />
+        )
+      }
     },
     {
       field: 'purpose_stage',
@@ -86,7 +138,7 @@ function MedicationsGasSection({
       sortable: false,
       renderCell: params => (
         <StyledTypography>
-          {params.row.amount} {params.row.unit}
+          {params.row.amount} {getUnitAbbr(params.row.unit)}
         </StyledTypography>
       )
     },
@@ -95,7 +147,7 @@ function MedicationsGasSection({
       headerName: 'Route',
       minWidth: 140,
       sortable: false,
-      renderCell: params => <StyledTypography>{params.row.delivery_route}</StyledTypography>
+      renderCell: params => <StyledTypography>{params.row.delivery_route?.delivery || ''}</StyledTypography>
     },
     {
       field: 'delivery_time',
@@ -103,9 +155,7 @@ function MedicationsGasSection({
       minWidth: 130,
       sortable: false,
       renderCell: params => {
-        const time = params.row.delivery_time ? (params.row.delivery_time ? params.row.delivery_time : '-') : '-'
-
-        return <StyledTypography>{time}</StyledTypography>
+        return <StyledTypography>{params.row.display_delivery_time || '-'}</StyledTypography>
       }
     },
     {
@@ -175,15 +225,10 @@ function MedicationsGasSection({
       flex: 1,
       sortable: false,
       renderCell: params => (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column'
-          }}
-        >
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <TextEllipsisWithModal
             enableDialog={false}
-            text={params.row.gas_name?.gas_name ?? '-'}
+            text={params.row.gas_name?.name ?? '-'}
             style={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '14px',
@@ -214,32 +259,21 @@ function MedicationsGasSection({
       headerName: 'Route',
       minWidth: 150,
       sortable: false,
-      renderCell: params => <StyledTypography>{params.row.delivery_route}</StyledTypography>
+      renderCell: params => <StyledTypography>{params.row.delivery_route?.delivery || ''}</StyledTypography>
     },
     {
       field: 'start_time',
       headerName: 'Start Time',
       minWidth: 120,
       sortable: false,
-      renderCell: params => {
-        const time = params.row.start_time ? (params.row.start_time ? params.row.start_time : '-') : '-'
-        return <StyledTypography>{time}</StyledTypography>
-      }
+      renderCell: params => <StyledTypography>{params.row.display_start_time ?? '-'}</StyledTypography>
     },
     {
       field: 'end_time',
       headerName: 'End Time',
       minWidth: 120,
       sortable: false,
-      renderCell: params => {
-        // const time = params.row.end_time
-        //   ? dayjs(params.row.end_time).isValid()
-        //     ? dayjs(params.row.end_time).format('hh:mm A')
-        //     : '-'
-        //   : '-'
-        const time = params.row.end_time ? (params.row.end_time ? params.row.end_time : '-') : '-'
-        return <StyledTypography>{time}</StyledTypography>
-      }
+      renderCell: params => <StyledTypography>{params.row.display_end_time ?? '-'}</StyledTypography>
     },
     {
       field: 'actions',
@@ -276,21 +310,46 @@ function MedicationsGasSection({
     setDrawerType('gas')
   }
 
+  const parseTimeFromDrawer = v => {
+    if (!v) return null
+    if (dayjs.isDayjs(v)) return v
+    if (v instanceof Date) return dayjs(v)
+
+    const s = String(v).trim()
+    const formats = ['YYYY-MM-DD HH:mm:ss', 'HH:mm:ss', 'HH:mm', 'hh:mm A', 'hh:mm a']
+    for (const f of formats) {
+      const p = dayjs(s, f, true)
+      if (p.isValid()) {
+        if (f === 'HH:mm' || f === 'HH:mm:ss' || f === 'hh:mm A' || f === 'hh:mm a') {
+          const today = dayjs().format('YYYY-MM-DD')
+          const candidate = dayjs(`${today} ${p.format('HH:mm:ss')}`, 'YYYY-MM-DD HH:mm:ss', true)
+          if (candidate.isValid()) return candidate
+        }
+        return p
+      }
+    }
+    const loose = dayjs(s)
+    return loose.isValid() ? loose : null
+  }
+
+  const asStorageString = d => {
+    if (!d) return ''
+    const parsed = parseTimeFromDrawer(d)
+    return parsed && parsed.isValid() ? parsed.format('YYYY-MM-DD HH:mm:ss') : ''
+  }
+
   const handleSubmitMedication = useCallback(
     async payload => {
-      setSubmitLoader(true)
-      try {
-        if (editIndex !== null) {
-          onUpdateMedication(editIndex, payload)
-        } else {
-          onAddMedication(payload)
-        }
-      } catch (error) {
-        console.error('Error adding/updating medication:', error)
-      } finally {
-        setSubmitLoader(false)
-        setDrawerType(null)
-        setEditIndex(null)
+      const normalized = {
+        ...payload,
+        delivery_time: asStorageString(payload.delivery_time),
+        max_effect_time: asStorageString(payload.max_effect_time)
+      }
+
+      if (editIndex !== null) {
+        onUpdateMedication(editIndex, normalized)
+      } else {
+        onAddMedication(normalized)
       }
     },
     [editIndex, onAddMedication, onUpdateMedication]
@@ -298,19 +357,16 @@ function MedicationsGasSection({
 
   const handleSubmitGas = useCallback(
     async payload => {
-      setSubmitLoader(true)
-      try {
-        if (editIndex !== null) {
-          onUpdateGas(editIndex, payload)
-        } else {
-          onAddGas(payload)
-        }
-      } catch (error) {
-        console.error('Error adding/updating gas:', error)
-      } finally {
-        setSubmitLoader(false)
-        setDrawerType(null)
-        setEditIndex(null)
+      const normalized = {
+        ...payload,
+        start_time: asStorageString(payload.start_time),
+        end_time: asStorageString(payload.end_time)
+      }
+
+      if (editIndex !== null) {
+        onUpdateGas(editIndex, normalized)
+      } else {
+        onAddGas(normalized)
       }
     },
     [editIndex, onAddGas, onUpdateGas]
@@ -353,15 +409,23 @@ function MedicationsGasSection({
     </Box>
   )
 
-  const medicationsData = medications.map((med, index) => ({
-    ...med,
-    id: index + 1
-  }))
+  const medicationsData = (medications || []).map((med, index) => {
+    return {
+      ...med,
+      id: index + 1,
+      display_delivery_time: safeFormat(med.delivery_time),
+      display_max_effect_time: safeFormat(med.max_effect_time)
+    }
+  })
 
-  const gasesData = gases.map((gas, index) => ({
-    ...gas,
-    id: index + 1
-  }))
+  const gasesData = (gases || []).map((gas, index) => {
+    return {
+      ...gas,
+      id: index + 1,
+      display_start_time: safeFormat(gas.start_time),
+      display_end_time: safeFormat(gas.end_time)
+    }
+  })
 
   return (
     <Box sx={{ p: '0 0px 24px 0px' }}>
@@ -445,9 +509,10 @@ function MedicationsGasSection({
           handleSidebarClose={handleCloseDrawer}
           submitLoader={submitLoader}
           editData={editIndex !== null ? medications[editIndex] : null}
-          drugOptions={drugOptions}
-          unitOptions={unitOptions}
+          drugOptions={medicationGasList}
+          purposeStageOptions={purposeStageOptions}
           deliveryRouteOptions={deliveryRouteOptions}
+          unitList={unitList}
         />
       )}
       {drawerType === 'gas' && (
@@ -457,7 +522,7 @@ function MedicationsGasSection({
           handleSidebarClose={handleCloseDrawer}
           submitLoader={submitLoader}
           editData={editIndex !== null ? gases[editIndex] : null}
-          gasOptions={gasOptions}
+          gasOptions={medicationGasList}
           deliveryRouteOptions={deliveryRouteOptions}
         />
       )}

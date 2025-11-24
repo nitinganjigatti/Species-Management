@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import PropTypes from 'prop-types'
 import { Box, Typography } from '@mui/material'
 import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import { v4 as uuidv4 } from 'uuid'
@@ -6,55 +7,11 @@ import { alpha, useTheme } from '@mui/material/styles'
 import { useFormContext, useWatch } from 'react-hook-form'
 
 import AddTimeForm from './vitalForms/AddTimeForm'
-import TemperatureForm from './vitalForms/TemperatureForm'
-import HeartRateForm from './vitalForms/HeartRateForm'
-import RespirationRateForm from './vitalForms/RespirationRateForm'
-import Spo2Form from './vitalForms/Spo2Form'
-import BloodPressureForm from './vitalForms/BloodPressureForm'
-import CornealReflexForm from './vitalForms/CornealReflexForm'
-import PainReflexForm from './vitalForms/PainReflexForm'
-import AnalReflexForm from './vitalForms/AnalReflexForm'
-import MuscleRelaxForm from './vitalForms/MuscleRelaxForm'
+import GenericMeasurementDialog from './vitalForms/GenericMeasurementDialog'
 
 const HEADER_CELL_HEIGHT = '48px'
 const DATA_CELL_HEIGHT = '72px'
 const BASE_CELL_WIDTH = '164px'
-
-const ROWS = [
-  { key: 'recordedTime', label: 'Recorded Time' },
-  { key: 'temperature', label: 'Temp', formComponent: TemperatureForm },
-  { key: 'heartRate', label: 'HR', formComponent: HeartRateForm },
-  { key: 'respirationRate', label: 'RR', formComponent: RespirationRateForm },
-  { key: 'spo2', label: 'SpO2', formComponent: Spo2Form },
-  { key: 'bloodPressure', label: 'BP', formComponent: BloodPressureForm },
-  { key: 'cornealReflex', label: 'Corneal Reflex', formComponent: CornealReflexForm },
-  { key: 'painReflex', label: 'Pain Reflex', formComponent: PainReflexForm },
-  { key: 'analReflex', label: 'Anal Reflex', formComponent: AnalReflexForm },
-  { key: 'muscleRelax', label: 'Muscle Relax', formComponent: MuscleRelaxForm }
-]
-
-const STICKY_ADD_WRAPPER_STYLES = {
-  position: 'absolute',
-  top: 0,
-  right: 0,
-  display: 'flex',
-  alignItems: 'flex-start',
-  justifyContent: 'flex-end',
-  pointerEvents: 'none',
-  zIndex: 2
-}
-
-const FORM_COMPONENTS = {
-  temperature: TemperatureForm,
-  heartRate: HeartRateForm,
-  respirationRate: RespirationRateForm,
-  spo2: Spo2Form,
-  bloodPressure: BloodPressureForm,
-  cornealReflex: CornealReflexForm,
-  painReflex: PainReflexForm,
-  analReflex: AnalReflexForm,
-  muscleRelax: MuscleRelaxForm
-}
 
 const createStyles = theme => {
   const bodyBg = theme.palette.customColors?.bodyBg || theme.palette.background.default
@@ -191,8 +148,7 @@ const createStyles = theme => {
       alignItems: 'center',
       justifyContent: 'center',
       gap: '10px',
-      cursor: 'pointer',
-      pointerEvents: 'auto'
+      cursor: 'pointer'
     },
     stickyIcon: {
       fontSize: '20px',
@@ -202,54 +158,82 @@ const createStyles = theme => {
 }
 
 function getCellDisplay(rowKey, entry, timeLabel) {
-  if (!entry) {
-    return null
+  if (!entry) return null
+
+  const secondary = timeLabel || ''
+
+  // radio / selection first
+  if (entry.selection !== undefined && entry.selection !== null && String(entry.selection).trim() !== '') {
+    return { primary: String(entry.selection), secondary }
   }
 
-  switch (rowKey) {
-    case 'temperature':
-    case 'heartRate':
-    case 'respirationRate':
-    case 'spo2':
-      return {
-        primary: `${entry.value}${entry.unit ? ` ${entry.unit}` : ''}`,
-        secondary: timeLabel
-      }
-    case 'bloodPressure':
-      return {
-        primary: `${entry.systolic}${entry.unit ? ` ${entry.unit}` : ''}`,
-        secondary: entry.mean ? `Mean: ${entry.mean} • ${timeLabel}` : timeLabel
-      }
-    case 'cornealReflex':
-    case 'painReflex':
-    case 'analReflex':
-      return {
-        primary: entry.selection,
-        secondary: timeLabel
-      }
-    case 'muscleRelax':
-      return {
-        primary: `Score ${entry.score}`,
-        secondary: timeLabel
-      }
-    default:
-      return null
+  // single-number shape { value, unit }
+  if (entry.value !== undefined && entry.value !== null && String(entry.value).trim() !== '') {
+    const u = entry.unit ? ` ${entry.unit}` : ''
+    return { primary: `${String(entry.value)}${u}`, secondary }
   }
+
+  // canonical server-style map: fieldsById
+  if (entry.fieldsById && typeof entry.fieldsById === 'object') {
+    const vals = Object.keys(entry.fieldsById)
+      .sort((a, b) => Number(a) - Number(b))
+      .map(key => {
+        const obj = entry.fieldsById[key]
+        if (!obj) return null
+        const v = obj.value == null ? '' : String(obj.value).trim()
+        if (!v) return null
+        return obj.unit ? `${v} ${obj.unit}` : v
+      })
+      .filter(Boolean)
+
+    if (vals.length > 0) {
+      // join with " / " (e.g. "120 mmHg / 80 mmHg") — this shows multiple fields like BP
+      return { primary: vals.join(' / '), secondary }
+    }
+  }
+
+  const flatKeys = Object.keys(entry).filter(k => !['unit', 'fieldsById', 'selection'].includes(k))
+  if (flatKeys.length > 0) {
+    const vals = flatKeys
+      .map(k => {
+        const v = entry[k]
+        if (v === undefined || v === null || String(v).trim() === '') return null
+        // for single-key case show unit too if available
+        return String(v).trim()
+      })
+      .filter(Boolean)
+
+    if (vals.length > 0) {
+      const u = entry.unit ? ` ${entry.unit}` : ''
+      // if single value, append unit; if many, join them
+      return vals.length === 1 ? { primary: `${vals[0]}${u}`, secondary } : { primary: vals.join(' / '), secondary }
+    }
+  }
+
+  return null
 }
 
-export default function VitalMonitoring() {
+export default function VitalMonitoring({ vitalMonitorList = [] }) {
   const theme = useTheme()
   const styles = useMemo(() => createStyles(theme), [theme])
   const { control, setValue } = useFormContext()
   const columns = useWatch({ control, name: 'vitalMonitoring' }) || []
   const [isTimeFormOpen, setIsTimeFormOpen] = useState(false)
-  const [formState, setFormState] = useState(null)
-  const [activeCell, setActiveCell] = useState(null)
+  const [activeCell, setActiveCell] = useState(null) // { columnId, rowKey }
   const [hasOverflow, setHasOverflow] = useState(false)
   const [isScrolledToEnd, setIsScrolledToEnd] = useState(true)
 
   const scrollContainerRef = useRef(null)
 
+  // build ROWS dynamically: recordedTime first, then each section from vitalMonitorList
+  const ROWS = useMemo(() => {
+    return [
+      { key: 'recordedTime', label: 'Recorded Time' },
+      ...(vitalMonitorList || []).map(s => ({ key: s.string_id, label: s.section_name }))
+    ]
+  }, [vitalMonitorList])
+
+  // helper to update columns (persist into form)
   const updateColumns = newColumns => {
     setValue('vitalMonitoring', newColumns, { shouldDirty: true })
   }
@@ -257,7 +241,7 @@ export default function VitalMonitoring() {
   const handleAddColumn = ({ timeLabel }) => {
     const normalizedTime = timeLabel.trim().toUpperCase()
 
-    const exists = columns.some(column => column.timeLabel.toUpperCase() === normalizedTime)
+    const exists = columns.some(column => column.timeLabel && column.timeLabel.toUpperCase() === normalizedTime)
     if (exists) {
       setIsTimeFormOpen(false)
       return
@@ -275,67 +259,97 @@ export default function VitalMonitoring() {
 
   const handleOpenCellForm = (columnId, rowKey) => {
     setActiveCell({ columnId, rowKey })
-    setFormState({ columnId, rowKey })
   }
 
   const handleCloseForm = () => {
-    setFormState(null)
     setActiveCell(null)
   }
 
   const handleSubmitEntry = data => {
-    if (!formState) {
-      return
-    }
+    if (!activeCell) return
+    const { columnId, rowKey } = activeCell
+
+    const sectionMeta = (vitalMonitorList || []).find(s => s.string_id === rowKey)
 
     const updatedColumns = columns.map(column => {
-      if (column.id !== formState.columnId) {
-        return column
+      if (column.id !== columnId) return column
+
+      const existingEntry = column.entries?.[rowKey] ?? {}
+      const newEntry = { ...existingEntry }
+
+      const fieldsById = { ...(existingEntry.fieldsById || {}) }
+
+      const keyToFields = {}
+      if (sectionMeta && Array.isArray(sectionMeta.fields)) {
+        sectionMeta.fields.forEach(f => {
+          if (!keyToFields[f.field_key]) keyToFields[f.field_key] = []
+          keyToFields[f.field_key].push(f)
+        })
       }
+
+      Object.keys(data).forEach(k => {
+        if (k === 'unit') {
+          newEntry.unit = data.unit
+          return
+        }
+        if (k === 'selection') {
+          newEntry.selection = data.selection
+          return
+        }
+
+        const val = data[k]
+
+        if (keyToFields[k] && keyToFields[k].length > 0) {
+          let assigned = false
+          for (const fld of keyToFields[k]) {
+            const fid = String(fld.field_id)
+            fieldsById[fid] = {
+              field_key: fld.field_key,
+              value: val == null ? '' : String(val),
+              unit: data.unit ?? (fieldsById[fid] && fieldsById[fid].unit) ?? null
+            }
+            assigned = true
+          }
+          if (!assigned) {
+            newEntry[k] = val
+          }
+        } else {
+          newEntry[k] = val
+        }
+      })
+      if (Object.keys(fieldsById).length > 0) {
+        newEntry.fieldsById = fieldsById
+      }
+
+      if (data.unit) newEntry.unit = data.unit
 
       return {
         ...column,
         entries: {
           ...column.entries,
-          [formState.rowKey]: data
+          [rowKey]: newEntry
         }
       }
     })
 
     updateColumns(updatedColumns)
-
     handleCloseForm()
   }
 
-  const activeFormConfig = useMemo(() => {
-    if (!formState) {
-      return null
-    }
+  const activeSectionMeta = useMemo(() => {
+    if (!activeCell) return null
+    return vitalMonitorList.find(s => s.string_id === activeCell.rowKey) || null
+  }, [activeCell, vitalMonitorList])
 
-    const column = columns.find(item => item.id === formState.columnId)
-    if (!column) {
-      return null
-    }
-
-    const FormComponent = FORM_COMPONENTS[formState.rowKey]
-    if (!FormComponent) {
-      return null
-    }
-
-    return {
-      FormComponent,
-      column,
-      initialData: column.entries?.[formState.rowKey]
-    }
-  }, [columns, formState])
-
-  const ActiveFormComponent = activeFormConfig?.FormComponent
+  const activeInitialData = useMemo(() => {
+    if (!activeCell) return null
+    const column = columns.find(c => c.id === activeCell.columnId)
+    return column?.entries?.[activeCell.rowKey] ?? null
+  }, [activeCell, columns])
 
   useEffect(() => {
     const container = scrollContainerRef.current
-    if (!container) {
-      return undefined
-    }
+    if (!container) return undefined
 
     const updateOverflowState = () => {
       const overflow = container.scrollWidth > container.clientWidth + 1
@@ -390,13 +404,7 @@ export default function VitalMonitoring() {
                 {ROWS.map((row, index) => {
                   if (index === 0) {
                     return (
-                      <Box
-                        key={row.key}
-                        sx={{
-                          ...styles.timeCell,
-                          height: HEADER_CELL_HEIGHT
-                        }}
-                      >
+                      <Box key={row.key} sx={{ ...styles.timeCell, height: HEADER_CELL_HEIGHT }}>
                         <Typography sx={styles.timeText}>{column.timeLabel}</Typography>
                       </Box>
                     )
@@ -405,7 +413,7 @@ export default function VitalMonitoring() {
                   const entry = column.entries?.[row.key]
                   const display = getCellDisplay(row.key, entry, column.timeLabel)
                   const isActive = activeCell?.columnId === column.id && activeCell?.rowKey === row.key
-
+                  console.log(display, 'display')
                   if (display) {
                     return (
                       <Box
@@ -429,7 +437,9 @@ export default function VitalMonitoring() {
                         ...styles.dashedCell,
                         ...(isActive ? styles.dashedCellActive : {})
                       }}
-                      onClick={() => handleOpenCellForm(column.id, row.key)}
+                      onClick={() => {
+                        handleOpenCellForm(column.id, row.key)
+                      }}
                     >
                       <AddRoundedIcon sx={styles.dashedIcon} />
                     </Box>
@@ -448,9 +458,7 @@ export default function VitalMonitoring() {
                         ...styles.addTimeBox,
                         height: HEADER_CELL_HEIGHT
                       }}
-                      onClick={() => {
-                        setIsTimeFormOpen(true)
-                      }}
+                      onClick={() => setIsTimeFormOpen(true)}
                     >
                       <AddRoundedIcon sx={styles.addIcon} />
                     </Box>
@@ -464,10 +472,23 @@ export default function VitalMonitoring() {
         </Box>
 
         {hasOverflow && !isScrolledToEnd ? (
-          <Box sx={STICKY_ADD_WRAPPER_STYLES}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'flex-end',
+              pointerEvents: 'none',
+              zIndex: 2
+            }}
+          >
             <Box
               sx={styles.stickyButton}
-              onClick={() => setIsTimeFormOpen(true)}
+              onClick={() => {
+                setIsTimeFormOpen(true)
+              }}
               onMouseDown={event => event.preventDefault()}
             >
               <AddRoundedIcon sx={styles.stickyIcon} />
@@ -478,15 +499,18 @@ export default function VitalMonitoring() {
 
       <AddTimeForm open={isTimeFormOpen} onClose={() => setIsTimeFormOpen(false)} onSubmit={handleAddColumn} />
 
-      {ActiveFormComponent ? (
-        <ActiveFormComponent
-          open
-          onClose={handleCloseForm}
-          timeLabel={activeFormConfig.column.timeLabel}
-          onSubmit={handleSubmitEntry}
-          initialData={activeFormConfig.initialData}
-        />
-      ) : null}
+      <GenericMeasurementDialog
+        open={!!activeCell}
+        onClose={handleCloseForm}
+        onSubmit={handleSubmitEntry}
+        sectionMeta={activeSectionMeta}
+        initialData={activeInitialData}
+        timeLabel={activeCell ? columns.find(c => c.id === activeCell.columnId)?.timeLabel : ''}
+      />
     </>
   )
+}
+
+VitalMonitoring.propTypes = {
+  vitalMonitorList: PropTypes.array
 }

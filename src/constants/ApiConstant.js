@@ -900,3 +900,9 @@ export const ADD_ANESTHESIA = `v1/hospital/anaesthesia/save`
 export const GET_ANESTHESIA_SETUP_LIST = `v1/hospital/anaesthesia/sections`
 
 export const DELETE_MONITORING_MONITORING = `v1/hospital/delete-scheduled-monitoring-parameter`
+
+export const GET_MEDICAL_DELIVERY_ROUTE = `master/get-medical-delivery-route`
+
+export const GET_VITAL_MONITORING_LIST = `v1/hospital/anaesthesia/sections`
+
+export const GET_ANESTHESIA_DETAIL = `v1/hospital/anaesthesia/detail`

@@ -1,8 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { Box, Card, Chip, Drawer, IconButton, Typography, useTheme } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-
-// ** Form & Validation Setup
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form'
@@ -16,30 +14,49 @@ import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 dayjs.extend(customParseFormat)
 
-// Validation Schema
 const schema = yup.object().shape({
-  gas_name: yup
-    .object()
-    .shape({
-      gas_id: yup.string().required('Gas Id is required'),
-      gas_name: yup.string().required('Gas Name is required')
-    })
-    .required('Gas Name is required')
-    .nullable(),
+  gas_name: yup.object().required('Gas Name is required'),
   o2_flow: yup.string().trim().required('O2 Flow is required'),
   concentration: yup.string().trim().required('Concentration is required'),
-  start_time: yup.date().nullable().required('Start Time is required'),
-  delivery_route: yup.string().required('Delivery Route is required'),
-  end_time: yup.date().nullable().required('End Time is required')
+  start_time: yup
+    .date()
+    .nullable()
+    .required('Start time is required')
+    .typeError('Please select a valid start time')
+    .test('is-before-end-time', 'Start time cannot be greater than end time', function (value) {
+      const { end_time } = this.parent
+      if (!value || !end_time) return true
+
+      const start = dayjs(value)
+      const end = dayjs(end_time)
+
+      return start.isBefore(end) || start.isSame(end)
+    }),
+
+  end_time: yup
+    .date()
+    .nullable()
+    .required('End time is required')
+    .typeError('Please select a valid end time')
+    .test('is-after-start-time', 'End time cannot be less than start time', function (value) {
+      const { start_time } = this.parent
+      if (!value || !start_time) return true
+
+      const start = dayjs(start_time)
+      const end = dayjs(value)
+
+      return end.isAfter(start) || end.isSame(start)
+    }),
+  delivery_status: yup.string().required('Delivery status is required'),
+  delivery_route: yup.object().required('Delivery Route is required')
 })
 
 const deliveryStatus = [
-  { label: 'Complete', value: 'complete' },
-  { label: 'Partial', value: 'partial' },
-  { label: 'None', value: 'none' }
+  { label: 'Complete', value: 'Complete' },
+  { label: 'Partial', value: 'Partial' },
+  { label: 'None', value: 'None' }
 ]
 
-// Default Form Values
 const defaultValues = {
   gas_name: null,
   o2_flow: '',
@@ -72,30 +89,57 @@ function AddGasDrawer({
     defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
-    mode: 'onBlur',
+    mode: 'onChange',
     reValidateMode: 'onChange'
   })
 
   useEffect(() => {
     if (!handleSidebarOpen) return
     if (editData) {
-      const parseTime = t => (t ? dayjs(t, 'hh:mm A', true) : null)
+      const parseTime = t => {
+        if (!t) return null
+        if (dayjs.isDayjs(t)) return t
+        if (t instanceof Date) return dayjs(t)
+
+        const formats = ['YYYY-MM-DD HH:mm:ss', 'HH:mm:ss', 'hh:mm A', 'hh:mm a']
+        for (const format of formats) {
+          const parsed = dayjs(t, format, true)
+          if (parsed.isValid()) {
+            // For time-only formats, combine with today's date
+            if (format.includes('hh:mm') || format === 'HH:mm:ss') {
+              const today = dayjs().format('YYYY-MM-DD')
+              return dayjs(`${today} ${parsed.format('HH:mm:ss')}`, 'YYYY-MM-DD HH:mm:ss', true)
+            }
+            return parsed
+          }
+        }
+        return null
+      }
 
       Object.keys(defaultValues).forEach(key => {
         if (key !== 'start_time' && key !== 'end_time') {
-          setValue(key, editData[key] ?? defaultValues[key])
+          setValue(key, editData[key] ?? defaultValues[key], { shouldValidate: true })
         }
       })
 
-      setValue('start_time', parseTime(editData.start_time))
-      setValue('end_time', parseTime(editData.end_time))
+      setValue('start_time', parseTime(editData.start_time), { shouldValidate: true })
+      setValue('end_time', parseTime(editData.end_time), { shouldValidate: true })
 
-      if (editData.delivery_status) setSelectedStatus(editData.delivery_status)
+      if (editData.delivery_status) {
+        setSelectedStatus(editData.delivery_status)
+        setValue('delivery_status', editData.delivery_status, { shouldValidate: true })
+      }
     } else {
       reset(defaultValues)
       setSelectedStatus(null)
     }
-  }, [editData, setValue, reset])
+  }, [editData, setValue, reset, handleSidebarOpen])
+
+  useEffect(() => {
+    if (selectedStatus) {
+      setValue('delivery_status', selectedStatus, { shouldValidate: true })
+    }
+  }, [selectedStatus, setValue])
 
   const onSubmit = useCallback(
     async formData => {
@@ -122,7 +166,6 @@ function AddGasDrawer({
     [handleSubmitData, reset, handleSidebarClose, selectedStatus]
   )
 
-  // Close handler
   const handleClose = useCallback(() => {
     reset(defaultValues)
     setSelectedStatus(null)
@@ -178,11 +221,11 @@ function AddGasDrawer({
                   errors={errors}
                   label='Enter Gas Name*'
                   options={gasOptions}
-                  getOptionLabel={option => option?.gas_name || ''}
-                  isOptionEqualToValue={(option, value) => option?.gas_id === value?.gas_id}
+                  getOptionLabel={option => option?.name || ''}
+                  isOptionEqualToValue={(option, value) => option?.id === value?.id}
                   renderOption={(props, option) => (
-                    <li {...props} key={option.gas_id}>
-                      {option.gas_name}
+                    <li {...props} key={option.id}>
+                      {option.name}
                     </li>
                   )}
                 />
@@ -219,14 +262,19 @@ function AddGasDrawer({
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
-                <ControlledSelect
+                <ControlledAutocomplete
                   control={control}
                   name='delivery_route'
                   errors={errors}
                   label='Delivery Route*'
                   options={deliveryRouteOptions}
-                  getOptionLabel={option => option.label}
-                  getOptionValue={option => option.value}
+                  getOptionLabel={option => option?.delivery || ''}
+                  isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.id}>
+                      {option.delivery}
+                    </li>
+                  )}
                 />
               </Grid>
               <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
@@ -249,7 +297,18 @@ function AddGasDrawer({
                         color:
                           selectedStatus === status.value
                             ? theme.palette.primary.contrastText
-                            : theme.palette.text.primary
+                            : theme.palette.text.primary,
+                        '&:hover': {
+                          backgroundColor:
+                            selectedStatus === status.value
+                              ? theme.palette.customColors.OnSecondaryContainer
+                              : theme.palette.action.selected
+                        },
+
+                        '&.MuiChip-clickable:active': {
+                          boxShadow: 'none',
+                          transform: 'scale(0.98)'
+                        }
                       }}
                     />
                   ))}

@@ -1,4 +1,12 @@
-import { GET_ASSESSMENT_LIST_ANESTHESIA, ADD_ANESTHESIA, GET_ANESTHESIA_SETUP_LIST } from 'src/constants/ApiConstant'
+import {
+  GET_ASSESSMENT_LIST_ANESTHESIA,
+  ADD_ANESTHESIA,
+  GET_ANESTHESIA_SETUP_LIST,
+  MEDICAL_MASTER_DATA,
+  GET_MEDICAL_DELIVERY_ROUTE,
+  GET_VITAL_MONITORING_LIST,
+  GET_ANESTHESIA_DETAIL
+} from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
 export const getAssesmentList = async params => {
@@ -19,20 +27,26 @@ export const getAnesthesiaSetupList = async params => {
   return response?.data
 }
 
-//   export const updateSymptoms = async payload => {
-//     const response = await axiosFormPost({ url: `${ANIMAL_MEDICAL_ID_LIST}/${UPDATE_HOSPITAL_SYMPTOMS}`, body: payload })
+export const getUnitList = async params => {
+  const response = await axiosGet({ url: `${MEDICAL_MASTER_DATA}`, params })
 
-//     return response?.data
-//   }
+  return response?.data
+}
 
-//   export const getNotesListForSymptom = async payload => {
-//     const response = await axiosPost({ url: `${ANIMAL_MEDICAL_ID_LIST}${GET_ACTIVITY_LIST}`, body: payload })
+export const deliveryRouteList = async params => {
+  const response = await axiosGet({ url: `${GET_MEDICAL_DELIVERY_ROUTE}`, params })
 
-//     return response?.data
-//   }
+  return response?.data
+}
 
-//   export const deleteNoteSymptoms = async (noteId, params) => {
-//     const response = await axiosGet({ url: `${DELETE_NOTE_SYMPTOM}/${noteId}`, params })
+export const getvitalMonitoringList = async params => {
+  const response = await axiosGet({ url: `${GET_VITAL_MONITORING_LIST}`, params })
 
-//     return response?.data
-//   }
+  return response?.data
+}
+
+export const getAnesthesiaDetails = async (id, params) => {
+  const response = await axiosGet({ url: `${GET_ANESTHESIA_DETAIL}/${id}`, params })
+
+  return response?.data
+}

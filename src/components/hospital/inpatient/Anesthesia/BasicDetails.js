@@ -9,7 +9,9 @@ import {
   ToggleButtonGroup,
   ToggleButton,
   Divider,
-  Autocomplete
+  Autocomplete,
+  Chip,
+  CircularProgress
 } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
 import { useFormContext, Controller, useFieldArray } from 'react-hook-form'
@@ -19,7 +21,12 @@ import dayjs from 'dayjs'
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 
-export default function BasicDetails({ vetOptions = [], anesthetistOptions = [], purposeOptions = [] }) {
+export default function BasicDetails({
+  vetOptions = [],
+  anesthetistOptions = [],
+  purposeOptions = [],
+  addLoader = false
+}) {
   const {
     control,
     watch,
@@ -51,7 +58,11 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [],
   const selectedPurpose = watch('basicDetails.selected') || []
   const selectedOtherPurpose = watch('basicDetails.custom') || []
 
-  return (
+  return addLoader ? (
+    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
+      <CircularProgress />
+    </Box>
+  ) : (
     <Box sx={{ width: '100%', p: 0 }}>
       <Grid container spacing={5} columns={12}>
         <Grid size={{ xs: 12, md: 4 }}>
@@ -77,17 +88,13 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [],
             name='basicDetails.anaesthesia_datetime'
             control={control}
             render={({ field }) => {
-              const [displayValue, setDisplayValue] = useState(
-                field.value ? dayjs(field.value, 'YYYY-MM-DD HH:mm:ss') : null
-              )
+              const value = field.value ? dayjs(field.value, 'YYYY-MM-DD HH:mm:ss') : null
 
               const handleDateChange = newValue => {
                 if (!newValue) {
                   field.onChange('')
-                  setDisplayValue(null)
                   return
                 }
-                setDisplayValue(newValue)
                 const formatted = dayjs(newValue).format('YYYY-MM-DD HH:mm:ss')
                 field.onChange(formatted)
               }
@@ -96,7 +103,7 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [],
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DateTimePicker
                     label='Date & Time of Anesthesia'
-                    value={displayValue}
+                    value={value}
                     onChange={handleDateChange}
                     format='DD MMM YYYY · hh:mm A'
                     slotProps={{
@@ -134,18 +141,31 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [],
         </Grid>
 
         <Grid container spacing={2}>
-          <Grid item size={{ xs: 12, md: 4 }}>
+          <Grid item size={{ xs: 12, md: 6 }}>
             <Controller
               name='basicDetails.veterinarian_id'
               control={control}
               render={({ field }) => (
                 <Autocomplete
+                  multiple
                   openOnFocus
                   options={vetOptions}
                   getOptionLabel={option => option?.name || ''}
                   isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                  value={vetOptions.find(opt => opt.id === field.value) || null}
-                  onChange={(_, newValue) => field.onChange(newValue?.id || '')}
+                  value={vetOptions.filter(opt => field.value?.includes(opt.id)) || []}
+                  onChange={(_, newValue) => {
+                    const selectedIds = newValue.map(item => item.id)
+                    field.onChange(selectedIds)
+                  }}
+                  slotProps={{
+                    tags: {
+                      getTagProps: ({ index }) => ({
+                        key: vetOptions[index]?.id,
+                        label: vetOptions[index]?.name,
+                        size: 'small'
+                      })
+                    }
+                  }}
                   renderInput={params => (
                     <TextField
                       {...params}
@@ -161,18 +181,31 @@ export default function BasicDetails({ vetOptions = [], anesthetistOptions = [],
             />
           </Grid>
 
-          <Grid item size={{ xs: 12, md: 4 }}>
+          <Grid item size={{ xs: 12, md: 6 }}>
             <Controller
               name='basicDetails.anesthetist_id'
               control={control}
               render={({ field }) => (
                 <Autocomplete
+                  multiple
                   openOnFocus
                   options={anesthetistOptions}
                   getOptionLabel={option => option?.name || ''}
                   isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                  value={anesthetistOptions.find(opt => opt.id === field.value) || null}
-                  onChange={(_, newValue) => field.onChange(newValue?.id || '')}
+                  value={anesthetistOptions.filter(opt => field.value?.includes(opt.id)) || []}
+                  onChange={(_, newValue) => {
+                    const selectedIds = newValue.map(item => item.id)
+                    field.onChange(selectedIds)
+                  }}
+                  slotProps={{
+                    tags: {
+                      getTagProps: ({ index }) => ({
+                        key: anesthetistOptions[index]?.id,
+                        label: anesthetistOptions[index]?.name,
+                        size: 'small'
+                      })
+                    }
+                  }}
                   renderInput={params => (
                     <TextField
                       {...params}

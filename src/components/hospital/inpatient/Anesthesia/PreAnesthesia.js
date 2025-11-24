@@ -7,6 +7,16 @@ import ControlledSelectWithTextField from 'src/views/forms/form-fields/Controlle
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import CustomOtherPurposeSection from 'src/views/utility/CustomOtherPurposeSection'
 
+const fastingTimeOptions = [
+  { label: 'Hours', value: 'Hours' },
+  { label: 'Minutes', value: 'Minutes' }
+]
+
+const weightOptions = [
+  { label: 'Kg', value: 'Kg' },
+  { label: 'Gram', value: 'Gram' }
+]
+
 function PreAnesthesia({
   physicalHealthStatusOptions = [],
   bodyConditionOptions = [],
@@ -109,10 +119,7 @@ function PreAnesthesia({
             selectFieldName='preAnesthesia.fasting_unit'
             control={control}
             errors={errors}
-            options={[
-              { label: 'Hours', value: 'hours' },
-              { label: 'Minutes', value: 'minutes' }
-            ]}
+            options={fastingTimeOptions}
             label='Fasting Time'
             placeholder='Enter fasting time'
             type='number'
@@ -130,7 +137,7 @@ function PreAnesthesia({
             label='Previous endotracheal tube size'
             name='preAnesthesia.previous_endotracheal_tube_size'
             placeholder='Previous endotracheal tube size'
-            type='number'
+            type='text'
           />
         </Grid>
 
@@ -152,10 +159,7 @@ function PreAnesthesia({
             selectFieldName='preAnesthesia.weight_unit'
             control={control}
             errors={errors}
-            options={[
-              { label: 'Kg', value: 'kg' },
-              { label: 'Gram', value: 'gram' }
-            ]}
+            options={weightOptions}
             label='Weight'
             placeholder='Weight'
             type='number'

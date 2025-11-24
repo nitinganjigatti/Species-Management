@@ -162,17 +162,13 @@ const getChipStyles = theme => theme => ({
   '& .MuiChip-label': { paddingInline: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
 })
 
-const uiKeyForField = (sectionStringId, apiFieldKey) => {
-  const camel = apiFieldKey.replace(/_([a-z])/g, g => g[1].toUpperCase())
-  const mapping = {
-    fluids: { fluid_type: 'fluidType', fluid_quantity: 'quantity', quantity: 'quantity' },
-    catheter_setup: { catheter_type: 'method' },
-    syringe_pump: { syringe_rate: 'rate' },
-    et_intubation: { et_tube: 'tubeSizes' },
-    nasal_intubation: { nasal_tube: 'tubeSizes' },
-    ventilation: { ventilation_mode: 'mode' }
-  }
-  return (mapping[sectionStringId] && mapping[sectionStringId][apiFieldKey]) || camel
+const toCamel = s =>
+  String(s)
+    .trim()
+    .replace(/_([a-zA-Z0-9])/g, (_, g1) => g1.toUpperCase())
+
+const uiKeyForField = (_sectionStringId, apiFieldKey) => {
+  return toCamel(apiFieldKey)
 }
 
 const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
@@ -213,7 +209,6 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
     const newVal = !current
     setValue(`anesthesiaSetup.${key}.checked`, newVal, { shouldDirty: true })
 
-    // if enabling, prefill values from API meta (if provided)
     if (newVal) {
       const meta = (anesthesiaSetupList || []).find(s => s.string_id === key)
       if (!meta) return

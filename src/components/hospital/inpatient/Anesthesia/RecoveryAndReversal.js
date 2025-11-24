@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Button, Typography, styled, Box, useTheme, Grid, IconButton, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { Add as AddIcon } from '@mui/icons-material'
@@ -11,11 +11,12 @@ import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePick
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import { deliveryRouteList } from 'src/lib/api/hospital/anesthesia'
+import { getProductList } from 'src/lib/api/pharmacy/dispenseProduct'
+import Toaster from 'src/components/Toaster'
 
 function RecoveryAndReversal({
-  drugOptions = [],
-  unitOptions = [],
-  deliveryRouteOptions = [],
+  unitList = [],
   recoveryTypeOptions = [],
   anesthesiaRatingOptions = [],
   onAddReversalDrug,
@@ -26,6 +27,8 @@ function RecoveryAndReversal({
   const [openDrawer, setOpenDrawer] = useState(false)
   const [editIndex, setEditIndex] = useState(null)
   const [submitLoader, setSubmitLoader] = useState(false)
+  const [deliveryRouteOptionsState, setDeliveryRouteOptionsState] = useState([])
+  const [medicationGasList, setMedicationGasList] = useState([])
 
   const {
     control,
@@ -33,6 +36,83 @@ function RecoveryAndReversal({
     formState: { errors }
   } = useFormContext()
   const reversalDrugs = watch('recoveryAndReversal.reversalDrugs') || []
+
+  const fetchDeliveryList = async () => {
+    try {
+      const response = await deliveryRouteList()
+      console.log(response, 'response')
+      if (response?.success && response?.data?.length > 0) {
+        setDeliveryRouteOptionsState(response?.data)
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {}
+  }
+
+  const fetchMedicationGasList = async () => {
+    const params = {
+      sort: 'asc',
+      q: '',
+      limit: 50,
+      column: 'package'
+    }
+    try {
+      const response = await getProductList({ params })
+      console.log(response, 'response')
+      if (response?.success && response?.data?.list_items?.length > 0) {
+        setMedicationGasList(response?.data?.list_items)
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {}
+  }
+
+  useEffect(() => {
+    if (openDrawer) {
+      fetchDeliveryList()
+      fetchMedicationGasList()
+    }
+  }, [openDrawer])
+
+  const getUnitAbbr = unitId => {
+    const unit = unitList?.find(item => String(item.id) === String(unitId))
+    return unit?.uom_abbr || '-'
+  }
+
+  const safeFormat = v => {
+    if (!v) return '-'
+    const d = dayjs(v)
+    return d.isValid() ? d.format('hh:mm A') : '-'
+  }
+
+  const parseTimeFromDrawer = v => {
+    if (!v) return null
+    if (dayjs.isDayjs(v)) return v
+    if (v instanceof Date) return dayjs(v)
+
+    const s = String(v).trim()
+    const formats = ['YYYY-MM-DD HH:mm:ss', 'HH:mm:ss', 'HH:mm', 'hh:mm A', 'hh:mm a']
+    for (const f of formats) {
+      const p = dayjs(s, f, true)
+      if (p.isValid()) {
+        if (f === 'HH:mm' || f === 'HH:mm:ss' || f === 'hh:mm A' || f === 'hh:mm a') {
+          const today = dayjs().format('YYYY-MM-DD')
+          const candidate = dayjs(`${today} ${p.format('HH:mm:ss')}`, 'YYYY-MM-DD HH:mm:ss', true)
+          if (candidate.isValid()) return candidate
+        }
+        return p
+      }
+    }
+
+    const loose = dayjs(s)
+    return loose.isValid() ? loose : null
+  }
+
+  const asStorageString = d => {
+    if (!d) return ''
+    const parsed = parseTimeFromDrawer(d)
+    return parsed && parsed.isValid() ? parsed.format('YYYY-MM-DD HH:mm:ss') : ''
+  }
 
   const handleEditDrug = index => {
     setEditIndex(index)
@@ -43,10 +123,16 @@ function RecoveryAndReversal({
     async payload => {
       setSubmitLoader(true)
       try {
+        const normalized = {
+          ...payload,
+          delivery_time: asStorageString(payload.delivery_time),
+          max_effect_time: asStorageString(payload.max_effect_time)
+        }
+
         if (editIndex !== null) {
-          onUpdateReversalDrug(editIndex, payload)
+          onUpdateReversalDrug(editIndex, normalized)
         } else {
-          onAddReversalDrug(payload)
+          onAddReversalDrug(normalized)
         }
       } catch (error) {
         console.error('Error adding/updating reversal drug:', error)
@@ -82,7 +168,7 @@ function RecoveryAndReversal({
       renderCell: params => (
         <TextEllipsisWithModal
           enableDialog={false}
-          text={params.row.drug_name?.drug_name ?? '-'}
+          text={params.row.drug_name?.name ?? '-'}
           style={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
@@ -100,7 +186,7 @@ function RecoveryAndReversal({
       sortable: false,
       renderCell: params => (
         <StyledTypography>
-          {params.row.amount} {params.row.unit}
+          {params.row.amount} {getUnitAbbr(params.row.unit)}
         </StyledTypography>
       )
     },
@@ -109,7 +195,7 @@ function RecoveryAndReversal({
       headerName: 'Route',
       minWidth: 140,
       sortable: false,
-      renderCell: params => <StyledTypography>{params.row.delivery_route}</StyledTypography>
+      renderCell: params => <StyledTypography>{params.row.delivery_route?.delivery || ''}</StyledTypography>
     },
     {
       field: 'delivery_time',
@@ -117,12 +203,7 @@ function RecoveryAndReversal({
       minWidth: 130,
       sortable: false,
       renderCell: params => {
-        const time = params.row.delivery_time
-          ? dayjs(params.row.delivery_time).isValid()
-            ? dayjs(params.row.delivery_time).format('hh:mm A')
-            : '-'
-          : '-'
-        return <StyledTypography>{time}</StyledTypography>
+        return <StyledTypography>{params.row.display_delivery_time ?? '-'}</StyledTypography>
       }
     },
     {
@@ -138,12 +219,7 @@ function RecoveryAndReversal({
       minWidth: 130,
       sortable: false,
       renderCell: params => {
-        const time = params.row.max_effect_time
-          ? dayjs(params.row.max_effect_time).isValid()
-            ? dayjs(params.row.max_effect_time).format('hh:mm A')
-            : '-'
-          : '-'
-        return <StyledTypography>{time}</StyledTypography>
+        return <StyledTypography>{params.row.display_max_effect_time ?? '-'}</StyledTypography>
       }
     },
     {
@@ -173,40 +249,37 @@ function RecoveryAndReversal({
 
   const reversalDrugsData = reversalDrugs.map((drug, index) => ({
     ...drug,
-    id: index + 1
+    id: index + 1,
+    display_delivery_time: safeFormat(drug.delivery_time),
+    display_max_effect_time: safeFormat(drug.max_effect_time)
   }))
-
+  console.log(reversalDrugs, 'reversalDrugs')
   return (
-    <Box sx={{ p: '0 24px 24px 24px' }}>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', mb: 4 }}>
-        <Typography
-          sx={{
-            fontSize: '1rem',
-            fontWeight: 600,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          Recovery and reversal
-        </Typography>
-        <Button
-          variant='outlined'
-          endIcon={<AddIcon />}
-          onClick={() => {
-            setEditIndex(null)
-            setOpenDrawer(true)
-          }}
-          sx={{
-            flex: 1,
-            py: '8px',
-            borderRadius: '8px',
-            borderColor: theme.palette.primary.main,
-            fontSize: '1rem',
-            fontWeight: 500
-          }}
-        >
-          Add Reversal Drug
-        </Button>
-      </Box>
+    <Box>
+      {reversalDrugs?.length === 0 ? (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', mb: 4 }}>
+          <Button
+            variant='outlined'
+            endIcon={<AddIcon />}
+            onClick={() => {
+              setEditIndex(null)
+              setOpenDrawer(true)
+            }}
+            sx={{
+              flex: 1,
+              py: '8px',
+              borderRadius: '8px',
+              borderColor: theme.palette.primary.main,
+              fontSize: '1rem',
+              fontWeight: 500
+            }}
+          >
+            Add Reversal Drug
+          </Button>
+        </Box>
+      ) : (
+        ''
+      )}
 
       {reversalDrugs.length > 0 && (
         <>
@@ -243,7 +316,17 @@ function RecoveryAndReversal({
         </>
       )}
 
-      <Box sx={{ width: '100%', mt: 4 }}>
+      <Box sx={{ width: '100%', mt: 6 }}>
+        <Typography
+          sx={{
+            fontSize: '1rem',
+            fontWeight: 600,
+            mb: 6,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          Recovery details
+        </Typography>
         <Grid container spacing={6}>
           <Grid size={{ xs: 4 }}>
             <ControlledSelect
@@ -335,7 +418,6 @@ function RecoveryAndReversal({
         </Grid>
       </Box>
 
-      {/* Drawer component */}
       {openDrawer && (
         <AddReversalDrug
           handleSidebarOpen={openDrawer}
@@ -343,9 +425,9 @@ function RecoveryAndReversal({
           handleSidebarClose={handleCloseDrawer}
           submitLoader={submitLoader}
           editData={editIndex !== null ? reversalDrugs[editIndex] : null}
-          drugOptions={drugOptions}
-          unitOptions={unitOptions}
-          deliveryRouteOptions={deliveryRouteOptions}
+          drugOptions={medicationGasList}
+          unitList={unitList}
+          deliveryRouteOptions={deliveryRouteOptionsState}
         />
       )}
     </Box>

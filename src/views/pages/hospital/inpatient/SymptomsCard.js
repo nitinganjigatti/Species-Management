@@ -120,7 +120,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
         med_id: temporarilySelected?.medical_record_id,
         animal_id: animal_id,
         type: 'COMPLAINT',
-        is_system_generated: isSystemGenerated,
+        is_system_generated: isSystemGenerated ? 1 : 0,
         severity: pendingDetails?.severity,
         duration: pendingDetails?.durationValue,
         duration_unit: pendingDetails?.durationUnit,

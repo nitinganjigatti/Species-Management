@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import { Box, Card, Chip, Drawer, IconButton, Typography, useTheme } from '@mui/material'
+import { Box, Card, Chip, Drawer, IconButton, Select, Typography, useTheme } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import { alpha, Grid } from '@mui/system'
@@ -15,29 +15,48 @@ import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 dayjs.extend(customParseFormat)
 
-// Validation Schema
 const schema = yup.object().shape({
-  drug_name: yup
-    .object()
-    .shape({
-      drug_id: yup.string().required('Drug Id is required'),
-      drug_name: yup.string().required('Drug Name is required')
-    })
-    .required('Drug Name is required')
-    .nullable(),
-  purpose_stage: yup.string().trim().required('Purpose or stage is required'),
+  drug_name: yup.object().required('Drug Name is required'),
+  purpose_stage: yup.string().required('Purpose or stage is required'),
   amount: yup.string().trim().required('Amount is required'),
   unit: yup.string().required('Unit is required'),
-  delivery_time: yup.date().nullable().required('Delivery Time is required'),
-  delivery_route: yup.string().required('Delivery Route is required'),
-  max_effect_time: yup.date().nullable().required('Max Effect Time is required'),
+  delivery_time: yup
+    .date()
+    .nullable()
+    .required('Delivery Time is required')
+    .typeError('Please select a valid delivery time')
+    .test('is-before-max-effect', 'Delivery time cannot be greater than max effect time', function (value) {
+      const { max_effect_time } = this.parent
+      if (!value || !max_effect_time) return true
+
+      const delivery = dayjs(value)
+      const maxEffect = dayjs(max_effect_time)
+
+      return delivery.isBefore(maxEffect) || delivery.isSame(maxEffect)
+    }),
+  delivery_status: yup.string().required('Delivery status is required'),
+  delivery_route: yup.object().required('Delivery Route is required'),
+  max_effect_time: yup
+    .date()
+    .nullable()
+    .required('Max Effect Time is required')
+    .typeError('Please select a valid max effect time')
+    .test('is-after-delivery', 'Max effect time cannot be less than delivery time', function (value) {
+      const { delivery_time } = this.parent
+      if (!delivery_time || !value) return true
+
+      const delivery = dayjs(delivery_time)
+      const maxEffect = dayjs(value)
+
+      return maxEffect.isAfter(delivery) || maxEffect.isSame(delivery)
+    }),
   notes: yup.string().trim().required('Note is required')
 })
 
 const deliveryStatus = [
-  { label: 'Complete', value: 'complete' },
-  { label: 'Partial', value: 'partial' },
-  { label: 'None', value: 'none' }
+  { label: 'Complete', value: 'Complete' },
+  { label: 'Partial', value: 'Partial' },
+  { label: 'None', value: 'None' }
 ]
 
 // Default Form Values
@@ -46,7 +65,7 @@ const defaultValues = {
   purpose_stage: '',
   amount: '',
   unit: '',
-  delivery_route: '',
+  delivery_route: null,
   delivery_time: null,
   delivery_status: null,
   max_effect_time: null,
@@ -60,7 +79,8 @@ function AddMedicationDrawer({
   submitLoader,
   editData,
   drugOptions = [],
-  unitOptions = [],
+  purposeStageOptions = [],
+  unitList = [],
   deliveryRouteOptions = []
 }) {
   const theme = useTheme()
@@ -76,30 +96,57 @@ function AddMedicationDrawer({
     defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
-    mode: 'onBlur',
+    mode: 'onChange',
     reValidateMode: 'onChange'
   })
 
   useEffect(() => {
     if (!handleSidebarOpen) return
     if (editData) {
-      const parseTime = t => (t ? dayjs(t, 'hh:mm A', true) : null)
+      const parseTime = t => {
+        if (!t) return null
+        if (dayjs.isDayjs(t)) return t
+        if (t instanceof Date) return dayjs(t)
+
+        const formats = ['YYYY-MM-DD HH:mm:ss', 'HH:mm:ss', 'hh:mm A', 'hh:mm a']
+        for (const format of formats) {
+          const parsed = dayjs(t, format, true)
+          if (parsed.isValid()) {
+            // For time-only formats, combine with today's date
+            if (format.includes('hh:mm') || format === 'HH:mm:ss') {
+              const today = dayjs().format('YYYY-MM-DD')
+              return dayjs(`${today} ${parsed.format('HH:mm:ss')}`, 'YYYY-MM-DD HH:mm:ss', true)
+            }
+            return parsed
+          }
+        }
+        return null
+      }
 
       Object.keys(defaultValues).forEach(key => {
         if (key !== 'delivery_time' && key !== 'max_effect_time') {
-          setValue(key, editData[key] ?? defaultValues[key])
+          setValue(key, editData[key] ?? defaultValues[key], { shouldValidate: true })
         }
       })
 
-      setValue('delivery_time', parseTime(editData.delivery_time))
-      setValue('max_effect_time', parseTime(editData.max_effect_time))
+      setValue('delivery_time', parseTime(editData.delivery_time), { shouldValidate: true })
+      setValue('max_effect_time', parseTime(editData.max_effect_time), { shouldValidate: true })
 
-      if (editData.delivery_status) setSelectedStatus(editData.delivery_status)
+      if (editData.delivery_status) {
+        setSelectedStatus(editData.delivery_status)
+        setValue('delivery_status', editData.delivery_status, { shouldValidate: true })
+      }
     } else {
       reset(defaultValues)
       setSelectedStatus(null)
     }
-  }, [editData, setValue, reset])
+  }, [editData, setValue, reset, handleSidebarOpen])
+
+  useEffect(() => {
+    if (selectedStatus) {
+      setValue('delivery_status', selectedStatus, { shouldValidate: true })
+    }
+  }, [selectedStatus, setValue])
 
   const onSubmit = useCallback(
     async formData => {
@@ -129,7 +176,6 @@ function AddMedicationDrawer({
     [handleSubmitData, reset, handleSidebarClose, selectedStatus]
   )
 
-  // Close handler
   const handleClose = useCallback(() => {
     reset(defaultValues)
     setSelectedStatus(null)
@@ -186,23 +232,25 @@ function AddMedicationDrawer({
                   errors={errors}
                   label='Enter Drug Name*'
                   options={drugOptions}
-                  getOptionLabel={option => option?.drug_name || ''}
-                  isOptionEqualToValue={(option, value) => option?.drug_id === value?.drug_id}
+                  getOptionLabel={option => option?.name || ''}
+                  isOptionEqualToValue={(option, value) => option?.id === value?.id}
                   renderOption={(props, option) => (
-                    <li {...props} key={option.drug_id}>
-                      {option.drug_name}
+                    <li {...props} key={option.id}>
+                      {option.name}
                     </li>
                   )}
                 />
               </Grid>
+              {console.log(purposeStageOptions, 'purposeStageOptions')}
               <Grid size={{ xs: 12 }}>
-                <ControlledTextField
+                <ControlledSelect
                   control={control}
-                  errors={errors}
-                  label='Purpose or stage*'
                   name='purpose_stage'
-                  placeholder='Enter purpose or stage'
-                  fullWidth
+                  errors={errors}
+                  label='Enter Purpose or Stage*'
+                  options={purposeStageOptions}
+                  getOptionLabel={option => option.label}
+                  getOptionValue={option => option.value}
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
@@ -222,9 +270,9 @@ function AddMedicationDrawer({
                   name='unit'
                   errors={errors}
                   label='Unit*'
-                  options={unitOptions}
-                  getOptionLabel={option => option.label}
-                  getOptionValue={option => option.value}
+                  options={unitList}
+                  getOptionLabel={option => option.uom_abbr}
+                  getOptionValue={option => option.id}
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
@@ -237,16 +285,22 @@ function AddMedicationDrawer({
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
-                <ControlledSelect
+                <ControlledAutocomplete
                   control={control}
                   name='delivery_route'
                   errors={errors}
                   label='Delivery Route*'
                   options={deliveryRouteOptions}
-                  getOptionLabel={option => option.label}
-                  getOptionValue={option => option.value}
+                  getOptionLabel={option => option?.delivery || ''}
+                  isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.id}>
+                      {option.delivery}
+                    </li>
+                  )}
                 />
               </Grid>
+
               <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mr: 2 }}>
                   Delivery status:{' '}
@@ -267,7 +321,18 @@ function AddMedicationDrawer({
                         color:
                           selectedStatus === status.value
                             ? theme.palette.primary.contrastText
-                            : theme.palette.text.primary
+                            : theme.palette.text.primary,
+                        '&:hover': {
+                          backgroundColor:
+                            selectedStatus === status.value
+                              ? theme.palette.customColors.OnSecondaryContainer
+                              : theme.palette.action.selected
+                        },
+
+                        '&.MuiChip-clickable:active': {
+                          boxShadow: 'none',
+                          transform: 'scale(0.98)'
+                        }
                       }}
                     />
                   ))}
