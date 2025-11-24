@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { Box, Divider, Grid, Typography, useTheme } from '@mui/material'
 import { alpha, styled } from '@mui/system'
 import { LoadingButton } from '@mui/lab'
@@ -88,35 +88,21 @@ const mortalitySchema = yup.object({
   attachments: yup.array().min(1, 'At least one attachment is required').required('Attachments are required')
 })
 
-const defaultValues = {
-  discharge_type: 'Mortality',
-  date_of_death: null,
-  time_of_death: null,
-  manner_of_death: null,
-  carcass_condition: null,
-  carcass_disposition: null,
-  reason: '',
-  necropsy_requested: false,
-  priority: 'high',
-  necropsy_reason: '',
-  attachments: []
-}
-
 const MortalityDischargeForm = props => {
   const {
-    causeOfDeath,
-    carcassCondition,
-    carcassDeposition,
-    fetchLoading,
-    error,
-    submitLoader,
-    handleSubmitData,
-    resetForm,
     patientData,
     watchDischargeType,
+    causeOfDeath,
+    carcassCondition,
+    fetchLoading,
+    carcassDeposition,
     handleMannerSearch,
     handleConditionSearch,
     handleDispositionSearch,
+    submitLoader,
+    handleSubmitData,
+    onDirtyChange,
+
     activeTemplate,
     setActiveTemplate,
     templates
@@ -126,6 +112,23 @@ const MortalityDischargeForm = props => {
   const router = useRouter()
   const { animal_id, id } = router.query
 
+  const defaultValues = useMemo(
+    () => ({
+      discharge_type: 'Mortality',
+      date_of_death: null,
+      time_of_death: null,
+      manner_of_death: null,
+      carcass_condition: null,
+      carcass_disposition: null,
+      reason: '',
+      necropsy_requested: false,
+      priority: 'high',
+      necropsy_reason: '',
+      attachments: []
+    }),
+    []
+  )
+
   const {
     control,
     handleSubmit,
@@ -133,7 +136,7 @@ const MortalityDischargeForm = props => {
     reset,
     setValue,
     clearErrors,
-    formState: { errors }
+    formState: { errors, isDirty }
   } = useForm({
     defaultValues,
     resolver: yupResolver(mortalitySchema),
@@ -166,23 +169,9 @@ const MortalityDischargeForm = props => {
   const priorityBgColor = selectedPriorityOption?.bg_color || theme.palette.background.paper
   const priorityColor = selectedPriorityOption?.text_color || theme.palette.text.primary
 
-  // // Format date and time for API
-  // const formatDateTime = (date, time) => {
-  //   if (!date || !time) return null
-
-  //   const dateObj = new Date(date)
-  //   const timeObj = new Date(time)
-
-  //   dateObj.setHours(timeObj.getHours())
-  //   dateObj.setMinutes(timeObj.getMinutes())
-  //   dateObj.setSeconds(timeObj.getSeconds())
-
-  //   return dateObj.toISOString()
-  // }
-
   // Handle form submission
   const onSubmit = async formData => {
-    console.log('payload', formData)
+    console.log('formData', formData)
 
     const payload = {
       hospital_case_id: id,
@@ -198,25 +187,23 @@ const MortalityDischargeForm = props => {
       priority: formData.necropsy_requested ? formData.priority : null,
       necropsy_reason: !formData.necropsy_requested ? formData.necropsy_reason : null,
       attachments: formData.attachments || [],
-
       reason: formData.reason
 
       // death_datetime: formatDateTime(formData.date_of_death, formData.time_of_death),
     }
+    console.log('payload', payload)
 
-    try {
-      await handleSubmitData(payload)
-    } catch (error) {
-      console.error('Error submitting form:', error)
+    const success = await handleSubmitData(payload)
+    if (success) {
+      reset(defaultValues)
     }
   }
 
-  // Reset form when resetForm prop changes
+  // Report dirtiness to parent (for confirmation modal)
   useEffect(() => {
-    if (resetForm) {
-      reset(defaultValues)
-    }
-  }, [resetForm, reset])
+    onDirtyChange?.(isDirty)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDirty])
 
   useEffect(() => {
     if (watchRequestNecropsy) {
@@ -228,8 +215,6 @@ const MortalityDischargeForm = props => {
       clearErrors('priority')
     }
   }, [watchRequestNecropsy, setValue, clearErrors])
-
-  console.log('errors', errors)
 
   return (
     <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : undefined}>
@@ -256,6 +241,7 @@ const MortalityDischargeForm = props => {
                 isOptionEqualToValue={(option, value) => option?.value === value?.value}
                 loading={fetchLoading}
                 required
+                showIcons={false}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -271,6 +257,7 @@ const MortalityDischargeForm = props => {
                 isOptionEqualToValue={(option, value) => option?.value === value?.value}
                 loading={fetchLoading}
                 required
+                showIcons={false}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -286,6 +273,7 @@ const MortalityDischargeForm = props => {
                 isOptionEqualToValue={(option, value) => option?.value === value?.value}
                 loading={fetchLoading}
                 required
+                showIcons={false}
               />
             </Grid>
           </Grid>
@@ -318,9 +306,8 @@ const MortalityDischargeForm = props => {
                 )}
               />
             </Box>
-            <SaveTemplateButton sx={{ pl: 1 }} />
+            <SaveTemplateButton sx={{ pl: 1 }} iconSize={24} />
           </Box>
-          {/* Templates Section */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <StyledTypography fontWeight={400}>Select from templates</StyledTypography>
@@ -332,7 +319,6 @@ const MortalityDischargeForm = props => {
               </Box>
             </Box>
 
-            {/* Template */}
             <Box
               sx={{
                 flex: '1 1 auto',

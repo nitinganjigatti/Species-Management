@@ -26,9 +26,11 @@ import Utility from 'src/utility'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
 import { useHospital } from 'src/context/HospitalContext'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 
 export default function AddMedicineToPrescription() {
   const theme = useTheme()
+  const { data, updateState } = useDynamicStateContext()
 
   // Form validation schema
   const prescriptionSchema = yup.object({
@@ -151,7 +153,7 @@ export default function AddMedicineToPrescription() {
   }
   const router = useRouter()
 
-  const { id, animal_id, medical_record_id } = router.query
+  const { id, animal_id, medical_record_id, discharge_tab } = router.query
 
   const {
     control,
@@ -796,7 +798,6 @@ export default function AddMedicineToPrescription() {
 
   const submitHandler = handleSubmit(async data => {
     try {
-
       const isDirectAdminister = data.selectMedicineType === 'Direct Administer'
       let response = null
       if (isDirectAdminister) {
@@ -818,6 +819,112 @@ export default function AddMedicineToPrescription() {
       }
     } catch (error) {
       console.error('🚨 Error in submitHandler:', error)
+    }
+  })
+
+  const prescriptionSubmitHandler = handleSubmit(async data => {
+    const interval = medicalMasterData?.prescriptionDuration?.find(item => item?.value === data?.dosageDuration?.unit)
+    const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
+
+    const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
+      item => item?.route_abbr === data.deliveryRoute
+    )
+
+    // Prepare schedule doses array
+    const scheduleDoses = data.schedules.map((schedule, index) => ({
+      id: '',
+      time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
+      quantity: schedule.quantity,
+      unit_id: getUnitIdFromName(schedule?.unit, medicalMasterData),
+      unit_name: schedule.unit,
+      string_id: getStringIdFromUnitName(schedule?.unit, medicalMasterData)
+    }))
+
+    const payload = {
+      medical_record_id: medical_record_id,
+      request_from: 'hospital',
+      hospital_case_id: id,
+      data: [
+        {
+          id: temporarilySelectedMedicine?.id, // Prescription id
+          label: temporarilySelectedMedicine?.name,
+          name: temporarilySelectedMedicine?.name,
+          generic_name: temporarilySelectedMedicine?.generic_name, //new added
+          total_qty: temporarilySelectedMedicine?.total_qty || 0,
+          total_central_store_qty: temporarilySelectedMedicine?.total_central_store_qty || 0,
+          total_local_store_qty: temporarilySelectedMedicine?.total_local_store_qty || 0,
+
+          frequency_key: frequency?.string_id || '',
+          frequency_id: frequency?.id || '',
+          frequency: data?.frequency,
+          frequency_string_id: frequency?.translation_string_id || '',
+          frequency_name: frequency?.label, //new added
+
+          schedule_doses: scheduleDoses,
+
+          interval: interval?.value || '',
+          interval_id: interval?.id || '',
+          interval_string_id: interval?.string_id || '',
+
+          duration_qty: data.dosageDuration?.value?.toString(),
+          duration_id: interval?.id || '',
+          duration: `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`,
+          duration_string_id: interval?.string_id || '',
+          duration_type: data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1),
+
+          notes: data?.notes || '',
+
+          delivery_route_name: data?.deliveryRoute || '',
+          delivery_route_id: deliveryRoute?.id || '',
+          delivery_route_string_id: deliveryRoute?.string_id || '',
+          delivery_route_label: deliveryRoute?.label, //new added
+
+          start_date: toISTISOString(data.prescriptionStartDate),
+          end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
+
+          restart_reason: '',
+          stop_reason: '',
+          will_restart: false,
+          side_effect: false,
+          created_for: 'SINGLE',
+
+          administer_date: toISTISOString(data.prescriptionStartDate),
+
+          batch_list: [],
+          dose_type: data.doseType
+        }
+      ]
+    }
+    console.log('payload', payload)
+
+    if (discharge_tab === 'TransferHospital' || discharge_tab === 'TransferEnclosure') {
+      const newMedicine = payload.data[0]
+
+      // Determine which context key to use
+      const tempKey = discharge_tab === 'TransferHospital' ? 'transfer_temp_medicines' : 'enclosure_temp_medicines'
+
+      // Get the existing array from context
+      const existing = data[tempKey] || []
+      const alreadyExists = existing.some(med => med.id === newMedicine.id)
+
+      // Merge new medicine into list (avoid duplicates)
+      const updatedList = alreadyExists
+        ? existing.map(med => (med.id === newMedicine.id ? newMedicine : med))
+        : [newMedicine, ...existing]
+
+      // Save to context under the correct key
+      updateState(tempKey, updatedList)
+
+      setTimeout(() => {
+        router.push({
+          pathname: `/hospital/inpatient/${id}`,
+          query: { ...router.query, discharge_tab, tab: 'discharge' }
+        })
+      }, 0)
+
+      return
+    } else {
+      submitHandler(data)
     }
   })
 
@@ -942,7 +1049,6 @@ export default function AddMedicineToPrescription() {
           <PrescriptionMedicineList
             medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
             temporarilySelectedMedicine={temporarilySelectedMedicine}
-
             // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
             selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
             onSelect={handleMedicineSelect}
@@ -978,7 +1084,7 @@ export default function AddMedicineToPrescription() {
         addLabel={watch('selectMedicineType') === 'Direct Administer' ? 'Administer' : 'Schedule'}
         onCancel={handleCancel}
         isSubmitLoading={isSubmitting}
-        onAdd={submitHandler}
+        onAdd={prescriptionSubmitHandler}
         width={200}
         height={50}
       />

@@ -1,98 +1,205 @@
-import { useState, useEffect, useCallback } from 'react'
-import { addInpatientDischarge } from 'src/lib/api/hospital/inpatientDischarge'
-import Toaster from 'src/components/Toaster'
+// import { useState, useEffect, useCallback } from 'react'
+// import { addInpatientDischarge } from 'src/lib/api/hospital/inpatientDischarge'
+// import Toaster from 'src/components/Toaster'
+// import debounce from 'lodash/debounce'
+// import { getHospitalMaster } from 'src/lib/api/hospital/hospitalMaster'
+
+// const templates = ['Avian summary', 'Feline summary', 'Reptilian summary']
+
+// function TransferHospitalDischarge() {
+//   const [hospitalData, setHospitalData] = useState([])
+//   const [isLoadingHospital, setIsLoadingHospital] = useState(true)
+//   const [submitLoader, setSubmitLoader] = useState(false)
+//   const [activeTemplate, setActiveTemplate] = useState(templates[0])
+
+//   // Fetch Hospital
+//   const fetchHospital = async (q = '') => {
+//     setIsLoadingHospital(true)
+//     try {
+//       const params = { q, limit: 5, page: 1 }
+//       const res = await getHospitalMaster({ params })
+
+//       if (res?.success) {
+//         const formattedData = res.data?.hospitals?.map(item => ({
+//           value: item?.id,
+//           label: item?.hospital_name
+//         }))
+//         setHospitalData(formattedData)
+//       }
+//     } catch (error) {
+//       console.error('Cannot fetch Hospital:', error?.response?.data?.message || error?.message)
+//     }
+//   }
+
+//   // Debounced versions
+//   const debouncedFetchHospital = useCallback(
+//     debounce(q => {
+//       fetchHospital(q)
+//     }, 500),
+//     []
+//   )
+
+//   // Initial fetch on mount
+//   useEffect(() => {
+//     const initFetch = async () => {
+//       setIsLoadingHospital(true)
+//       try {
+//         await fetchHospital('')
+//       } catch (error) {
+//         console.error('Initial fetch error:', error?.response?.data?.message || error?.message)
+//       } finally {
+//         setIsLoadingHospital(false)
+//       }
+//     }
+
+//     initFetch()
+//   }, [])
+
+//   //  search hospital
+//   const handleHospitalSearch = text => {
+//     if (!text) {
+//       fetchHospital('')
+//     } else {
+//       debouncedFetchHospital(text)
+//     }
+//   }
+
+//   // transfer hospital discharge submit
+//   const handleSubmitData = async payload => {
+//     setSubmitLoader(true)
+//     try {
+//       const response = await addInpatientDischarge(payload)
+
+//       if (response?.success) {
+//         Toaster({
+//           type: 'success',
+//           message: response?.message || 'Transfer to another hospital submitted successfully'
+//         })
+
+//         return true
+//       } else {
+//         Toaster({ type: 'error', message: response?.message || 'Failed to submit Transfer to another hospital' })
+//       }
+//     } catch (error) {
+//       console.error('Transfer to another hospital submission error:', error?.response?.data?.message || error?.message)
+//       Toaster({
+//         type: 'error',
+//         message: error?.response?.data?.message || error?.message || 'An unexpected error occurred'
+//       })
+
+//       return false
+//     } finally {
+//       setSubmitLoader(false)
+//     }
+//   }
+
+//   return {
+//     isLoadingHospital,
+//     hospitalData,
+//     handleHospitalSearch,
+//     submitLoader,
+//     handleSubmitData,
+//     activeTemplate,
+//     setActiveTemplate,
+//     templates
+//   }
+// }
+
+// export default TransferHospitalDischarge
+
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import debounce from 'lodash/debounce'
 import { getHospitalMaster } from 'src/lib/api/hospital/hospitalMaster'
+import { addInpatientDischarge } from 'src/lib/api/hospital/inpatientDischarge'
+import Toaster from 'src/components/Toaster'
 
 const templates = ['Avian summary', 'Feline summary', 'Reptilian summary']
 
 function TransferHospitalDischarge() {
-  const [hospital, setHospital] = useState([])
+  const [hospitalData, setHospitalData] = useState([])
+  const [isLoadingHospital, setIsLoadingHospital] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
-  const [fetchLoading, setFetchLoading] = useState(true)
-  const [resetForm, setResetForm] = useState(false)
+
   const [activeTemplate, setActiveTemplate] = useState(templates[0])
 
-  // Fetch functions
-  const fetchHospital = async (q = '') => {
-    setFetchLoading(true)
+  // Fetch hospital list
+  const fetchHospital = useCallback(async (query = '') => {
+    setIsLoadingHospital(true)
     try {
-      const params = { q, limit: 5, page: 1 }
+      const params = { q: query, limit: 5, page: 1 }
       const res = await getHospitalMaster({ params })
 
       if (res?.success) {
-        const formattedData = res.data?.hospitals?.map(item => ({
-          value: item?.id,
-          label: item?.hospital_name
-        }))
-        setHospital(formattedData)
+        const formatted =
+          res.data?.hospitals?.map(h => ({
+            value: h.id,
+            label: h.hospital_name
+          })) || []
+
+        setHospitalData(formatted)
       }
     } catch (error) {
-      console.error('Cannot fetch Hospital:', error?.message)
+      console.error('Hospital fetch error:', error)
+    } finally {
+      setIsLoadingHospital(false)
     }
-  }
-
-  // Debounced versions
-  const debouncedFetchHospital = useCallback(
-    debounce(q => {
-      fetchHospital(q)
-    }, 500),
-    []
-  )
-
-  // Initial fetch on mount
-  useEffect(() => {
-    const initFetch = async () => {
-      setFetchLoading(true)
-      try {
-        await fetchHospital('')
-      } catch (err) {
-        console.error('Initial fetch error:', err)
-      } finally {
-        setFetchLoading(false)
-      }
-    }
-
-    initFetch()
   }, [])
 
+  // Debounced search
+  const debouncedFetch = useMemo(
+    () =>
+      debounce(text => {
+        fetchHospital(text)
+      }, 400),
+    [fetchHospital]
+  )
+
+  useEffect(() => {
+    fetchHospital('')
+
+    return () => debouncedFetch.cancel()
+  }, [fetchHospital, debouncedFetch])
+
   const handleHospitalSearch = text => {
-    if (!text) {
-      fetchHospital('')
-    } else {
-      debouncedFetchHospital(text)
-    }
+    if (!text) fetchHospital('')
+    else debouncedFetch(text)
   }
 
+  // Submit transfer hospital discharge
   const handleSubmitData = async payload => {
     setSubmitLoader(true)
-    try {
-      const response = await addInpatientDischarge(payload)
 
-      if (response?.success) {
-        setResetForm(true)
-        Toaster({
-          type: 'success',
-          message: response?.message || 'Transfer to another hospital submitted successfully'
-        })
+    try {
+      const res = await addInpatientDischarge(payload)
+
+      if (res?.success) {
+        Toaster({ type: 'success', message: res?.message || 'Submitted successfully' })
+
+        return true
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to submit Transfer to another hospital' })
+        Toaster({ type: 'error', message: res?.message || 'Failed to submit' })
+
+        return false
       }
     } catch (error) {
-      console.error('Transfer to another hospital submission error:', error)
-      Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' })
+      Toaster({
+        type: 'error',
+        message: error?.response?.data?.message || error?.message || 'Unexpected error'
+      })
+
+      return false
     } finally {
       setSubmitLoader(false)
     }
   }
 
   return {
-    hospital,
-    submitLoader,
-    fetchLoading,
-    handleSubmitData,
-    resetForm,
+    isLoadingHospital,
+    hospitalData,
     handleHospitalSearch,
+    submitLoader,
+    handleSubmitData,
+
     activeTemplate,
     setActiveTemplate,
     templates
