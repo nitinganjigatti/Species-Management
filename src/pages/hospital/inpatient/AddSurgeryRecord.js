@@ -1648,9 +1648,56 @@ const AddSurgeryRecord = () => {
         />
       </Card>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button type='submit' variant='contained' disabled={isSubmitting} sx={{ minWidth: 160 }}>
-          {isSubmitting ? 'Submitting...' : 'Submit'}
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 5,
+          backgroundColor: '#FFFFFF',
+          boxShadow: '0px -8px 12px 0px #0000001A',
+          height: '108px',
+          borderRadius: '4px',
+          pl: '24px',
+          pr: '84px',
+          py: '16px',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          gap: '24px',
+          alignItems: 'center',
+          alignSelf: 'stretch'
+        }}
+      >
+        <Button
+          variant='outlined'
+          onClick={() => router.back()}
+          disabled={isSubmitting}
+          sx={{
+            height: '56px',
+            minWidth: '160px',
+            borderColor: '#839D8D',
+            color: '#44544A',
+            fontWeight: 600,
+            letterSpacing: 0,
+            px: '24px'
+          }}
+        >
+          CANCEL
+        </Button>
+        <Button
+          type='submit'
+          variant='contained'
+          disabled={isSubmitting}
+          sx={{
+            height: '56px',
+            minWidth: '160px',
+            fontWeight: 600,
+            letterSpacing: 0,
+            px: '24px'
+          }}
+        >
+          {isSubmitting ? 'Submitting...' : 'SAVE'}
         </Button>
       </Box>
 
