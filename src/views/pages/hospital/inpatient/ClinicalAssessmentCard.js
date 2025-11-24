@@ -20,8 +20,8 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
     activity: record.comment_count - 1 > 0 ? `+${record.comment_count - 1}` : null,
     clinicalAssessment: record.clinical_assessment === 'diagnosis' ? 'Diagnosis' : 'Differential',
 
-    oldRecord: record?.notes_dump?.old_data?.clinical_assessment,
-    newRecord: record?.notes_dump?.new_data?.clinical_assessment,
+    oldRecord: record?.latest_note?.notes_dump?.old_data?.clinical_assessment,
+    newRecord: record?.latest_note?.notes_dump?.new_data?.clinical_assessment,
     chronic: record.additional_info?.isChronic ? 'Yes' : 'No',
     prognosis: Utility.capitalizeFirstLetter(record?.prognosis),
     notes:
@@ -161,7 +161,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
             </Box>
           )}
 
-          {record?.latest_note?.is_system_generated == true && (mappedRecord?.oldRecord || mappedRecord?.newRecord) && (
+          {record?.latest_note?.is_system_generated == 1 && (mappedRecord?.oldRecord || mappedRecord?.newRecord) && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
                 Clinical Assessment :{' '}
@@ -170,14 +170,14 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
                 <Typography
                   sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary, fontWeight: 600 }}
                 >
-                  {mappedRecord?.oldRecord}
+                  {Utility.capitalizeFirstLetter(mappedRecord?.oldRecord)}
                 </Typography>
               )}
               {mappedRecord?.newRecord && (
                 <Typography
                   sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient, fontWeight: 600 }}
                 >
-                  {mappedRecord?.oldRecord && '→'} {mappedRecord.newRecord}
+                  {mappedRecord?.oldRecord && '→'} {Utility.capitalizeFirstLetter(mappedRecord.newRecord)}
                 </Typography>
               )}
             </Box>
@@ -260,7 +260,10 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
           )}
 
           <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.neutralSecondary }}>
-            Last Updated: { `${Utility.convertUTCToLocaltime(mappedRecord.lastUpdated)} • ${Utility.convertUtcToLocalReadableDate(mappedRecord.lastUpdated)}`}
+            Last Updated:{' '}
+            {`${Utility.convertUTCToLocaltime(mappedRecord.lastUpdated)} • ${Utility.convertUtcToLocalReadableDate(
+              mappedRecord.lastUpdated
+            )}`}
           </Typography>
         </Box>
 

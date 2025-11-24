@@ -775,7 +775,7 @@ export const GET_CLINICAL_DIAGNOSIS_LIST = 'medical/v2/get-complaint-diagnosis-l
 
 export const GET_CLINICAL_DIAGNOSIS_TYPE = 'medical/get-complaint-diagnosis-type'
 
-export const ADD_CLINICAL_ASSESSMENT = 'medical/diagnosis-update'
+export const ADD_CLINICAL_ASSESSMENT = 'medical/v2/diagnosis-update'
 
 export const UPDATE_CLINICAL_ASSESSMENT = 'medical/v2/update-diagnosis-prescription'
 
