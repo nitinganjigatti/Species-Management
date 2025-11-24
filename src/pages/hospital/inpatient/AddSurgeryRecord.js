@@ -276,17 +276,6 @@ const resolveHospitalCaseId = query => {
   return undefined
 }
 
-const formatAdmittedDaysFromDate = admittedAt => {
-  if (!admittedAt) return ''
-
-  const admittedDate = dayjs(admittedAt)
-  if (!admittedDate.isValid()) return ''
-
-  const days = Math.max(dayjs().startOf('day').diff(admittedDate.startOf('day'), 'day'), 0)
-
-  return `${days} ${days === 1 ? 'Day' : 'Days'}`
-}
-
 const buildAnimalInfoData = patientData => {
   const animalDetail = patientData?.animal_detail || {}
   const additionalInfo = {}
@@ -300,7 +289,7 @@ const buildAnimalInfoData = patientData => {
     additionalInfo.AID = getSafeString(animalDetail.animal_id)
   }
 
-  const admittedDays = formatAdmittedDaysFromDate(patientData?.admitted_at)
+  const admittedDays = getSafeString(patientData?.admitted_for_day)
   if (admittedDays) {
     additionalInfo['Admitted Days'] = admittedDays
   }
