@@ -458,6 +458,7 @@ const AddSurgeryRecord = () => {
   const [openSurgeryTemplateDrawer, setOpenSurgeryTemplateDrawer] = useState(false)
   const [openSelectAnesthesiaDrawer, setOpenSelectAnesthesiaDrawer] = useState(false)
   const [selectedAnesthesiaRecord, setSelectedAnesthesiaRecord] = useState(null)
+  const [pendingAnesthesiaRecord, setPendingAnesthesiaRecord] = useState(null)
   const [richNote, setRichNote] = useState(() => createEmptyRichTextValue())
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSavingTemplate, setIsSavingTemplate] = useState(false)
@@ -870,13 +871,14 @@ const AddSurgeryRecord = () => {
   }, [])
 
   const handleAnesthesiaRecordSelect = useCallback(record => {
-    setSelectedAnesthesiaRecord(record)
+    setPendingAnesthesiaRecord(record)
   }, [])
 
   const handleConfirmAnesthesiaRecord = useCallback(record => {
     if (record) {
       setSelectedAnesthesiaRecord(record)
     }
+    setPendingAnesthesiaRecord(null)
     setOpenSelectAnesthesiaDrawer(false)
   }, [])
 
@@ -1341,7 +1343,8 @@ const AddSurgeryRecord = () => {
           borderRadius: '8px',
           padding: '24px',
           display: 'flex',
-          flexDirection: 'column',
+          justifyContent: 'space-between',
+          flexDirection: { xs: 'column', md: selectedAnesthesia ? 'column' : 'row' },
           alignItems: 'stretch',
           gap: '24px',
           boxShadow: 'none'
