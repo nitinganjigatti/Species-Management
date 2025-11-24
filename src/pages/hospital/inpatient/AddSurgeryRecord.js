@@ -11,6 +11,7 @@ import * as yup from 'yup'
 import dayjs from 'dayjs'
 import { useQuery } from '@tanstack/react-query'
 
+import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import AddAnaesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnaesthesiaRecord'
 import SelectAnesthesiaRecordDrawer from 'src/components/hospital/inpatient/SelectAnesthesiaRecordDrawer'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
@@ -275,6 +276,55 @@ const resolveHospitalCaseId = query => {
   return undefined
 }
 
+const formatAdmittedDaysFromDate = admittedAt => {
+  if (!admittedAt) return ''
+
+  const admittedDate = dayjs(admittedAt)
+  if (!admittedDate.isValid()) return ''
+
+  const days = Math.max(dayjs().startOf('day').diff(admittedDate.startOf('day'), 'day'), 0)
+
+  return `${days} ${days === 1 ? 'Day' : 'Days'}`
+}
+
+const buildAnimalInfoData = patientData => {
+  const animalDetail = patientData?.animal_detail || {}
+  const additionalInfo = {}
+  const hasLocalIdentifier = Boolean(animalDetail?.local_identifier_name && animalDetail?.local_identifier_value)
+
+  if (hasLocalIdentifier) {
+    additionalInfo[getSafeString(animalDetail.local_identifier_name)] = getSafeString(
+      animalDetail.local_identifier_value
+    )
+  } else if (animalDetail?.animal_id) {
+    additionalInfo.AID = getSafeString(animalDetail.animal_id)
+  }
+
+  const admittedDays = formatAdmittedDaysFromDate(patientData?.admitted_at)
+  if (admittedDays) {
+    additionalInfo['Admitted Days'] = admittedDays
+  }
+
+  if (patientData?.bed_name) {
+    additionalInfo.Location = getSafeString(patientData.bed_name)
+  }
+
+  if (patientData?.admitted_by_full_name) {
+    additionalInfo['Consulting Veterinarian'] = getSafeString(patientData.admitted_by_full_name)
+  }
+
+  return {
+    animal: {
+      common_name: getSafeString(animalDetail?.common_name || animalDetail?.default_common_name) || '--',
+      scientific_name: getSafeString(animalDetail?.scientific_name || animalDetail?.complete_name) || '--',
+      age: getSafeString(animalDetail?.age) || '--',
+      sex: getSafeString(animalDetail?.sex) || '--',
+      image_url: getSafeString(animalDetail?.default_icon)
+    },
+    additional_info: additionalInfo
+  }
+}
+
 // ✅ Validation schema
 const schema = yup.object().shape({
   date: yup.date().required('Date is required'),
@@ -294,21 +344,7 @@ const AddSurgeryRecord = () => {
   const router = useRouter()
   const theme = useTheme()
 
-  const data = {
-    animal: {
-      common_name: 'Leopard',
-      scientific_name: 'Panthera pardus',
-      age: '2y 5m',
-      sex: 'Male',
-      image_url: 'path/to/leopard_image.jpg'
-    },
-    additional_info: {
-      AID: '123456',
-      'Admitted Days': '6 Days',
-      Location: 'Cage 1, Patient Wing 2',
-      'Consulting Veterinarian': 'Dr. Nitin A Ganjigatti'
-    }
-  }
+  const resolvedHospitalCaseId = useMemo(() => resolveHospitalCaseId(router.query), [router.query])
 
   const {
     control,
@@ -348,6 +384,7 @@ const AddSurgeryRecord = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSavingTemplate, setIsSavingTemplate] = useState(false)
   const [procedureSearchTerm, setProcedureSearchTerm] = useState('')
+  const [patientData, setPatientData] = useState(null)
 
   const {
     data: surgeryTemplatesResponse,
@@ -427,6 +464,45 @@ const AddSurgeryRecord = () => {
       setActiveTemplate('')
     }
   }, [activeTemplate, templateNames, templateNamesKey])
+
+  useEffect(() => {
+    if (!resolvedHospitalCaseId) {
+      setPatientData(null)
+
+      return
+    }
+
+    let isMounted = true
+
+    const fetchPatientDetails = async () => {
+      try {
+        const response = await getPatientDetails(resolvedHospitalCaseId)
+
+        if (!isMounted) return
+
+        if (response?.success) {
+          setPatientData(response.data)
+        } else {
+          setPatientData(null)
+          Toaster({ type: 'error', message: response?.message || 'Failed to load patient details' })
+        }
+      } catch (error) {
+        if (!isMounted) return
+
+        console.error('Failed to fetch patient details:', error)
+        Toaster({ type: 'error', message: error?.message || 'Failed to load patient details' })
+        setPatientData(null)
+      }
+    }
+
+    fetchPatientDetails()
+
+    return () => {
+      isMounted = false
+    }
+  }, [resolvedHospitalCaseId])
+
+  const animalInfoData = useMemo(() => buildAnimalInfoData(patientData), [patientData])
 
   const applyTemplateToRichNote = useCallback(
     template => {
@@ -573,20 +649,15 @@ const AddSurgeryRecord = () => {
     setSelectedAnesthesiaRecord(record)
   }, [])
 
-  const handleConfirmAnesthesiaRecord = useCallback(
-    record => {
-      if (record) {
-        setSelectedAnesthesiaRecord(record)
-      }
-      setOpenSelectAnesthesiaDrawer(false)
-    },
-    []
-  )
+  const handleConfirmAnesthesiaRecord = useCallback(record => {
+    if (record) {
+      setSelectedAnesthesiaRecord(record)
+    }
+    setOpenSelectAnesthesiaDrawer(false)
+  }, [])
 
   const onSubmit = async formValues => {
-    const hospitalCaseId = resolveHospitalCaseId(router.query)
-
-    if (!hospitalCaseId) {
+    if (!resolvedHospitalCaseId) {
       Toaster({ type: 'error', message: 'Hospital case id is missing' })
 
       return
@@ -594,7 +665,7 @@ const AddSurgeryRecord = () => {
 
     const payload = new FormData()
 
-    payload.append('hospital_case_id', getSafeString(hospitalCaseId))
+    payload.append('hospital_case_id', getSafeString(resolvedHospitalCaseId))
     payload.append('surgery_date', getSafeString(formatDateValue(formValues.date)))
     payload.append('start_time', getSafeString(formatTimeValue(formValues.startTime)))
     payload.append('end_time', getSafeString(formatTimeValue(formValues.endTime)))
@@ -701,7 +772,7 @@ const AddSurgeryRecord = () => {
           </Typography>
         </Box>
 
-        <AnimalInfoCard data={data} />
+        <AnimalInfoCard data={animalInfoData} />
         <Box
           sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
           component='form'
