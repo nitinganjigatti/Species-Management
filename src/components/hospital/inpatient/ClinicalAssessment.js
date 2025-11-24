@@ -297,38 +297,53 @@ const ClinicalAssessment = () => {
   }
 
   const updateAssessment = async () => {
-    console.log('selectedAssessment', selectedAssessment)
-    console.log('chronicVal', chronicVal)
 
     // Check if any values have been modified
     const isClinicalAsmntChanged =
       clinicalAsmnt?.toLowerCase() !== selectedAssessment?.clinical_assessment?.toLowerCase()
-    console.log('isClinicalAsmntChanged', isClinicalAsmntChanged)
 
     const isPrognosisChanged =
       prognosisVal?.toLowerCase() !== selectedAssessment?.additional_info?.prognosis?.toLowerCase()
-    console.log('isPrognosisChanged', isPrognosisChanged)
 
-    const isChronicChanged = chronicVal !== selectedAssessment?.additional_info?.isChronic
-    console.log('isChronicChanged', isChronicChanged)
+    const isChronicChanged = chronicVal !== (selectedAssessment?.additional_info?.isChronic)
 
     const isStatusChanged = status?.toLowerCase() !== selectedAssessment?.additional_info?.status?.toLowerCase()
-    console.log('isStatusChanged', isStatusChanged)
 
     // Set is_system_generated to true if any value has changed
     const isSystemGenerated = isClinicalAsmntChanged || isPrognosisChanged || isChronicChanged || isStatusChanged
 
+    // Base payload with required fields
     const payload = {
       main_id: selectedAssessment?.main_diagnosis_id || '',
       med_id: medical_record_id || '',
       type: 'DIAGNOSIS',
       is_system_generated: isSystemGenerated,
-      animal_id: animal_id || '',
-      note: notes || '',
-      clinical_assessment: clinicalAsmnt?.toLowerCase() || '',
-      prognosis: clinicalAsmnt?.toLowerCase() === 'diagnosis' ? prognosisVal.toLowerCase() : '',
-      chronic: clinicalAsmnt?.toLowerCase() === 'diagnosis' ? (chronicVal === 'Yes' ? 1 : 0) : '',
-      status: status?.toLowerCase() === 'inactive' ? 'resolved' : 'active'
+      animal_id: animal_id || ''
+    }
+
+    // Only add clinical_assessment if changed
+    if (isClinicalAsmntChanged) {
+      payload.clinical_assessment = clinicalAsmnt?.toLowerCase() || ''
+    }
+
+    // Only add prognosis if changed and clinical assessment is diagnosis
+    if (isPrognosisChanged && clinicalAsmnt?.toLowerCase() === 'diagnosis') {
+      payload.prognosis = prognosisVal.toLowerCase()
+    }
+
+    // Only add chronic if changed and clinical assessment is diagnosis
+    if (isChronicChanged && clinicalAsmnt?.toLowerCase() === 'diagnosis') {
+      payload.chronic = chronicVal === 'Yes' ? 1 : 0
+    }
+
+    // Only add status if changed
+    if (isStatusChanged) {
+      payload.status = status?.toLowerCase() === 'inactive' ? 'resolved' : 'active'
+    }
+
+    // Only add note if changed
+    if (notes) {
+      payload.note = notes || ''
     }
 
     setIsSubmitLoading(true)

@@ -163,10 +163,15 @@ export default function AddClinicalAssessmentPage() {
   const addSymptomDetails = details => {
     if (temporarilySelected?.id && selectedSymptoms.some(s => s.id === temporarilySelected.id)) {
       // Update existing symptom
-      setSelectedSymptoms(prev => 
-        prev.map(symptom => 
-          symptom.id === temporarilySelected.id 
-            ? { ...symptom, ...details, chronicVal: details.clinicalAsmnt === 'Differential' ? 'No': details.chronicVal, prognosisVal: details.clinicalAsmnt === 'Differential' ? '': details.prognosisVal }
+      setSelectedSymptoms(prev =>
+        prev.map(symptom =>
+          symptom.id === temporarilySelected.id
+            ? {
+                ...symptom,
+                ...details,
+                chronicVal: details.clinicalAsmnt === 'Differential' ? 'No' : details.chronicVal,
+                prognosisVal: details.clinicalAsmnt === 'Differential' ? '' : details.prognosisVal
+              }
             : symptom
         )
       )
@@ -174,10 +179,10 @@ export default function AddClinicalAssessmentPage() {
       // Add new symptom
       setSelectedSymptoms(prev => [...prev, { ...temporarilySelected, ...details }])
     }
-    
+
     setTemporarilySelected(null)
     setClinicalDrawerOpen(false)
-  
+
     // Reset form fields
     setClinicalAsmnt('')
     setPrognosisValue('')
@@ -220,13 +225,20 @@ export default function AddClinicalAssessmentPage() {
         clinical_assessment: symptom.clinicalAsmnt.toLowerCase(),
         note: symptom?.notes || '',
         isChronic: symptom?.chronicVal === 'Yes',
-        prognosis: symptom?.prognosisVal?.toLowerCase() || ''
+        prognosis: symptom?.prognosisVal?.toLowerCase() || '',
+        notes: symptom?.notes || '',
+        active_at: new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000))
+        .toISOString()
+        .replace('T', ' ')
+        .substring(0, 19),
+        closed_at: null
       }
     }))
 
     const payload = {
       medical_record_id: medicalRecordId,
-      animal_id: JSON.stringify([animalId]),
+
+      // animal_id: JSON.stringify([animalId]),
       diagnosis: JSON.stringify(diagnosis)
     }
 
@@ -301,7 +313,7 @@ export default function AddClinicalAssessmentPage() {
     setChronicVal(symptom?.chronicVal || 'No')
     setNotes(symptom?.notes || '')
     setStatus(symptom?.status || '')
-  
+
     // Make sure we're passing the complete symptom object with id
     setTemporarilySelected(symptom)
     setClinicalDrawerOpen(true)
