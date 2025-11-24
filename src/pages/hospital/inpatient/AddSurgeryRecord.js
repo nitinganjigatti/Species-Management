@@ -882,6 +882,15 @@ const AddSurgeryRecord = () => {
     setOpenSelectAnesthesiaDrawer(false)
   }, [])
 
+  const handleCancelForm = useCallback(() => {
+    reset()
+    setSelectedAnesthesiaRecord(null)
+    setPendingAnesthesiaRecord(null)
+    setRichNote(createEmptyRichTextValue())
+    setActiveTemplate('')
+    setProcedureSearchTerm('')
+  }, [reset, setSelectedAnesthesiaRecord, setPendingAnesthesiaRecord, setRichNote, setActiveTemplate])
+
   const onSubmit = async formValues => {
     if (!resolvedHospitalCaseId) {
       Toaster({ type: 'error', message: 'Hospital case id is missing' })
@@ -1671,7 +1680,7 @@ const AddSurgeryRecord = () => {
       >
         <Button
           variant='outlined'
-          onClick={() => router.back()}
+          onClick={handleCancelForm}
           disabled={isSubmitting}
           sx={{
             height: '56px',
