@@ -1292,44 +1292,56 @@ const AddSurgeryRecord = () => {
                   }}
                 >
                   <Box sx={{ display: 'inline-flex', gap: '10px', pr: 1 }}>
-                    {templateNames.map(template => {
-                      const templateLabel = typeof template === 'string' ? template : String(template || '')
-                      if (!templateLabel) {
-                        return null
-                      }
-                      return (
-                        <Box
-                          key={templateLabel}
-                          onClick={() => handleTemplateSelect(templateLabel)}
-                          sx={{
-                            flexShrink: 0,
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            p: '8px 24px',
-                            height: '40px',
-                            borderRadius: '8px',
-                            backgroundColor:
-                              activeTemplate === templateLabel
-                                ? theme.palette.secondary.dark
-                                : theme.palette.customColors.mdAntzNeutral,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <Typography
+                    {isTemplatesLoading
+                      ? Array.from({ length: 3 }).map((_, idx) => (
+                          <Box
+                            key={`template-skel-${idx}`}
                             sx={{
-                              color:
-                                activeTemplate === templateLabel
-                                  ? theme.palette.primary.contrastText
-                                  : theme.palette.customColors.neutralPrimary,
-                              whiteSpace: 'nowrap'
+                              width: 100,
+                              height: 40,
+                              borderRadius: '8px',
+                              backgroundColor: theme.palette.customColors.mdAntzNeutral
                             }}
-                          >
-                            {templateLabel}
-                          </Typography>
-                        </Box>
-                      )
-                    })}
+                          />
+                        ))
+                      : templateNames.map(template => {
+                          const templateLabel = typeof template === 'string' ? template : String(template || '')
+                          if (!templateLabel) {
+                            return null
+                          }
+                          return (
+                            <Box
+                              key={templateLabel}
+                              onClick={() => handleTemplateSelect(templateLabel)}
+                              sx={{
+                                flexShrink: 0,
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                p: '8px 24px',
+                                height: '40px',
+                                borderRadius: '8px',
+                                backgroundColor:
+                                  activeTemplate === templateLabel
+                                    ? theme.palette.secondary.dark
+                                    : theme.palette.customColors.mdAntzNeutral,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <Typography
+                                sx={{
+                                  color:
+                                    activeTemplate === templateLabel
+                                      ? theme.palette.primary.contrastText
+                                      : theme.palette.customColors.neutralPrimary,
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {templateLabel}
+                              </Typography>
+                            </Box>
+                          )
+                        })}
                   </Box>
                 </Box>
               </Box>
