@@ -1007,7 +1007,44 @@ const AddSurgeryRecord = () => {
           </Typography>
         </Box>
 
-        <AnimalInfoCard data={animalInfoData} />
+        {patientData ? (
+          <AnimalInfoCard data={animalInfoData} />
+        ) : (
+          <Card
+            sx={{
+              p: '24px',
+              borderRadius: '8px',
+              backgroundColor: theme.palette.customColors.displaybgPrimary,
+              boxShadow: 'none'
+            }}
+          >
+            <Grid container spacing={5} sx={{ alignItems: 'center' }}>
+              <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+                <Box sx={{ maxWidth: '100%', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Box
+                    sx={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: '8px',
+                      backgroundColor: theme.palette.customColors.mdAntzNeutral
+                    }}
+                  />
+                  <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, gap: 1 }}>
+                    <Box sx={{ width: '70%', height: '20px', borderRadius: '4px', backgroundColor: '#E0E0E0' }} />
+                    <Box sx={{ width: '60%', height: '18px', borderRadius: '4px', backgroundColor: '#E6E6E6' }} />
+                    <Box sx={{ width: '50%', height: '18px', borderRadius: '4px', backgroundColor: '#E6E6E6' }} />
+                  </Box>
+                </Box>
+              </Grid>
+              {[1, 2, 3, 4].map(idx => (
+                <Grid item size={{ xs: 12, sm: 4, md: 2.25 }} key={`animal-skeleton-${idx}`} sx={{ mt: 2 }}>
+                  <Box sx={{ width: '60%', height: '16px', borderRadius: '4px', backgroundColor: '#E6E6E6', mb: 1 }} />
+                  <Box sx={{ width: '80%', height: '18px', borderRadius: '4px', backgroundColor: '#E0E0E0' }} />
+                </Grid>
+              ))}
+            </Grid>
+          </Card>
+        )}
         <Box
           sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
           component='form'
