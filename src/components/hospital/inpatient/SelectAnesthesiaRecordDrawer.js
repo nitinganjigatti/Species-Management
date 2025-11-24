@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Drawer, Box, Typography, IconButton, Button, Radio } from '@mui/material'
 import { Icon } from '@iconify/react'
+import { useQuery } from '@tanstack/react-query'
+import dayjs from 'dayjs'
+
+import { getAnesthesiaList } from 'src/lib/api/hospital/anesthesia'
 
 const baseSampleRecords = [
   {
@@ -38,6 +42,8 @@ const generatedSampleRecords = Array.from({ length: 12 }).map((_, index) => {
 const SelectAnesthesiaRecordDrawer = ({
   open,
   onClose,
+  hospitalCaseId,
+  medicalRecordId,
   records = generatedSampleRecords,
   initialSelectedId = null,
   onSelect = () => {},
@@ -51,7 +57,52 @@ const SelectAnesthesiaRecordDrawer = ({
     }
   }, [initialSelectedId, open])
 
-  const items = useMemo(() => (Array.isArray(records) && records.length ? records : generatedSampleRecords), [records])
+  const { data: anesthesiaResponse, isFetching: isAnesthesiaLoading } = useQuery({
+    queryKey: ['anesthesia-records', hospitalCaseId, medicalRecordId, open],
+    queryFn: () => {
+      const params = {
+        hospital_case_id: hospitalCaseId,
+        medical_record_id: medicalRecordId,
+        page_no: 1,
+        limit: 20
+      }
+
+      return getAnesthesiaList({ params })
+    },
+    enabled: open && Boolean(hospitalCaseId),
+    keepPreviousData: true,
+    staleTime: 5 * 60 * 1000,
+    retry: false
+  })
+
+  const items = useMemo(() => {
+    const apiRecords = Array.isArray(anesthesiaResponse?.data?.records) && anesthesiaResponse?.data?.records
+
+    if (Array.isArray(apiRecords) && apiRecords.length) {
+      return apiRecords
+        .map(record => {
+          const createdAt = record?.created_at ? dayjs(record.created_at) : null
+          const purposeNames = Array.isArray(record?.purpose)
+            ? record.purpose.map(item => item?.name).filter(Boolean)
+            : []
+
+          const id = record?.anaesthesia_id
+
+          return {
+            id: id ? String(id) : '',
+            code: record?.code ? String(record.code) : '',
+            procedures: purposeNames.length ? purposeNames : ['--'],
+            createdBy: record?.created_by_name || '--',
+            createdOn: createdAt?.isValid() ? createdAt.format('DD MMM YYYY') : '--',
+            time: createdAt?.isValid() ? createdAt.format('hh:mm A') : '--',
+            raw: record
+          }
+        })
+        .filter(item => item.id)
+    }
+
+    return Array.isArray(records) && records.length ? records : generatedSampleRecords
+  }, [anesthesiaResponse, records])
 
   const handleSelect = record => {
     setSelectedId(record.id)
@@ -126,6 +177,10 @@ const SelectAnesthesiaRecordDrawer = ({
           gap: '16px'
         }}
       >
+        {isAnesthesiaLoading && <Typography sx={{ color: '#7A8684' }}>Loading anesthesia records...</Typography>}
+        {!isAnesthesiaLoading && items.length === 0 && (
+          <Typography sx={{ color: '#7A8684' }}>No anesthesia records found.</Typography>
+        )}
         {items.map(record => {
           const isSelected = record.id === selectedId
 
@@ -168,7 +223,7 @@ const SelectAnesthesiaRecordDrawer = ({
                   <Typography
                     sx={{ fontWeight: 600, fontSize: '16px', letterSpacing: 0, color: '#1F515B', textAlign: 'center' }}
                   >
-                    {record.id}
+                    {record.code}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>

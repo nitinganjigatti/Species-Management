@@ -408,6 +408,11 @@ const AddSurgeryRecord = () => {
   const auth = useAuth()
 
   const resolvedHospitalCaseId = useMemo(() => resolveHospitalCaseId(router.query), [router.query])
+  const medicalRecordId = useMemo(() => {
+    const possible = router.query?.medical_record_id || router.query?.medicalRecordId || router.query?.medical_recordId
+
+    return Array.isArray(possible) ? possible[0] : possible || ''
+  }, [router.query])
   const [patientData, setPatientData] = useState(null)
   const admissionDateTime = useMemo(
     () => (patientData?.admitted_at ? dayjs(patientData.admitted_at) : null),
@@ -1509,6 +1514,8 @@ const AddSurgeryRecord = () => {
         open={openSelectAnesthesiaDrawer}
         onClose={() => setOpenSelectAnesthesiaDrawer(false)}
         initialSelectedId={selectedAnesthesiaRecord?.id || null}
+        hospitalCaseId={resolvedHospitalCaseId}
+        medicalRecordId={medicalRecordId}
         onSelect={handleAnesthesiaRecordSelect}
         onConfirm={handleConfirmAnesthesiaRecord}
       />

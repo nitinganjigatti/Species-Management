@@ -299,9 +299,23 @@ function InpatientSurgery({ hospitalCaseId }) {
 
   const handleAddSurgeryRecord = () => {
     const resolvedCaseId = resolveHospitalCaseId(hospitalCaseId, router?.query)
-    const href = resolvedCaseId
-      ? { pathname: '/hospital/inpatient/AddSurgeryRecord', query: { hospital_case_id: resolvedCaseId } }
-      : '/hospital/inpatient/AddSurgeryRecord'
+    const medicalRecordId =
+      router?.query?.medical_record_id || router?.query?.medicalRecordId || router?.query?.medical_recordId
+
+    const query = {}
+
+    if (resolvedCaseId) {
+      query.hospital_case_id = resolvedCaseId
+    }
+
+    if (medicalRecordId) {
+      query.medical_record_id = Array.isArray(medicalRecordId) ? medicalRecordId[0] : medicalRecordId
+    }
+
+    const href =
+      Object.keys(query).length > 0
+        ? { pathname: '/hospital/inpatient/AddSurgeryRecord', query }
+        : '/hospital/inpatient/AddSurgeryRecord'
 
     router.push(href)
   }
