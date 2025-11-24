@@ -694,7 +694,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
               gap: '16px',
               flex: 1,
               px: 6,
-              pt: 8,
+              pt: 6,
               overflowY: 'auto',
               backgroundColor: theme.palette.customColors.Background
             }}

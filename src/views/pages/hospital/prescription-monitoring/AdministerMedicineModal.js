@@ -50,7 +50,6 @@ const AdministerMedicineSidesheet = ({
   mastersDataLoading
 }) => {
   const theme = useTheme()
-  console.log('isControlledSubstance', isControlledSubstance)
 
   // Yup validation schema
   const validationSchema = yup.object().shape(
@@ -163,6 +162,43 @@ const AdministerMedicineSidesheet = ({
     const parsedTime = dayjs(formattedTime, 'hh:mm A')
 
     return parsedTime.isValid() ? parsedTime : null
+  }
+
+  const formatTimeTo12Hour = timeString => {
+    if (!timeString) return ''
+
+    try {
+      // Remove any extra spaces and split by space
+      const cleanedTime = timeString.trim().toUpperCase()
+      const parts = cleanedTime.split(' ')
+
+      if (parts.length < 2) return timeString
+
+      let timePart = parts[0]
+      const period = parts[1] // AM or PM
+
+      // Split hours and minutes if present
+      let hours,
+        minutes = '00'
+
+      if (timePart.includes(':')) {
+        ;[hours, minutes] = timePart.split(':')
+      } else {
+        hours = timePart
+      }
+
+      // Convert hours to number and handle formatting
+      let hoursNum = parseInt(hours)
+
+      // Pad hours with leading zero if needed
+      const formattedHours = String(hoursNum).padStart(2, '0')
+
+      return `${formattedHours}:${minutes} ${period}`
+    } catch (error) {
+      console.error('Error formatting time:', error)
+
+      return timeString
+    }
   }
 
   // Calculate slot start and end times
@@ -313,7 +349,7 @@ const AdministerMedicineSidesheet = ({
                   {Utility?.formatDisplayDate(selectedDate)}
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <AccessTimeIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurfaceVariant }} />
                 <Typography
                   sx={{
@@ -322,7 +358,7 @@ const AdministerMedicineSidesheet = ({
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  {scheduleDosage?.scheduledTime}
+                  {formatTimeTo12Hour(scheduleDosage?.scheduledTime)}
                 </Typography>
               </Box>
             </Box>
@@ -350,6 +386,7 @@ const AdministerMedicineSidesheet = ({
                           label='Select Time'
                           format='hh:mm A'
                           error={errors.time}
+                          sx={{ borderRadius: '4px' }}
                           required
                           minTime={slotStart}
                           maxTime={slotEnd}

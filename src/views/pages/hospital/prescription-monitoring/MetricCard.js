@@ -81,7 +81,7 @@ const MetricCard = ({
 
           {metric?.name}
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
           <Icon icon='wi:time-9' width='12px' height='12px' />
           <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.secondaryBg }}>
             {metric?.progress?.split('/')[1]
@@ -90,7 +90,6 @@ const MetricCard = ({
           </Typography>
           <Typography
             sx={{
-              fontFamily: 'Inter',
               fontWeight: 600,
               fontSize: '14px',
               lineHeight: '100%',
@@ -128,7 +127,6 @@ const MetricCard = ({
           {/* <Typography
             sx={{
               color: theme.palette.customColors.secondaryBg,
-              fontFamily: 'Inter',
               fontWeight: 600,
               fontSize: '14px',
               lineHeight: '100%',
