@@ -467,6 +467,7 @@ const AddSurgeryRecord = () => {
   const startTimeValue = watch('startTime')
   const endTimeValue = watch('endTime')
   const durationValue = watch('duration')
+  const selectedAnesthesia = selectedAnesthesiaRecord
 
   const {
     data: surgeryTemplatesResponse,
@@ -533,10 +534,7 @@ const AddSurgeryRecord = () => {
     return Array.from(unique.values())
   }, [surgeryMasterResponse])
 
-  const {
-    data: surgeonsResponse,
-    isFetching: isSurgeonsLoading
-  } = useQuery({
+  const { data: surgeonsResponse, isFetching: isSurgeonsLoading } = useQuery({
     queryKey: ['surgeon-list', surgeonSearchTerm, userZooId],
     queryFn: async () => {
       const zooId = userZooId
@@ -677,6 +675,31 @@ const AddSurgeryRecord = () => {
       setValue('duration', label, { shouldValidate: true, shouldDirty: true })
     }
   }, [selectedDate, startTimeValue, endTimeValue, durationValue, setValue])
+
+  const handleClearSelectedAnesthesia = useCallback(() => {
+    setSelectedAnesthesiaRecord(null)
+  }, [])
+
+  const formatAnesthesiaDateTime = useCallback(value => {
+    const dt = value ? dayjs(value) : null
+    if (!dt || !dt.isValid()) return '--'
+
+    return dt.format('DD MMM YYYY • hh:mm A')
+  }, [])
+
+  const joinNames = useCallback(list => {
+    if (!Array.isArray(list)) return '--'
+
+    const names = list.map(item => item?.full_name).filter(Boolean)
+
+    return names.length ? names.join(' , ') : '--'
+  }, [])
+
+  const purposeNames = useMemo(() => {
+    if (!Array.isArray(selectedAnesthesia?.purpose)) return []
+
+    return selectedAnesthesia.purpose.map(item => item?.name).filter(Boolean)
+  }, [selectedAnesthesia?.purpose])
 
   const applyTemplateToRichNote = useCallback(
     template => {
@@ -1102,28 +1125,28 @@ const AddSurgeryRecord = () => {
             </Typography>
             <Grid container spacing={'24px'}>
               <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
-              <ControlledAutocomplete
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '4px',
-                    height: '56px'
-                  }
-                }}
-                control={control}
-                errors={errors}
-                name={'surgeon'}
-                label='Name of Surgeon'
-                options={surgeonOptions}
-                loading={isSurgeonsLoading}
-                onInputChange={handleSurgeonInputChange}
-                onItemClear={handleSurgeonClear}
-                getOptionLabel={surgeonGetOptionLabel}
-                isOptionEqualToValue={surgeonIsOptionEqualToValue}
-                onChangeOverride={() => clearErrors?.('surgeon')}
-              />
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
-              <ControlledAutocomplete
+                <ControlledAutocomplete
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px',
+                      height: '56px'
+                    }
+                  }}
+                  control={control}
+                  errors={errors}
+                  name={'surgeon'}
+                  label='Name of Surgeon'
+                  options={surgeonOptions}
+                  loading={isSurgeonsLoading}
+                  onInputChange={handleSurgeonInputChange}
+                  onItemClear={handleSurgeonClear}
+                  getOptionLabel={surgeonGetOptionLabel}
+                  isOptionEqualToValue={surgeonIsOptionEqualToValue}
+                  onChangeOverride={() => clearErrors?.('surgeon')}
+                />
+              </Grid>
+              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+                <ControlledAutocomplete
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '4px',
@@ -1318,9 +1341,8 @@ const AddSurgeryRecord = () => {
           borderRadius: '8px',
           padding: '24px',
           display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          alignItems: { xs: 'flex-start', md: 'center' },
-          justifyContent: 'space-between',
+          flexDirection: 'column',
+          alignItems: 'stretch',
           gap: '24px',
           boxShadow: 'none'
         }}
@@ -1338,37 +1360,160 @@ const AddSurgeryRecord = () => {
             *
           </Typography>
         </Typography>
-        <Box
-          sx={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}
-        >
-          <Button
-            variant='outlined'
-            startIcon={<Icon icon='mdi:plus' fontSize={20} />}
-            onClick={handleAddNewAnaesthesia}
+        {!selectedAnesthesia ? (
+          <Box
             sx={{
-              width: '240px',
-              height: '48px',
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '16px',
+              justifyContent: { xs: 'flex-start', md: 'flex-end' }
+            }}
+          >
+            <Button
+              variant='outlined'
+              startIcon={<Icon icon='mdi:plus' fontSize={20} />}
+              onClick={handleAddNewAnaesthesia}
+              sx={{
+                width: '240px',
+                height: '48px',
+                borderRadius: '8px',
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                fontWeight: 600,
+                letterSpacing: 0,
+                textTransform: 'uppercase'
+              }}
+            >
+              ADD NEW
+            </Button>
+            <Button
+              variant='contained'
+              onClick={handleSelectAnaesthesiaRecord}
+              sx={{
+                width: '240px',
+                height: '48px'
+              }}
+            >
+              SELECT FROM RECORD
+            </Button>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              backgroundColor: '#E8F4F2',
               borderRadius: '8px',
-              borderColor: theme.palette.primary.main,
-              color: theme.palette.primary.main,
-              fontWeight: 600,
-              letterSpacing: 0,
-              textTransform: 'uppercase'
+              pt: '24px',
+              pr: '20px',
+              pb: '24px',
+              pl: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px'
             }}
           >
-            ADD NEW
-          </Button>
-          <Button
-            variant='contained'
-            onClick={handleSelectAnaesthesiaRecord}
-            sx={{
-              width: '240px',
-              height: '48px'
-            }}
-          >
-            SELECT FROM RECORD
-          </Button>
-        </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  backgroundColor: '#1F515B',
+                  width: 141,
+                  height: 36,
+                  borderRadius: '8px',
+                  px: 1.5,
+                  py: 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  color: 'white',
+                  fontWeight: 700,
+                  fontSize: '16px',
+                  letterSpacing: 0
+                }}
+              >
+                {selectedAnesthesia?.code || selectedAnesthesia?.anaesthesia_id || '--'}
+                <Icon icon='mdi:chevron-right' fontSize={20} />
+              </Box>
+              <IconButton onClick={handleClearSelectedAnesthesia} sx={{ color: '#7A8684' }}>
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' },
+                  gap: '16px'
+                }}
+              >
+                {[
+                  { label: 'Location', value: selectedAnesthesia?.location || '--' },
+                  {
+                    label: 'Date and Time of Anesthesia',
+                    value: formatAnesthesiaDateTime(selectedAnesthesia?.anaesthesia_datetime)
+                  },
+                  {
+                    label: 'Estimated Time Required',
+                    value:
+                      selectedAnesthesia?.estimated_time_required && selectedAnesthesia?.estimated_time_unit
+                        ? `${selectedAnesthesia.estimated_time_required} ${selectedAnesthesia.estimated_time_unit}`
+                        : selectedAnesthesia?.estimated_time_required || '--'
+                  },
+                  {
+                    label: 'Veterinarian',
+                    value: joinNames(selectedAnesthesia?.veterinarians)
+                  },
+                  {
+                    label: 'Anesthetists',
+                    value: joinNames(selectedAnesthesia?.anesthetists)
+                  }
+                ].map(info => (
+                  <Box key={info.label} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#7A8684' }}>{info.label}</Typography>
+                    <Typography sx={{ fontWeight: 500, fontSize: '16px', color: '#44544A' }}>{info.value}</Typography>
+                  </Box>
+                ))}
+              </Box>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '24px',
+                  pt: '24px',
+                  borderTop: '1px solid #C3CEC7'
+                }}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <Typography sx={{ fontWeight: 600, fontSize: '16px', color: '#44544A' }}>
+                    Purpose of Anesthesia
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    {purposeNames.length ? (
+                      purposeNames.map(name => (
+                        <Box
+                          key={name}
+                          sx={{
+                            height: 41,
+                            borderRadius: '4px',
+                            padding: '12px',
+                            border: '1px solid #AFEFEB',
+                            backgroundColor: '#AFEFEB80',
+                            display: 'inline-flex',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <Typography sx={{ fontWeight: 500, fontSize: '14px', color: '#1F515B' }}>{name}</Typography>
+                        </Box>
+                      ))
+                    ) : (
+                      <Typography sx={{ color: '#7A8684', fontSize: '14px' }}>No purpose added</Typography>
+                    )}
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        )}
       </Card>
 
       <Card
@@ -1513,7 +1658,12 @@ const AddSurgeryRecord = () => {
       <SelectAnesthesiaRecordDrawer
         open={openSelectAnesthesiaDrawer}
         onClose={() => setOpenSelectAnesthesiaDrawer(false)}
-        initialSelectedId={selectedAnesthesiaRecord?.id || null}
+        initialSelectedId={
+          selectedAnesthesiaRecord?.anaesthesia_id ||
+          selectedAnesthesiaRecord?.id ||
+          selectedAnesthesiaRecord?.code ||
+          null
+        }
         hospitalCaseId={resolvedHospitalCaseId}
         medicalRecordId={medicalRecordId}
         onSelect={handleAnesthesiaRecordSelect}

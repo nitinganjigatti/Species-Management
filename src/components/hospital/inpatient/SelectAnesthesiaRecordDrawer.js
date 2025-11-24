@@ -80,37 +80,23 @@ const SelectAnesthesiaRecordDrawer = ({
 
     if (Array.isArray(apiRecords) && apiRecords.length) {
       return apiRecords
-        .map(record => {
-          const createdAt = record?.created_at ? dayjs(record.created_at) : null
-          const purposeNames = Array.isArray(record?.purpose)
-            ? record.purpose.map(item => item?.name).filter(Boolean)
-            : []
-
-          const id = record?.anaesthesia_id
-
-          return {
-            id: id ? String(id) : '',
-            code: record?.code ? String(record.code) : '',
-            procedures: purposeNames.length ? purposeNames : ['--'],
-            createdBy: record?.created_by_name || '--',
-            createdOn: createdAt?.isValid() ? createdAt.format('DD MMM YYYY') : '--',
-            time: createdAt?.isValid() ? createdAt.format('hh:mm A') : '--',
-            raw: record
-          }
-        })
-        .filter(item => item.id)
     }
 
     return Array.isArray(records) && records.length ? records : generatedSampleRecords
   }, [anesthesiaResponse, records])
 
+  const getRecordId = record => {
+    if (!record) return ''
+    return record?.anaesthesia_id || record?.id || record?.code || ''
+  }
+
   const handleSelect = record => {
-    setSelectedId(record.id)
+    setSelectedId(getRecordId(record))
     onSelect(record)
   }
 
   const handleConfirm = () => {
-    const record = items.find(item => item.id === selectedId) || null
+    const record = items.find(item => getRecordId(item) === selectedId) || null
     onConfirm(record)
   }
 
@@ -182,11 +168,18 @@ const SelectAnesthesiaRecordDrawer = ({
           <Typography sx={{ color: '#7A8684' }}>No anesthesia records found.</Typography>
         )}
         {items.map(record => {
-          const isSelected = record.id === selectedId
+          const recordId = getRecordId(record)
+          const isSelected = recordId === selectedId
+          const createdAt = record?.created_at ? dayjs(record.created_at) : null
+          const purposeNames = Array.isArray(record?.purpose)
+            ? record.purpose.map(item => item?.name).filter(Boolean)
+            : record?.procedures || []
+          const createdOn = createdAt?.isValid() ? createdAt.format('DD MMM YYYY') : record?.createdOn || '--'
+          const createdTime = createdAt?.isValid() ? createdAt.format('hh:mm A') : record?.time || '--'
 
           return (
             <Box
-              key={record.id}
+              key={recordId}
               role='button'
               tabIndex={0}
               onClick={() => handleSelect(record)}
@@ -223,17 +216,17 @@ const SelectAnesthesiaRecordDrawer = ({
                   <Typography
                     sx={{ fontWeight: 600, fontSize: '16px', letterSpacing: 0, color: '#1F515B', textAlign: 'center' }}
                   >
-                    {record.code}
+                    {record?.code || recordId}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  {record.procedures.map((procedure, index) => (
+                  {purposeNames.map((procedure, index) => (
                     <Typography
-                      key={`${record.id}-proc-${procedure}`}
+                      key={`${recordId}-proc-${procedure}`}
                       sx={{ color: '#1F515B', fontWeight: 500, fontSize: '14px', letterSpacing: '0.1px' }}
                     >
                       {procedure}
-                      {index < record.procedures.length - 1 ? ' • ' : ''}
+                      {index < purposeNames.length - 1 ? ' • ' : ''}
                     </Typography>
                   ))}
                 </Box>
@@ -242,26 +235,26 @@ const SelectAnesthesiaRecordDrawer = ({
                     sx={{ fontWeight: 400, fontSize: '12px', letterSpacing: 0, color: '#7A8684' }}
                     component='span'
                   >
-                    Created by: {record.createdBy}
+                    Created by: {record?.created_by_name || record?.createdBy || '--'}
                   </Typography>
                   <Typography sx={{ fontWeight: 400, fontSize: '12px', letterSpacing: 0, color: '#7A8684' }}>
                     •
                   </Typography>
                   <Typography sx={{ fontWeight: 400, fontSize: '12px', letterSpacing: 0, color: '#7A8684' }}>
-                    {record.createdOn}
+                    {createdOn}
                   </Typography>
                   <Typography sx={{ fontWeight: 400, fontSize: '12px', letterSpacing: 0, color: '#7A8684' }}>
                     •
                   </Typography>
                   <Typography sx={{ fontWeight: 400, fontSize: '12px', letterSpacing: 0, color: '#7A8684' }}>
-                    {record.time}
+                    {createdTime}
                   </Typography>
                 </Box>
               </Box>
               <Radio
                 checked={isSelected}
                 onChange={() => handleSelect(record)}
-                value={record.id}
+                value={recordId}
                 sx={{
                   pointerEvents: 'none',
                   '&.Mui-checked': {
