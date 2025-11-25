@@ -14,10 +14,10 @@ import Toaster from 'src/components/Toaster'
 import { addAnesthesia } from 'src/lib/api/hospital/anesthesia'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 
-const anaesthesiaSchema = yup.object().shape({
+const anesthesiaSchema = yup.object().shape({
   basicDetails: yup.object().shape({
     location: yup.string().trim().required('Location is required'),
-    anaesthesia_datetime: yup.string().required('Date & Time of anesthesia is required'),
+    anesthesia_datetime: yup.string().required('Date & Time of anesthesia is required'),
     estimated_time_required: yup
       .string()
       .test('required', 'Estimated time is required', value => Boolean(value?.toString().trim())),
@@ -33,7 +33,7 @@ const anaesthesiaSchema = yup.object().shape({
 const defaultValues = {
   basicDetails: {
     location: '',
-    anaesthesia_datetime: '',
+    anesthesia_datetime: '',
     estimated_time_required: '',
     estimated_time_unit: 'hr',
     veterinarian_id: [],
@@ -44,9 +44,9 @@ const defaultValues = {
   }
 }
 
-const AddAnaesthesiaRecordDrawer = ({
-  openAddAnaesthesiaDrawer,
-  setOpenAddAnaesthesiaDrawer,
+const AddanesthesiaRecordDrawer = ({
+  openAddanesthesiaDrawer,
+  setOpenAddanesthesiaDrawer,
   hospitalCaseId = '',
   medicalRecordId = '',
   vetOptions = [],
@@ -59,7 +59,7 @@ const AddAnaesthesiaRecordDrawer = ({
 
   const methods = useForm({
     defaultValues,
-    resolver: yupResolver(anaesthesiaSchema),
+    resolver: yupResolver(anesthesiaSchema),
     mode: 'onChange'
   })
 
@@ -75,7 +75,7 @@ const AddAnaesthesiaRecordDrawer = ({
     formData.append('hospital_case_id', hospitalCaseId || '')
     formData.append('medical_record_id', medicalRecordId || '')
     formData.append('location', data.basicDetails.location || '')
-    formData.append('anaesthesia_datetime', data.basicDetails.anaesthesia_datetime || '')
+    formData.append('anesthesia_datetime', data.basicDetails.anesthesia_datetime || '')
     formData.append('estimated_time_required', data.basicDetails.estimated_time_required || '')
     formData.append('estimated_time_unit', data.basicDetails.estimated_time_unit || '')
     formData.append(
@@ -98,23 +98,23 @@ const AddAnaesthesiaRecordDrawer = ({
       const response = await addAnesthesia(formData)
 
       if (response?.status === true || response?.success === true) {
-        Toaster({ type: 'success', message: response?.message || 'Anaesthesia added successfully' })
+        Toaster({ type: 'success', message: response?.message || 'anesthesia added successfully' })
         reset(defaultValues)
-        setOpenAddAnaesthesiaDrawer(false)
+        setOpenAddanesthesiaDrawer(false)
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to add anaesthesia' })
+        Toaster({ type: 'error', message: response?.message || 'Failed to add anesthesia' })
       }
     } catch (error) {
-      console.error('Add anaesthesia failed:', error)
+      console.error('Add anesthesia failed:', error)
       Toaster({ type: 'error', message: error?.message || 'Something went wrong. Please try again.' })
     }
   }
 
   useEffect(() => {
-    if (!openAddAnaesthesiaDrawer) {
+    if (!openAddanesthesiaDrawer) {
       reset(defaultValues)
     }
-  }, [openAddAnaesthesiaDrawer, reset])
+  }, [openAddanesthesiaDrawer, reset])
 
   useEffect(() => {
     const fetchPurposes = async () => {
@@ -137,18 +137,18 @@ const AddAnaesthesiaRecordDrawer = ({
       }
     }
 
-    if (openAddAnaesthesiaDrawer) {
+    if (openAddanesthesiaDrawer) {
       fetchPurposes()
     }
-  }, [openAddAnaesthesiaDrawer])
+  }, [openAddanesthesiaDrawer])
 
   return (
     <Drawer
       anchor='right'
-      open={openAddAnaesthesiaDrawer}
+      open={openAddanesthesiaDrawer}
       ModalProps={{ keepMounted: true }}
       sx={{
-        '& .MuiDrawer-paper': { width: ['100%', '920px'], height: '100vh' },
+        '& .MuiDrawer-paper': { maxWidth: '920px', height: '100vh' },
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
@@ -168,10 +168,10 @@ const AddAnaesthesiaRecordDrawer = ({
         <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center', maxHight: '80px' }}>
           <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
           <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-            Add anaesthesia
+            Add anesthesia
           </Typography>
         </Box>
-        <IconButton size='small' sx={{ color: 'text.primary' }} onClick={() => setOpenAddAnaesthesiaDrawer(false)}>
+        <IconButton size='small' sx={{ color: 'text.primary' }} onClick={() => setOpenAddanesthesiaDrawer(false)}>
           <Icon icon='mdi:close' fontSize={24} />
         </IconButton>
       </Box>
@@ -307,4 +307,4 @@ const AddAnaesthesiaRecordDrawer = ({
   )
 }
 
-export default AddAnaesthesiaRecordDrawer
+export default AddanesthesiaRecordDrawer

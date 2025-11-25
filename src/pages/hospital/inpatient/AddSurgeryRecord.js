@@ -14,7 +14,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { useAuth } from 'src/hooks/useAuth'
-import AddAnaesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnaesthesiaRecord'
+import AddanesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddanesthesiaRecord'
 import SelectAnesthesiaRecordDrawer from 'src/components/hospital/inpatient/SelectAnesthesiaRecordDrawer'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import Toaster from 'src/components/Toaster'
@@ -454,7 +454,7 @@ const AddSurgeryRecord = () => {
 
   const [activeTemplate, setActiveTemplate] = useState('')
   const [showSaveTemplate, setShowSaveTemplate] = useState(false)
-  const [openAddAnaesthesiaDrawer, setOpenAddAnaesthesiaDrawer] = useState(false)
+  const [openAddanesthesiaDrawer, setOpenAddanesthesiaDrawer] = useState(false)
   const [openSurgeryTemplateDrawer, setOpenSurgeryTemplateDrawer] = useState(false)
   const [openSelectAnesthesiaDrawer, setOpenSelectAnesthesiaDrawer] = useState(false)
   const [selectedAnesthesiaRecord, setSelectedAnesthesiaRecord] = useState(null)
@@ -872,11 +872,11 @@ const AddSurgeryRecord = () => {
     [handleSaveTemplate, setShowSaveTemplate]
   )
 
-  const handleAddNewAnaesthesia = useCallback(() => {
-    setOpenAddAnaesthesiaDrawer(true)
-  }, [setOpenAddAnaesthesiaDrawer])
+  const handleAddNewanesthesia = useCallback(() => {
+    setOpenAddanesthesiaDrawer(true)
+  }, [setOpenAddanesthesiaDrawer])
 
-  const handleSelectAnaesthesiaRecord = useCallback(() => {
+  const handleSelectanesthesiaRecord = useCallback(() => {
     setOpenSelectAnesthesiaDrawer(true)
   }, [])
 
@@ -1413,7 +1413,7 @@ const AddSurgeryRecord = () => {
           display: 'flex',
           justifyContent: 'space-between',
           flexDirection: { xs: 'column', md: selectedAnesthesia ? 'column' : 'row' },
-          alignItems: 'stretch',
+          alignItems: { xs: 'stretch', md: selectedAnesthesia ? 'stretch' : 'center' },
           gap: '24px',
           boxShadow: 'none'
         }}
@@ -1443,7 +1443,7 @@ const AddSurgeryRecord = () => {
             <Button
               variant='outlined'
               startIcon={<Icon icon='mdi:plus' fontSize={20} />}
-              onClick={handleAddNewAnaesthesia}
+              onClick={handleAddNewanesthesia}
               sx={{
                 width: '240px',
                 height: '48px',
@@ -1459,7 +1459,7 @@ const AddSurgeryRecord = () => {
             </Button>
             <Button
               variant='contained'
-              onClick={handleSelectAnaesthesiaRecord}
+              onClick={handleSelectanesthesiaRecord}
               sx={{
                 width: '240px',
                 height: '48px'
@@ -1500,7 +1500,7 @@ const AddSurgeryRecord = () => {
                   letterSpacing: 0
                 }}
               >
-                {selectedAnesthesia?.code || selectedAnesthesia?.anaesthesia_id || '--'}
+                {selectedAnesthesia?.code || selectedAnesthesia?.anesthesia_id || '--'}
                 <Icon icon='mdi:chevron-right' fontSize={20} />
               </Box>
               <IconButton onClick={handleClearSelectedAnesthesia} sx={{ color: '#7A8684' }}>
@@ -1520,7 +1520,7 @@ const AddSurgeryRecord = () => {
                   { label: 'Location', value: selectedAnesthesia?.location || '--' },
                   {
                     label: 'Date and Time of Anesthesia',
-                    value: formatAnesthesiaDateTime(selectedAnesthesia?.anaesthesia_datetime)
+                    value: formatAnesthesiaDateTime(selectedAnesthesia?.anesthesia_datetime)
                   },
                   {
                     label: 'Estimated Time Required',
@@ -1769,9 +1769,9 @@ const AddSurgeryRecord = () => {
         </Button>
       </Box>
 
-      <AddAnaesthesiaRecordDrawer
-        setOpenAddAnaesthesiaDrawer={setOpenAddAnaesthesiaDrawer}
-        openAddAnaesthesiaDrawer={openAddAnaesthesiaDrawer}
+      <AddanesthesiaRecordDrawer
+        setOpenAddanesthesiaDrawer={setOpenAddanesthesiaDrawer}
+        openAddanesthesiaDrawer={openAddanesthesiaDrawer}
         hospitalCaseId={resolvedHospitalCaseId}
         medicalRecordId={medicalRecordId}
         vetOptions={doctorOptions}
@@ -1783,7 +1783,7 @@ const AddSurgeryRecord = () => {
         open={openSelectAnesthesiaDrawer}
         onClose={() => setOpenSelectAnesthesiaDrawer(false)}
         initialSelectedId={
-          selectedAnesthesiaRecord?.anaesthesia_id ||
+          selectedAnesthesiaRecord?.anesthesia_id ||
           selectedAnesthesiaRecord?.id ||
           selectedAnesthesiaRecord?.code ||
           null

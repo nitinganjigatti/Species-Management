@@ -150,7 +150,9 @@ export default function BasicDetails({
                 options={vetOptions}
                 getOptionLabel={option => option?.name || ''}
                 isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                value={vetOptions.filter(opt => (Array.isArray(field.value) ? field.value.includes(opt.id) : false)) || []}
+                value={
+                  vetOptions.filter(opt => (Array.isArray(field.value) ? field.value.includes(opt.id) : false)) || []
+                }
                 onChange={(_, newValue) => {
                   const selectedIds = newValue.map(item => item.id)
                   field.onChange(selectedIds)
@@ -191,8 +193,9 @@ export default function BasicDetails({
                 getOptionLabel={option => option?.name || ''}
                 isOptionEqualToValue={(option, value) => option?.id === value?.id}
                 value={
-                  anesthetistOptions.filter(opt => (Array.isArray(field.value) ? field.value.includes(opt.id) : false)) ||
-                  []
+                  anesthetistOptions.filter(opt =>
+                    Array.isArray(field.value) ? field.value.includes(opt.id) : false
+                  ) || []
                 }
                 onChange={(_, newValue) => {
                   const selectedIds = newValue.map(item => item.id)
@@ -351,7 +354,7 @@ export default function BasicDetails({
                   borderRadius: '8px',
                   padding: '16px',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  width: '60%'
+                  maxWidth: '640px'
                 }}
               >
                 <Typography
@@ -362,7 +365,7 @@ export default function BasicDetails({
                   Add New Other Purpose
                 </Typography>
 
-                <Box display='flex' gap={2}>
+                <Box display='flex' flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
                   <TextField
                     fullWidth
                     placeholder='Enter new purpose'
