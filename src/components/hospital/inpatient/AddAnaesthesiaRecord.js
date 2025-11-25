@@ -11,6 +11,7 @@ import { LoadingButton } from '@mui/lab'
 import BasicDetails from './Anesthesia/BasicDetails'
 import { getAssesmentList } from 'src/lib/api/hospital/anesthesia'
 import Toaster from 'src/components/Toaster'
+import { addAnesthesia } from 'src/lib/api/hospital/anesthesia'
 
 const anaesthesiaSchema = yup.object().shape({})
 
@@ -28,7 +29,14 @@ const defaultValues = {
   }
 }
 
-const AddAnaesthesiaRecordDrawer = ({ openAddAnaesthesiaDrawer, setOpenAddAnaesthesiaDrawer }) => {
+const AddAnaesthesiaRecordDrawer = ({
+  openAddAnaesthesiaDrawer,
+  setOpenAddAnaesthesiaDrawer,
+  hospitalCaseId = '',
+  medicalRecordId = '',
+  vetOptions = [],
+  anesthetistOptions = []
+}) => {
   const theme = useTheme()
   const [purposeOptions, setPurposeOptions] = useState([])
 
@@ -44,8 +52,47 @@ const AddAnaesthesiaRecordDrawer = ({ openAddAnaesthesiaDrawer, setOpenAddAnaest
     formState: { isSubmitting }
   } = methods
 
-  const onSubmit = data => {
-    console.log('Anaesthesia basic details:', data)
+  const onSubmit = async data => {
+    const formData = new FormData()
+
+    formData.append('hospital_case_id', hospitalCaseId || '')
+    formData.append('medical_record_id', medicalRecordId || '')
+    formData.append('location', data.basicDetails.location || '')
+    formData.append('anaesthesia_datetime', data.basicDetails.anaesthesia_datetime || '')
+    formData.append('estimated_time_required', data.basicDetails.estimated_time_required || '')
+    formData.append('estimated_time_unit', data.basicDetails.estimated_time_unit || '')
+    formData.append(
+      'veterinarian_id',
+      JSON.stringify(
+        data.basicDetails.veterinarian_id ? [data.basicDetails.veterinarian_id].filter(Boolean) : []
+      )
+    )
+    formData.append(
+      'anesthetist_id',
+      JSON.stringify(data.basicDetails.anesthetist_id ? [data.basicDetails.anesthetist_id].filter(Boolean) : [])
+    )
+    formData.append('notes', data.basicDetails.notes || '')
+
+    const purposePayload = {
+      selected: data.basicDetails.selected || [],
+      custom: data.basicDetails.custom || []
+    }
+    formData.append('purpose', JSON.stringify(purposePayload))
+
+    try {
+      const response = await addAnesthesia(formData)
+
+      if (response?.status === true || response?.success === true) {
+        Toaster({ type: 'success', message: response?.message || 'Anaesthesia added successfully' })
+        reset(defaultValues)
+        setOpenAddAnaesthesiaDrawer(false)
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to add anaesthesia' })
+      }
+    } catch (error) {
+      console.error('Add anaesthesia failed:', error)
+      Toaster({ type: 'error', message: error?.message || 'Something went wrong. Please try again.' })
+    }
   }
 
   useEffect(() => {
@@ -129,7 +176,7 @@ const AddAnaesthesiaRecordDrawer = ({ openAddAnaesthesiaDrawer, setOpenAddAnaest
               border: `1px solid ${theme.palette.customColors.customTableBorderBg}`
             }}
           >
-            <BasicDetails vetOptions={[]} anesthetistOptions={[]} purposeOptions={purposeOptions} />
+            <BasicDetails vetOptions={vetOptions} anesthetistOptions={anesthetistOptions} purposeOptions={purposeOptions} />
             <LoadingButton
               type='submit'
               variant='contained'

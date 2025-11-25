@@ -581,6 +581,16 @@ const AddSurgeryRecord = () => {
       .filter(item => item.label && item.value)
   }, [surgeonsResponse])
 
+  const doctorOptions = useMemo(
+    () =>
+      surgeonOptions.map(opt => ({
+        name: opt.label,
+        id: opt.value,
+        default_icon: opt.default_icon
+      })),
+    [surgeonOptions]
+  )
+
   const surgeryTemplates = useMemo(() => extractSurgeryTemplates(surgeryTemplatesResponse), [surgeryTemplatesResponse])
 
   const templateNames = useMemo(() => surgeryTemplates.map(template => template.title), [surgeryTemplates])
@@ -1762,6 +1772,10 @@ const AddSurgeryRecord = () => {
       <AddAnaesthesiaRecordDrawer
         setOpenAddAnaesthesiaDrawer={setOpenAddAnaesthesiaDrawer}
         openAddAnaesthesiaDrawer={openAddAnaesthesiaDrawer}
+        hospitalCaseId={resolvedHospitalCaseId}
+        medicalRecordId={medicalRecordId}
+        vetOptions={doctorOptions}
+        anesthetistOptions={doctorOptions}
       />
       <SelectAnesthesiaRecordDrawer
         open={openSelectAnesthesiaDrawer}
