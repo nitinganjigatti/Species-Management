@@ -273,7 +273,7 @@ export default function BasicDetails({
                   },
                   '& .MuiToggleButton-root.Mui-selected': {
                     bgcolor: theme.palette.customColors.OnPrimaryContainer,
-                    color: '#fff'
+                    color: theme.palette.primary.contrastText
                   },
                   '& .MuiToggleButton-root.Mui-selected:hover': {
                     bgcolor: theme.palette.primary.dark

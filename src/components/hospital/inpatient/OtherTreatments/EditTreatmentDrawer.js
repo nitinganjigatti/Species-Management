@@ -174,6 +174,7 @@ const EditTreatmentDrawer = ({
                 label=''
                 control={control}
                 errors={{}}
+                disabled={isSubmitting || !formData?.activeActivityId}
                 rows={4}
                 placeholder='Add notes'
                 onChangeOverride={event => onChange('notes', event?.target?.value || '')}
