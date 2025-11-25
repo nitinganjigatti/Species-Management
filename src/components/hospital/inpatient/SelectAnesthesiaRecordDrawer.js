@@ -130,25 +130,13 @@ const SelectAnesthesiaRecordDrawer = ({
         }}
       >
         <Box sx={{ display: 'flex', flexDirection: 'row', gap: '12px', alignItems: 'center' }}>
-          <Box
-            sx={{
-              width: 40,
-              height: 40,
-              borderRadius: '12px',
-              backgroundColor: '#E8F4F2',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <Icon icon='mdi:content-save-outline' fontSize={22} color='#1F515B' />
-          </Box>
+          <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
           <Typography sx={{ fontWeight: 500, fontSize: '24px', letterSpacing: 0, color: '#44544A' }} component='div'>
             Select Anesthesia Record
           </Typography>
         </Box>
         <IconButton onClick={onClose} sx={{ alignSelf: 'flex-start', mr: '-10px' }}>
-          <Icon icon='mdi:close' fontSize={24} />
+          <Icon icon='mdi:close' color='#1F515B' fontSize={24} />
         </IconButton>
       </Box>
 

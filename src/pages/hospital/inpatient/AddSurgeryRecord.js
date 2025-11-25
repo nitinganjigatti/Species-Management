@@ -310,7 +310,7 @@ const buildAnimalInfoData = patientData => {
   }
 
   if (patientData?.admitted_by_full_name) {
-    additionalInfo['Consulting Veterinarian'] = getSafeString(patientData.admitted_by_full_name)
+    additionalInfo['Chief Veterinarian'] = getSafeString(patientData.admitted_by_full_name)
   }
 
   return {
@@ -1776,6 +1776,8 @@ const AddSurgeryRecord = () => {
         medicalRecordId={medicalRecordId}
         vetOptions={doctorOptions}
         anesthetistOptions={doctorOptions}
+        patientData={patientData}
+        animalInfoData={animalInfoData}
       />
       <SelectAnesthesiaRecordDrawer
         open={openSelectAnesthesiaDrawer}

@@ -12,6 +12,7 @@ import BasicDetails from './Anesthesia/BasicDetails'
 import { getAssesmentList } from 'src/lib/api/hospital/anesthesia'
 import Toaster from 'src/components/Toaster'
 import { addAnesthesia } from 'src/lib/api/hospital/anesthesia'
+import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 
 const anaesthesiaSchema = yup.object().shape({
   basicDetails: yup.object().shape({
@@ -49,7 +50,9 @@ const AddAnaesthesiaRecordDrawer = ({
   hospitalCaseId = '',
   medicalRecordId = '',
   vetOptions = [],
-  anesthetistOptions = []
+  anesthetistOptions = [],
+  patientData = null,
+  animalInfoData = null
 }) => {
   const theme = useTheme()
   const [purposeOptions, setPurposeOptions] = useState([])
@@ -174,31 +177,79 @@ const AddAnaesthesiaRecordDrawer = ({
       </Box>
 
       <Box sx={{ p: '24px', backgroundColor: 'background.default', height: '100vh', overflowY: 'auto' }}>
-        <FormProvider {...methods}>
-          <Card
-            component='form'
-            onSubmit={handleSubmit(onSubmit)}
-            sx={{
-              backgroundColor: theme.palette.primary.contrastText,
-              padding: '24px',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: 'none',
-              gap: '24px',
-              border: `1px solid ${theme.palette.customColors.customTableBorderBg}`
-            }}
-          >
-            <BasicDetails vetOptions={vetOptions} anesthetistOptions={anesthetistOptions} purposeOptions={purposeOptions} />
-            <LoadingButton
-              type='submit'
-              variant='contained'
-              loading={isSubmitting}
-              sx={{ mt: 3, height: '56px', borderRadius: '8px', fontWeight: 600, letterSpacing: '0.5px' }}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {patientData ? (
+            <AnimalInfoCard bgColor={theme.palette.primary.contrastText} data={animalInfoData} />
+          ) : (
+            <Card
+              sx={{
+                p: '24px',
+                borderRadius: '8px',
+                backgroundColor: '#FFFFFF',
+                boxShadow: 'none',
+                mb: 3
+              }}
             >
-              Submit
-            </LoadingButton>
-          </Card>
-        </FormProvider>
+              <Box>
+                <Box sx={{ maxWidth: '100%', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Box
+                    sx={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: '8px',
+                      backgroundColor: theme.palette.customColors.mdAntzNeutral
+                    }}
+                  />
+                  <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, gap: 1 }}>
+                    <Box sx={{ width: '70%', height: '20px', borderRadius: '4px', backgroundColor: '#E0E0E0' }} />
+                    <Box sx={{ width: '60%', height: '18px', borderRadius: '4px', backgroundColor: '#E6E6E6' }} />
+                    <Box sx={{ width: '50%', height: '18px', borderRadius: '4px', backgroundColor: '#E6E6E6' }} />
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
+                  {[1, 2, 3, 4].map(idx => (
+                    <Box key={`animal-skeleton-${idx}`} sx={{ minWidth: '120px' }}>
+                      <Box
+                        sx={{ width: '60%', height: '16px', borderRadius: '4px', backgroundColor: '#E6E6E6', mb: 1 }}
+                      />
+                      <Box sx={{ width: '80%', height: '18px', borderRadius: '4px', backgroundColor: '#E0E0E0' }} />
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            </Card>
+          )}
+
+          <FormProvider {...methods}>
+            <Card
+              component='form'
+              onSubmit={handleSubmit(onSubmit)}
+              sx={{
+                backgroundColor: theme.palette.primary.contrastText,
+                padding: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: 'none',
+                gap: '24px'
+                // border: `1px solid ${theme.palette.customColors.customTableBorderBg}`
+              }}
+            >
+              <BasicDetails
+                vetOptions={vetOptions}
+                anesthetistOptions={anesthetistOptions}
+                purposeOptions={purposeOptions}
+              />
+              <LoadingButton
+                type='submit'
+                variant='contained'
+                loading={isSubmitting}
+                sx={{ mt: 3, height: '56px', borderRadius: '8px', fontWeight: 600, letterSpacing: '0.5px' }}
+              >
+                Submit
+              </LoadingButton>
+            </Card>
+          </FormProvider>
+        </Box>
       </Box>
     </Drawer>
   )
