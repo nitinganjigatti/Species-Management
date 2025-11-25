@@ -150,7 +150,7 @@ export default function BasicDetails({
                 options={vetOptions}
                 getOptionLabel={option => option?.name || ''}
                 isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                value={vetOptions.filter(opt => field.value?.includes(opt.id)) || []}
+                value={vetOptions.filter(opt => (Array.isArray(field.value) ? field.value.includes(opt.id) : false)) || []}
                 onChange={(_, newValue) => {
                   const selectedIds = newValue.map(item => item.id)
                   field.onChange(selectedIds)
@@ -190,7 +190,10 @@ export default function BasicDetails({
                 options={anesthetistOptions}
                 getOptionLabel={option => option?.name || ''}
                 isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                value={anesthetistOptions.filter(opt => field.value?.includes(opt.id)) || []}
+                value={
+                  anesthetistOptions.filter(opt => (Array.isArray(field.value) ? field.value.includes(opt.id) : false)) ||
+                  []
+                }
                 onChange={(_, newValue) => {
                   const selectedIds = newValue.map(item => item.id)
                   field.onChange(selectedIds)

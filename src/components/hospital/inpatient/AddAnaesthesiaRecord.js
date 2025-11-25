@@ -13,7 +13,21 @@ import { getAssesmentList } from 'src/lib/api/hospital/anesthesia'
 import Toaster from 'src/components/Toaster'
 import { addAnesthesia } from 'src/lib/api/hospital/anesthesia'
 
-const anaesthesiaSchema = yup.object().shape({})
+const anaesthesiaSchema = yup.object().shape({
+  basicDetails: yup.object().shape({
+    location: yup.string().trim().required('Location is required'),
+    anaesthesia_datetime: yup.string().required('Date & Time of anesthesia is required'),
+    estimated_time_required: yup
+      .string()
+      .test('required', 'Estimated time is required', value => Boolean(value?.toString().trim())),
+    estimated_time_unit: yup.string().trim().required('Time unit is required'),
+    veterinarian_id: yup.array().of(yup.string()).min(1, 'Select at least one veterinarian'),
+    anesthetist_id: yup.array().of(yup.string()).min(1, 'Select at least one anesthetist'),
+    selected: yup.array().of(yup.string()).min(1, 'Select at least one purpose').default([]),
+    custom: yup.array().of(yup.string()).default([]),
+    notes: yup.string().trim().required('Notes are required')
+  })
+})
 
 const defaultValues = {
   basicDetails: {
@@ -21,8 +35,8 @@ const defaultValues = {
     anaesthesia_datetime: '',
     estimated_time_required: '',
     estimated_time_unit: 'hr',
-    veterinarian_id: '',
-    anesthetist_id: '',
+    veterinarian_id: [],
+    anesthetist_id: [],
     selected: [],
     custom: [],
     notes: ''
@@ -63,13 +77,11 @@ const AddAnaesthesiaRecordDrawer = ({
     formData.append('estimated_time_unit', data.basicDetails.estimated_time_unit || '')
     formData.append(
       'veterinarian_id',
-      JSON.stringify(
-        data.basicDetails.veterinarian_id ? [data.basicDetails.veterinarian_id].filter(Boolean) : []
-      )
+      JSON.stringify(Array.isArray(data.basicDetails.veterinarian_id) ? data.basicDetails.veterinarian_id : [])
     )
     formData.append(
       'anesthetist_id',
-      JSON.stringify(data.basicDetails.anesthetist_id ? [data.basicDetails.anesthetist_id].filter(Boolean) : [])
+      JSON.stringify(Array.isArray(data.basicDetails.anesthetist_id) ? data.basicDetails.anesthetist_id : [])
     )
     formData.append('notes', data.basicDetails.notes || '')
 
