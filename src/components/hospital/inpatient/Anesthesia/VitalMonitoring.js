@@ -198,14 +198,12 @@ function getCellDisplay(rowKey, entry, timeLabel) {
       .map(k => {
         const v = entry[k]
         if (v === undefined || v === null || String(v).trim() === '') return null
-        // for single-key case show unit too if available
         return String(v).trim()
       })
       .filter(Boolean)
 
     if (vals.length > 0) {
       const u = entry.unit ? ` ${entry.unit}` : ''
-      // if single value, append unit; if many, join them
       return vals.length === 1 ? { primary: `${vals[0]}${u}`, secondary } : { primary: vals.join(' / '), secondary }
     }
   }
@@ -235,7 +233,11 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
 
   // helper to update columns (persist into form)
   const updateColumns = newColumns => {
-    setValue('vitalMonitoring', newColumns, { shouldDirty: true })
+    setValue('vitalMonitoring', newColumns, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: false
+    })
   }
 
   const handleAddColumn = ({ timeLabel }) => {

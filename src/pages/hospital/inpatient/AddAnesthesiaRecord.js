@@ -43,27 +43,10 @@ import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 dayjs.extend(customParseFormat)
 
-// Convert time label like '01:00 PM' -> 'HH:mm:ss'
-const normalizeRecordedTime = timeLabel => {
-  if (!timeLabel) return ''
-  let d = dayjs(timeLabel, 'hh:mm A', true)
-  if (d.isValid()) return d.format('HH:mm:ss')
-  d = dayjs(timeLabel, 'HH:mm:ss', true)
-  if (d.isValid()) return d.format('HH:mm:ss')
-  d = dayjs(timeLabel, 'HH:mm', true)
-  if (d.isValid()) return d.format('HH:mm:ss')
-  d = dayjs(timeLabel)
-  return d.isValid() ? d.format('HH:mm:ss') : timeLabel
-}
-
-// Convert "vital_monitoring" server object -> form columns for UI
-// serverVital: { time_slots: [...], records: [...] } as in your example
-// vitalMeta: vitalMonitorList (metadata) from getvitalMonitoringList
 export function serverVitalToFormColumns(serverVital = {}, vitalMeta = []) {
   const timeSlots = Array.isArray(serverVital.time_slots) ? serverVital.time_slots : []
   const records = Array.isArray(serverVital.records) ? serverVital.records : []
 
-  // Build a map: string_id -> sectionMeta (from server records OR from vitalMeta)
   const metaMap = {}
   ;(vitalMeta || []).forEach(m => {
     metaMap[m.string_id] = m
@@ -72,32 +55,21 @@ export function serverVitalToFormColumns(serverVital = {}, vitalMeta = []) {
     metaMap[r.string_id] = r
   })
 
-  // columns: one per timeSlot
   const columns = (timeSlots || []).map(slot => {
     const col = {
       id: slot.id ? String(slot.id) : `t_${Math.random().toString(36).slice(2, 9)}`,
-      timeLabel: slot.recorded_time || '', // keep raw, UI AddTime converts/normalizes when needed
+      timeLabel: slot.recorded_time || '', // raw time
       entries: {}
     }
 
-    // For each record (section), find field values for this timeSlot
     for (const section of records || []) {
-      const sectionId = section.section_id
       const string_id = section.string_id
-      // For convenience, synthesize an entry object for that section:
-      // For fields with single field in section -> { value, unit }
-      // For bp/multi -> { <field_key>: value, unit }
       const fields = section.fields || []
-
       if (!fields.length) continue
 
-      // If the section has fields where each field has values array (server "values" format)
-      // we expect section.fields[].values = [{ monitoring_time_id, field_value, unit }]
-      // But your posted server example in the 2nd format already showed fields[].values - handle both:
       let builtEntry = {}
-
-      // Case A: fields[].values present -> map by monitoring_time_id
       const hasValuesArray = fields.some(f => Array.isArray(f.values) && f.values.length > 0)
+
       if (hasValuesArray) {
         fields.forEach(f => {
           const values = f.values || []
@@ -105,16 +77,16 @@ export function serverVitalToFormColumns(serverVital = {}, vitalMeta = []) {
             v => String(v.monitoring_time_id) === String(slot.id) || v.monitoring_time_id === slot.recorded_time
           )
           if (vObj) {
-            // fill either single-value entry or multi-field
             if (fields.length === 1) {
+              // single value (temp, 1 radio, etc.)
               builtEntry.value = String(vObj.field_value ?? '')
               builtEntry.unit = vObj.unit ?? ''
             } else {
+              // multi-field (BP, etc.)
               builtEntry[f.field_key] = String(vObj.field_value ?? '')
               builtEntry.unit = vObj.unit ?? builtEntry.unit ?? ''
             }
           } else {
-            // nothing for this slot - keep empty
             if (fields.length === 1) {
               builtEntry.value = builtEntry.value ?? ''
               builtEntry.unit = builtEntry.unit ?? ''
@@ -124,8 +96,6 @@ export function serverVitalToFormColumns(serverVital = {}, vitalMeta = []) {
           }
         })
       } else {
-        // Case B: server provided 'records' in block-per-time format? (older format)
-        // Try to use section.fields[].field_value when present (maybe it's single snapshot)
         fields.forEach(f => {
           if (f.field_value !== undefined && f.field_value !== null) {
             if (fields.length === 1) {
@@ -136,7 +106,6 @@ export function serverVitalToFormColumns(serverVital = {}, vitalMeta = []) {
               builtEntry.unit = f.unit ?? builtEntry.unit ?? ''
             }
           } else {
-            // leave empty
             if (fields.length === 1) {
               builtEntry.value = builtEntry.value ?? ''
               builtEntry.unit = builtEntry.unit ?? ''
@@ -147,7 +116,6 @@ export function serverVitalToFormColumns(serverVital = {}, vitalMeta = []) {
         })
       }
 
-      // Put entry under the section string_id
       col.entries[string_id] = builtEntry
     }
 
@@ -157,46 +125,66 @@ export function serverVitalToFormColumns(serverVital = {}, vitalMeta = []) {
   return columns
 }
 
-export function formColumnsToVitalMonitoringBlocks(columns, vitalList) {
+const extractFieldValueAndUnit = (fieldMeta, entry) => {
+  if (!fieldMeta || !entry) return { value: '', unit: null }
+
+  // 1) prefer unique fieldsById map
+  if (entry.fieldsById && entry.fieldsById[String(fieldMeta.field_id)]) {
+    const rec = entry.fieldsById[String(fieldMeta.field_id)]
+    return { value: rec?.value == null ? '' : String(rec.value), unit: rec?.unit ?? null }
+  }
+
+  // 2) fallback: single-number shape { value, unit }
+  if (entry.value !== undefined) {
+    return { value: entry.value == null ? '' : String(entry.value), unit: entry.unit ?? null }
+  }
+
+  // 3) radio shape
+  if (entry.selection !== undefined) {
+    return { value: entry.selection == null ? '' : String(entry.selection), unit: null }
+  }
+
+  // 4) multi-field shape by field_key (note: duplicates may exist; we handle _<id> suffix in prefill)
+  const fk = fieldMeta.field_key
+  if (entry[fk] !== undefined) {
+    return { value: entry[fk] == null ? '' : String(entry[fk]), unit: entry.unit ?? null }
+  }
+  // also check keyed-by-id fallback key (e.g. `${field_key}_${field_id}`)
+  if (entry[`${fk}_${fieldMeta.field_id}`] !== undefined) {
+    return {
+      value: entry[`${fk}_${fieldMeta.field_id}`] == null ? '' : String(entry[`${fk}_${fieldMeta.field_id}`]),
+      unit: entry.unit ?? null
+    }
+  }
+
+  return { value: '', unit: null }
+}
+
+export function formColumnsToVitalMonitoringBlocks(columns = [], vitalList = []) {
   const blocks = []
 
-  for (const col of columns) {
+  for (const col of columns || []) {
     const block = {
-      recorded_time: col.timeLabel, // "13:00"
+      recorded_time: col.timeLabel || '',
       sections: []
     }
 
-    for (const section of vitalList) {
+    for (const section of vitalList || []) {
       const entry = col.entries?.[section.string_id]
       if (!entry) continue
 
       const fieldsArr = []
 
-      for (const f of section.fields) {
-        let field_value = ''
-        let unit = ''
+      for (const f of section.fields || []) {
+        const { value, unit } = extractFieldValueAndUnit(f, entry)
 
-        if (section.fields.length === 1 && f.input_type === 'number') {
-          // Temperature-style (value + unit)
-          field_value = entry.value ?? ''
-          unit = entry.unit ?? ''
-        } else if (f.input_type === 'radio' || f.input_type === 'select') {
-          // Radio-style (selection)
-          field_value = entry.selection ?? ''
-          unit = ''
-        } else {
-          // Multi-field BP-style
-          field_value = entry[f.field_key] ?? ''
-          unit = entry.unit ?? ''
-        }
-
-        if (field_value === '') continue
+        if (value === '' || value == null) continue
 
         fieldsArr.push({
           field_id: f.field_id,
           field_key: f.field_key,
-          field_value,
-          unit
+          field_value: value,
+          unit: unit ?? ''
         })
       }
 
@@ -216,50 +204,6 @@ export function formColumnsToVitalMonitoringBlocks(columns, vitalList) {
 
   return blocks
 }
-
-// // Convert form columns -> server "vital_monitoring" grouped structure you requested in useEffect save
-// // { time_slots: [...], records: [...] }
-// export function formColumnsToServerStructure(columns = [], vitalMeta = []) {
-//   // time_slots: use column.id and recorded_time
-//   const time_slots = (columns || []).map(c => ({ id: c.id, recorded_time: normalizeRecordedTime(c.timeLabel) }))
-
-//   // Build for each meta section a fields array where each field has values array per time slot
-//   // Start by cloning vitalMeta records as base (so section_name, etc.)
-//   const records = (vitalMeta || []).map(meta => {
-//     const fields = (meta.fields || []).map(fMeta => {
-//       const values = (columns || []).map(col => {
-//         const entry = col.entries?.[meta.string_id] ?? {}
-//         // find value for this field in the entry
-//         const value = entry[fMeta.field_key] ?? entry.value ?? entry.selection ?? ''
-//         const unit = entry.unit ?? (Array.isArray(fMeta.units) && fMeta.units.length ? fMeta.units[0] : null)
-//         return {
-//           monitoring_time_id: col.id,
-//           field_value: value === undefined || value === null ? '' : String(value),
-//           unit: unit
-//         }
-//       })
-//       return {
-//         field_id: fMeta.field_id,
-//         field_key: fMeta.field_key,
-//         field_label: fMeta.field_label,
-//         input_type: fMeta.input_type,
-//         options: fMeta.options || [],
-//         units: fMeta.units || [],
-//         values
-//       }
-//     })
-
-//     return {
-//       section_id: meta.section_id,
-//       section_name: meta.section_name,
-//       string_id: meta.string_id,
-//       type: meta.type,
-//       fields
-//     }
-//   })
-
-//   return { time_slots, records }
-// }
 
 export const anesthesiaSchema = yup.object({
   basicDetails: yup.object({
@@ -520,15 +464,7 @@ export default function AddAnesthesiaRecord() {
         custom: [],
         notes: ''
       },
-      anesthesiaSetup: {
-        // fluids: { checked: false, fluidType: '', quantity: '' },
-        // catheter_setup: { checked: false, method: '' },
-        // syringe_pump: { checked: false, rate: '' },
-        // et_intubation: { checked: false, tubeSizes: '' },
-        // nasal_intubation: { checked: false, fluidType: '', quantity: '' },
-        // ventilation: { checked: false, mode: '' },
-        // monitoring: { checked: false, selected: [], otherItems: [] }
-      },
+      anesthesiaSetup: {},
       medicationsGas: {
         medications: [],
         gases: []
@@ -602,7 +538,6 @@ export default function AddAnesthesiaRecord() {
     formState: { errors, isValid }
   } = methods
 
-  // Watch individual fields
   const location = watch('basicDetails.location')
   const anaesthesia_datetime = watch('basicDetails.anaesthesia_datetime')
   const estimated_time_required = watch('basicDetails.estimated_time_required')
@@ -714,7 +649,7 @@ export default function AddAnesthesiaRecord() {
 
     try {
       setAddLoader(true)
-      const response = await getAnesthesiaDetails(anaesthesia_id) // adjust if API expects { anaesthesia_id: anesthesiaId }
+      const response = await getAnesthesiaDetails(anaesthesia_id)
       console.log(response, 'getAnesthesiaDetails response')
 
       if (response?.success && response?.data) {
@@ -731,7 +666,7 @@ export default function AddAnesthesiaRecord() {
   }
 
   useEffect(() => {
-    if (!anaesthesia_id) return // when adding a new record, there is no detail to fetch
+    if (!anaesthesia_id) return
     fetchAnesthesiaDetails(anaesthesia_id)
   }, [anaesthesia_id])
 
@@ -740,8 +675,6 @@ export default function AddAnesthesiaRecord() {
 
     const detail = anesthesiaDetail
     console.log(detail, 'detail')
-
-    // ---------- PURPOSE (selected + custom) ----------
     const purposeArray = detail.purpose || []
 
     const selectedPurposeIds = []
@@ -752,14 +685,12 @@ export default function AddAnesthesiaRecord() {
 
       if (!isSelected) return
 
-      // normal purpose → goes to selected[]
       if (p.is_other === '0' || p.is_other === 0 || p.is_other === false) {
         if (p.id != null) {
           selectedPurposeIds.push(String(p.id))
         }
       }
 
-      // "other" / custom purpose → goes to custom[] as name
       if (p.is_other === '1' || p.is_other === 1 || p.is_other === true) {
         if (p.name) {
           customPurposeNames.push(p.name)
@@ -828,12 +759,10 @@ export default function AddAnesthesiaRecord() {
 
     // ---------- PRE-ANAESTHESIA ----------
     const pre = detail.pre_anaesthesia || {}
-    // pre.clin_path now comes as an array of objects:
-    // [{ id, name, is_other, is_selected, ... }, ...]
     const clinPathArray = Array.isArray(pre.clin_path) ? pre.clin_path : []
 
-    const clinSelectedObj = {} // { [id]: true }
-    const clinCustomArr = [] // ['My custom test', 'Other thing']
+    const clinSelectedObj = {}
+    const clinCustomArr = []
 
     clinPathArray.forEach(item => {
       const isSelected = item.is_selected === '1' || item.is_selected === 1 || item.is_selected === true
@@ -842,12 +771,10 @@ export default function AddAnesthesiaRecord() {
       const isOther = item.is_other === '1' || item.is_other === 1 || item.is_other === true
 
       if (!isOther) {
-        // normal option → goes into selected object as { [id]: true }
         if (item.id != null) {
           clinSelectedObj[String(item.id)] = true
         }
       } else {
-        // custom/other → goes into custom[] as name
         if (item.name) {
           clinCustomArr.push(item.name)
         }
@@ -919,8 +846,8 @@ export default function AddAnesthesiaRecord() {
         medications: medicationsFromApi,
         gases: gasFromApi
       },
-      anesthesiaSetup: {}, // will be filled in next effect
-      vitalMonitoring: [], // will be filled in next effect
+      anesthesiaSetup: {},
+      vitalMonitoring: [],
       preAnesthesia: preAnesthesiaForm,
       recoveryAndReversal: {
         ...recoveryForm,
@@ -986,7 +913,6 @@ export default function AddAnesthesiaRecord() {
 
     try {
       setValue('anesthesiaSetup', anesthesiaSetupFlat, { shouldDirty: false, shouldTouch: false })
-      console.log('✅ anesthesiaSetup prefilled from API:', anesthesiaSetupFlat)
     } catch (err) {
       console.error('setValue failed for anesthesiaSetup', err)
     }
@@ -998,823 +924,19 @@ export default function AddAnesthesiaRecord() {
     const detailVital = anesthesiaDetail.vital_monitoring
     if (!detailVital) return
 
-    const timeSlots = Array.isArray(detailVital.time_slots) ? detailVital.time_slots : []
-    const records = Array.isArray(detailVital.records) ? detailVital.records : []
+    const columns = serverVitalToFormColumns(detailVital)
 
-    const columns = (timeSlots || []).map(slot => ({
-      id: String(slot.id ?? uuidv4()),
-      timeLabel: recordedTimeToLabel(slot.recorded_time ?? ''),
-      entries: {}
+    const normalizedColumns = columns.map(col => ({
+      ...col,
+      timeLabel: recordedTimeToLabel(col.timeLabel || col.recorded_time || '')
     }))
 
-    const colById = {}
-    columns.forEach(c => {
-      colById[String(c.id)] = c
-    })
-
-    records.forEach(section => {
-      const sid = section.string_id
-      ;(section.fields || []).forEach(field => {
-        const key = field.field_key
-        const values = field.values || []
-        values.forEach(v => {
-          const timeId = String(v.monitoring_time_id ?? '')
-          const col = colById[timeId] || columns.find(c => c.id === timeId)
-          if (!col) return
-          if (!col.entries[sid]) col.entries[sid] = { fieldsById: {} }
-
-          col.entries[sid].fieldsById[String(field.field_id)] = {
-            field_key: field.field_key,
-            value: v.field_value == null ? '' : String(v.field_value),
-            unit: v.unit ?? null
-          }
-
-          const existing = col.entries[sid][key]
-          if (existing === undefined) {
-            col.entries[sid][key] = v.field_value == null ? '' : String(v.field_value)
-          } else {
-            col.entries[sid][`${key}_${field.field_id}`] = v.field_value == null ? '' : String(v.field_value)
-          }
-
-          if (!col.entries[sid].unit && v.unit) col.entries[sid].unit = v.unit
-        })
-      })
-    })
-
     try {
-      setValue('vitalMonitoring', columns, { shouldDirty: false, shouldTouch: false })
-      console.log('✅ Prefilled vitalMonitoring (form) from API:', columns)
+      setValue('vitalMonitoring', normalizedColumns, { shouldDirty: false, shouldTouch: false })
     } catch (err) {
       console.error('setValue failed for vitalMonitoring', err)
     }
-
-    // Optional: build server-style snapshot if you want to inspect
-    try {
-      const serverStyle = buildServerStyleVitalMonitoring(
-        columns,
-        records.map(r => ({
-          section_id: r.section_id,
-          section_name: r.section_name,
-          string_id: r.string_id,
-          type: r.type,
-          fields: r.fields || []
-        }))
-      )
-      console.log('✅ Server-style vital_monitoring built from API:', serverStyle)
-    } catch (err) {
-      console.error('Failed to build server-style vital monitoring', err)
-    }
   }, [anesthesiaDetail, setValue])
-
-  //   useEffect(() => {
-  //     // Hardcoded data based on your curl
-  //     // const apiClinSelected = detail.pre_anaesthesia?.clin_path?.selected || []
-
-  //     // const clinSelectedObj = apiClinSelected.reduce((acc, id) => {
-  //     //   acc[id] = true // or acc[String(id)] = true if you prefer
-  //     //   return acc
-  //     // }, {})
-
-  //     const anaesthesia_medications = {
-  //       medication: {
-  //         total: 1,
-  //         records: [
-  //           {
-  //             id: '34',
-  //             anaesthesia_id: '4',
-  //             type: 'medication',
-  //             drug_id: '551',
-  //             drug_name: 'testprescription',
-  //             route: 'Application',
-  //             delivery_status: 'Complete',
-  //             created_at: '2025-11-19 07:02:41',
-  //             purpose_stage: 'Premedication',
-  //             amount: '2.000',
-  //             unit_id: '5',
-  //             unit_name: 'pound',
-  //             uom_abbr: 'lb',
-  //             delivery_time: '19:00:00',
-  //             max_effect: '19:30:00',
-  //             comments: 'Administered immediately'
-  //           }
-  //         ]
-  //       },
-  //       gas: {
-  //         total: 1,
-  //         records: [
-  //           {
-  //             id: '35',
-  //             anaesthesia_id: '4',
-  //             type: 'gas',
-  //             drug_id: '423',
-  //             drug_name: '001Para medicine',
-  //             route: 'Inhalation',
-  //             delivery_status: 'Complete',
-  //             created_at: '2025-11-19 07:02:41',
-  //             oxygen_l_min: '6.000',
-  //             concentration: '3',
-  //             start_time: '23:45:00',
-  //             end_time: '12:00:00'
-  //           }
-  //         ]
-  //       }
-  //     }
-
-  //     // ---------- helper to combine a date (created_at or baseline) with time string ----------
-  //     const combineDateAndTime = (dateStr, timeStr) => {
-  //       if (!timeStr) return null
-  //       // prefer created_at's date part; fallback to a sensible baseline date (today) if missing
-  //       const datePart =
-  //         (dateStr && dayjs(dateStr).isValid() && dayjs(dateStr).format('YYYY-MM-DD')) ||
-  //         /* fallback */ dayjs().format('YYYY-MM-DD')
-  //       const candidate = `${datePart} ${timeStr}`
-  //       const parsed = dayjs(candidate, 'YYYY-MM-DD HH:mm:ss', true)
-  //       return parsed.isValid() ? parsed : null
-  //     }
-
-  //     // ---------- map medication records -> form/drawer shape (use dayjs for times) ----------
-  //     const medicationsFromApi = (anaesthesia_medications.medication?.records || []).map(rec => {
-  //       const createdAt = rec.created_at || null
-  //       return {
-  //         // drawer expects ControlledAutocomplete value like { id, name }
-  //         drug_name: rec.drug_id ? { id: String(rec.drug_id), name: rec.drug_name || '' } : null,
-  //         purpose_stage: rec.purpose_stage || '',
-  //         amount: rec.amount ? String(rec.amount) : '',
-  //         // your ControlledSelect expects unit id as string
-  //         unit: rec.unit_id ? String(rec.unit_id) : '',
-  //         unit_id: rec.unit_id ? String(rec.unit_id) : '',
-  //         // delivery_route in your code expects object { id, delivery } — we don't have route id, so provide delivery text
-  //         delivery_route: rec.route ? { id: '', delivery: rec.route } : null,
-  //         // convert times to dayjs objects combined with created_at's date part
-  //         delivery_time: combineDateAndTime(createdAt, rec.delivery_time),
-  //         max_effect_time: combineDateAndTime(createdAt, rec.max_effect),
-  //         delivery_status: rec.delivery_status || null, // this will allow chip selection
-  //         notes: rec.comments || '',
-  //         id: rec.id || ''
-  //       }
-  //     })
-
-  //     // ---------- map gas records ----------
-  //     const gasFromApi = (anaesthesia_medications.gas?.records || []).map(rec => {
-  //       const createdAt = rec.created_at || null
-  //       return {
-  //         gas_name: rec.drug_id ? { id: String(rec.drug_id), name: rec.drug_name || '' } : null,
-  //         o2_flow: rec.oxygen_l_min ? String(rec.oxygen_l_min) : '',
-  //         concentration: rec.concentration ? String(rec.concentration) : '',
-  //         delivery_route: rec.route ? { id: '', delivery: rec.route } : null,
-  //         start_time: combineDateAndTime(createdAt, rec.start_time),
-  //         end_time: combineDateAndTime(createdAt, rec.end_time),
-  //         delivery_status: rec.delivery_status || null,
-  //         notes: rec.comments || '',
-  //         id: rec.id || ''
-  //       }
-  //     })
-  //     const recovery_and_reversal = {
-  //       recovery: {
-  //         id: '2',
-  //         anaesthesia_id: '4',
-  //         recovery_type: 'Normal',
-  //         recovery_first_effect_time: '00:15:00',
-  //         recovery_full_effect_time: '00:45:00',
-  //         describe_problem: 'Slight delay in reflex return',
-  //         notes: 'Animal calm and responsive',
-  //         rating_induction: 'Good',
-  //         rating_tolerance: 'Excellent',
-  //         rating_recovery: 'Poor',
-  //         rating_overall: 'Good',
-  //         created_at: '2025-11-19 07:02:42'
-  //       },
-  //       reversal: {
-  //         total: 1,
-  //         records: [
-  //           {
-  //             id: '36',
-  //             anaesthesia_id: '4',
-  //             type: 'reversal',
-  //             drug_id: '445',
-  //             drug_name: '00asdf',
-  //             route: 'Intramuscular',
-  //             delivery_status: 'Complete',
-  //             created_at: '2025-11-19 07:02:42',
-  //             amount: '0.200',
-  //             unit_id: '5',
-  //             unit_name: 'pound',
-  //             uom_abbr: 'lb',
-  //             delivery_time: '21:00:00',
-  //             comments: null,
-  //             max_effect: '19:30:00'
-  //           }
-  //         ]
-  //       }
-  //     }
-
-  //     // map recovery -> form shape
-  //     const recoveryFromApi = recovery_and_reversal?.recovery || null
-
-  //     const reversalFromApi = (recovery_and_reversal?.reversal?.records || []).map(rec => {
-  //       const createdAt = rec.created_at || null
-  //       return {
-  //         id: rec.id || '',
-  //         drug_id: rec.drug_id ? Number(rec.drug_id) : undefined,
-  //         drug_name: rec.drug_id ? { id: String(rec.drug_id), name: rec.drug_name || '' } : null,
-  //         amount: rec.amount ? String(rec.amount) : '',
-  //         unit: rec.unit_id ? String(rec.unit_id) : '',
-  //         unit_id: rec.unit_id ? String(rec.unit_id) : '',
-  //         delivery_route: rec.route ? { id: '', delivery: rec.route } : null,
-  //         // dayjs objects (combine with created_at date if needed)
-  //         delivery_time: combineDateAndTime(createdAt, rec.delivery_time),
-  //         max_effect_time: combineDateAndTime(createdAt, rec.max_effect),
-  //         delivery_status: rec.delivery_status || null,
-  //         notes: rec.comments || ''
-  //       }
-  //     })
-  //     reset({
-  //       basicDetails: {
-  //         location: 'Bangalore',
-  //         anaesthesia_datetime: '2025-11-17 00:00:00',
-  //         estimated_time_required: '10',
-  //         estimated_time_unit: 'hr',
-  //         veterinarian_id: ['68', '70'],
-  //         anesthetist_id: ['58'],
-  //         selected: ['24', '25'],
-  //         custom: [],
-  //         notes: 'notes 1'
-  //       },
-  //       medicationsGas: {
-  //         medications: medicationsFromApi,
-  //         gases: gasFromApi
-  //       },
-  //       //   anesthesiaSetup: {
-  //       //     // from anaesthesia_setup array
-  //       //     fluids: {
-  //       //       checked: true,
-  //       //       fluidType: '12', // fluid_type
-  //       //       fluidQuantity: '10' // fluid_quantity
-  //       //     },
-  //       //     catheter_setup: {
-  //       //       checked: true,
-  //       //       method: 'IV' // catheter_type
-  //       //     },
-  //       //     syringe_pump: {
-  //       //       checked: true,
-  //       //       rate: '15' // syringe_rate
-  //       //     },
-  //       //     // others remain default / unchecked
-  //       //     et_intubation: { checked: false, tubeSizes: '' },
-  //       //     nasal_intubation: { checked: false, fluidType: '', quantity: '' },
-  //       //     ventilation: { checked: false, mode: '' },
-  //       //     monitoring: { checked: false, selected: [], otherItems: [] }
-  //       //   },
-  //       vitalMonitoring: [],
-  //       preAnesthesia: {
-  //         temperature: '100',
-  //         humidity: '120',
-  //         physical_health_status: 'Class I Normal Health',
-  //         body_condition: 'Fair/Thin',
-  //         animal_activity: 'Calm',
-  //         fasting_time: '12',
-  //         fasting_unit: 'hours',
-  //         previous_endotracheal_tube_size: '0',
-  //         code_status: 'R (Resuscitate)',
-  //         weight: '90',
-  //         weight_unit: 'kg',
-  //         mark_weight_as_approximate: true, // because weight_type = "Estimated"
-  //         pre_anesthesia_notes: 'notes for risk',
-  //         // clin_path: {
-  //         //     selected: clinSelectedObj,                 // 👈 {3:true,4:true,5:true}
-  //         //     custom: pre.clin_path?.custom || []
-  //         //   },
-  //         clin_path: {
-  //           selected: {
-  //             16: true,
-  //             17: true
-  //           }, // from curl: "selected":[16,17]
-  //           custom: ['item 1'] // from curl: "custom":["item 1"]
-  //         }
-  //       },
-  //       recoveryAndReversal: {
-  //         // map recovery fields into form-friendly names (these keys must match the Controlled inputs in RecoveryAndReversal)
-  //         recovery_type: recoveryFromApi?.recovery_type || '',
-  //         recovery_first_effect: recoveryFromApi?.recovery_first_effect_time
-  //           ? combineDateAndTime(recoveryFromApi.created_at, recoveryFromApi.recovery_first_effect_time)
-  //           : null,
-  //         recovery_full_effect: recoveryFromApi?.recovery_full_effect_time
-  //           ? combineDateAndTime(recoveryFromApi.created_at, recoveryFromApi.recovery_full_effect_time)
-  //           : null,
-  //         describe_problem: recoveryFromApi?.describe_problem || '',
-  //         notes: recoveryFromApi?.notes || '',
-  //         induction: recoveryFromApi?.rating_induction || '',
-  //         tolerance: recoveryFromApi?.rating_tolerance || '',
-  //         recovery: recoveryFromApi?.rating_recovery || '',
-  //         overall: recoveryFromApi?.rating_overall || '',
-
-  //         reversalDrugs: reversalFromApi || []
-  //       },
-  //       attachments: {
-  //         files: [],
-  //         comments: ''
-  //       }
-  //     })
-  //     // setValue('recoveryAndReversal.reversalDrugs', reversalFromApi || [], { shouldDirty: false, shouldTouch: false })
-  //   }, [reset])
-
-  //   useEffect(() => {
-  //     // HARD-CODED server response (replace with your real detail.* if needed)
-  //     const apiAnaesthesiaSetup = [
-  //       {
-  //         section_id: 8,
-  //         section_name: 'Fluids',
-  //         string_id: 'fluids',
-  //         type: 'anaesthesia_setup',
-  //         fields: [
-  //           {
-  //             field_id: 8,
-  //             field_key: 'fluid_type',
-  //             field_label: 'Fluid Type',
-  //             input_type: 'text',
-  //             options: [],
-  //             units: [],
-  //             field_value: 'Ringer Lactate',
-  //             unit: null
-  //           },
-  //           {
-  //             field_id: 9,
-  //             field_key: 'fluid_quantity',
-  //             field_label: 'Quantity',
-  //             input_type: 'number',
-  //             options: [],
-  //             units: ['ml/hr'],
-  //             field_value: '500',
-  //             unit: 'ml/hr'
-  //           }
-  //         ]
-  //       },
-  //       {
-  //         section_id: 13,
-  //         section_name: 'Ventilation',
-  //         string_id: 'ventilation',
-  //         type: 'anaesthesia_setup',
-  //         fields: [
-  //           {
-  //             field_id: 14,
-  //             field_key: 'ventilation_mode',
-  //             field_label: 'Mode',
-  //             input_type: 'radio',
-  //             options: ['No', 'Ventronics', 'Manual'],
-  //             units: [],
-  //             field_value: 'Manual',
-  //             unit: null
-  //           }
-  //         ]
-  //       },
-  //       {
-  //         section_id: 14,
-  //         section_name: 'Monitoring',
-  //         string_id: 'monitoring',
-  //         type: 'anaesthesia_setup',
-  //         fields: [],
-  //         monitoring_items: [
-  //           { id: '3', name: 'Pulse ox', type: 'monitoring', is_selected: '1' },
-  //           { id: '21', name: 'new monitoring', type: 'monitoring', is_selected: '1' }
-  //         ]
-  //       }
-  //     ]
-
-  //     // helper: snake_case => camelCase (fluid_quantity -> fluidQuantity)
-  //     const toCamel = s =>
-  //       String(s || '')
-  //         .trim()
-  //         .replace(/_([a-zA-Z0-9])/g, (_, g1) => g1.toUpperCase())
-
-  //     // Build flat UI object
-  //     const anesthesiaSetupFlat = {}
-  //     apiAnaesthesiaSetup.forEach(section => {
-  //       const key = section.string_id
-  //       const sectionObj = {
-  //         checked: false,
-  //         fields: {}, // nested fields for submission (field_key -> { field_value, unit })
-  //         monitoring: { selected: [], otherItems: [] }
-  //       }
-
-  //       // map fields -> flat keys + nested fields
-  //       if (Array.isArray(section.fields)) {
-  //         section.fields.forEach(f => {
-  //           const uiKey = toCamel(f.field_key) // e.g. fluid_quantity -> fluidQuantity
-  //           const rawVal = f.field_value === null || f.field_value === undefined ? '' : String(f.field_value)
-  //           const unit = f.unit ?? (Array.isArray(f.units) && f.units.length ? f.units[0] : null)
-
-  //           // flat value used by your form inputs (watch('anesthesiaSetup.<key>.<uiKey>'))
-  //           sectionObj[uiKey] = rawVal
-
-  //           // nested fields to keep original meta for submit
-  //           sectionObj.fields[f.field_key] = { field_value: rawVal, unit }
-
-  //           if (rawVal !== '') sectionObj.checked = true
-  //         })
-  //       }
-
-  //       // map monitoring items (if present)
-  //       if (Array.isArray(section.monitoring_items) && section.monitoring_items.length > 0) {
-  //         const selected = []
-  //         const otherItems = []
-
-  //         section.monitoring_items.forEach(mi => {
-  //           const selectedFlag = mi.is_selected === '1' || mi.is_selected === 1 || mi.is_selected === true
-  //           if (selectedFlag && mi.id) selected.push(Number(mi.id))
-  //           // any entries without id (or custom) go to otherItems
-  //           if ((!mi.id || mi.id === '') && mi.name) otherItems.push(mi.name)
-  //         })
-
-  //         if (selected.length > 0 || otherItems.length > 0) sectionObj.checked = true
-  //         sectionObj.monitoring.selected = selected
-  //         sectionObj.monitoring.otherItems = otherItems
-  //       }
-
-  //       anesthesiaSetupFlat[key] = sectionObj
-  //     })
-
-  //     // Write into the form state (setValue comes from useForm / methods)
-  //     // ensure setValue is in scope where you paste this useEffect
-  //     try {
-  //       setValue('anesthesiaSetup', anesthesiaSetupFlat, { shouldDirty: false, shouldTouch: false })
-  //       // optional: log to verify
-  //       console.log('✅ anesthesiaSetup prefilled:', anesthesiaSetupFlat)
-  //     } catch (err) {
-  //       console.error('setValue failed for anesthesiaSetup', err)
-  //     }
-  //   }, [setValue])
-
-  //   useEffect(() => {
-  //     // Hardcoded server sample (you already used). Replace `detailVital` with your real server payload variable when ready.
-  //     const detailVital = {
-  //       time_slots: [
-  //         { id: '4', recorded_time: '13:00:00' },
-  //         { id: '5', recorded_time: '14:00:00' }
-  //       ],
-  //       records: [
-  //         {
-  //           section_id: 15,
-  //           section_name: 'Temperature',
-  //           string_id: 'temperature',
-  //           type: 'vital_monitoring',
-  //           fields: [
-  //             {
-  //               field_id: 15,
-  //               field_key: 'temperature',
-  //               field_label: 'Temperature',
-  //               input_type: 'number',
-  //               options: [],
-  //               units: ['°C', '°F'],
-  //               values: [
-  //                 {
-  //                   monitoring_time_id: '4',
-  //                   field_value: '37.5',
-  //                   unit: '°C'
-  //                 },
-  //                 {
-  //                   monitoring_time_id: '5',
-  //                   field_value: '38.0',
-  //                   unit: '°C'
-  //                 }
-  //               ]
-  //             }
-  //           ]
-  //         },
-  //         {
-  //           section_id: 19,
-  //           section_name: 'Blood Pressure (BP)',
-  //           string_id: 'bp',
-  //           type: 'vital_monitoring',
-  //           fields: [
-  //             {
-  //               field_id: 19,
-  //               field_key: 'bp_systolic',
-  //               field_label: 'Systolic',
-  //               input_type: 'number',
-  //               options: [],
-  //               units: ['mmHg'],
-  //               values: [
-  //                 {
-  //                   monitoring_time_id: '4',
-  //                   field_value: '120',
-  //                   unit: 'mmHg'
-  //                 },
-  //                 {
-  //                   monitoring_time_id: '5',
-  //                   field_value: '130',
-  //                   unit: 'mmHg'
-  //                 }
-  //               ]
-  //             },
-  //             {
-  //               field_id: 19,
-  //               field_key: 'bp_systolic',
-  //               field_label: 'Systolic',
-  //               input_type: 'number',
-  //               options: [],
-  //               units: ['mmHg'],
-  //               values: [
-  //                 {
-  //                   monitoring_time_id: '4',
-  //                   field_value: '120',
-  //                   unit: 'mmHg'
-  //                 },
-  //                 {
-  //                   monitoring_time_id: '5',
-  //                   field_value: '130',
-  //                   unit: 'mmHg'
-  //                 }
-  //               ]
-  //             },
-  //             {
-  //               field_id: 20,
-  //               field_key: 'bp_mean',
-  //               field_label: 'Mean',
-  //               input_type: 'number',
-  //               options: [],
-  //               units: ['mmHg'],
-  //               values: [
-  //                 {
-  //                   monitoring_time_id: '4',
-  //                   field_value: '80',
-  //                   unit: 'mmHg'
-  //                 },
-  //                 {
-  //                   monitoring_time_id: '5',
-  //                   field_value: '85',
-  //                   unit: 'mmHg'
-  //                 }
-  //               ]
-  //             },
-  //             {
-  //               field_id: 20,
-  //               field_key: 'bp_mean',
-  //               field_label: 'Mean',
-  //               input_type: 'number',
-  //               options: [],
-  //               units: ['mmHg'],
-  //               values: [
-  //                 {
-  //                   monitoring_time_id: '4',
-  //                   field_value: '80',
-  //                   unit: 'mmHg'
-  //                 },
-  //                 {
-  //                   monitoring_time_id: '5',
-  //                   field_value: '85',
-  //                   unit: 'mmHg'
-  //                 }
-  //               ]
-  //             }
-  //           ]
-  //         }
-  //       ]
-  //     }
-
-  //     if (!detailVital) return
-
-  //     const timeSlots = Array.isArray(detailVital.time_slots) ? detailVital.time_slots : []
-  //     const records = Array.isArray(detailVital.records) ? detailVital.records : []
-
-  //     // build columns
-  //     const columns = (timeSlots || []).map(slot => ({
-  //       id: String(slot.id ?? uuidv4()),
-  //       timeLabel: recordedTimeToLabel(slot.recorded_time ?? ''),
-  //       entries: {} // entries[string_id] = { fieldsById: { [field_id]: {value, unit} }, flat keys ... , unit }
-  //     }))
-
-  //     const colById = {}
-  //     columns.forEach(c => {
-  //       colById[String(c.id)] = c
-  //     })
-
-  //     // populate entries
-  //     records.forEach(section => {
-  //       const sid = section.string_id
-  //       ;(section.fields || []).forEach(field => {
-  //         const key = field.field_key
-  //         const values = field.values || []
-  //         values.forEach(v => {
-  //           const timeId = String(v.monitoring_time_id ?? '')
-  //           const col = colById[timeId] || columns.find(c => c.id === timeId)
-  //           if (!col) return
-  //           if (!col.entries[sid]) col.entries[sid] = { fieldsById: {} }
-
-  //           // store canonical unique map by field_id
-  //           col.entries[sid].fieldsById[String(field.field_id)] = {
-  //             field_key: field.field_key,
-  //             value: v.field_value == null ? '' : String(v.field_value),
-  //             unit: v.unit ?? null
-  //           }
-
-  //           // also set friendly flat key for UI (single-number & multi-field & legacy)
-  //           // if same key already exists, use a suffix with field_id to avoid overwrite
-  //           const existing = col.entries[sid][key]
-  //           if (existing === undefined) {
-  //             col.entries[sid][key] = v.field_value == null ? '' : String(v.field_value)
-  //           } else {
-  //             // collision -> create unique key
-  //             col.entries[sid][`${key}_${field.field_id}`] = v.field_value == null ? '' : String(v.field_value)
-  //           }
-
-  //           // attach entry-level unit if not set (keep last unit seen)
-  //           if (!col.entries[sid].unit && v.unit) col.entries[sid].unit = v.unit
-  //         })
-  //       })
-  //     })
-
-  //     // write into form
-  //     try {
-  //       setValue('vitalMonitoring', columns, { shouldDirty: false, shouldTouch: false })
-  //       console.log('✅ Prefilled vitalMonitoring (form):', columns)
-  //     } catch (err) {
-  //       console.error('setValue failed for vitalMonitoring', err)
-  //     }
-
-  //     // build server style structure (complete)
-  //     try {
-  //       const serverStyle = buildServerStyleVitalMonitoring(
-  //         columns,
-  //         records.map(r => ({
-  //           section_id: r.section_id,
-  //           section_name: r.section_name,
-  //           string_id: r.string_id,
-  //           type: r.type,
-  //           fields: r.fields || []
-  //         }))
-  //       )
-  //       // setVitalMonitoringServer(serverStyle)
-  //       console.log('✅ Server-style vital_monitoring built:', serverStyle)
-  //     } catch (err) {
-  //       console.error('Failed to build server-style vital monitoring', err)
-  //     }
-  //   }, [setValue])
-
-  // useEffect(() => {
-  //   // Example: serverVital could come from detail.vital_monitoring or another API response
-  //   // Hardcoded example:
-  //   const serverVital = {
-  //     time_slots: [
-  //       { id: '4', recorded_time: '13:00:00' },
-  //       { id: '5', recorded_time: '14:00:00' }
-  //     ],
-  //     records: [
-  //       {
-  //         section_id: 15,
-  //         section_name: 'Temperature',
-  //         string_id: 'temperature',
-  //         type: 'vital_monitoring',
-  //         fields: [
-  //           {
-  //             field_id: 15,
-  //             field_key: 'temperature',
-  //             field_label: 'Temperature',
-  //             input_type: 'number',
-  //             options: [],
-  //             units: ['°C', '°F'],
-  //             values: [
-  //               {
-  //                 monitoring_time_id: '4',
-  //                 field_value: '37.5',
-  //                 unit: '°C'
-  //               },
-  //               {
-  //                 monitoring_time_id: '5',
-  //                 field_value: '38.0',
-  //                 unit: '°C'
-  //               }
-  //             ]
-  //           },
-  //           {
-  //             field_id: 15,
-  //             field_key: 'temperature',
-  //             field_label: 'Temperature',
-  //             input_type: 'number',
-  //             options: [],
-  //             units: ['°C', '°F'],
-  //             values: [
-  //               {
-  //                 monitoring_time_id: '4',
-  //                 field_value: '37.5',
-  //                 unit: '°C'
-  //               },
-  //               {
-  //                 monitoring_time_id: '5',
-  //                 field_value: '38.0',
-  //                 unit: '°C'
-  //               }
-  //             ]
-  //           }
-  //         ]
-  //       },
-  //       {
-  //         section_id: 19,
-  //         section_name: 'Blood Pressure (BP)',
-  //         string_id: 'bp',
-  //         type: 'vital_monitoring',
-  //         fields: [
-  //           {
-  //             field_id: 19,
-  //             field_key: 'bp_systolic',
-  //             field_label: 'Systolic',
-  //             input_type: 'number',
-  //             options: [],
-  //             units: ['mmHg'],
-  //             values: [
-  //               {
-  //                 monitoring_time_id: '4',
-  //                 field_value: '120',
-  //                 unit: 'mmHg'
-  //               },
-  //               {
-  //                 monitoring_time_id: '5',
-  //                 field_value: '130',
-  //                 unit: 'mmHg'
-  //               }
-  //             ]
-  //           },
-  //           {
-  //             field_id: 19,
-  //             field_key: 'bp_systolic',
-  //             field_label: 'Systolic',
-  //             input_type: 'number',
-  //             options: [],
-  //             units: ['mmHg'],
-  //             values: [
-  //               {
-  //                 monitoring_time_id: '4',
-  //                 field_value: '120',
-  //                 unit: 'mmHg'
-  //               },
-  //               {
-  //                 monitoring_time_id: '5',
-  //                 field_value: '130',
-  //                 unit: 'mmHg'
-  //               }
-  //             ]
-  //           },
-  //           {
-  //             field_id: 20,
-  //             field_key: 'bp_mean',
-  //             field_label: 'Mean',
-  //             input_type: 'number',
-  //             options: [],
-  //             units: ['mmHg'],
-  //             values: [
-  //               {
-  //                 monitoring_time_id: '4',
-  //                 field_value: '80',
-  //                 unit: 'mmHg'
-  //               },
-  //               {
-  //                 monitoring_time_id: '5',
-  //                 field_value: '85',
-  //                 unit: 'mmHg'
-  //               }
-  //             ]
-  //           },
-  //           {
-  //             field_id: 20,
-  //             field_key: 'bp_mean',
-  //             field_label: 'Mean',
-  //             input_type: 'number',
-  //             options: [],
-  //             units: ['mmHg'],
-  //             values: [
-  //               {
-  //                 monitoring_time_id: '4',
-  //                 field_value: '80',
-  //                 unit: 'mmHg'
-  //               },
-  //               {
-  //                 monitoring_time_id: '5',
-  //                 field_value: '85',
-  //                 unit: 'mmHg'
-  //               }
-  //             ]
-  //           }
-  //         ]
-  //       }
-  //     ]
-  //   }
-
-  //   // if you don't have serverVital yet, skip
-  //   if (!serverVital || (!Array.isArray(serverVital.time_slots) && !Array.isArray(serverVital.records))) {
-  //     // nothing to prefill
-  //     return
-  //   }
-
-  //   // Convert server->form columns
-  //   const columns = serverVitalToFormColumns(serverVital, vitalMonitorList || [])
-
-  //   // set into form
-  //   try {
-  //     setValue('vitalMonitoring', columns, { shouldDirty: false, shouldTouch: false })
-  //     console.log('✅ Prefilled vitalMonitoring:', columns)
-  //   } catch (err) {
-  //     console.error('setValue failed for vitalMonitoring', err)
-  //   }
-  // }, [setValue, vitalMonitorList])
 
   const handleChange = async sectionId => {
     if (sectionId !== 'basicDetails' && !isApiSuccess) {
@@ -1856,37 +978,30 @@ export default function AddAnesthesiaRecord() {
     }
   }
 
-  // Generic camelCase converter (keeps things predictable)
   const toCamel = s =>
     String(s)
       .trim()
       .replace(/_([a-zA-Z0-9])/g, (_, g1) => g1.toUpperCase())
 
-  // Generic UI key for any API field key (no hardcoded sections)
   const uiKeyForField = (_sectionStringId, apiFieldKey) => {
-    // If you ever want custom overrides, add them here as rules (not hardcoded names)
-    // e.g. if (/_tube$/i.test(apiFieldKey)) return 'tubeSizes'
     return toCamel(apiFieldKey)
   }
 
-  // compact parser + formatter
   const TIME_ONLY_RE = /^\s*\d{1,2}:\d{2}(:\d{2})?(\s*[AaPp]\.?[Mm]\.?)?\s*$/
 
   const fmt = v => {
-    if (v == null || v === '') return '' // null/undefined/empty -> ''
+    if (v == null || v === '') return ''
     if (dayjs.isDayjs(v)) return v.isValid() ? v.format('YYYY-MM-DD HH:mm:ss') : ''
     if (v instanceof Date) return dayjs(v).format('YYYY-MM-DD HH:mm:ss')
 
     const str = String(v).trim()
 
-    // if it's time-only, attach today's date
     if (TIME_ONLY_RE.test(str)) {
       const candidate = `${dayjs().format('YYYY-MM-DD')} ${str}`
       const p = dayjs(candidate, ['YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DD hh:mm A', 'YYYY-MM-DD HH:mm'], true)
       return p.isValid() ? p.format('YYYY-MM-DD HH:mm:ss') : ''
     }
 
-    // try common full formats (strict), then loose fallback
     const p = dayjs(str, ['YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DDTHH:mm:ss', 'YYYY-MM-DD', 'HH:mm:ss', 'hh:mm A'], true)
     return p.isValid()
       ? p.format('YYYY-MM-DD HH:mm:ss')
@@ -1895,17 +1010,14 @@ export default function AddAnesthesiaRecord() {
       : ''
   }
 
-  // returns "HH:mm:ss" (or '' on invalid)
   const toTimeOnly = v => {
     if (!v) return ''
-    // v may be dayjs, Date or string like '08:00 PM' or full datetime
     let parsed = null
     if (dayjs.isDayjs(v)) parsed = v
     else if (v instanceof Date) parsed = dayjs(v)
     else parsed = dayjs(String(v))
 
     if (!parsed || !parsed.isValid()) {
-      // try time-only + today's date (handles '08:00 PM')
       const candidate = dayjs(`${dayjs().format('YYYY-MM-DD')} ${String(v).trim()}`, 'YYYY-MM-DD hh:mm A', true)
       if (candidate.isValid()) parsed = candidate
     }
@@ -1913,7 +1025,6 @@ export default function AddAnesthesiaRecord() {
     return parsed && parsed.isValid() ? parsed.format('HH:mm:ss') : ''
   }
 
-  // ---------- Helpers ----------
   const timeLabelToHHMMSS = label => {
     if (!label) return ''
     const d = dayjs(label, ['hh:mm A', 'h:mm A', 'HH:mm', 'H:mm', 'HH:mm:ss'], true)
@@ -1929,250 +1040,245 @@ export default function AddAnesthesiaRecord() {
     return d.format('hh:mm A')
   }
 
-  /**
-   * extract from entry stored in form (we build entries with dual shapes).
-   * fieldMeta is server meta for field.
-   * entry is column.entries[string_id] (the object we prefill and update from dialog)
-   */
-  const extractFieldValueAndUnit = (fieldMeta, entry) => {
-    if (!fieldMeta || !entry) return { value: '', unit: null }
-
-    // 1) prefer unique fieldsById map
-    if (entry.fieldsById && entry.fieldsById[String(fieldMeta.field_id)]) {
-      const rec = entry.fieldsById[String(fieldMeta.field_id)]
-      return { value: rec?.value == null ? '' : String(rec.value), unit: rec?.unit ?? null }
-    }
-
-    // 2) fallback: single-number shape { value, unit }
-    if (entry.value !== undefined) {
-      return { value: entry.value == null ? '' : String(entry.value), unit: entry.unit ?? null }
-    }
-
-    // 3) radio shape
-    if (entry.selection !== undefined) {
-      return { value: entry.selection == null ? '' : String(entry.selection), unit: null }
-    }
-
-    // 4) multi-field shape by field_key (note: duplicates may exist; we handle _<id> suffix in prefill)
-    const fk = fieldMeta.field_key
-    if (entry[fk] !== undefined) {
-      return { value: entry[fk] == null ? '' : String(entry[fk]), unit: entry.unit ?? null }
-    }
-    // also check keyed-by-id fallback key (e.g. `${field_key}_${field_id}`)
-    if (entry[`${fk}_${fieldMeta.field_id}`] !== undefined) {
-      return {
-        value: entry[`${fk}_${fieldMeta.field_id}`] == null ? '' : String(entry[`${fk}_${fieldMeta.field_id}`]),
-        unit: entry.unit ?? null
-      }
-    }
-
-    return { value: '', unit: null }
-  }
-
-  /**
-   * Build server style "vital_monitoring" object from form columns + meta list
-   */
-  const buildServerStyleVitalMonitoring = (columns, metaList) => {
-    const time_slots = (columns || []).map((c, idx) => ({
-      id: String(c.id || idx + 1),
-      recorded_time: timeLabelToHHMMSS(c.timeLabel || '')
-    }))
-
-    const records = (metaList || []).map(sectionMeta => {
-      const fields = (sectionMeta.fields || []).map(fieldMeta => {
-        const values = (columns || [])
-          .map(col => {
-            const entry = col.entries?.[sectionMeta.string_id]
-            if (!entry) return null
-            const { value, unit } = extractFieldValueAndUnit(fieldMeta, entry)
-            if (value === '' || value == null) return null
-            return {
-              monitoring_time_id: String(col.id || ''),
-              field_value: value,
-              unit: unit ?? null
-            }
-          })
-          .filter(Boolean)
-
-        return {
-          field_id: fieldMeta.field_id,
-          field_key: fieldMeta.field_key,
-          field_label: fieldMeta.field_label,
-          input_type: fieldMeta.input_type,
-          options: fieldMeta.options ?? [],
-          units: fieldMeta.units ?? [],
-          values
-        }
-      })
-
-      return {
-        section_id: sectionMeta.section_id,
-        section_name: sectionMeta.section_name,
-        string_id: sectionMeta.string_id,
-        type: sectionMeta.type,
-        fields
-      }
-    })
-
-    return { time_slots, records }
-  }
-
   const onValid = async data => {
     setIsSubmitting(true)
     console.log(data, 'data')
+
     try {
       const anesthesiaSetupValues = methods.getValues('anesthesiaSetup') || {}
+      const isEdit = !!anaesthesia_id
 
-      //const fmt = v => (v ? dayjs(v).format('YYYY-MM-DD HH:mm:ss') : '')
-      const medsPayload = (methods.getValues('medicationsGas.medications') || []).map(m => ({
-        id: m.id || '',
-        drug_id: Number(m.drug_name?.id ?? m.drug_id ?? 0),
-        purpose_stage: m.purpose_stage || '',
-        amount: m.amount || '',
-        unit_id: m.unit ? Number(m.unit) : Number(m.unit_id || 0),
-        route: m.delivery_route?.delivery || '',
-        delivery_time: fmt(m.delivery_time),
-        delivery_status: m.delivery_status || '',
-        max_effect: fmt(m.max_effect_time),
-        comments: m.notes || ''
-      }))
-
-      const gasPayload = (methods.getValues('medicationsGas.gases') || []).map(g => ({
-        id: g.id || '',
-        drug_id: Number(g.gas_name?.id ?? g.drug_id ?? 0),
-        oxygen_l_min: g.o2_flow || g.oxygen_l_min || '',
-        concentration: g.concentration || '',
-        route: g.delivery_route?.delivery || '',
-        start_time: fmt(g.start_time),
-        end_time: fmt(g.end_time),
-        delivery_status: g.delivery_status || '',
-        comments: g.notes || ''
-      }))
-
-      // get recovery form group
-      const recoveryForm = methods.getValues('recoveryAndReversal') || {}
-      // reversal drugs array from form
-      const reversalDrugsForm = methods.getValues('recoveryAndReversal.reversalDrugs') || []
-
-      // build recovery object (times must be HH:mm:ss)
-      console.log(recoveryForm, 'recoveryForm')
-      const recoveryPayload = {
-        recovery_type: recoveryForm.recovery_type || '',
-        recovery_first_effect_time: toTimeOnly(recoveryForm.recovery_first_effect),
-        recovery_full_effect_time: toTimeOnly(recoveryForm.recovery_full_effect),
-        describe_problem: recoveryForm.describe_problem || '',
-        notes: recoveryForm.notes || '',
-        rating_induction: recoveryForm.induction || '',
-        rating_tolerance: recoveryForm.tolerance || '',
-        rating_recovery: recoveryForm.recovery || '',
-        rating_overall: recoveryForm.overall || ''
+      const purposePayload = {
+        selected: data.basicDetails.selected || [],
+        custom: data.basicDetails.custom || []
       }
 
-      // build reversal array
-      const reversalPayload = (reversalDrugsForm || []).map(r => ({
-        id: r.id || '',
-        drug_id: Number(r.drug_name?.id ?? r.drug_id ?? 0),
-        amount: r.amount || '',
-        unit_id: r.unit ? Number(r.unit) : Number(r.unit_id || 0),
-        route: r.delivery_route?.delivery || '',
-        delivery_time: toTimeOnly(r.delivery_time),
-        delivery_status: r.delivery_status || '',
-        max_effect: toTimeOnly(r.max_effect_time)
-      }))
-      const invalidSections = []
+      let medsPayload = []
+      let gasPayload = []
+      let recoveryPayload = null
+      let reversalPayload = []
+      let blocks = []
+      let preAnaesthesiaPayload = null
+      let anaesthesiaSetupPayload = []
 
-      clearErrors('anesthesiaSetup')
+      if (isEdit) {
+        // MEDICATIONS
+        medsPayload = (methods.getValues('medicationsGas.medications') || []).map(m => ({
+          id: m.id || '',
+          drug_id: Number(m.drug_name?.id ?? m.drug_id ?? 0),
+          purpose_stage: m.purpose_stage || '',
+          amount: m.amount || '',
+          unit_id: m.unit ? Number(m.unit) : Number(m.unit_id || 0),
+          route: m.delivery_route?.delivery || '',
+          delivery_time: fmt(m.delivery_time),
+          delivery_status: m.delivery_status || '',
+          max_effect: fmt(m.max_effect_time),
+          comments: m.notes || ''
+        }))
 
-      let hasAnySetupError = false
+        // GAS
+        gasPayload = (methods.getValues('medicationsGas.gases') || []).map(g => ({
+          id: g.id || '',
+          drug_id: Number(g.gas_name?.id ?? g.drug_id ?? 0),
+          oxygen_l_min: g.o2_flow || g.oxygen_l_min || '',
+          concentration: g.concentration || '',
+          route: g.delivery_route?.delivery || '',
+          start_time: fmt(g.start_time),
+          end_time: fmt(g.end_time),
+          delivery_status: g.delivery_status || '',
+          comments: g.notes || ''
+        }))
 
-      for (const meta of anesthesiaSetupList || []) {
-        const sectionKey = meta.string_id
-        const sectionForm = anesthesiaSetupValues[sectionKey]
+        // RECOVERY & REVERSAL
+        const recoveryForm = methods.getValues('recoveryAndReversal') || {}
+        const reversalDrugsForm = methods.getValues('recoveryAndReversal.reversalDrugs') || []
 
-        if (!sectionForm?.checked) continue
+        recoveryPayload = {
+          recovery_type: recoveryForm.recovery_type || '',
+          recovery_first_effect_time: toTimeOnly(recoveryForm.recovery_first_effect),
+          recovery_full_effect_time: toTimeOnly(recoveryForm.recovery_full_effect),
+          describe_problem: recoveryForm.describe_problem || '',
+          notes: recoveryForm.notes || '',
+          rating_induction: recoveryForm.induction || '',
+          rating_tolerance: recoveryForm.tolerance || '',
+          rating_recovery: recoveryForm.recovery || '',
+          rating_overall: recoveryForm.overall || ''
+        }
 
-        let sectionHasError = false
-        if (Array.isArray(meta.fields) && meta.fields.length > 0) {
-          for (const f of meta.fields) {
-            const uiKey = uiKeyForField(meta.string_id, f.field_key)
-            const v = sectionForm[uiKey]
+        reversalPayload = (reversalDrugsForm || []).map(r => ({
+          id: r.id || '',
+          drug_id: Number(r.drug_name?.id ?? r.drug_id ?? 0),
+          amount: r.amount || '',
+          unit_id: r.unit ? Number(r.unit) : Number(r.unit_id || 0),
+          route: r.delivery_route?.delivery || '',
+          delivery_time: toTimeOnly(r.delivery_time),
+          delivery_status: r.delivery_status || '',
+          max_effect: toTimeOnly(r.max_effect_time)
+        }))
 
-            const isEmpty = v === undefined || v === null || (typeof v === 'string' && v.trim() === '')
+        // PRE-ANAESTHESIA
+        const pre = data.preAnesthesia || {}
 
-            if (isEmpty) {
+        const clinPathSelectedObj = pre.clin_path?.selected || {}
+        const clinPathSelectedIds = Object.entries(clinPathSelectedObj)
+          .filter(([, checked]) => !!checked)
+          .map(([id]) => Number(id))
+
+        preAnaesthesiaPayload = {
+          temperature: pre.temperature || '',
+          humidity: pre.humidity || '',
+          physical_health_status: pre.physical_health_status || '',
+          body_condition: pre.body_condition || '',
+          animal_activity: pre.animal_activity || '',
+          fasting_time: pre.fasting_time || '',
+          fasting_unit: pre.fasting_unit || '',
+          previous_endotracheal_tube_size: pre.previous_endotracheal_tube_size || '',
+          code_status: pre.code_status || '',
+          weight: pre.weight || '',
+          weight_unit: pre.weight_unit || '',
+          weight_type: pre.mark_weight_as_approximate ? 'Estimated' : 'Actual',
+          pre_anesthesia_notes: pre.pre_anesthesia_notes || '',
+          clin_path: {
+            selected: clinPathSelectedIds,
+            custom: pre.clin_path?.custom || []
+          }
+        }
+
+        // VITAL BLOCKS
+        const columns = methods.getValues('vitalMonitoring') || []
+
+        const vitalMetaForBlocks =
+          isEdit &&
+          anesthesiaDetail?.vital_monitoring &&
+          Array.isArray(anesthesiaDetail.vital_monitoring.records) &&
+          anesthesiaDetail.vital_monitoring.records.length
+            ? anesthesiaDetail.vital_monitoring.records // use same meta as prefill
+            : vitalMonitorList || []
+
+        console.log(vitalMetaForBlocks, 'vitalMetaForBlocks')
+        console.log('columns:', JSON.stringify(columns, null, 2))
+        console.log('vitalMetaForBlocks:', JSON.stringify(vitalMetaForBlocks, null, 2))
+
+        blocks = formColumnsToVitalMonitoringBlocks(columns, vitalMetaForBlocks)
+
+        console.log('blocks:', JSON.stringify(blocks, null, 2))
+        // ----------- VALIDATE & BUILD ANAESTHESIA SETUP (EDIT-ONLY) -----------
+        const invalidSections = []
+        clearErrors('anesthesiaSetup')
+        let hasAnySetupError = false
+
+        for (const meta of anesthesiaSetupList || []) {
+          const sectionKey = meta.string_id
+          const sectionForm = anesthesiaSetupValues[sectionKey]
+
+          if (!sectionForm?.checked) continue
+
+          let sectionHasError = false
+
+          if (Array.isArray(meta.fields) && meta.fields.length > 0) {
+            for (const f of meta.fields) {
+              const uiKey = uiKeyForField(meta.string_id, f.field_key)
+              const v = sectionForm[uiKey]
+              const isEmpty = v === undefined || v === null || (typeof v === 'string' && v.trim() === '')
+
+              if (isEmpty) {
+                sectionHasError = true
+                hasAnySetupError = true
+
+                setError(`anesthesiaSetup.${sectionKey}.${uiKey}`, {
+                  type: 'required',
+                  message: `${f.field_label} is required`
+                })
+              }
+            }
+          }
+
+          // monitoring validation
+          if (Array.isArray(meta.monitoring_items) && meta.monitoring_items.length > 0) {
+            const mon = sectionForm.monitoring || {}
+            const selected = mon.selected || []
+            const otherItems = mon.otherItems || []
+
+            if (!selected.length && !otherItems.length) {
               sectionHasError = true
               hasAnySetupError = true
 
-              setError(`anesthesiaSetup.${sectionKey}.${uiKey}`, {
+              setError(`anesthesiaSetup.${sectionKey}.monitoring`, {
                 type: 'required',
-                message: `${f.field_label} is required`
+                message: 'Select at least one monitoring item or add an "Other" item'
               })
             }
           }
+
+          if (sectionHasError) invalidSections.push(meta.section_name)
         }
 
-        if (Array.isArray(meta.monitoring_items) && meta.monitoring_items.length > 0) {
-          const mon = sectionForm.monitoring || {}
-          const selected = mon.selected || []
-          const otherItems = mon.otherItems || []
+        if (hasAnySetupError) {
+          Toaster({
+            type: 'error',
+            message: `Please fill all required fields for: ${invalidSections.join(', ')} or uncheck those sections.`
+          })
+          setIsSubmitting(false)
+          return
+        }
 
-          if (!selected.length && !otherItems.length) {
-            sectionHasError = true
-            hasAnySetupError = true
+        // build anaesthesia_setup payload
+        const currentSetupValues = methods.getValues('anesthesiaSetup') || {}
+        anaesthesiaSetupPayload = []
 
-            setError(`anesthesiaSetup.${sectionKey}.monitoring`, {
-              type: 'required',
-              message: 'Select at least one monitoring item or add an "Other" item'
-            })
+        for (const meta of anesthesiaSetupList || []) {
+          const key = meta.string_id
+          const sectionForm = currentSetupValues[key] || {}
+
+          if (!sectionForm || sectionForm.checked !== true) continue
+
+          const fieldsArr = (meta.fields || []).map(f => {
+            const fieldFromObject =
+              (sectionForm.fields && sectionForm.fields[f.field_key] && sectionForm.fields[f.field_key].field_value) ??
+              null
+            const uiKey = uiKeyForField(meta.string_id, f.field_key)
+            const fieldFromFlat = sectionForm[uiKey] ?? null
+
+            const field_value = fieldFromObject ?? fieldFromFlat ?? ''
+            const unit =
+              (sectionForm.fields && sectionForm.fields[f.field_key] && sectionForm.fields[f.field_key].unit) ??
+              f.unit ??
+              null
+
+            return {
+              field_id: f.field_id,
+              field_key: f.field_key,
+              field_value,
+              unit: Array.isArray(f.units) && f.units.length > 0 ? f.units[0] : unit
+            }
+          })
+
+          let monitoringObj = undefined
+          if (Array.isArray(meta.monitoring_items) && meta.monitoring_items.length > 0) {
+            const monState = sectionForm.monitoring || {}
+            const selected = monState.selected || []
+            const custom = monState.otherItems || []
+            monitoringObj = { selected, custom }
           }
-        }
 
-        if (sectionHasError) {
-          invalidSections.push(meta.section_name)
-        }
-      }
+          const sectionObj = {
+            section_id: meta.section_id,
+            string_id: meta.string_id,
+            fields: fieldsArr
+          }
 
-      if (hasAnySetupError) {
-        Toaster({
-          type: 'error',
-          message: `Please fill all required fields for: ${invalidSections.join(', ')} or uncheck those sections.`
-        })
-        setIsSubmitting(false)
-        return
-      }
+          if (monitoringObj) sectionObj.monitoring = monitoringObj
 
-      const pre = data.preAnesthesia || {}
-
-      const clinPathSelectedObj = pre.clin_path?.selected || {}
-      const clinPathSelectedIds = Object.entries(clinPathSelectedObj)
-        .filter(([, checked]) => !!checked)
-        .map(([id]) => Number(id))
-      const preAnaesthesiaPayload = {
-        temperature: pre.temperature || '',
-        humidity: pre.humidity || '',
-        physical_health_status: pre.physical_health_status || '',
-        body_condition: pre.body_condition || '',
-        animal_activity: pre.animal_activity || '',
-        fasting_time: pre.fasting_time || '',
-        fasting_unit: pre.fasting_unit || '',
-        previous_endotracheal_tube_size: pre.previous_endotracheal_tube_size || '',
-        code_status: pre.code_status || '',
-        weight: pre.weight || '',
-        weight_unit: pre.weight_unit || '',
-        weight_type: pre.mark_weight_as_approximate ? 'Estimated' : 'Actual',
-        pre_anesthesia_notes: pre.pre_anesthesia_notes || '',
-        clin_path: {
-          selected: clinPathSelectedIds,
-          custom: pre.clin_path?.custom || []
+          anaesthesiaSetupPayload.push(sectionObj)
         }
       }
-      const columns = methods.getValues('vitalMonitoring')
-      const blocks = formColumnsToVitalMonitoringBlocks(columns, vitalMonitorList)
 
       const formData = new FormData()
-      if (anaesthesia_id) {
+
+      if (isEdit) {
         formData.append('anaesthesia_id', anaesthesia_id)
       }
+
       formData.append('hospital_case_id', hospital_case_id || '')
       formData.append('medical_record_id', medical_record_id || '')
       formData.append('location', data.basicDetails.location)
@@ -2182,71 +1288,18 @@ export default function AddAnesthesiaRecord() {
       formData.append('veterinarian_id', JSON.stringify(data.basicDetails.veterinarian_id || []))
       formData.append('anesthetist_id', JSON.stringify(data.basicDetails.anesthetist_id || []))
       formData.append('notes', data.basicDetails.notes)
-      //formData.append('anaesthesia_id')
-      const purposePayload = {
-        selected: data.basicDetails.selected || [],
-        custom: data.basicDetails.custom || []
-      }
       formData.append('purpose', JSON.stringify(purposePayload))
-      formData.append('pre_anaesthesia', JSON.stringify(preAnaesthesiaPayload))
-      formData.append('anaesthesia_medications', JSON.stringify({ medications: medsPayload, gas: gasPayload }))
-      formData.append('recovery_and_reversal', JSON.stringify({ recovery: recoveryPayload, reversal: reversalPayload }))
-      formData.append('vital_monitoring_blocks', JSON.stringify(blocks))
-      const anaesthesiaSetupPayload = []
-      const currentSetupValues = methods.getValues('anesthesiaSetup') || {}
 
-      for (const meta of anesthesiaSetupList || []) {
-        const key = meta.string_id
-        const sectionForm = currentSetupValues[key] || {}
-
-        if (!sectionForm || sectionForm.checked !== true) continue
-
-        const fieldsArr = (meta.fields || []).map(f => {
-          const fieldFromObject =
-            (sectionForm.fields && sectionForm.fields[f.field_key] && sectionForm.fields[f.field_key].field_value) ??
-            null
-          const uiKey = uiKeyForField(meta.string_id, f.field_key)
-          const fieldFromFlat = sectionForm[uiKey] ?? null
-
-          const field_value = fieldFromObject ?? fieldFromFlat ?? ''
-          const unit =
-            (sectionForm.fields && sectionForm.fields[f.field_key] && sectionForm.fields[f.field_key].unit) ??
-            f.unit ??
-            null
-
-          return {
-            field_id: f.field_id,
-            field_key: f.field_key,
-            //field_label: f.field_label,
-            // input_type: f.input_type,
-            //options: f.options || [],
-            //units: f.units || [],
-            field_value: field_value,
-            unit: f.units.length > 0 ? f.units[0] : unit
-          }
-        })
-
-        let monitoringObj = undefined
-        if (Array.isArray(meta.monitoring_items) && meta.monitoring_items.length > 0) {
-          const monState = sectionForm.monitoring || {}
-          const selected = monState.selected || []
-          const custom = monState.otherItems || []
-          monitoringObj = { selected, custom }
-        }
-        const sectionObj = {
-          section_id: meta.section_id,
-          //section_name: meta.section_name,
-          string_id: meta.string_id,
-          // type: meta.type || 'anaesthesia_setup',
-          fields: fieldsArr
-        }
-
-        if (monitoringObj) sectionObj.monitoring = monitoringObj
-
-        anaesthesiaSetupPayload.push(sectionObj)
+      if (isEdit) {
+        formData.append('pre_anaesthesia', JSON.stringify(preAnaesthesiaPayload))
+        formData.append('anaesthesia_medications', JSON.stringify({ medications: medsPayload, gas: gasPayload }))
+        formData.append(
+          'recovery_and_reversal',
+          JSON.stringify({ recovery: recoveryPayload, reversal: reversalPayload })
+        )
+        formData.append('vital_monitoring_blocks', JSON.stringify(blocks))
+        formData.append('anaesthesia_setup', JSON.stringify(anaesthesiaSetupPayload))
       }
-
-      formData.append('anaesthesia_setup', JSON.stringify(anaesthesiaSetupPayload))
 
       console.log('🔹 Final payload for API:', {
         hospital_case_id: hospital_case_id || '',
@@ -2259,11 +1312,13 @@ export default function AddAnesthesiaRecord() {
         anesthetist_id: data.basicDetails.anesthetist_id,
         notes: data.basicDetails.notes,
         purpose: purposePayload,
-        pre_anaesthesia: preAnaesthesiaPayload,
-        anaesthesia_setup: anaesthesiaSetupPayload,
-        medications: { medications: medsPayload, gas: gasPayload },
-        recovery_and_reversal: { recovery: recoveryPayload, reversal: reversalPayload },
-        vital_monitoring_blocks: blocks
+        ...(isEdit && {
+          pre_anaesthesia: preAnaesthesiaPayload,
+          anaesthesia_setup: anaesthesiaSetupPayload,
+          medications: { medications: medsPayload, gas: gasPayload },
+          recovery_and_reversal: { recovery: recoveryPayload, reversal: reversalPayload },
+          vital_monitoring_blocks: blocks
+        })
       })
 
       const response = await addAnesthesia(formData)
@@ -2296,7 +1351,6 @@ export default function AddAnesthesiaRecord() {
     }
   }
 
-  // Determine if sections should be enabled
   const shouldEnableSections = isApiSuccess
   console.log(id, 'id')
   return (
@@ -2411,7 +1465,7 @@ export default function AddAnesthesiaRecord() {
               }}
             >
               {sections.map(sec => {
-                const isDisabled = sec.id !== 'basicDetails' && !shouldEnableSections
+                const isDisabled = sec.id !== 'basicDetails' && !shouldEnableSections && !anaesthesia_id
                 return (
                   <Tab
                     key={sec.id}
@@ -2457,7 +1511,7 @@ export default function AddAnesthesiaRecord() {
             }}
           >
             {sections.map(({ id, label, component: SectionComponent }) => {
-              const isDisabled = id !== 'basicDetails' && !shouldEnableSections
+              const isDisabled = id !== 'basicDetails' && !shouldEnableSections && !anaesthesia_id
               return (
                 <Accordion
                   key={id}
@@ -2504,11 +1558,7 @@ export default function AddAnesthesiaRecord() {
                       vetOptions={doctors}
                       anesthetistOptions={doctors}
                       purposeOptions={assessmentList}
-                      // drugOptions={drugOptions}
                       purposeStageOptions={purposeStageOptions}
-                      // gasOptions={gasOptions}
-                      //unitOptions={unitOptions}
-                      //deliveryRouteOptions={deliveryRouteOptions}
                       unitList={unitList}
                       vitalMonitorList={vitalMonitorList}
                       physicalHealthStatusOptions={physicalHealthStatusOptions}

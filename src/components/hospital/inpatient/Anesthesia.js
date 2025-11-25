@@ -529,6 +529,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
   }, [deleteLoading])
 
   const handleEditClick = value => {
+    console.log(value, 'value')
     const resolvedCaseId = resolvedHospitalCaseId
     const animalId = normalizeQueryValue(router?.query?.animal_id)
 
