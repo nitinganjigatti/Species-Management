@@ -2,13 +2,15 @@ import { Card, Drawer, IconButton, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm, FormProvider } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { LoadingButton } from '@mui/lab'
 
 import BasicDetails from './Anesthesia/BasicDetails'
+import { getAssesmentList } from 'src/lib/api/hospital/anesthesia'
+import Toaster from 'src/components/Toaster'
 
 const anaesthesiaSchema = yup.object().shape({})
 
@@ -28,6 +30,7 @@ const defaultValues = {
 
 const AddAnaesthesiaRecordDrawer = ({ openAddAnaesthesiaDrawer, setOpenAddAnaesthesiaDrawer }) => {
   const theme = useTheme()
+  const [purposeOptions, setPurposeOptions] = useState([])
 
   const methods = useForm({
     defaultValues,
@@ -50,6 +53,32 @@ const AddAnaesthesiaRecordDrawer = ({ openAddAnaesthesiaDrawer, setOpenAddAnaest
       reset(defaultValues)
     }
   }, [openAddAnaesthesiaDrawer, reset])
+
+  useEffect(() => {
+    const fetchPurposes = async () => {
+      try {
+        const response = await getAssesmentList({ type: 'purpose' })
+        if (response?.success && Array.isArray(response?.data?.records)) {
+          setPurposeOptions(
+            response.data.records.map(item => ({
+              name: item?.name,
+              id: item?.id
+            }))
+          )
+        } else {
+          setPurposeOptions([])
+        }
+      } catch (error) {
+        console.error('Failed to load anesthesia purposes', error)
+        Toaster({ type: 'error', message: 'Failed to load purpose options' })
+        setPurposeOptions([])
+      }
+    }
+
+    if (openAddAnaesthesiaDrawer) {
+      fetchPurposes()
+    }
+  }, [openAddAnaesthesiaDrawer])
 
   return (
     <Drawer
@@ -100,7 +129,7 @@ const AddAnaesthesiaRecordDrawer = ({ openAddAnaesthesiaDrawer, setOpenAddAnaest
               border: `1px solid ${theme.palette.customColors.customTableBorderBg}`
             }}
           >
-            <BasicDetails vetOptions={[]} anesthetistOptions={[]} purposeOptions={[]} />
+            <BasicDetails vetOptions={[]} anesthetistOptions={[]} purposeOptions={purposeOptions} />
             <LoadingButton
               type='submit'
               variant='contained'
