@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 
 import { Breadcrumbs, Typography, Card, Box, Avatar, TextField, Button, IconButton, Grid } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import { Icon } from '@iconify/react'
 
 import { useForm } from 'react-hook-form'
@@ -1260,7 +1260,7 @@ const AddSurgeryRecord = () => {
 
             <Box
               sx={{
-                backgroundColor: '#E8F4F266',
+                backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 102 / 255),
                 padding: '20px',
                 borderRadius: '8px',
                 display: 'flex',
@@ -1471,7 +1471,7 @@ const AddSurgeryRecord = () => {
         ) : (
           <Box
             sx={{
-              backgroundColor: '#E8F4F2',
+              backgroundColor: theme.palette.customColors.displaybgPrimary,
               borderRadius: '8px',
               pt: '24px',
               pr: '20px',
@@ -1485,7 +1485,7 @@ const AddSurgeryRecord = () => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Box
                 sx={{
-                  backgroundColor: '#1F515B',
+                  backgroundColor: theme.palette.primary.light,
                   width: 141,
                   height: 36,
                   borderRadius: '8px',
@@ -1494,7 +1494,7 @@ const AddSurgeryRecord = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 1,
-                  color: 'white',
+                  color: theme.palette.primary.contrastText,
                   fontWeight: 700,
                   fontSize: '16px',
                   letterSpacing: 0
@@ -1503,7 +1503,10 @@ const AddSurgeryRecord = () => {
                 {selectedAnesthesia?.code || selectedAnesthesia?.anesthesia_id || '--'}
                 <Icon icon='mdi:chevron-right' fontSize={20} />
               </Box>
-              <IconButton onClick={handleClearSelectedAnesthesia} sx={{ color: '#7A8684' }}>
+              <IconButton
+                onClick={handleClearSelectedAnesthesia}
+                sx={{ color: theme.palette.customColors.neutralSecondary }}
+              >
                 <Icon icon='mdi:close' fontSize={24} />
               </IconButton>
             </Box>
@@ -1539,8 +1542,16 @@ const AddSurgeryRecord = () => {
                   }
                 ].map(info => (
                   <Box key={info.label} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#7A8684' }}>{info.label}</Typography>
-                    <Typography sx={{ fontWeight: 500, fontSize: '16px', color: '#44544A' }}>{info.value}</Typography>
+                    <Typography
+                      sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.neutralSecondary }}
+                    >
+                      {info.label}
+                    </Typography>
+                    <Typography
+                      sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      {info.value}
+                    </Typography>
                   </Box>
                 ))}
               </Box>
@@ -1551,11 +1562,13 @@ const AddSurgeryRecord = () => {
                   flexDirection: 'column',
                   gap: '24px',
                   pt: '24px',
-                  borderTop: '1px solid #C3CEC7'
+                  borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`
                 }}
               >
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <Typography sx={{ fontWeight: 600, fontSize: '16px', color: '#44544A' }}>
+                  <Typography
+                    sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
                     Purpose of Anesthesia
                   </Typography>
                   <Box sx={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -1567,17 +1580,27 @@ const AddSurgeryRecord = () => {
                             height: 41,
                             borderRadius: '4px',
                             padding: '12px',
-                            border: '1px solid #AFEFEB',
-                            backgroundColor: '#AFEFEB80',
+                            border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
+                            backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 128 / 255),
                             display: 'inline-flex',
                             alignItems: 'center'
                           }}
                         >
-                          <Typography sx={{ fontWeight: 500, fontSize: '14px', color: '#1F515B' }}>{name}</Typography>
+                          <Typography
+                            sx={{
+                              fontWeight: 500,
+                              fontSize: '14px',
+                              color: theme.palette.primary.light
+                            }}
+                          >
+                            {name}
+                          </Typography>
                         </Box>
                       ))
                     ) : (
-                      <Typography sx={{ color: '#7A8684', fontSize: '14px' }}>No purpose added</Typography>
+                      <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px' }}>
+                        No purpose added
+                      </Typography>
                     )}
                   </Box>
                 </Box>
@@ -1675,7 +1698,7 @@ const AddSurgeryRecord = () => {
                 borderRadius: '8px',
                 height: '63px'
               },
-              backgroundColor: '#FCF4AE99'
+              backgroundColor: alpha(theme.palette.customColors.Notes, 153 / 255)
             }}
             placeholder={'Enter text'}
             control={control}
@@ -1723,8 +1746,8 @@ const AddSurgeryRecord = () => {
           left: 0,
           right: 0,
           zIndex: 5,
-          backgroundColor: '#FFFFFF',
-          boxShadow: '0px -8px 12px 0px #0000001A',
+          backgroundColor: theme.palette.primary.contrastText,
+          boxShadow: `0px -8px 12px 0px ${theme.palette.customColors.shadowColor}`,
           height: { sm: '108px' },
           borderRadius: '4px',
           pl: '24px',
@@ -1745,8 +1768,8 @@ const AddSurgeryRecord = () => {
           sx={{
             height: '56px',
             minWidth: { xs: '100%', sm: '160px' },
-            borderColor: '#839D8D',
-            color: '#44544A',
+            borderColor: theme.palette.customColors.Outline,
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontWeight: 600,
             letterSpacing: 0,
             px: '24px'

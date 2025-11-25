@@ -3,6 +3,7 @@ import { Drawer, Box, Typography, IconButton, Button, Radio } from '@mui/materia
 import { Icon } from '@iconify/react'
 import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
+import { alpha, useTheme } from '@mui/material/styles'
 
 import { getAnesthesiaList } from 'src/lib/api/hospital/anesthesia'
 
@@ -49,6 +50,7 @@ const SelectAnesthesiaRecordDrawer = ({
   onSelect = () => {},
   onConfirm = () => {}
 }) => {
+  const theme = useTheme()
   const [selectedId, setSelectedId] = useState(initialSelectedId)
 
   useEffect(() => {
@@ -122,21 +124,24 @@ const SelectAnesthesiaRecordDrawer = ({
           height: '80px',
           display: 'flex',
           alignItems: 'center',
-          borderBottom: '1px solid #C3CEC7',
+          borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
           padding: '24px',
           gap: '12px',
           justifyContent: 'space-between',
-          backgroundColor: '#FFFFFF'
+          backgroundColor: theme.palette.primary.contrastText
         }}
       >
         <Box sx={{ display: 'flex', flexDirection: 'row', gap: '12px', alignItems: 'center' }}>
           <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
-          <Typography sx={{ fontWeight: 500, fontSize: '24px', letterSpacing: 0, color: '#44544A' }} component='div'>
+          <Typography
+            sx={{ fontWeight: 500, fontSize: '24px', letterSpacing: 0, color: theme.palette.customColors.OnSurfaceVariant }}
+            component='div'
+          >
             Select Anesthesia Record
           </Typography>
         </Box>
         <IconButton onClick={onClose} sx={{ alignSelf: 'flex-start', mr: '-10px' }}>
-          <Icon icon='mdi:close' color='#1F515B' fontSize={24} />
+          <Icon icon='mdi:close' color={theme.palette.primary.light} fontSize={24} />
         </IconButton>
       </Box>
 
@@ -145,15 +150,17 @@ const SelectAnesthesiaRecordDrawer = ({
           flex: 1,
           overflowY: 'auto',
           padding: '24px',
-          backgroundColor: '#E8F4F266',
+          backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 102 / 255),
           display: 'flex',
           flexDirection: 'column',
           gap: '16px'
         }}
       >
-        {isAnesthesiaLoading && <Typography sx={{ color: '#7A8684' }}>Loading anesthesia records...</Typography>}
+        {isAnesthesiaLoading && (
+          <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>Loading anesthesia records...</Typography>
+        )}
         {!isAnesthesiaLoading && items.length === 0 && (
-          <Typography sx={{ color: '#7A8684' }}>No anesthesia records found.</Typography>
+          <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>No anesthesia records found.</Typography>
         )}
         {items.map(record => {
           const recordId = getRecordId(record)
@@ -172,13 +179,13 @@ const SelectAnesthesiaRecordDrawer = ({
               tabIndex={0}
               onClick={() => handleSelect(record)}
               sx={{
-                backgroundColor: '#FFFFFF',
+                backgroundColor: theme.palette.primary.contrastText,
                 borderRadius: '8px',
                 display: 'flex',
                 gap: '24px',
                 padding: '24px 20px 24px 24px',
-                border: `1px solid ${isSelected ? '#37BD69' : 'transparent'}`,
-                boxShadow: '0px 1px 2px rgba(0,0,0,0.05)',
+                border: `1px solid ${isSelected ? theme.palette.primary.main : 'transparent'}`,
+                boxShadow: `0px 1px 2px ${alpha(theme.palette.common.black, 0.05)}`,
                 cursor: 'pointer',
                 outline: 'none'
               }}
@@ -194,7 +201,7 @@ const SelectAnesthesiaRecordDrawer = ({
                   sx={{
                     height: '36px',
                     borderRadius: '8px',
-                    backgroundColor: '#AFEFEB99',
+                    backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 153 / 255),
                     padding: '8px 12px',
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -202,7 +209,13 @@ const SelectAnesthesiaRecordDrawer = ({
                   }}
                 >
                   <Typography
-                    sx={{ fontWeight: 600, fontSize: '16px', letterSpacing: 0, color: '#1F515B', textAlign: 'center' }}
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '16px',
+                      letterSpacing: 0,
+                      color: theme.palette.primary.light,
+                      textAlign: 'center'
+                    }}
                   >
                     {record?.code || recordId}
                   </Typography>
@@ -211,7 +224,12 @@ const SelectAnesthesiaRecordDrawer = ({
                   {purposeNames.map((procedure, index) => (
                     <Typography
                       key={`${recordId}-proc-${procedure}`}
-                      sx={{ color: '#1F515B', fontWeight: 500, fontSize: '14px', letterSpacing: '0.1px' }}
+                      sx={{
+                        color: theme.palette.primary.light,
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        letterSpacing: '0.1px'
+                      }}
                     >
                       {procedure}
                       {index < purposeNames.length - 1 ? ' • ' : ''}
@@ -220,21 +238,54 @@ const SelectAnesthesiaRecordDrawer = ({
                 </Box>
                 <Box sx={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
                   <Typography
-                    sx={{ fontWeight: 400, fontSize: '12px', letterSpacing: 0, color: '#7A8684' }}
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: '12px',
+                      letterSpacing: 0,
+                      color: theme.palette.customColors.neutralSecondary
+                    }}
                     component='span'
                   >
                     Created by: {record?.created_by_name || record?.createdBy || '--'}
                   </Typography>
-                  <Typography sx={{ fontWeight: 400, fontSize: '12px', letterSpacing: 0, color: '#7A8684' }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: '12px',
+                      letterSpacing: 0,
+                      color: theme.palette.customColors.neutralSecondary
+                    }}
+                  >
                     •
                   </Typography>
-                  <Typography sx={{ fontWeight: 400, fontSize: '12px', letterSpacing: 0, color: '#7A8684' }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: '12px',
+                      letterSpacing: 0,
+                      color: theme.palette.customColors.neutralSecondary
+                    }}
+                  >
                     {createdOn}
                   </Typography>
-                  <Typography sx={{ fontWeight: 400, fontSize: '12px', letterSpacing: 0, color: '#7A8684' }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: '12px',
+                      letterSpacing: 0,
+                      color: theme.palette.customColors.neutralSecondary
+                    }}
+                  >
                     •
                   </Typography>
-                  <Typography sx={{ fontWeight: 400, fontSize: '12px', letterSpacing: 0, color: '#7A8684' }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: '12px',
+                      letterSpacing: 0,
+                      color: theme.palette.customColors.neutralSecondary
+                    }}
+                  >
                     {createdTime}
                   </Typography>
                 </Box>
@@ -246,7 +297,7 @@ const SelectAnesthesiaRecordDrawer = ({
                 sx={{
                   pointerEvents: 'none',
                   '&.Mui-checked': {
-                    color: '#37BD69'
+                    color: theme.palette.primary.main
                   }
                 }}
               />
@@ -257,8 +308,8 @@ const SelectAnesthesiaRecordDrawer = ({
 
       <Box
         sx={{
-          backgroundColor: '#FFFFFF',
-          boxShadow: '0px -1px 30px 0px #0000001A',
+          backgroundColor: theme.palette.primary.contrastText,
+          boxShadow: `0px -1px 30px 0px ${theme.palette.customColors.shadowColor}`,
           padding: '16px',
           height: '88px',
           display: 'flex',
@@ -274,7 +325,7 @@ const SelectAnesthesiaRecordDrawer = ({
             width: '100%',
             height: '56px',
             borderRadius: '8px',
-            backgroundColor: '#37BD69',
+            backgroundColor: theme.palette.primary.main,
             fontWeight: 600,
             letterSpacing: '0.5px'
           }}

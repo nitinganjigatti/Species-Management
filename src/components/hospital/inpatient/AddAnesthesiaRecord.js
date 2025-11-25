@@ -193,7 +193,7 @@ const AddanesthesiaRecordDrawer = ({
               sx={{
                 p: '24px',
                 borderRadius: '8px',
-                backgroundColor: '#FFFFFF',
+                backgroundColor: theme.palette.primary.contrastText,
                 boxShadow: 'none',
                 mb: 3
               }}
@@ -220,7 +220,14 @@ const AddanesthesiaRecordDrawer = ({
                       <Box
                         sx={{ width: '60%', height: '16px', borderRadius: '4px', backgroundColor: '#E6E6E6', mb: 1 }}
                       />
-                      <Box sx={{ width: '80%', height: '18px', borderRadius: '4px', backgroundColor: '#E0E0E0' }} />
+                      <Box
+                        sx={{
+                          width: '80%',
+                          height: '18px',
+                          borderRadius: '4px',
+                          backgroundColor: '#E0E0E0'
+                        }}
+                      />
                     </Box>
                   ))}
                 </Box>
@@ -257,8 +264,8 @@ const AddanesthesiaRecordDrawer = ({
           left: 'auto',
           right: 0,
           zIndex: 5,
-          backgroundColor: '#FFFFFF',
-          boxShadow: '0px -8px 12px 0px #0000001A',
+          backgroundColor: theme.palette.primary.contrastText,
+          boxShadow: `0px -8px 12px 0px ${theme.palette.customColors.shadowColor}`,
           height: '108px',
           px: '24px',
           py: '16px',
@@ -277,9 +284,9 @@ const AddanesthesiaRecordDrawer = ({
           sx={{
             height: '56px',
             width: '50%',
-            borderColor: '#839D8D',
+            borderColor: theme.palette.customColors.Outline,
             borderWidth: '1.5px',
-            color: '#44544A',
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontWeight: 600,
             letterSpacing: 0,
             px: '24px'

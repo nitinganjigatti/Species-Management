@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import dayjs from 'dayjs'
 import { Box, Button, Drawer, IconButton, Skeleton, Typography } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import { Close as CloseIcon } from '@mui/icons-material'
 import { Icon } from '@iconify/react'
 import { Controller, useForm } from 'react-hook-form'
@@ -50,7 +50,7 @@ const EditTreatmentDrawer = ({
       borderColor: theme.palette.customColors.OutlineVariant
     },
     '&:hover .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#A3B3AA'
+      borderColor: theme.palette.customColors.Outline
     },
     '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
       borderColor: theme.palette.primary.main
@@ -255,7 +255,9 @@ const EditTreatmentDrawer = ({
                         border: `1px solid ${
                           isSelected ? theme.palette.primary.main : theme.palette.customColors.Notes
                         }`,
-                        backgroundColor: isSelected ? '#DFF5E7' : '#FCF4AE66',
+                        backgroundColor: isSelected
+                          ? alpha(theme.palette.primary.main, 0.15)
+                          : alpha(theme.palette.customColors.Notes, 102 / 255),
                         cursor: 'pointer'
                       }}
                     >
@@ -386,7 +388,7 @@ const EditTreatmentDrawer = ({
 
         <Box
           sx={{
-            boxShadow: `0px -1px 30px 0px ${theme.palette.customColors.shadowColor || '#0000001A'}`,
+            boxShadow: `0px -1px 30px 0px ${theme.palette.customColors.shadowColor}`,
             minHeight: '104px',
             padding: '24px',
             display: 'flex',
@@ -408,8 +410,8 @@ const EditTreatmentDrawer = ({
               borderWidth: '1px',
               fontWeight: 600,
               '&:hover': {
-                borderColor: '#C41C3D',
-                backgroundColor: '#FCE8EC'
+                borderColor: theme.palette.error.dark,
+                backgroundColor: alpha(theme.palette.customColors.Error, 0.1)
               }
             }}
           >
@@ -425,9 +427,9 @@ const EditTreatmentDrawer = ({
               borderRadius: '8px',
               fontWeight: 600,
               backgroundColor: theme.palette.primary.light,
-              boxShadow: `0px 4px 8px -4px ${theme.palette.customColors.shadowColor || '#4C4E646B'}`,
+              boxShadow: `0px 4px 8px -4px ${theme.palette.customColors.shadowColor}`,
               '&:hover': {
-                backgroundColor: '#173D44'
+                backgroundColor: theme.palette.primary.dark
               }
             }}
           >

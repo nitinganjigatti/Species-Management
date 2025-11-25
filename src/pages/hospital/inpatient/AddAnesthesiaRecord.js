@@ -13,7 +13,7 @@ import {
   CircularProgress
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import { useTheme } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import { Router, useRouter } from 'next/router'
 import { useForm, FormProvider } from 'react-hook-form'
 import dayjs from 'dayjs'
@@ -261,6 +261,7 @@ export default function AddAnesthesiaRecord() {
   const sectionRefs = React.useRef({})
   const scrollContainerRef = React.useRef(null)
   const theme = useTheme()
+  const accordionIconColor = alpha(theme.palette.text.primary, 110 / 255)
 
   const getUserLists = async (query = '') => {
     try {
@@ -1533,13 +1534,13 @@ export default function AddAnesthesiaRecord() {
                   <AccordionSummary
                     expandIcon={
                       expanded === id ? (
-                        <Typography sx={{ fontWeight: 'bold', fontSize: 24, color: '#4c4e646e' }}>−</Typography>
+                        <Typography sx={{ fontWeight: 'bold', fontSize: 24, color: accordionIconColor }}>−</Typography>
                       ) : (
                         <Typography
                           sx={{
                             fontWeight: 'bold',
                             fontSize: 24,
-                            color: isDisabled ? '#4c4e646e' : theme.palette.customColors.OnSurfaceVariant
+                            color: isDisabled ? accordionIconColor : theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
                           +
