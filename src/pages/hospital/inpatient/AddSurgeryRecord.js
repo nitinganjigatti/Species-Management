@@ -253,6 +253,13 @@ const getSurgeryIdentifier = value => {
   return value?.value ?? value?.id ?? value?.surgery_id ?? value?.surgeryId ?? ''
 }
 
+const getAnesthesiaIdentifier = value => {
+  if (!value) return ''
+  if (typeof value === 'string' || typeof value === 'number') return value
+
+  return value?.anaesthesia_id ?? ''
+}
+
 const getAutocompleteLabel = value => {
   if (!value) return ''
   if (typeof value === 'string') return value
@@ -908,9 +915,17 @@ const AddSurgeryRecord = () => {
       return
     }
 
+    const selectedAnesthesiaId = getAnesthesiaIdentifier(selectedAnesthesia)
+    if (!selectedAnesthesiaId) {
+      Toaster({ type: 'error', message: 'Please select an anesthesia record' })
+
+      return
+    }
+
     const payload = new FormData()
 
     payload.append('hospital_case_id', getSafeString(resolvedHospitalCaseId))
+    payload.append('anaesthesia_id', getSafeString(selectedAnesthesiaId))
     payload.append('surgery_date', getSafeString(formatDateValue(formValues.date)))
     payload.append('start_time', getSafeString(formatTimeValue(formValues.startTime)))
     payload.append('end_time', getSafeString(formatTimeValue(formValues.endTime)))
@@ -1500,7 +1515,7 @@ const AddSurgeryRecord = () => {
                   letterSpacing: 0
                 }}
               >
-                {selectedAnesthesia?.code || selectedAnesthesia?.anesthesia_id || '--'}
+                {selectedAnesthesia?.code || getAnesthesiaIdentifier(selectedAnesthesia) || '--'}
                 <Icon icon='mdi:chevron-right' fontSize={20} />
               </Box>
               <IconButton
@@ -1735,6 +1750,7 @@ const AddSurgeryRecord = () => {
           name='attachments'
           control={control}
           label='Upload files'
+          maxFiles={0}
           acceptedFileTypes='images,pdf,csv,audio,videos'
         />
       </Card>
@@ -1806,12 +1822,7 @@ const AddSurgeryRecord = () => {
       <SelectAnesthesiaRecordDrawer
         open={openSelectAnesthesiaDrawer}
         onClose={() => setOpenSelectAnesthesiaDrawer(false)}
-        initialSelectedId={
-          selectedAnesthesiaRecord?.anesthesia_id ||
-          selectedAnesthesiaRecord?.id ||
-          selectedAnesthesiaRecord?.code ||
-          null
-        }
+        initialSelectedId={getAnesthesiaIdentifier(selectedAnesthesiaRecord) || null}
         hospitalCaseId={resolvedHospitalCaseId}
         medicalRecordId={medicalRecordId}
         onSelect={handleAnesthesiaRecordSelect}
