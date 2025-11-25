@@ -882,6 +882,15 @@ const AddSurgeryRecord = () => {
     setOpenSelectAnesthesiaDrawer(false)
   }, [])
 
+  const handleCancelForm = useCallback(() => {
+    reset()
+    setSelectedAnesthesiaRecord(null)
+    setPendingAnesthesiaRecord(null)
+    setRichNote(createEmptyRichTextValue())
+    setActiveTemplate('')
+    setProcedureSearchTerm('')
+  }, [reset, setSelectedAnesthesiaRecord, setPendingAnesthesiaRecord, setRichNote, setActiveTemplate])
+
   const onSubmit = async formValues => {
     if (!resolvedHospitalCaseId) {
       Toaster({ type: 'error', message: 'Hospital case id is missing' })
@@ -998,7 +1007,44 @@ const AddSurgeryRecord = () => {
           </Typography>
         </Box>
 
-        <AnimalInfoCard data={animalInfoData} />
+        {patientData ? (
+          <AnimalInfoCard data={animalInfoData} />
+        ) : (
+          <Card
+            sx={{
+              p: '24px',
+              borderRadius: '8px',
+              backgroundColor: theme.palette.customColors.displaybgPrimary,
+              boxShadow: 'none'
+            }}
+          >
+            <Grid container spacing={5} sx={{ alignItems: 'center' }}>
+              <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+                <Box sx={{ maxWidth: '100%', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Box
+                    sx={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: '8px',
+                      backgroundColor: theme.palette.customColors.mdAntzNeutral
+                    }}
+                  />
+                  <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, gap: 1 }}>
+                    <Box sx={{ width: '70%', height: '20px', borderRadius: '4px', backgroundColor: '#E0E0E0' }} />
+                    <Box sx={{ width: '60%', height: '18px', borderRadius: '4px', backgroundColor: '#E6E6E6' }} />
+                    <Box sx={{ width: '50%', height: '18px', borderRadius: '4px', backgroundColor: '#E6E6E6' }} />
+                  </Box>
+                </Box>
+              </Grid>
+              {[1, 2, 3, 4].map(idx => (
+                <Grid item size={{ xs: 12, sm: 4, md: 2.25 }} key={`animal-skeleton-${idx}`} sx={{ mt: 2 }}>
+                  <Box sx={{ width: '60%', height: '16px', borderRadius: '4px', backgroundColor: '#E6E6E6', mb: 1 }} />
+                  <Box sx={{ width: '80%', height: '18px', borderRadius: '4px', backgroundColor: '#E0E0E0' }} />
+                </Grid>
+              ))}
+            </Grid>
+          </Card>
+        )}
         <Box
           sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
           component='form'
@@ -1283,44 +1329,56 @@ const AddSurgeryRecord = () => {
                   }}
                 >
                   <Box sx={{ display: 'inline-flex', gap: '10px', pr: 1 }}>
-                    {templateNames.map(template => {
-                      const templateLabel = typeof template === 'string' ? template : String(template || '')
-                      if (!templateLabel) {
-                        return null
-                      }
-                      return (
-                        <Box
-                          key={templateLabel}
-                          onClick={() => handleTemplateSelect(templateLabel)}
-                          sx={{
-                            flexShrink: 0,
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            p: '8px 24px',
-                            height: '40px',
-                            borderRadius: '8px',
-                            backgroundColor:
-                              activeTemplate === templateLabel
-                                ? theme.palette.secondary.dark
-                                : theme.palette.customColors.mdAntzNeutral,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <Typography
+                    {isTemplatesLoading
+                      ? Array.from({ length: 3 }).map((_, idx) => (
+                          <Box
+                            key={`template-skel-${idx}`}
                             sx={{
-                              color:
-                                activeTemplate === templateLabel
-                                  ? theme.palette.primary.contrastText
-                                  : theme.palette.customColors.neutralPrimary,
-                              whiteSpace: 'nowrap'
+                              width: 100,
+                              height: 40,
+                              borderRadius: '8px',
+                              backgroundColor: theme.palette.customColors.mdAntzNeutral
                             }}
-                          >
-                            {templateLabel}
-                          </Typography>
-                        </Box>
-                      )
-                    })}
+                          />
+                        ))
+                      : templateNames.map(template => {
+                          const templateLabel = typeof template === 'string' ? template : String(template || '')
+                          if (!templateLabel) {
+                            return null
+                          }
+                          return (
+                            <Box
+                              key={templateLabel}
+                              onClick={() => handleTemplateSelect(templateLabel)}
+                              sx={{
+                                flexShrink: 0,
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                p: '8px 24px',
+                                height: '40px',
+                                borderRadius: '8px',
+                                backgroundColor:
+                                  activeTemplate === templateLabel
+                                    ? theme.palette.secondary.dark
+                                    : theme.palette.customColors.mdAntzNeutral,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <Typography
+                                sx={{
+                                  color:
+                                    activeTemplate === templateLabel
+                                      ? theme.palette.primary.contrastText
+                                      : theme.palette.customColors.neutralPrimary,
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {templateLabel}
+                              </Typography>
+                            </Box>
+                          )
+                        })}
                   </Box>
                 </Box>
               </Box>
@@ -1648,9 +1706,56 @@ const AddSurgeryRecord = () => {
         />
       </Card>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button type='submit' variant='contained' disabled={isSubmitting} sx={{ minWidth: 160 }}>
-          {isSubmitting ? 'Submitting...' : 'Submit'}
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 5,
+          backgroundColor: '#FFFFFF',
+          boxShadow: '0px -8px 12px 0px #0000001A',
+          height: '108px',
+          borderRadius: '4px',
+          pl: '24px',
+          pr: '84px',
+          py: '16px',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          gap: '24px',
+          alignItems: 'center',
+          alignSelf: 'stretch'
+        }}
+      >
+        <Button
+          variant='outlined'
+          onClick={handleCancelForm}
+          disabled={isSubmitting}
+          sx={{
+            height: '56px',
+            minWidth: '160px',
+            borderColor: '#839D8D',
+            color: '#44544A',
+            fontWeight: 600,
+            letterSpacing: 0,
+            px: '24px'
+          }}
+        >
+          CANCEL
+        </Button>
+        <Button
+          type='submit'
+          variant='contained'
+          disabled={isSubmitting}
+          sx={{
+            height: '56px',
+            minWidth: '160px',
+            fontWeight: 600,
+            letterSpacing: 0,
+            px: '24px'
+          }}
+        >
+          {isSubmitting ? 'Submitting...' : 'SAVE'}
         </Button>
       </Box>
 

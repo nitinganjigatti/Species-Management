@@ -775,7 +775,7 @@ export const GET_CLINICAL_DIAGNOSIS_LIST = 'medical/v2/get-complaint-diagnosis-l
 
 export const GET_CLINICAL_DIAGNOSIS_TYPE = 'medical/get-complaint-diagnosis-type'
 
-export const ADD_CLINICAL_ASSESSMENT = 'medical/diagnosis-update'
+export const ADD_CLINICAL_ASSESSMENT = 'medical/v2/diagnosis-update'
 
 export const UPDATE_CLINICAL_ASSESSMENT = 'medical/v2/update-diagnosis-prescription'
 
@@ -820,6 +820,8 @@ export const GET_PRESCRIPTION_DETAILS = 'administer/details'
 export const GET_PRESCRIPTION_DETAILS_DATES = 'administer/stats'
 
 export const GET_BATCH_LIST = 'vaccination/get-batch-list-by-medicine'
+
+export const GET_PRESCRIPTION_BY_RECORD = 'v1/hospital/list-prescription-by-record'
 
 //Hospital rooms
 
