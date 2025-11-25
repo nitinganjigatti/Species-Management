@@ -166,7 +166,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch }) => {
                         </Typography>
                       )}
                     </Box>
-                    <Icon icon={'mingcute:down-fill'} color={theme.palette.customColors.OnPrimaryContainer} />
+                    {/* <Icon icon={'mingcute:down-fill'} color={theme.palette.customColors.OnPrimaryContainer} /> */}
                   </Box>
                 )}
                 {loading ? (
