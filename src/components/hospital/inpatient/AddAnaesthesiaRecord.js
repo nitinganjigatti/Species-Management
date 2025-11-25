@@ -176,7 +176,15 @@ const AddAnaesthesiaRecordDrawer = ({
         </IconButton>
       </Box>
 
-      <Box sx={{ p: '24px', backgroundColor: 'background.default', height: '100vh', overflowY: 'auto' }}>
+      <Box
+        sx={{
+          p: '24px',
+          backgroundColor: 'background.default',
+          height: '100vh',
+          overflowY: 'auto',
+          pb: '125px'
+        }}
+      >
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {patientData ? (
             <AnimalInfoCard bgColor={theme.palette.primary.contrastText} data={animalInfoData} />
@@ -231,7 +239,6 @@ const AddAnaesthesiaRecordDrawer = ({
                 flexDirection: 'column',
                 boxShadow: 'none',
                 gap: '24px'
-                // border: `1px solid ${theme.palette.customColors.customTableBorderBg}`
               }}
             >
               <BasicDetails
@@ -239,17 +246,62 @@ const AddAnaesthesiaRecordDrawer = ({
                 anesthetistOptions={anesthetistOptions}
                 purposeOptions={purposeOptions}
               />
-              <LoadingButton
-                type='submit'
-                variant='contained'
-                loading={isSubmitting}
-                sx={{ mt: 3, height: '56px', borderRadius: '8px', fontWeight: 600, letterSpacing: '0.5px' }}
-              >
-                Submit
-              </LoadingButton>
             </Card>
           </FormProvider>
         </Box>
+      </Box>
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 'auto',
+          right: 0,
+          zIndex: 5,
+          backgroundColor: '#FFFFFF',
+          boxShadow: '0px -8px 12px 0px #0000001A',
+          height: '108px',
+          px: '24px',
+          py: '16px',
+          display: 'flex',
+          gap: '24px',
+          alignItems: 'center',
+          width: ['100%', '920px'],
+          maxWidth: '100vw',
+          marginLeft: 'auto'
+        }}
+      >
+        <LoadingButton
+          onClick={() => reset(defaultValues)}
+          variant='outlined'
+          disabled={isSubmitting}
+          sx={{
+            height: '56px',
+            width: '50%',
+            borderColor: '#839D8D',
+            borderWidth: '1.5px',
+            color: '#44544A',
+            fontWeight: 600,
+            letterSpacing: 0,
+            px: '24px'
+          }}
+        >
+          CANCEL
+        </LoadingButton>
+        <LoadingButton
+          type='submit'
+          variant='contained'
+          loading={isSubmitting}
+          sx={{
+            height: '56px',
+            width: '50%',
+            fontWeight: 600,
+            letterSpacing: 0,
+            px: '24px'
+          }}
+          onClick={handleSubmit(onSubmit)}
+        >
+          SAVE
+        </LoadingButton>
       </Box>
     </Drawer>
   )
