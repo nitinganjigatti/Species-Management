@@ -52,6 +52,14 @@ const AdministerOrSkipSidesheet = ({
 }) => {
   const theme = useTheme()
 
+  const commonFieldStyles = {
+    textAlign: 'left',
+    borderRadius: '4px',
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '4px'
+    }
+  }
+
   const validationSchema = yup.object().shape(
     {
       action: yup.string().oneOf(['administer', 'skipped']).required('Action is required'),
@@ -441,8 +449,9 @@ const AdministerOrSkipSidesheet = ({
                       control={control}
                       label='Time'
                       format='hh:mm A'
-                      sx={{ backgroundColor: theme.palette.customColors.Surface }}
+                      sx={{ backgroundColor: theme.palette.customColors.Surface, ...commonFieldStyles }}
                       error={errors.time}
+
                       // disabled={disableTimeField}
                       minTime={slotStart}
                       maxTime={slotEnd}
@@ -454,6 +463,7 @@ const AdministerOrSkipSidesheet = ({
                       selectFieldName='quantityUnit'
                       control={control}
                       errors={errors}
+                      sx={commonFieldStyles}
                       options={medicalMasterData?.prescriptionDosageMeasurementType}
                       label='Quantity'
                       loading={mastersDataLoading}
@@ -521,6 +531,7 @@ const AdministerOrSkipSidesheet = ({
                                   name='wastageQuantity'
                                   control={control}
                                   errors={errors}
+                                  sx={commonFieldStyles}
                                   label='Quantity'
                                   placeholder='Enter Quantity'
                                   type='number'
@@ -533,6 +544,7 @@ const AdministerOrSkipSidesheet = ({
                                   label='Unit'
                                   control={control}
                                   errors={errors}
+                                  sx={commonFieldStyles}
                                   options={medicalMasterData?.prescriptionDosageMeasurementType}
                                   getOptionLabel={option => option.label}
                                   getOptionValue={option => option.value}
@@ -546,6 +558,7 @@ const AdministerOrSkipSidesheet = ({
                                   name='notes'
                                   control={control}
                                   errors={errors}
+                                  sx={commonFieldStyles}
                                   placeholder='Enter Notes'
                                   rows={3}
                                 />
@@ -556,6 +569,7 @@ const AdministerOrSkipSidesheet = ({
                                   name='batchNumber'
                                   control={control}
                                   errors={errors}
+                                  sx={commonFieldStyles}
                                   label={
                                     isControlledSubstance
                                       ? 'Enter batch number (required)'
@@ -598,6 +612,7 @@ const AdministerOrSkipSidesheet = ({
                                   name='attachment'
                                   control={control}
                                   errors={errors}
+                                  sx={commonFieldStyles}
                                   label='Batch Image'
                                   maxFiles={5}
                                   maxFileSize={5 * 1024 * 1024} // 5MB
@@ -618,6 +633,7 @@ const AdministerOrSkipSidesheet = ({
                           name='skipReason'
                           control={control}
                           errors={errors}
+                          sx={commonFieldStyles}
                           placeholder='Enter reason for skipping'
                           rows={4}
                           required={actionType === 'skipped'}

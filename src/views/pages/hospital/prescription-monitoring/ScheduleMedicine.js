@@ -436,7 +436,6 @@ export default function ScheduleMedicine({
                   <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                     <ControlledSelect
                       name='dosageDuration.unit'
-
                       // label='Dosage Unit*'
                       sx={{
                         textAlign: 'left',
@@ -602,6 +601,7 @@ export default function ScheduleMedicine({
                     name='batchNumber'
                     control={control}
                     errors={errors}
+                    sx={commonFieldStyles}
                     label={
                       isControlledSubstance ? 'Enter batch number (required)' : 'Enter batch number if any (optional)'
                     }
@@ -635,7 +635,12 @@ export default function ScheduleMedicine({
                     }}
                   />
                 </Grid>
-                <ControlledMultiFileUpload name='batchImage' control={control} label='Batch Image' />
+                <ControlledMultiFileUpload
+                  name='batchImage'
+                  control={control}
+                  sx={commonFieldStyles}
+                  label='Batch Image'
+                />
               </>
             )}
           </Box>

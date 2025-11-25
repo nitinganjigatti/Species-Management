@@ -256,6 +256,14 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
     mode: 'onChange'
   })
 
+  const commonFieldStyles = {
+    textAlign: 'left',
+    borderRadius: '4px',
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '4px'
+    }
+  }
+
   const actionType = watch('action')
 
   useEffect(() => {
@@ -405,20 +413,22 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
     // Parse the date string properly (DD/MM/YYYY format)
     const [datePart, timePart] = dateTimeString.split(', ')
     const [day, month, year] = datePart.split('/')
-  
+
     // Create date object in UTC (month is 0-indexed in JavaScript)
     const utcDate = new Date(Date.UTC(year, month - 1, day, ...timePart.split(':')))
-  
+
     // Convert UTC to local time
-    const localDate = new Date(utcDate.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }))
-  
+    const localDate = new Date(
+      utcDate.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone })
+    )
+
     // Format date part: 02 Jan 2025
     const formattedDate = localDate.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
       year: 'numeric'
     })
-  
+
     // Format time part: 12 : 35 PM
     const formattedTime = localDate
       .toLocaleTimeString('en-US', {
@@ -427,7 +437,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
         hour12: true
       })
       .replace(':', ' : ')
-  
+
     return `${formattedDate} • ${formattedTime}`
   }
 
@@ -878,6 +888,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                           name='wastageQuantity'
                                           control={control}
                                           errors={errors}
+                                          sx={commonFieldStyles}
                                           label='Quantity'
                                           placeholder='Enter Quantity'
                                           type='number'
@@ -890,6 +901,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                           label='Unit'
                                           control={control}
                                           errors={errors}
+                                          sx={commonFieldStyles}
                                           options={medicalMasterData?.prescriptionDosageMeasurementType}
                                           getOptionLabel={option => option.label}
                                           getOptionValue={option => option.value}
@@ -903,6 +915,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                           name='notes'
                                           control={control}
                                           errors={errors}
+                                          sx={commonFieldStyles}
                                           placeholder='Enter Notes'
                                           rows={3}
                                         />
@@ -913,6 +926,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                           name='batchNumber'
                                           control={control}
                                           errors={errors}
+                                          sx={commonFieldStyles}
                                           label={
                                             isControlledSubstance
                                               ? 'Enter batch number (required)'
@@ -951,6 +965,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                           name='attachment'
                                           control={control}
                                           errors={errors}
+                                          sx={commonFieldStyles}
                                           label='Batch Image'
                                           maxFiles={5}
                                           maxFileSize={5 * 1024 * 1024}
@@ -971,6 +986,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                   name='skipReason'
                                   control={control}
                                   errors={errors}
+                                  sx={commonFieldStyles}
                                   placeholder='Enter reason for skipping'
                                   rows={4}
                                   required={actionType === 'skipped'}
