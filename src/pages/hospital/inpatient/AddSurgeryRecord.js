@@ -1725,12 +1725,13 @@ const AddSurgeryRecord = () => {
           zIndex: 5,
           backgroundColor: '#FFFFFF',
           boxShadow: '0px -8px 12px 0px #0000001A',
-          height: '108px',
+          height: { sm: '108px' },
           borderRadius: '4px',
           pl: '24px',
           pr: '84px',
           py: '16px',
           display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
           justifyContent: 'flex-end',
           gap: '24px',
           alignItems: 'center',
@@ -1743,7 +1744,7 @@ const AddSurgeryRecord = () => {
           disabled={isSubmitting}
           sx={{
             height: '56px',
-            minWidth: '160px',
+            minWidth: { xs: '100%', sm: '160px' },
             borderColor: '#839D8D',
             color: '#44544A',
             fontWeight: 600,
@@ -1759,7 +1760,7 @@ const AddSurgeryRecord = () => {
           disabled={isSubmitting}
           sx={{
             height: '56px',
-            minWidth: '160px',
+            minWidth: { xs: '100%', sm: '160px' },
             fontWeight: 600,
             letterSpacing: 0,
             px: '24px'
