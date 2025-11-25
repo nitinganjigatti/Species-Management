@@ -278,7 +278,7 @@ const InpatientDetails = () => {
           loading={patientLoading}
           refetch={refetchPatient}
         />
-        <Card sx={{ mt: 6, p: { xs: 3, md: 6 } }}>
+        <Card sx={{ mt: 6, p: { xs: 3, md: 6 }, mb: selectedTab === 'discharge' ? 4 : 0 }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <IconButton size='large' edge='start' color='inherit' aria-label='menu' onClick={handleMenuOpen}>
