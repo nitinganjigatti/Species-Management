@@ -46,6 +46,7 @@ const createEmptyRichTextValue = () => {
 
 const DEFAULT_HOSPITAL_ID = '68'
 const TEMPLATE_LIST_LIMIT = 20
+const FORM_ID = 'add-surgery-record-form'
 
 const getSafeString = value => {
   if (value === undefined || value === null) return ''
@@ -403,6 +404,10 @@ const schema = yup.object().shape({
     .mixed()
     .nullable()
     .test('procedure-required', 'Procedure is required', value => Boolean(value)),
+  surgeon: yup
+    .mixed()
+    .nullable()
+    .test('surgeon-required', 'Surgeon is required', value => Boolean(value)),
   typeOfSurgery: yup.string().required('Type of surgery is required'),
   surgicalApproach: yup.string().required('Surgical approach is required'),
   duration: yup.string().trim().required('Duration is required'),
@@ -427,21 +432,8 @@ const AddSurgeryRecord = () => {
   )
   const userZooId = useMemo(() => auth?.userData?.user?.zoos?.[0]?.zoo_id, [auth?.userData])
   const defaultNow = useMemo(() => dayjs(), [])
-  const formResolver = useMemo(() => yupResolver(schema, { context: { admissionDateTime } }), [admissionDateTime])
-
-  const {
-    control,
-    handleSubmit,
-    reset,
-    clearErrors,
-    setValue,
-    watch,
-    formState: { errors }
-  } = useForm({
-    resolver: formResolver,
-    mode: 'onChange',
-    reValidateMode: 'onChange',
-    defaultValues: {
+  const defaultFormValues = useMemo(
+    () => ({
       date: defaultNow,
       startTime: null,
       endTime: null,
@@ -456,7 +448,24 @@ const AddSurgeryRecord = () => {
       restrictions: '',
       additionalNotes: '',
       attachments: []
-    }
+    }),
+    [defaultNow]
+  )
+  const formResolver = useMemo(() => yupResolver(schema, { context: { admissionDateTime } }), [admissionDateTime])
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    clearErrors,
+    setValue,
+    watch,
+    formState: { errors }
+  } = useForm({
+    resolver: formResolver,
+    mode: 'onChange',
+    reValidateMode: 'onChange',
+    defaultValues: defaultFormValues
   })
 
   const [activeTemplate, setActiveTemplate] = useState('')
@@ -476,6 +485,32 @@ const AddSurgeryRecord = () => {
   const endTimeValue = watch('endTime')
   const durationValue = watch('duration')
   const selectedAnesthesia = selectedAnesthesiaRecord
+  const resetForm = useCallback(() => {
+    reset(defaultFormValues)
+    setValue('surgeon', null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
+    setValue('procedure', null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
+    setSelectedAnesthesiaRecord(null)
+    setPendingAnesthesiaRecord(null)
+    setRichNote(createEmptyRichTextValue())
+    setActiveTemplate('')
+    setProcedureSearchTerm('')
+    setSurgeonSearchTerm('')
+  }, [
+    reset,
+    defaultFormValues,
+    setValue,
+    setSelectedAnesthesiaRecord,
+    setPendingAnesthesiaRecord,
+    setRichNote,
+    setActiveTemplate,
+    setProcedureSearchTerm,
+    setSurgeonSearchTerm
+  ])
+
+  useEffect(() => {
+    setValue('surgeon', null, { shouldValidate: false, shouldDirty: false })
+    setValue('procedure', null, { shouldValidate: false, shouldDirty: false })
+  }, [setValue])
 
   const {
     data: surgeryTemplatesResponse,
@@ -900,13 +935,8 @@ const AddSurgeryRecord = () => {
   }, [])
 
   const handleCancelForm = useCallback(() => {
-    reset()
-    setSelectedAnesthesiaRecord(null)
-    setPendingAnesthesiaRecord(null)
-    setRichNote(createEmptyRichTextValue())
-    setActiveTemplate('')
-    setProcedureSearchTerm('')
-  }, [reset, setSelectedAnesthesiaRecord, setPendingAnesthesiaRecord, setRichNote, setActiveTemplate])
+    resetForm()
+  }, [resetForm])
 
   const onSubmit = async formValues => {
     if (!resolvedHospitalCaseId) {
@@ -958,10 +988,7 @@ const AddSurgeryRecord = () => {
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Surgery record added successfully' })
-        reset()
-        setRichNote(createEmptyRichTextValue())
-        setActiveTemplate('')
-        setProcedureSearchTerm('')
+        resetForm()
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to add surgery record' })
       }
@@ -1073,6 +1100,7 @@ const AddSurgeryRecord = () => {
         <Box
           sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
           component='form'
+          id={FORM_ID}
           onSubmit={handleSubmit(onSubmit)}
         >
           <Grid container spacing={'24px'}>
@@ -1795,6 +1823,7 @@ const AddSurgeryRecord = () => {
         </Button>
         <Button
           type='submit'
+          form={FORM_ID}
           variant='contained'
           disabled={isSubmitting}
           sx={{
