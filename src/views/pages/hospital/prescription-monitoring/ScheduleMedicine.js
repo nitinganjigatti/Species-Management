@@ -30,7 +30,9 @@ export default function ScheduleMedicine({
   isControlledSubstance = false,
   setValue,
   getValues,
-  reset
+  reset,
+  isOneTimeFrequency = false,
+  endsOn
 }) {
   const {
     caseTypes,
@@ -150,6 +152,15 @@ export default function ScheduleMedicine({
       hasSetDefaults.current = false
     }
   }, [isMedicineSelected])
+
+  // Remove extra schedules when switching to "one_time" frequency
+  useEffect(() => {
+    if (isOneTimeFrequency && fields.length > 1) {
+      // Keep only the first schedule
+      const firstSchedule = getValues('schedules.0')
+      setValue('schedules', [firstSchedule])
+    }
+  }, [isOneTimeFrequency, fields.length, getValues, setValue])
 
   return (
     <Box
@@ -328,32 +339,36 @@ export default function ScheduleMedicine({
               </Grid>
             ))}
 
-            <Button
-              startIcon={<AddIcon />}
-              variant='outlined'
-              fullWidth
-              sx={{
-                mb: 3,
-                height: '48px',
-                fontSize: '16px',
-                background: '#EAF8F2',
-                color: '#1A7F64',
-                borderColor: '#B6E2D3',
-                fontWeight: 500,
-                padding: '10px 12px'
-              }}
-              onClick={e => {
-                e.preventDefault()
+            {/* Conditionally render "Add Time" button - hide when one_time frequency is selected */}
+            {!isOneTimeFrequency && (
+              <Button
+                startIcon={<AddIcon />}
+                variant='outlined'
+                fullWidth
+                sx={{
+                  mb: 3,
+                  height: '48px',
+                  fontSize: '16px',
+                  background: theme.palette.customColors.SurfaceVariant,
+                  color: theme.palette.customColors.OnSurface,
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontWeight: 500,
+                  padding: '10px 12px'
+                }}
+                onClick={e => {
+                  e.preventDefault()
 
-                // Use the current first schedule's unit for new entries
-                const currentSchedules = getValues('schedules')
+                  // Use the current first schedule's unit for new entries
+                  const currentSchedules = getValues('schedules')
 
-                const currentUnit = currentSchedules?.[0]?.unit || prescriptionDosageMeasurementType?.[0]?.value || ''
-                append({ time: dayjs(), quantity: '', unit: currentUnit })
-              }}
-            >
-              Add Time
-            </Button>
+                  const currentUnit = currentSchedules?.[0]?.unit || prescriptionDosageMeasurementType?.[0]?.value || ''
+                  append({ time: dayjs(), quantity: '', unit: currentUnit })
+                }}
+              >
+                Add Time
+              </Button>
+            )}
 
             <Box sx={{ mb: 3 }}>
               <ControlledSelect
@@ -387,7 +402,9 @@ export default function ScheduleMedicine({
                   maxDate={selectedMedicineTo === 'Direct Administer' ? dayjs(now) : undefined}
                   size='large'
                   name='prescriptionStartDate'
-                  label='Prescription Start Date*'
+                  label={
+                    selectedMedicineTo === 'Direct Administer' ? 'Prescription End Date*' : 'Prescription Start Date*'
+                  }
                   control={control}
                   errors={errors}
                   required
@@ -395,43 +412,79 @@ export default function ScheduleMedicine({
               </Box>
             </Box>
 
-            <Grid container display='flex' justifyContent={'space-between'} spacing={2} sx={{ mb: 3 }}>
-              <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
-                <ControlledTextField
-                  name='dosageDuration.value'
-                  label='Dosage Duration*'
-                  control={control}
-                  errors={errors}
-                  type='number'
-                  sx={{
-                    textAlign: 'left',
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '4px'
-                    }
-                  }}
-                  size='large'
-                  required
-                />
-              </Grid>
-              <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
-                <ControlledSelect
-                  name='dosageDuration.unit'
+            {/* Conditionally render Dosage Duration - hide when one_time frequency is selected */}
+            {!isOneTimeFrequency && (
+              <>
+                <Grid container display='flex' justifyContent={'space-between'} spacing={2}>
+                  <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
+                    <ControlledTextField
+                      name='dosageDuration.value'
+                      label='Dosage Duration*'
+                      control={control}
+                      errors={errors}
+                      type='number'
+                      sx={{
+                        textAlign: 'left',
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '4px'
+                        }
+                      }}
+                      size='large'
+                      required
+                    />
+                  </Grid>
+                  <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
+                    <ControlledSelect
+                      name='dosageDuration.unit'
 
-                  // label='Dosage Unit*'
-                  sx={{
-                    textAlign: 'left',
-                    borderRadius: '4px'
-                  }}
-                  size='large'
-                  control={control}
-                  errors={errors}
-                  options={prescriptionDuration}
-                  required
-                  getOptionLabel={option => option.label}
-                  getOptionValue={option => option.value}
-                />
-              </Grid>
-            </Grid>
+                      // label='Dosage Unit*'
+                      sx={{
+                        textAlign: 'left',
+                        borderRadius: '4px'
+                      }}
+                      size='large'
+                      control={control}
+                      errors={errors}
+                      options={prescriptionDuration}
+                      required
+                      getOptionLabel={option => option.label}
+                      getOptionValue={option => option.value}
+                    />
+                  </Grid>
+                </Grid>
+                {endsOn && (
+                  <Typography
+                    sx={{
+                      display: 'flex',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      fontStyle: 'italic',
+                      color: theme.palette.customColors.OnSurface,
+                      mb: 3,
+                      mt: 2
+                    }}
+                  >
+                    Prescription {selectedMedicineTo === 'Direct Administer' ? 'starts' : 'ends'} on {endsOn}
+                  </Typography>
+                )}
+              </>
+            )}
+
+            {isOneTimeFrequency && endsOn && (
+              <Typography
+                sx={{
+                  display: 'flex',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  fontStyle: 'italic',
+                  color: theme.palette.customColors.OnSurface,
+                  mb: 3
+                }}
+              >
+                Prescription {selectedMedicineTo === 'Direct Administer' ? 'starts and ends' : 'starts and ends'} on{' '}
+                {endsOn}
+              </Typography>
+            )}
 
             <Box sx={{ mb: 3 }}>
               <ControlledTextArea
