@@ -1529,9 +1529,11 @@ const AddSurgeryRecord = () => {
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Box
+                onClick={handleSelectanesthesiaRecord}
                 sx={{
                   backgroundColor: theme.palette.primary.light,
-                  width: 141,
+                  // width: 141,
+                  cursor: 'pointer',
                   height: 36,
                   borderRadius: '8px',
                   px: 1.5,
