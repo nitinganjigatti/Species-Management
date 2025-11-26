@@ -922,6 +922,15 @@ const AddSurgeryRecord = () => {
     setOpenSelectAnesthesiaDrawer(true)
   }, [])
 
+  const handleAnesthesiaCreateSuccess = useCallback(
+    record => {
+      if (record) {
+        setSelectedAnesthesiaRecord(record)
+      }
+    },
+    [setSelectedAnesthesiaRecord]
+  )
+
   const handleAnesthesiaRecordSelect = useCallback(record => {
     setPendingAnesthesiaRecord(record)
   }, [])
@@ -1853,6 +1862,7 @@ const AddSurgeryRecord = () => {
         anesthetistOptions={doctorOptions}
         patientData={patientData}
         animalInfoData={animalInfoData}
+        onSuccess={handleAnesthesiaCreateSuccess}
       />
       <SelectAnesthesiaRecordDrawer
         open={openSelectAnesthesiaDrawer}

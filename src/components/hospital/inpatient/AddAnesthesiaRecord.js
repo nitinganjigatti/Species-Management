@@ -14,6 +14,8 @@ import Toaster from 'src/components/Toaster'
 import { addAnesthesia } from 'src/lib/api/hospital/anesthesia'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 
+const FORM_ID = 'add-anesthesia-record-form'
+
 const anesthesiaSchema = yup.object().shape({
   basicDetails: yup.object().shape({
     location: yup.string().trim().required('Location is required'),
@@ -52,7 +54,8 @@ const AddanesthesiaRecordDrawer = ({
   vetOptions = [],
   anesthetistOptions = [],
   patientData = null,
-  animalInfoData = null
+  animalInfoData = null,
+  onSuccess = () => {}
 }) => {
   const theme = useTheme()
   const [purposeOptions, setPurposeOptions] = useState([])
@@ -71,11 +74,12 @@ const AddanesthesiaRecordDrawer = ({
 
   const onSubmit = async data => {
     const formData = new FormData()
+    const anaesthesiaDateTime = data.basicDetails.anaesthesia_datetime || data.basicDetails.anesthesia_datetime || ''
 
     formData.append('hospital_case_id', hospitalCaseId || '')
     formData.append('medical_record_id', medicalRecordId || '')
     formData.append('location', data.basicDetails.location || '')
-    formData.append('anesthesia_datetime', data.basicDetails.anesthesia_datetime || '')
+    formData.append('anesthesia_datetime', anaesthesiaDateTime || '')
     formData.append('estimated_time_required', data.basicDetails.estimated_time_required || '')
     formData.append('estimated_time_unit', data.basicDetails.estimated_time_unit || '')
     formData.append(
@@ -99,6 +103,59 @@ const AddanesthesiaRecordDrawer = ({
 
       if (response?.status === true || response?.success === true) {
         Toaster({ type: 'success', message: response?.message || 'anesthesia added successfully' })
+        const createdId =
+          response?.anaesthesia_id || response?.anesthesia_id || response?.data?.anaesthesia_id || response?.data?.id
+        const createdCode =
+          response?.anaesthesia_code ||
+          response?.anesthesia_code ||
+          response?.code ||
+          response?.data?.anaesthesia_code ||
+          response?.data?.code
+
+        const mapPeople = (ids, options) => {
+          if (!Array.isArray(ids)) return []
+          const idSet = new Set(ids.map(val => String(val)))
+          return options
+            .filter(opt => idSet.has(String(opt.id)))
+            .map(opt => ({ full_name: opt.name || opt.label || '', id: opt.id }))
+            .filter(person => person.full_name)
+        }
+
+        const purposeMap = new Map()
+        if (Array.isArray(purposeOptions)) {
+          purposeOptions.forEach(item => {
+            if (item?.id && item?.name) purposeMap.set(String(item.id), item.name)
+          })
+        }
+
+        const selectedPurposes = Array.isArray(data.basicDetails.selected) ? data.basicDetails.selected : []
+        const customPurposes = Array.isArray(data.basicDetails.custom) ? data.basicDetails.custom : []
+        const purposeList = [
+          ...selectedPurposes
+            .map(id => purposeMap.get(String(id)) || id)
+            .filter(Boolean)
+            .map(name => ({ name })),
+          ...customPurposes.filter(Boolean).map(name => ({ name }))
+        ]
+
+        const newRecord = {
+          anaesthesia_id: createdId,
+          anesthesia_id: createdId,
+          anaesthesia_code: createdCode,
+          anesthesia_code: createdCode,
+          code: createdCode,
+          location: data.basicDetails.location || '',
+          anaesthesia_datetime: anaesthesiaDateTime || '',
+          anesthesia_datetime: anaesthesiaDateTime || '',
+          estimated_time_required: data.basicDetails.estimated_time_required || '',
+          estimated_time_unit: data.basicDetails.estimated_time_unit || '',
+          veterinarians: mapPeople(data.basicDetails.veterinarian_id, vetOptions),
+          anesthetists: mapPeople(data.basicDetails.anesthetist_id, anesthetistOptions),
+          purpose: purposeList,
+          notes: data.basicDetails.notes || ''
+        }
+
+        onSuccess(newRecord)
         reset(defaultValues)
         setOpenAddanesthesiaDrawer(false)
       } else {
@@ -238,6 +295,7 @@ const AddanesthesiaRecordDrawer = ({
           <FormProvider {...methods}>
             <Card
               component='form'
+              id={FORM_ID}
               onSubmit={handleSubmit(onSubmit)}
               sx={{
                 backgroundColor: theme.palette.primary.contrastText,
@@ -295,7 +353,7 @@ const AddanesthesiaRecordDrawer = ({
           CANCEL
         </LoadingButton>
         <LoadingButton
-          type='submit'
+          type='button'
           variant='contained'
           loading={isSubmitting}
           sx={{
