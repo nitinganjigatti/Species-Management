@@ -2,17 +2,17 @@ import { Card, Typography, Box, styled, CardContent, alpha, Skeleton, Button } f
 import { Grid } from '@mui/material'
 import React, { useState } from 'react'
 import { useTheme } from '@emotion/react'
-import Icon from 'src/@core/components/icon'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import { VisitType } from './hospitalSnippets'
 import AdmissionStatusCard from '../inpatient/AdmissionStatusCard'
 import MenuWithDots from 'src/components/MenuWithDots'
 import EditPatientDrawer from 'src/components/hospital/drawer/EditPatientDrawer'
-import { useHospital } from 'src/context/HospitalContext'
 import AddPatientDrawer from 'src/components/hospital/drawer/AddPatientDrawer'
 
 const PatientCard = ({ patientData, animalData, loading, refetch }) => {
   const theme = useTheme()
+
+  const isPatientDischarged = patientData?.status === 'discharge' ? true : false
 
   const [openEditPatientDrawer, setOpenEditPatientDrawer] = useState(null)
   const [openAddAnimalDrawer, setOpenAddAnimalDrawer] = useState(false)
@@ -23,21 +23,34 @@ const PatientCard = ({ patientData, animalData, loading, refetch }) => {
     { type: 'admitted_for', value: patientData?.admitted_for_day },
     { type: 'holding_location', value: patientData?.bed_name }
   ]
+  if (isPatientDischarged) {
+    admissionData.push(
+      { type: 'discharged_on', value: patientData?.discharge_at },
+      { type: 'discharged_by', value: patientData?.discharge_by_full_name }
+    )
+  }
 
-  const getMenuOptions = () => [
-    {
-      label: 'Edit Details',
-      action: () => {
-        setOpenEditPatientDrawer(true)
-      }
-    },
-    {
+  const getMenuOptions = () => {
+    const options = []
+
+    if (!isPatientDischarged) {
+      options.push({
+        label: 'Edit Details',
+        action: () => {
+          setOpenEditPatientDrawer(true)
+        }
+      })
+    }
+
+    options.push({
       label: 'Print',
       action: () => {
         console.log('Print action triggered')
       }
-    }
-  ]
+    })
+
+    return options
+  }
 
   return (
     <>
@@ -217,7 +230,11 @@ const PatientCard = ({ patientData, animalData, loading, refetch }) => {
                       ))
                     : admissionData.map((item, index) => (
                         <Grid key={index} size={{ xs: 12, sm: 6 }}>
-                          <AdmissionStatusCard type={item?.type} value={item?.value} />
+                          <AdmissionStatusCard
+                            type={item?.type}
+                            value={item?.value}
+                            isPatientDischarged={isPatientDischarged}
+                          />
                         </Grid>
                       ))}
                 </Grid>

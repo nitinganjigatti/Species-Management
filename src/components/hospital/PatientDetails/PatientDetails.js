@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import React, { useState, Suspense, lazy, useMemo, useCallback, useEffect } from 'react'
 import PatientCard from 'src/views/pages/hospital/utility/PatientCard'
 import CircularProgress from '@mui/material/CircularProgress'
+
 import MenuIcon from '@mui/icons-material/Menu'
 import IconButton from '@mui/material/IconButton'
 import Menu from '@mui/material/Menu'
@@ -50,10 +51,10 @@ const Anesthesia = lazy(() => import('src/components/hospital/inpatient/Anesthes
 const InpatientSurgery = lazy(() => import('src/views/pages/hospital/inpatient/InpatientSurgery'))
 const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'))
 
-const InpatientDetails = () => {
+const PatientDetails = ({ category }) => {
   const router = useRouter()
   const theme = useTheme()
-  const { category, id, animal_id, tab: urlTab } = router.query
+  const { id, animal_id, tab: urlTab } = router.query
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
@@ -97,13 +98,14 @@ const InpatientDetails = () => {
   useEffect(() => {
     if (patientResponse?.data?.created_at) {
       const admittedDate = patientResponse.data.admitted_at
-      console.log('✅ useEffect triggered - admittedDate:', admittedDate)
       updateUrlWithAdmittedDate(admittedDate)
     }
   }, [patientResponse?.data?.created_at])
 
   const patientData = patientResponse?.data
   const animalData = patientResponse?.data?.animal_detail || {}
+
+  const isPatientDischarged = patientData?.status === 'discharge' ? true : false
 
   const overviewData = patientResponse
     ? {
@@ -233,14 +235,6 @@ const InpatientDetails = () => {
     }
   }, [tabConfig, selectedTab])
 
-  const categoryLabel =
-    {
-      inpatient: 'Inpatient',
-      discharged: 'Discharge',
-      followup: 'Follow-up',
-      mortality: 'Mortality'
-    }[category] || 'Inpatient'
-
   // Memoize breadcrumbs to prevent unnecessary re-renders
   const breadcrumbs = useMemo(
     () => (
@@ -248,12 +242,12 @@ const InpatientDetails = () => {
         <Typography sx={{ color: 'inherit' }}>Hospital</Typography>
         <Typography sx={{ color: 'inherit' }}>Patients</Typography>
         <Typography sx={{ color: 'inherit', cursor: 'pointer' }} onClick={handleBack}>
-          {categoryLabel}
+          {category}
         </Typography>
         <Typography sx={{ color: 'text.primary' }}>Details</Typography>
       </Breadcrumbs>
     ),
-    [handleBack]
+    [handleBack, category]
   )
 
   const tabElements = useMemo(
@@ -271,7 +265,8 @@ const InpatientDetails = () => {
       hospitalCaseId: id,
       overviewData: overviewData,
       patientData: patientData,
-      loading: patientLoading
+      loading: patientLoading,
+      patientDischarged: isPatientDischarged
     }),
     [selectedTab, drawerState, id, overviewData, patientData, patientLoading]
   )
@@ -286,7 +281,7 @@ const InpatientDetails = () => {
           loading={patientLoading}
           refetch={refetchPatient}
         />
-        <Card sx={{ mt: 6, p: { xs: 3, md: 6 } }}>
+        <Card sx={{ mt: 6, p: { xs: 3, md: 6 }, mb: selectedTab === 'discharge' ? 4 : 0 }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <IconButton size='large' edge='start' color='inherit' aria-label='menu' onClick={handleMenuOpen}>
@@ -378,4 +373,4 @@ const InpatientDetails = () => {
   )
 }
 
-export default InpatientDetails
+export default PatientDetails

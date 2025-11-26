@@ -371,7 +371,8 @@ const HospitalMortality = () => {
 
   const handleRowClick = params =>
     router.push({
-      pathname: `/hospital/inpatient/${params.row.id}`
+      pathname: `/hospital/inpatient/${params.row?.hospital_case_id}`,
+      query: { animal_id: params.row?.animal_detail?.animal_id, medical_record_id: params.row.medical_record_id }
     })
 
   return (
