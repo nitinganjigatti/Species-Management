@@ -26,7 +26,8 @@ const InpatientClinicalNotes = props => {
     isSubmitting,
     lastClinicalNoteRef,
     hasNextPage,
-    isFetchingNextPage
+    isFetchingNextPage,
+    patientData
   } = props
   const theme = useTheme()
   const router = useRouter()
@@ -36,18 +37,15 @@ const InpatientClinicalNotes = props => {
 
   const noteText = watch('note')?.trim()
 
-  const onSubmit = async formValues => {
+  const onSubmit = async formData => {
     const payload = {
       medical_record_id,
-      note: formValues?.note
+      note: formData?.note,
+      hospital_case_id: patientData?.hospital_case_id
     }
 
-    try {
-      await onSubmitNote(payload)
-      reset(defaultValues)
-    } catch (error) {
-      console.error('Error submitting form:', error?.message)
-    }
+    await onSubmitNote(payload)
+    reset(defaultValues)
   }
 
   return (
@@ -147,7 +145,7 @@ const InpatientClinicalNotes = props => {
 
                 <UserAvatarDetails
                   user_name={data?.created_by_user_name}
-                  date={Utility.convertUtcToLocalReadableDate(data?.created_at)}
+                  date={data?.created_at}
                   show_time
                   size='medium'
                   profile_image={data?.user_created_profile_pic}

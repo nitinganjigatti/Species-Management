@@ -1,6 +1,20 @@
 import React from 'react'
-import { Box, Typography } from '@mui/material'
+import { Box, Tooltip, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
+
+// Helper function to format time from "12 AM" to "12:00 AM"
+const formatScheduledTime = timeStr => {
+  if (!timeStr) return ''
+
+  // Split the time string (e.g., "12 AM" -> ["12", "AM"])
+  const parts = timeStr.split(' ')
+  if (parts.length !== 2) return timeStr
+
+  const [hour, period] = parts
+
+  // Add ":00" to the hour part
+  return `${hour}:00 ${period}`
+}
 
 const TimeSlotCell = ({ hasSchedule, status, scheduledTime, dosage, onClick, config, theme }) => (
   <>
@@ -13,11 +27,11 @@ const TimeSlotCell = ({ hasSchedule, status, scheduledTime, dosage, onClick, con
           justifyContent: 'space-between',
           alignItems: 'center',
           gap: '8px',
-          width: '100%'
+          width: '184px'
         }}
       >
         {status !== 'pending' && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <Typography
               sx={{
                 fontWeight: 500,
@@ -29,7 +43,7 @@ const TimeSlotCell = ({ hasSchedule, status, scheduledTime, dosage, onClick, con
                 color: config?.color
               }}
             >
-              {status}
+              {status ? status.charAt(0).toUpperCase() + status.slice(1) : ''}
             </Typography>
             <Typography
               sx={{
@@ -43,25 +57,32 @@ const TimeSlotCell = ({ hasSchedule, status, scheduledTime, dosage, onClick, con
               }}
               variant='caption'
             >
-              {scheduledTime}
+              {formatScheduledTime(scheduledTime)}
             </Typography>
           </Box>
         )}
-        <Typography
-          sx={{
-            fontFamily: 'Inter',
-            fontWeight: 400,
-            fontStyle: 'normal',
-            fontSize: '14px',
-            mx: status === 'pending' && 'auto',
-            lineHeight: 1,
-            letterSpacing: 0,
-            color: theme.palette.customColors.neutralSecondary
-          }}
-          variant='caption'
-        >
-          {dosage}
-        </Typography>
+        <Tooltip title={dosage} arrow placement='top'>
+          <Typography
+            sx={{
+              fontSize: '14px',
+              mx: status === 'pending' && 'auto',
+              lineHeight: 1.5,
+              letterSpacing: 0,
+              textAlign: 'center',
+              color: theme.palette.customColors.neutralSecondary,
+
+              // Ellipsis styles
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              maxWidth: '100px', // Consistent width
+              flex: 1
+            }}
+            variant='caption'
+          >
+            {dosage}
+          </Typography>
+        </Tooltip>
       </Box>
     ) : (
       <Icon icon={'mdi-plus'} color={theme.palette.customColors.OutlineVariant} fontSize={20} />

@@ -75,9 +75,13 @@ const EditClinicalAsmntDrawer = ({
         oldSeverity: activity?.notes_dump?.old_data?.severity || '',
         newSeverity: activity?.notes_dump?.new_data?.severity || '',
         createdBy: activity?.created_by_user_name || '',
-        formattedTime: Utility.formatDisplayDate(activity?.created_at),
+        formattedTime: `${Utility.convertUTCToLocaltime(
+          activity?.modified_at || activity?.created_at
+        )} • ${Utility.convertUtcToLocalReadableDate(activity?.modified_at || activity.created_at)}`,
         note: activity.note || '',
-        clinicalAssessment: activity?.notes_dump?.new_data?.clinical_assessment || '',
+        clinicalAssessment: activity.clinical_assessment === 'diagnosis' ? 'Diagnosis' : 'Differential',
+        oldRecord: activity?.notes_dump?.old_data?.clinical_assessment,
+        newRecord: activity?.notes_dump?.new_data?.clinical_assessment,
         isFromAssessment: true
       }))
 
@@ -153,7 +157,7 @@ const EditClinicalAsmntDrawer = ({
                   }}
                 >
                   <MenuItem value='Active'>Active</MenuItem>
-                  <MenuItem value='Inactive'>Inactive</MenuItem>
+                  <MenuItem value='Inactive'>Resolved</MenuItem>
                 </Select>
               </Box>
 

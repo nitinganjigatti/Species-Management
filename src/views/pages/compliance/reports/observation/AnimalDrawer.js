@@ -11,7 +11,7 @@ import { useInView } from 'react-intersection-observer'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { getAnimalFilterList, getAnimalListForObservationReport } from 'src/lib/api/compliance/reports'
 import NoDataFound from 'src/views/utility/NoDataFound'
-import AnimalFilterDrawer from './AnimalFilterDrawer'
+import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
 
 const PAGE_SIZE = 10
 
@@ -68,7 +68,12 @@ const AnimalDrawer = ({
   handleAnimalClick,
   btnText = 'GENERATE OBSERVATION REPORT',
   showAnimalFilter = true,
-  showFilterAndSort = false
+  showFilterAndSort = false,
+  handleFilterClick = () => {},
+  handleSortClick = () => {},
+  module = 'housing',
+  filters = {},
+  sortType
 }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
@@ -118,22 +123,50 @@ const AnimalDrawer = ({
   }
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, remove } = useInfiniteQuery({
-    queryKey: ['animal-List-Observation-Report', search, activeTab, filtersKey],
+    queryKey: ['animal-List-Observation-Report', search, activeTab, filters, sortType],
     queryFn: async ({ pageParam = 1 }) => {
-      const params = {
-        page_no: pageParam,
-        limit: PAGE_SIZE,
-        q: search,
-        type: activeTab,
-        end_date: formatDate(new Date()),
-        ...filterParams
-      }
-      const res = await getAnimalListForObservationReport(params)
+      if (module === 'housing') {
+        const params = {
+          page_no: pageParam,
+          limit: PAGE_SIZE,
+          q: search,
+          type: activeTab,
+          end_date: formatDate(new Date())
+        }
+        const res = await getAnimalListForObservationReport(params)
 
-      return {
-        animals: res?.data?.animals || [],
-        nextPage: res?.data?.animals?.length === PAGE_SIZE ? pageParam + 1 : undefined,
-        total_animal_count: res?.data?.total_animal_count || 0
+        return {
+          animals: res?.data?.animals || [],
+          nextPage: res?.data?.animals?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+          total_animal_count: res?.data?.total_animal_count || 0
+        }
+      }
+      if (module === 'hospital') {
+        const params = {
+          page_no: pageParam,
+          q: search,
+          limit: PAGE_SIZE,
+          list_type: 'animals',
+          type: 'single',
+          animal_list_type: 'all_animals',
+          gender: filters?.Gender || [],
+          tsn_id: filters?.Species || [],
+          site_id: filters?.Site || [],
+          section_id: filters?.Section || [],
+          enclosure_id: filters?.Enclosure || [],
+          sort: sortType?.sort,
+          column: sortType?.column
+        }
+
+        console.log(params)
+
+        const res = await getNewAnimalListWithFilters(params)
+
+        return {
+          animals: res?.data || [],
+          nextPage: res?.data?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+          total_animal_count: res?.total_count || 0
+        }
       }
     },
     getNextPageParam: lastPage => lastPage.nextPage
@@ -165,8 +198,8 @@ const AnimalDrawer = ({
       data?.pages?.flatMap(page =>
         page.animals.map(animal => ({
           animal_id: animal?.animal_id,
-          default_common_name: animal?.default_common_name,
-          scientific_name: animal?.complete_name,
+          default_common_name: animal?.default_common_name || animal?.common_name,
+          scientific_name: animal?.complete_name || animal?.scientific_name,
           user_enclosure_name: animal?.user_enclosure_name,
           section_name: animal?.section_name,
           site_name: animal?.site_name,
@@ -290,6 +323,7 @@ const AnimalDrawer = ({
                   <FilterButton
                     bgColor={theme?.palette?.customColors?.OnPrimary}
                     border={`1px solid ${theme?.palette?.customColors?.OutlineVariant}`}
+                    onClick={handleFilterClick}
                   />
                 </Grid>
                 <Grid size={{ xs: 1, sm: 1 }}>
@@ -306,7 +340,7 @@ const AnimalDrawer = ({
                         alignItems: 'center',
                         cursor: 'pointer'
                       }}
-                      onClick={''}
+                      onClick={handleSortClick}
                     >
                       <Icon icon={'lets-icons:sort-arrow'} fontSize={24} />
                     </Box>

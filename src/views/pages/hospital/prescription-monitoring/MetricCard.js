@@ -1,22 +1,28 @@
 import React from 'react'
-import { Box, Typography } from '@mui/material'
+import { Avatar, Box, Typography } from '@mui/material'
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import Icon from 'src/@core/components/icon'
+import RenderUtility from 'src/utility/render'
 
 const MetricCard = ({
   metric,
   selected,
   onSelect,
   disabled,
+  onMedicineNameClick,
   children,
   MetricLabel,
   theme,
   prescriptionCardColorsConfig
 }) => (
   <>
-    <MUICheckbox checked={selected} onChange={onSelect} disabled={disabled} />
+    <MUICheckbox
+      checked={metric.canEdit === false || selected}
+      onChange={onSelect}
+      disabled={metric.canEdit === false || disabled}
+    />
     <MetricLabel
-      onClick={onSelect}
+      onClick={onMedicineNameClick}
       disabled={disabled}
       config={prescriptionCardColorsConfig(metric)}
       sx={{
@@ -30,8 +36,8 @@ const MetricCard = ({
         })
       }}
     >
-      <Box>
-        <Typography
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <Box
           sx={{
             fontFamily: 'Inter, sans-serif',
             fontWeight: 500,
@@ -57,17 +63,70 @@ const MetricCard = ({
               height='16px'
             />
           )}
+          {!metric?.canEdit && (
+            <Icon
+              icon={metric?.status === 'stopped' ? 'jam:stop-sign' : 'mingcute:check-fill'}
+              color={
+                metric?.status === 'stopped'
+                  ? theme.palette.customColors.Tertiary
+                  : theme.palette.customColors.OnSurface
+              }
+              width='16px'
+              height='16px'
+            />
+          )}
+          {metric?.controlled_substance == 1 && (
+            <Box sx={{ ml: '4px' }}>{RenderUtility?.renderControlLabel(metric?.controlled_substance == 1, 'CS')}</Box>
+          )}
+
           {metric?.name}
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 1 }}>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
           <Icon icon='wi:time-9' width='12px' height='12px' />
           <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.secondaryBg }}>
-            {metric.frequency}
+            {metric?.progress?.split('/')[1]
+              ? `${metric?.progress?.split('/')[1]} ${parseInt(metric?.progress?.split('/')[1]) > 1 ? 'times' : 'time'}`
+              : '-'}
           </Typography>
           <Typography
             sx={{
+              fontWeight: 600,
+              fontSize: '14px',
+              lineHeight: '100%',
+              letterSpacing: 0,
+              textAlign: 'right',
+              ml: 'auto'
+            }}
+          >
+            {(() => {
+              const [completed, total] = metric.progress.split('/')
+              const isComplete = completed === total
+
+              return (
+                <>
+                  <Box
+                    component='span'
+                    sx={{
+                      color: isComplete ? theme.palette.primary.main : theme.palette.customColors.Tertiary
+                    }}
+                  >
+                    {completed}
+                  </Box>
+                  <Box
+                    component='span'
+                    sx={{
+                      color: isComplete ? theme.palette.primary.main : theme.palette.customColors.secondaryBg
+                    }}
+                  >
+                    /{total}
+                  </Box>
+                </>
+              )
+            })()}
+          </Typography>
+          {/* <Typography
+            sx={{
               color: theme.palette.customColors.secondaryBg,
-              fontFamily: 'Inter',
               fontWeight: 600,
               fontSize: '14px',
               lineHeight: '100%',
@@ -77,7 +136,7 @@ const MetricCard = ({
             }}
           >
             {metric.progress}
-          </Typography>
+          </Typography> */}
         </Box>
       </Box>
       {children}

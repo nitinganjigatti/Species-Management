@@ -1,140 +1,19 @@
-import { Drawer, IconButton, Typography, TextField } from '@mui/material'
+import { Drawer, IconButton, Typography, TextField, CircularProgress } from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
-import { useEffect, useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { LoadingButton } from '@mui/lab'
 import EditTemplateForm from '../../../../components/hospital/inpatient/EditTemplateForm'
 import SurgeryTemplateCard from './SurgeryTemplateCard'
 
-// Sample template data
-const sampleTemplates = [
-  {
-    id: 1,
-    title: 'Ovariohysterectomy',
-    description:
-      'Appendectomy was performed via a right lower abdominal approach under general anesthesia. The patient was positioned supine and prepped with standard sterile technique.',
-    category: 'Surgery'
-  },
-  {
-    id: 2,
-    title: 'Appendectomy',
-    description:
-      'Standard appendectomy procedure with laparoscopic approach. Patient was placed under general anesthesia.',
-    category: 'Surgery'
-  },
-  {
-    id: 3,
-    title: 'Dental Cleaning',
-    description: 'Comprehensive dental cleaning and examination. Scaling and polishing performed under sedation.',
-    category: 'Dental'
-  },
-  {
-    id: 4,
-    title: 'Vaccination',
-    description: 'Annual vaccination protocol including core vaccines and additional recommended vaccines.',
-    category: 'Preventive'
-  },
-  {
-    id: 5,
-    title: 'Blood Test',
-    description: 'Complete blood count and comprehensive metabolic panel for routine health assessment.',
-    category: 'Diagnostic'
-  },
-  {
-    id: 6,
-    title: 'X-Ray Examination',
-    description: 'Radiographic examination of chest and abdomen for diagnostic purposes.',
-    category: 'Diagnostic'
-  },
-  {
-    id: 7,
-    title: 'Suture Removal',
-    description: 'Removal of surgical sutures and wound assessment for proper healing.',
-    category: 'Post-operative'
-  },
-  {
-    id: 8,
-    title: 'Bandage Change',
-    description: 'Regular bandage change and wound dressing for optimal healing conditions.',
-    category: 'Post-operative'
-  },
-  {
-    id: 9,
-    title: 'Medication Review',
-    description: 'Comprehensive review of current medications and dosage adjustments if needed.',
-    category: 'Medical'
-  },
-  {
-    id: 10,
-    title: 'Physical Examination',
-    description: 'Complete physical examination including vital signs and general health assessment.',
-    category: 'Medical'
-  },
-  {
-    id: 11,
-    title: 'Microchip Implantation',
-    description: 'Subcutaneous microchip implantation for pet identification and tracking.',
-    category: 'Identification'
-  },
-  {
-    id: 12,
-    title: 'Neutering',
-    description: 'Surgical neutering procedure with pre-operative assessment and post-operative care.',
-    category: 'Surgery'
-  },
-  {
-    id: 13,
-    title: 'Ear Cleaning',
-    description: 'Professional ear cleaning and examination for ear health maintenance.',
-    category: 'Grooming'
-  },
-  {
-    id: 14,
-    title: 'Nail Trimming',
-    description: 'Professional nail trimming and paw care for optimal comfort and health.',
-    category: 'Grooming'
-  },
-  {
-    id: 15,
-    title: 'Parasite Treatment',
-    description: 'Comprehensive parasite treatment including flea, tick, and worm prevention.',
-    category: 'Preventive'
-  },
-  {
-    id: 16,
-    title: 'Emergency Stabilization',
-    description: 'Emergency medical stabilization and critical care treatment protocol.',
-    category: 'Emergency'
-  },
-  {
-    id: 17,
-    title: 'Fluid Therapy',
-    description: 'Intravenous fluid therapy for hydration and electrolyte balance restoration.',
-    category: 'Treatment'
-  },
-  {
-    id: 18,
-    title: 'Wound Management',
-    description: 'Comprehensive wound management including cleaning, debridement, and dressing.',
-    category: 'Treatment'
-  },
-  {
-    id: 19,
-    title: 'Behavioral Assessment',
-    description: 'Comprehensive behavioral assessment and consultation for behavioral issues.',
-    category: 'Behavioral'
-  },
-  {
-    id: 20,
-    title: 'Nutritional Consultation',
-    description:
-      'Dietary assessment and nutritional consultation for optimal health and weightDietary assessment and nutritional consultation for optimal health and weightDietary assessment and nutritional consultation for optimal health and weight management.',
-    category: 'Nutrition'
-  }
-]
-
-const SurgeryRecordTemplateList = ({ openSurgeryTemplateDrawer, setOpenSurgeryTemplateDrawer }) => {
+const SurgeryRecordTemplateList = ({
+  openSurgeryTemplateDrawer,
+  setOpenSurgeryTemplateDrawer,
+  templates = [],
+  loading = false,
+  onApplyTemplate = () => {}
+}) => {
   const theme = useTheme()
   const [searchValue, setSearchValue] = useState('')
   const [selectedTemplate, setSelectedTemplate] = useState(null)
@@ -143,15 +22,37 @@ const SurgeryRecordTemplateList = ({ openSurgeryTemplateDrawer, setOpenSurgeryTe
 
   // Filter templates based on search
   const filteredTemplates = useMemo(() => {
-    if (!searchValue.trim()) return sampleTemplates
+    const list = Array.isArray(templates) ? templates : []
 
-    return sampleTemplates.filter(
-      template =>
-        template.title.toLowerCase().includes(searchValue.toLowerCase()) ||
-        template.description.toLowerCase().includes(searchValue.toLowerCase()) ||
-        template.category.toLowerCase().includes(searchValue.toLowerCase())
-    )
-  }, [searchValue])
+    if (!searchValue.trim()) return list
+
+    const value = searchValue.toLowerCase()
+
+    return list.filter(template => {
+      const title = template?.title?.toLowerCase() || ''
+      const description = template?.description?.toLowerCase() || ''
+      const category = template?.category?.toLowerCase() || ''
+
+      return title.includes(value) || description.includes(value) || category.includes(value)
+    })
+  }, [searchValue, templates])
+
+  useEffect(() => {
+    if (!selectedTemplate) return
+
+    const list = Array.isArray(templates) ? templates : []
+    const match = list.find(template => template.id === selectedTemplate.id)
+
+    if (!match) {
+      setSelectedTemplate(null)
+
+      return
+    }
+
+    if (match !== selectedTemplate) {
+      setSelectedTemplate(match)
+    }
+  }, [templates, selectedTemplate])
 
   // Handle template selection
   const handleTemplateSelect = template => {
@@ -161,18 +62,15 @@ const SurgeryRecordTemplateList = ({ openSurgeryTemplateDrawer, setOpenSurgeryTe
   // Handle apply template
   const handleApplyTemplate = () => {
     if (selectedTemplate) {
-      console.log('Applied template:', selectedTemplate)
-
-      // Add your logic here to apply the template
+      onApplyTemplate(selectedTemplate)
       setOpenSurgeryTemplateDrawer(false)
     }
   }
 
-  // Handle edit template
+  // Handle edit template -> now closes the drawer when a template is selected
   const handleEditTemplate = () => {
     if (selectedTemplate) {
-      setEditingTemplate(selectedTemplate)
-      setOpenEditPopup(true)
+      setOpenSurgeryTemplateDrawer(false)
     }
   }
 
@@ -228,7 +126,7 @@ const SurgeryRecordTemplateList = ({ openSurgeryTemplateDrawer, setOpenSurgeryTe
         <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center', maxHight: '80px' }}>
           <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
           <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-            All Templates - 12
+            All Templates - {templates?.length || 0}
           </Typography>
         </Box>
         <IconButton size='small' onClick={() => setOpenSurgeryTemplateDrawer(false)}>
@@ -292,16 +190,32 @@ const SurgeryRecordTemplateList = ({ openSurgeryTemplateDrawer, setOpenSurgeryTe
               paddingBottom: '80px'
             }}
           >
-            {filteredTemplates.map(template => (
-              <SurgeryTemplateCard
-                key={template.id}
-                template={template}
-                selectedTemplate={selectedTemplate}
-                onSelect={handleTemplateSelect}
-                onEdit={handleEditTemplateFromPencil}
-                onDelete={template => console.log('Delete template:', template)}
-              />
-            ))}
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+                <CircularProgress size={32} />
+              </Box>
+            ) : filteredTemplates.length ? (
+              filteredTemplates.map(template => (
+                <SurgeryTemplateCard
+                  key={template.id}
+                  template={template}
+                  selectedTemplate={selectedTemplate}
+                  onSelect={handleTemplateSelect}
+                  onEdit={handleEditTemplateFromPencil}
+                  onDelete={template => console.log('Delete template:', template)}
+                />
+              ))
+            ) : (
+              <Typography
+                sx={{
+                  textAlign: 'center',
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  mt: 6
+                }}
+              >
+                No templates found.
+              </Typography>
+            )}
           </Box>
         </Box>
       </Box>
@@ -326,25 +240,25 @@ const SurgeryRecordTemplateList = ({ openSurgeryTemplateDrawer, setOpenSurgeryTe
         <LoadingButton
           variant='outlined'
           size='large'
-          disabled={!selectedTemplate}
+          disabled={loading}
           onClick={handleEditTemplate}
           sx={{
             flex: 1,
             height: '56px',
-            borderColor: selectedTemplate ? theme.palette.primary.main : theme.palette.customColors.Outline,
-            color: selectedTemplate ? theme.palette.primary.main : theme.palette.customColors.Outline,
+            borderColor: theme.palette.customColors.OutlineVariant,
+            color: theme.palette.customColors.neutralSecondary,
             '&:hover': {
-              borderColor: selectedTemplate ? theme.palette.primary.main : theme.palette.customColors.Outline,
-              backgroundColor: selectedTemplate ? 'rgba(25, 118, 210, 0.04)' : 'transparent'
+              borderColor: theme.palette.customColors.neutralSecondary,
+              backgroundColor: theme.palette.customColors.mdAntzNeutral
             }
           }}
         >
-          EDIT
+          Close
         </LoadingButton>
         <LoadingButton
           variant='contained'
           size='large'
-          disabled={!selectedTemplate}
+          disabled={loading || !selectedTemplate}
           onClick={handleApplyTemplate}
           sx={{
             flex: 1,

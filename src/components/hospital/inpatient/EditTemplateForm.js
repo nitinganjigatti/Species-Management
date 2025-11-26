@@ -1,13 +1,13 @@
 import React from 'react'
-import { Dialog, DialogContent, IconButton, Box, Typography } from '@mui/material'
+import { Dialog, DialogContent, IconButton, Box, Typography, FormControl, FormHelperText } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
-import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import { LoadingButton } from '@mui/lab'
+import RichTextEditor from 'src/components/RichTextEditor'
 
 // Validation schema
 const schema = yup.object().shape({
@@ -123,19 +123,24 @@ const EditTemplateForm = ({ open, onClose, template, onUpdate, onDelete, loading
             />
 
             {/* Description Field */}
-            <ControlledTextArea
-              name='description'
-              control={control}
-              errors={errors}
-              label={'Description'}
-              rows={6}
-              sx={{
-                '& .MuiOutlinedInput-root:not(.Mui-focused) .MuiOutlinedInput-notchedOutline': {
-                  borderColor: theme.palette.customColors.OutlineVariant,
-                  borderRadius: '4px'
-                }
-              }}
-            />
+            <FormControl fullWidth error={Boolean(errors.description)}>
+              <Controller
+                name='description'
+                control={control}
+                render={({ field }) => (
+                  <RichTextEditor
+                    value={field.value || ''}
+                    onChange={value => field.onChange(value?.html || '')}
+                    label='Description'
+                    placeholder='Enter description...'
+                    minHeight={160}
+                  />
+                )}
+              />
+              {errors.description && (
+                <FormHelperText sx={{ color: theme.palette.error.main }}>{errors.description.message}</FormHelperText>
+              )}
+            </FormControl>
           </Box>
         </DialogContent>
 
@@ -157,11 +162,15 @@ const EditTemplateForm = ({ open, onClose, template, onUpdate, onDelete, loading
             sx={{
               flex: 1,
               height: '56px',
-              borderColor: theme.palette.customColors.Error,
-              color: theme.palette.customColors.Error
+              borderColor: theme.palette.customColors.OutlineVariant,
+              color: theme.palette.customColors.neutralSecondary,
+              '&:hover': {
+                borderColor: theme.palette.customColors.neutralSecondary,
+                backgroundColor: theme.palette.customColors.mdAntzNeutral
+              }
             }}
           >
-            DELETE
+            Close
           </LoadingButton>
           <LoadingButton
             type='submit'

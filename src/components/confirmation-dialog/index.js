@@ -19,7 +19,9 @@ const ConfirmationDialog = ({
   cancelText,
   confirmBtnStyle,
   cancelBtnStyle,
-  imgStyle
+  imgStyle,
+  imgHeight = '70px',
+  imgWidth = '70px'
 }) => {
   const theme = useTheme()
 
@@ -59,7 +61,7 @@ const ConfirmationDialog = ({
               backgroundColor: theme.palette.customColors.mdAntzNeutral
             }}
           >
-            <Icon width='70px' height='70px' color={iconColor ? iconColor : null} icon={icon} />
+            <Icon width={imgWidth} height={imgHeight} color={iconColor ? iconColor : null} icon={icon} />
           </Box>
         ) : null}
         {image ? (
@@ -76,8 +78,8 @@ const ConfirmationDialog = ({
                 '& > img': {
                   objectFit: 'contain'
                 },
-                width: '70px',
-                height: '70px'
+                width: imgWidth,
+                height: imgHeight
               }}
               variant='rounded'
               alt={image}
@@ -86,15 +88,13 @@ const ConfirmationDialog = ({
           </Box>
         ) : null}
         <Box>
-          <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
-            {title ? title : null}
-          </Typography>
+          <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center' }}>{title ? title : null}</Typography>
           <Typography sx={{ fontWeight: 400, fontSize: 14, textAlign: 'center' }}>
             {description ? description : null}
           </Typography>
         </Box>
         {formComponent ? <Box sx={{ width: '100%' }}>{formComponent} </Box> : null}
-        <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: 5 }}>
           <Button
             disabled={loading}
             onClick={() => onClose()}

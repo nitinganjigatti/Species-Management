@@ -13,7 +13,7 @@ import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
-import { VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
+import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import Search from 'src/views/utility/Search'
@@ -55,9 +55,7 @@ const HospitalOutPatient = () => {
         limit: filters?.limit,
         search: filters?.q,
         hospital_id: selectedHospital?.id,
-        status: 'opd',
         visit_type: selectedVisitType,
-        visit_category: 'outpatient',
         patient_category: 'outpatient'
       })
   })
@@ -158,50 +156,45 @@ const HospitalOutPatient = () => {
       )
     },
     {
-      width: 250,
+      width: 300,
       minWidth: 20,
       field: 'purpose_of_visit',
       sortable: false,
       headerName: 'Purpose of Visit',
       renderCell: params => (
         <>
-          <Tooltip title={params.row.purpose_of_visit}>
-            <Typography
-              variant='body2'
-              sx={{
-                fontSize: '14px',
-                fontWeight: 400,
-                fontFamily: 'Inter',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                display: '-webkit-box',
-                WebkitLineClamp: 4,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'normal',
-                py: 4
-              }}
-            >
-              <>{params.row.purpose_of_visit || ''}</>
-            </Typography>
-          </Tooltip>
-        </>
-      )
-    },
-    {
-      width: 150,
-      minWidth: 20,
-      field: 'medical_record_code',
-      sortable: false,
-      headerName: 'Medical Id',
-      align: 'left',
-      headerAlign: 'left',
-
-      renderCell: params => (
-        <>
-          <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.medical_record_code}
-          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+              <VisitType title={params.row.visit_type} />
+              {params?.row?.medical_record_code && (
+                <MedicalIdChip
+                  medId={params?.row?.medical_record_code}
+                  backgroundColor={theme.palette.customColors.mdAntzNeutral}
+                />
+              )}
+            </Box>
+            {params.row.purpose_of_visit && (
+              <Tooltip title={params.row.purpose_of_visit} arrow>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    fontFamily: 'Inter',
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 5,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'normal'
+                  }}
+                >
+                  <>{params.row.purpose_of_visit || ''}</>
+                </Typography>
+              </Tooltip>
+            )}
+          </Box>
         </>
       )
     },
@@ -220,12 +213,12 @@ const HospitalOutPatient = () => {
             <Typography
               sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
             >
-              {Utility.convertUtcToLocalReadableDate(params?.row?.admitted_at)}
+              {Utility.convertUtcToLocalReadableDate(params?.row?.created_at)}
             </Typography>
             <Typography
               sx={{ fontSize: '12px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
             >
-              {Utility.convertUTCToLocaltime(params?.row?.admitted_at)}
+              {Utility.convertUTCToLocaltime(params?.row?.created_at)}
             </Typography>
           </Box>
         </>
@@ -241,7 +234,7 @@ const HospitalOutPatient = () => {
       headerAlign: 'left',
 
       renderCell: params => {
-        const admittedAt = params?.row?.admitted_at
+        const admittedAt = params?.row?.created_at
         let days = '-'
 
         if (admittedAt) {
@@ -260,25 +253,13 @@ const HospitalOutPatient = () => {
     {
       width: 200,
       minWidth: 20,
-      field: 'visit_type',
-      sortable: false,
-      headerName: 'Visit Type',
-      renderCell: params => (
-        <>
-          <VisitType title={params.row.visit_type} />
-        </>
-      )
-    },
-    {
-      width: 200,
-      minWidth: 20,
-      field: 'holding_enclosure_name',
+      field: 'bed_name',
       sortable: false,
       headerName: 'Location',
       renderCell: params => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.holding_enclosure_name ? params?.row?.holding_enclosure_name : '-'}
+            {params?.row?.bed_name ? params?.row?.bed_name : '-'}
           </Typography>
         </>
       )

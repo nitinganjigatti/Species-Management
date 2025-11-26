@@ -2,14 +2,31 @@ import React from 'react'
 import { Box, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 
-const SideSheetActionButtons = ({ addLabel, cancelLabel, onAdd, onCancel, width, height, isSubmitLoading }) => {
+const SideSheetActionButtons = ({
+  addLabel,
+  cancelLabel,
+  onAdd,
+  onCancel,
+  width,
+  height,
+  isSubmitLoading,
+  isDisabled
+}) => {
   const theme = useTheme()
 
   return (
     <Box
+      // sx={{
+      //   position: 'sticky',
+      //   bottom: 1,
+      //   backgroundColor: theme.palette.common.white,
+      //   borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+      //   px: 4,
+      //   py: 5,
+      //   display: 'flex',
+      //   gap: 3.5
+      // }}
       sx={{
-        position: 'sticky',
-        bottom: 1,
         backgroundColor: theme.palette.common.white,
         borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`,
         px: 4,
@@ -40,17 +57,20 @@ const SideSheetActionButtons = ({ addLabel, cancelLabel, onAdd, onCancel, width,
       <Box
         component='button'
         onClick={onAdd}
-        disabled={isSubmitLoading}
+        disabled={isDisabled || isSubmitLoading}
         sx={{
           flex: 1,
           width,
           height,
           borderRadius: '8px',
-          backgroundColor: theme.palette.customColors.OnPrimaryContainer,
+          backgroundColor:
+            isSubmitLoading || isDisabled
+              ? theme.palette.customColors.neutralSecondary
+              : theme.palette.customColors.OnPrimaryContainer,
           color: theme.palette.common.white,
           fontWeight: 500,
           fontSize: '15px',
-          cursor: isSubmitLoading ? 'not-allowed' : 'pointer',
+          cursor: isSubmitLoading || isDisabled ? 'not-allowed' : 'pointer',
           border: 'none',
           display: 'flex',
           alignItems: 'center',

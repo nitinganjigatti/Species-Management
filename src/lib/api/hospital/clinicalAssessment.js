@@ -55,7 +55,7 @@ export async function addClinicalAssessment(payLoad) {
 
 export async function updateClinicalAssessment(payLoad) {
   try {
-    const response = await axiosFormPost({ url: `${UPDATE_CLINICAL_ASSESSMENT}`, body: payLoad })
+    const response = await axiosPost({ url: `${UPDATE_CLINICAL_ASSESSMENT}`, body: payLoad })
 
     return response?.data
   } catch (error) {

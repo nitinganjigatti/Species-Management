@@ -161,7 +161,25 @@ export default function AddClinicalAssessmentPage() {
   }
 
   const addSymptomDetails = details => {
-    setSelectedSymptoms(prev => [...prev, { ...temporarilySelected, ...details }])
+    if (temporarilySelected?.id && selectedSymptoms.some(s => s.id === temporarilySelected.id)) {
+      // Update existing symptom
+      setSelectedSymptoms(prev =>
+        prev.map(symptom =>
+          symptom.id === temporarilySelected.id
+            ? {
+                ...symptom,
+                ...details,
+                chronicVal: details.clinicalAsmnt === 'Differential' ? 'No' : details.chronicVal,
+                prognosisVal: details.clinicalAsmnt === 'Differential' ? '' : details.prognosisVal
+              }
+            : symptom
+        )
+      )
+    } else {
+      // Add new symptom
+      setSelectedSymptoms(prev => [...prev, { ...temporarilySelected, ...details }])
+    }
+
     setTemporarilySelected(null)
     setClinicalDrawerOpen(false)
 
@@ -207,13 +225,20 @@ export default function AddClinicalAssessmentPage() {
         clinical_assessment: symptom.clinicalAsmnt.toLowerCase(),
         note: symptom?.notes || '',
         isChronic: symptom?.chronicVal === 'Yes',
-        prognosis: symptom?.prognosisVal?.toLowerCase() || ''
+        prognosis: symptom?.prognosisVal?.toLowerCase() || '',
+        notes: symptom?.notes || '',
+        active_at: new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000))
+        .toISOString()
+        .replace('T', ' ')
+        .substring(0, 19),
+        closed_at: null
       }
     }))
 
     const payload = {
       medical_record_id: medicalRecordId,
-      animal_id: JSON.stringify([animalId]),
+
+      // animal_id: JSON.stringify([animalId]),
       diagnosis: JSON.stringify(diagnosis)
     }
 
@@ -224,7 +249,7 @@ export default function AddClinicalAssessmentPage() {
         Toaster({ type: 'success', message: response?.message || 'Assessment created successfully' })
         router.push({
           pathname: `/hospital/inpatient/${id}`,
-          query: { animal_id: animalId, medical_record_id: medicalRecordId, tab: 'clinical-assessment' }
+          query: { animal_id: animalId, medical_record_id: medicalRecordId, tab: 'clinicalAssessment' }
         })
       } else {
         Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
@@ -240,7 +265,7 @@ export default function AddClinicalAssessmentPage() {
   const handleAssessmentCancel = () => {
     router.push({
       pathname: `/hospital/inpatient/${id}`,
-      query: { animal_id: animalId, medical_record_id: medicalRecordId, tab: 'clinical-assessment' }
+      query: { animal_id: animalId, medical_record_id: medicalRecordId, tab: 'clinicalAssessment' }
     })
   }
 
@@ -279,6 +304,19 @@ export default function AddClinicalAssessmentPage() {
       console.error('Cannot Fetch Patient Details', error)
       setPatientLoading(false)
     }
+  }
+
+  const handleAssessmentEdit = symptom => {
+    console.log('Selected Symptom:', symptom)
+    setClinicalAsmnt(symptom?.clinicalAsmnt || '')
+    setPrognosisValue(symptom?.prognosisVal || '')
+    setChronicVal(symptom?.chronicVal || 'No')
+    setNotes(symptom?.notes || '')
+    setStatus(symptom?.status || '')
+
+    // Make sure we're passing the complete symptom object with id
+    setTemporarilySelected(symptom)
+    setClinicalDrawerOpen(true)
   }
 
   useEffect(() => {
@@ -342,6 +380,7 @@ export default function AddClinicalAssessmentPage() {
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
           <SelectedClinicalAssessment
             selected={selectedSymptoms}
+            onEdit={handleAssessmentEdit}
             onRemove={removeSymptom}
             clinicalAsmnt={clinicalAsmnt}
           />

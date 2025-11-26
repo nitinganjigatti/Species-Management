@@ -6,6 +6,7 @@ import AnimalCard from './AnimalCard'
 
 const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelete, radio = false, sx }) => {
   const theme = useTheme()
+  console.log(data)
 
   return (
     <>
