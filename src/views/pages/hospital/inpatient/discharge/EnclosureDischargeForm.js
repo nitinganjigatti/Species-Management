@@ -1,142 +1,61 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Box, Button, Divider, Grid, IconButton, Tooltip, Typography, useTheme, TextField, Avatar } from '@mui/material'
+import React, { useCallback, useEffect, useMemo } from 'react'
+import { Box, Button, Divider, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import { alpha, styled } from '@mui/system'
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
 
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { useForm, Controller } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { useRouter } from 'next/router'
+import dayjs from 'dayjs'
 
 // ** Custom Form Components
-import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
-import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
+import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
-import RichTextEditor from 'src/components/RichTextEditor'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
-import SurgeryRecordTemplateList from 'src/views/pages/hospital/inpatient/SurgeryRecordTemplateList'
-import Toaster from 'src/components/Toaster'
+import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 
 const transferEnclosureSchema = yup.object({
-  discharge_type: yup.string().oneOf(['TransferEnclosure']).required('Discharge type is required'),
-
-  discharge_date: yup.date().nullable().required('Date of discharge is required'),
-  discharge_time: yup.date().nullable().required('Time of discharge is required'),
-  follow_up_required: yup.boolean().required('Follow up required is required'),
-
-  // summary as HTML string (not marked required in your original schema)
-  reason: yup.string().nullable(),
-
-  care_diet_instruction: yup.string().trim().required('Care Diet Instructions is required'),
-  care_restriction: yup.string().trim().required('Care Restriction activities is required'),
-  care_notes: yup.string().trim().required('Care notes is required'),
-  attachments: yup.array().min(1, 'At least one attachment is required').required('Attachments are required'),
+  discharge_date: yup
+    .date()
+    .nullable()
+    .required('Date of discharge is required')
+    .max(new Date(), 'Date of discharge cannot be in the future'),
+  discharge_time: yup
+    .date()
+    .nullable()
+    .required('Time of discharge is required')
+    .max(new Date(), 'Time of discharge cannot be in the future'),
+  follow_up_required: yup.boolean().optional(),
   follow_up_date: yup
     .date()
     .nullable()
     .when('follow_up_required', {
       is: true,
       then: schema =>
-        schema
-          .required('Follow up date required')
-          .test('afterNow', 'Follow-up cannot be in past', v => !v || v >= new Date())
-    })
+        schema.required('Follow up date required').test('afterNow', 'Follow-up cannot be in past', v => {
+          if (!v) return true
+
+          // Compare pure dates (midnight)
+          const selected = dayjs(v).startOf('day')
+          const today = dayjs().startOf('day')
+
+          return selected.isSame(today) || selected.isAfter(today)
+        })
+    }),
+  reason: yup.string().optional(),
+  care_diet_instruction: yup.string().trim().required('Care Diet Instructions is required'),
+  care_restriction: yup.string().trim().required('Care Restriction activities is required'),
+  care_notes: yup.string().trim().required('Care notes is required'),
+  attachments: yup.array().nullable().optional()
 })
-
-/** Same inline Save-as-template UI as in AddSurgery */
-const SaveTemplateInline = ({ onClose, onSave, loading = false }) => {
-  const theme = useTheme()
-  const [templateName, setTemplateName] = useState('')
-
-  const handleSave = async () => {
-    if (!templateName.trim() || loading) return
-
-    const success = await onSave(templateName.trim())
-    if (success) {
-      setTemplateName('')
-    }
-  }
-
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: { xs: 'start', sm: 'center' },
-        gap: '16px',
-        flexDirection: { xs: 'column', sm: 'row' }
-      }}
-    >
-      <TextField
-        size='small'
-        placeholder='Enter template name'
-        value={templateName}
-        onChange={e => setTemplateName(e.target.value)}
-        sx={{
-          maxWidth: '413px',
-          minWidth: { xs: '100%', sm: '200px' },
-          height: '48px',
-          flex: 1,
-          borderRadius: '4px',
-          borderColor: theme.palette.customColors.OutlineVariant,
-          backgroundColor: theme.palette.customColors.Surface,
-          '& .MuiOutlinedInput-root': {
-            height: '48px'
-          }
-        }}
-      />
-      <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-        <Button
-          variant='contained'
-          onClick={handleSave}
-          disabled={loading || !templateName.trim()}
-          startIcon={
-            <Avatar
-              src='/icons/FloppyDisk.svg'
-              variant='square'
-              sx={{
-                objectFit: 'contain',
-                height: '24px',
-                width: '24px',
-                filter: 'brightness(0) invert(1)'
-              }}
-            />
-          }
-          sx={{
-            height: '48px',
-            width: '104px',
-            backgroundColor: theme.palette.primary.main,
-            color: 'white',
-            borderRadius: '6px',
-            textTransform: 'uppercase',
-            fontWeight: 500,
-            fontSize: 15,
-            '&:hover': {
-              backgroundColor: theme.palette.primary.dark
-            }
-          }}
-        >
-          {loading ? 'Saving...' : 'Save'}
-        </Button>
-        <IconButton
-          onClick={onClose}
-          sx={{
-            color: theme.palette.primary.light,
-            '&:hover': {
-              backgroundColor: 'rgba(0,0,0,0.04)'
-            }
-          }}
-        >
-          <Icon icon='mdi:close' fontSize={19} />
-        </IconButton>
-      </Box>
-    </Box>
-  )
-}
 
 const EnclosureDischargeForm = props => {
   const {
@@ -145,15 +64,10 @@ const EnclosureDischargeForm = props => {
     submitLoader,
     handleSubmitData,
 
-    medicationsColumns, // base columns from parent (with actions)
-    medicationData,
+    medicationsColumns,
     isTransferEnclosureMedicationLoading,
     clearData,
-    onDirtyChange,
-
-    templates = [],
-    activeTemplate,
-    setActiveTemplate
+    onDirtyChange
   } = props
 
   const theme = useTheme()
@@ -162,17 +76,13 @@ const EnclosureDischargeForm = props => {
   const patientDetails = patientData?.animal_detail
   const { data, updateState } = useDynamicStateContext()
 
-  const enclosureMedicines = data.enclosure_medicines || []
+  const enclosureMedicines = useMemo(() => data.enclosure_medicines || [], [data.enclosure_medicines]) // medicine table data
 
-  const [showSaveTemplate, setShowSaveTemplate] = useState(false)
-  const [isSavingTemplate, setIsSavingTemplate] = useState(false)
-  const [openTemplateDrawer, setOpenTemplateDrawer] = useState(false)
-
-  // Index medicines for table
+  // Index medicines
   const indexedMedicines = useMemo(
     () =>
-      enclosureMedicines.map((m, i) => ({
-        ...m,
+      enclosureMedicines.map((data, i) => ({
+        ...data,
         sl_no: i + 1
       })),
     [enclosureMedicines]
@@ -201,7 +111,9 @@ const EnclosureDischargeForm = props => {
     control,
     handleSubmit,
     reset,
+    watch,
     setValue,
+    clearErrors,
     formState: { errors, isDirty }
   } = useForm({
     defaultValues,
@@ -211,22 +123,48 @@ const EnclosureDischargeForm = props => {
     reValidateMode: 'onChange'
   })
 
-  // REPORT dirty state to parent for confirmation dialog
+  const followUp = watch('follow_up_required')
+
+  // mark dirty when form changes
   useEffect(() => {
     onDirtyChange?.(isDirty)
   }, [isDirty, onDirtyChange])
 
-  // Delete medicine → update context + mark dirty
+  // Reset irrelevant fields on follow-up toggle
+  useEffect(() => {
+    if (!followUp) {
+      setValue('follow_up_date', null)
+      clearErrors('follow_up_date')
+    }
+  }, [followUp, setValue, clearErrors])
+
+  // Edit medicine – go to schedule-prescription
+  const handleEditMedicine = useCallback(
+    med => {
+      router.push({
+        pathname: `/hospital/inpatient/${id}/schedule-prescription`,
+        query: {
+          animal_id: patientData?.animal_detail?.animal_id,
+          medical_record_id: patientData?.medical_record_id,
+          discharge_tab: 'TransferEnclosure',
+          edit_id: med.id
+        }
+      })
+    },
+    [router, id, patientData]
+  )
+
+  // Delete a medicine: update context state
   const handleDeleteMedicine = useCallback(
     medId => {
-      const updated = enclosureMedicines.filter(m => m.id !== medId)
+      const updated = enclosureMedicines.filter(med => med.id !== medId)
       updateState('enclosure_medicines', updated)
       onDirtyChange?.(true)
     },
     [enclosureMedicines, updateState, onDirtyChange]
   )
 
-  // Wrap medicationsColumns and inject working actions
+  // Add actions column
   const medicationColumnsWithActions = useMemo(
     () =>
       (medicationsColumns || []).map(col =>
@@ -234,134 +172,49 @@ const EnclosureDischargeForm = props => {
           ? {
               ...col,
               renderCell: params => (
-                <Tooltip title='Delete'>
-                  <IconButton size='small' onClick={() => handleDeleteMedicine(params.row.id)}>
-                    <Icon icon='mdi:close' fontSize={20} />
-                  </IconButton>
-                </Tooltip>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Tooltip title='Edit'>
+                    <IconButton size='small' onClick={() => handleEditMedicine(params.row)}>
+                      <Icon icon='mdi:pencil-outline' fontSize={20} />
+                    </IconButton>
+                  </Tooltip>
+
+                  <Tooltip title='Delete'>
+                    <IconButton size='small' onClick={() => handleDeleteMedicine(params.row.id)}>
+                      <Icon icon='mdi:close' fontSize={20} />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
               )
             }
           : col
       ),
-    [medicationsColumns, handleDeleteMedicine]
-  )
-
-  /** Map templates into objects for drawer usage */
-  const drawerTemplates = useMemo(
-    () =>
-      (templates || []).map((tpl, index) => ({
-        id: String(index),
-        title: typeof tpl === 'string' ? tpl : `Template ${index + 1}`,
-        description: typeof tpl === 'string' ? tpl : ''
-      })),
-    [templates]
-  )
-
-  const applyTemplateHtml = useCallback(
-    html => {
-      const safeHtml = typeof html === 'string' ? html : ''
-      setValue('reason', safeHtml, { shouldDirty: true, shouldValidate: true })
-    },
-    [setValue]
-  )
-
-  const handleTemplateChipClick = useCallback(
-    tpl => {
-      const html = typeof tpl === 'string' ? tpl : ''
-      setActiveTemplate?.(tpl)
-      applyTemplateHtml(html)
-    },
-    [applyTemplateHtml, setActiveTemplate]
-  )
-
-  const handleApplyTemplateFromDrawer = useCallback(
-    template => {
-      if (!template) return
-      const html = template.description || ''
-      setActiveTemplate?.(template.title || '')
-      applyTemplateHtml(html)
-    },
-    [applyTemplateHtml, setActiveTemplate]
-  )
-
-  /** Save template handler – stub, same idea as TransferHospital */
-  const handleSaveTemplate = useCallback(
-    async templateName => {
-      const trimmed = templateName?.trim()
-
-      if (!trimmed) {
-        Toaster({ type: 'error', message: 'Template name is required' })
-
-        return false
-      }
-
-      const currentHtml = (control?._formValues?.reason || '').toString()
-
-      if (!currentHtml) {
-        Toaster({ type: 'error', message: 'Please write a summary before saving as template' })
-
-        return false
-      }
-
-      Toaster({
-        type: 'info',
-        message: 'Template save API not wired yet. Please implement it as per your backend.'
-      })
-
-      return false
-    },
-    [control]
-  )
-
-  const handleSaveTemplateInline = useCallback(
-    async templateName => {
-      setIsSavingTemplate(true)
-      try {
-        const success = await handleSaveTemplate(templateName)
-        if (success) {
-          setShowSaveTemplate(false)
-        }
-
-        return success
-      } finally {
-        setIsSavingTemplate(false)
-      }
-    },
-    [handleSaveTemplate]
+    [medicationsColumns, handleEditMedicine, handleDeleteMedicine]
   )
 
   // Handle form submission
   const onSubmit = async formData => {
-    console.log('Enclosure discharge formData', formData)
-
     const payload = {
-      discharge_type: watchDischargeType,
-
       hospital_case_id: id,
-      animal_id: patientDetails.animal_id,
+      animal_id: patientDetails?.animal_id,
+      discharge_type: watchDischargeType,
       enclosure_id: patientDetails?.user_enclosure_id,
       discharge_date: formData.discharge_date,
       discharge_time: formData.discharge_time,
-
-      // summary HTML
       reason: formData.reason,
-
       care_diet_instruction: formData.care_diet_instruction,
       care_restriction: formData.care_restriction,
       care_notes: formData.care_notes,
-      attachments: formData.attachments || [],
-
-      // medicationData already indexed, but we send the raw payload you were using
-      medications: JSON.stringify(medicationData),
-
-      request_from: 'web'
+      follow_up_required: formData.follow_up_required ? '1' : '0',
+      follow_up_date: formData.follow_up_date,
+      attachments: formData.attachments.length > 0 ? formData.attachments : undefined,
+      medications: JSON.stringify(enclosureMedicines)
     }
-    console.log('payload', payload)
 
     const success = await handleSubmitData(payload)
     if (success) {
       reset(defaultValues)
-      clearData()
+      clearData() // clear medicines + reset storage after submit
     }
   }
 
@@ -417,7 +270,14 @@ const EnclosureDischargeForm = props => {
               <StyledTypography>Discharge Date & Time</StyledTypography>
               <Grid container spacing={6}>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                  <ControlledDatePicker control={control} name='discharge_date' label='Date' errors={errors} />
+                  <ControlledDatePicker
+                    control={control}
+                    name='discharge_date'
+                    label='Date'
+                    errors={errors}
+                    minDate={dayjs(patientData?.admitted_at)}
+                    maxDate={dayjs(new Date())}
+                  />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                   <ControlledTimePicker control={control} name='discharge_time' label='Time' errors={errors} />
@@ -427,131 +287,20 @@ const EnclosureDischargeForm = props => {
           </Box>
 
           {/* Summary & Templates */}
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              p: 5,
-              background: alpha(theme.palette.customColors.displaybgPrimary, 0.4),
-              borderRadius: 1,
-              mb: 2
-            }}
-          >
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <StyledTypography>Enter summary</StyledTypography>
-                <Controller
-                  name='reason'
-                  control={control}
-                  render={({ field, fieldState }) => (
-                    <RichTextEditor
-                      name={'reason'}
-                      value={field.value || ''}
-                      onChange={val => field.onChange(val?.html || '')}
-                      placeholder='Write something amazing...'
-                    />
-                  )}
-                />
-              </Box>
-
-              {showSaveTemplate ? (
-                <SaveTemplateInline
-                  onClose={() => setShowSaveTemplate(false)}
-                  onSave={handleSaveTemplateInline}
-                  loading={isSavingTemplate}
-                />
-              ) : (
-                <Box
-                  sx={{ display: 'flex', gap: '4px', alignItems: 'center', mb: '8px', cursor: 'pointer' }}
-                  onClick={() => setShowSaveTemplate(true)}
-                >
-                  <Avatar
-                    src='/icons/FloppyDisk.svg'
-                    variant='square'
-                    sx={{ objectFit: 'contain', height: '24px', width: '24px' }}
-                  />
-                  <Typography
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: '16px',
-                      letterSpacing: 0,
-                      color: theme.palette.primary.dark
-                    }}
-                  >
-                    Save as template
-                  </Typography>
-                </Box>
-              )}
-            </Box>
-
-            {/* Templates Section */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <StyledTypography fontWeight={400}>Select from templates</StyledTypography>
-                <Box
-                  sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', gap: 1.5 }}
-                  onClick={() => setOpenTemplateDrawer(true)}
-                >
-                  <StyledTypography fontWeight={600} color={theme.palette.primary.dark}>
-                    See all
-                  </StyledTypography>
-                  <Icon icon='fa:angle-right' color={theme.palette.primary.dark} fontSize={24} />
-                </Box>
-              </Box>
-
-              <Box
-                sx={{
-                  flex: '1 1 auto',
-                  minWidth: 0,
-                  overflowX: 'auto',
-                  scrollbarColor: 'transparent transparent',
-                  paddingBottom: 0
-                }}
-              >
-                <Box sx={{ display: 'inline-flex', gap: 3, pr: 1 }}>
-                  {(templates || []).map(template => {
-                    const label = typeof template === 'string' ? template : String(template || '')
-                    if (!label) return null
-
-                    return (
-                      <Box
-                        key={label}
-                        onClick={() => handleTemplateChipClick(template)}
-                        sx={{
-                          pb: 0,
-                          flexShrink: 0,
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          px: 6,
-                          py: 2,
-                          borderRadius: '4px',
-                          backgroundColor:
-                            activeTemplate === template
-                              ? theme.palette.secondary.dark
-                              : theme.palette.customColors.mdAntzNeutral,
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            color:
-                              activeTemplate === template
-                                ? theme.palette.primary.contrastText
-                                : theme.palette.customColors.neutralPrimary,
-                            whiteSpace: 'nowrap',
-                            fontWeight: activeTemplate === template ? 600 : 400
-                          }}
-                        >
-                          {label}
-                        </Typography>
-                      </Box>
-                    )
-                  })}
-                </Box>
-              </Box>
-            </Box>
-          </Box>
+          <Controller
+            name='reason'
+            control={control}
+            render={({ field, fieldState }) => (
+              <TemplateSection
+                value={field.value}
+                onChange={field.onChange}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+                onDirtyChange={onDirtyChange}
+                hospitalId={patientData?.hospital_id}
+              />
+            )}
+          />
 
           <Divider />
 
@@ -568,27 +317,35 @@ const EnclosureDischargeForm = props => {
                 gap={4}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Grid container spacing={2} alignItems='center'>
-                <Grid size={{ xs: 'auto' }}>
-                  <StyledTypography fontWeight={400}>Enter follow up date</StyledTypography>
-                </Grid>
-                <Grid
-                  sx={{
-                    flexGrow: {
-                      xs: 1,
-                      sm: 1
-                    },
-                    flexBasis: {
-                      xs: 'auto',
-                      sm: 0
-                    }
-                  }}
-                >
-                  <ControlledDatePicker control={control} name='follow_up_date' label='Date' errors={errors} />
+            {followUp && (
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid container spacing={2} alignItems='center'>
+                  <Grid size={{ xs: 'auto' }}>
+                    <StyledTypography fontWeight={400}>Enter follow up date</StyledTypography>
+                  </Grid>
+                  <Grid
+                    sx={{
+                      flexGrow: {
+                        xs: 1,
+                        sm: 1
+                      },
+                      flexBasis: {
+                        xs: 'auto',
+                        sm: 0
+                      }
+                    }}
+                  >
+                    <ControlledDatePicker
+                      control={control}
+                      name='follow_up_date'
+                      label='Date'
+                      errors={errors}
+                      minDate={dayjs(new Date())}
+                    />
+                  </Grid>
                 </Grid>
               </Grid>
-            </Grid>
+            )}
           </Grid>
 
           <Divider />
@@ -616,13 +373,16 @@ const EnclosureDischargeForm = props => {
                 }
               }}
             >
-              <StyledTypography fontSize='1.25rem'>Medications - {indexedMedicines?.length}</StyledTypography>
+              <StyledTypography fontSize='1.25rem'>
+                Medications {indexedMedicines?.length > 0 && `- ${indexedMedicines?.length}`}
+              </StyledTypography>
               <Box sx={{ display: 'flex', gap: 4 }}>
                 <Button
                   onClick={() => {
                     router.push({
                       pathname: `/hospital/inpatient/${id}/schedule-prescription`,
                       query: {
+                        ...router.query,
                         animal_id: patientData?.animal_detail?.animal_id,
                         medical_record_id: patientData.medical_record_id,
                         discharge_tab: 'TransferEnclosure'
@@ -640,7 +400,7 @@ const EnclosureDischargeForm = props => {
               <CommonTable
                 columns={medicationColumnsWithActions}
                 loading={isTransferEnclosureMedicationLoading}
-                indexedRows={indexedMedicines}
+                indexedRows={indexedMedicines || []}
                 rowHeight={64}
                 total={indexedMedicines?.length || 0}
                 externalTableStyle={{
@@ -723,15 +483,6 @@ const EnclosureDischargeForm = props => {
           </LoadingButton>
         </Box>
       </form>
-
-      {/* Template drawer similar to AddSurgery */}
-      <SurgeryRecordTemplateList
-        openSurgeryTemplateDrawer={openTemplateDrawer}
-        setOpenSurgeryTemplateDrawer={setOpenTemplateDrawer}
-        templates={drawerTemplates}
-        loading={false}
-        onApplyTemplate={handleApplyTemplateFromDrawer}
-      />
     </>
   )
 }

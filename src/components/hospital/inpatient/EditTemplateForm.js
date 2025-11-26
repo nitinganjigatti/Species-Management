@@ -34,15 +34,23 @@ const EditTemplateForm = ({ open, onClose, template, onUpdate, onDelete, loading
   // Reset form when template changes
   React.useEffect(() => {
     if (template) {
-      reset({
-        name: template.name || template.title || '',
-        description: template.description || ''
-      })
+      reset(
+        {
+          name: template.name || template.title || '',
+          description: template.description || ''
+        },
+        { keepDefaultValues: false }
+      )
     }
   }, [template, reset])
 
-  const onSubmit = formData => {
-    onUpdate(formData)
+  const onSubmit = async formData => {
+    try {
+      await onUpdate(formData)
+      handleClose()
+    } catch (error) {
+      console.error('Error updating template:', error)
+    }
   }
 
   const handleDelete = () => {
@@ -129,8 +137,9 @@ const EditTemplateForm = ({ open, onClose, template, onUpdate, onDelete, loading
                 control={control}
                 render={({ field }) => (
                   <RichTextEditor
+                    key={template?.id} // Force re-render when template changes
                     value={field.value || ''}
-                    onChange={value => field.onChange(value?.html || '')}
+                    onChange={value => field.onChange(value?.html || value || '')}
                     label='Description'
                     placeholder='Enter description...'
                     minHeight={160}
