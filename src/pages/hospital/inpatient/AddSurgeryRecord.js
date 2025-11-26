@@ -432,7 +432,7 @@ const AddSurgeryRecord = () => {
   )
   const userZooId = useMemo(() => auth?.userData?.user?.zoos?.[0]?.zoo_id, [auth?.userData])
   const defaultNow = useMemo(() => dayjs(), [])
-  const defaultFormValues = useMemo(
+  const buildDefaultFormValues = useCallback(
     () => ({
       date: defaultNow,
       startTime: null,
@@ -465,7 +465,7 @@ const AddSurgeryRecord = () => {
     resolver: formResolver,
     mode: 'onChange',
     reValidateMode: 'onChange',
-    defaultValues: defaultFormValues
+    defaultValues: buildDefaultFormValues()
   })
 
   const [activeTemplate, setActiveTemplate] = useState('')
@@ -480,13 +480,15 @@ const AddSurgeryRecord = () => {
   const [isSavingTemplate, setIsSavingTemplate] = useState(false)
   const [procedureSearchTerm, setProcedureSearchTerm] = useState('')
   const [surgeonSearchTerm, setSurgeonSearchTerm] = useState('')
+  const [formResetKey, setFormResetKey] = useState(0)
   const selectedDate = watch('date')
   const startTimeValue = watch('startTime')
   const endTimeValue = watch('endTime')
   const durationValue = watch('duration')
   const selectedAnesthesia = selectedAnesthesiaRecord
   const resetForm = useCallback(() => {
-    reset(defaultFormValues)
+    const defaults = buildDefaultFormValues()
+    reset(defaults)
     setValue('surgeon', null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
     setValue('procedure', null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
     setSelectedAnesthesiaRecord(null)
@@ -495,9 +497,10 @@ const AddSurgeryRecord = () => {
     setActiveTemplate('')
     setProcedureSearchTerm('')
     setSurgeonSearchTerm('')
+    setFormResetKey(prev => prev + 1)
   }, [
     reset,
-    defaultFormValues,
+    buildDefaultFormValues,
     setValue,
     setSelectedAnesthesiaRecord,
     setPendingAnesthesiaRecord,
@@ -506,11 +509,6 @@ const AddSurgeryRecord = () => {
     setProcedureSearchTerm,
     setSurgeonSearchTerm
   ])
-
-  useEffect(() => {
-    setValue('surgeon', null, { shouldValidate: false, shouldDirty: false })
-    setValue('procedure', null, { shouldValidate: false, shouldDirty: false })
-  }, [setValue])
 
   const {
     data: surgeryTemplatesResponse,
@@ -1245,6 +1243,7 @@ const AddSurgeryRecord = () => {
                   control={control}
                   errors={errors}
                   name={'surgeon'}
+                  key={`surgeon-${formResetKey}`}
                   label='Name of Surgeon'
                   options={surgeonOptions}
                   loading={isSurgeonsLoading}
@@ -1266,6 +1265,7 @@ const AddSurgeryRecord = () => {
                   control={control}
                   errors={errors}
                   name={'procedure'}
+                  key={`procedure-${formResetKey}`}
                   label='Name of Procedure'
                   options={procedureOptions}
                   loading={isProceduresLoading}
