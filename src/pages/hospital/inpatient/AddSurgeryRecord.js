@@ -1568,7 +1568,9 @@ const AddSurgeryRecord = () => {
                   { label: 'Location', value: selectedAnesthesia?.location || '--' },
                   {
                     label: 'Date and Time of Anesthesia',
-                    value: formatAnesthesiaDateTime(selectedAnesthesia?.anesthesia_datetime)
+                    value: formatAnesthesiaDateTime(
+                      selectedAnesthesia?.anaesthesia_datetime || selectedAnesthesia?.anesthesia_datetime
+                    )
                   },
                   {
                     label: 'Estimated Time Required',
