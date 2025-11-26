@@ -692,6 +692,34 @@ const AddSurgeryRecord = () => {
     return dayjs(selectedDate).startOf('day').isSame(now.startOf('day')) ? now : null
   }, [selectedDate])
 
+  // const buildReturnUrl = useCallback(() => {
+  //   const getFirst = value => (Array.isArray(value) ? value[0] : value || '')
+
+  //   if (router.query?.returnUrl) {
+  //     const fromQuery = getFirst(router.query.returnUrl)
+  //     if (fromQuery) return fromQuery
+  //   }
+
+  //   const basePath = resolvedHospitalCaseId ? `/hospital/inpatient/${resolvedHospitalCaseId}` : '/hospital/inpatient'
+  //   const params = new URLSearchParams()
+
+  //   const animalId = getFirst(router.query?.animal_id) || (patientData?.animal_id ? String(patientData.animal_id) : '')
+  //   const medicalRecord = getFirst(router.query?.medical_record_id) || medicalRecordId
+  //   const admittedDate =
+  //     getFirst(router.query?.animal_admitted_date) ||
+  //     (patientData?.admitted_at ? String(patientData.admitted_at) : '')
+  //   const tab = getFirst(router.query?.tab) || 'surgery'
+
+  //   if (animalId) params.set('animal_id', animalId)
+  //   if (medicalRecord) params.set('medical_record_id', medicalRecord)
+  //   if (admittedDate) params.set('animal_admitted_date', admittedDate)
+  //   if (tab) params.set('tab', tab)
+
+  //   const queryString = params.toString()
+
+  //   return queryString ? `${basePath}?${queryString}` : basePath
+  // }, [router.query, resolvedHospitalCaseId, medicalRecordId, patientData?.animal_id, patientData?.admitted_at])
+
   useEffect(() => {
     if (!selectedDate || !startTimeValue || !endTimeValue) {
       if (durationValue) {
@@ -996,6 +1024,9 @@ const AddSurgeryRecord = () => {
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Surgery record added successfully' })
         resetForm()
+        // const redirectUrl = buildReturnUrl()
+        // router.push(redirectUrl)
+        router.back()
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to add surgery record' })
       }
