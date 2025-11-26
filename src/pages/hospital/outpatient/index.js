@@ -282,7 +282,7 @@ const HospitalOutPatient = () => {
 
   const handleRowClick = params =>
     router.push({
-      pathname: `/hospital/inpatient/${params.row.id}`
+      pathname: `/hospital/outpatient/${params.row?.id}`
     })
 
   const headerAction = (
