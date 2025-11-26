@@ -189,12 +189,12 @@ const HospitalDischarged = () => {
     {
       width: 250,
       minWidth: 20,
-      field: 'purpose_of_visit',
+      field: 'discharge_reason',
       sortable: false,
       headerName: 'Discharge Summary',
       renderCell: params => (
         <>
-          <Tooltip title={params.row.purpose_of_visit}>
+          <Tooltip title={params.row?.discharge_reason}>
             <Typography
               variant='body2'
               sx={{
@@ -211,7 +211,7 @@ const HospitalDischarged = () => {
                 py: 4
               }}
             >
-              <>{params.row.purpose_of_visit || ''}</>
+              <>{params.row?.discharge_reason || 'NA'}</>
             </Typography>
           </Tooltip>
         </>
@@ -279,19 +279,9 @@ const HospitalDischarged = () => {
       headerAlign: 'left',
 
       renderCell: params => {
-        const admittedAt = params?.row?.admitted_at
-        const dischargedAt = params?.row?.discharge_at
-        let days = '-'
-
-        if (admittedAt) {
-          const admittedDate = new Date(admittedAt)
-          const dischargedDate = new Date(dischargedAt)
-          days = differenceInDays(dischargedDate, admittedDate)
-        }
-
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {days} {days !== '-' ? 'days' : ''}
+            {params?.row?.total_admitted_days} {params?.row?.total_admitted_days > 1 ? 'Days' : 'Day'}
           </Typography>
         )
       }

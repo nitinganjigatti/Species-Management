@@ -72,8 +72,7 @@ const AddParameterDataEntry = ({
   hospitalCaseId,
   animalId,
   refetchMonitoringData,
-  selectedDate,
-  monitoringRefetch
+  selectedDate
 }) => {
   const theme = useTheme()
 
@@ -148,7 +147,7 @@ const AddParameterDataEntry = ({
 
   const handleDrawerClose = () => {
     setOpen(false)
-    monitoringRefetch()
+    refetchMonitoringData()
   }
 
   const onSubmit = async params => {
@@ -171,7 +170,8 @@ const AddParameterDataEntry = ({
           setAddLoading(false)
           Toaster({ type: 'success', message: res?.message })
           handleDrawerClose()
-          refetchMonitoringData()
+
+          // refetchMonitoringData()
         } else {
           setAddLoading(false)
           Toaster({ type: 'error', message: res?.message })
@@ -275,8 +275,8 @@ const AddParameterDataEntry = ({
                 }
               }}
             >
-              <Tab label='Add New Entry' />
-              <Tab label='View Previous Entry' />
+              <Tab label='ADD NEW ENTRY' />
+              <Tab label='VIEW PREVIOUS ENTRY' />
             </Tabs>
           </Box>
           <Box sx={{ flex: 1, overflow: 'auto', p: 6 }}>
@@ -447,7 +447,7 @@ const AddParameterDataEntry = ({
                         </Grid>
                       </Box>
 
-                      <Box sx={{ pt: 4, px: 6, pb: 6 }}>
+                      <Box>
                         <ControlledTextField
                           control={control}
                           name={'note'}
@@ -460,7 +460,8 @@ const AddParameterDataEntry = ({
                             },
                             '& .MuiInputBase-input': {
                               backgroundColor: 'transparent'
-                            }
+                            },
+                            padding: '0 12px 8px 12px'
                           }}
                         />
                       </Box>
@@ -540,7 +541,7 @@ const AddParameterDataEntry = ({
                       ))
                     ) : historyList?.length > 0 ? (
                       historyList?.map(item => (
-                        <Box key={item?.id} sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Box key={item?.id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                           <Typography
                             sx={{
                               flexShrink: 0,
@@ -548,8 +549,8 @@ const AddParameterDataEntry = ({
                               fontWeight: 600,
                               fontSize: '14px',
                               color: theme.palette.customColors.OnSurfaceVariant,
-                              minWidth: '80px',
-                              textAlign: 'right'
+                              minWidth: '75px',
+                              textAlign: 'left'
                             }}
                           >
                             {Utility.convertUTCToLocaltime(item?.recorded_date_time)}
