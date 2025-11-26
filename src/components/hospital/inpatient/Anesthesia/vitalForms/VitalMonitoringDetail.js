@@ -184,6 +184,7 @@ export default function VitalMonitoringDetail({ data }) {
           background: '#FCF4AE',
           width: '100%',
           px: 4,
+          display: 'none',
           py: 2,
           borderRadius: '8px'
         }}
