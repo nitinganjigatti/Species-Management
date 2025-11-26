@@ -556,11 +556,22 @@ function Anesthesia({ hospitalCaseId, patientData }) {
 
     try {
       setDeleteLoading(true)
-      await deleteAnesthesia(activeRecordAnesthesiaId)
-      toast.success('Anesthesia deleted successfully.')
-      setDeleteDialogOpen(false)
-      setActiveRecordId('')
-      await queryClient.invalidateQueries(['anesthesiaRecords', resolvedHospitalCaseId, resolvedMedicalRecordId])
+      const response = await deleteAnesthesia(activeRecordAnesthesiaId)
+
+      if (response?.success || response?.status || response?.anaesthesia_id || response?.anesthesia_id) {
+        toast.success(response?.message || 'Anesthesia deleted successfully.')
+        setDeleteDialogOpen(false)
+        setActiveRecordId('')
+        await queryClient.invalidateQueries(['anesthesiaRecords', resolvedHospitalCaseId, resolvedMedicalRecordId])
+      } else {
+        const message =
+          response?.message ||
+          response?.reason ||
+          response?.data?.message ||
+          'Unable to delete anesthesia record. Please try again.'
+        toast.error(message)
+        setDeleteDialogOpen(false)
+      }
     } catch (error) {
       const message = error?.response?.data?.message || error?.message || 'Failed to delete anesthesia record.'
       toast.error(message)
