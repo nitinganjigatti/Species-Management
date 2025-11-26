@@ -204,13 +204,17 @@ function Anesthesia({ hospitalCaseId, patientData }) {
   const isRecordsLoading = isAnesthesiaLoading || (isFetchingRecords && !anesthesiaRecords.length)
   const activeRecordAnesthesiaId = activeRecordId
 
-  const { data: anesthesiaDetailResponse, refetch: refetchAnesthesiaDetail, isFetching: isAnesthesiaDetailFetching } =
-    useQuery({
-      queryKey: ['anesthesiaDetail', activeRecordAnesthesiaId],
-      queryFn: () => getAnesthesiaDetail(activeRecordAnesthesiaId),
-      enabled: shouldFetchRecords && Boolean(activeRecordAnesthesiaId),
-      keepPreviousData: false
-    })
+  const {
+    data: anesthesiaDetailResponse,
+    refetch: refetchAnesthesiaDetail,
+    isFetching: isAnesthesiaDetailFetching
+  } = useQuery({
+    queryKey: ['anesthesiaDetail', activeRecordAnesthesiaId],
+    queryFn: () => getAnesthesiaDetail(activeRecordAnesthesiaId),
+    // queryFn: () => getAnesthesiaDetail(4),
+    enabled: shouldFetchRecords && Boolean(activeRecordAnesthesiaId),
+    keepPreviousData: false
+  })
   const anesthesiaDetail = anesthesiaDetailResponse?.data || null
   const showDetailSkeleton = isAnesthesiaDetailFetching || isRecordsLoading || !activeRecordAnesthesiaId
 
@@ -1036,7 +1040,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
               <Grid sx={{ px: '0px' }} container spacing={4}>
                 {environmentalDetails.length ? (
                   environmentalDetails.map(item => (
-                    <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label}>
+                    <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label} sx={{ minWidth: 0 }}>
                       <Tooltip title={item.label} placement='bottom-start' arrow>
                         <Typography
                           sx={{
@@ -1048,7 +1052,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                             textTransform: 'capitalize',
                             textOverflow: 'ellipsis',
                             overflow: 'hidden',
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
+                            minWidth: 0,
+                            display: 'block'
                           }}
                         >
                           {item.label}
@@ -1063,7 +1069,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                             color: theme.palette.customColors.OnSurfaceVariant,
                             textOverflow: 'ellipsis',
                             overflow: 'hidden',
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
+                            minWidth: 0,
+                            display: 'block'
                           }}
                         >
                           {item.value}
@@ -1105,7 +1113,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
               <Grid sx={{ px: '0px' }} container spacing={4}>
                 {examDetails.length ? (
                   examDetails.map(item => (
-                    <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label}>
+                    <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label} sx={{ minWidth: 0 }}>
                       <Tooltip title={item.label} placement='bottom-start' arrow>
                         <Typography
                           sx={{
@@ -1117,7 +1125,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                             textTransform: 'capitalize',
                             textOverflow: 'ellipsis',
                             overflow: 'hidden',
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
+                            minWidth: 0,
+                            display: 'block'
                           }}
                         >
                           {item.label}
@@ -1132,7 +1142,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                             color: theme.palette.customColors.OnSurfaceVariant,
                             textOverflow: 'ellipsis',
                             overflow: 'hidden',
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
+                            minWidth: 0,
+                            display: 'block'
                           }}
                         >
                           {item.value}
@@ -1148,8 +1160,8 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                   </Grid>
                 )}
               </Grid>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mt: 2 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              <Grid container spacing={4} sx={{ mt: 2, flexDirection: 'column' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
                   <Typography
                     sx={{
                       mb: '4px',
@@ -1174,14 +1186,16 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                         color: theme.palette.customColors.OnSurfaceVariant,
                         textOverflow: 'ellipsis',
                         overflow: 'hidden',
-                        whiteSpace: 'nowrap'
+                        whiteSpace: 'nowrap',
+                        minWidth: 0,
+                        display: 'block'
                       }}
                     >
                       {riskOfConcernText}
                     </Typography>
                   </Tooltip>
                 </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
                   <Typography
                     sx={{
                       mb: '4px',
@@ -1206,14 +1220,16 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                         color: theme.palette.customColors.OnSurfaceVariant,
                         textOverflow: 'ellipsis',
                         overflow: 'hidden',
-                        whiteSpace: 'nowrap'
+                        whiteSpace: 'nowrap',
+                        width: '100%',
+                        display: 'block'
                       }}
                     >
                       {clinPathText}
                     </Typography>
                   </Tooltip>
                 </Box>
-              </Box>
+              </Grid>
             </Box>
           </Box>
 
@@ -1439,7 +1455,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                 <Grid sx={{ px: '0px' }} container spacing={4}>
                   {recoveryInfoList.length ? (
                     recoveryInfoList.map(item => (
-                      <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label}>
+                      <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label} sx={{ minWidth: 0 }}>
                         <Tooltip title={item.label} placement='bottom-start' arrow>
                           <Typography
                             sx={{
@@ -1451,7 +1467,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                               textTransform: 'capitalize',
                               textOverflow: 'ellipsis',
                               overflow: 'hidden',
-                              whiteSpace: 'nowrap'
+                              whiteSpace: 'nowrap',
+                              minWidth: 0,
+                              display: 'block'
                             }}
                           >
                             {item.label}
@@ -1466,7 +1484,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                               color: theme.palette.customColors.OnSurfaceVariant,
                               textOverflow: 'ellipsis',
                               overflow: 'hidden',
-                              whiteSpace: 'nowrap'
+                              whiteSpace: 'nowrap',
+                              minWidth: 0,
+                              display: 'block'
                             }}
                           >
                             {item.value}
@@ -1520,8 +1540,8 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                   alignItems: 'center'
                 }}
               >
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mt: 2 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mt: 2, minWidth: 0 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
                     <Typography
                       sx={{
                         mb: '4px',
@@ -1546,7 +1566,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                           color: theme.palette.customColors.OnSurfaceVariant,
                           textOverflow: 'ellipsis',
                           overflow: 'hidden',
-                          whiteSpace: 'nowrap'
+                          whiteSpace: 'nowrap',
+                          minWidth: 0,
+                          display: 'block'
                         }}
                       >
                         {recoveryProblemText}
