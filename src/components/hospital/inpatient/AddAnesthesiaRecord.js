@@ -19,7 +19,7 @@ const FORM_ID = 'add-anesthesia-record-form'
 const anesthesiaSchema = yup.object().shape({
   basicDetails: yup.object().shape({
     location: yup.string().trim().required('Location is required'),
-    anesthesia_datetime: yup.string().required('Date & Time of anesthesia is required'),
+    anaesthesia_datetime: yup.string().required('Date & Time of anesthesia is required'),
     estimated_time_required: yup
       .string()
       .test('required', 'Estimated time is required', value => Boolean(value?.toString().trim())),
@@ -35,7 +35,7 @@ const anesthesiaSchema = yup.object().shape({
 const defaultValues = {
   basicDetails: {
     location: '',
-    anesthesia_datetime: '',
+    anaesthesia_datetime: '',
     estimated_time_required: '',
     estimated_time_unit: 'hr',
     veterinarian_id: [],
@@ -79,7 +79,7 @@ const AddanesthesiaRecordDrawer = ({
     formData.append('hospital_case_id', hospitalCaseId || '')
     formData.append('medical_record_id', medicalRecordId || '')
     formData.append('location', data.basicDetails.location || '')
-    formData.append('anesthesia_datetime', anaesthesiaDateTime || '')
+    formData.append('anaesthesia_datetime', anaesthesiaDateTime || '')
     formData.append('estimated_time_required', data.basicDetails.estimated_time_required || '')
     formData.append('estimated_time_unit', data.basicDetails.estimated_time_unit || '')
     formData.append(
@@ -233,141 +233,150 @@ const AddanesthesiaRecordDrawer = ({
         </IconButton>
       </Box>
 
-      <Box
-        sx={{
-          p: '24px',
-          backgroundColor: 'background.default',
-          height: '100vh',
-          overflowY: 'auto',
-          pb: '125px'
-        }}
-      >
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {patientData ? (
-            <AnimalInfoCard bgColor={theme.palette.primary.contrastText} data={animalInfoData} />
-          ) : (
-            <Card
-              sx={{
-                p: '24px',
-                borderRadius: '8px',
-                backgroundColor: theme.palette.primary.contrastText,
-                boxShadow: 'none',
-                mb: 3
-              }}
-            >
-              <Box>
-                <Box sx={{ maxWidth: '100%', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Box
-                    sx={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: '8px',
-                      backgroundColor: theme.palette.customColors.mdAntzNeutral
-                    }}
-                  />
-                  <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, gap: 1 }}>
-                    <Box sx={{ width: '70%', height: '20px', borderRadius: '4px', backgroundColor: '#E0E0E0' }} />
-                    <Box sx={{ width: '60%', height: '18px', borderRadius: '4px', backgroundColor: '#E6E6E6' }} />
-                    <Box sx={{ width: '50%', height: '18px', borderRadius: '4px', backgroundColor: '#E6E6E6' }} />
-                  </Box>
-                </Box>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
-                  {[1, 2, 3, 4].map(idx => (
-                    <Box key={`animal-skeleton-${idx}`} sx={{ minWidth: '120px' }}>
-                      <Box
-                        sx={{ width: '60%', height: '16px', borderRadius: '4px', backgroundColor: '#E6E6E6', mb: 1 }}
-                      />
+      <FormProvider {...methods}>
+        <Box
+          component='form'
+          id={FORM_ID}
+          onSubmit={handleSubmit(onSubmit)}
+          sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}
+        >
+          <Box
+            sx={{
+              p: '24px',
+              backgroundColor: 'background.default',
+              flex: 1,
+              overflowY: 'auto',
+              pb: '125px'
+            }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {patientData ? (
+                <AnimalInfoCard bgColor={theme.palette.primary.contrastText} data={animalInfoData} />
+              ) : (
+                <Card
+                  sx={{
+                    p: '24px',
+                    borderRadius: '8px',
+                    backgroundColor: theme.palette.primary.contrastText,
+                    boxShadow: 'none',
+                    mb: 3
+                  }}
+                >
+                  <Box>
+                    <Box sx={{ maxWidth: '100%', display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <Box
                         sx={{
-                          width: '80%',
-                          height: '18px',
-                          borderRadius: '4px',
-                          backgroundColor: '#E0E0E0'
+                          width: 56,
+                          height: 56,
+                          borderRadius: '8px',
+                          backgroundColor: theme.palette.customColors.mdAntzNeutral
                         }}
                       />
+                      <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, gap: 1 }}>
+                        <Box sx={{ width: '70%', height: '20px', borderRadius: '4px', backgroundColor: '#E0E0E0' }} />
+                        <Box sx={{ width: '60%', height: '18px', borderRadius: '4px', backgroundColor: '#E6E6E6' }} />
+                        <Box sx={{ width: '50%', height: '18px', borderRadius: '4px', backgroundColor: '#E6E6E6' }} />
+                      </Box>
                     </Box>
-                  ))}
-                </Box>
-              </Box>
-            </Card>
-          )}
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
+                      {[1, 2, 3, 4].map(idx => (
+                        <Box key={`animal-skeleton-${idx}`} sx={{ minWidth: '120px' }}>
+                          <Box
+                            sx={{
+                              width: '60%',
+                              height: '16px',
+                              borderRadius: '4px',
+                              backgroundColor: '#E6E6E6',
+                              mb: 1
+                            }}
+                          />
+                          <Box
+                            sx={{
+                              width: '80%',
+                              height: '18px',
+                              borderRadius: '4px',
+                              backgroundColor: '#E0E0E0'
+                            }}
+                          />
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                </Card>
+              )}
 
-          <FormProvider {...methods}>
-            <Card
-              component='form'
-              id={FORM_ID}
-              onSubmit={handleSubmit(onSubmit)}
+              <Card
+                sx={{
+                  backgroundColor: theme.palette.primary.contrastText,
+                  padding: '24px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxShadow: 'none',
+                  gap: '24px'
+                }}
+              >
+                <BasicDetails
+                  vetOptions={vetOptions}
+                  anesthetistOptions={anesthetistOptions}
+                  purposeOptions={purposeOptions}
+                />
+              </Card>
+            </Box>
+          </Box>
+          <Box
+            sx={{
+              position: 'fixed',
+              bottom: 0,
+              left: 'auto',
+              right: 0,
+              zIndex: 5,
+              backgroundColor: theme.palette.primary.contrastText,
+              boxShadow: `0px -8px 12px 0px ${theme.palette.customColors.shadowColor}`,
+              height: '108px',
+              px: '24px',
+              py: '16px',
+              display: 'flex',
+              gap: '24px',
+              alignItems: 'center',
+              width: ['100%', '920px'],
+              maxWidth: '100vw',
+              marginLeft: 'auto'
+            }}
+          >
+            <LoadingButton
+              onClick={() => reset(defaultValues)}
+              variant='outlined'
+              disabled={isSubmitting}
               sx={{
-                backgroundColor: theme.palette.primary.contrastText,
-                padding: '24px',
-                display: 'flex',
-                flexDirection: 'column',
-                boxShadow: 'none',
-                gap: '24px'
+                height: '56px',
+                width: '50%',
+                borderColor: theme.palette.customColors.Outline,
+                borderWidth: '1.5px',
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontWeight: 600,
+                letterSpacing: 0,
+                px: '24px'
               }}
             >
-              <BasicDetails
-                vetOptions={vetOptions}
-                anesthetistOptions={anesthetistOptions}
-                purposeOptions={purposeOptions}
-              />
-            </Card>
-          </FormProvider>
+              CANCEL
+            </LoadingButton>
+            <LoadingButton
+              type='submit'
+              variant='contained'
+              loading={isSubmitting}
+              sx={{
+                height: '56px',
+                width: '50%',
+                fontWeight: 600,
+                letterSpacing: 0,
+                px: '24px'
+              }}
+            >
+              SAVE
+            </LoadingButton>
+          </Box>
         </Box>
-      </Box>
-      <Box
-        sx={{
-          position: 'fixed',
-          bottom: 0,
-          left: 'auto',
-          right: 0,
-          zIndex: 5,
-          backgroundColor: theme.palette.primary.contrastText,
-          boxShadow: `0px -8px 12px 0px ${theme.palette.customColors.shadowColor}`,
-          height: '108px',
-          px: '24px',
-          py: '16px',
-          display: 'flex',
-          gap: '24px',
-          alignItems: 'center',
-          width: ['100%', '920px'],
-          maxWidth: '100vw',
-          marginLeft: 'auto'
-        }}
-      >
-        <LoadingButton
-          onClick={() => reset(defaultValues)}
-          variant='outlined'
-          disabled={isSubmitting}
-          sx={{
-            height: '56px',
-            width: '50%',
-            borderColor: theme.palette.customColors.Outline,
-            borderWidth: '1.5px',
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontWeight: 600,
-            letterSpacing: 0,
-            px: '24px'
-          }}
-        >
-          CANCEL
-        </LoadingButton>
-        <LoadingButton
-          type='button'
-          variant='contained'
-          loading={isSubmitting}
-          sx={{
-            height: '56px',
-            width: '50%',
-            fontWeight: 600,
-            letterSpacing: 0,
-            px: '24px'
-          }}
-          onClick={handleSubmit(onSubmit)}
-        >
-          SAVE
-        </LoadingButton>
-      </Box>
+      </FormProvider>
     </Drawer>
   )
 }
