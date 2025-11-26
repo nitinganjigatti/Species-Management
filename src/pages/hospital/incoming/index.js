@@ -10,7 +10,8 @@ import {
   Tabs,
   Tooltip,
   Typography,
-  useTheme
+  useTheme,
+  alpha
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { debounce, set } from 'lodash'
@@ -253,7 +254,7 @@ const HospitalIncoming = () => {
       )
     },
     {
-      width: 200,
+      width: 260,
       minWidth: 20,
       field: 'requested_user_full_name',
       headerName: 'Requested By',
@@ -262,6 +263,7 @@ const HospitalIncoming = () => {
           date={params?.row?.created_at}
           user_name={params?.row?.requested_user_full_name}
           profile_image={params?.row?.user_profile_pic}
+          show_time
         />
       )
     }
@@ -297,7 +299,7 @@ const HospitalIncoming = () => {
       )
     },
     {
-      width: 200,
+      width: 260,
       minWidth: 20,
       field: 'rejected_by',
       headerName: 'Rejected By',
@@ -306,6 +308,7 @@ const HospitalIncoming = () => {
           date={params?.row?.rejected_at}
           user_name={params?.row?.rejected_user_name}
           profile_image={params?.row?.rejected_user_profile_pic}
+          show_time
         />
       )
     }
@@ -342,7 +345,8 @@ const HospitalIncoming = () => {
           <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Incoming</Typography>
         </Breadcrumbs>
         <HospitalAnalytics />
-        <Box sx={{ mt: 6 }}>
+        <Box sx={{ mt: 4 }}>
+          {/* sx={{ boxShadow: theme => `0px 4px 4px ${alpha(theme.palette.primary.deepDark, 0.15)}` }} */}
           <Card>
             <CardHeader title={RenderUtility?.pageTitle('Incoming Patient')} />
             <Box
