@@ -593,7 +593,15 @@ const OtherTreatment = () => {
       ? dayjs(editFormData.startDate).format('DD MMM YYYY HH:mm:ss')
       : ''
 
-    const treatmentMasterId = editFormData.activeTreatmentMasterId || selectedTreatment.treatment_master_id || ''
+    const treatmentMasterId =
+      selectedTreatment?.name ||
+      selectedTreatment?.treatment_name ||
+      editFormData.activeTreatmentMasterId ||
+      selectedTreatment.treatmentMasterId ||
+      selectedTreatment.treatment_master_id ||
+      selectedTreatment.treatmentId ||
+      selectedTreatment.id ||
+      ''
 
     if (!treatmentMasterId) {
       Toaster({ type: 'error', message: 'Unable to determine treatment reference for update.' })
