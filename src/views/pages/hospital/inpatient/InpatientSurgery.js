@@ -8,6 +8,8 @@ import dayjs from 'dayjs'
 import { getPatientSurgeryList } from 'src/lib/api/hospital/surgeryMaster'
 import Utility from 'src/utility'
 
+const scrollbarThumbColor = theme.palette.customColors.neutralSecondary
+
 const FieldTooltip = ({ title, placement = 'top-start', children }) => (
   <Tooltip
     title={title}
@@ -29,12 +31,7 @@ const FieldTooltip = ({ title, placement = 'top-start', children }) => (
 const TabSkeletons = () => (
   <>
     {Array.from({ length: 5 }).map((_, index) => (
-      <Skeleton
-        key={`surgery-tab-skeleton-${index}`}
-        variant='rounded'
-        width={110 + (index % 3) * 12}
-        height={48}
-      />
+      <Skeleton key={`surgery-tab-skeleton-${index}`} variant='rounded' width={110 + (index % 3) * 12} height={48} />
     ))}
   </>
 )
@@ -56,9 +53,7 @@ const getRichTextHtmlValue = value => {
   if (value?.text) return value.text
   if (value?.delta?.ops) {
     try {
-      const text = value.delta.ops
-        .map(op => (typeof op.insert === 'string' ? op.insert : ''))
-        .join('')
+      const text = value.delta.ops.map(op => (typeof op.insert === 'string' ? op.insert : '')).join('')
 
       return text
     } catch {
@@ -234,7 +229,6 @@ function InpatientSurgery({ hospitalCaseId }) {
   const theme = useTheme()
   const router = useRouter()
   const headerBackground = alpha(theme.palette.customColors.displaybgPrimary, 153 / 255)
-  const scrollbarThumbColor = theme.palette.customColors.neutralSecondary
   const [surgeryRecords, setSurgeryRecords] = useState([])
   const [activeSurgeryId, setActiveSurgeryId] = useState('')
   const [loading, setLoading] = useState(false)
