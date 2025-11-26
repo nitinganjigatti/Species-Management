@@ -59,6 +59,11 @@ const EditTreatmentDrawer = ({
 
   const activityList = activities || []
 
+  const formatTreatmentName = name => {
+    if (!name || typeof name !== 'string') return ''
+    return name.charAt(0).toUpperCase() + name.slice(1)
+  }
+
   return (
     <Drawer
       open={open}
@@ -113,10 +118,10 @@ const EditTreatmentDrawer = ({
                   fontSize: '24px',
                   color: theme.palette.customColors.OnSurfaceVariant,
                   mb: '4px'
-                }}
-              >
-                {treatment.name}
-              </Typography>
+              }}
+            >
+              {formatTreatmentName(treatment.name)}
+            </Typography>
               <Typography
                 sx={{
                   color: theme.palette.customColors.OnSurfaceVariant,
@@ -402,7 +407,7 @@ const EditTreatmentDrawer = ({
             variant='outlined'
             fullWidth
             onClick={onDelete}
-            disabled={!formData?.activeActivityId}
+            disabled={isSubmitting || !formData?.activeActivityId}
             sx={{
               height: '56px',
               borderRadius: '8px',
