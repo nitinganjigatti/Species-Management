@@ -105,6 +105,39 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                           )}
                         </Box>
                       )}
+
+                      {activity?.isSystemGenerated && (activity?.oldIsChronical || activity?.newIsChronical) && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
+                          <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
+                            Is Cronical :{' '}
+                          </Typography>
+                          {activity?.oldIsChronical !== undefined && (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: theme.palette.customColors.neutralSecondary,
+                                fontWeight: 600
+                              }}
+                            >
+                              {activity?.oldIsChronical == 1 ? 'Yes' : 'No'}
+                            </Typography>
+                          )}
+
+                          {activity?.newIsChronical !== undefined && (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: theme.palette.customColors.OnSurfaceVarient,
+                                fontWeight: 600
+                              }}
+                            >
+                              {activity?.oldIsChronical !== undefined && ` →`}{' '}
+                              {activity?.newIsChronical == 1 ? 'Yes' : 'No'}
+                            </Typography>
+                          )}
+                        </Box>
+                      )}
+
                       {activity?.status && (
                         <Typography
                           sx={{
