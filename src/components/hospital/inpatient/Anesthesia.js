@@ -30,7 +30,6 @@ import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog
 
 const PAGE_SIZE = 10
 const SCROLL_FETCH_THRESHOLD = 140
-const ANESTHESIA_DETAIL_ID = 4
 
 const formatValueWithUnit = (value, unit) => {
   if (value === undefined || value === null || value === '') return '--'
@@ -45,24 +44,6 @@ const formatTimeOnly = time => {
 
 const normalizeQueryValue = value => (Array.isArray(value) ? value[0] : value)
 const hasValue = value => value !== undefined && value !== null && value !== ''
-
-const getRecordIdentifier = record => {
-  if (!record || typeof record !== 'object') return ''
-
-  if (record.anaesthesia_id) return String(record.anaesthesia_id)
-  if (record.id) return String(record.id)
-  if (record.code) return String(record.code)
-  return ''
-}
-
-const getStableRecordId = (record, index = 0) => {
-  const identifier = getRecordIdentifier(record)
-
-  if (identifier) return identifier
-  if (record?.code) return String(record.code)
-
-  return `record-${index}`
-}
 
 const formatDateTime = value => {
   if (!value) return '--'
@@ -194,11 +175,16 @@ function Anesthesia({ hospitalCaseId, patientData }) {
     }
 
     setActiveRecordId(prev => {
-      if (prev && anesthesiaRecords.some((record, index) => getStableRecordId(record, index) === prev)) {
+      if (
+        prev &&
+        anesthesiaRecords.some(record => String(record?.anaesthesia_id || record?.id || '') === String(prev))
+      ) {
         return prev
       }
 
-      return getStableRecordId(anesthesiaRecords[0], 0)
+      const firstId = anesthesiaRecords[0]?.anaesthesia_id || anesthesiaRecords[0]?.id || ''
+
+      return firstId ? String(firstId) : ''
     })
   }, [anesthesiaRecords])
 
@@ -206,20 +192,27 @@ function Anesthesia({ hospitalCaseId, patientData }) {
     if (!anesthesiaRecords.length) return null
 
     if (activeRecordId) {
-      const found = anesthesiaRecords.find((record, index) => getStableRecordId(record, index) === activeRecordId)
+      const found = anesthesiaRecords.find(
+        record => String(record?.anaesthesia_id || record?.id || '') === String(activeRecordId)
+      )
 
       if (found) return found
     }
 
     return anesthesiaRecords[0]
   }, [anesthesiaRecords, activeRecordId])
+  const isRecordsLoading = isAnesthesiaLoading || (isFetchingRecords && !anesthesiaRecords.length)
+  const activeRecordAnesthesiaId = activeRecordId
 
-  const { data: anesthesiaDetailResponse, refetch: refetchAnesthesiaDetail } = useQuery({
-    queryKey: ['anesthesiaDetail', ANESTHESIA_DETAIL_ID, activeRecordId],
-    queryFn: () => getAnesthesiaDetail(ANESTHESIA_DETAIL_ID),
-    enabled: shouldFetchRecords && Boolean(activeRecordId)
-  })
+  const { data: anesthesiaDetailResponse, refetch: refetchAnesthesiaDetail, isFetching: isAnesthesiaDetailFetching } =
+    useQuery({
+      queryKey: ['anesthesiaDetail', activeRecordAnesthesiaId],
+      queryFn: () => getAnesthesiaDetail(activeRecordAnesthesiaId),
+      enabled: shouldFetchRecords && Boolean(activeRecordAnesthesiaId),
+      keepPreviousData: false
+    })
   const anesthesiaDetail = anesthesiaDetailResponse?.data || null
+  const showDetailSkeleton = isAnesthesiaDetailFetching || isRecordsLoading || !activeRecordAnesthesiaId
 
   const recordCode = anesthesiaDetail?.code || activeRecord?.code || '--'
   const lastUpdatedValue = formatDateTime(
@@ -258,8 +251,6 @@ function Anesthesia({ hospitalCaseId, patientData }) {
     : activeRecord?.notes?.trim()
     ? activeRecord.notes
     : '--'
-
-  const activeRecordAnesthesiaId = activeRecord?.anaesthesia_id || activeRecord?.id || ''
 
   const anesthesiaSetupSections = useMemo(() => {
     if (!Array.isArray(anesthesiaDetail?.anaesthesia_setup)) return []
@@ -465,8 +456,6 @@ function Anesthesia({ hospitalCaseId, patientData }) {
     return { timeSlots, rows }
   }, [anesthesiaDetail])
 
-  const isRecordsLoading = isAnesthesiaLoading || (isFetchingRecords && !anesthesiaRecords.length)
-
   const handleScrollFetch = useCallback(() => {
     if (!hasNextPage || isFetchingNextPage) return
 
@@ -625,7 +614,8 @@ function Anesthesia({ hospitalCaseId, patientData }) {
 
     return anesthesiaRecords.map((record, index) => {
       const label = record?.code || `Record ${index + 1}`
-      const selectionId = getStableRecordId(record, index)
+      const selectionId = record?.anaesthesia_id ? String(record.anaesthesia_id) : ''
+      if (!selectionId) return null
       const isActive = selectionId === activeRecordId
 
       return (
