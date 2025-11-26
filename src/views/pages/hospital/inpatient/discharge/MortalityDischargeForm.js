@@ -145,7 +145,7 @@ const MortalityDischargeForm = props => {
   const priorityBgColor = selectedPriorityOption?.bg_color || theme.palette.background.paper
   const priorityColor = selectedPriorityOption?.text_color || theme.palette.text.primary
 
-  // time and date
+  // strict time limits for death time
   const selectedDateOfDeath = watch('date_of_death')
   const admittedAtLocal = dayjs(Utility.convertUTCToLocal(patientData?.admitted_at))
   const now = dayjs()
@@ -165,6 +165,21 @@ const MortalityDischargeForm = props => {
     if (selectedDate.isSame(now, 'day')) {
       maxTime = now
     }
+  }
+
+  // Disable selecting past/future times based on rules
+  const shouldDisableDeathTime = (timeValue, clockType) => {
+    if (timeValue === null || timeValue === undefined) return false
+
+    const t = dayjs().set(clockType, timeValue)
+
+    // Disable earlier than admission time
+    if (minTime && t.isBefore(minTime, clockType)) return true
+
+    // Disable future time (current day)
+    if (maxTime && t.isAfter(maxTime, clockType)) return true
+
+    return false
   }
 
   // Handle form submission
@@ -232,6 +247,7 @@ const MortalityDischargeForm = props => {
                   errors={errors}
                   minTime={minTime}
                   maxTime={maxTime}
+                  shouldDisableTime={shouldDisableDeathTime}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -300,6 +316,7 @@ const MortalityDischargeForm = props => {
                 error={!!fieldState.error}
                 helperText={fieldState.error?.message}
                 onDirtyChange={onDirtyChange}
+                hospitalId={patientData?.hospital_id}
               />
             )}
           />

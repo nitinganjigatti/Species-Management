@@ -11,8 +11,7 @@ import SurgeryRecordTemplateList from 'src/views/pages/hospital/inpatient/Surger
 import { createSurgeryTemplate, getSurgeryTemplates } from 'src/lib/api/hospital/surgeryMaster'
 import { SaveTemplateButton } from 'src/views/utility/render-snippets'
 
-// ---------- Helpers (local to this component) ----------
-
+// Utilities
 const createEmptyRichTextValue = () => {
   const delta = { ops: [{ insert: '\n' }] }
 
@@ -30,10 +29,10 @@ const getSafeString = value => {
   return String(value)
 }
 
-const stripHtmlTags = input => {
-  if (!input) return ''
+const richFromHtml = html => {
+  if (!html) return ''
 
-  return String(input)
+  return String(html)
     .replace(/<[^>]*>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
@@ -66,7 +65,7 @@ const buildRichTextValueFromHtml = html => {
 
   return {
     html: finalHtml,
-    text: stripHtmlTags(finalHtml),
+    text: richFromHtml(finalHtml),
     delta: undefined,
     ops: undefined
   }
@@ -90,7 +89,7 @@ const mapTemplateRecord = record => {
   }
 }
 
-const extractSurgeryTemplates = response => {
+const extractTemplates = response => {
   const candidates = [response, response?.data, response?.data?.data, response?.data?.templates, response?.templates]
 
   let records = []
@@ -114,8 +113,8 @@ const extractSurgeryTemplates = response => {
   return Array.from(unique.values())
 }
 
-// Inline “Save as template” bar
-const SaveTemplateInline = ({ onClose, onSave, loading = false }) => {
+// Save  template bar
+const SaveTemplateBar = ({ onClose, onSave, loading = false, richNote }) => {
   const theme = useTheme()
   const [templateName, setTemplateName] = useState('')
 
@@ -127,6 +126,8 @@ const SaveTemplateInline = ({ onClose, onSave, loading = false }) => {
       setTemplateName('')
     }
   }
+
+  const isDisabled = loading || !templateName.trim()
 
   return (
     <Box
@@ -142,6 +143,7 @@ const SaveTemplateInline = ({ onClose, onSave, loading = false }) => {
         placeholder='Enter template name'
         value={templateName}
         onChange={e => setTemplateName(e.target.value)}
+        disabled={!richNote?.html || !richNote.text.trim() || loading}
         sx={{
           maxWidth: '413px',
           minWidth: { xs: '100%', sm: '200px' },
@@ -152,6 +154,12 @@ const SaveTemplateInline = ({ onClose, onSave, loading = false }) => {
           backgroundColor: theme.palette.customColors.Surface,
           '& .MuiOutlinedInput-root': {
             height: '48px'
+          },
+          '& .MuiInputBase-input::placeholder': {
+            color:
+              loading || !richNote?.text?.trim()
+                ? theme.palette.text.disabled
+                : theme.palette.customColors.OnSurfaceVariant
           }
         }}
       />
@@ -159,15 +167,16 @@ const SaveTemplateInline = ({ onClose, onSave, loading = false }) => {
         <LoadingButton
           variant='contained'
           onClick={handleSave}
-          disabled={loading || !templateName.trim()}
+          disabled={isDisabled}
+          loading={loading}
           startIcon={
             <Avatar
               src='/icons/FloppyDisk.svg'
               variant='square'
               sx={{
                 objectFit: 'contain',
-                height: '24px',
-                width: '24px',
+                height: 24,
+                width: 24,
                 filter: 'brightness(0) invert(1)'
               }}
             />
@@ -176,33 +185,35 @@ const SaveTemplateInline = ({ onClose, onSave, loading = false }) => {
             height: '48px',
             width: '104px',
             backgroundColor: theme.palette.primary.main,
-            color: 'white',
-            borderRadius: '6px',
+            color: theme.palette.customColors.OnPrimary,
+            borderRadius: '8px',
             textTransform: 'uppercase',
             fontWeight: 500,
-            fontSize: 15,
+            fontSize: '14px',
             '&:hover': {
               backgroundColor: theme.palette.primary.dark
             }
           }}
         >
-          {loading ? 'Saving...' : 'Save'}
+          Save
         </LoadingButton>
-        <Avatar
-          onClick={onClose}
-          sx={{
-            cursor: 'pointer',
-            width: 32,
-            height: 32,
-            bgcolor: 'transparent',
-            color: theme.palette.primary.light,
-            '&:hover': {
-              bgcolor: 'rgba(0,0,0,0.04)'
-            }
-          }}
-        >
-          <Icon icon='mdi:close' fontSize={19} />
-        </Avatar>
+        {!loading && (
+          <Avatar
+            onClick={onClose}
+            sx={{
+              cursor: 'pointer',
+              width: 30,
+              height: 30,
+              backgroundColor: 'transparent',
+              color: theme.palette.customColors.OnPrimaryContainer,
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.customColors.deepDark, 0.05)
+              }
+            }}
+          >
+            <Icon icon='mdi:close' fontSize={25} />
+          </Avatar>
+        )}
       </Box>
     </Box>
   )
@@ -220,7 +231,6 @@ const TemplateSection = ({
 }) => {
   const theme = useTheme()
 
-  // Internal rich text value
   const [richNote, setRichNote] = useState(() =>
     value ? buildRichTextValueFromHtml(value) : createEmptyRichTextValue()
   )
@@ -228,9 +238,9 @@ const TemplateSection = ({
   const [activeTemplate, setActiveTemplate] = useState('')
   const [showSaveTemplate, setShowSaveTemplate] = useState(false)
   const [isSavingTemplate, setIsSavingTemplate] = useState(false)
-  const [openTemplateDrawer, setOpenTemplateDrawer] = useState(false)
+  const [openDrawer, setOpenDrawer] = useState(false)
 
-  // Sync external HTML value -> internal rich value (if it changes)
+  // Sync external HTML into editor
   useEffect(() => {
     if (typeof value === 'string') {
       const html = value || '<p><br></p>'
@@ -240,12 +250,11 @@ const TemplateSection = ({
         setRichNote(buildRichTextValueFromHtml(html))
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
   // Fetch templates
   const {
-    data: TemplateData,
+    data: templateData,
     isFetching: isTemplatesLoading,
     refetch: refetchTemplates
   } = useQuery({
@@ -257,27 +266,24 @@ const TemplateSection = ({
         hospital_id: hospitalId,
         type: templateType
       }),
-    keepPreviousData: true,
-    staleTime: 5 * 60 * 1000,
-    retry: false,
     onError: error => {
       console.error('Failed to fetch surgery templates:', error?.message || error)
       Toaster({ type: 'error', message: error?.message || 'Failed to load templates' })
     }
   })
 
-  const templatesList = useMemo(() => extractSurgeryTemplates(TemplateData), [TemplateData])
-  const templateNames = useMemo(() => templatesList.map(t => t.title), [templatesList])
-  const templateNamesKey = useMemo(() => templateNames.join('|'), [templateNames])
+  const templatesList = useMemo(() => extractTemplates(templateData), [templateData])
+  const templateLabels = useMemo(() => templatesList.map(t => t.title), [templatesList])
 
   // If activeTemplate no longer exists in list, clear it
   useEffect(() => {
     if (!activeTemplate) return
-    if (!templateNames.includes(activeTemplate)) {
+    if (!templateLabels.includes(activeTemplate)) {
       setActiveTemplate('')
     }
-  }, [activeTemplate, templateNames, templateNamesKey])
+  }, [activeTemplate, templateLabels])
 
+  // Handlers
   const applyTemplateToEditor = useCallback(
     template => {
       if (!template) return
@@ -326,6 +332,7 @@ const TemplateSection = ({
     [templatesList, applyTemplateToEditor]
   )
 
+  // create template handler
   const handleSaveTemplate = useCallback(
     async templateName => {
       const trimmedName = templateName?.trim()
@@ -336,11 +343,12 @@ const TemplateSection = ({
         return false
       }
 
-      const payload = new FormData()
-      payload.append('template_name', trimmedName)
-      payload.append('type', templateType)
-      payload.append('hospital_id', hospitalId)
-      payload.append('description', getSafeString(getRichTextHtml(richNote)))
+      const payload = {
+        template_name: trimmedName,
+        hospital_id: hospitalId,
+        type: templateType,
+        description: getSafeString(getRichTextHtml(richNote))
+      }
 
       setIsSavingTemplate(true)
 
@@ -352,23 +360,23 @@ const TemplateSection = ({
           setActiveTemplate(trimmedName)
 
           const refetchResult = await refetchTemplates()
-          const refreshedTemplates = extractSurgeryTemplates(refetchResult?.data)
-          const newTemplate = refreshedTemplates.find(template => template.title === trimmedName)
+          const newList = extractTemplates(refetchResult?.data)
+          const newTemplate = newList.find(template => template.title === trimmedName)
 
-          if (newTemplate) {
-            applyTemplateToEditor(newTemplate)
-          }
+          if (newTemplate) applyTemplateToEditor(newTemplate)
 
           return true
+        } else {
+          Toaster({ type: 'error', message: response?.message || 'Failed to save template' })
+
+          return false
         }
-
-        Toaster({ type: 'error', message: response?.message || 'Failed to save template' })
-
-        return false
       } catch (error) {
-        console.error('Create surgery template error:', error)
-        const message = error?.response?.data?.message || error?.message || 'An unexpected error occurred'
-        Toaster({ type: 'error', message })
+        console.error('Create template error:', error?.message)
+        Toaster({
+          type: 'error',
+          message: error?.response?.data?.message || error?.message || 'An unexpected error occurred'
+        })
 
         return false
       } finally {
@@ -376,18 +384,6 @@ const TemplateSection = ({
       }
     },
     [richNote, templateType, hospitalId, refetchTemplates, applyTemplateToEditor]
-  )
-
-  const handleSaveTemplateInline = useCallback(
-    async name => {
-      const success = await handleSaveTemplate(name)
-      if (success) {
-        setShowSaveTemplate(false)
-      }
-
-      return success
-    },
-    [handleSaveTemplate]
   )
 
   // Handle rich text change
@@ -406,6 +402,18 @@ const TemplateSection = ({
     [onChange, onDirtyChange]
   )
 
+  const handleSaveTemplateBar = useCallback(
+    async name => {
+      const success = await handleSaveTemplate(name)
+      if (success) {
+        setShowSaveTemplate(false)
+      }
+
+      return success
+    },
+    [handleSaveTemplate]
+  )
+
   return (
     <>
       <Box
@@ -418,7 +426,7 @@ const TemplateSection = ({
           mb: 2
         }}
       >
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mb: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mb: 1 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <StyledTypography>{label}</StyledTypography>
 
@@ -432,10 +440,11 @@ const TemplateSection = ({
           </Box>
 
           {showSaveTemplate ? (
-            <SaveTemplateInline
+            <SaveTemplateBar
               onClose={() => setShowSaveTemplate(false)}
-              onSave={handleSaveTemplateInline}
+              onSave={handleSaveTemplateBar}
               loading={isSavingTemplate}
+              richNote={richNote}
             />
           ) : (
             <SaveTemplateButton
@@ -446,10 +455,10 @@ const TemplateSection = ({
           )}
         </Box>
 
-        {/* Templates row */}
+        {/* Templates list */}
         {isTemplatesLoading ? (
           <Box sx={{ display: 'inline-flex', gap: 3, pr: 1 }}>
-            {Array.from({ length: 5 }).map((_, idx) => (
+            {Array.from({ length: 6 }).map((_, idx) => (
               <Box
                 key={`template-skel-${idx}`}
                 sx={{
@@ -462,14 +471,14 @@ const TemplateSection = ({
             ))}
           </Box>
         ) : (
-          templateNames?.length > 0 && (
+          templateLabels?.length > 0 && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <StyledTypography fontWeight={400}>Select from templates</StyledTypography>
 
                 <Box
                   sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-                  onClick={() => setOpenTemplateDrawer(true)}
+                  onClick={() => setOpenDrawer(true)}
                 >
                   <StyledTypography fontWeight={600} color={theme.palette.customColors.OnSurface}>
                     See all
@@ -488,7 +497,7 @@ const TemplateSection = ({
                 }}
               >
                 <Box sx={{ display: 'inline-flex', gap: 3, pr: 1 }}>
-                  {templateNames?.map(templateLabel => {
+                  {templateLabels?.map(templateLabel => {
                     if (!templateLabel) return null
 
                     return (
@@ -534,16 +543,12 @@ const TemplateSection = ({
 
       {/* Template Drawer */}
       <SurgeryRecordTemplateList
-        openSurgeryTemplateDrawer={openTemplateDrawer}
-        setOpenSurgeryTemplateDrawer={setOpenTemplateDrawer}
+        openSurgeryTemplateDrawer={openDrawer}
+        setOpenSurgeryTemplateDrawer={setOpenDrawer}
         templates={templatesList}
         loading={isTemplatesLoading}
         onApplyTemplate={applyTemplateToEditor}
-        onTemplatesUpdated={async () => {
-          const refreshed = await refetchTemplates()
-
-          return refreshed
-        }}
+        onTemplatesUpdated={refetchTemplates}
       />
     </>
   )

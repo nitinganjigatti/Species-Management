@@ -123,6 +123,43 @@ const EnclosureDischargeForm = props => {
     reValidateMode: 'onChange'
   })
 
+  // strict time limits for discharge time
+  const selectedDischargeDate = watch('discharge_date')
+  const admittedAtLocal = dayjs(patientData?.admitted_at)
+  const now = dayjs()
+
+  let minTime = null
+  let maxTime = null
+
+  if (selectedDischargeDate) {
+    const selectedDay = dayjs(selectedDischargeDate)
+
+    // If discharge day is same as admission date → cannot select a time before admission
+    if (selectedDay.isSame(admittedAtLocal, 'day')) {
+      minTime = admittedAtLocal
+    }
+
+    // If discharge day is today → cannot pick time after current time
+    if (selectedDay.isSame(now, 'day')) {
+      maxTime = now
+    }
+  }
+
+  // Disable selecting past/future times based on rules
+  const shouldDisableDischargeTime = (timeValue, clockType) => {
+    if (timeValue === null || timeValue === undefined) return false
+
+    const t = dayjs().set(clockType, timeValue)
+
+    // Disable earlier than admission time
+    if (minTime && t.isBefore(minTime, clockType)) return true
+
+    // Disable future time (current day)
+    if (maxTime && t.isAfter(maxTime, clockType)) return true
+
+    return false
+  }
+
   const followUp = watch('follow_up_required')
 
   // mark dirty when form changes
@@ -280,7 +317,15 @@ const EnclosureDischargeForm = props => {
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                  <ControlledTimePicker control={control} name='discharge_time' label='Time' errors={errors} />
+                  <ControlledTimePicker
+                    control={control}
+                    name='discharge_time'
+                    label='Time'
+                    errors={errors}
+                    minTime={minTime}
+                    maxTime={maxTime}
+                    shouldDisableTime={shouldDisableDischargeTime}
+                  />
                 </Grid>
               </Grid>
             </Box>
