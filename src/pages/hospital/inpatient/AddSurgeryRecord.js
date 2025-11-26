@@ -14,7 +14,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { useAuth } from 'src/hooks/useAuth'
-import AddanesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddanesthesiaRecord'
+import AddAnesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnesthesiaRecord'
 import SelectAnesthesiaRecordDrawer from 'src/components/hospital/inpatient/SelectAnesthesiaRecordDrawer'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import Toaster from 'src/components/Toaster'
@@ -1484,6 +1484,7 @@ const AddSurgeryRecord = () => {
             }}
           >
             <Button
+              type='button'
               variant='outlined'
               startIcon={<Icon icon='mdi:plus' fontSize={20} />}
               onClick={handleAddNewanesthesia}
@@ -1501,6 +1502,7 @@ const AddSurgeryRecord = () => {
               ADD NEW
             </Button>
             <Button
+              type='button'
               variant='contained'
               onClick={handleSelectanesthesiaRecord}
               sx={{
@@ -1838,7 +1840,7 @@ const AddSurgeryRecord = () => {
         </Button>
       </Box>
 
-      <AddanesthesiaRecordDrawer
+      <AddAnesthesiaRecordDrawer
         setOpenAddanesthesiaDrawer={setOpenAddanesthesiaDrawer}
         openAddanesthesiaDrawer={openAddanesthesiaDrawer}
         hospitalCaseId={resolvedHospitalCaseId}
