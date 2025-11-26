@@ -8,8 +8,6 @@ import dayjs from 'dayjs'
 import { getPatientSurgeryList } from 'src/lib/api/hospital/surgeryMaster'
 import Utility from 'src/utility'
 
-const scrollbarThumbColor = theme.palette.customColors.neutralSecondary
-
 const FieldTooltip = ({ title, placement = 'top-start', children }) => (
   <Tooltip
     title={title}
@@ -172,6 +170,9 @@ const getRecordCode = record => {
 }
 
 const MediaScroller = ({ items = [] }) => {
+  const theme = useTheme()
+  const scrollbarThumbColor = theme.palette.customColors.neutralSecondary
+
   if (!Array.isArray(items) || items.length === 0) {
     return (
       <Typography
@@ -227,6 +228,7 @@ const MediaScroller = ({ items = [] }) => {
 
 function InpatientSurgery({ hospitalCaseId }) {
   const theme = useTheme()
+  const scrollbarThumbColor = theme.palette.customColors.neutralSecondary
   const router = useRouter()
   const headerBackground = alpha(theme.palette.customColors.displaybgPrimary, 153 / 255)
   const [surgeryRecords, setSurgeryRecords] = useState([])
