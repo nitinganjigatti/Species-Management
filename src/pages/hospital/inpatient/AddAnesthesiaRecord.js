@@ -77,17 +77,23 @@ export function serverVitalToFormColumns(serverVital = {}, vitalMeta = []) {
             v => String(v.monitoring_time_id) === String(slot.id) || v.monitoring_time_id === slot.recorded_time
           )
           if (vObj) {
-            if (fields.length === 1) {
-              // single value (temp, 1 radio, etc.)
-              builtEntry.value = String(vObj.field_value ?? '')
+            const fieldVal = vObj.field_value == null ? '' : String(vObj.field_value)
+
+            if (f.input_type === 'radio') {
+              builtEntry.selection = fieldVal
+            } else if (fields.length === 1) {
+              builtEntry.value = fieldVal
               builtEntry.unit = vObj.unit ?? ''
             } else {
-              // multi-field (BP, etc.)
-              builtEntry[f.field_key] = String(vObj.field_value ?? '')
+              builtEntry[f.field_key] = fieldVal
               builtEntry.unit = vObj.unit ?? builtEntry.unit ?? ''
             }
           } else {
-            if (fields.length === 1) {
+            if (f.input_type === 'radio') {
+              if (builtEntry.selection === undefined) {
+                builtEntry.selection = ''
+              }
+            } else if (fields.length === 1) {
               builtEntry.value = builtEntry.value ?? ''
               builtEntry.unit = builtEntry.unit ?? ''
             } else {
@@ -128,6 +134,11 @@ export function serverVitalToFormColumns(serverVital = {}, vitalMeta = []) {
 const extractFieldValueAndUnit = (fieldMeta, entry) => {
   if (!fieldMeta || !entry) return { value: '', unit: null }
 
+  // 3) radio shape
+  if (entry.selection !== undefined) {
+    return { value: entry.selection == null ? '' : String(entry.selection), unit: null }
+  }
+
   // 1) prefer unique fieldsById map
   if (entry.fieldsById && entry.fieldsById[String(fieldMeta.field_id)]) {
     const rec = entry.fieldsById[String(fieldMeta.field_id)]
@@ -137,11 +148,6 @@ const extractFieldValueAndUnit = (fieldMeta, entry) => {
   // 2) fallback: single-number shape { value, unit }
   if (entry.value !== undefined) {
     return { value: entry.value == null ? '' : String(entry.value), unit: entry.unit ?? null }
-  }
-
-  // 3) radio shape
-  if (entry.selection !== undefined) {
-    return { value: entry.selection == null ? '' : String(entry.selection), unit: null }
   }
 
   // 4) multi-field shape by field_key (note: duplicates may exist; we handle _<id> suffix in prefill)
@@ -205,6 +211,19 @@ export function formColumnsToVitalMonitoringBlocks(columns = [], vitalList = [])
   return blocks
 }
 
+const toBackendTime = v => {
+  if (!v) return ''
+  if (dayjs.isDayjs(v) || v instanceof Date) {
+    return dayjs(v).format('HH:mm:ss')
+  }
+  const parsed = dayjs(v, ['hh:mm A', 'HH:mm', 'HH:mm:ss'], true)
+  if (parsed.isValid()) {
+    return parsed.format('HH:mm:ss')
+  }
+
+  return v
+}
+
 export const anesthesiaSchema = yup.object({
   basicDetails: yup.object({
     location: yup.string().trim().required('Location is required'),
@@ -261,6 +280,26 @@ export default function AddAnesthesiaRecord() {
   const sectionRefs = React.useRef({})
   const scrollContainerRef = React.useRef(null)
   const theme = useTheme()
+
+  const scrollToSection = sectionId => {
+    setExpanded(sectionId)
+
+    requestAnimationFrame(() => {
+      const scrollContainer = scrollContainerRef.current
+      const sectionEl = sectionRefs.current[sectionId]
+
+      if (scrollContainer && sectionEl) {
+        const containerRect = scrollContainer.getBoundingClientRect()
+        const targetRect = sectionEl.getBoundingClientRect()
+        const offset = 8
+
+        scrollContainer.scrollTo({
+          top: scrollContainer.scrollTop + targetRect.top - containerRect.top - offset,
+          behavior: 'smooth'
+        })
+      }
+    })
+  }
 
   const getUserLists = async (query = '') => {
     try {
@@ -357,7 +396,6 @@ export default function AddAnesthesiaRecord() {
           }
         })
       } catch (error) {
-        console.error('Cannot Fetch Patient Details', error)
         setPatientLoading(false)
       }
     }
@@ -660,7 +698,6 @@ export default function AddAnesthesiaRecord() {
         setAddLoader(false)
       }
     } catch (error) {
-      console.error('Error fetching anesthesia details', error)
       Toaster({ type: 'error', message: 'Error fetching anesthesia details' })
     }
   }
@@ -918,6 +955,13 @@ export default function AddAnesthesiaRecord() {
     }
   }, [anesthesiaDetail, setValue])
 
+  const recordedTimeToLabel = timeStr => {
+    if (!timeStr) return ''
+    const d = dayjs(timeStr, ['HH:mm:ss', 'HH:mm', 'H:mm'], true)
+    if (!d.isValid()) return ''
+    return d.format('hh:mm A')
+  }
+
   useEffect(() => {
     if (!anesthesiaDetail) return
 
@@ -1025,21 +1069,6 @@ export default function AddAnesthesiaRecord() {
     return parsed && parsed.isValid() ? parsed.format('HH:mm:ss') : ''
   }
 
-  const timeLabelToHHMMSS = label => {
-    if (!label) return ''
-    const d = dayjs(label, ['hh:mm A', 'h:mm A', 'HH:mm', 'H:mm', 'HH:mm:ss'], true)
-    if (d.isValid()) return d.format('HH:mm:ss')
-    const d2 = dayjs(label)
-    return d2.isValid() ? d2.format('HH:mm:ss') : ''
-  }
-
-  const recordedTimeToLabel = timeStr => {
-    if (!timeStr) return ''
-    const d = dayjs(timeStr, ['HH:mm:ss', 'HH:mm', 'H:mm'], true)
-    if (!d.isValid()) return ''
-    return d.format('hh:mm A')
-  }
-
   const onValid = async data => {
     setIsSubmitting(true)
     console.log(data, 'data')
@@ -1092,6 +1121,37 @@ export default function AddAnesthesiaRecord() {
         // RECOVERY & REVERSAL
         const recoveryForm = methods.getValues('recoveryAndReversal') || {}
         const reversalDrugsForm = methods.getValues('recoveryAndReversal.reversalDrugs') || []
+
+        clearErrors(['recoveryAndReversal.recovery_first_effect', 'recoveryAndReversal.recovery_full_effect'])
+
+        const firstVal = recoveryForm.recovery_first_effect
+        const fullVal = recoveryForm.recovery_full_effect
+
+        if (firstVal && fullVal) {
+          const first = dayjs(firstVal)
+          const full = dayjs(fullVal)
+
+          if (first.isValid() && full.isValid() && full.isBefore(first)) {
+            setError('recoveryAndReversal.recovery_first_effect', {
+              type: 'manual',
+              message: 'Recovery 1st Effect cannot be greater than Recovery Full Effect'
+            })
+            setError('recoveryAndReversal.recovery_full_effect', {
+              type: 'manual',
+              message: 'Recovery Full Effect cannot be less than Recovery 1st Effect'
+            })
+
+            Toaster({
+              type: 'error',
+              message:
+                'Please correct Recovery timing – Recovery 1st Effect must be before or equal to Recovery Full Effect.'
+            })
+            scrollToSection('recoveryAndReversal')
+            setIsSubmitting(false)
+
+            return
+          }
+        }
 
         recoveryPayload = {
           recovery_type: recoveryForm.recovery_type || '',
@@ -1146,21 +1206,16 @@ export default function AddAnesthesiaRecord() {
 
         // VITAL BLOCKS
         const columns = methods.getValues('vitalMonitoring') || []
+        const vitalMetaForBlocks = vitalMonitorList || []
 
-        const vitalMetaForBlocks =
-          isEdit &&
-          anesthesiaDetail?.vital_monitoring &&
-          Array.isArray(anesthesiaDetail.vital_monitoring.records) &&
-          anesthesiaDetail.vital_monitoring.records.length
-            ? anesthesiaDetail.vital_monitoring.records // use same meta as prefill
-            : vitalMonitorList || []
-
-        console.log(vitalMetaForBlocks, 'vitalMetaForBlocks')
         console.log('columns:', JSON.stringify(columns, null, 2))
-        console.log('vitalMetaForBlocks:', JSON.stringify(vitalMetaForBlocks, null, 2))
+        console.log('vitalMetaForBlocks (from vitalMonitorList):', JSON.stringify(vitalMetaForBlocks, null, 2))
 
         blocks = formColumnsToVitalMonitoringBlocks(columns, vitalMetaForBlocks)
-
+        blocks = (blocks || []).map(block => ({
+          ...block,
+          recorded_time: toBackendTime(block.recorded_time)
+        }))
         console.log('blocks:', JSON.stringify(blocks, null, 2))
         // ----------- VALIDATE & BUILD ANAESTHESIA SETUP (EDIT-ONLY) -----------
         const invalidSections = []
@@ -1218,6 +1273,7 @@ export default function AddAnesthesiaRecord() {
             type: 'error',
             message: `Please fill all required fields for: ${invalidSections.join(', ')} or uncheck those sections.`
           })
+          scrollToSection('anesthesiaSetUp')
           setIsSubmitting(false)
           return
         }
@@ -1239,7 +1295,10 @@ export default function AddAnesthesiaRecord() {
             const uiKey = uiKeyForField(meta.string_id, f.field_key)
             const fieldFromFlat = sectionForm[uiKey] ?? null
 
-            const field_value = fieldFromObject ?? fieldFromFlat ?? ''
+            const field_value =
+              fieldFromFlat !== undefined && fieldFromFlat !== null && String(fieldFromFlat).trim() !== ''
+                ? fieldFromFlat
+                : fieldFromObject ?? ''
             const unit =
               (sectionForm.fields && sectionForm.fields[f.field_key] && sectionForm.fields[f.field_key].unit) ??
               f.unit ??
@@ -1327,7 +1386,7 @@ export default function AddAnesthesiaRecord() {
         setIsApiSuccess(true)
         setExpanded('medicationsGas')
         Toaster({ type: 'success', message: response?.message })
-        router.back()
+        handleCancel()
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to save record' })
       }
@@ -1340,6 +1399,7 @@ export default function AddAnesthesiaRecord() {
   }
 
   const onInvalid = errors => {
+    console.log(errors, 'errors')
     const firstPath = Object.keys(errors.basicDetails || {})[0] || (errors.attachments ? 'attachments' : 'basicDetails')
 
     if (firstPath) {
@@ -1351,8 +1411,69 @@ export default function AddAnesthesiaRecord() {
     }
   }
 
+  const preAnesthesia = watch('preAnesthesia')
+  const vitalMonitoring = watch('vitalMonitoring')
+  const anesthesiaSetup = watch('anesthesiaSetup')
+  const recoveryAndReversal = watch('recoveryAndReversal')
+
+  const sectionHasData = sectionId => {
+    switch (sectionId) {
+      case 'basicDetails': {
+        const basic = methods.getValues('basicDetails') || {}
+        return (
+          !!basic.location ||
+          !!basic.anaesthesia_datetime ||
+          !!basic.estimated_time_required ||
+          (Array.isArray(basic.veterinarian_id) && basic.veterinarian_id.length > 0) ||
+          (Array.isArray(basic.anesthetist_id) && basic.anesthetist_id.length > 0) ||
+          (Array.isArray(basic.selected) && basic.selected.length > 0) ||
+          !!basic.notes
+        )
+      }
+
+      case 'medicationsGas': {
+        return (Array.isArray(medications) && medications.length > 0) || (Array.isArray(gases) && gases.length > 0)
+      }
+
+      case 'anesthesiaSetUp': {
+        const setup = anesthesiaSetup || {}
+        return Object.values(setup).some(sec => sec && sec.checked)
+      }
+
+      case 'preAnesthesia': {
+        const pre = preAnesthesia || {}
+        return Object.values(pre).some(v => {
+          if (Array.isArray(v)) return v.length > 0
+          if (v && typeof v === 'object') return Object.values(v).some(x => !!x)
+          return v !== '' && v !== null && v !== undefined
+        })
+      }
+
+      case 'vitalMonitoring': {
+        return Array.isArray(vitalMonitoring) && vitalMonitoring.length > 0
+      }
+
+      case 'recoveryAndReversal': {
+        const rec = recoveryAndReversal || {}
+        return (
+          !!rec.recovery_type ||
+          !!rec.recovery_first_effect ||
+          !!rec.recovery_full_effect ||
+          !!rec.induction ||
+          !!rec.tolerance ||
+          !!rec.recovery ||
+          !!rec.overall ||
+          (Array.isArray(reversalDrugs) && reversalDrugs.length > 0)
+        )
+      }
+
+      default:
+        return false
+    }
+  }
+
   const shouldEnableSections = isApiSuccess
-  console.log(id, 'id')
+
   return (
     <FormProvider {...methods}>
       <Box display='flex' flexDirection='column' gap={3} sx={{ p: 3 }}>
@@ -1360,11 +1481,7 @@ export default function AddAnesthesiaRecord() {
           <Typography color={theme.palette.text.secondary}>Hospital</Typography>
           <Typography color={theme.palette.text.secondary}>Patients</Typography>
           <Typography color={theme.palette.text.secondary}>Inpatient</Typography>
-          <Typography
-            color={theme.palette.text.secondary}
-            sx={{ cursor: 'pointer' }}
-            onClick={() => window.history.back()}
-          >
+          <Typography color={theme.palette.text.secondary} sx={{ cursor: 'pointer' }} onClick={handleCancel}>
             Details
           </Typography>
           <Typography color={theme.palette.text.primary}>Add Anesthesia</Typography>
@@ -1402,6 +1519,7 @@ export default function AddAnesthesiaRecord() {
                 pl: 7
               }}
             >
+              {console.log(anesthesiaDetail, 'anesthesiaDetail')}
               <Box
                 sx={{
                   display: 'flex',
@@ -1415,9 +1533,11 @@ export default function AddAnesthesiaRecord() {
                   color={theme.palette.customColors.OnSurfaceVariant}
                   icon='material-symbols:arrow-back'
                 />
-                <Typography variant='h6' fontWeight={600}>
-                  Anesthesia Record
-                  {/* - AN2345/25 */}
+                <Typography
+                  fontWeight={500}
+                  sx={{ fontSize: '24px', color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  Anesthesia Record {anesthesiaDetail?.code ? '- ' + anesthesiaDetail?.code : ''}
                 </Typography>
               </Box>
 
@@ -1512,6 +1632,7 @@ export default function AddAnesthesiaRecord() {
           >
             {sections.map(({ id, label, component: SectionComponent }) => {
               const isDisabled = id !== 'basicDetails' && !shouldEnableSections && !anaesthesia_id
+              const hasData = !isDisabled && sectionHasData(id)
               return (
                 <Accordion
                   key={id}
@@ -1534,6 +1655,18 @@ export default function AddAnesthesiaRecord() {
                     expandIcon={
                       expanded === id ? (
                         <Typography sx={{ fontWeight: 'bold', fontSize: 24, color: '#4c4e646e' }}>−</Typography>
+                      ) : anaesthesia_id && hasData ? (
+                        <Box sx={{ display: 'flex', gap: '18px', alignItems: 'center' }}>
+                          <Box
+                            component='img'
+                            src='/icons/pencil_outlined.svg'
+                            alt='Edit'
+                            sx={{ width: 22, height: 22, cursor: 'pointer' }}
+                          />
+                          <Box sx={{ color: theme.palette.primary.main, mr: 0 }}>
+                            <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
+                          </Box>
+                        </Box>
                       ) : (
                         <Typography
                           sx={{

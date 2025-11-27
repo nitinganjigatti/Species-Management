@@ -530,25 +530,27 @@ function Anesthesia({ hospitalCaseId, patientData }) {
 
   const handleEditClick = value => {
     console.log(value, 'value')
-    const resolvedCaseId = resolvedHospitalCaseId
-    const animalId = normalizeQueryValue(router?.query?.animal_id)
+    if (value?.anaesthesia_id) {
+      const resolvedCaseId = resolvedHospitalCaseId
+      const animalId = normalizeQueryValue(router?.query?.animal_id)
 
-    const href = resolvedCaseId
-      ? {
-          pathname: `/hospital/inpatient/AddAnesthesiaRecord/`,
-          query: {
-            hospital_case_id: resolvedCaseId,
-            medical_record_id: patientData?.medical_record_id,
-            hospital_id: patientData?.hospital_id,
-            animal_id: animalId,
-            animal_admitted_date: router?.query?.animal_admitted_date,
-            tab: router?.query?.tab,
-            anaesthesia_id: value?.anaesthesia_id
+      const href = resolvedCaseId
+        ? {
+            pathname: `/hospital/inpatient/AddAnesthesiaRecord/`,
+            query: {
+              hospital_case_id: resolvedCaseId,
+              medical_record_id: patientData?.medical_record_id,
+              hospital_id: patientData?.hospital_id,
+              animal_id: animalId,
+              animal_admitted_date: router?.query?.animal_admitted_date,
+              tab: router?.query?.tab,
+              anaesthesia_id: value?.anaesthesia_id
+            }
           }
-        }
-      : '/hospital/inpatient/AddAnesthesiaRecord'
+        : '/hospital/inpatient/AddAnesthesiaRecord'
 
-    router.push(href)
+      router.push(href)
+    }
   }
 
   const handleDeleteConfirm = useCallback(async () => {

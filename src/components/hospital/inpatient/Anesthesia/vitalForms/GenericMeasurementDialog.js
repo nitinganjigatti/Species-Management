@@ -109,10 +109,19 @@ export default function GenericMeasurementDialog({
 
   useEffect(() => {
     if (open) {
+      {
+        console.log(initialData, 'initialData')
+      }
       setSingleValue(initialData?.value ?? initialData?.[firstField?.field_key] ?? '')
       setSingleUnit(initialData?.unit ?? initialData?.[firstField?.field_key + '_unit'] ?? unitsForSingle[0] ?? '')
 
-      setSelection(initialData?.selection ?? initialData?.value ?? '')
+      setSelection(
+        initialData?.selection != null
+          ? String(initialData.selection)
+          : initialData?.value != null
+          ? String(initialData.value)
+          : ''
+      )
 
       setMultiValues(
         fieldsMeta.reduce((acc, f) => {
@@ -270,15 +279,19 @@ export default function GenericMeasurementDialog({
             <ToggleButtonGroup
               value={selection}
               exclusive
-              onChange={(event, value) => value && setSelection(value)}
+              onChange={(event, value) => {
+                if (value == null) return
+                setSelection(String(value))
+              }}
               sx={{ display: 'flex', gap: '12px' }}
             >
+              {console.log(options, 'options')}
               {options.map((opt, index) => {
-                const value = opt
+                const value = String(opt)
                 const label = prettifyOptionLabel(opt)
                 return (
                   <ToggleButton
-                    key={String(value)}
+                    key={value}
                     value={value}
                     sx={toggleButtonStyles}
                     ref={index === 0 ? firstToggleRef : null}
@@ -286,6 +299,8 @@ export default function GenericMeasurementDialog({
                     <Typography sx={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '16px', color: 'inherit' }}>
                       {label}
                     </Typography>
+                    {console.log(selection, 'selection')}
+                    {console.log(value, 'value')}
                     <Radio checked={selection === value} tabIndex={-1} disableRipple sx={radioStyles} />
                   </ToggleButton>
                 )

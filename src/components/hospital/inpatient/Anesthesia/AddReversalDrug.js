@@ -16,7 +16,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat'
 dayjs.extend(customParseFormat)
 
 const schema = yup.object().shape({
-  drug_name: yup.object().required('Drug Name is required').nullable(),
+  drug_namenew: yup.object().required('Drug Name is required').nullable(),
   amount: yup
     .string()
     .trim()
@@ -57,7 +57,7 @@ const deliveryStatus = [
 ]
 
 const defaultValues = {
-  drug_name: null,
+  drug_namenew: null,
   amount: '',
   unit: '',
   delivery_route: null,
@@ -74,7 +74,10 @@ function AddReversalDrug({
   editData,
   drugOptions = [],
   unitList = [],
-  deliveryRouteOptions = []
+  deliveryRouteOptions = [],
+  onLoadMoreDrugs,
+  hasMoreDrugs = false,
+  isLoadingDrugs = false
 }) {
   const theme = useTheme()
   const [selectedStatus, setSelectedStatus] = useState(null)
@@ -155,7 +158,7 @@ function AddReversalDrug({
       const fmt = v => (v && dayjs(v).isValid() ? dayjs(v).format('hh:mm A') : null)
 
       const payload = {
-        drug_name: formData.drug_name,
+        drug_namenew: formData.drug_namenew,
         amount: formData.amount,
         unit: formData.unit,
         delivery_route: formData.delivery_route,
@@ -228,7 +231,7 @@ function AddReversalDrug({
               <Grid size={{ xs: 12 }}>
                 <ControlledAutocomplete
                   control={control}
-                  name='drug_name'
+                  name='drug_namenew'
                   errors={errors}
                   label='Enter Drug Name*'
                   options={drugOptions}
@@ -239,6 +242,24 @@ function AddReversalDrug({
                       {option.name}
                     </li>
                   )}
+                  loading={isLoadingDrugs}
+                  autocompleteProps={{
+                    slotProps: {
+                      listbox: {
+                        onScroll: event => {
+                          const listboxNode = event.currentTarget
+                          const scrollBottom = listboxNode.scrollTop + listboxNode.clientHeight
+                          const threshold = listboxNode.scrollHeight - 50
+
+                          if (scrollBottom >= threshold) {
+                            if (hasMoreDrugs && !isLoadingDrugs && typeof onLoadMoreDrugs === 'function') {
+                              onLoadMoreDrugs()
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }}
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
