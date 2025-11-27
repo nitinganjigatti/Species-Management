@@ -12,6 +12,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { getAnimalFilterList, getAnimalListForObservationReport } from 'src/lib/api/compliance/reports'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
+import AnimalFilterDrawer from 'src/views/pages/hospital/inpatient/AnimalFilterDrawer'
 
 const PAGE_SIZE = 10
 
