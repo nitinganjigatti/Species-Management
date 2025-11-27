@@ -1,11 +1,12 @@
 import { useTheme } from '@emotion/react'
 import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem } from '@mui/material'
-import { minWidth } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
 import { differenceInDays } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
 import { visitTypeOptions } from 'src/constants/Constants'
 import { AuthContext } from 'src/context/AuthContext'
 import { useHospital } from 'src/context/HospitalContext'
@@ -16,6 +17,7 @@ import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalyt
 import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
+import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
 
 const HospitalOutPatient = () => {
@@ -24,16 +26,27 @@ const HospitalOutPatient = () => {
 
   const { selectedHospital } = useHospital()
 
-  const authData = useContext(AuthContext)
-
   const [searchValue, setSearchValue] = useState('')
   const [selectedVisitType, setSelectedVisitType] = useState('')
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [filterCount, setFilterCount] = useState(0)
+  const [filterDate, setFilterDate] = useState({})
+
+  const [selectedOptions, setSelectedOptions] = useState({
+    'Chief Veterinarian': [],
+    'Origin Site': []
+  })
 
   const [filters, setFilters] = useState({
     page: 1,
     limit: 50,
     q: ''
   })
+
+  const applyFilters = selectedOptions => {
+    setSelectedOptions(selectedOptions)
+    setOpenFilterDrawer(false)
+  }
 
   useEffect(() => {
     const { page = '1', limit = '50', q = '' } = router.query
@@ -47,8 +60,18 @@ const HospitalOutPatient = () => {
     setSearchValue(q)
   }, [router.query])
 
+  const prepareFilterParams = key => {
+    return selectedOptions[key]?.length > 0 ? selectedOptions[key].join(',') : undefined
+  }
+
+  const formatDate = dateString => {
+    if (!dateString) return null
+
+    return new Date(dateString).toISOString().split('T')[0]
+  }
+
   const { data, isFetching, refetch } = useQuery({
-    queryKey: ['outpatients-listings', filters, selectedVisitType, selectedHospital?.id],
+    queryKey: ['outpatients-listings', filters, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions],
     queryFn: () =>
       getIncomingPatients({
         page_no: filters?.page,
@@ -56,7 +79,11 @@ const HospitalOutPatient = () => {
         search: filters?.q,
         hospital_id: selectedHospital?.id,
         visit_type: selectedVisitType,
-        patient_category: 'outpatient'
+        patient_category: 'outpatient',
+        from_date: formatDate(filterDate.startDate),
+        to_date: formatDate(filterDate.endDate),
+        users: prepareFilterParams('Chief Veterinarian'),
+        origin_site: prepareFilterParams('Origin Site')
       })
   })
 
@@ -282,7 +309,8 @@ const HospitalOutPatient = () => {
 
   const handleRowClick = params =>
     router.push({
-      pathname: `/hospital/outpatient/${params.row?.id}`
+      pathname: `/hospital/outpatient/${params.row?.id}`,
+      query: { animal_id: params.row.animal_id, medical_record_id: params.row.medical_record_id }
     })
 
   const headerAction = (
@@ -299,7 +327,7 @@ const HospitalOutPatient = () => {
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
           <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
           <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>outpatient</Typography>
+          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Outpatient</Typography>
         </Breadcrumbs>
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
@@ -315,7 +343,11 @@ const HospitalOutPatient = () => {
                   onChange={e => handleSearch(e.target.value)}
                 />
               </Box>
-              <Box sx={{ mr: 2 }}>
+              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <CommonDateRangePickers
+                  filterDates={filterDate}
+                  onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
+                />
                 <Select
                   size='small'
                   value={selectedVisitType}
@@ -328,7 +360,10 @@ const HospitalOutPatient = () => {
                     </MenuItem>
                   ))}
                 </Select>
-                <Box></Box>
+                <FilterButtonWithNotification
+                  onClick={() => setOpenFilterDrawer(true)}
+                  appliedFiltersCount={filterCount}
+                />
               </Box>
             </Box>
             <Grid
@@ -356,6 +391,15 @@ const HospitalOutPatient = () => {
           </Card>
         </Box>
       </Box>
+      {openFilterDrawer && (
+        <InpatientFilterDrawer
+          open={openFilterDrawer}
+          onClose={() => setOpenFilterDrawer(false)}
+          onApplyFilters={applyFilters}
+          setFilterCount={setFilterCount}
+          initialSelectedOptions={selectedOptions}
+        />
+      )}
     </>
   )
 }

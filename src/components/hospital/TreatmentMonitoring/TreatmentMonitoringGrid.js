@@ -208,9 +208,9 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
     enabled: !!id
   })
 
-  useEffect(() => {
-    refetchMonitoringParams()
-  }, [id])
+  // useEffect(() => {
+  //   refetchMonitoringParams()
+  // }, [id])
 
   const timeSlots = useMemo(() => {
     const slots = []
