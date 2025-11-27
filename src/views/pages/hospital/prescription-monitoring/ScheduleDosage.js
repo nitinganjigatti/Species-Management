@@ -30,6 +30,14 @@ const ScheduleDosageSidesheet = ({
   const theme = useTheme()
   const previousUnitsRef = useRef([])
 
+  const commonFieldStyles = {
+    textAlign: 'left',
+    borderRadius: '4px',
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '4px'
+    }
+  }
+
   // Validation schema based on reference component
   const validationSchema = yup.object({
     schedules: yup
@@ -128,11 +136,11 @@ const ScheduleDosageSidesheet = ({
   useEffect(() => {
     if (allSchedules && allSchedules.length > 0) {
       const currentUnits = allSchedules.map(schedule => schedule?.dosageUnit || '')
-      
+
       // Find which unit changed by comparing with previous values
       let changedIndex = -1
       let newUnit = null
-      
+
       for (let i = 0; i < currentUnits.length; i++) {
         if (previousUnitsRef.current[i] !== currentUnits[i] && currentUnits[i]) {
           changedIndex = i
@@ -140,7 +148,7 @@ const ScheduleDosageSidesheet = ({
           break
         }
       }
-      
+
       // If a unit was changed and there are multiple schedules, sync all units
       if (changedIndex !== -1 && newUnit && allSchedules.length > 1) {
         allSchedules.forEach((schedule, idx) => {
@@ -149,7 +157,7 @@ const ScheduleDosageSidesheet = ({
           }
         })
       }
-      
+
       // Update the ref with current units
       previousUnitsRef.current = currentUnits
     }
@@ -180,7 +188,7 @@ const ScheduleDosageSidesheet = ({
           }
         ]
       }))
-      
+
       // Initialize the ref with the default unit
       previousUnitsRef.current = [defaultUnit]
     }
@@ -325,6 +333,7 @@ const ScheduleDosageSidesheet = ({
                           label='Select Time'
                           format='hh:mm A'
                           error={errors?.schedules?.[idx]?.time}
+                          sx={commonFieldStyles}
                           required
                           disabled={submitLoader}
                           minTime={slotStart}

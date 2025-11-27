@@ -1,24 +1,28 @@
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Drawer, IconButton, Typography, TextField, CircularProgress } from '@mui/material'
-import { Box } from '@mui/system'
+import { alpha, Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
-import { useState, useMemo, useEffect } from 'react'
 import { LoadingButton } from '@mui/lab'
 import EditTemplateForm from '../../../../components/hospital/inpatient/EditTemplateForm'
 import SurgeryTemplateCard from './SurgeryTemplateCard'
+import Toaster from 'src/components/Toaster'
+import { deleteTemplate, updateTemplate } from 'src/lib/api/hospital/surgeryMaster'
 
 const SurgeryRecordTemplateList = ({
   openSurgeryTemplateDrawer,
   setOpenSurgeryTemplateDrawer,
   templates = [],
   loading = false,
-  onApplyTemplate = () => {}
+  onApplyTemplate = () => {},
+  onTemplatesUpdated = () => {} //refetch templates after update/delete
 }) => {
   const theme = useTheme()
   const [searchValue, setSearchValue] = useState('')
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [openEditPopup, setOpenEditPopup] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState(null)
+  const [actionLoading, setActionLoading] = useState(false)
 
   // Filter templates based on search
   const filteredTemplates = useMemo(() => {
@@ -37,6 +41,7 @@ const SurgeryRecordTemplateList = ({
     })
   }, [searchValue, templates])
 
+  // Keep selectedTemplate in sync with list
   useEffect(() => {
     if (!selectedTemplate) return
 
@@ -54,12 +59,12 @@ const SurgeryRecordTemplateList = ({
     }
   }, [templates, selectedTemplate])
 
-  // Handle template selection
+  // Handle template selection (card click)
   const handleTemplateSelect = template => {
-    setSelectedTemplate(selectedTemplate?.id === template.id ? null : template)
+    setSelectedTemplate(prev => (prev?.id === template.id ? null : template))
   }
 
-  // Handle apply template
+  // Apply template into editor
   const handleApplyTemplate = () => {
     if (selectedTemplate) {
       onApplyTemplate(selectedTemplate)
@@ -67,36 +72,99 @@ const SurgeryRecordTemplateList = ({
     }
   }
 
-  // Handle edit template -> now closes the drawer when a template is selected
-  const handleEditTemplate = () => {
-    if (selectedTemplate) {
-      setOpenSurgeryTemplateDrawer(false)
-    }
+  // Handle edit template close
+  const handleEditTemplateClose = () => {
+    setOpenSurgeryTemplateDrawer(false)
   }
 
-  // Handle edit template from pencil button
-  const handleEditTemplateFromPencil = template => {
+  // Handle edit template open
+  const handleEditTemplateOpen = template => {
     setEditingTemplate(template)
     setOpenEditPopup(true)
   }
 
-  // Handle update template
-  const handleUpdateTemplate = formData => {
-    console.log('Updating template:', formData)
+  // Handle form update template
+  const handleUpdateTemplate = useCallback(
+    async formData => {
+      if (!editingTemplate?.id) {
+        Toaster({ type: 'error', message: 'Template not found for update' })
 
-    // Add your API call here to update the template
-    setOpenEditPopup(false)
-    setEditingTemplate(null)
-  }
+        return
+      }
+
+      try {
+        setActionLoading(true)
+
+        const payload = { id: editingTemplate.id, template_name: formData.name, description: formData.description }
+
+        const response = await updateTemplate(payload)
+
+        if (response?.success) {
+          Toaster({ type: 'success', message: response?.message || 'Template updated successfully' })
+
+          // await onTemplatesUpdated?.()
+          await Promise.resolve(onTemplatesUpdated?.())
+
+          setOpenEditPopup(false)
+          setEditingTemplate(null)
+        } else {
+          Toaster({ type: 'error', message: response?.message || 'Failed to update template' })
+        }
+      } catch (error) {
+        console.error('Error updating template:', error?.message)
+        Toaster({
+          type: 'error',
+          message: error?.response?.data?.message || error?.message || 'An unexpected error occurred'
+        })
+      } finally {
+        setActionLoading(false)
+      }
+    },
+    [editingTemplate, onTemplatesUpdated]
+  )
 
   // Handle delete template
-  const handleDeleteTemplate = templateId => {
-    console.log('Deleting template:', templateId)
+  const handleDeleteTemplate = useCallback(
+    async templateId => {
+      if (!templateId) {
+        Toaster({ type: 'error', message: 'Template not found for delete' })
 
-    // Add your API call here to delete the template
-    setOpenEditPopup(false)
-    setEditingTemplate(null)
-  }
+        return
+      }
+
+      try {
+        setActionLoading(true)
+        const response = await deleteTemplate({ id: templateId })
+
+        if (response?.success) {
+          Toaster({ type: 'success', message: response?.message || 'Template deleted successfully' })
+
+          // If the deleted one was selected or being edited, clear them
+          if (selectedTemplate?.id === templateId) {
+            setSelectedTemplate(null)
+          }
+          if (editingTemplate?.id === templateId) {
+            setEditingTemplate(null)
+            setOpenEditPopup(false)
+          }
+
+          // Refresh list in parent
+          await Promise.resolve(onTemplatesUpdated?.())
+        } else {
+          Toaster({ type: 'error', message: response?.message || 'Failed to delete template' })
+        }
+      } catch (error) {
+        console.error('Delete template error:', error?.response?.data?.message || error?.message || error)
+        Toaster({
+          type: 'error',
+          message: error?.response?.data?.message || error?.message || 'An unexpected error occurred'
+        })
+      } finally {
+        setActionLoading(false)
+      }
+    },
+    [editingTemplate, onTemplatesUpdated, selectedTemplate]
+  )
 
   return (
     <Drawer
@@ -104,78 +172,77 @@ const SurgeryRecordTemplateList = ({
       open={openSurgeryTemplateDrawer}
       ModalProps={{ keepMounted: true }}
       sx={{
-        '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
+        '& .MuiDrawer-paper': { width: ['100%', '562px'] },
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
-        gap: '24px',
-
-        backgroundColor: 'background.default'
+        gap: '24px'
       }}
     >
       <Box
-        className='sidebar-header'
         sx={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-
-          p: theme => theme.spacing(3, 3.255, 3, 5.255)
+          flexDirection: 'column',
+          borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
         }}
       >
-        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center', maxHight: '80px' }}>
-          <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
-          <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-            All Templates - {templates?.length || 0}
-          </Typography>
-        </Box>
-        <IconButton size='small' onClick={() => setOpenSurgeryTemplateDrawer(false)}>
-          <Icon color={theme.palette.primary.light} icon='mdi:close' fontSize={24} />
-        </IconButton>
-      </Box>
-      <Box
-        sx={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 10,
-          mt: '12px',
-          mb: '24px',
-          px: '24px'
-        }}
-      >
-        <TextField
-          fullWidth
-          placeholder='Search'
-          value={searchValue}
-          onChange={e => setSearchValue(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <Icon
-                icon='mdi:magnify'
-                fontSize={20}
-                style={{ marginRight: 8, color: theme.palette.customColors.OnSurfaceVariant }}
-              />
-            )
-          }}
+        <Box
+          className='sidebar-header'
           sx={{
-            '& .MuiOutlinedInput-root:not(.Mui-focused) .MuiOutlinedInput-notchedOutline': {
-              borderColor: theme.palette.customColors.OutlineVariant,
-              borderRadius: '4px'
-            }
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            p: 6
           }}
-        />
+        >
+          <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+            <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Hospital Icon' />
+            <Typography
+              sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+            >
+              All Templates - {templates?.length || 0}
+            </Typography>
+          </Box>
+          <IconButton size='small' onClick={handleEditTemplateClose}>
+            <Icon color={theme.palette.primary.light} icon='mdi:close' fontSize={24} />
+          </IconButton>
+        </Box>
+        <Box sx={{ padding: '0 24px 24px 24px' }}>
+          <TextField
+            fullWidth
+            placeholder='Search'
+            value={searchValue}
+            onChange={e => setSearchValue(e.target.value)}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <Icon
+                    icon='mdi:magnify'
+                    fontSize={24}
+                    style={{ marginRight: 8, color: theme.palette.customColors.OnSurfaceVariant }}
+                  />
+                )
+              }
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root:not(.Mui-focused) .MuiOutlinedInput-notchedOutline': {
+                borderColor: theme.palette.customColors.Outline,
+                borderRadius: '4px'
+              }
+            }}
+          />
+        </Box>
       </Box>
 
       <Box
         sx={{
-          p: '24px',
-          backgroundColor: 'background.default',
+          p: 6,
+          backgroundColor: theme.palette.background.default,
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          gap: '16px',
-          overflow: 'hidden',
-          borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`
+          gap: 4,
+          overflow: 'hidden'
         }}
       >
         {/* Scrollable Template List */}
@@ -186,7 +253,7 @@ const SurgeryRecordTemplateList = ({
               overflow: 'auto',
               display: 'flex',
               flexDirection: 'column',
-              gap: '16px',
+              gap: 4,
               paddingBottom: '80px'
             }}
           >
@@ -194,15 +261,15 @@ const SurgeryRecordTemplateList = ({
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
                 <CircularProgress size={32} />
               </Box>
-            ) : filteredTemplates.length ? (
-              filteredTemplates.map(template => (
+            ) : filteredTemplates?.length > 0 ? (
+              filteredTemplates?.map(template => (
                 <SurgeryTemplateCard
                   key={template.id}
                   template={template}
                   selectedTemplate={selectedTemplate}
                   onSelect={handleTemplateSelect}
-                  onEdit={handleEditTemplateFromPencil}
-                  onDelete={template => console.log('Delete template:', template)}
+                  onEdit={handleEditTemplateOpen}
+                  onDelete={() => handleDeleteTemplate(template.id)}
                 />
               ))
             ) : (
@@ -220,6 +287,7 @@ const SurgeryRecordTemplateList = ({
         </Box>
       </Box>
 
+      {/* Footer buttons */}
       <Box
         sx={{
           height: '88px',
@@ -233,15 +301,21 @@ const SurgeryRecordTemplateList = ({
           justifyContent: 'center',
           gap: 5,
           display: 'flex',
-          boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
+          boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark, 0.1)}`,
           zIndex: 123
         }}
       >
         <LoadingButton
           variant='outlined'
           size='large'
-          disabled={loading}
-          onClick={handleEditTemplate}
+          disabled={loading || actionLoading}
+          onClick={() => {
+            if (selectedTemplate) {
+              handleEditTemplateOpen(selectedTemplate)
+            } else {
+              handleEditTemplateClose()
+            }
+          }}
           sx={{
             flex: 1,
             height: '56px',
@@ -253,12 +327,12 @@ const SurgeryRecordTemplateList = ({
             }
           }}
         >
-          Close
+          {selectedTemplate ? 'Edit' : 'Close'}
         </LoadingButton>
         <LoadingButton
           variant='contained'
           size='large'
-          disabled={loading || !selectedTemplate}
+          disabled={loading || actionLoading || !selectedTemplate}
           onClick={handleApplyTemplate}
           sx={{
             flex: 1,
@@ -284,7 +358,7 @@ const SurgeryRecordTemplateList = ({
         template={editingTemplate}
         onUpdate={handleUpdateTemplate}
         onDelete={handleDeleteTemplate}
-        loading={false}
+        loading={actionLoading}
       />
     </Drawer>
   )

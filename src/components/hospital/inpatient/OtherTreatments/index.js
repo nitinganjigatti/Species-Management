@@ -263,12 +263,16 @@ const mapDetailRecordsToActivities = (records = []) => {
 
   return records.map((record, index) => {
     const timestamp = record.update_at || null
+    const treatmentId = record.id || null
+    const treatmentMasterId = record.treatment_master_id || null
 
     const treatmentStartDate = record.start_time || record.created_at || null
     const note = record.note || ''
 
     return {
-      id: record.id || `${record.treatment_master_id || record.treatment_id || 'treatment'}-${index}`,
+      id: treatmentId,
+      treatmentId,
+      treatmentMasterId,
       title: record.treatment_name || 'Status Update',
       treatmentName: record.treatment_name || '',
       author: record.created_by_name || '—',
@@ -306,7 +310,8 @@ const OtherTreatment = () => {
   const [editFormData, setEditFormData] = useState({
     startDate: dayjs(),
     notes: '',
-    activeActivityId: null
+    activeActivityId: null,
+    activeTreatmentMasterId: null
   })
   const [selectedTreatment, setSelectedTreatment] = useState(null)
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -329,7 +334,8 @@ const OtherTreatment = () => {
     setEditFormData({
       startDate: dayjs(),
       notes: '',
-      activeActivityId: null
+      activeActivityId: null,
+      activeTreatmentMasterId: null
     })
     setIsUpdatingTreatment(false)
     setIsDeletingTreatment(false)
@@ -548,7 +554,8 @@ const OtherTreatment = () => {
     setEditFormData({
       startDate: inferredStartDate,
       notes: prefillNotes,
-      activeActivityId: activity?.id || null
+      activeActivityId: activity?.treatmentId || activity?.id || null,
+      activeTreatmentMasterId: activity?.record?.treatment_master_id || treatment.treatment_master_id || null
     })
     setEditDrawerOpen(true)
 
@@ -587,6 +594,9 @@ const OtherTreatment = () => {
       : ''
 
     const treatmentMasterId =
+      selectedTreatment?.name ||
+      selectedTreatment?.treatment_name ||
+      editFormData.activeTreatmentMasterId ||
       selectedTreatment.treatmentMasterId ||
       selectedTreatment.treatment_master_id ||
       selectedTreatment.treatmentId ||
@@ -685,7 +695,13 @@ const OtherTreatment = () => {
     setEditFormData({
       startDate: inferredStartDate,
       notes: prefillNotes,
-      activeActivityId: activity.id || null
+      activeActivityId: activity.treatmentId || activity.id || null,
+      activeTreatmentMasterId:
+        activity.treatmentMasterId ||
+        activity.record?.treatment_master_id ||
+        selectedTreatment.treatmentMasterId ||
+        selectedTreatment.treatment_master_id ||
+        null
     })
   }
 
@@ -721,8 +737,6 @@ const OtherTreatment = () => {
           onClick={handleOpenAddDrawer}
           sx={{
             boxShadow: `0px 4px 8px -4px ${theme.palette.customColors.shadowColor || '#4C4E646B'}`,
-
-            // width: '258px',
             height: '42px',
             borderRadius: '8px',
             textTransform: 'none',
@@ -800,7 +814,15 @@ const OtherTreatment = () => {
                     return (
                       <Box
                         key={treatment.id}
+                        onClick={() => handleOpenEditDrawer(treatment)}
+                        onKeyDown={event => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            handleOpenEditDrawer(treatment)
+                          }
+                        }}
                         sx={{
+                          cursor: 'pointer',
                           display: 'flex',
                           gap: '24px',
                           justifyContent: 'space-between',
@@ -842,13 +864,6 @@ const OtherTreatment = () => {
                           <Box
                             role='button'
                             tabIndex={0}
-                            onClick={() => handleOpenEditDrawer(treatment)}
-                            onKeyDown={event => {
-                              if (event.key === 'Enter' || event.key === ' ') {
-                                event.preventDefault()
-                                handleOpenEditDrawer(treatment)
-                              }
-                            }}
                             sx={{
                               display: 'flex',
                               alignItems: 'center',

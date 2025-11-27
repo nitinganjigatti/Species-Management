@@ -46,11 +46,11 @@ const composeHospitalNavigation = () => {
     icon: 'tabler:align-box-top-left'
   }
 
-  const roomsAndEnclosures = {
-    title: 'Rooms / Enclosures',
-    path: '/hospital/rooms-and-enclosures',
-    icon: 'tabler:align-box-top-left'
-  }
+  // const roomsAndEnclosures = {
+  //   title: 'Rooms / Enclosures',
+  //   path: '/hospital/rooms-and-enclosures',
+  //   icon: 'tabler:align-box-top-left'
+  // }
 
   const hospitalMastersParent = {
     title: 'Masters',
@@ -95,7 +95,7 @@ const composeHospitalNavigation = () => {
   const hospitalNavigationArray = []
 
   hospitalNavigationArray.push(Title)
-  hospitalNavigationArray.push(patientsParent, roomsAndEnclosures, doctorsANdStaffs, hospitalMastersParent)
+  hospitalNavigationArray.push(patientsParent, doctorsANdStaffs, hospitalMastersParent)
 
   return hospitalNavigationArray
 }

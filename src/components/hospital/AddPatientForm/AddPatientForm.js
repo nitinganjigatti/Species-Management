@@ -489,7 +489,7 @@ const AddPatientForm = () => {
                               isSelected={field.value === item?.value}
                               onClick={() => field.onChange(item?.value)}
                               selectedBackgroundColor={theme.palette.customColors.OnPrimaryContainer}
-                              selectedFontColor='#FFF'
+                              selectedFontColor={theme.palette.customColors.OnPrimary}
                               selectedBorderColor='none'
                             />
                           </Grid>

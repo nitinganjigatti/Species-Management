@@ -113,33 +113,29 @@ import { getHospitalMaster } from 'src/lib/api/hospital/hospitalMaster'
 import { addInpatientDischarge } from 'src/lib/api/hospital/inpatientDischarge'
 import Toaster from 'src/components/Toaster'
 
-const templates = ['Avian summary', 'Feline summary', 'Reptilian summary']
-
 function TransferHospitalDischarge() {
   const [hospitalData, setHospitalData] = useState([])
   const [isLoadingHospital, setIsLoadingHospital] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
 
-  const [activeTemplate, setActiveTemplate] = useState(templates[0])
-
-  // Fetch hospital list
+  //  Fetch hospital list
   const fetchHospital = useCallback(async (query = '') => {
     setIsLoadingHospital(true)
+
     try {
       const params = { q: query, limit: 5, page: 1 }
       const res = await getHospitalMaster({ params })
 
       if (res?.success) {
-        const formatted =
-          res.data?.hospitals?.map(h => ({
-            value: h.id,
-            label: h.hospital_name
-          })) || []
+        const formatted = res?.data?.hospitals?.map(item => ({
+          value: item?.id,
+          label: item?.hospital_name
+        }))
 
         setHospitalData(formatted)
       }
     } catch (error) {
-      console.error('Hospital fetch error:', error)
+      console.error('Hospital fetch error:', error?.response?.data?.message || error?.message)
     } finally {
       setIsLoadingHospital(false)
     }
@@ -150,10 +146,11 @@ function TransferHospitalDischarge() {
     () =>
       debounce(text => {
         fetchHospital(text)
-      }, 400),
+      }, 500),
     [fetchHospital]
   )
 
+  // Initial fetch on mount
   useEffect(() => {
     fetchHospital('')
 
@@ -165,7 +162,7 @@ function TransferHospitalDischarge() {
     else debouncedFetch(text)
   }
 
-  // Submit transfer hospital discharge
+  // Handle mortality form submission
   const handleSubmitData = async payload => {
     setSubmitLoader(true)
 
@@ -173,14 +170,14 @@ function TransferHospitalDischarge() {
       const res = await addInpatientDischarge(payload)
 
       if (res?.success) {
-        Toaster({ type: 'success', message: res?.message || 'Submitted successfully' })
+        Toaster({ type: 'success', message: res?.message || 'Transfer to hospital Submitted successfully' })
 
         return true
-      } else {
-        Toaster({ type: 'error', message: res?.message || 'Failed to submit' })
-
-        return false
       }
+
+      Toaster({ type: 'error', message: res?.message || 'Failed to submit Transfer to hospital' })
+
+      return false
     } catch (error) {
       Toaster({
         type: 'error',
@@ -197,12 +194,9 @@ function TransferHospitalDischarge() {
     isLoadingHospital,
     hospitalData,
     handleHospitalSearch,
-    submitLoader,
-    handleSubmitData,
 
-    activeTemplate,
-    setActiveTemplate,
-    templates
+    submitLoader,
+    handleSubmitData
   }
 }
 

@@ -155,11 +155,12 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday, theme) => {
   }, [scrollContainerRef, timeSlots, isToday])
 }
 
-const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
+const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischarged }) => {
   const theme = useTheme()
   const scrollContainerRef = useRef(null)
   const hourRefs = useRef({})
   const router = useRouter()
+  const isPatientDischarged = patientData?.status === 'discharge' ? true : false
 
   const { id, medical_record_id, animal_id } = router.query
   const today = new Date().toISOString().split('T')[0]
@@ -207,9 +208,9 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
     enabled: !!id
   })
 
-  useEffect(() => {
-    refetchMonitoringParams()
-  }, [id])
+  // useEffect(() => {
+  //   refetchMonitoringParams()
+  // }, [id])
 
   const timeSlots = useMemo(() => {
     const slots = []
@@ -380,7 +381,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
           const isAfterAdmitTime = !isBeforeAdmitTime
 
           // Disable ONLY future slots. Nothing else.
-          const isDisabled = isFutureTodaySlot
+          const isDisabled = isFutureTodaySlot || isPatientDischarged
 
           let showPlus = true
 
@@ -460,7 +461,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                   </Box>
                 </Box>
               ) : (
-                !isDisabled && showPlus && <Icon icon={'mdi-plus'} fontSize={20} />
+                (!isDisabled || isPatientDischarged) && showPlus && <Icon icon={'mdi-plus'} fontSize={20} />
               )}
             </TimeSlot>
           )
@@ -534,7 +535,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
     <>
       <Grid container spacing={2} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
         <Grid container spacing={6} rowSpacing={4}>
-          <Grid item size={{ xs: 12, sm: 12, md: 9 }}>
+          <Grid item size={{ xs: 12, sm: 12, md: isPatientDischarged && isToday ? 12 : 9 }}>
             <HorizontalDateNav
               onDateSelect={handleDateChange}
               selectedDate={selectedDate}
@@ -543,7 +544,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
             />
           </Grid>
           <Grid item size={{ xs: 12, sm: 12, md: 3 }}>
-            {isToday ? (
+            {!isPatientDischarged && isToday ? (
               <Button
                 sx={{ height: '48px', width: '100%', fontSize: '0.8rem' }}
                 variant='contained'
@@ -552,20 +553,22 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                 {monitoringDataListings?.is_scheduled_for_particular_day ? 'Edit Schedule' : 'Schedule'}
               </Button>
             ) : (
-              <Button
-                sx={{
-                  height: '48px',
-                  width: '100%',
-                  border: `1px solid ${theme.palette.primary.main}`,
-                  fontSize: '12px',
-                  fontWeight: 600
-                }}
-                variant='outlined'
-                onClick={() => setSelectedDate(dayjs().format('YYYY-MM-DD'))}
-                startIcon={<Icon icon={'uil:calender'} />}
-              >
-                Today
-              </Button>
+              !isToday && (
+                <Button
+                  sx={{
+                    height: '48px',
+                    width: '100%',
+                    border: `1px solid ${theme.palette.primary.main}`,
+                    fontSize: '12px',
+                    fontWeight: 600
+                  }}
+                  variant='outlined'
+                  onClick={() => setSelectedDate(dayjs().format('YYYY-MM-DD'))}
+                  startIcon={<Icon icon={'uil:calender'} />}
+                >
+                  Today
+                </Button>
+              )
             )}
           </Grid>
         </Grid>
@@ -617,9 +620,11 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                     >
                       Monitoring
                     </Typography>
-                    <IconButton size='small' onClick={() => setAddParameterDrawerOpen(true)}>
-                      <Icon icon={'icons8:plus'} fontSize={30} color={theme.palette.primary.main} />
-                    </IconButton>
+                    {!isPatientDischarged && (
+                      <IconButton size='small' onClick={() => setAddParameterDrawerOpen(true)}>
+                        <Icon icon={'icons8:plus'} fontSize={30} color={theme.palette.primary.main} />
+                      </IconButton>
+                    )}
                   </HeaderContainer>
 
                   {displayMetrics?.map(metric => (
@@ -639,7 +644,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                         </Box>
                       </Box>
 
-                      {metric?.canEdit && (
+                      {metric?.canEdit && !isPatientDischarged && (
                         <IconButton
                           size='small'
                           onClick={() => {
@@ -802,7 +807,8 @@ const HeaderContainer = styled(Box)(({ theme }) => ({
   background: theme.palette.customColors.lightBg,
   borderRadius: '4px',
   marginBottom: theme.spacing(8),
-  width: '100%'
+  width: '100%',
+  height: '56px'
 }))
 
 const MetricLabel = styled(Box)(({ theme }) => ({

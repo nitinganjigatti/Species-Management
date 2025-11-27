@@ -64,23 +64,69 @@ export default function AddMedicineToPrescription() {
         })
       )
       .min(1, 'At least one schedule time is required')
-      .required('Schedules are required'),
+      .required('Schedules are required')
+      .test('unique-times', 'Duplicate times are not allowed', function (schedules) {
+        if (!schedules || schedules.length <= 1) return true
+
+        const times = schedules
+          .map(schedule => {
+            if (!schedule?.time) return null
+
+            // Convert to standard format for comparison (HH:mm)
+            const timeStr = moment(schedule.time).format('HH:mm')
+
+            return timeStr
+          })
+          .filter(Boolean)
+
+        const uniqueTimes = new Set(times)
+        if (times.length !== uniqueTimes.size) {
+          // Find the duplicate time index
+          const seenTimes = new Map()
+          for (let i = 0; i < times.length; i++) {
+            if (seenTimes.has(times[i])) {
+              return this.createError({
+                path: `schedules[${i}].time`,
+                message: 'This time is already selected'
+              })
+            }
+            seenTimes.set(times[i], i)
+          }
+        }
+
+        return true
+      }),
 
     deliveryRoute: yup.string().required('Please select a delivery route'),
 
     prescriptionStartDate: yup.string().required('Start date is required'),
 
-    dosageDuration: yup
-      .object({
-        value: yup
-          .number()
-          .transform((value, originalValue) => (originalValue === '' ? undefined : value))
-          .min(0, 'Duration must be at least 1')
-          .max(365, 'Duration cannot exceed 365')
-          .required('Duration value is required'),
-        unit: yup.string().required('Please select duration unit')
-      })
-      .required('Dosage duration is required'),
+    dosageDuration: yup.object().when('frequency', {
+      is: frequency => {
+        // Make dosageDuration optional when frequency is "one_time" (id: 2)
+        return frequency !== '2' && frequency !== 2
+      },
+      then: schema =>
+        schema
+          .shape({
+            value: yup
+              .number()
+              .transform((value, originalValue) => (originalValue === '' ? undefined : value))
+              .min(1, 'Duration must be at least 1')
+              .max(365, 'Duration cannot exceed 365')
+              .required('Duration value is required'),
+            unit: yup.string().required('Please select duration unit')
+          })
+          .required('Dosage duration is required'),
+      otherwise: schema =>
+        schema
+          .shape({
+            value: yup.number().nullable().notRequired(),
+            unit: yup.string().nullable().notRequired()
+          })
+          .nullable()
+          .notRequired()
+    }),
 
     notes: yup.string().trim().max(10000, 'Notes cannot exceed 500 characters').notRequired(),
 
@@ -193,8 +239,54 @@ export default function AddMedicineToPrescription() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPrescriptionListLoading, setIsPrescriptionListLoading] = useState(false)
   const [medicationData, setMedicationData] = useState([])
+  const [endsOn, setEndsOn] = useState(null)
 
   const { selectedHospital: hospital } = useHospital()
+
+  // Watch frequency to determine if it's "one_time"
+  const selectedFrequency = watch('frequency')
+  const isOneTimeFrequency = selectedFrequency === '2' || selectedFrequency === 2
+
+  // Watch for changes in start date and duration to calculate end date
+  const prescriptionStartDate = watch('prescriptionStartDate')
+  const dosageDuration = watch('dosageDuration')
+  const selectMedicineType = watch('selectMedicineType')
+
+  // Calculate and update endsOn whenever relevant fields change
+  useEffect(() => {
+    if (prescriptionStartDate && !isOneTimeFrequency) {
+      // For regular intervals (not one-time)
+      if (dosageDuration?.value && dosageDuration?.unit) {
+        if (selectMedicineType === 'Direct Administer') {
+          // Direct Administer: Calculate START date (backward from end date)
+          const calculatedStartDate = calculateStartDate(prescriptionStartDate, dosageDuration)
+          if (calculatedStartDate) {
+            const formattedDate = moment(calculatedStartDate).format('DD MMM YYYY')
+            setEndsOn(formattedDate)
+          } else {
+            setEndsOn(null)
+          }
+        } else {
+          // Schedule: Calculate END date (forward from start date)
+          const calculatedEndDate = calculateEndDate(prescriptionStartDate, dosageDuration)
+          if (calculatedEndDate) {
+            const formattedDate = moment(calculatedEndDate).format('DD MMM YYYY')
+            setEndsOn(formattedDate)
+          } else {
+            setEndsOn(null)
+          }
+        }
+      } else {
+        setEndsOn(null)
+      }
+    } else if (isOneTimeFrequency && prescriptionStartDate) {
+      // For one-time frequency, end date is same as start date
+      const formattedDate = moment(prescriptionStartDate).format('DD MMM YYYY')
+      setEndsOn(formattedDate)
+    } else {
+      setEndsOn(null)
+    }
+  }, [prescriptionStartDate, dosageDuration?.value, dosageDuration?.unit, isOneTimeFrequency, selectMedicineType])
 
   const debouncedBatchSearch = useCallback(
     debounce(async (medicineId, query = '') => {
@@ -592,11 +684,15 @@ export default function AddMedicineToPrescription() {
             interval_id: interval?.id || '',
             interval_string_id: interval?.string_id || '',
 
-            duration_qty: data.dosageDuration?.value?.toString(),
+            duration_qty: data.dosageDuration?.value?.toString() || '1',
             duration_id: interval?.id || '',
-            duration: `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`,
+            duration: data.dosageDuration?.value
+              ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
+              : '1 days',
             duration_string_id: interval?.string_id || '',
-            duration_type: data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1),
+            duration_type: data.dosageDuration?.unit
+              ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
+              : 'Days',
 
             notes: data?.notes || '',
 
@@ -605,7 +701,9 @@ export default function AddMedicineToPrescription() {
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
             start_date: toISTISOString(data.prescriptionStartDate),
-            end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
+            end_date: isOneTimeFrequency
+              ? toISTISOString(data.prescriptionStartDate)
+              : calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
 
             restart_reason: '',
             stop_reason: '',
@@ -741,11 +839,15 @@ export default function AddMedicineToPrescription() {
             interval_id: interval?.id || '',
             interval_string_id: interval?.string_id || '',
 
-            duration_qty: data.dosageDuration?.value?.toString(),
+            duration_qty: data.dosageDuration?.value?.toString() || '1',
             duration_id: interval?.id || '',
-            duration: `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`,
+            duration: data.dosageDuration?.value
+              ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
+              : '1 days',
             duration_string_id: interval?.string_id || '',
-            duration_type: data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1),
+            duration_type: data.dosageDuration?.unit
+              ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
+              : 'Days',
 
             notes: data.wastageNotes || '',
 
@@ -753,7 +855,9 @@ export default function AddMedicineToPrescription() {
             delivery_route_id: deliveryRoute?.id || '',
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
-            start_date: calculateStartDate(data.prescriptionStartDate, data.dosageDuration),
+            start_date: isOneTimeFrequency
+              ? toISTISOString(data.prescriptionStartDate)
+              : calculateStartDate(data.prescriptionStartDate, data.dosageDuration),
             end_date: toISTISOString(data.prescriptionStartDate),
 
             restart_reason: '',
@@ -947,21 +1051,26 @@ export default function AddMedicineToPrescription() {
   const calculateEndDate = (startDate, dosageDuration) => {
     if (!startDate || !dosageDuration?.value) return ''
 
-    const start = new Date(startDate)
-    const endDate = new Date(start)
+    const start = moment(startDate)
+    let endDate = moment(startDate)
+
+    const durationValue = parseInt(dosageDuration.value)
 
     switch (dosageDuration.unit) {
       case 'days':
-        endDate.setDate(start.getDate() + dosageDuration.value)
+        endDate = start.add(durationValue, 'days')
         break
       case 'weeks':
-        endDate.setDate(start.getDate() + dosageDuration.value * 7)
+        endDate = start.add(durationValue, 'weeks')
         break
       case 'months':
-        endDate.setMonth(start.getMonth() + dosageDuration.value)
+        endDate = start.add(durationValue, 'months')
+        break
+      case 'years':
+        endDate = start.add(durationValue, 'years')
         break
       default:
-        endDate.setDate(start.getDate() + dosageDuration.value)
+        endDate = start.add(durationValue, 'days')
     }
 
     // Return proper ISO 8601 UTC string
@@ -971,24 +1080,26 @@ export default function AddMedicineToPrescription() {
   const calculateStartDate = (endDate, dosageDuration) => {
     if (!endDate || !dosageDuration?.value) return ''
 
-    const end = new Date(endDate)
-    const startDate = new Date(end)
+    const end = moment(endDate)
+    let startDate = moment(endDate)
+
+    const durationValue = parseInt(dosageDuration.value)
 
     switch (dosageDuration.unit) {
       case 'days':
-        startDate.setDate(end.getDate() - dosageDuration.value)
+        startDate = end.subtract(durationValue, 'days')
         break
       case 'weeks':
-        startDate.setDate(end.getDate() - dosageDuration.value * 7)
+        startDate = end.subtract(durationValue, 'weeks')
         break
       case 'months':
-        startDate.setMonth(end.getMonth() - dosageDuration.value)
+        startDate = end.subtract(durationValue, 'months')
         break
       case 'years':
-        startDate.setFullYear(end.getFullYear() - dosageDuration.value)
+        startDate = end.subtract(durationValue, 'years')
         break
       default:
-        startDate.setDate(end.getDate() - dosageDuration.value)
+        startDate = end.subtract(durationValue, 'days')
     }
 
     // Return proper ISO 8601 UTC string
@@ -1059,7 +1170,7 @@ export default function AddMedicineToPrescription() {
             loading={medicineLoading}
             searching={searching}
             error={errors.selectedMedicine?.message || errors.selectedMedicineId?.message}
-            prescribedMedicines={medicationData} // Added this line
+            prescribedMedicines={medicationData}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 5, lg: 5 }}>
@@ -1075,6 +1186,8 @@ export default function AddMedicineToPrescription() {
             batchLoading={batchLoading}
             handleBatchSearch={handleBatchSearch}
             isControlledSubstance={temporarilySelectedMedicine?.controlled_substance === 1}
+            isOneTimeFrequency={isOneTimeFrequency}
+            endsOn={endsOn}
           />
         </Grid>
       </Grid>

@@ -75,7 +75,7 @@ const HospitalDischarged = () => {
       getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
-        search: filters?.q,
+        q: filters?.q,
         hospital_id: 1,
         visit_type: selectedVisitType,
         patient_category: 'discharge',
@@ -189,12 +189,12 @@ const HospitalDischarged = () => {
     {
       width: 250,
       minWidth: 20,
-      field: 'purpose_of_visit',
+      field: 'discharge_reason',
       sortable: false,
       headerName: 'Discharge Summary',
       renderCell: params => (
         <>
-          <Tooltip title={params.row.purpose_of_visit}>
+          <Tooltip title={params.row?.discharge_reason}>
             <Typography
               variant='body2'
               sx={{
@@ -211,7 +211,7 @@ const HospitalDischarged = () => {
                 py: 4
               }}
             >
-              <>{params.row.purpose_of_visit || ''}</>
+              <>{params.row?.discharge_reason || 'NA'}</>
             </Typography>
           </Tooltip>
         </>
@@ -279,19 +279,9 @@ const HospitalDischarged = () => {
       headerAlign: 'left',
 
       renderCell: params => {
-        const admittedAt = params?.row?.admitted_at
-        const dischargedAt = params?.row?.discharge_at
-        let days = '-'
-
-        if (admittedAt) {
-          const admittedDate = new Date(admittedAt)
-          const dischargedDate = new Date(dischargedAt)
-          days = differenceInDays(dischargedDate, admittedDate)
-        }
-
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {days} {days !== '-' ? 'days' : ''}
+            {params?.row?.total_admitted_days} {params?.row?.total_admitted_days > 1 ? 'Days' : 'Day'}
           </Typography>
         )
       }
@@ -326,7 +316,8 @@ const HospitalDischarged = () => {
 
   const handleRowClick = params =>
     router.push({
-      pathname: `/hospital/inpatient/${params.row.id}`
+      pathname: `/hospital/discharged/${params.row.id}`,
+      query: { animal_id: params.row.animal_id, medical_record_id: params.row.medical_record_id }
     })
 
   return (
@@ -341,7 +332,15 @@ const HospitalDischarged = () => {
         <Box sx={{ mt: 6 }}>
           <Card>
             <CardHeader title={RenderUtility?.pageTitle('Discharged')} />
-            <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between' }}>
+            <Box
+              sx={{
+                p: 3,
+                display: 'flex',
+                justifyContent: 'space-between,',
+                flexDirection: { xs: 'column', lg: 'row' },
+                gap: 4
+              }}
+            >
               <Box sx={{ ml: 2 }}>
                 <Search
                   borderRadius='4px'
@@ -357,7 +356,7 @@ const HospitalDischarged = () => {
                   }}
                 />
               </Box>
-              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
                 <CommonDateRangePickers
                   filterDates={filterDate}
                   onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
@@ -382,7 +381,7 @@ const HospitalDischarged = () => {
             </Box>
             <Grid
               sx={{
-                mx: { xs: 3, md: 5 }
+                mx: { xs: 5 }
               }}
             >
               <CommonTable

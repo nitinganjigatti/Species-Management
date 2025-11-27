@@ -139,87 +139,90 @@ export default function BasicDetails({
             selectWidth={80}
           />
         </Grid>
+        <Grid item size={{ xs: 12, md: 4 }}>
+          <Controller
+            name='basicDetails.veterinarian_id'
+            control={control}
+            render={({ field }) => (
+              <Autocomplete
+                multiple
+                openOnFocus
+                options={vetOptions}
+                getOptionLabel={option => option?.name || ''}
+                isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                value={
+                  vetOptions.filter(opt => (Array.isArray(field.value) ? field.value.includes(opt.id) : false)) || []
+                }
+                onChange={(_, newValue) => {
+                  const selectedIds = newValue.map(item => item.id)
+                  field.onChange(selectedIds)
+                }}
+                slotProps={{
+                  tags: {
+                    getTagProps: ({ index }) => ({
+                      key: vetOptions[index]?.id,
+                      label: vetOptions[index]?.name,
+                      size: 'small'
+                    })
+                  }
+                }}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    label='Veterinarian'
+                    fullWidth
+                    error={!!errors?.basicDetails?.veterinarian_id}
+                    helperText={errors?.basicDetails?.veterinarian_id?.message}
+                    sx={commonTextFieldSx}
+                  />
+                )}
+              />
+            )}
+          />
+        </Grid>
 
-        <Grid container spacing={2}>
-          <Grid item size={{ xs: 12, md: 6 }}>
-            <Controller
-              name='basicDetails.veterinarian_id'
-              control={control}
-              render={({ field }) => (
-                <Autocomplete
-                  multiple
-                  openOnFocus
-                  options={vetOptions}
-                  getOptionLabel={option => option?.name || ''}
-                  isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                  value={vetOptions.filter(opt => field.value?.includes(opt.id)) || []}
-                  onChange={(_, newValue) => {
-                    const selectedIds = newValue.map(item => item.id)
-                    field.onChange(selectedIds)
-                  }}
-                  slotProps={{
-                    tags: {
-                      getTagProps: ({ index }) => ({
-                        key: vetOptions[index]?.id,
-                        label: vetOptions[index]?.name,
-                        size: 'small'
-                      })
-                    }
-                  }}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      label='Veterinarian'
-                      fullWidth
-                      error={!!errors?.basicDetails?.veterinarian_id}
-                      helperText={errors?.basicDetails?.veterinarian_id?.message}
-                      sx={commonTextFieldSx}
-                    />
-                  )}
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid item size={{ xs: 12, md: 6 }}>
-            <Controller
-              name='basicDetails.anesthetist_id'
-              control={control}
-              render={({ field }) => (
-                <Autocomplete
-                  multiple
-                  openOnFocus
-                  options={anesthetistOptions}
-                  getOptionLabel={option => option?.name || ''}
-                  isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                  value={anesthetistOptions.filter(opt => field.value?.includes(opt.id)) || []}
-                  onChange={(_, newValue) => {
-                    const selectedIds = newValue.map(item => item.id)
-                    field.onChange(selectedIds)
-                  }}
-                  slotProps={{
-                    tags: {
-                      getTagProps: ({ index }) => ({
-                        key: anesthetistOptions[index]?.id,
-                        label: anesthetistOptions[index]?.name,
-                        size: 'small'
-                      })
-                    }
-                  }}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      label='Anesthetist'
-                      fullWidth
-                      error={!!errors?.basicDetails?.anesthetist_id}
-                      helperText={errors?.basicDetails?.anesthetist_id?.message}
-                      sx={commonTextFieldSx}
-                    />
-                  )}
-                />
-              )}
-            />
-          </Grid>
+        <Grid item size={{ xs: 12, md: 4 }}>
+          <Controller
+            name='basicDetails.anesthetist_id'
+            control={control}
+            render={({ field }) => (
+              <Autocomplete
+                multiple
+                openOnFocus
+                options={anesthetistOptions}
+                getOptionLabel={option => option?.name || ''}
+                isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                value={
+                  anesthetistOptions.filter(opt =>
+                    Array.isArray(field.value) ? field.value.includes(opt.id) : false
+                  ) || []
+                }
+                onChange={(_, newValue) => {
+                  const selectedIds = newValue.map(item => item.id)
+                  field.onChange(selectedIds)
+                }}
+                slotProps={{
+                  tags: {
+                    getTagProps: ({ index }) => ({
+                      key: anesthetistOptions[index]?.id,
+                      label: anesthetistOptions[index]?.name,
+                      size: 'small'
+                    })
+                  }
+                }}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    label='Anesthetist'
+                    fullWidth
+                    error={!!errors?.basicDetails?.anesthetist_id}
+                    helperText={errors?.basicDetails?.anesthetist_id?.message}
+                    sx={commonTextFieldSx}
+                  />
+                )}
+              />
+            )}
+          />
         </Grid>
       </Grid>
 
@@ -270,7 +273,7 @@ export default function BasicDetails({
                   },
                   '& .MuiToggleButton-root.Mui-selected': {
                     bgcolor: theme.palette.customColors.OnPrimaryContainer,
-                    color: '#fff'
+                    color: theme.palette.primary.contrastText
                   },
                   '& .MuiToggleButton-root.Mui-selected:hover': {
                     bgcolor: theme.palette.primary.dark
@@ -351,7 +354,7 @@ export default function BasicDetails({
                   borderRadius: '8px',
                   padding: '16px',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  width: '60%'
+                  maxWidth: '640px'
                 }}
               >
                 <Typography
@@ -362,7 +365,7 @@ export default function BasicDetails({
                   Add New Other Purpose
                 </Typography>
 
-                <Box display='flex' gap={2}>
+                <Box display='flex' flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
                   <TextField
                     fullWidth
                     placeholder='Enter new purpose'

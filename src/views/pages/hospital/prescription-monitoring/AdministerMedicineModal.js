@@ -51,6 +51,14 @@ const AdministerMedicineSidesheet = ({
 }) => {
   const theme = useTheme()
 
+  const commonFieldStyles = {
+    textAlign: 'left',
+    borderRadius: '4px',
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '4px'
+    }
+  }
+
   // Yup validation schema
   const validationSchema = yup.object().shape(
     {
@@ -386,7 +394,7 @@ const AdministerMedicineSidesheet = ({
                           label='Select Time'
                           format='hh:mm A'
                           error={errors.time}
-                          sx={{ borderRadius: '4px' }}
+                          sx={commonFieldStyles}
                           required
                           minTime={slotStart}
                           maxTime={slotEnd}
@@ -497,6 +505,7 @@ const AdministerMedicineSidesheet = ({
                               name='wastageQuantity'
                               control={control}
                               errors={errors}
+                              sx={commonFieldStyles}
                               label='Quantity'
                               placeholder='Enter Quantity'
                               type='number'
@@ -508,6 +517,7 @@ const AdministerMedicineSidesheet = ({
                               name='wastageUnit'
                               label='Unit'
                               control={control}
+                              sx={commonFieldStyles}
                               errors={errors}
                               options={medicalMasterData?.prescriptionDosageMeasurementType}
                               getOptionLabel={option => option.label}
@@ -522,6 +532,7 @@ const AdministerMedicineSidesheet = ({
                               name='notes'
                               control={control}
                               errors={errors}
+                              sx={commonFieldStyles}
                               placeholder='Enter Notes'
                               rows={3}
                             />
@@ -531,6 +542,7 @@ const AdministerMedicineSidesheet = ({
                               name='batchNumber'
                               control={control}
                               errors={errors}
+                              sx={commonFieldStyles}
                               label={
                                 isControlledSubstance
                                   ? 'Enter batch number (required)'
@@ -568,6 +580,7 @@ const AdministerMedicineSidesheet = ({
                               name='attachment'
                               control={control}
                               errors={errors}
+                              sx={commonFieldStyles}
                               label='Batch Image'
                               maxFiles={5}
                               maxFileSize={5 * 1024 * 1024} // 5MB

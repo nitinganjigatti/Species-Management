@@ -620,7 +620,7 @@ const PatientAdmitForm = () => {
             sx={{ backgroundColor: theme.palette.primary.main, borderRadius: 0.5, minWidth: '160px' }}
             onClick={handleSubmit(onSubmit)}
             loading={submitLoader}
-            loadingIndicator={<CircularProgress size={24} sx={{ color: '#ffffff' }} />}
+            loadingIndicator={<CircularProgress size={24} sx={{ color: theme.palette.customColors.OnPrimary }} />}
           >
             ADMIT
           </LoadingButton>
@@ -656,25 +656,25 @@ const PatientAdmitForm = () => {
               onChange={e => setRejectionReason(e.target.value)}
               sx={{
                 '& .MuiInputBase-root': {
-                  backgroundColor: '#FFD3D3'
+                  backgroundColor: theme.palette.customColors.ErrorContainer
                 },
                 '& .MuiInputLabel-root': {
-                  color: '#E93353',
+                  color: theme.palette.customColors.Error,
                   fontSize: '14px',
                   fontWeight: 400
                 },
                 '& .MuiInputLabel-root.Mui-focused': {
-                  color: '#E93353'
+                  color: theme.palette.customColors.Error
                 },
                 '& .MuiOutlinedInput-root': {
                   '& fieldset': {
-                    borderColor: '#E93353'
+                    borderColor: theme.palette.customColors.Error
                   },
                   '&:hover fieldset': {
-                    borderColor: '#E93353'
+                    borderColor: theme.palette.customColors.Error
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#E93353'
+                    borderColor: theme.palette.customColors.Error
                   }
                 }
               }}
