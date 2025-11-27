@@ -96,7 +96,7 @@ const HospitalIncoming = () => {
       getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
-        search: filters?.q,
+        q: filters?.q,
 
         hospital_id: selectedHospital?.id,
         status: activeTab,

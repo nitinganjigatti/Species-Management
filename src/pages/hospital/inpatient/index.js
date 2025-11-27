@@ -75,7 +75,7 @@ const HospitalInpatient = () => {
       getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
-        search: filters?.q,
+        q: filters?.q,
         hospital_id: selectedHospital?.id,
         visit_type: selectedVisitType,
         patient_category: 'inpatient',

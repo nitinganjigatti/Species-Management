@@ -75,7 +75,7 @@ const HospitalDischarged = () => {
       getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
-        search: filters?.q,
+        q: filters?.q,
         hospital_id: 1,
         visit_type: selectedVisitType,
         patient_category: 'discharge',
