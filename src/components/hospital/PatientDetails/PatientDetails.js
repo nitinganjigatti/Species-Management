@@ -137,8 +137,8 @@ const PatientDetails = ({ category }) => {
     </Box>
   )
 
-  const tabConfig = useMemo(
-    () => [
+  const tabConfig = useMemo(() => {
+    const baseTabs = [
       { label: 'Overview', value: 'overview', component: InpatientOverview },
       { label: 'Medical Summary', value: 'medicalSummary', component: InpatientMedicalSummary },
       { label: 'Monitoring', value: 'treatmentMonitoring', component: TreatmentLayout },
@@ -148,12 +148,20 @@ const PatientDetails = ({ category }) => {
       { label: 'Other Treatments', value: 'otherTreatments', component: OtherTreatments },
       { label: 'Prescription', value: 'prescriptionMonitoring', component: PrescriptionLayout },
       { label: 'Anesthesia', value: 'anesthesia', component: Anesthesia },
-      { label: 'Surgery', value: 'surgery', component: InpatientSurgery },
-      { label: 'Discharge', value: 'discharge', component: InpatientDischarge }
-    ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  )
+      { label: 'Surgery', value: 'surgery', component: InpatientSurgery }
+    ]
+
+    // Show Discharge tab only when animal is NOT discharged
+    if (patientData?.discharge_at === null) {
+      baseTabs.push({
+        label: 'Discharge',
+        value: 'discharge',
+        component: InpatientDischarge
+      })
+    }
+
+    return baseTabs
+  }, [patientData?.discharge_at])
 
   const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
 
@@ -167,6 +175,15 @@ const PatientDetails = ({ category }) => {
       } else {
         console.warn(`Tab "${urlTab}" not found in available tabs. Using default tab.`)
         setSelectedTab(tabConfig[0].value)
+
+        router.replace(
+          {
+            pathname: router.pathname,
+            query: { ...router.query, tab: tabConfig[0].value }
+          },
+          undefined,
+          { shallow: true }
+        )
       }
     } else {
       // If no tab in URL, set default tab
