@@ -8,7 +8,6 @@ import { useForm } from 'react-hook-form'
 import { MedicalIdChip } from '../utility/hospitalSnippets'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
-import Utility from 'src/utility'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import { useRouter } from 'next/router'
 
@@ -50,53 +49,63 @@ const InpatientClinicalNotes = props => {
 
   return (
     <>
-      <Box
-        sx={{
-          p: 6,
-          backgroundColor: theme.palette.customColors.displaybgPrimary,
-          borderRadius: '12px',
-          mb: 6,
-          mt: 8
-        }}
-      >
-        <Typography sx={{ fontSize: '1rem', fontWeight: 500, color: theme.palette.customColors.deepDark, mb: 4 }}>
-          Enter clinical notes
-        </Typography>
+      {patientData?.discharge_at === null && (
+        <Box
+          sx={{
+            p: 6,
+            backgroundColor: theme.palette.customColors.displaybgPrimary,
+            borderRadius: '12px',
+            mt: 8
+          }}
+        >
+          <Typography sx={{ fontSize: '1rem', fontWeight: 500, color: theme.palette.customColors.deepDark, mb: 4 }}>
+            Enter clinical notes
+          </Typography>
 
-        <form noValidate autoComplete='off' onSubmit={!isSubmitting ? handleSubmit(onSubmit) : undefined}>
-          <Grid container>
-            <Grid size={{ xs: 12 }}>
-              <ControlledTextArea name='note' control={control} placeholder='Add notes' fullWidth={true} minRows={3} />
+          <form noValidate autoComplete='off' onSubmit={!isSubmitting ? handleSubmit(onSubmit) : undefined}>
+            <Grid container>
+              <Grid size={{ xs: 12 }}>
+                <ControlledTextArea
+                  name='note'
+                  control={control}
+                  placeholder='Add notes'
+                  fullWidth={true}
+                  minRows={3}
+                />
+              </Grid>
             </Grid>
-          </Grid>
 
-          {noteText && (
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
-              <Button
-                startIcon={<Icon icon='mdi:close' width={24} height={24} />}
-                variant='text'
-                sx={{ color: theme.palette.customColors.OnPrimaryContainer, fontWeight: 600, fontSize: '1rem' }}
-                onClick={() => reset(defaultValues)}
-                size='small'
-              >
-                Clear Text
-              </Button>
-              <LoadingButton
-                variant='contained'
-                loading={isSubmitting}
-                type='submit'
-                sx={{
-                  padding: '0.625rem 0.75rem',
-                  borderRadius: '4px',
-                  minWidth: { sm: '12.5rem' }
-                }}
-              >
-                Add
-              </LoadingButton>
-            </Box>
-          )}
-        </form>
-      </Box>
+            {noteText && (
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
+                <Button
+                  startIcon={<Icon icon='mdi:close' width={24} height={24} />}
+                  variant='text'
+                  sx={{ color: theme.palette.customColors.OnPrimaryContainer, fontWeight: 600, fontSize: '1rem' }}
+                  onClick={() => reset(defaultValues)}
+                  size='small'
+                  loading={isSubmitting}
+                  disabled={isSubmitting}
+                >
+                  Clear Text
+                </Button>
+                <LoadingButton
+                  variant='contained'
+                  loading={isSubmitting}
+                  disabled={isSubmitting}
+                  type='submit'
+                  sx={{
+                    padding: '0.625rem 0.75rem',
+                    borderRadius: '4px',
+                    minWidth: { sm: '12.5rem' }
+                  }}
+                >
+                  Add
+                </LoadingButton>
+              </Box>
+            )}
+          </form>
+        </Box>
+      )}
       {/* Clinical Notes List or Skeletons */}
       {isLoading ? (
         <ClinicalNotesSkeleton />
@@ -112,6 +121,7 @@ const InpatientClinicalNotes = props => {
                 sx={{
                   p: 6,
                   mb: 5,
+                  mt: 6,
                   background: alpha(theme.palette.customColors.antzNotes80, 0.2),
                   borderRadius: '8px'
                 }}
@@ -135,12 +145,14 @@ const InpatientClinicalNotes = props => {
                     {data?.note || 'NA'}
                   </Typography>
 
-                  <IconButton
-                    onClick={() => onDeleteNote(data?.note_id)}
-                    sx={{ color: theme.palette.customColors.Tertiary, p: 0, ml: 3 }}
-                  >
-                    <CancelOutlinedIcon fontSize='medium' />
-                  </IconButton>
+                  {patientData?.discharge_at === null && (
+                    <IconButton
+                      onClick={() => onDeleteNote(data?.note_id)}
+                      sx={{ color: theme.palette.customColors.Tertiary, p: 0, ml: 3 }}
+                    >
+                      <CancelOutlinedIcon fontSize='medium' />
+                    </IconButton>
+                  )}
                 </Box>
 
                 <UserAvatarDetails
