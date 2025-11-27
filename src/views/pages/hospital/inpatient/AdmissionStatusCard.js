@@ -2,7 +2,7 @@ import { alpha, Box, Tooltip, Typography, useTheme } from '@mui/material'
 import React from 'react'
 import Utility from 'src/utility'
 
-const AdmissionStatusCard = ({ type = 'admitted_on', value }) => {
+const AdmissionStatusCard = ({ type = 'admitted_on', value, isPatientDischarged }) => {
   const theme = useTheme()
 
   // Define value as styled JSX per config case

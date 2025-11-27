@@ -68,22 +68,28 @@ const EditClinicalAsmntDrawer = ({
   }
 
   const processedActivities =
-    activityListData?.diagnosis_notes
-      ?.map(activity => ({
-        ...activity,
-        isSystemGenerated: activity?.is_system_generated === 1,
-        oldSeverity: activity?.notes_dump?.old_data?.severity || '',
-        newSeverity: activity?.notes_dump?.new_data?.severity || '',
-        createdBy: activity?.created_by_user_name || '',
-        formattedTime: Utility.formatDisplayDate(activity?.created_at),
-        note: activity.note || '',
-        clinicalAssessment: activity?.notes_dump?.new_data?.clinical_assessment || '',
-        isFromAssessment: true
-      }))
+    activityListData?.diagnosis_notes?.map(activity => ({
+      ...activity,
+      isSystemGenerated: activity?.is_system_generated === 1,
+      oldSeverity: activity?.notes_dump?.old_data?.severity || '',
+      newSeverity: activity?.notes_dump?.new_data?.severity || '',
+      createdBy: activity?.created_by_user_name || '',
+      formattedTime: `${Utility.convertUTCToLocaltime(
+        activity?.modified_at || activity?.created_at
+      )} • ${Utility.convertUtcToLocalReadableDate(activity?.modified_at || activity.created_at)}`,
+      note: activity.note || '',
+      clinicalAssessment: activity.clinical_assessment === 'diagnosis' ? 'Diagnosis' : 'Differential',
+      oldRecord: activity?.notes_dump?.old_data?.clinical_assessment,
+      newRecord: activity?.notes_dump?.new_data?.clinical_assessment,
+      oldIsChronical: activity?.notes_dump?.old_data?.is_cronical,
+      newIsChronical: activity?.notes_dump?.new_data?.is_cronical,
+      isFromAssessment: true
+    })) ||
+    // .sort((a, b) => {
+    //   return b.isSystemGenerated - a.isSystemGenerated
+    // })
 
-      .sort((a, b) => {
-        return b.isSystemGenerated - a.isSystemGenerated
-      }) || []
+    []
 
   const handleEditActivity = item => {
     setIsNotesOpen(true)
@@ -153,7 +159,7 @@ const EditClinicalAsmntDrawer = ({
                   }}
                 >
                   <MenuItem value='Active'>Active</MenuItem>
-                  <MenuItem value='Inactive'>Inactive</MenuItem>
+                  <MenuItem value='Inactive'>Resolved</MenuItem>
                 </Select>
               </Box>
 

@@ -154,7 +154,7 @@ const AddClinicalAsmntDrawer = ({
                     value={prognosisVal}
                     onChange={e => setPrognosisValue(e.target.value)}
                     sx={{
-                      backgroundColor: getSeverityColor(prognosisVal).bgColor,
+                      backgroundColor: prognosisVal ? getSeverityColor(prognosisVal).bgColor : '',
 
                       fontWeight: 500,
                       height: 56,

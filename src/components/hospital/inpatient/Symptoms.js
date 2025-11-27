@@ -47,7 +47,8 @@ const Symptoms = ({ selectedTab, patientData }) => {
         page_no: newPage,
         limit: 20,
         medical_type: 'complaint',
-        q: query
+        q: query,
+        hospital_case_id: patientData?.hospital_case_id
       }
 
       if (currentRecordOnly && patientData?.medical_record_id) {
@@ -219,8 +220,8 @@ const Symptoms = ({ selectedTab, patientData }) => {
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {loading ? (
-          <Box sx={{ display: 'flex', py: 2 }}>
-            <ClinicalAssessmentShimmer rows={8} />
+          <Box sx={{ display: 'flex', flexDirection: 'column', py: 2 }}>
+            <ClinicalAssessmentShimmer count={5} />
           </Box>
         ) : records?.length === 0 ? (
           <Box

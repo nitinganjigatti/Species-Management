@@ -7,11 +7,25 @@ import {
   InputAdornment,
   Typography,
   CircularProgress,
-  IconButton
+  IconButton,
+  Radio,
+  Tooltip
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
+
+import { keyframes } from '@emotion/react'
+
+// Shimmer animation
+const shimmerAnimation = keyframes`
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+`
 
 export default function PrescriptionMedicineList({
   medicineList,
@@ -24,9 +38,20 @@ export default function PrescriptionMedicineList({
   handleScroll,
   loading,
   searching,
-  error
+  error,
+  prescribedMedicines = []
 }) {
   const theme = useTheme()
+
+  const isMedicinePrescribed = medicineId => {
+    const isPrescribed = prescribedMedicines.some(prescription => prescription?.schedule?.[0]?.medicine_id === medicineId.toString())
+
+    // if (isPrescribed) {
+    //   console.log(` Medicine ${medicineId} is already prescribed`)
+    // }
+
+    return isPrescribed
+  }
 
   return (
     <Box sx={{ pt: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -87,9 +112,7 @@ export default function PrescriptionMedicineList({
 
       <Box sx={{ maxHeight: 650, overflowY: 'auto', mt: 0 }} onScroll={handleScroll}>
         {searching ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-            <CircularProgress />
-          </Box>
+          <MedicineShimmer count={8} />
         ) : medicineList.length === 0 && !loading ? (
           <Box
             sx={{
@@ -111,8 +134,10 @@ export default function PrescriptionMedicineList({
           medicineList.map((medicine, index) => {
             const isSelected = selectedMedicine?.includes(medicine?.id)
             const isTemporarilySelected = temporarilySelectedMedicine?.id === medicine?.id
+            const isPrescribed = isMedicinePrescribed(medicine?.id)
+            const isDisabled = isPrescribed
 
-            return (
+            const MedicineRow = (
               <Box
                 key={medicine?.id}
                 sx={{
@@ -123,14 +148,18 @@ export default function PrescriptionMedicineList({
                   py: 3.7,
                   display: 'flex',
                   alignItems: 'center',
-                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  opacity: isDisabled ? 0.5 : 1,
+                  cursor: isDisabled ? 'not-allowed' : 'pointer',
+                  pointerEvents: isDisabled ? 'none' : 'auto'
                 }}
               >
                 <FormControlLabel
                   control={
-                    <Checkbox
+                    <Radio
                       checked={isSelected || isTemporarilySelected}
-                      onChange={() => onSelect(medicine)}
+                      onChange={() => !isDisabled && onSelect(medicine)}
+                      disabled={isDisabled}
                       sx={{
                         transform: 'scale(0.8)',
                         padding: '4px'
@@ -142,7 +171,7 @@ export default function PrescriptionMedicineList({
                     flex: 1,
                     m: 0,
                     '& .MuiFormControlLabel-label': {
-                      color: theme.palette.customColors.OnSurfaceVariant,
+                      color: isDisabled ? theme.palette.text.disabled : theme.palette.customColors.OnSurfaceVariant,
                       fontSize: '16px',
                       fontWeight: 600
                     }
@@ -151,8 +180,7 @@ export default function PrescriptionMedicineList({
                 <Typography
                   sx={{
                     width: '200px',
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontFamily: 'Inter',
+                    color: isDisabled ? theme.palette.text.disabled : theme.palette.customColors.OnSurfaceVariant,
                     fontWeight: 500,
                     fontStyle: 'italic',
                     fontSize: '14px',
@@ -165,15 +193,99 @@ export default function PrescriptionMedicineList({
                 </Typography>
               </Box>
             )
+
+            if (isDisabled) {
+              return (
+                <Tooltip key={medicine?.id} title='This medicine is already prescribed' placement='left' arrow>
+                  {MedicineRow}
+                </Tooltip>
+              )
+            }
+
+            return MedicineRow
           })
         )}
 
-        {loading && !searching && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-            <CircularProgress size={24} />
-          </Box>
-        )}
+        {loading && !searching && <MedicineShimmer count={8} />}
       </Box>
     </Box>
+  )
+}
+
+// Shimmer Loading Component (alternative version)
+const MedicineShimmer = ({ count = 8 }) => {
+  const theme = useTheme()
+
+  return (
+    <>
+      {Array.from({ length: count }).map((_, index) => (
+        <Box
+          key={index}
+          sx={{
+            background: 'transparent',
+            borderRadius: '1px',
+            px: 1,
+            py: 3.7,
+            display: 'flex',
+            alignItems: 'center',
+            borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+          }}
+        >
+          {/* Radio shimmer */}
+          <Box
+            sx={{
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              background: `linear-gradient(90deg, ${theme.palette.customColors.OutlineVariant} 25%, ${theme.palette.customColors.mdAntzNeutral} 50%, ${theme.palette.customColors.OutlineVariant} 75%)`,
+              backgroundSize: '200% 100%',
+              animation: `${shimmerAnimation} 1.5s infinite`,
+              marginRight: '8px'
+            }}
+          />
+
+          {/* Medicine name shimmer */}
+          <Box
+            sx={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            <Box
+              sx={{
+                width: `${Math.random() * 40 + 60}%`,
+                height: '16px',
+                background: `linear-gradient(90deg, ${theme.palette.customColors.OutlineVariant} 25%, ${theme.palette.customColors.mdAntzNeutral} 50%, ${theme.palette.customColors.OutlineVariant} 75%)`,
+                backgroundSize: '200% 100%',
+                animation: `${shimmerAnimation} 1.5s infinite`,
+                borderRadius: '4px'
+              }}
+            />
+          </Box>
+
+          {/* Generic name shimmer */}
+          <Box
+            sx={{
+              width: '200px',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            <Box
+              sx={{
+                width: `${Math.random() * 30 + 50}%`,
+                height: '14px',
+                background: `linear-gradient(90deg, ${theme.palette.customColors.OutlineVariant} 25%, ${theme.palette.customColors.mdAntzNeutral} 50%, ${theme.palette.customColors.OutlineVariant} 75%)`,
+                backgroundSize: '200% 100%',
+                animation: `${shimmerAnimation} 1.5s infinite`,
+                borderRadius: '4px',
+                opacity: 0.7
+              }}
+            />
+          </Box>
+        </Box>
+      ))}
+    </>
   )
 }

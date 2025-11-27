@@ -1,11 +1,8 @@
-import { useTheme } from '@mui/material'
 import { debounce } from 'lodash'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import FilterContent from 'src/components/drawers/FilterContent'
 import Toaster from 'src/components/Toaster'
-import { AuthContext } from 'src/context/AuthContext'
-import { getMasterImports } from 'src/lib/api/compliance/masters'
 import { getAllSites } from 'src/lib/api/housing'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
@@ -22,10 +19,6 @@ const InpatientFilterDrawer = ({
   const [searchQuery, setSearchQuery] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)
   const [localFilterCount, setLocalFilterCount] = useState(0)
-
-  const authData = useContext(AuthContext)
-
-  console.log(authData)
 
   const [menuData, setMenuData] = useState({
     'Chief Veterinarian': [],

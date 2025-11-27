@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Typography, IconButton } from '@mui/material'
+import { Box, Typography, IconButton, Tooltip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 
@@ -11,6 +11,7 @@ const SurgeryTemplateCard = ({ template, selectedTemplate, onSelect, onEdit, onD
       key={template.id}
       sx={{
         display: 'flex',
+        justifyContent: 'space-between',
         gap: '12px',
         border: `1px solid ${theme.palette.customColors.SurfaceVariant}`,
         backgroundColor:
@@ -46,32 +47,40 @@ const SurgeryTemplateCard = ({ template, selectedTemplate, onSelect, onEdit, onD
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            lineHeight: '1.4'
+            lineHeight: '1.4',
+            '& a': {
+              color: theme.palette.primary.main
+            }
           }}
-        >
-          {template.description}
-        </Typography>
+          component='div'
+          dangerouslySetInnerHTML={{ __html: template.description || '' }}
+        />
       </Box>
 
       <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-        <IconButton
-          onClick={e => {
-            e.stopPropagation()
-            onEdit(template)
-          }}
-          sx={{ height: '30px', width: '30px', p: 0, color: theme.palette.customColors.OnSurfaceVariant }}
-        >
-          <Icon icon='mdi:pencil' fontSize={20} />
-        </IconButton>
-        <IconButton
-          onClick={e => {
-            e.stopPropagation()
-            onDelete(template)
-          }}
-          sx={{ height: '30px', width: '30px', p: 0, color: theme.palette.primary.light }}
-        >
-          <Icon icon='mdi:close' fontSize={20} />
-        </IconButton>
+        <Tooltip title='Edit Template'>
+          <IconButton
+            onClick={e => {
+              e.stopPropagation()
+              onEdit(template)
+            }}
+            sx={{ height: '30px', width: '30px', p: 0, color: theme.palette.customColors.OnSurfaceVariant }}
+          >
+            <Icon icon='mdi:pencil' fontSize={20} />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title='Delete Template'>
+          <IconButton
+            onClick={e => {
+              e.stopPropagation()
+              onDelete(template)
+            }}
+            sx={{ height: '30px', width: '30px', p: 0, color: theme.palette.primary.light }}
+          >
+            <Icon icon='mdi:close' fontSize={20} />
+          </IconButton>
+        </Tooltip>
       </Box>
     </Box>
   )

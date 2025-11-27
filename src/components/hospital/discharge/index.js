@@ -1,258 +1,328 @@
-import React, { useState } from 'react'
-
-// ** MUI Imports
-import { Box, Grid, Tooltip, Typography, useTheme, IconButton } from '@mui/material'
-import { alpha, styled } from '@mui/system'
-
-// ** Custom Core Components
-import Icon from 'src/@core/components/icon'
-
-// ** Form & Validation Setup
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  Box,
+  Button,
+  Grid,
+  styled,
+  alpha,
+  useTheme,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
+  IconButton,
+  Tooltip
+} from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
+import Icon from 'src/@core/components/icon'
+import { useRouter } from 'next/router'
 
-// ** Discharge Forms
+import MortalityDischarge from './MortalityDischarge'
+import TransferHospitalDischarge from './TransferHospitalDischarge'
+import TransferEnclosureDischarge from './TransferEnclosureDischarge'
 import MortalityDischargeForm from 'src/views/pages/hospital/inpatient/discharge/MortalityDischargeForm'
 import TransferDischargeForm from 'src/views/pages/hospital/inpatient/discharge/TransferDischargeForm'
 import EnclosureDischargeForm from 'src/views/pages/hospital/inpatient/discharge/EnclosureDischargeForm'
-
-// ** Custom Form Components
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
+import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import Utility from 'src/utility'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { getPrescriptionsByRecord, stopPrescription } from 'src/lib/api/hospital/prescription'
+import Toaster from 'src/components/Toaster'
 
-/* -------------------- Constants -------------------- */
 const dischargeTypeOptions = [
-  { label: 'Mortality', value: 'mortality' },
-  { label: 'Transfer to another hospital', value: 'transfer' },
-  { label: 'Discharge to enclosure', value: 'discharge' }
+  { label: 'Mortality', value: 'Mortality' },
+
+  // { label: 'Transfer to Hospital', value: 'TransferHospital' },
+  { label: 'Transfer to Enclosure', value: 'TransferEnclosure' }
 ]
 
-const defaultValues = {
-  dischargeType: 'mortality',
+const InpatientDischarge = ({ patientData }) => {
+  const theme = useTheme()
+  const router = useRouter()
+  const { id, medical_record_id } = router.query
+
+  const { data, updateState, resetState } = useDynamicStateContext() // Dynamic Context Access
+
+  // Separate dynamic states for each medicine table discharge type
+  const transferMedicines = data.transfer_medicines || []
+  const transferTempMedicines = data.transfer_temp_medicines || []
+  const enclosureMedicines = data.enclosure_medicines || []
+  const enclosureTempMedicines = data.enclosure_temp_medicines || []
+
+  const [prescription, setPrescription] = useState([])
+  const [isPrescriptionLoading, setIsPrescriptionLoading] = useState(false)
+  const [isStopPrescriptionLoading, setIsStopPrescriptionLoading] = useState(false)
+
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pendingTabValue, setPendingTabValue] = useState(null)
+
+  // Track form dirtiness per tab
+  const [isMortalityDirty, setIsMortalityDirty] = useState(false)
+  const [isTransferHospitalDirty, setIsTransferHospitalDirty] = useState(false)
+  const [isTransferEnclosureDirty, setIsTransferEnclosureDirty] = useState(false)
+  const [selectedTab, setSelectedTab] = useState('TransferEnclosure')
+
+  // For rich text summary in Enclosure discharge
+  const [enclosureSummaryContent, setEnclosureSummaryContent] = useState('')
 
   // Mortality
-  dateOfDeath: null,
-  timeOfDeath: null,
-  causeOfDeath: '',
-  carcassCondition: '',
-  carcassDeposition: '',
-  requestNecropsy: true,
-  necropsyPriority: 'high',
-  noNecropsyReason: '',
-  images: [],
+  const {
+    causeOfDeath,
+    carcassCondition,
+    carcassDeposition,
+    handleMannerSearch,
+    handleConditionSearch,
+    handleDispositionSearch,
+    fetchLoading: mortalityFetchLoading,
+    submitLoader: mortalitySubmitLoader,
+    handleSubmitData: handleMortalitySubmitData
+  } = MortalityDischarge()
 
-  // Transfer
-  hospital: '',
-  transferReason: '',
-  dischargeDate: null,
-  dischargeTime: null,
-  dietInstructions: '',
-  restrictionActivities: '',
-  additionalNotes: '',
-  transferSite: '',
-  transferSection: '',
-  transferEnclosure: '',
-  images: [],
+  // Transfer Hospital
+  const {
+    isLoadingHospital,
+    hospitalData,
+    handleHospitalSearch,
+    submitLoader: transferHospitalSubmitLoader,
+    handleSubmitData: handleTransferHospitalSubmitData
+  } = TransferHospitalDischarge()
 
-  // Enclosure discharge specific
-  transferSite: '',
-  transferSection: '',
-  transferEnclosure: '',
+  // Transfer Enclosure
+  const { submitLoader: transferEnclosureSubmitLoader, handleSubmitData: handleTransferEnclosureSubmitData } =
+    TransferEnclosureDischarge()
 
-  dischargeDate: null,
-  dischargeTime: null,
-  ietInstructions: '',
-  restrictionActivities: '',
-  additionalNotes: ''
-}
+  // Fetch active prescriptions
+  const getPrescriptionList = async () => {
+    try {
+      setIsPrescriptionLoading(true)
 
-const schema = yup.object().shape({
-  dischargeType: yup.string().required('Discharge type is required'),
+      const payload = {
+        hospital_case_id: id,
+        medical_record_id: medical_record_id,
+        status: 'active',
+        type: 'prescription'
+      }
+      const response = await getPrescriptionsByRecord(payload)
 
-  // Mortality validations
-  dateOfDeath: yup.date().when('dischargeType', {
-    is: 'mortality',
-    then: schema => schema.nullable().required('Date of death is required'),
-    otherwise: schema => schema.nullable()
-  }),
-  timeOfDeath: yup.date().when('dischargeType', {
-    is: 'mortality',
-    then: schema => schema.nullable().required('Time of death is required'),
-    otherwise: schema => schema.nullable()
-  }),
-  causeOfDeath: yup.string().when('dischargeType', {
-    is: 'mortality',
-    then: schema => schema.required('Cause of death is required'),
-    otherwise: schema => schema
-  }),
-  carcassCondition: yup.string().when('dischargeType', {
-    is: 'mortality',
-    then: schema => schema.required('Carcass condition is required'),
-    otherwise: schema => schema
-  }),
-  carcassDeposition: yup.string().when('dischargeType', {
-    is: 'mortality',
-    then: schema => schema.required('Carcass deposition is required'),
-    otherwise: schema => schema
-  }),
-  noNecropsyReason: yup.string().when(['dischargeType', 'requestNecropsy'], {
-    is: (dischargeType, requestNecropsy) => dischargeType === 'mortality' && !requestNecropsy,
-    then: schema => schema.required('Reason for not performing necropsy is required'),
-    otherwise: schema => schema
-  }),
-  images: yup.array().of(yup.string()).max(5, 'Max 5 images'),
-
-  // Transfer validations
-  hospital: yup.string().when('dischargeType', {
-    is: 'transfer',
-    then: schema => schema.required('Hospital is required'),
-    otherwise: schema => schema
-  }),
-  transferReason: yup.string().when('dischargeType', {
-    is: 'transfer',
-    then: schema => schema.required('Reason for transferring is required'),
-    otherwise: schema => schema
-  }),
-  dischargeDate: yup.date().when('dischargeType', {
-    is: 'transfer',
-    then: schema => schema.nullable().required('Date of discharge is required'),
-    otherwise: schema => schema.nullable()
-  }),
-  dischargeTime: yup.date().when('dischargeType', {
-    is: 'transfer',
-    then: schema => schema.nullable().required('Time of discharge is required'),
-    otherwise: schema => schema.nullable()
-  }),
-
-  dietInstructions: yup.string().when('dischargeType', {
-    is: 'transfer',
-    then: schema => schema.required('Diet Instructions is required'),
-    otherwise: schema => schema
-  }),
-  restrictions: yup.string().when('dischargeType', {
-    is: 'transfer',
-    then: schema => schema.required('Restriction activities  is required'),
-    otherwise: schema => schema
-  }),
-
-  // additionalNotes: yup.string().when('dischargeType', {
-  //   is: 'transfer',
-  //   then: schema => schema.required('additional Notes is required'),
-  //   otherwise: schema => schema
-  // }),
-
-  // Enclosure discharge validations
-  transferSite: yup.string().when('dischargeType', {
-    is: 'discharge',
-    then: schema => schema.required('Site is required'),
-    otherwise: schema => schema
-  }),
-  transferSection: yup.string().when('dischargeType', {
-    is: 'discharge',
-    then: schema => schema.required('Section is required'),
-    otherwise: schema => schema
-  }),
-  transferEnclosure: yup.string().when('dischargeType', {
-    is: 'discharge',
-    then: schema => schema.required('Enclosure is required'),
-    otherwise: schema => schema
-  }),
-  dischargeDate: yup.date().when('dischargeType', {
-    is: 'discharge',
-    then: schema => schema.nullable().required('Date of discharge is required'),
-    otherwise: schema => schema.nullable()
-  }),
-  dischargeTime: yup.date().when('dischargeType', {
-    is: 'discharge',
-    then: schema => schema.nullable().required('Time of discharge is required'),
-    otherwise: schema => schema.nullable()
-  })
-})
-const templates = ['Avian summary', 'Feline summary', 'Reptilian summary']
-
-const necropsyPriorityList = [
-  { label: 'High', value: 'high' },
-  { label: 'Medium', value: 'medium' },
-  { label: 'Low', value: 'low' }
-]
-
-const deathCauses = [
-  { label: 'Infection', value: 'infection' },
-  { label: 'Trauma', value: 'trauma' }
-]
-
-const carcassCondition = [
-  { label: 'Good', value: 'good' },
-  { label: 'Decomposed', value: 'decomposed' }
-]
-
-const carcassDeposition = [
-  { label: 'Buried', value: 'buried' },
-  { label: 'Incinerated', value: 'incinerated' }
-]
-
-const hospitals = [
-  { label: 'Wildlife Rescue Center', value: 'rescue_center' },
-  { label: 'Animal Care Hospital', value: 'animal_care' }
-]
-
-const medicationsData = [
-  {
-    id: 1,
-    MedicineName: 'Levothyroxine',
-    BrandName: 'Synthroid',
-    DosageTimesFrequency: '3 Times / Everyday',
-    StartingDate: '2025-01-07',
-    EndingDate: '2025-01-11',
-    Duration: '5 Days',
-    DeliveryRoute: 'Oral'
-  },
-  {
-    id: 2,
-    MedicineName: 'Acepromazine',
-    BrandName: 'Antiemetic',
-    DosageTimesFrequency: '2 Times / Everyday',
-    StartingDate: '2025-01-05',
-    EndingDate: '2025-01-09',
-    Duration: '4 Days',
-    DeliveryRoute: 'Oral'
+      if (response?.success) {
+        setPrescription(response.data)
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {
+      Toaster({ type: 'error', message: error?.response?.data?.message || error?.message || 'Something went wrong' })
+    } finally {
+      setIsPrescriptionLoading(false)
+    }
   }
-]
 
-/* -------------------- Styles -------------------- */
-const StyledTypography = styled(Typography)(({ theme, fontWeight, fontSize, color }) => ({
-  fontSize: fontSize || '1rem',
-  fontWeight: fontWeight || 500,
-  color: color || theme.palette.customColors.OnSurfaceVariant
-}))
+  useEffect(() => {
+    if (id && medical_record_id) {
+      getPrescriptionList()
+    }
+  }, [])
 
-const InpatientDischarge = () => {
-  const theme = useTheme()
+  // Stop prescription
+  const handleStopPrescription = async row => {
+    try {
+      setIsStopPrescriptionLoading(true)
 
-  const medicationColumns = [
+      const payload = {
+        medical_record_id: row?.medical_record_id,
+        prescription_id: row?.id,
+        type: 'prescription',
+        status: 'stop',
+        note: row?.notes,
+        side_effect: row?.side_effect,
+        case: 'single',
+        main_prescription_id: row?.prescription_id
+      }
+
+      const response = await stopPrescription(payload)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Medicine stopped successfully' })
+        getPrescriptionList()
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {
+      console.error('Error stopping medicine:', error?.message)
+      Toaster({ type: 'error', message: error?.response?.data?.message || error?.message || 'Failed to stop medicine' })
+    } finally {
+      setIsStopPrescriptionLoading(false)
+    }
+  }
+
+  // Active prescription table columns (for Transfer Hospital)
+  const prescriptionsColumns = [
     {
-      field: 'No',
-      headerName: 'NO',
-      width: 80,
-      align: 'center',
-      headerAlign: 'center',
+      field: 'id',
+      headerName: 'Sl.NO',
+      minWidth: 80,
+      flex: 1,
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 400,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          {params.row.id}
-        </Typography>
+        <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
+          {params.row.sl_no}
+        </StyledTypography>
       )
     },
     {
-      field: 'MedicineName',
-      headerName: 'MEDICINE NAME',
+      field: 'name',
+      headerName: 'Medicine Name',
+      minWidth: 200,
+      flex: 1,
+      sortable: false,
+      renderCell: params => (
+        <TextEllipsisWithModal
+          enableDialog={false}
+          text={params.row.name ?? ''}
+          style={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '1rem',
+            fontWeight: 600,
+            pl: 1.4,
+            maxWidth: '180px'
+          }}
+        />
+      )
+    },
+    {
+      field: 'frequency',
+      headerName: 'Dosage Times & Frequency',
+      minWidth: 250,
+      flex: 1,
+      sortable: false,
+      renderCell: params => (
+        <TextEllipsisWithModal
+          enableDialog={false}
+          text={`${params.row.dosage_count} / ${params.row.frequency}` ?? ''}
+          style={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '1rem',
+            pl: 1.4,
+            maxWidth: '230px',
+            fontWeight: 400
+          }}
+        />
+      )
+    },
+    {
+      field: 'start_date',
+      headerName: 'Starting Date',
+      minWidth: 140,
+      sortable: false,
+      renderCell: params => (
+        <StyledTypography sx={{ pl: 1.4 }} fontWeight={400}>
+          {Utility.convertUtcToLocalReadableDate(params.row.start_date)}
+        </StyledTypography>
+      )
+    },
+    {
+      field: 'end_date',
+      headerName: 'Ending Date',
       minWidth: 180,
+      sortable: false,
+      renderCell: params => (
+        <Box
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 1,
+            border: `1px solid ${theme.palette.customColors.OnSurface}`,
+            borderRadius: '4px',
+            ml: 1.4,
+            padding: '8px 16px',
+            width: '160px',
+            color: theme.palette.customColors.OnSurface
+          }}
+        >
+          <Icon icon='mdi:calendar-blank' style={{ fontSize: 18 }} />
+          <StyledTypography color={theme.palette.customColors.OnSurface}>
+            {Utility.convertUtcToLocalReadableDate(params.row.end_date)}
+          </StyledTypography>
+        </Box>
+      )
+    },
+    {
+      field: 'duration',
+      headerName: 'duration',
+      minWidth: 120,
+      sortable: false,
+      renderCell: params => (
+        <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
+          {params.row.duration}
+        </StyledTypography>
+      )
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      minWidth: 180,
+      sortable: false,
+      renderCell: params =>
+        isStopPrescriptionLoading ? (
+          <CircularProgress size={20} />
+        ) : (
+          <StyledTypography
+            sx={{ pl: 2, textTransform: 'capitalize', cursor: 'pointer' }}
+            fontWeight={600}
+            color={theme.palette.customColors.OnSurface}
+            onClick={() => handleStopPrescription(params.row)}
+          >
+            Stop Medicine
+          </StyledTypography>
+
+          // <Button
+          //   variant='outlined'
+          //   sx={{
+          //     // ml: 1.4,
+          //     padding: '8px ',
+          //     color: theme.palette.customColors.OnSurface,
+          //     fontSize: '1rem',
+          //     fontWeight: 600,
+          //     textTransform: 'capitalize',
+          //     border: 'none'
+          //   }}
+          //   onClick={() => handleStopPrescription(params.row)}
+          // >
+          //   Stop Medicine
+          // </Button>
+        )
+    }
+  ]
+
+  const prescriptionIndexedRows = useMemo(
+    () =>
+      prescription?.map((row, index) => ({
+        ...row,
+        sl_no: index + 1
+      })),
+    [prescription]
+  )
+
+  // medications table columns
+  const medicationsColumns = [
+    {
+      field: 'id',
+      headerName: 'Sl.NO',
+      minWidth: 80,
+      flex: 1,
+      sortable: false,
+      renderCell: params => (
+        <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
+          {params.row.sl_no}
+        </StyledTypography>
+      )
+    },
+    {
+      field: 'name',
+      headerName: 'Medicine Name',
+      minWidth: 200,
       flex: 1,
       sortable: false,
       renderCell: params => (
@@ -262,129 +332,106 @@ const InpatientDischarge = () => {
             flexDirection: 'column'
           }}
         >
-          <Tooltip title={params.row.MedicineName}>
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 600,
-                color: theme.palette.customColors.OnSurfaceVariant,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
-            >
-              {params.row.MedicineName}
-            </Typography>
-          </Tooltip>
-          <Tooltip title={params.row.BrandName}>
-            <Typography
-              sx={{
-                fontSize: '14px',
-                fontWeight: 500,
-                color: theme.palette.customColors.OnSurfaceVariant,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                fontStyle: 'italic'
-              }}
-            >
-              {params.row.BrandName}
-            </Typography>
-          </Tooltip>
+          <TextEllipsisWithModal
+            enableDialog={false}
+            text={params.row.name ?? ''}
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '1rem',
+              fontWeight: 600,
+              pl: 1.4,
+              maxWidth: '180px'
+            }}
+          />
+          <TextEllipsisWithModal
+            enableDialog={false}
+            text={params.row.generic_name ?? ''}
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '0.875rem',
+              pl: 1.4,
+              maxWidth: '180px',
+              fontStyle: 'italic'
+            }}
+          />
         </Box>
       )
     },
     {
-      field: 'DosageTimesFrequency',
-      headerName: 'DOSAGE TIMES & FREQUENCY',
-      minWidth: 200,
+      field: 'frequency_name',
+      headerName: 'Dosage Times & Frequency',
+      minWidth: 220,
       flex: 1,
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 400,
-            color: theme.palette.customColors.OnSurfaceVariant
+        <TextEllipsisWithModal
+          enableDialog={false}
+          text={`${params.row.schedule_doses?.length} Time / ${params.row.frequency_name}` ?? ''}
+          style={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '1rem',
+            pl: 1.4,
+            maxWidth: '200px',
+            fontWeight: 400
           }}
-        >
-          {params.row.DosageTimesFrequency}
-        </Typography>
+        />
       )
     },
     {
-      field: 'StartingDate',
-      headerName: 'STARTING DATE',
+      field: 'start_date',
+      headerName: 'Starting Date',
       minWidth: 140,
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 400,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          {params.row.StartingDate}
-        </Typography>
+        <StyledTypography sx={{ pl: 1.4 }} fontWeight={400}>
+          {Utility.convertUtcToLocalReadableDate(params.row.start_date)}
+        </StyledTypography>
       )
     },
     {
-      field: 'EndingDate',
-      headerName: 'ENDING DATE',
+      field: 'end_date',
+      headerName: 'Ending Date',
       minWidth: 140,
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 400,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          {params.row.EndingDate}
-        </Typography>
+        <StyledTypography sx={{ pl: 1.4 }} fontWeight={400}>
+          {Utility.convertUtcToLocalReadableDate(params.row.end_date)}
+        </StyledTypography>
       )
     },
     {
-      field: 'Duration',
-      headerName: 'DURATION',
+      field: 'duration',
+      headerName: 'duration',
       minWidth: 120,
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 400,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          {params.row.Duration}
-        </Typography>
+        <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
+          {params.row.duration}
+        </StyledTypography>
       )
     },
     {
-      field: 'DeliveryRoute',
-      headerName: 'DELIVERY ROUTE',
+      field: 'delivery_route_name',
+      headerName: 'Delivery Route',
       minWidth: 140,
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 400,
-            color: theme.palette.customColors.OnSurfaceVariant
+        <TextEllipsisWithModal
+          enableDialog={false}
+          text={params.row.delivery_route_label ?? ''}
+          style={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '1rem',
+            pl: 1.4,
+            maxWidth: '200px',
+            fontWeight: 400
           }}
-        >
-          {params.row.DeliveryRoute}
-        </Typography>
+        />
       )
     },
     {
       field: 'actions',
-      headerName: 'ACTIONS',
-      headerAlign: 'center',
-      align: 'center',
+      headerName: 'Actions',
       width: 120,
       sortable: false,
       renderCell: params => (
@@ -405,125 +452,194 @@ const InpatientDischarge = () => {
     }
   ]
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    watch,
-    reset
-  } = useForm({
-    defaultValues,
-    resolver: yupResolver(schema),
-    shouldUnregister: false,
-    mode: 'onChange',
-    reValidateMode: 'onChange'
-  })
+  const medicationIndexedRows = useMemo(
+    () =>
+      enclosureMedicines?.map((row, index) => ({
+        ...row,
+        sl_no: index + 1
+      })),
+    [enclosureMedicines]
+  )
 
-  const [activeTemplate, setActiveTemplate] = useState(templates[0])
-  const [content, setContent] = useState('')
-  const [loading, setLoading] = useState(false)
+  // Merge temp → final for Transfer Hospital
+  useEffect(() => {
+    if (!Array.isArray(transferTempMedicines) || transferTempMedicines.length === 0) return
 
-  const watchDischargeType = watch('dischargeType')
+    const existing = data.transfer_medicines || []
+    const merged = [...existing]
+    let hasChanges = false
 
-  const onSubmit = async data => {
-    console.log('data submitted', data)
-
-    setLoading(true)
-    try {
-      console.log('Form Submitted Data:', { ...data, summary: content })
-
-      // TODO: API integration
-      //
-      reset(defaultValues)
-      setContent('')
-
-      // setActiveTemplate(templates[0])
-    } catch (error) {
-      console.error('Submit error:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Reset dependent fields when discharge type changes
-  React.useEffect(() => {
-    const subscription = watch((value, { name }) => {
-      if (name === 'dischargeType') {
-        // Reset form fields that are specific to other discharge types
-        const fieldsToReset = {
-          // Mortality fields
-          dateOfDeath: null,
-          timeOfDeath: null,
-          causeOfDeath: '',
-          carcassCondition: '',
-          carcassDeposition: '',
-          requestNecropsy: true,
-          necropsyPriority: 'high',
-          noNecropsyReason: '',
-          images: [],
-
-          // Transfer fields
-          hospital: '',
-          transferReason: '',
-          dischargeDate: null,
-          dischargeTime: null,
-          dietInstructions: '',
-          restrictionActivities: '',
-          additionalNotes: '',
-          transferSite: '',
-          transferSection: '',
-          transferEnclosure: '',
-          followUpDate: null,
-          followUpRequired: true,
-          images: [],
-
-          // Enclosure fields
-          transferSite: '',
-          transferSection: '',
-          transferEnclosure: '',
-          dischargeDate: null,
-          dischargeTime: null,
-          ietInstructions: '',
-          restrictionActivities: '',
-          additionalNotes: '',
-          images: []
-        }
-
-        // Only reset fields that don't belong to the current discharge type
-        Object.keys(fieldsToReset).forEach(field => {
-          reset(prev => ({ ...prev, [field]: fieldsToReset[field] }))
-        })
+    transferTempMedicines.forEach(newMed => {
+      if (!merged.some(med => med.id === newMed.id)) {
+        merged.unshift(newMed)
+        hasChanges = true
       }
     })
 
-    return () => subscription.unsubscribe()
-  }, [watch, reset])
+    if (hasChanges) {
+      updateState('transfer_medicines', merged)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transferTempMedicines])
+
+  // Merge temp → final for Enclosure
+  useEffect(() => {
+    if (!Array.isArray(enclosureTempMedicines) || enclosureTempMedicines.length === 0) return
+
+    const existing = data.enclosure_medicines || []
+    const merged = [...existing]
+    let hasChanges = false
+
+    enclosureTempMedicines.forEach(newMed => {
+      if (!merged.some(med => med.id === newMed.id)) {
+        merged.unshift(newMed)
+        hasChanges = true
+      }
+    })
+
+    if (hasChanges) {
+      updateState('enclosure_medicines', merged)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enclosureTempMedicines])
+
+  // Clear functions
+  const clearTransferHospitalData = useCallback(() => {
+    resetState('transfer_medicines')
+    resetState('transfer_temp_medicines')
+    setIsTransferHospitalDirty(false)
+    console.log('Cleared Transfer Hospital medicines')
+  }, [resetState])
+
+  const clearEnclosureData = useCallback(() => {
+    resetState('enclosure_medicines')
+    resetState('enclosure_temp_medicines')
+    setIsTransferEnclosureDirty(false)
+    console.log('Cleared Enclosure medicines')
+  }, [resetState])
+
+  // RHF for discharge type
+  const { control, watch, setValue } = useForm({
+    defaultValues: { discharge_type: 'Mortality' }
+  })
+
+  const watchDischargeType = watch('discharge_type')
+
+  // Confirm dialog handlers
+  const handleConfirm = useCallback(() => {
+    // Clear pending data for the tab you're leaving
+    if (selectedTab === 'TransferHospital') {
+      clearTransferHospitalData()
+    } else if (selectedTab === 'TransferEnclosure') {
+      clearEnclosureData()
+    }
+
+    setConfirmOpen(false)
+
+    if (pendingTabValue) {
+      setValue('discharge_type', pendingTabValue)
+      setSelectedTab(pendingTabValue)
+
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: { ...router.query, discharge_tab: pendingTabValue }
+        },
+        undefined,
+        { shallow: true }
+      )
+
+      setPendingTabValue(null)
+    }
+  }, [selectedTab, pendingTabValue, clearTransferHospitalData, clearEnclosureData, router, setValue])
+
+  const handleCancel = () => {
+    setConfirmOpen(false)
+    setPendingTabValue(null)
+  }
+
+  // 🔥 Handle tab change with form + table confirmation
+  const handleTabChange = useCallback(
+    newType => {
+      const leavingHospital =
+        selectedTab === 'TransferHospital' &&
+        (transferTempMedicines.length > 0 || transferMedicines.length > 0 || isTransferHospitalDirty)
+
+      const leavingEnclosure =
+        selectedTab === 'TransferEnclosure' &&
+        (enclosureTempMedicines.length > 0 || enclosureMedicines.length > 0 || isTransferEnclosureDirty)
+
+      const leavingMortality = selectedTab === 'Mortality' && isMortalityDirty
+
+      const hasPending = leavingHospital || leavingEnclosure || leavingMortality
+
+      if (hasPending) {
+        setPendingTabValue(newType)
+        setConfirmOpen(true)
+
+        return
+      }
+
+      setValue('discharge_type', newType)
+      setSelectedTab(newType)
+
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: { ...router.query, discharge_tab: newType }
+        },
+        undefined,
+        { shallow: true }
+      )
+    },
+    [
+      selectedTab,
+      setValue,
+      router,
+      transferTempMedicines,
+      transferMedicines,
+      isTransferHospitalDirty,
+      enclosureTempMedicines,
+      enclosureMedicines,
+      isTransferEnclosureDirty,
+      isMortalityDirty
+    ]
+  )
+
+  // Initialize from URL
+  useEffect(() => {
+    const tabFromUrl = router.query.discharge_tab
+    if (tabFromUrl && typeof tabFromUrl === 'string') {
+      setSelectedTab(tabFromUrl)
+      setValue('discharge_type', tabFromUrl)
+    }
+  }, [router.query.discharge_tab, setValue])
 
   return (
     <Box sx={{ mt: 6, display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {/* Admission Info */}
-      <Box
-        sx={{
-          background: alpha(theme.palette.customColors.antzNotes, 0.6),
-          p: 6,
-          borderRadius: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 1
-        }}
-      >
-        <StyledTypography color={theme.palette.customColors.neutralPrimary}>Reason of Admission</StyledTypography>
-        <StyledTypography color={theme.palette.customColors.neutralPrimary} fontSize={'0.875rem'} fontWeight={400}>
-          Leopard was observed with reduced mobility and swelling in the right forelimb, suspected fracture due to fall
-        </StyledTypography>
-      </Box>
+      {patientData?.purpose_of_visit && (
+        <Box
+          sx={{
+            background: alpha(theme.palette.customColors.antzNotes, 0.6),
+            p: 6,
+            borderRadius: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1
+          }}
+        >
+          <StyledTypography color={theme.palette.customColors.neutralPrimary}>Reason of Admission</StyledTypography>
+          <StyledTypography color={theme.palette.customColors.neutralPrimary} fontSize='0.875rem' fontWeight={400}>
+            {patientData?.purpose_of_visit}
+          </StyledTypography>
+        </Box>
+      )}
 
       {/* Discharge Type Selection */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         <StyledTypography>Discharge Type</StyledTypography>
         <Controller
-          name='dischargeType'
+          name='discharge_type'
           control={control}
           render={({ field }) => (
             <Grid container spacing={6}>
@@ -532,11 +648,11 @@ const InpatientDischarge = () => {
                   <TreatmentTypeRadioButtons
                     label={item.label}
                     isSelected={field.value === item.value}
-                    onClick={() => field.onChange(item.value)}
                     radioPosition='right'
                     selectedBackgroundColor={theme.palette.customColors.OnPrimaryContainer}
                     selectedFontColor={theme.palette.primary.contrastText}
                     selectedBorderColor='none'
+                    onClick={() => handleTabChange(item.value)}
                   />
                 </Grid>
               ))}
@@ -546,65 +662,92 @@ const InpatientDischarge = () => {
       </Box>
 
       {/* Conditional Forms */}
-      {watchDischargeType === 'mortality' && (
+      {watchDischargeType === 'Mortality' && (
         <MortalityDischargeForm
-          control={control}
-          watch={watch}
-          errors={errors}
-          templates={templates}
-          activeTemplate={activeTemplate}
-          setActiveTemplate={setActiveTemplate}
-          necropsyPriorityList={necropsyPriorityList}
-          deathCauses={deathCauses}
+          patientData={patientData}
+          watchDischargeType={watchDischargeType}
+          causeOfDeath={causeOfDeath}
           carcassCondition={carcassCondition}
           carcassDeposition={carcassDeposition}
-          content={content}
-          setContent={setContent}
-          loading={loading}
-          onSubmit={handleSubmit(onSubmit)}
-          setValue={setValue}
+          fetchLoading={mortalityFetchLoading}
+          handleMannerSearch={handleMannerSearch}
+          handleConditionSearch={handleConditionSearch}
+          handleDispositionSearch={handleDispositionSearch}
+          submitLoader={mortalitySubmitLoader}
+          handleSubmitData={handleMortalitySubmitData}
+          onDirtyChange={setIsMortalityDirty}
         />
       )}
 
-      {watchDischargeType === 'transfer' && (
+      {watchDischargeType === 'TransferHospital' && (
         <TransferDischargeForm
-          control={control}
-          watch={watch}
-          errors={errors}
-          templates={templates}
-          activeTemplate={activeTemplate}
-          setActiveTemplate={setActiveTemplate}
-          content={content}
-          setContent={setContent}
-          loading={loading}
-          hospitals={hospitals}
-          medicationsData={medicationsData}
-          medicationColumns={medicationColumns}
-          onSubmit={handleSubmit(onSubmit)}
-          setValue={setValue}
+          patientData={patientData}
+          watchDischargeType={watchDischargeType}
+          isLoadingHospital={isLoadingHospital}
+          hospitalData={hospitalData}
+          handleHospitalSearch={handleHospitalSearch}
+          prescriptionsColumns={prescriptionsColumns}
+          prescriptionData={prescriptionIndexedRows}
+          isPrescriptionLoading={isPrescriptionLoading}
+          submitLoader={transferHospitalSubmitLoader}
+          handleSubmitData={handleTransferHospitalSubmitData}
+          medicationsColumns={medicationsColumns}
+          medicationData={medicationIndexedRows}
+          clearData={clearTransferHospitalData}
+          onDirtyChange={setIsTransferHospitalDirty}
         />
       )}
 
-      {watchDischargeType === 'discharge' && (
+      {watchDischargeType === 'TransferEnclosure' && (
         <EnclosureDischargeForm
-          control={control}
-          watch={watch}
-          errors={errors}
-          templates={templates}
-          activeTemplate={activeTemplate}
-          setActiveTemplate={setActiveTemplate}
-          content={content}
-          setContent={setContent}
-          loading={loading}
-          hospitals={hospitals}
-          medicationsData={medicationsData}
-          medicationColumns={medicationColumns}
-          onSubmit={handleSubmit(onSubmit)}
-          setValue={setValue}
+          patientData={patientData}
+          watchDischargeType={watchDischargeType}
+          submitLoader={transferEnclosureSubmitLoader}
+          handleSubmitData={handleTransferEnclosureSubmitData}
+          medicationsColumns={medicationsColumns}
+          medicationData={medicationIndexedRows}
+          medicationPayload={enclosureMedicines}
+          clearData={clearEnclosureData}
+          onDirtyChange={setIsTransferEnclosureDirty}
         />
       )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        message='You have unsaved changes. Do you really want to switch discharge type?'
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
     </Box>
   )
 }
 
 export default InpatientDischarge
+
+const StyledTypography = styled(Typography)(({ theme, fontWeight, fontSize, color }) => ({
+  fontSize: fontSize || '1rem',
+  fontWeight: fontWeight || 500,
+  color: color || theme.palette.customColors.OnSurfaceVariant
+}))
+
+function ConfirmDialog({ open, message, onConfirm, onCancel }) {
+  return (
+    <Dialog open={open} onClose={onCancel}>
+      <DialogTitle>Confirmation</DialogTitle>
+
+      <DialogContent>
+        <Typography>{message}</Typography>
+      </DialogContent>
+
+      <DialogActions>
+        <Button onClick={onCancel} color='inherit'>
+          Cancel
+        </Button>
+
+        <Button onClick={onConfirm} variant='contained' color='primary'>
+          Discard
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}

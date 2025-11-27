@@ -17,18 +17,45 @@ const ControlledAutocomplete = ({
   onItemClear = () => {},
   onBlur = () => {},
   onInputChange = () => {},
-  getOptionLabel = option => option.label || '',
-  isOptionEqualToValue = (option, value) => option.value === value?.value,
+  getOptionLabel = option => (typeof option === 'string' ? option : option?.label || ''),
+  isOptionEqualToValue = (option, value) => {
+    if (!option || !value) return false
+    const optionValue = typeof option === 'string' ? option : option.value
+    const compareValue = typeof value === 'string' ? value : value.value
+
+    return optionValue === compareValue
+  },
   renderOption = null,
   textFieldProps = {},
   autocompleteProps = {},
   formHelperTextBackgroundColor = 'inherit',
   inputBackgroundColor = 'inherit',
-  sx = {}
+  sx = {},
+  showIcons = true,
+  disabled = false
 }) => {
-  if (!options) return
+  if (!options) return null
 
   const fieldError = get(errors, name)
+
+  const normalizeValue = val => {
+    if (!val) return null
+    if (typeof val === 'string') {
+      return {
+        label: val,
+        value: val
+      }
+    }
+
+    if (typeof val === 'object') {
+      return val
+    }
+
+    return {
+      label: String(val),
+      value: String(val)
+    }
+  }
 
   return (
     <FormControl fullWidth={fullWidth} error={Boolean(fieldError)}>
@@ -39,20 +66,40 @@ const ControlledAutocomplete = ({
         render={({ field }) => (
           <Autocomplete
             {...field}
+            freeSolo={showIcons}
+            disabled={disabled}
+            selectOnFocus
+            clearOnBlur={false}
+            handleHomeEndKeys
             options={options}
             getOptionLabel={getOptionLabel}
             value={field.value ?? null} // ensures Autocomplete is always controlled
             isOptionEqualToValue={isOptionEqualToValue}
             onChange={(e, value, reason) => {
-              field.onChange(value)
-              onChangeOverride(value)
+              let normalizedValue = normalizeValue(value)
+
               if (reason === 'clear') {
                 onItemClear()
+                normalizedValue = null
+              }
+
+              field.onChange(normalizedValue)
+              onChangeOverride(normalizedValue)
+
+              if (reason === 'createOption' && value) {
+                onInputChange(typeof value === 'string' ? value : value?.label || '')
               }
             }}
             onInputChange={(e, value, reason) => {
               if (reason === 'input') {
-                onInputChange(value)
+                onInputChange(value, reason)
+              }
+              if (reason === 'reset' && typeof value === 'string' && value !== '') {
+                onInputChange(value, reason)
+              }
+              if (reason === 'clear') {
+                onItemClear()
+                onInputChange('', reason)
               }
             }}
             onKeyUp={onKeyUp}
@@ -62,7 +109,7 @@ const ControlledAutocomplete = ({
             renderOption={renderOption}
             sx={{
               '& .MuiInputBase-root': {
-                backgroundColor: inputBackgroundColor,
+                backgroundColor: inputBackgroundColor
               },
               ...sx
             }}

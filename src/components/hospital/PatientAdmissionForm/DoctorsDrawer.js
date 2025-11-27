@@ -22,7 +22,7 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor }) => {
       const userDetails = await readAsync('userDetails')
       if (userDetails?.user?.zoos.length > 0) {
         const zoo_id = userDetails.user.zoos[0].zoo_id
-        const params = { zoo_id }
+        const params = { zoo_id, permission: 'medical_records_access' }
         if (query.trim() !== '') {
           params.q = query
         }

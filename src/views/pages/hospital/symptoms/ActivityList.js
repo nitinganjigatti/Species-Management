@@ -3,6 +3,7 @@ import { Box, Typography, Paper, IconButton, alpha, CircularProgress } from '@mu
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import { useTheme } from '@mui/material/styles'
 import ActivityListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ActivityListShimmer'
+import Utility from 'src/utility'
 
 const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = false }) => {
   const theme = useTheme()
@@ -74,6 +75,67 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                           {activity?.oldSeverity && activity?.newSeverity && ' → '}
                           <strong>{activity?.newSeverity}</strong>
                         </Typography>
+                      )}
+                      {activity?.isSystemGenerated && (activity?.oldRecord || activity?.newRecord) && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
+                          <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
+                            Clinical Assessment :{' '}
+                          </Typography>
+                          {activity?.oldRecord && (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: theme.palette.customColors.neutralSecondary,
+                                fontWeight: 600
+                              }}
+                            >
+                              {Utility.capitalizeFirstLetter(activity?.oldRecord)}
+                            </Typography>
+                          )}
+                          {activity?.newRecord && (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: theme.palette.customColors.OnSurfaceVarient,
+                                fontWeight: 600
+                              }}
+                            >
+                              {activity?.oldRecord && '→'} {Utility.capitalizeFirstLetter(activity.newRecord)}
+                            </Typography>
+                          )}
+                        </Box>
+                      )}
+
+                      {activity?.isSystemGenerated && (activity?.oldIsChronical || activity?.newIsChronical) && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
+                          <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
+                            Is Cronical :{' '}
+                          </Typography>
+                          {activity?.oldIsChronical !== undefined && (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: theme.palette.customColors.neutralSecondary,
+                                fontWeight: 600
+                              }}
+                            >
+                              {activity?.oldIsChronical == 1 ? 'Yes' : 'No'}
+                            </Typography>
+                          )}
+
+                          {activity?.newIsChronical !== undefined && (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: theme.palette.customColors.OnSurfaceVarient,
+                                fontWeight: 600
+                              }}
+                            >
+                              {activity?.oldIsChronical !== undefined && ` →`}{' '}
+                              {activity?.newIsChronical == 1 ? 'Yes' : 'No'}
+                            </Typography>
+                          )}
+                        </Box>
                       )}
 
                       {activity?.status && (
