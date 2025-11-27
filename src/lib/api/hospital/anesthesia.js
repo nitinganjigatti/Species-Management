@@ -2,8 +2,11 @@ import {
   GET_ASSESSMENT_LIST_ANESTHESIA,
   ADD_ANESTHESIA,
   GET_ANESTHESIA_SETUP_LIST,
-  GET_ANESTHESIA_LIST,
+  MEDICAL_MASTER_DATA,
+  GET_MEDICAL_DELIVERY_ROUTE,
+  GET_VITAL_MONITORING_LIST,
   GET_ANESTHESIA_DETAIL,
+  GET_ANESTHESIA_LIST,
   DELETE_ANESTHESIA
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
@@ -26,6 +29,30 @@ export const getAnesthesiaSetupList = async params => {
   return response?.data
 }
 
+export const getUnitList = async params => {
+  const response = await axiosGet({ url: `${MEDICAL_MASTER_DATA}`, params })
+
+  return response?.data
+}
+
+export const deliveryRouteList = async params => {
+  const response = await axiosGet({ url: `${GET_MEDICAL_DELIVERY_ROUTE}`, params })
+
+  return response?.data
+}
+
+export const getvitalMonitoringList = async params => {
+  const response = await axiosGet({ url: `${GET_VITAL_MONITORING_LIST}`, params })
+
+  return response?.data
+}
+
+export const getAnesthesiaDetails = async (id, params) => {
+  const response = await axiosGet({ url: `${GET_ANESTHESIA_DETAIL}/${id}`, params })
+
+  return response?.data
+}
+
 export const getAnesthesiaList = async ({ params }) => {
   const response = await axiosGet({ url: `${GET_ANESTHESIA_LIST}`, params })
 
@@ -43,21 +70,3 @@ export const deleteAnesthesia = async id => {
 
   return response?.data
 }
-
-//   export const updateSymptoms = async payload => {
-//     const response = await axiosFormPost({ url: `${ANIMAL_MEDICAL_ID_LIST}/${UPDATE_HOSPITAL_SYMPTOMS}`, body: payload })
-
-//     return response?.data
-//   }
-
-//   export const getNotesListForSymptom = async payload => {
-//     const response = await axiosPost({ url: `${ANIMAL_MEDICAL_ID_LIST}${GET_ACTIVITY_LIST}`, body: payload })
-
-//     return response?.data
-//   }
-
-//   export const deleteNoteSymptoms = async (noteId, params) => {
-//     const response = await axiosGet({ url: `${DELETE_NOTE_SYMPTOM}/${noteId}`, params })
-
-//     return response?.data
-//   }

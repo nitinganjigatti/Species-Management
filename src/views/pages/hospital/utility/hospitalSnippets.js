@@ -123,7 +123,9 @@ export const VisitType = ({ title }) => {
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        height: 24
+        padding: '4px 8px'
+
+        // height: 24
       }}
     >
       <Typography

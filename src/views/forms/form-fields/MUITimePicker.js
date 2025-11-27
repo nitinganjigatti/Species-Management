@@ -25,7 +25,8 @@ const MUITimePicker = ({
   sx = {},
   size = 'large',
   minTime = null,
-  maxTime = null
+  maxTime = null,
+  shouldDisableTime = null
 }) => {
   // Apply locale globally
   dayjs.locale(locale)
@@ -43,6 +44,7 @@ const MUITimePicker = ({
         minutesStep={minutesStep}
         minTime={minTime}
         maxTime={maxTime}
+        shouldDisableTime={shouldDisableTime}
         slotProps={{
           textField: {
             fullWidth: true,

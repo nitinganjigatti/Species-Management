@@ -200,9 +200,16 @@ const HospitalMortality = () => {
       headerName: 'Reason',
       renderCell: params => (
         <>
-          <Tooltip title={params?.row?.reason}>
-            <Typography
-              variant='body2'
+          <Tooltip
+            title={
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: params?.row?.reason || 'NA'
+                }}
+              />
+            }
+          >
+            <Box
               sx={{
                 fontSize: '14px',
                 fontWeight: 400,
@@ -216,9 +223,10 @@ const HospitalMortality = () => {
                 whiteSpace: 'normal',
                 py: 4
               }}
-            >
-              <>{params?.row?.reason || 'NA'}</>
-            </Typography>
+              dangerouslySetInnerHTML={{
+                __html: params?.row?.reason || 'NA'
+              }}
+            />
           </Tooltip>
         </>
       )
@@ -233,9 +241,16 @@ const HospitalMortality = () => {
       headerAlign: 'left',
       renderCell: params => (
         <>
-          <Tooltip title={params?.row?.notes}>
-            <Typography
-              variant='body2'
+          <Tooltip
+            title={
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: params?.row?.notes || 'NA'
+                }}
+              />
+            }
+          >
+            <Box
               sx={{
                 fontSize: '14px',
                 fontWeight: 400,
@@ -249,9 +264,10 @@ const HospitalMortality = () => {
                 whiteSpace: 'normal',
                 py: 4
               }}
-            >
-              <>{params?.row?.notes || 'NA'}</>
-            </Typography>
+              dangerouslySetInnerHTML={{
+                __html: params?.row?.notes || 'NA'
+              }}
+            />
           </Tooltip>
         </>
       )
@@ -355,7 +371,8 @@ const HospitalMortality = () => {
 
   const handleRowClick = params =>
     router.push({
-      pathname: `/hospital/inpatient/${params.row.id}`
+      pathname: `/hospital/mortality/${params.row?.hospital_case_id}`,
+      query: { animal_id: params.row?.animal_detail?.animal_id, medical_record_id: params.row.medical_record_id }
     })
 
   return (

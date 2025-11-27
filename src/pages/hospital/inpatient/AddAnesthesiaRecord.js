@@ -9,13 +9,14 @@ import {
   AccordionSummary,
   AccordionDetails,
   Paper,
-  Breadcrumbs
+  Breadcrumbs,
+  CircularProgress
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import { useTheme } from '@mui/material/styles'
-import { useRouter } from 'next/router'
+import { alpha, useTheme } from '@mui/material/styles'
+import { Router, useRouter } from 'next/router'
 import { useForm, FormProvider } from 'react-hook-form'
-
+import dayjs from 'dayjs'
 import BasicDetails from 'src/components/hospital/inpatient/Anesthesia/BasicDetails'
 import AttachmentsSection from 'src/components/hospital/inpatient/Anesthesia/AttachmentsSection'
 import AnesthesiaSetUpSection from 'src/components/hospital/inpatient/Anesthesia/AnesthesiaSetUp'
@@ -29,17 +30,188 @@ import PreAnesthesia from 'src/components/hospital/inpatient/Anesthesia/PreAnest
 import RecoveryAndReversal from 'src/components/hospital/inpatient/Anesthesia/RecoveryAndReversal'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
-import { getAssesmentList, addAnesthesia, getAnesthesiaSetupList } from 'src/lib/api/hospital/anesthesia'
+import {
+  getAssesmentList,
+  addAnesthesia,
+  getAnesthesiaSetupList,
+  getUnitList,
+  getvitalMonitoringList,
+  getAnesthesiaDetails
+} from 'src/lib/api/hospital/anesthesia'
 import Toaster from 'src/components/Toaster'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+dayjs.extend(customParseFormat)
+
+export function serverVitalToFormColumns(serverVital = {}, vitalMeta = []) {
+  const timeSlots = Array.isArray(serverVital.time_slots) ? serverVital.time_slots : []
+  const records = Array.isArray(serverVital.records) ? serverVital.records : []
+
+  const metaMap = {}
+  ;(vitalMeta || []).forEach(m => {
+    metaMap[m.string_id] = m
+  })
+  ;(records || []).forEach(r => {
+    metaMap[r.string_id] = r
+  })
+
+  const columns = (timeSlots || []).map(slot => {
+    const col = {
+      id: slot.id ? String(slot.id) : `t_${Math.random().toString(36).slice(2, 9)}`,
+      timeLabel: slot.recorded_time || '', // raw time
+      entries: {}
+    }
+
+    for (const section of records || []) {
+      const string_id = section.string_id
+      const fields = section.fields || []
+      if (!fields.length) continue
+
+      let builtEntry = {}
+      const hasValuesArray = fields.some(f => Array.isArray(f.values) && f.values.length > 0)
+
+      if (hasValuesArray) {
+        fields.forEach(f => {
+          const values = f.values || []
+          const vObj = values.find(
+            v => String(v.monitoring_time_id) === String(slot.id) || v.monitoring_time_id === slot.recorded_time
+          )
+          if (vObj) {
+            if (fields.length === 1) {
+              // single value (temp, 1 radio, etc.)
+              builtEntry.value = String(vObj.field_value ?? '')
+              builtEntry.unit = vObj.unit ?? ''
+            } else {
+              // multi-field (BP, etc.)
+              builtEntry[f.field_key] = String(vObj.field_value ?? '')
+              builtEntry.unit = vObj.unit ?? builtEntry.unit ?? ''
+            }
+          } else {
+            if (fields.length === 1) {
+              builtEntry.value = builtEntry.value ?? ''
+              builtEntry.unit = builtEntry.unit ?? ''
+            } else {
+              builtEntry[f.field_key] = builtEntry[f.field_key] ?? ''
+            }
+          }
+        })
+      } else {
+        fields.forEach(f => {
+          if (f.field_value !== undefined && f.field_value !== null) {
+            if (fields.length === 1) {
+              builtEntry.value = String(f.field_value)
+              builtEntry.unit = f.unit ?? ''
+            } else {
+              builtEntry[f.field_key] = String(f.field_value)
+              builtEntry.unit = f.unit ?? builtEntry.unit ?? ''
+            }
+          } else {
+            if (fields.length === 1) {
+              builtEntry.value = builtEntry.value ?? ''
+              builtEntry.unit = builtEntry.unit ?? ''
+            } else {
+              builtEntry[f.field_key] = builtEntry[f.field_key] ?? ''
+            }
+          }
+        })
+      }
+
+      col.entries[string_id] = builtEntry
+    }
+
+    return col
+  })
+
+  return columns
+}
+
+const extractFieldValueAndUnit = (fieldMeta, entry) => {
+  if (!fieldMeta || !entry) return { value: '', unit: null }
+
+  // 1) prefer unique fieldsById map
+  if (entry.fieldsById && entry.fieldsById[String(fieldMeta.field_id)]) {
+    const rec = entry.fieldsById[String(fieldMeta.field_id)]
+    return { value: rec?.value == null ? '' : String(rec.value), unit: rec?.unit ?? null }
+  }
+
+  // 2) fallback: single-number shape { value, unit }
+  if (entry.value !== undefined) {
+    return { value: entry.value == null ? '' : String(entry.value), unit: entry.unit ?? null }
+  }
+
+  // 3) radio shape
+  if (entry.selection !== undefined) {
+    return { value: entry.selection == null ? '' : String(entry.selection), unit: null }
+  }
+
+  // 4) multi-field shape by field_key (note: duplicates may exist; we handle _<id> suffix in prefill)
+  const fk = fieldMeta.field_key
+  if (entry[fk] !== undefined) {
+    return { value: entry[fk] == null ? '' : String(entry[fk]), unit: entry.unit ?? null }
+  }
+  // also check keyed-by-id fallback key (e.g. `${field_key}_${field_id}`)
+  if (entry[`${fk}_${fieldMeta.field_id}`] !== undefined) {
+    return {
+      value: entry[`${fk}_${fieldMeta.field_id}`] == null ? '' : String(entry[`${fk}_${fieldMeta.field_id}`]),
+      unit: entry.unit ?? null
+    }
+  }
+
+  return { value: '', unit: null }
+}
+
+export function formColumnsToVitalMonitoringBlocks(columns = [], vitalList = []) {
+  const blocks = []
+
+  for (const col of columns || []) {
+    const block = {
+      recorded_time: col.timeLabel || '',
+      sections: []
+    }
+
+    for (const section of vitalList || []) {
+      const entry = col.entries?.[section.string_id]
+      if (!entry) continue
+
+      const fieldsArr = []
+
+      for (const f of section.fields || []) {
+        const { value, unit } = extractFieldValueAndUnit(f, entry)
+
+        if (value === '' || value == null) continue
+
+        fieldsArr.push({
+          field_id: f.field_id,
+          field_key: f.field_key,
+          field_value: value,
+          unit: unit ?? ''
+        })
+      }
+
+      if (fieldsArr.length > 0) {
+        block.sections.push({
+          section_id: section.section_id,
+          string_id: section.string_id,
+          fields: fieldsArr
+        })
+      }
+    }
+
+    if (block.sections.length > 0) {
+      blocks.push(block)
+    }
+  }
+
+  return blocks
+}
 
 export const anesthesiaSchema = yup.object({
   basicDetails: yup.object({
     location: yup.string().trim().required('Location is required'),
     anaesthesia_datetime: yup.string().trim().required('Date & time is required'),
     estimated_time_required: yup.string().trim().required('Estimated time is required'),
-    veterinarian_id: yup.string().trim().required('Veterinarian is required'),
-    anesthetist_id: yup.string().trim().required('Anesthetist is required'),
+    veterinarian_id: yup.array().of(yup.string()).min(1, 'Select at least one veterinarian'),
+    anesthetist_id: yup.array().of(yup.string()).min(1, 'Select at least one anesthetist'),
     selected: yup.array().of(yup.string()).min(1, 'Select at least one purpose'),
     notes: yup.string().trim().required('Notes are required')
   }),
@@ -65,13 +237,13 @@ const sections = [
   { id: 'anesthesiaSetUp', label: 'Anesthesia Set Up', component: AnesthesiaSetUpSection },
   { id: 'preAnesthesia', label: 'Pre Anesthesia', component: PreAnesthesia },
   { id: 'vitalMonitoring', label: 'Vital Monitoring', component: VitalMonitoring },
-  { id: 'recoveryAndReversal', label: 'Recovery And Reversal', component: RecoveryAndReversal },
-  { id: 'attachments', label: 'Attachments', component: AttachmentsSection }
+  { id: 'recoveryAndReversal', label: 'Recovery And Reversal', component: RecoveryAndReversal }
+  //   { id: 'attachments', label: 'Attachments', component: AttachmentsSection }
 ]
 
 export default function AddAnesthesiaRecord() {
   const router = useRouter()
-  const { id, hospital_case_id, medical_record_id, hospital_id } = router.query
+  const { id, hospital_case_id, medical_record_id, hospital_id, anaesthesia_id } = router.query
   const [expanded, setExpanded] = useState('basicDetails')
   const [isBasicDetailsValid, setIsBasicDetailsValid] = useState(false)
   const [isApiSuccess, setIsApiSuccess] = useState(false)
@@ -82,9 +254,14 @@ export default function AddAnesthesiaRecord() {
   const [doctors, setDoctors] = useState([])
   const [patientLoading, setPatientLoading] = useState(false)
   const [patientData, setPatientData] = useState(null)
+  const [unitList, setunitList] = useState([])
+  const [vitalMonitorList, setVitalMonitorList] = useState([])
+  const [anesthesiaDetail, setAnesthesiaDetail] = useState(null)
+  const [addLoader, setAddLoader] = useState(false)
   const sectionRefs = React.useRef({})
   const scrollContainerRef = React.useRef(null)
   const theme = useTheme()
+  const accordionIconColor = alpha(theme.palette.text.primary, 110 / 255)
 
   const getUserLists = async (query = '') => {
     try {
@@ -189,48 +366,56 @@ export default function AddAnesthesiaRecord() {
     getPatientInfo()
   }, [hospital_case_id])
 
+  const fetchUnitList = async () => {
+    try {
+      const response = await getUnitList()
+      console.log(response, 'response')
+      if (response?.success && response?.data) {
+        setunitList(response?.data?.prescriptionMeasurementType)
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {}
+  }
+
+  const fetchVitalList = async () => {
+    try {
+      const params = {
+        type: 'vital_monitoring'
+        // hospital_id:"",
+        // page_no:"",
+        // limit:"",
+        // anaesthesia_id:""
+      }
+      const response = await getvitalMonitoringList(params)
+      console.log(response, 'response')
+      if (response?.success && response?.data) {
+        setVitalMonitorList(response?.data?.result)
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {}
+  }
+
   useEffect(() => {
     getUserLists()
     fetchAssessmentList()
     fetchAnesthesiaSetup()
     fetchClinPathList()
+    fetchUnitList()
+    fetchVitalList()
   }, [])
 
-  const drugOptions = [
-    { drug_id: '1', drug_name: 'Ketamine 100 MG Tablet' },
-    { drug_id: '2', drug_name: 'Acepromazine' },
-    { drug_id: '3', drug_name: 'Propofol' },
-    { drug_id: '4', drug_name: 'Midazolam' },
-    { drug_id: '5', drug_name: 'Fentanyl' }
-  ]
-
-  const gasOptions = [
-    { gas_id: '1', gas_name: 'Halothane' },
-    { gas_id: '2', gas_name: 'Isoflurane' },
-    { gas_id: '3', gas_name: 'Sevoflurane' },
-    { gas_id: '4', gas_name: 'Oxygen' },
-    { gas_id: '5', gas_name: 'Nitrous Oxide' }
-  ]
-
-  const unitOptions = [
-    { label: 'mg', value: 'mg' },
-    { label: 'ml', value: 'ml' },
-    { label: 'g', value: 'g' },
-    { label: 'mcg', value: 'mcg' }
-  ]
-
-  const deliveryRouteOptions = [
-    { label: 'Intramuscular', value: 'intramuscular' },
-    { label: 'Intravenous', value: 'intravenous' },
-    { label: 'Subcutaneous', value: 'subcutaneous' },
-    { label: 'Oral', value: 'oral' },
-    { label: 'Inhalation', value: 'inhalation' }
+  const purposeStageOptions = [
+    { label: 'Premedication', value: 'Premedication' },
+    { label: 'Induction', value: 'Induction' },
+    { label: 'Analgesia', value: 'Analgesia' }
   ]
 
   const physicalHealthStatusOptions = [
-    { label: 'Class I Normal Health', value: 'Class I Normal Health' },
-    { label: 'Class II Minor Health', value: 'Class II Minor Health' },
-    { label: 'Class III Major Health', value: 'Class III Major Health' }
+    { label: 'Class I | Normal Health', value: 'Class I | Normal Health' },
+    { label: 'Class II | Minor Health', value: 'Class II | Minor Health' },
+    { label: 'Class III | Major Health', value: 'Class III | Major Health' }
   ]
 
   const bodyConditionOptions = [
@@ -253,17 +438,18 @@ export default function AddAnesthesiaRecord() {
   ]
 
   const recoveryTypeOptions = [
-    { label: 'Smooth', value: 'smooth' },
-    { label: 'Moderate', value: 'moderate' },
-    { label: 'Rough', value: 'rough' },
-    { label: 'Prolonged', value: 'prolonged' }
+    { label: 'Normal', value: 'Normal' },
+    { label: 'Prolonged', value: 'Prolonged' },
+    { label: 'Stormy', value: 'Stormy' },
+    { label: 'Renarcotized', value: 'Renarcotized' },
+    { label: 'Problem', value: 'Problem' }
   ]
 
   const anesthesiaRatingOptions = [
-    { label: 'Excellent', value: 'excellent' },
-    { label: 'Good', value: 'good' },
-    { label: 'Fair', value: 'fair' },
-    { label: 'Poor', value: 'poor' }
+    { label: 'Good', value: 'Good' },
+    { label: 'Excellent', value: 'Excellent' },
+    { label: 'Fair', value: 'Fair' },
+    { label: 'Poor', value: 'Poor' }
   ]
 
   const methods = useForm({
@@ -273,21 +459,13 @@ export default function AddAnesthesiaRecord() {
         anaesthesia_datetime: '',
         estimated_time_required: '',
         estimated_time_unit: 'hr',
-        veterinarian_id: '',
-        anesthetist_id: '',
+        veterinarian_id: [],
+        anesthetist_id: [],
         selected: [],
         custom: [],
         notes: ''
       },
-      anesthesiaSetup: {
-        fluids: { checked: false, fluidType: '', quantity: '' },
-        catheter_setup: { checked: false, method: '' },
-        syringe_pump: { checked: false, rate: '' },
-        et_intubation: { checked: false, tubeSizes: '' },
-        nasal_intubation: { checked: false, fluidType: '', quantity: '' },
-        ventilation: { checked: false, mode: '' },
-        monitoring: { checked: false, selected: [], otherItems: [] }
-      },
+      anesthesiaSetup: {},
       medicationsGas: {
         medications: [],
         gases: []
@@ -300,11 +478,11 @@ export default function AddAnesthesiaRecord() {
         body_condition: '',
         animal_activity: '',
         fasting_time: '',
-        fasting_unit: 'hours',
+        fasting_unit: 'Hours',
         previous_endotracheal_tube_size: '',
         code_status: '',
         weight: '',
-        weight_unit: 'kg',
+        weight_unit: 'Kg',
         mark_weight_as_approximate: false,
         pre_anesthesia_notes: '',
         clin_path: {
@@ -313,6 +491,15 @@ export default function AddAnesthesiaRecord() {
         }
       },
       recoveryAndReversal: {
+        recovery_type: '',
+        recovery_first_effect: null,
+        recovery_full_effect: null,
+        describe_problem: '',
+        notes: '',
+        induction: '',
+        tolerance: '',
+        recovery: '',
+        overall: '',
         reversalDrugs: []
       },
       attachments: {
@@ -325,6 +512,22 @@ export default function AddAnesthesiaRecord() {
     reValidateMode: 'onChange'
   })
 
+  const handleCancel = () => {
+    const href = router?.query?.hospital_case_id
+      ? {
+          pathname: `/hospital/inpatient/${router?.query?.hospital_case_id}/`,
+          query: {
+            medical_record_id: patientData?.medical_record_id,
+            animal_id: router?.query?.animal_id,
+            animal_admitted_date: router?.query?.animal_admitted_date,
+            tab: router?.query?.tab
+          }
+        }
+      : `/hospital/inpatient/${router?.query?.hospital_case_id}/`
+
+    router.push(href)
+  }
+
   const {
     handleSubmit,
     setError,
@@ -336,7 +539,6 @@ export default function AddAnesthesiaRecord() {
     formState: { errors, isValid }
   } = methods
 
-  // Watch individual fields
   const location = watch('basicDetails.location')
   const anaesthesia_datetime = watch('basicDetails.anaesthesia_datetime')
   const estimated_time_required = watch('basicDetails.estimated_time_required')
@@ -443,87 +645,299 @@ export default function AddAnesthesiaRecord() {
     trigger
   ])
 
-  //   useEffect(() => {
-  //     // Hardcoded data based on your curl
-  //     // const apiClinSelected = detail.pre_anaesthesia?.clin_path?.selected || []
+  const fetchAnesthesiaDetails = async anaesthesia_id => {
+    if (!anaesthesia_id) return
 
-  //     // const clinSelectedObj = apiClinSelected.reduce((acc, id) => {
-  //     //   acc[id] = true // or acc[String(id)] = true if you prefer
-  //     //   return acc
-  //     // }, {})
-  //     reset({
-  //       basicDetails: {
-  //         location: 'Bangalore',
-  //         anaesthesia_datetime: '2025-11-17 00:00:00',
-  //         estimated_time_required: '10',
-  //         estimated_time_unit: 'hr',
-  //         veterinarian_id: '68',
-  //         anesthetist_id: '70',
-  //         selected: ['24', '25'],
-  //         custom: [],
-  //         notes: 'notes 1'
-  //       },
-  //       anesthesiaSetup: {
-  //         // from anaesthesia_setup array
-  //         fluids: {
-  //           checked: true,
-  //           fluidType: '12', // fluid_type
-  //           quantity: '10' // fluid_quantity
-  //         },
-  //         catheter_setup: {
-  //           checked: true,
-  //           method: 'IV' // catheter_type
-  //         },
-  //         syringe_pump: {
-  //           checked: true,
-  //           rate: '15' // syringe_rate
-  //         },
-  //         // others remain default / unchecked
-  //         et_intubation: { checked: false, tubeSizes: '' },
-  //         nasal_intubation: { checked: false, fluidType: '', quantity: '' },
-  //         ventilation: { checked: false, mode: '' },
-  //         monitoring: { checked: false, selected: [], otherItems: [] }
-  //       },
-  //       medicationsGas: {
-  //         medications: [],
-  //         gases: []
-  //       },
-  //       vitalMonitoring: [],
-  //       preAnesthesia: {
-  //         temperature: '100',
-  //         humidity: '120',
-  //         physical_health_status: 'excellent',
-  //         body_condition: 'ideal',
-  //         animal_activity: 'active',
-  //         fasting_time: '12',
-  //         fasting_unit: 'hours',
-  //         previous_endotracheal_tube_size: '0',
-  //         code_status: 'full_code',
-  //         weight: '90',
-  //         weight_unit: 'kg',
-  //         mark_weight_as_approximate: true, // because weight_type = "Estimated"
-  //         pre_anesthesia_notes: 'notes for risk',
-  //         // clin_path: {
-  //         //     selected: clinSelectedObj,                 // 👈 {3:true,4:true,5:true}
-  //         //     custom: pre.clin_path?.custom || []
-  //         //   },
-  //         clin_path: {
-  //           selected: {
-  //             16: true,
-  //             17: true
-  //           }, // from curl: "selected":[16,17]
-  //           custom: ['item 1'] // from curl: "custom":["item 1"]
-  //         }
-  //       },
-  //       recoveryAndReversal: {
-  //         reversalDrugs: []
-  //       },
-  //       attachments: {
-  //         files: [],
-  //         comments: ''
-  //       }
-  //     })
-  //   }, [reset])
+    try {
+      setAddLoader(true)
+      const response = await getAnesthesiaDetails(anaesthesia_id)
+      console.log(response, 'getAnesthesiaDetails response')
+
+      if (response?.success && response?.data) {
+        setAnesthesiaDetail(response.data)
+        setAddLoader(false)
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to fetch anesthesia details' })
+        setAddLoader(false)
+      }
+    } catch (error) {
+      console.error('Error fetching anesthesia details', error)
+      Toaster({ type: 'error', message: 'Error fetching anesthesia details' })
+    }
+  }
+
+  useEffect(() => {
+    if (!anaesthesia_id) return
+    fetchAnesthesiaDetails(anaesthesia_id)
+  }, [anaesthesia_id])
+
+  useEffect(() => {
+    if (!anesthesiaDetail) return
+
+    const detail = anesthesiaDetail
+    console.log(detail, 'detail')
+    const purposeArray = detail.purpose || []
+
+    const selectedPurposeIds = []
+    const customPurposeNames = []
+
+    purposeArray.forEach(p => {
+      const isSelected = p.is_selected === '1' || p.is_selected === 1 || p.is_selected === true
+
+      if (!isSelected) return
+
+      if (p.is_other === '0' || p.is_other === 0 || p.is_other === false) {
+        if (p.id != null) {
+          selectedPurposeIds.push(String(p.id))
+        }
+      }
+
+      if (p.is_other === '1' || p.is_other === 1 || p.is_other === true) {
+        if (p.name) {
+          customPurposeNames.push(p.name)
+        }
+      }
+    })
+
+    const basicDetailsForm = {
+      location: detail?.location || '',
+      anaesthesia_datetime: detail.anaesthesia_datetime || '',
+      estimated_time_required: detail.estimated_time_required || '',
+      estimated_time_unit: detail.estimated_time_unit || 'hr',
+      veterinarian_id: (detail.veterinarians || []).map(v => String(v.user_id)),
+      anesthetist_id: (detail.anesthetists || []).map(a => String(a.user_id)),
+
+      selected: selectedPurposeIds,
+      custom: customPurposeNames,
+      notes: detail.notes || ''
+    }
+
+    // ---------- MEDICATIONS & GAS ----------
+    const anaesthesia_medications = detail.anaesthesia_medications || {}
+    const medicationRecords = anaesthesia_medications.medication?.records || []
+    const gasRecords = anaesthesia_medications.gas?.records || []
+
+    const combineDateAndTime = (dateStr, timeStr) => {
+      if (!timeStr) return null
+      const datePart =
+        (dateStr && dayjs(dateStr).isValid() && dayjs(dateStr).format('YYYY-MM-DD')) || dayjs().format('YYYY-MM-DD')
+      const candidate = `${datePart} ${timeStr}`
+      const parsed = dayjs(candidate, 'YYYY-MM-DD HH:mm:ss', true)
+      return parsed.isValid() ? parsed : null
+    }
+
+    const medicationsFromApi = medicationRecords.map(rec => {
+      const createdAt = rec.created_at || null
+      return {
+        id: rec.id || '',
+        drug_name: rec.drug_id ? { id: String(rec.drug_id), name: rec.drug_name || '' } : null,
+        purpose_stage: rec.purpose_stage || '',
+        amount: rec.amount ? String(rec.amount) : '',
+        unit: rec.unit_id ? String(rec.unit_id) : '',
+        unit_id: rec.unit_id ? String(rec.unit_id) : '',
+        delivery_route: rec.route ? { id: '', delivery: rec.route } : null,
+        delivery_time: combineDateAndTime(createdAt, rec.delivery_time),
+        max_effect_time: combineDateAndTime(createdAt, rec.max_effect),
+        delivery_status: rec.delivery_status || null,
+        notes: rec.comments || ''
+      }
+    })
+
+    const gasFromApi = gasRecords.map(rec => {
+      const createdAt = rec.created_at || null
+      return {
+        id: rec.id || '',
+        gas_name: rec.drug_id ? { id: String(rec.drug_id), name: rec.drug_name || '' } : null,
+        o2_flow: rec.oxygen_l_min ? String(rec.oxygen_l_min) : '',
+        concentration: rec.concentration ? String(rec.concentration) : '',
+        delivery_route: rec.route ? { id: '', delivery: rec.route } : null,
+        start_time: combineDateAndTime(createdAt, rec.start_time),
+        end_time: combineDateAndTime(createdAt, rec.end_time),
+        delivery_status: rec.delivery_status || null,
+        notes: rec.comments || ''
+      }
+    })
+
+    // ---------- PRE-ANAESTHESIA ----------
+    const pre = detail.pre_anaesthesia || {}
+    const clinPathArray = Array.isArray(pre.clin_path) ? pre.clin_path : []
+
+    const clinSelectedObj = {}
+    const clinCustomArr = []
+
+    clinPathArray.forEach(item => {
+      const isSelected = item.is_selected === '1' || item.is_selected === 1 || item.is_selected === true
+      if (!isSelected) return
+
+      const isOther = item.is_other === '1' || item.is_other === 1 || item.is_other === true
+
+      if (!isOther) {
+        if (item.id != null) {
+          clinSelectedObj[String(item.id)] = true
+        }
+      } else {
+        if (item.name) {
+          clinCustomArr.push(item.name)
+        }
+      }
+    })
+
+    const preAnesthesiaForm = {
+      temperature: pre.temperature || '',
+      humidity: pre.humidity || '',
+      physical_health_status: pre.physical_health_status || '',
+      body_condition: pre.body_condition || '',
+      animal_activity: pre.animal_activity || '',
+      fasting_time: pre.fasting_time || '',
+      fasting_unit: pre.fasting_unit || 'Hours',
+      previous_endotracheal_tube_size: pre.previous_endotracheal_tube_size || '',
+      code_status: pre.code_status || '',
+      weight: pre.weight || '',
+      weight_unit: pre.weight_unit || 'Kg',
+      mark_weight_as_approximate: pre.weight_type === 'Estimated',
+      pre_anesthesia_notes: pre.pre_anesthesia_notes || '',
+      clin_path: {
+        selected: clinSelectedObj,
+        custom: clinCustomArr
+      }
+    }
+
+    // ---------- RECOVERY & REVERSAL ----------
+    const recovery_and_reversal = detail.recovery_and_reversal || {}
+    const recoveryFromApi = recovery_and_reversal.recovery || null
+    const reversalRecords = recovery_and_reversal.reversal?.records || []
+
+    const recoveryForm = {
+      recovery_type: recoveryFromApi?.recovery_type || '',
+      recovery_first_effect: recoveryFromApi?.recovery_first_effect_time
+        ? combineDateAndTime(recoveryFromApi.created_at, recoveryFromApi.recovery_first_effect_time)
+        : null,
+      recovery_full_effect: recoveryFromApi?.recovery_full_effect_time
+        ? combineDateAndTime(recoveryFromApi.created_at, recoveryFromApi.recovery_full_effect_time)
+        : null,
+      describe_problem: recoveryFromApi?.describe_problem || '',
+      notes: recoveryFromApi?.notes || '',
+      induction: recoveryFromApi?.rating_induction || '',
+      tolerance: recoveryFromApi?.rating_tolerance || '',
+      recovery: recoveryFromApi?.rating_recovery || '',
+      overall: recoveryFromApi?.rating_overall || ''
+    }
+
+    const reversalFromApi = reversalRecords.map(rec => {
+      const createdAt = rec.created_at || null
+      return {
+        id: rec.id || '',
+        drug_id: rec.drug_id ? Number(rec.drug_id) : undefined,
+        drug_name: rec.drug_id ? { id: String(rec.drug_id), name: rec.drug_name || '' } : null,
+        amount: rec.amount ? String(rec.amount) : '',
+        unit: rec.unit_id ? String(rec.unit_id) : '',
+        unit_id: rec.unit_id ? String(rec.unit_id) : '',
+        delivery_route: rec.route ? { id: '', delivery: rec.route } : null,
+        delivery_time: combineDateAndTime(createdAt, rec.delivery_time),
+        max_effect_time: combineDateAndTime(createdAt, rec.max_effect),
+        delivery_status: rec.delivery_status || null,
+        notes: rec.comments || ''
+      }
+    })
+
+    // ---------- RESET FORM WITH API DATA ----------
+    reset({
+      basicDetails: basicDetailsForm,
+      medicationsGas: {
+        medications: medicationsFromApi,
+        gases: gasFromApi
+      },
+      anesthesiaSetup: {},
+      vitalMonitoring: [],
+      preAnesthesia: preAnesthesiaForm,
+      recoveryAndReversal: {
+        ...recoveryForm,
+        reversalDrugs: reversalFromApi
+      },
+      attachments: {
+        files: [],
+        comments: ''
+      }
+    })
+  }, [anesthesiaDetail, reset])
+
+  useEffect(() => {
+    if (!anesthesiaDetail) return
+
+    const apiAnaesthesiaSetup = anesthesiaDetail.anaesthesia_setup || []
+
+    const toCamel = s =>
+      String(s || '')
+        .trim()
+        .replace(/_([a-zA-Z0-9])/g, (_, g1) => g1.toUpperCase())
+
+    const anesthesiaSetupFlat = {}
+
+    apiAnaesthesiaSetup.forEach(section => {
+      const key = section.string_id
+      const sectionObj = {
+        checked: false,
+        fields: {},
+        monitoring: { selected: [], otherItems: [] }
+      }
+
+      if (Array.isArray(section.fields)) {
+        section.fields.forEach(f => {
+          const uiKey = toCamel(f.field_key)
+          const rawVal = f.field_value === null || f.field_value === undefined ? '' : String(f.field_value)
+          const unit = f.unit ?? (Array.isArray(f.units) && f.units.length ? f.units[0] : null)
+
+          sectionObj[uiKey] = rawVal
+          sectionObj.fields[f.field_key] = { field_value: rawVal, unit }
+
+          if (rawVal !== '') sectionObj.checked = true
+        })
+      }
+
+      if (Array.isArray(section.monitoring_items) && section.monitoring_items.length > 0) {
+        const selected = []
+        const otherItems = []
+
+        section.monitoring_items.forEach(mi => {
+          const selectedFlag = mi.is_selected === '1' || mi.is_selected === 1 || mi.is_selected === true
+          if (selectedFlag && mi.id) selected.push(Number(mi.id))
+          if ((!mi.id || mi.id === '') && mi.name) otherItems.push(mi.name)
+        })
+
+        if (selected.length > 0 || otherItems.length > 0) sectionObj.checked = true
+        sectionObj.monitoring.selected = selected
+        sectionObj.monitoring.otherItems = otherItems
+      }
+
+      anesthesiaSetupFlat[key] = sectionObj
+    })
+
+    try {
+      setValue('anesthesiaSetup', anesthesiaSetupFlat, { shouldDirty: false, shouldTouch: false })
+    } catch (err) {
+      console.error('setValue failed for anesthesiaSetup', err)
+    }
+  }, [anesthesiaDetail, setValue])
+
+  useEffect(() => {
+    if (!anesthesiaDetail) return
+
+    const detailVital = anesthesiaDetail.vital_monitoring
+    if (!detailVital) return
+
+    const columns = serverVitalToFormColumns(detailVital)
+
+    const normalizedColumns = columns.map(col => ({
+      ...col,
+      timeLabel: recordedTimeToLabel(col.timeLabel || col.recorded_time || '')
+    }))
+
+    try {
+      setValue('vitalMonitoring', normalizedColumns, { shouldDirty: false, shouldTouch: false })
+    } catch (err) {
+      console.error('setValue failed for vitalMonitoring', err)
+    }
+  }, [anesthesiaDetail, setValue])
 
   const handleChange = async sectionId => {
     if (sectionId !== 'basicDetails' && !isApiSuccess) {
@@ -565,128 +979,306 @@ export default function AddAnesthesiaRecord() {
     }
   }
 
-  const toCamel = s => s.replace(/_([a-z])/g, g => g[1].toUpperCase())
-  const uiKeyForField = (sectionStringId, apiFieldKey) => {
-    const camel = toCamel(apiFieldKey)
-    const mapping = {
-      fluids: {
-        fluid_type: 'fluidType',
-        fluid_quantity: 'quantity',
-        quantity: 'quantity'
-      },
-      catheter_setup: {
-        catheter_type: 'method'
-      },
-      syringe_pump: {
-        syringe_rate: 'rate'
-      },
-      et_intubation: {
-        et_tube: 'tubeSizes'
-      },
-      nasal_intubation: {
-        nasal_tube: 'tubeSizes'
-      },
-      ventilation: {
-        ventilation_mode: 'mode'
-      }
+  const toCamel = s =>
+    String(s)
+      .trim()
+      .replace(/_([a-zA-Z0-9])/g, (_, g1) => g1.toUpperCase())
+
+  const uiKeyForField = (_sectionStringId, apiFieldKey) => {
+    return toCamel(apiFieldKey)
+  }
+
+  const TIME_ONLY_RE = /^\s*\d{1,2}:\d{2}(:\d{2})?(\s*[AaPp]\.?[Mm]\.?)?\s*$/
+
+  const fmt = v => {
+    if (v == null || v === '') return ''
+    if (dayjs.isDayjs(v)) return v.isValid() ? v.format('YYYY-MM-DD HH:mm:ss') : ''
+    if (v instanceof Date) return dayjs(v).format('YYYY-MM-DD HH:mm:ss')
+
+    const str = String(v).trim()
+
+    if (TIME_ONLY_RE.test(str)) {
+      const candidate = `${dayjs().format('YYYY-MM-DD')} ${str}`
+      const p = dayjs(candidate, ['YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DD hh:mm A', 'YYYY-MM-DD HH:mm'], true)
+      return p.isValid() ? p.format('YYYY-MM-DD HH:mm:ss') : ''
     }
-    return (mapping[sectionStringId] && mapping[sectionStringId][apiFieldKey]) || camel
+
+    const p = dayjs(str, ['YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DDTHH:mm:ss', 'YYYY-MM-DD', 'HH:mm:ss', 'hh:mm A'], true)
+    return p.isValid()
+      ? p.format('YYYY-MM-DD HH:mm:ss')
+      : dayjs(str).isValid()
+      ? dayjs(str).format('YYYY-MM-DD HH:mm:ss')
+      : ''
+  }
+
+  const toTimeOnly = v => {
+    if (!v) return ''
+    let parsed = null
+    if (dayjs.isDayjs(v)) parsed = v
+    else if (v instanceof Date) parsed = dayjs(v)
+    else parsed = dayjs(String(v))
+
+    if (!parsed || !parsed.isValid()) {
+      const candidate = dayjs(`${dayjs().format('YYYY-MM-DD')} ${String(v).trim()}`, 'YYYY-MM-DD hh:mm A', true)
+      if (candidate.isValid()) parsed = candidate
+    }
+
+    return parsed && parsed.isValid() ? parsed.format('HH:mm:ss') : ''
+  }
+
+  const timeLabelToHHMMSS = label => {
+    if (!label) return ''
+    const d = dayjs(label, ['hh:mm A', 'h:mm A', 'HH:mm', 'H:mm', 'HH:mm:ss'], true)
+    if (d.isValid()) return d.format('HH:mm:ss')
+    const d2 = dayjs(label)
+    return d2.isValid() ? d2.format('HH:mm:ss') : ''
+  }
+
+  const recordedTimeToLabel = timeStr => {
+    if (!timeStr) return ''
+    const d = dayjs(timeStr, ['HH:mm:ss', 'HH:mm', 'H:mm'], true)
+    if (!d.isValid()) return ''
+    return d.format('hh:mm A')
   }
 
   const onValid = async data => {
     setIsSubmitting(true)
+    console.log(data, 'data')
 
     try {
       const anesthesiaSetupValues = methods.getValues('anesthesiaSetup') || {}
-      const invalidSections = []
+      const isEdit = !!anaesthesia_id
 
-      clearErrors('anesthesiaSetup')
+      const purposePayload = {
+        selected: data.basicDetails.selected || [],
+        custom: data.basicDetails.custom || []
+      }
 
-      let hasAnySetupError = false
+      let medsPayload = []
+      let gasPayload = []
+      let recoveryPayload = null
+      let reversalPayload = []
+      let blocks = []
+      let preAnaesthesiaPayload = null
+      let anaesthesiaSetupPayload = []
 
-      for (const meta of anesthesiaSetupList || []) {
-        const sectionKey = meta.string_id
-        const sectionForm = anesthesiaSetupValues[sectionKey]
+      if (isEdit) {
+        // MEDICATIONS
+        medsPayload = (methods.getValues('medicationsGas.medications') || []).map(m => ({
+          id: m.id || '',
+          drug_id: Number(m.drug_name?.id ?? m.drug_id ?? 0),
+          purpose_stage: m.purpose_stage || '',
+          amount: m.amount || '',
+          unit_id: m.unit ? Number(m.unit) : Number(m.unit_id || 0),
+          route: m.delivery_route?.delivery || '',
+          delivery_time: fmt(m.delivery_time),
+          delivery_status: m.delivery_status || '',
+          max_effect: fmt(m.max_effect_time),
+          comments: m.notes || ''
+        }))
 
-        if (!sectionForm?.checked) continue
+        // GAS
+        gasPayload = (methods.getValues('medicationsGas.gases') || []).map(g => ({
+          id: g.id || '',
+          drug_id: Number(g.gas_name?.id ?? g.drug_id ?? 0),
+          oxygen_l_min: g.o2_flow || g.oxygen_l_min || '',
+          concentration: g.concentration || '',
+          route: g.delivery_route?.delivery || '',
+          start_time: fmt(g.start_time),
+          end_time: fmt(g.end_time),
+          delivery_status: g.delivery_status || '',
+          comments: g.notes || ''
+        }))
 
-        let sectionHasError = false
-        if (Array.isArray(meta.fields) && meta.fields.length > 0) {
-          for (const f of meta.fields) {
-            const uiKey = uiKeyForField(meta.string_id, f.field_key)
-            const v = sectionForm[uiKey]
+        // RECOVERY & REVERSAL
+        const recoveryForm = methods.getValues('recoveryAndReversal') || {}
+        const reversalDrugsForm = methods.getValues('recoveryAndReversal.reversalDrugs') || []
 
-            const isEmpty = v === undefined || v === null || (typeof v === 'string' && v.trim() === '')
+        recoveryPayload = {
+          recovery_type: recoveryForm.recovery_type || '',
+          recovery_first_effect_time: toTimeOnly(recoveryForm.recovery_first_effect),
+          recovery_full_effect_time: toTimeOnly(recoveryForm.recovery_full_effect),
+          describe_problem: recoveryForm.describe_problem || '',
+          notes: recoveryForm.notes || '',
+          rating_induction: recoveryForm.induction || '',
+          rating_tolerance: recoveryForm.tolerance || '',
+          rating_recovery: recoveryForm.recovery || '',
+          rating_overall: recoveryForm.overall || ''
+        }
 
-            if (isEmpty) {
+        reversalPayload = (reversalDrugsForm || []).map(r => ({
+          id: r.id || '',
+          drug_id: Number(r.drug_name?.id ?? r.drug_id ?? 0),
+          amount: r.amount || '',
+          unit_id: r.unit ? Number(r.unit) : Number(r.unit_id || 0),
+          route: r.delivery_route?.delivery || '',
+          delivery_time: toTimeOnly(r.delivery_time),
+          delivery_status: r.delivery_status || '',
+          max_effect: toTimeOnly(r.max_effect_time)
+        }))
+
+        // PRE-ANAESTHESIA
+        const pre = data.preAnesthesia || {}
+
+        const clinPathSelectedObj = pre.clin_path?.selected || {}
+        const clinPathSelectedIds = Object.entries(clinPathSelectedObj)
+          .filter(([, checked]) => !!checked)
+          .map(([id]) => Number(id))
+
+        preAnaesthesiaPayload = {
+          temperature: pre.temperature || '',
+          humidity: pre.humidity || '',
+          physical_health_status: pre.physical_health_status || '',
+          body_condition: pre.body_condition || '',
+          animal_activity: pre.animal_activity || '',
+          fasting_time: pre.fasting_time || '',
+          fasting_unit: pre.fasting_unit || '',
+          previous_endotracheal_tube_size: pre.previous_endotracheal_tube_size || '',
+          code_status: pre.code_status || '',
+          weight: pre.weight || '',
+          weight_unit: pre.weight_unit || '',
+          weight_type: pre.mark_weight_as_approximate ? 'Estimated' : 'Actual',
+          pre_anesthesia_notes: pre.pre_anesthesia_notes || '',
+          clin_path: {
+            selected: clinPathSelectedIds,
+            custom: pre.clin_path?.custom || []
+          }
+        }
+
+        // VITAL BLOCKS
+        const columns = methods.getValues('vitalMonitoring') || []
+
+        const vitalMetaForBlocks =
+          isEdit &&
+          anesthesiaDetail?.vital_monitoring &&
+          Array.isArray(anesthesiaDetail.vital_monitoring.records) &&
+          anesthesiaDetail.vital_monitoring.records.length
+            ? anesthesiaDetail.vital_monitoring.records // use same meta as prefill
+            : vitalMonitorList || []
+
+        console.log(vitalMetaForBlocks, 'vitalMetaForBlocks')
+        console.log('columns:', JSON.stringify(columns, null, 2))
+        console.log('vitalMetaForBlocks:', JSON.stringify(vitalMetaForBlocks, null, 2))
+
+        blocks = formColumnsToVitalMonitoringBlocks(columns, vitalMetaForBlocks)
+
+        console.log('blocks:', JSON.stringify(blocks, null, 2))
+        // ----------- VALIDATE & BUILD ANAESTHESIA SETUP (EDIT-ONLY) -----------
+        const invalidSections = []
+        clearErrors('anesthesiaSetup')
+        let hasAnySetupError = false
+
+        for (const meta of anesthesiaSetupList || []) {
+          const sectionKey = meta.string_id
+          const sectionForm = anesthesiaSetupValues[sectionKey]
+
+          if (!sectionForm?.checked) continue
+
+          let sectionHasError = false
+
+          if (Array.isArray(meta.fields) && meta.fields.length > 0) {
+            for (const f of meta.fields) {
+              const uiKey = uiKeyForField(meta.string_id, f.field_key)
+              const v = sectionForm[uiKey]
+              const isEmpty = v === undefined || v === null || (typeof v === 'string' && v.trim() === '')
+
+              if (isEmpty) {
+                sectionHasError = true
+                hasAnySetupError = true
+
+                setError(`anesthesiaSetup.${sectionKey}.${uiKey}`, {
+                  type: 'required',
+                  message: `${f.field_label} is required`
+                })
+              }
+            }
+          }
+
+          // monitoring validation
+          if (Array.isArray(meta.monitoring_items) && meta.monitoring_items.length > 0) {
+            const mon = sectionForm.monitoring || {}
+            const selected = mon.selected || []
+            const otherItems = mon.otherItems || []
+
+            if (!selected.length && !otherItems.length) {
               sectionHasError = true
               hasAnySetupError = true
 
-              setError(`anesthesiaSetup.${sectionKey}.${uiKey}`, {
+              setError(`anesthesiaSetup.${sectionKey}.monitoring`, {
                 type: 'required',
-                message: `${f.field_label} is required`
+                message: 'Select at least one monitoring item or add an "Other" item'
               })
             }
           }
+
+          if (sectionHasError) invalidSections.push(meta.section_name)
         }
 
-        if (Array.isArray(meta.monitoring_items) && meta.monitoring_items.length > 0) {
-          const mon = sectionForm.monitoring || {}
-          const selected = mon.selected || []
-          const otherItems = mon.otherItems || []
+        if (hasAnySetupError) {
+          Toaster({
+            type: 'error',
+            message: `Please fill all required fields for: ${invalidSections.join(', ')} or uncheck those sections.`
+          })
+          setIsSubmitting(false)
+          return
+        }
 
-          if (!selected.length && !otherItems.length) {
-            sectionHasError = true
-            hasAnySetupError = true
+        // build anaesthesia_setup payload
+        const currentSetupValues = methods.getValues('anesthesiaSetup') || {}
+        anaesthesiaSetupPayload = []
 
-            setError(`anesthesiaSetup.${sectionKey}.monitoring`, {
-              type: 'required',
-              message: 'Select at least one monitoring item or add an "Other" item'
-            })
+        for (const meta of anesthesiaSetupList || []) {
+          const key = meta.string_id
+          const sectionForm = currentSetupValues[key] || {}
+
+          if (!sectionForm || sectionForm.checked !== true) continue
+
+          const fieldsArr = (meta.fields || []).map(f => {
+            const fieldFromObject =
+              (sectionForm.fields && sectionForm.fields[f.field_key] && sectionForm.fields[f.field_key].field_value) ??
+              null
+            const uiKey = uiKeyForField(meta.string_id, f.field_key)
+            const fieldFromFlat = sectionForm[uiKey] ?? null
+
+            const field_value = fieldFromObject ?? fieldFromFlat ?? ''
+            const unit =
+              (sectionForm.fields && sectionForm.fields[f.field_key] && sectionForm.fields[f.field_key].unit) ??
+              f.unit ??
+              null
+
+            return {
+              field_id: f.field_id,
+              field_key: f.field_key,
+              field_value,
+              unit: Array.isArray(f.units) && f.units.length > 0 ? f.units[0] : unit
+            }
+          })
+
+          let monitoringObj = undefined
+          if (Array.isArray(meta.monitoring_items) && meta.monitoring_items.length > 0) {
+            const monState = sectionForm.monitoring || {}
+            const selected = monState.selected || []
+            const custom = monState.otherItems || []
+            monitoringObj = { selected, custom }
           }
-        }
 
-        if (sectionHasError) {
-          invalidSections.push(meta.section_name)
-        }
-      }
+          const sectionObj = {
+            section_id: meta.section_id,
+            string_id: meta.string_id,
+            fields: fieldsArr
+          }
 
-      if (hasAnySetupError) {
-        Toaster({
-          type: 'error',
-          message: `Please fill all required fields for: ${invalidSections.join(', ')} or uncheck those sections.`
-        })
-        setIsSubmitting(false)
-        return
-      }
+          if (monitoringObj) sectionObj.monitoring = monitoringObj
 
-      const pre = data.preAnesthesia || {}
-
-      const clinPathSelectedObj = pre.clin_path?.selected || {}
-      const clinPathSelectedIds = Object.entries(clinPathSelectedObj)
-        .filter(([, checked]) => !!checked)
-        .map(([id]) => Number(id))
-      const preAnaesthesiaPayload = {
-        temperature: pre.temperature || '',
-        humidity: pre.humidity || '',
-        physical_health_status: pre.physical_health_status || '',
-        body_condition: pre.body_condition || '',
-        animal_activity: pre.animal_activity || '',
-        fasting_time: pre.fasting_time || '',
-        fasting_unit: pre.fasting_unit || '',
-        previous_endotracheal_tube_size: pre.previous_endotracheal_tube_size || '',
-        code_status: pre.code_status || '',
-        weight: pre.weight || '',
-        weight_unit: pre.weight_unit || '',
-        weight_type: pre.mark_weight_as_approximate ? 'Estimated' : 'Actual',
-        pre_anesthesia_notes: pre.pre_anesthesia_notes || '',
-        clin_path: {
-          selected: clinPathSelectedIds,
-          custom: pre.clin_path?.custom || []
+          anaesthesiaSetupPayload.push(sectionObj)
         }
       }
 
       const formData = new FormData()
+
+      if (isEdit) {
+        formData.append('anaesthesia_id', anaesthesia_id)
+      }
 
       formData.append('hospital_case_id', hospital_case_id || '')
       formData.append('medical_record_id', medical_record_id || '')
@@ -694,71 +1286,21 @@ export default function AddAnesthesiaRecord() {
       formData.append('anaesthesia_datetime', data.basicDetails.anaesthesia_datetime)
       formData.append('estimated_time_required', data.basicDetails.estimated_time_required)
       formData.append('estimated_time_unit', data.basicDetails.estimated_time_unit)
-      formData.append('veterinarian_id', data.basicDetails.veterinarian_id)
-      formData.append('anesthetist_id', data.basicDetails.anesthetist_id)
+      formData.append('veterinarian_id', JSON.stringify(data.basicDetails.veterinarian_id || []))
+      formData.append('anesthetist_id', JSON.stringify(data.basicDetails.anesthetist_id || []))
       formData.append('notes', data.basicDetails.notes)
-      //formData.append('anaesthesia_id')
-      const purposePayload = {
-        selected: data.basicDetails.selected || [],
-        custom: data.basicDetails.custom || []
-      }
       formData.append('purpose', JSON.stringify(purposePayload))
-      // formData.append('pre_anaesthesia', JSON.stringify(preAnaesthesiaPayload))
-      const anaesthesiaSetupPayload = []
-      const currentSetupValues = methods.getValues('anesthesiaSetup') || {}
 
-      for (const meta of anesthesiaSetupList || []) {
-        const key = meta.string_id
-        const sectionForm = currentSetupValues[key] || {}
-
-        if (!sectionForm || sectionForm.checked !== true) continue
-
-        const fieldsArr = (meta.fields || []).map(f => {
-          const fieldFromObject =
-            (sectionForm.fields && sectionForm.fields[f.field_key] && sectionForm.fields[f.field_key].field_value) ??
-            null
-          const uiKey = uiKeyForField(meta.string_id, f.field_key)
-          const fieldFromFlat = sectionForm[uiKey] ?? null
-
-          const field_value = fieldFromObject ?? fieldFromFlat ?? ''
-          const unit =
-            (sectionForm.fields && sectionForm.fields[f.field_key] && sectionForm.fields[f.field_key].unit) ??
-            f.unit ??
-            null
-
-          return {
-            field_id: f.field_id,
-            field_key: f.field_key,
-            //field_label: f.field_label,
-            // input_type: f.input_type,
-            //options: f.options || [],
-            //units: f.units || [],
-            field_value: field_value,
-            unit: unit
-          }
-        })
-
-        let monitoringObj = undefined
-        if (Array.isArray(meta.monitoring_items) && meta.monitoring_items.length > 0) {
-          const monState = sectionForm.monitoring || {}
-          const selected = monState.selected || []
-          const custom = monState.otherItems || []
-          monitoringObj = { selected, custom }
-        }
-        const sectionObj = {
-          section_id: meta.section_id,
-          //section_name: meta.section_name,
-          string_id: meta.string_id,
-          // type: meta.type || 'anaesthesia_setup',
-          fields: fieldsArr
-        }
-
-        if (monitoringObj) sectionObj.monitoring = monitoringObj
-
-        anaesthesiaSetupPayload.push(sectionObj)
+      if (isEdit) {
+        formData.append('pre_anaesthesia', JSON.stringify(preAnaesthesiaPayload))
+        formData.append('anaesthesia_medications', JSON.stringify({ medications: medsPayload, gas: gasPayload }))
+        formData.append(
+          'recovery_and_reversal',
+          JSON.stringify({ recovery: recoveryPayload, reversal: reversalPayload })
+        )
+        formData.append('vital_monitoring_blocks', JSON.stringify(blocks))
+        formData.append('anaesthesia_setup', JSON.stringify(anaesthesiaSetupPayload))
       }
-
-      //formData.append('anaesthesia_setup', JSON.stringify(anaesthesiaSetupPayload))
 
       console.log('🔹 Final payload for API:', {
         hospital_case_id: hospital_case_id || '',
@@ -771,7 +1313,13 @@ export default function AddAnesthesiaRecord() {
         anesthetist_id: data.basicDetails.anesthetist_id,
         notes: data.basicDetails.notes,
         purpose: purposePayload,
-        anaesthesia_setup: anaesthesiaSetupPayload
+        ...(isEdit && {
+          pre_anaesthesia: preAnaesthesiaPayload,
+          anaesthesia_setup: anaesthesiaSetupPayload,
+          medications: { medications: medsPayload, gas: gasPayload },
+          recovery_and_reversal: { recovery: recoveryPayload, reversal: reversalPayload },
+          vital_monitoring_blocks: blocks
+        })
       })
 
       const response = await addAnesthesia(formData)
@@ -780,6 +1328,7 @@ export default function AddAnesthesiaRecord() {
         setIsApiSuccess(true)
         setExpanded('medicationsGas')
         Toaster({ type: 'success', message: response?.message })
+        router.back()
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to save record' })
       }
@@ -803,7 +1352,6 @@ export default function AddAnesthesiaRecord() {
     }
   }
 
-  // Determine if sections should be enabled
   const shouldEnableSections = isApiSuccess
   console.log(id, 'id')
   return (
@@ -918,7 +1466,7 @@ export default function AddAnesthesiaRecord() {
               }}
             >
               {sections.map(sec => {
-                const isDisabled = sec.id !== 'basicDetails' && !shouldEnableSections
+                const isDisabled = sec.id !== 'basicDetails' && !shouldEnableSections && !anaesthesia_id
                 return (
                   <Tab
                     key={sec.id}
@@ -932,7 +1480,8 @@ export default function AddAnesthesiaRecord() {
                           : theme.palette.customColors.secondaryBg,
                       fontSize: '14px',
                       fontWeight: '600!important',
-                      opacity: sec.id !== 'basicDetails' && !shouldEnableSections ? 0.5 : 1
+                      opacity: sec.id !== 'basicDetails' && !shouldEnableSections ? 0.5 : 1,
+                      pl: 12
                     }}
                   />
                 )
@@ -963,7 +1512,7 @@ export default function AddAnesthesiaRecord() {
             }}
           >
             {sections.map(({ id, label, component: SectionComponent }) => {
-              const isDisabled = id !== 'basicDetails' && !shouldEnableSections
+              const isDisabled = id !== 'basicDetails' && !shouldEnableSections && !anaesthesia_id
               return (
                 <Accordion
                   key={id}
@@ -985,13 +1534,13 @@ export default function AddAnesthesiaRecord() {
                   <AccordionSummary
                     expandIcon={
                       expanded === id ? (
-                        <Typography sx={{ fontWeight: 'bold', fontSize: 24, color: '#4c4e646e' }}>−</Typography>
+                        <Typography sx={{ fontWeight: 'bold', fontSize: 24, color: accordionIconColor }}>−</Typography>
                       ) : (
                         <Typography
                           sx={{
                             fontWeight: 'bold',
                             fontSize: 24,
-                            color: isDisabled ? '#4c4e646e' : theme.palette.customColors.OnSurfaceVariant
+                            color: isDisabled ? accordionIconColor : theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
                           +
@@ -1010,10 +1559,9 @@ export default function AddAnesthesiaRecord() {
                       vetOptions={doctors}
                       anesthetistOptions={doctors}
                       purposeOptions={assessmentList}
-                      drugOptions={drugOptions}
-                      gasOptions={gasOptions}
-                      unitOptions={unitOptions}
-                      deliveryRouteOptions={deliveryRouteOptions}
+                      purposeStageOptions={purposeStageOptions}
+                      unitList={unitList}
+                      vitalMonitorList={vitalMonitorList}
                       physicalHealthStatusOptions={physicalHealthStatusOptions}
                       bodyConditionOptions={bodyConditionOptions}
                       animalActivityOptions={animalActivityOptions}
@@ -1031,6 +1579,7 @@ export default function AddAnesthesiaRecord() {
                       onDeleteReversalDrug={onDeleteReversalDrug}
                       anesthesiaSetupList={anesthesiaSetupList}
                       clinPathOptions={clinPathList}
+                      addLoader={addLoader}
                     />
                   </AccordionDetails>
                 </Accordion>
@@ -1049,6 +1598,7 @@ export default function AddAnesthesiaRecord() {
             </Box>
           }
           onAdd={handleSubmit(onValid, onInvalid)}
+          onCancel={handleCancel}
           width={200}
           height={50}
           isSubmitLoading={isSubmitting}

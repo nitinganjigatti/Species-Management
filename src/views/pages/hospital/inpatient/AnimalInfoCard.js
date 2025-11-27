@@ -2,7 +2,7 @@ import React from 'react'
 import { Card, Grid, Box, Avatar, Typography, Tooltip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 
-const AnimalInfoCard = ({ data }) => {
+const AnimalInfoCard = ({ data, bgColor = '' }) => {
   const theme = useTheme()
 
   return (
@@ -10,7 +10,7 @@ const AnimalInfoCard = ({ data }) => {
       sx={{
         p: '24px',
         borderRadius: '8px',
-        backgroundColor: theme.palette.customColors.displaybgPrimary,
+        backgroundColor: bgColor || theme.palette.customColors.displaybgPrimary,
         boxShadow: 'none'
       }}
     >

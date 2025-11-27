@@ -1,7 +1,7 @@
 import { Button, Tooltip, Typography, Skeleton } from '@mui/material'
 import { Box, Grid } from '@mui/system'
 import React, { useEffect, useMemo, useState } from 'react'
-import { useTheme } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import MediaCard from 'src/views/utility/MediaCard'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
@@ -29,12 +29,7 @@ const FieldTooltip = ({ title, placement = 'top-start', children }) => (
 const TabSkeletons = () => (
   <>
     {Array.from({ length: 5 }).map((_, index) => (
-      <Skeleton
-        key={`surgery-tab-skeleton-${index}`}
-        variant='rounded'
-        width={110 + (index % 3) * 12}
-        height={48}
-      />
+      <Skeleton key={`surgery-tab-skeleton-${index}`} variant='rounded' width={110 + (index % 3) * 12} height={48} />
     ))}
   </>
 )
@@ -56,9 +51,7 @@ const getRichTextHtmlValue = value => {
   if (value?.text) return value.text
   if (value?.delta?.ops) {
     try {
-      const text = value.delta.ops
-        .map(op => (typeof op.insert === 'string' ? op.insert : ''))
-        .join('')
+      const text = value.delta.ops.map(op => (typeof op.insert === 'string' ? op.insert : '')).join('')
 
       return text
     } catch {
@@ -177,6 +170,9 @@ const getRecordCode = record => {
 }
 
 const MediaScroller = ({ items = [] }) => {
+  const theme = useTheme()
+  const scrollbarThumbColor = theme.palette.customColors.neutralSecondary
+
   if (!Array.isArray(items) || items.length === 0) {
     return (
       <Typography
@@ -198,9 +194,9 @@ const MediaScroller = ({ items = [] }) => {
         py: 2,
         '&::-webkit-scrollbar': { height: '2px !important' },
         '&::-webkit-scrollbar-track': { background: 'transparent' },
-        '&::-webkit-scrollbar-thumb': { background: '#BDBDBD', borderRadius: '6px' },
+        '&::-webkit-scrollbar-thumb': { background: scrollbarThumbColor, borderRadius: '6px' },
         scrollbarWidth: 'thin',
-        scrollbarColor: '#BDBDBD transparent'
+        scrollbarColor: `${scrollbarThumbColor} transparent`
       }}
     >
       <Box
@@ -232,7 +228,9 @@ const MediaScroller = ({ items = [] }) => {
 
 function InpatientSurgery({ hospitalCaseId }) {
   const theme = useTheme()
+  const scrollbarThumbColor = theme.palette.customColors.neutralSecondary
   const router = useRouter()
+  const headerBackground = alpha(theme.palette.customColors.displaybgPrimary, 153 / 255)
   const [surgeryRecords, setSurgeryRecords] = useState([])
   const [activeSurgeryId, setActiveSurgeryId] = useState('')
   const [loading, setLoading] = useState(false)
@@ -456,7 +454,7 @@ function InpatientSurgery({ hospitalCaseId }) {
   }
 
   const DetailsHeader = ({ text }) => (
-    <Box sx={{ backgroundColor: '#E8F4F299', padding: '8px', borderRadius: '4px' }}>
+    <Box sx={{ backgroundColor: headerBackground, padding: '8px', borderRadius: '4px' }}>
       <Typography
         sx={{
           fontWeight: 500,
@@ -489,7 +487,7 @@ function InpatientSurgery({ hospitalCaseId }) {
       </Typography>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <Box sx={{ backgroundColor: '#E8F4F299', padding: '8px', borderRadius: '4px' }}>
+        <Box sx={{ backgroundColor: headerBackground, padding: '8px', borderRadius: '4px' }}>
           <Skeleton variant='text' width={160} height={24} />
         </Box>
         <Grid sx={{ px: '8px' }} container spacing={4}>
@@ -503,7 +501,7 @@ function InpatientSurgery({ hospitalCaseId }) {
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <Box sx={{ backgroundColor: '#E8F4F299', padding: '8px', borderRadius: '4px' }}>
+        <Box sx={{ backgroundColor: headerBackground, padding: '8px', borderRadius: '4px' }}>
           <Skeleton variant='text' width={180} height={24} />
         </Box>
         <Box sx={{ px: '8px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -526,7 +524,7 @@ function InpatientSurgery({ hospitalCaseId }) {
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        <Box sx={{ backgroundColor: '#E8F4F299', padding: '8px', borderRadius: '4px' }}>
+        <Box sx={{ backgroundColor: headerBackground, padding: '8px', borderRadius: '4px' }}>
           <Skeleton variant='text' width={200} height={24} />
         </Box>
         <Box sx={{ px: '8px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -540,7 +538,7 @@ function InpatientSurgery({ hospitalCaseId }) {
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        <Box sx={{ backgroundColor: '#E8F4F299', padding: '8px', borderRadius: '4px' }}>
+        <Box sx={{ backgroundColor: headerBackground, padding: '8px', borderRadius: '4px' }}>
           <Skeleton variant='text' width={180} height={24} />
         </Box>
         <Box
@@ -550,9 +548,9 @@ function InpatientSurgery({ hospitalCaseId }) {
             py: 2,
             '&::-webkit-scrollbar': { height: '2px !important' },
             '&::-webkit-scrollbar-track': { background: 'transparent' },
-            '&::-webkit-scrollbar-thumb': { background: '#BDBDBD', borderRadius: '6px' },
+            '&::-webkit-scrollbar-thumb': { background: scrollbarThumbColor, borderRadius: '6px' },
             scrollbarWidth: 'thin',
-            scrollbarColor: '#BDBDBD transparent'
+            scrollbarColor: `${scrollbarThumbColor} transparent`
           }}
         >
           <Box sx={{ display: 'inline-flex', gap: 2, px: 2 }}>

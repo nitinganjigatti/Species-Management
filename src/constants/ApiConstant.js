@@ -711,6 +711,10 @@ export const LIST_SURGERY_TEMPLATES = 'v1/hospital/list-template'
 
 export const CREATE_SURGERY_TEMPLATE = 'v1/hospital/create-template'
 
+export const DELETE_TEMPLATE = 'v1/hospital/delete-template'
+
+export const UPDATE_TEMPLATE = 'v1/hospital/update-template'
+
 export const UPDATE_MASTERS_HOSPITAL = 'v1/hospital/update'
 
 export const UPDATE_MASTERS_SURGERY = 'v1/hospital/update-surgery'
@@ -907,8 +911,12 @@ export const GET_ANESTHESIA_SETUP_LIST = `v1/hospital/anaesthesia/sections`
 
 export const GET_ANESTHESIA_LIST = `v1/hospital/anaesthesia/list`
 
-export const GET_ANESTHESIA_DETAIL = `v1/hospital/anaesthesia/detail`
-
 export const DELETE_ANESTHESIA = `v1/hospital/anaesthesia/delete`
 
 export const DELETE_MONITORING_MONITORING = `v1/hospital/delete-scheduled-monitoring-parameter`
+
+export const GET_MEDICAL_DELIVERY_ROUTE = `master/get-medical-delivery-route`
+
+export const GET_VITAL_MONITORING_LIST = `v1/hospital/anaesthesia/sections`
+
+export const GET_ANESTHESIA_DETAIL = `v1/hospital/anaesthesia/detail`

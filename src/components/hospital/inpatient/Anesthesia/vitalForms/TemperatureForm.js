@@ -38,6 +38,7 @@ export default function TemperatureForm({ open, onClose, onSubmit, timeLabel, in
   }, [open, initialData])
 
   const handleSubmit = () => {
+    alert('klkl')
     if (!value.trim()) {
       return
     }

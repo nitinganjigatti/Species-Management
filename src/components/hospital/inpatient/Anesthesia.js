@@ -30,7 +30,6 @@ import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog
 
 const PAGE_SIZE = 10
 const SCROLL_FETCH_THRESHOLD = 140
-const ANESTHESIA_DETAIL_ID = 4
 
 const formatValueWithUnit = (value, unit) => {
   if (value === undefined || value === null || value === '') return '--'
@@ -45,24 +44,6 @@ const formatTimeOnly = time => {
 
 const normalizeQueryValue = value => (Array.isArray(value) ? value[0] : value)
 const hasValue = value => value !== undefined && value !== null && value !== ''
-
-const getRecordIdentifier = record => {
-  if (!record || typeof record !== 'object') return ''
-
-  if (record.anaesthesia_id) return String(record.anaesthesia_id)
-  if (record.id) return String(record.id)
-  if (record.code) return String(record.code)
-  return ''
-}
-
-const getStableRecordId = (record, index = 0) => {
-  const identifier = getRecordIdentifier(record)
-
-  if (identifier) return identifier
-  if (record?.code) return String(record.code)
-
-  return `record-${index}`
-}
 
 const formatDateTime = value => {
   if (!value) return '--'
@@ -194,11 +175,16 @@ function Anesthesia({ hospitalCaseId, patientData }) {
     }
 
     setActiveRecordId(prev => {
-      if (prev && anesthesiaRecords.some((record, index) => getStableRecordId(record, index) === prev)) {
+      if (
+        prev &&
+        anesthesiaRecords.some(record => String(record?.anaesthesia_id || record?.id || '') === String(prev))
+      ) {
         return prev
       }
 
-      return getStableRecordId(anesthesiaRecords[0], 0)
+      const firstId = anesthesiaRecords[0]?.anaesthesia_id || anesthesiaRecords[0]?.id || ''
+
+      return firstId ? String(firstId) : ''
     })
   }, [anesthesiaRecords])
 
@@ -206,20 +192,31 @@ function Anesthesia({ hospitalCaseId, patientData }) {
     if (!anesthesiaRecords.length) return null
 
     if (activeRecordId) {
-      const found = anesthesiaRecords.find((record, index) => getStableRecordId(record, index) === activeRecordId)
+      const found = anesthesiaRecords.find(
+        record => String(record?.anaesthesia_id || record?.id || '') === String(activeRecordId)
+      )
 
       if (found) return found
     }
 
     return anesthesiaRecords[0]
   }, [anesthesiaRecords, activeRecordId])
+  const isRecordsLoading = isAnesthesiaLoading || (isFetchingRecords && !anesthesiaRecords.length)
+  const activeRecordAnesthesiaId = activeRecordId
 
-  const { data: anesthesiaDetailResponse, refetch: refetchAnesthesiaDetail } = useQuery({
-    queryKey: ['anesthesiaDetail', ANESTHESIA_DETAIL_ID, activeRecordId],
-    queryFn: () => getAnesthesiaDetail(ANESTHESIA_DETAIL_ID),
-    enabled: shouldFetchRecords && Boolean(activeRecordId)
+  const {
+    data: anesthesiaDetailResponse,
+    refetch: refetchAnesthesiaDetail,
+    isFetching: isAnesthesiaDetailFetching
+  } = useQuery({
+    queryKey: ['anesthesiaDetail', activeRecordAnesthesiaId],
+    queryFn: () => getAnesthesiaDetail(activeRecordAnesthesiaId),
+    // queryFn: () => getAnesthesiaDetail(4),
+    enabled: shouldFetchRecords && Boolean(activeRecordAnesthesiaId),
+    keepPreviousData: false
   })
   const anesthesiaDetail = anesthesiaDetailResponse?.data || null
+  const showDetailSkeleton = isAnesthesiaDetailFetching || isRecordsLoading || !activeRecordAnesthesiaId
 
   const recordCode = anesthesiaDetail?.code || activeRecord?.code || '--'
   const lastUpdatedValue = formatDateTime(
@@ -258,8 +255,6 @@ function Anesthesia({ hospitalCaseId, patientData }) {
     : activeRecord?.notes?.trim()
     ? activeRecord.notes
     : '--'
-
-  const activeRecordAnesthesiaId = activeRecord?.anaesthesia_id || activeRecord?.id || ''
 
   const anesthesiaSetupSections = useMemo(() => {
     if (!Array.isArray(anesthesiaDetail?.anaesthesia_setup)) return []
@@ -465,8 +460,6 @@ function Anesthesia({ hospitalCaseId, patientData }) {
     return { timeSlots, rows }
   }, [anesthesiaDetail])
 
-  const isRecordsLoading = isAnesthesiaLoading || (isFetchingRecords && !anesthesiaRecords.length)
-
   const handleScrollFetch = useCallback(() => {
     if (!hasNextPage || isFetchingNextPage) return
 
@@ -528,16 +521,50 @@ function Anesthesia({ hospitalCaseId, patientData }) {
     setDeleteDialogOpen(false)
   }, [deleteLoading])
 
+  const handleEditClick = value => {
+    console.log(value, 'value')
+    const resolvedCaseId = resolvedHospitalCaseId
+    const animalId = normalizeQueryValue(router?.query?.animal_id)
+
+    const href = resolvedCaseId
+      ? {
+          pathname: `/hospital/inpatient/AddAnesthesiaRecord/`,
+          query: {
+            hospital_case_id: resolvedCaseId,
+            medical_record_id: patientData?.medical_record_id,
+            hospital_id: patientData?.hospital_id,
+            animal_id: animalId,
+            animal_admitted_date: router?.query?.animal_admitted_date,
+            tab: router?.query?.tab,
+            anaesthesia_id: value?.anaesthesia_id
+          }
+        }
+      : '/hospital/inpatient/AddAnesthesiaRecord'
+
+    router.push(href)
+  }
+
   const handleDeleteConfirm = useCallback(async () => {
     if (!activeRecordAnesthesiaId) return
 
     try {
       setDeleteLoading(true)
-      await deleteAnesthesia(activeRecordAnesthesiaId)
-      toast.success('Anesthesia deleted successfully.')
-      setDeleteDialogOpen(false)
-      setActiveRecordId('')
-      await queryClient.invalidateQueries(['anesthesiaRecords', resolvedHospitalCaseId, resolvedMedicalRecordId])
+      const response = await deleteAnesthesia(activeRecordAnesthesiaId)
+
+      if (response?.success || response?.status || response?.anaesthesia_id || response?.anesthesia_id) {
+        toast.success(response?.message || 'Anesthesia deleted successfully.')
+        setDeleteDialogOpen(false)
+        setActiveRecordId('')
+        await queryClient.invalidateQueries(['anesthesiaRecords', resolvedHospitalCaseId, resolvedMedicalRecordId])
+      } else {
+        const message =
+          response?.message ||
+          response?.reason ||
+          response?.data?.message ||
+          'Unable to delete anesthesia record. Please try again.'
+        toast.error(message)
+        setDeleteDialogOpen(false)
+      }
     } catch (error) {
       const message = error?.response?.data?.message || error?.message || 'Failed to delete anesthesia record.'
       toast.error(message)
@@ -591,7 +618,8 @@ function Anesthesia({ hospitalCaseId, patientData }) {
 
     return anesthesiaRecords.map((record, index) => {
       const label = record?.code || `Record ${index + 1}`
-      const selectionId = getStableRecordId(record, index)
+      const selectionId = record?.anaesthesia_id ? String(record.anaesthesia_id) : ''
+      if (!selectionId) return null
       const isActive = selectionId === activeRecordId
 
       return (
@@ -680,7 +708,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
             hospital_case_id: resolvedCaseId,
             medical_record_id: patientData?.medical_record_id,
             hospital_id: patientData?.hospital_id,
-            animal_id: animalId
+            animal_id: animalId,
+            animal_admitted_date: router?.query?.animal_admitted_date,
+            tab: router?.query?.tab
           }
         }
       : '/hospital/inpatient/AddAnesthesiaRecord'
@@ -797,7 +827,8 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                   component='img'
                   src='/icons/pencil_outlined.svg'
                   alt='Edit'
-                  sx={{ width: 18, height: 18, cursor: 'pointer' }}
+                  sx={{ width: 24, height: 24, cursor: 'pointer' }}
+                  onClick={() => handleEditClick(anesthesiaDetail)}
                 />
                 <Box
                   component='img'
@@ -805,7 +836,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                   alt='Delete'
                   sx={{
                     width: 24,
-                    height: 16,
+                    height: 24,
                     cursor: activeRecordAnesthesiaId ? 'pointer' : 'not-allowed',
                     opacity: activeRecordAnesthesiaId ? 1 : 0.4
                   }}
@@ -1009,7 +1040,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
               <Grid sx={{ px: '0px' }} container spacing={4}>
                 {environmentalDetails.length ? (
                   environmentalDetails.map(item => (
-                    <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label}>
+                    <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label} sx={{ minWidth: 0 }}>
                       <Tooltip title={item.label} placement='bottom-start' arrow>
                         <Typography
                           sx={{
@@ -1021,7 +1052,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                             textTransform: 'capitalize',
                             textOverflow: 'ellipsis',
                             overflow: 'hidden',
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
+                            minWidth: 0,
+                            display: 'block'
                           }}
                         >
                           {item.label}
@@ -1036,7 +1069,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                             color: theme.palette.customColors.OnSurfaceVariant,
                             textOverflow: 'ellipsis',
                             overflow: 'hidden',
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
+                            minWidth: 0,
+                            display: 'block'
                           }}
                         >
                           {item.value}
@@ -1078,7 +1113,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
               <Grid sx={{ px: '0px' }} container spacing={4}>
                 {examDetails.length ? (
                   examDetails.map(item => (
-                    <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label}>
+                    <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label} sx={{ minWidth: 0 }}>
                       <Tooltip title={item.label} placement='bottom-start' arrow>
                         <Typography
                           sx={{
@@ -1090,7 +1125,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                             textTransform: 'capitalize',
                             textOverflow: 'ellipsis',
                             overflow: 'hidden',
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
+                            minWidth: 0,
+                            display: 'block'
                           }}
                         >
                           {item.label}
@@ -1105,7 +1142,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                             color: theme.palette.customColors.OnSurfaceVariant,
                             textOverflow: 'ellipsis',
                             overflow: 'hidden',
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
+                            minWidth: 0,
+                            display: 'block'
                           }}
                         >
                           {item.value}
@@ -1121,8 +1160,8 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                   </Grid>
                 )}
               </Grid>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mt: 2 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              <Grid container spacing={4} sx={{ mt: 2, flexDirection: 'column' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
                   <Typography
                     sx={{
                       mb: '4px',
@@ -1147,14 +1186,16 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                         color: theme.palette.customColors.OnSurfaceVariant,
                         textOverflow: 'ellipsis',
                         overflow: 'hidden',
-                        whiteSpace: 'nowrap'
+                        whiteSpace: 'nowrap',
+                        minWidth: 0,
+                        display: 'block'
                       }}
                     >
                       {riskOfConcernText}
                     </Typography>
                   </Tooltip>
                 </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
                   <Typography
                     sx={{
                       mb: '4px',
@@ -1179,14 +1220,16 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                         color: theme.palette.customColors.OnSurfaceVariant,
                         textOverflow: 'ellipsis',
                         overflow: 'hidden',
-                        whiteSpace: 'nowrap'
+                        whiteSpace: 'nowrap',
+                        width: '100%',
+                        display: 'block'
                       }}
                     >
                       {clinPathText}
                     </Typography>
                   </Tooltip>
                 </Box>
-              </Box>
+              </Grid>
             </Box>
           </Box>
 
@@ -1412,7 +1455,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                 <Grid sx={{ px: '0px' }} container spacing={4}>
                   {recoveryInfoList.length ? (
                     recoveryInfoList.map(item => (
-                      <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label}>
+                      <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label} sx={{ minWidth: 0 }}>
                         <Tooltip title={item.label} placement='bottom-start' arrow>
                           <Typography
                             sx={{
@@ -1424,7 +1467,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                               textTransform: 'capitalize',
                               textOverflow: 'ellipsis',
                               overflow: 'hidden',
-                              whiteSpace: 'nowrap'
+                              whiteSpace: 'nowrap',
+                              minWidth: 0,
+                              display: 'block'
                             }}
                           >
                             {item.label}
@@ -1439,7 +1484,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                               color: theme.palette.customColors.OnSurfaceVariant,
                               textOverflow: 'ellipsis',
                               overflow: 'hidden',
-                              whiteSpace: 'nowrap'
+                              whiteSpace: 'nowrap',
+                              minWidth: 0,
+                              display: 'block'
                             }}
                           >
                             {item.value}
@@ -1493,8 +1540,8 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                   alignItems: 'center'
                 }}
               >
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mt: 2 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mt: 2, minWidth: 0 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
                     <Typography
                       sx={{
                         mb: '4px',
@@ -1519,7 +1566,9 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                           color: theme.palette.customColors.OnSurfaceVariant,
                           textOverflow: 'ellipsis',
                           overflow: 'hidden',
-                          whiteSpace: 'nowrap'
+                          whiteSpace: 'nowrap',
+                          minWidth: 0,
+                          display: 'block'
                         }}
                       >
                         {recoveryProblemText}
@@ -1527,16 +1576,16 @@ function Anesthesia({ hospitalCaseId, patientData }) {
                     </Tooltip>
                   </Box>
                 </Box>
-              <Box
-                sx={theme => ({
-                  gap: '3px',
-                  background: theme.palette.customColors.Notes,
-                  width: '100%',
-                  px: 4,
-                  py: 2,
-                  borderRadius: '8px'
-                })}
-              >
+                <Box
+                  sx={theme => ({
+                    gap: '3px',
+                    background: theme.palette.customColors.Notes,
+                    width: '100%',
+                    px: 4,
+                    py: 2,
+                    borderRadius: '8px'
+                  })}
+                >
                   <Typography
                     sx={{
                       mb: '4px',

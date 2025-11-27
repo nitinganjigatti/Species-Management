@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 
 import { Breadcrumbs, Typography, Card, Box, Avatar, TextField, Button, IconButton, Grid } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import { Icon } from '@iconify/react'
 
 import { useForm } from 'react-hook-form'
@@ -14,7 +14,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { useAuth } from 'src/hooks/useAuth'
-import AddAnaesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnaesthesiaRecord'
+import AddAnesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnesthesiaRecord'
 import SelectAnesthesiaRecordDrawer from 'src/components/hospital/inpatient/SelectAnesthesiaRecordDrawer'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import Toaster from 'src/components/Toaster'
@@ -46,6 +46,7 @@ const createEmptyRichTextValue = () => {
 
 const DEFAULT_HOSPITAL_ID = '68'
 const TEMPLATE_LIST_LIMIT = 20
+const FORM_ID = 'add-surgery-record-form'
 
 const getSafeString = value => {
   if (value === undefined || value === null) return ''
@@ -253,6 +254,13 @@ const getSurgeryIdentifier = value => {
   return value?.value ?? value?.id ?? value?.surgery_id ?? value?.surgeryId ?? ''
 }
 
+const getAnesthesiaIdentifier = value => {
+  if (!value) return ''
+  if (typeof value === 'string' || typeof value === 'number') return value
+
+  return value?.anaesthesia_id ?? ''
+}
+
 const getAutocompleteLabel = value => {
   if (!value) return ''
   if (typeof value === 'string') return value
@@ -310,7 +318,7 @@ const buildAnimalInfoData = patientData => {
   }
 
   if (patientData?.admitted_by_full_name) {
-    additionalInfo['Consulting Veterinarian'] = getSafeString(patientData.admitted_by_full_name)
+    additionalInfo['Chief Veterinarian'] = getSafeString(patientData.admitted_by_full_name)
   }
 
   return {
@@ -396,6 +404,10 @@ const schema = yup.object().shape({
     .mixed()
     .nullable()
     .test('procedure-required', 'Procedure is required', value => Boolean(value)),
+  surgeon: yup
+    .mixed()
+    .nullable()
+    .test('surgeon-required', 'Surgeon is required', value => Boolean(value)),
   typeOfSurgery: yup.string().required('Type of surgery is required'),
   surgicalApproach: yup.string().required('Surgical approach is required'),
   duration: yup.string().trim().required('Duration is required'),
@@ -420,21 +432,8 @@ const AddSurgeryRecord = () => {
   )
   const userZooId = useMemo(() => auth?.userData?.user?.zoos?.[0]?.zoo_id, [auth?.userData])
   const defaultNow = useMemo(() => dayjs(), [])
-  const formResolver = useMemo(() => yupResolver(schema, { context: { admissionDateTime } }), [admissionDateTime])
-
-  const {
-    control,
-    handleSubmit,
-    reset,
-    clearErrors,
-    setValue,
-    watch,
-    formState: { errors }
-  } = useForm({
-    resolver: formResolver,
-    mode: 'onChange',
-    reValidateMode: 'onChange',
-    defaultValues: {
+  const buildDefaultFormValues = useCallback(
+    () => ({
       date: defaultNow,
       startTime: null,
       endTime: null,
@@ -449,12 +448,29 @@ const AddSurgeryRecord = () => {
       restrictions: '',
       additionalNotes: '',
       attachments: []
-    }
+    }),
+    [defaultNow]
+  )
+  const formResolver = useMemo(() => yupResolver(schema, { context: { admissionDateTime } }), [admissionDateTime])
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    clearErrors,
+    setValue,
+    watch,
+    formState: { errors }
+  } = useForm({
+    resolver: formResolver,
+    mode: 'onChange',
+    reValidateMode: 'onChange',
+    defaultValues: buildDefaultFormValues()
   })
 
   const [activeTemplate, setActiveTemplate] = useState('')
   const [showSaveTemplate, setShowSaveTemplate] = useState(false)
-  const [openAddAnaesthesiaDrawer, setOpenAddAnaesthesiaDrawer] = useState(false)
+  const [openAddanesthesiaDrawer, setOpenAddanesthesiaDrawer] = useState(false)
   const [openSurgeryTemplateDrawer, setOpenSurgeryTemplateDrawer] = useState(false)
   const [openSelectAnesthesiaDrawer, setOpenSelectAnesthesiaDrawer] = useState(false)
   const [selectedAnesthesiaRecord, setSelectedAnesthesiaRecord] = useState(null)
@@ -464,11 +480,35 @@ const AddSurgeryRecord = () => {
   const [isSavingTemplate, setIsSavingTemplate] = useState(false)
   const [procedureSearchTerm, setProcedureSearchTerm] = useState('')
   const [surgeonSearchTerm, setSurgeonSearchTerm] = useState('')
+  const [formResetKey, setFormResetKey] = useState(0)
   const selectedDate = watch('date')
   const startTimeValue = watch('startTime')
   const endTimeValue = watch('endTime')
   const durationValue = watch('duration')
   const selectedAnesthesia = selectedAnesthesiaRecord
+  const resetForm = useCallback(() => {
+    const defaults = buildDefaultFormValues()
+    reset(defaults)
+    setValue('surgeon', null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
+    setValue('procedure', null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
+    setSelectedAnesthesiaRecord(null)
+    setPendingAnesthesiaRecord(null)
+    setRichNote(createEmptyRichTextValue())
+    setActiveTemplate('')
+    setProcedureSearchTerm('')
+    setSurgeonSearchTerm('')
+    setFormResetKey(prev => prev + 1)
+  }, [
+    reset,
+    buildDefaultFormValues,
+    setValue,
+    setSelectedAnesthesiaRecord,
+    setPendingAnesthesiaRecord,
+    setRichNote,
+    setActiveTemplate,
+    setProcedureSearchTerm,
+    setSurgeonSearchTerm
+  ])
 
   const {
     data: surgeryTemplatesResponse,
@@ -581,6 +621,16 @@ const AddSurgeryRecord = () => {
       .filter(item => item.label && item.value)
   }, [surgeonsResponse])
 
+  const doctorOptions = useMemo(
+    () =>
+      surgeonOptions.map(opt => ({
+        name: opt.label,
+        id: opt.value,
+        default_icon: opt.default_icon
+      })),
+    [surgeonOptions]
+  )
+
   const surgeryTemplates = useMemo(() => extractSurgeryTemplates(surgeryTemplatesResponse), [surgeryTemplatesResponse])
 
   const templateNames = useMemo(() => surgeryTemplates.map(template => template.title), [surgeryTemplates])
@@ -641,6 +691,34 @@ const AddSurgeryRecord = () => {
 
     return dayjs(selectedDate).startOf('day').isSame(now.startOf('day')) ? now : null
   }, [selectedDate])
+
+  // const buildReturnUrl = useCallback(() => {
+  //   const getFirst = value => (Array.isArray(value) ? value[0] : value || '')
+
+  //   if (router.query?.returnUrl) {
+  //     const fromQuery = getFirst(router.query.returnUrl)
+  //     if (fromQuery) return fromQuery
+  //   }
+
+  //   const basePath = resolvedHospitalCaseId ? `/hospital/inpatient/${resolvedHospitalCaseId}` : '/hospital/inpatient'
+  //   const params = new URLSearchParams()
+
+  //   const animalId = getFirst(router.query?.animal_id) || (patientData?.animal_id ? String(patientData.animal_id) : '')
+  //   const medicalRecord = getFirst(router.query?.medical_record_id) || medicalRecordId
+  //   const admittedDate =
+  //     getFirst(router.query?.animal_admitted_date) ||
+  //     (patientData?.admitted_at ? String(patientData.admitted_at) : '')
+  //   const tab = getFirst(router.query?.tab) || 'surgery'
+
+  //   if (animalId) params.set('animal_id', animalId)
+  //   if (medicalRecord) params.set('medical_record_id', medicalRecord)
+  //   if (admittedDate) params.set('animal_admitted_date', admittedDate)
+  //   if (tab) params.set('tab', tab)
+
+  //   const queryString = params.toString()
+
+  //   return queryString ? `${basePath}?${queryString}` : basePath
+  // }, [router.query, resolvedHospitalCaseId, medicalRecordId, patientData?.animal_id, patientData?.admitted_at])
 
   useEffect(() => {
     if (!selectedDate || !startTimeValue || !endTimeValue) {
@@ -862,13 +940,22 @@ const AddSurgeryRecord = () => {
     [handleSaveTemplate, setShowSaveTemplate]
   )
 
-  const handleAddNewAnaesthesia = useCallback(() => {
-    setOpenAddAnaesthesiaDrawer(true)
-  }, [setOpenAddAnaesthesiaDrawer])
+  const handleAddNewanesthesia = useCallback(() => {
+    setOpenAddanesthesiaDrawer(true)
+  }, [setOpenAddanesthesiaDrawer])
 
-  const handleSelectAnaesthesiaRecord = useCallback(() => {
+  const handleSelectanesthesiaRecord = useCallback(() => {
     setOpenSelectAnesthesiaDrawer(true)
   }, [])
+
+  const handleAnesthesiaCreateSuccess = useCallback(
+    record => {
+      if (record) {
+        setSelectedAnesthesiaRecord(record)
+      }
+    },
+    [setSelectedAnesthesiaRecord]
+  )
 
   const handleAnesthesiaRecordSelect = useCallback(record => {
     setPendingAnesthesiaRecord(record)
@@ -882,6 +969,10 @@ const AddSurgeryRecord = () => {
     setOpenSelectAnesthesiaDrawer(false)
   }, [])
 
+  const handleCancelForm = useCallback(() => {
+    resetForm()
+  }, [resetForm])
+
   const onSubmit = async formValues => {
     if (!resolvedHospitalCaseId) {
       Toaster({ type: 'error', message: 'Hospital case id is missing' })
@@ -889,9 +980,17 @@ const AddSurgeryRecord = () => {
       return
     }
 
+    const selectedAnesthesiaId = getAnesthesiaIdentifier(selectedAnesthesia)
+    if (!selectedAnesthesiaId) {
+      Toaster({ type: 'error', message: 'Please select an anesthesia record' })
+
+      return
+    }
+
     const payload = new FormData()
 
     payload.append('hospital_case_id', getSafeString(resolvedHospitalCaseId))
+    payload.append('anaesthesia_id', getSafeString(selectedAnesthesiaId))
     payload.append('surgery_date', getSafeString(formatDateValue(formValues.date)))
     payload.append('start_time', getSafeString(formatTimeValue(formValues.startTime)))
     payload.append('end_time', getSafeString(formatTimeValue(formValues.endTime)))
@@ -924,10 +1023,10 @@ const AddSurgeryRecord = () => {
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Surgery record added successfully' })
-        reset()
-        setRichNote(createEmptyRichTextValue())
-        setActiveTemplate('')
-        setProcedureSearchTerm('')
+        resetForm()
+        // const redirectUrl = buildReturnUrl()
+        // router.push(redirectUrl)
+        router.back()
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to add surgery record' })
       }
@@ -998,10 +1097,48 @@ const AddSurgeryRecord = () => {
           </Typography>
         </Box>
 
-        <AnimalInfoCard data={animalInfoData} />
+        {patientData ? (
+          <AnimalInfoCard data={animalInfoData} />
+        ) : (
+          <Card
+            sx={{
+              p: '24px',
+              borderRadius: '8px',
+              backgroundColor: theme.palette.customColors.displaybgPrimary,
+              boxShadow: 'none'
+            }}
+          >
+            <Grid container spacing={5} sx={{ alignItems: 'center' }}>
+              <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+                <Box sx={{ maxWidth: '100%', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Box
+                    sx={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: '8px',
+                      backgroundColor: theme.palette.customColors.mdAntzNeutral
+                    }}
+                  />
+                  <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, gap: 1 }}>
+                    <Box sx={{ width: '70%', height: '20px', borderRadius: '4px', backgroundColor: '#E0E0E0' }} />
+                    <Box sx={{ width: '60%', height: '18px', borderRadius: '4px', backgroundColor: '#E6E6E6' }} />
+                    <Box sx={{ width: '50%', height: '18px', borderRadius: '4px', backgroundColor: '#E6E6E6' }} />
+                  </Box>
+                </Box>
+              </Grid>
+              {[1, 2, 3, 4].map(idx => (
+                <Grid item size={{ xs: 12, sm: 4, md: 2.25 }} key={`animal-skeleton-${idx}`} sx={{ mt: 2 }}>
+                  <Box sx={{ width: '60%', height: '16px', borderRadius: '4px', backgroundColor: '#E6E6E6', mb: 1 }} />
+                  <Box sx={{ width: '80%', height: '18px', borderRadius: '4px', backgroundColor: '#E0E0E0' }} />
+                </Grid>
+              ))}
+            </Grid>
+          </Card>
+        )}
         <Box
           sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
           component='form'
+          id={FORM_ID}
           onSubmit={handleSubmit(onSubmit)}
         >
           <Grid container spacing={'24px'}>
@@ -1137,6 +1274,7 @@ const AddSurgeryRecord = () => {
                   control={control}
                   errors={errors}
                   name={'surgeon'}
+                  key={`surgeon-${formResetKey}`}
                   label='Name of Surgeon'
                   options={surgeonOptions}
                   loading={isSurgeonsLoading}
@@ -1158,6 +1296,7 @@ const AddSurgeryRecord = () => {
                   control={control}
                   errors={errors}
                   name={'procedure'}
+                  key={`procedure-${formResetKey}`}
                   label='Name of Procedure'
                   options={procedureOptions}
                   loading={isProceduresLoading}
@@ -1204,7 +1343,7 @@ const AddSurgeryRecord = () => {
 
             <Box
               sx={{
-                backgroundColor: '#E8F4F266',
+                backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 102 / 255),
                 padding: '20px',
                 borderRadius: '8px',
                 display: 'flex',
@@ -1283,44 +1422,56 @@ const AddSurgeryRecord = () => {
                   }}
                 >
                   <Box sx={{ display: 'inline-flex', gap: '10px', pr: 1 }}>
-                    {templateNames.map(template => {
-                      const templateLabel = typeof template === 'string' ? template : String(template || '')
-                      if (!templateLabel) {
-                        return null
-                      }
-                      return (
-                        <Box
-                          key={templateLabel}
-                          onClick={() => handleTemplateSelect(templateLabel)}
-                          sx={{
-                            flexShrink: 0,
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            p: '8px 24px',
-                            height: '40px',
-                            borderRadius: '8px',
-                            backgroundColor:
-                              activeTemplate === templateLabel
-                                ? theme.palette.secondary.dark
-                                : theme.palette.customColors.mdAntzNeutral,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <Typography
+                    {isTemplatesLoading
+                      ? Array.from({ length: 3 }).map((_, idx) => (
+                          <Box
+                            key={`template-skel-${idx}`}
                             sx={{
-                              color:
-                                activeTemplate === templateLabel
-                                  ? theme.palette.primary.contrastText
-                                  : theme.palette.customColors.neutralPrimary,
-                              whiteSpace: 'nowrap'
+                              width: 100,
+                              height: 40,
+                              borderRadius: '8px',
+                              backgroundColor: theme.palette.customColors.mdAntzNeutral
                             }}
-                          >
-                            {templateLabel}
-                          </Typography>
-                        </Box>
-                      )
-                    })}
+                          />
+                        ))
+                      : templateNames.map(template => {
+                          const templateLabel = typeof template === 'string' ? template : String(template || '')
+                          if (!templateLabel) {
+                            return null
+                          }
+                          return (
+                            <Box
+                              key={templateLabel}
+                              onClick={() => handleTemplateSelect(templateLabel)}
+                              sx={{
+                                flexShrink: 0,
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                p: '8px 24px',
+                                height: '40px',
+                                borderRadius: '8px',
+                                backgroundColor:
+                                  activeTemplate === templateLabel
+                                    ? theme.palette.secondary.dark
+                                    : theme.palette.customColors.mdAntzNeutral,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <Typography
+                                sx={{
+                                  color:
+                                    activeTemplate === templateLabel
+                                      ? theme.palette.primary.contrastText
+                                      : theme.palette.customColors.neutralPrimary,
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {templateLabel}
+                              </Typography>
+                            </Box>
+                          )
+                        })}
                   </Box>
                 </Box>
               </Box>
@@ -1345,7 +1496,7 @@ const AddSurgeryRecord = () => {
           display: 'flex',
           justifyContent: 'space-between',
           flexDirection: { xs: 'column', md: selectedAnesthesia ? 'column' : 'row' },
-          alignItems: 'stretch',
+          alignItems: { xs: 'stretch', md: selectedAnesthesia ? 'stretch' : 'center' },
           gap: '24px',
           boxShadow: 'none'
         }}
@@ -1373,9 +1524,10 @@ const AddSurgeryRecord = () => {
             }}
           >
             <Button
+              type='button'
               variant='outlined'
               startIcon={<Icon icon='mdi:plus' fontSize={20} />}
-              onClick={handleAddNewAnaesthesia}
+              onClick={handleAddNewanesthesia}
               sx={{
                 width: '240px',
                 height: '48px',
@@ -1390,8 +1542,9 @@ const AddSurgeryRecord = () => {
               ADD NEW
             </Button>
             <Button
+              type='button'
               variant='contained'
-              onClick={handleSelectAnaesthesiaRecord}
+              onClick={handleSelectanesthesiaRecord}
               sx={{
                 width: '240px',
                 height: '48px'
@@ -1403,7 +1556,7 @@ const AddSurgeryRecord = () => {
         ) : (
           <Box
             sx={{
-              backgroundColor: '#E8F4F2',
+              backgroundColor: theme.palette.customColors.displaybgPrimary,
               borderRadius: '8px',
               pt: '24px',
               pr: '20px',
@@ -1416,9 +1569,11 @@ const AddSurgeryRecord = () => {
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Box
+                onClick={handleSelectanesthesiaRecord}
                 sx={{
-                  backgroundColor: '#1F515B',
-                  width: 141,
+                  backgroundColor: theme.palette.primary.light,
+                  // width: 141,
+                  cursor: 'pointer',
                   height: 36,
                   borderRadius: '8px',
                   px: 1.5,
@@ -1426,16 +1581,19 @@ const AddSurgeryRecord = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 1,
-                  color: 'white',
+                  color: theme.palette.primary.contrastText,
                   fontWeight: 700,
                   fontSize: '16px',
                   letterSpacing: 0
                 }}
               >
-                {selectedAnesthesia?.code || selectedAnesthesia?.anaesthesia_id || '--'}
+                {selectedAnesthesia?.code || getAnesthesiaIdentifier(selectedAnesthesia) || '--'}
                 <Icon icon='mdi:chevron-right' fontSize={20} />
               </Box>
-              <IconButton onClick={handleClearSelectedAnesthesia} sx={{ color: '#7A8684' }}>
+              <IconButton
+                onClick={handleClearSelectedAnesthesia}
+                sx={{ color: theme.palette.customColors.neutralSecondary }}
+              >
                 <Icon icon='mdi:close' fontSize={24} />
               </IconButton>
             </Box>
@@ -1452,7 +1610,9 @@ const AddSurgeryRecord = () => {
                   { label: 'Location', value: selectedAnesthesia?.location || '--' },
                   {
                     label: 'Date and Time of Anesthesia',
-                    value: formatAnesthesiaDateTime(selectedAnesthesia?.anaesthesia_datetime)
+                    value: formatAnesthesiaDateTime(
+                      selectedAnesthesia?.anaesthesia_datetime || selectedAnesthesia?.anesthesia_datetime
+                    )
                   },
                   {
                     label: 'Estimated Time Required',
@@ -1471,8 +1631,16 @@ const AddSurgeryRecord = () => {
                   }
                 ].map(info => (
                   <Box key={info.label} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#7A8684' }}>{info.label}</Typography>
-                    <Typography sx={{ fontWeight: 500, fontSize: '16px', color: '#44544A' }}>{info.value}</Typography>
+                    <Typography
+                      sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.neutralSecondary }}
+                    >
+                      {info.label}
+                    </Typography>
+                    <Typography
+                      sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      {info.value}
+                    </Typography>
                   </Box>
                 ))}
               </Box>
@@ -1483,11 +1651,13 @@ const AddSurgeryRecord = () => {
                   flexDirection: 'column',
                   gap: '24px',
                   pt: '24px',
-                  borderTop: '1px solid #C3CEC7'
+                  borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`
                 }}
               >
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <Typography sx={{ fontWeight: 600, fontSize: '16px', color: '#44544A' }}>
+                  <Typography
+                    sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
                     Purpose of Anesthesia
                   </Typography>
                   <Box sx={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -1499,17 +1669,27 @@ const AddSurgeryRecord = () => {
                             height: 41,
                             borderRadius: '4px',
                             padding: '12px',
-                            border: '1px solid #AFEFEB',
-                            backgroundColor: '#AFEFEB80',
+                            border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
+                            backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 128 / 255),
                             display: 'inline-flex',
                             alignItems: 'center'
                           }}
                         >
-                          <Typography sx={{ fontWeight: 500, fontSize: '14px', color: '#1F515B' }}>{name}</Typography>
+                          <Typography
+                            sx={{
+                              fontWeight: 500,
+                              fontSize: '14px',
+                              color: theme.palette.primary.light
+                            }}
+                          >
+                            {name}
+                          </Typography>
                         </Box>
                       ))
                     ) : (
-                      <Typography sx={{ color: '#7A8684', fontSize: '14px' }}>No purpose added</Typography>
+                      <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px' }}>
+                        No purpose added
+                      </Typography>
                     )}
                   </Box>
                 </Box>
@@ -1607,7 +1787,7 @@ const AddSurgeryRecord = () => {
                 borderRadius: '8px',
                 height: '63px'
               },
-              backgroundColor: '#FCF4AE99'
+              backgroundColor: alpha(theme.palette.customColors.Notes, 153 / 255)
             }}
             placeholder={'Enter text'}
             control={control}
@@ -1644,6 +1824,7 @@ const AddSurgeryRecord = () => {
           name='attachments'
           control={control}
           label='Upload files'
+          maxFiles={0}
           acceptedFileTypes='images,pdf,csv,audio,videos'
         />
       </Card>
@@ -1655,14 +1836,15 @@ const AddSurgeryRecord = () => {
           left: 0,
           right: 0,
           zIndex: 5,
-          backgroundColor: '#FFFFFF',
-          boxShadow: '0px -8px 12px 0px #0000001A',
-          height: '108px',
+          backgroundColor: theme.palette.primary.contrastText,
+          boxShadow: `0px -8px 12px 0px ${theme.palette.customColors.shadowColor}`,
+          height: { sm: '108px' },
           borderRadius: '4px',
           pl: '24px',
           pr: '84px',
           py: '16px',
           display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
           justifyContent: 'flex-end',
           gap: '24px',
           alignItems: 'center',
@@ -1671,13 +1853,13 @@ const AddSurgeryRecord = () => {
       >
         <Button
           variant='outlined'
-          onClick={() => router.back()}
+          onClick={handleCancelForm}
           disabled={isSubmitting}
           sx={{
             height: '56px',
-            minWidth: '160px',
-            borderColor: '#839D8D',
-            color: '#44544A',
+            minWidth: { xs: '100%', sm: '160px' },
+            borderColor: theme.palette.customColors.Outline,
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontWeight: 600,
             letterSpacing: 0,
             px: '24px'
@@ -1687,11 +1869,12 @@ const AddSurgeryRecord = () => {
         </Button>
         <Button
           type='submit'
+          form={FORM_ID}
           variant='contained'
           disabled={isSubmitting}
           sx={{
             height: '56px',
-            minWidth: '160px',
+            minWidth: { xs: '100%', sm: '160px' },
             fontWeight: 600,
             letterSpacing: 0,
             px: '24px'
@@ -1701,19 +1884,21 @@ const AddSurgeryRecord = () => {
         </Button>
       </Box>
 
-      <AddAnaesthesiaRecordDrawer
-        setOpenAddAnaesthesiaDrawer={setOpenAddAnaesthesiaDrawer}
-        openAddAnaesthesiaDrawer={openAddAnaesthesiaDrawer}
+      <AddAnesthesiaRecordDrawer
+        setOpenAddanesthesiaDrawer={setOpenAddanesthesiaDrawer}
+        openAddanesthesiaDrawer={openAddanesthesiaDrawer}
+        hospitalCaseId={resolvedHospitalCaseId}
+        medicalRecordId={medicalRecordId}
+        vetOptions={doctorOptions}
+        anesthetistOptions={doctorOptions}
+        patientData={patientData}
+        animalInfoData={animalInfoData}
+        onSuccess={handleAnesthesiaCreateSuccess}
       />
       <SelectAnesthesiaRecordDrawer
         open={openSelectAnesthesiaDrawer}
         onClose={() => setOpenSelectAnesthesiaDrawer(false)}
-        initialSelectedId={
-          selectedAnesthesiaRecord?.anaesthesia_id ||
-          selectedAnesthesiaRecord?.id ||
-          selectedAnesthesiaRecord?.code ||
-          null
-        }
+        initialSelectedId={getAnesthesiaIdentifier(selectedAnesthesiaRecord) || null}
         hospitalCaseId={resolvedHospitalCaseId}
         medicalRecordId={medicalRecordId}
         onSelect={handleAnesthesiaRecordSelect}

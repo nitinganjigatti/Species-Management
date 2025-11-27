@@ -1,8 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { Box, Card, Chip, Drawer, IconButton, Typography, useTheme } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-
-// ** Form & Validation Setup
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form'
@@ -13,40 +11,59 @@ import { LoadingButton } from '@mui/lab'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+dayjs.extend(customParseFormat)
 
-// Validation Schema
 const schema = yup.object().shape({
-  drug_name: yup
-    .object()
-    .shape({
-      drug_id: yup.string().required('Drug Id is required'),
-      drug_name: yup.string().required('Drug Name is required')
-    })
-    .required('Drug Name is required')
-    .nullable(),
-  amount: yup.string().trim().required('Amount is required'),
+  drug_name: yup.object().required('Drug Name is required').nullable(),
+  amount: yup
+    .string()
+    .trim()
+    .required('Amount is required')
+    .test('is-valid-amount', 'Amount must be greater than 0', value => {
+      if (!value) return false
+      const num = parseFloat(value)
+      return !isNaN(num) && num > 0
+    }),
   unit: yup.string().required('Unit is required'),
-  delivery_route: yup.string().required('Delivery Route is required'),
-  max_effect_time: yup.date().nullable().required('Max Effect Time is required'),
-  notes: yup.string().trim().required('Note is required')
+  delivery_time: yup
+    .date()
+    .nullable()
+    .required('Delivery Time is required')
+    .typeError('Please select a valid delivery time'),
+  delivery_route: yup.object().required('Delivery Route is required').nullable(),
+  max_effect_time: yup
+    .date()
+    .nullable()
+    .required('Max Effect Time is required')
+    .typeError('Please select a valid max effect time')
+    .test('is-after-delivery', 'Max effect time cannot be less than delivery time', function (value) {
+      const { delivery_time } = this.parent
+      if (!delivery_time || !value) return true
+
+      const delivery = dayjs(delivery_time)
+      const maxEffect = dayjs(value)
+
+      return maxEffect.isAfter(delivery) || maxEffect.isSame(delivery)
+    }),
+  delivery_status: yup.string().nullable()
 })
 
 const deliveryStatus = [
-  { label: 'Complete', value: 'complete' },
-  { label: 'Partial', value: 'partial' },
-  { label: 'None', value: 'none' }
+  { label: 'Complete', value: 'Complete' },
+  { label: 'Partial', value: 'Partial' },
+  { label: 'None', value: 'None' }
 ]
 
-// Default Form Values
 const defaultValues = {
   drug_name: null,
   amount: '',
   unit: '',
-  delivery_route: '',
+  delivery_route: null,
   delivery_time: null,
   delivery_status: null,
-  max_effect_time: null,
-  notes: ''
+  max_effect_time: null
 }
 
 function AddReversalDrug({
@@ -56,7 +73,7 @@ function AddReversalDrug({
   submitLoader,
   editData,
   drugOptions = [],
-  unitOptions = [],
+  unitList = [],
   deliveryRouteOptions = []
 }) {
   const theme = useTheme()
@@ -67,42 +84,84 @@ function AddReversalDrug({
     control,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors, isValid }
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
-    mode: 'onBlur',
+    mode: 'onChange',
     reValidateMode: 'onChange'
   })
 
-  // Populate form when editing
+  const formValues = watch()
+
   useEffect(() => {
+    console.log(' Form Values:', formValues)
+    console.log(' Form Errors:', errors)
+    console.log(' Is Valid:', isValid)
+    console.log(' Selected Status:', selectedStatus)
+  }, [formValues, errors, isValid, selectedStatus])
+
+  useEffect(() => {
+    if (!handleSidebarOpen) return
+
     if (editData) {
-      Object.keys(editData).forEach(key => {
-        setValue(key, editData[key])
+      const parseTime = t => {
+        if (!t) return null
+
+        if (dayjs.isDayjs(t)) return t
+        if (t instanceof Date) return dayjs(t)
+
+        const formats = ['YYYY-MM-DD HH:mm:ss', 'HH:mm:ss', 'HH:mm', 'hh:mm A', 'hh:mm a']
+        for (const format of formats) {
+          const parsed = dayjs(t, format, true)
+          if (parsed.isValid()) {
+            if (format.includes('hh:mm') || format.includes('HH:mm')) {
+              const today = dayjs().format('YYYY-MM-DD')
+              return dayjs(`${today} ${parsed.format('HH:mm:ss')}`, 'YYYY-MM-DD HH:mm:ss', true)
+            }
+            return parsed
+          }
+        }
+        return null
+      }
+
+      Object.keys(defaultValues).forEach(key => {
+        if (key !== 'delivery_time' && key !== 'max_effect_time') {
+          setValue(key, editData[key] ?? defaultValues[key], { shouldValidate: true })
+        }
       })
+
+      setValue('delivery_time', parseTime(editData.delivery_time), { shouldValidate: true })
+      setValue('max_effect_time', parseTime(editData.max_effect_time), { shouldValidate: true })
+
       if (editData.delivery_status) {
         setSelectedStatus(editData.delivery_status)
+        setValue('delivery_status', editData.delivery_status, { shouldValidate: true })
       }
     } else {
       reset(defaultValues)
       setSelectedStatus(null)
     }
-  }, [editData, setValue, reset])
+  }, [editData, setValue, reset, handleSidebarOpen])
 
-  // Handle form submission
+  useEffect(() => {
+    setValue('delivery_status', selectedStatus, { shouldValidate: true })
+  }, [selectedStatus, setValue])
+
   const onSubmit = useCallback(
     async formData => {
+      const fmt = v => (v && dayjs(v).isValid() ? dayjs(v).format('hh:mm A') : null)
+
       const payload = {
         drug_name: formData.drug_name,
         amount: formData.amount,
         unit: formData.unit,
         delivery_route: formData.delivery_route,
-        delivery_time: formData.delivery_time,
+        delivery_time: fmt(formData.delivery_time),
         delivery_status: selectedStatus,
-        max_effect_time: formData.max_effect_time,
-        notes: formData.notes
+        max_effect_time: fmt(formData.max_effect_time)
       }
 
       try {
@@ -117,7 +176,6 @@ function AddReversalDrug({
     [handleSubmitData, reset, handleSidebarClose, selectedStatus]
   )
 
-  // Close handler
   const handleClose = useCallback(() => {
     reset(defaultValues)
     setSelectedStatus(null)
@@ -174,11 +232,11 @@ function AddReversalDrug({
                   errors={errors}
                   label='Enter Drug Name*'
                   options={drugOptions}
-                  getOptionLabel={option => option?.drug_name || ''}
-                  isOptionEqualToValue={(option, value) => option?.drug_id === value?.drug_id}
+                  getOptionLabel={option => option?.name || ''}
+                  isOptionEqualToValue={(option, value) => option?.id === value?.id}
                   renderOption={(props, option) => (
-                    <li {...props} key={option.drug_id}>
-                      {option.drug_name}
+                    <li {...props} key={option.id}>
+                      {option.name}
                     </li>
                   )}
                 />
@@ -191,6 +249,8 @@ function AddReversalDrug({
                   name='amount'
                   placeholder='Enter amount'
                   fullWidth
+                  type='number'
+                  inputProps={{ min: 0, step: 0.01 }}
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
@@ -199,23 +259,34 @@ function AddReversalDrug({
                   name='unit'
                   errors={errors}
                   label='Unit*'
-                  options={unitOptions}
-                  getOptionLabel={option => option.label}
-                  getOptionValue={option => option.value}
+                  options={unitList}
+                  getOptionLabel={option => option.uom_abbr}
+                  getOptionValue={option => option.id}
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>
-                <ControlledTimePicker control={control} name={'delivery_time'} label='Delivery Time*' errors={errors} />
+                <ControlledTimePicker
+                  control={control}
+                  name={'delivery_time'}
+                  label='Delivery Time*'
+                  format='hh:mm a'
+                  errors={errors}
+                />
               </Grid>
               <Grid size={{ xs: 6 }}>
-                <ControlledSelect
+                <ControlledAutocomplete
                   control={control}
                   name='delivery_route'
                   errors={errors}
                   label='Delivery Route*'
                   options={deliveryRouteOptions}
-                  getOptionLabel={option => option.label}
-                  getOptionValue={option => option.value}
+                  getOptionLabel={option => option?.delivery || ''}
+                  isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.id}>
+                      {option.delivery}
+                    </li>
+                  )}
                 />
               </Grid>
               <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
@@ -238,30 +309,35 @@ function AddReversalDrug({
                         color:
                           selectedStatus === status.value
                             ? theme.palette.primary.contrastText
-                            : theme.palette.text.primary
+                            : theme.palette.text.primary,
+                        '&:hover': {
+                          backgroundColor:
+                            selectedStatus === status.value
+                              ? theme.palette.customColors.OnSecondaryContainer
+                              : theme.palette.action.selected
+                        },
+
+                        '&.MuiChip-clickable:active': {
+                          boxShadow: 'none',
+                          transform: 'scale(0.98)'
+                        }
                       }}
                     />
                   ))}
                 </Box>
+                {errors.delivery_status && (
+                  <Typography variant='caption' color='error' sx={{ ml: 2 }}>
+                    {errors.delivery_status.message}
+                  </Typography>
+                )}
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <ControlledTimePicker
                   control={control}
                   name={'max_effect_time'}
                   label='Max Effect Time*'
+                  format='hh:mm a'
                   errors={errors}
-                />
-              </Grid>
-              <Grid size={{ xs: 12 }}>
-                <ControlledTextArea
-                  control={control}
-                  errors={errors}
-                  label='Enter Notes'
-                  name='notes'
-                  placeholder='Enter Notes'
-                  fullWidth
-                  rows={2}
-                  sx={{ backgroundColor: alpha(theme.palette.customColors.antzNotes, 0.6) }}
                 />
               </Grid>
             </Grid>
@@ -302,7 +378,7 @@ function AddReversalDrug({
                 type='submit'
                 loading={submitLoader}
                 sx={{ flex: 1, py: 4 }}
-                disabled={!isValid || submitLoader}
+                disabled={!isValid || submitLoader || !selectedStatus}
               >
                 {editData ? 'Update' : 'Add'}
               </LoadingButton>

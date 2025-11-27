@@ -70,22 +70,22 @@ const AddEditSymptomDrawer = ({
   }
 
   const processedActivities =
-    activityListData?.complaint_notes
-      ?.map(activity => ({
-        ...activity,
-        isSystemGenerated: activity?.is_system_generated === 1,
-        oldSeverity: activity?.notes_dump?.old_data?.severity || '',
-        newSeverity: activity?.notes_dump?.new_data?.severity || '',
-        createdBy: activity?.created_by_user_name || '',
-        formattedTime: `${Utility.convertUTCToLocaltime(activity?.created_at)} • ${Utility.formatDisplayDate(
-          activity?.created_at
-        )}`,
-        note: activity.note || 'N/A'
-      }))
+    activityListData?.complaint_notes?.map(activity => ({
+      ...activity,
+      isSystemGenerated: activity?.is_system_generated === 1,
+      oldSeverity: activity?.notes_dump?.old_data?.severity || '',
+      newSeverity: activity?.notes_dump?.new_data?.severity || '',
+      createdBy: activity?.created_by_user_name || '',
+      formattedTime: `${Utility.convertUTCToLocaltime(activity?.created_at)} • ${Utility.formatDisplayDate(
+        activity?.created_at
+      )}`,
+      note: activity.note || 'N/A'
+    })) ||
+    // .sort((a, b) => {
+    //   return b.isSystemGenerated - a.isSystemGenerated
+    // })
 
-      .sort((a, b) => {
-        return b.isSystemGenerated - a.isSystemGenerated
-      }) || []
+    []
 
   const handleEditActivity = value => {
     setSymptomNoteModal(true)
@@ -171,6 +171,7 @@ const AddEditSymptomDrawer = ({
   {
     console.log(status, 'status')
   }
+
   return (
     <Drawer
       open={open}
