@@ -115,10 +115,10 @@ const HospitalIncoming = () => {
     refetch()
   }, [refetch])
 
-  console.log(data)
-
   const total = data?.data?.total_count || 0
   const rows = data?.data?.result || []
+  const pendingCount = data?.data?.stats?.transfer_pending_count || 0
+  const rejectedCount = data?.data?.stats?.transfer_rejected_count || 0
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -332,10 +332,10 @@ const HospitalIncoming = () => {
   }
 
   const getTabLabel = (key, label) => {
-    if (activeTab !== key) return label
-    if (isFetching && !data) return label
+    if (key === 'pending') return `${label} - ${pendingCount}`
+    if (key === 'rejected') return `${label} - ${rejectedCount}`
 
-    return total ? `${label} - ${total}` : label
+    return label
   }
 
   return (
