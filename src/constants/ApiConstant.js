@@ -727,6 +727,8 @@ export const GET_PATIENT_SURGERY_LIST = 'v1/hospital/patient-surgery-list'
 
 export const GET_HOSPITAL_PATIENTS_LISTS = `v1/hospital/get-hospital-patients`
 
+export const GET_NEW_INCOMING_PATIENTS_LISTS = `v1/get-transfer-list`
+
 export const GET_MORTALITY_PATIENTS_LISTS = `v1/hospital/get-mortality-discharge-list`
 
 export const GET_FOLLOWUP_PATIENTS_LISTS = `v1/hospital/get-followup-discharge-list`
