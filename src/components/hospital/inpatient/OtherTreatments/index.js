@@ -480,8 +480,8 @@ const OtherTreatment = () => {
 
     const treatmentNameValue = (treatmentInputValue || selectedValue || '').trim()
 
-    if (!treatmentNameValue || treatmentNameValue.length < 3) {
-      Toaster({ type: 'error', message: 'Treatment name must be at least 3 characters.' })
+    if (!treatmentNameValue) {
+      Toaster({ type: 'error', message: 'Treatment name is required.' })
 
       return
     }
