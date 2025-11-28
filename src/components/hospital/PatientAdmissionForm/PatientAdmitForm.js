@@ -222,7 +222,7 @@ const PatientAdmitForm = () => {
 
   const selectedDate = watch('admission_date')
 
-  const createdAtLocal = dayjs(Utility.convertUTCToLocal(patientData?.created_at))
+  const createdAtLocal = dayjs(Utility.convertUTCToLocal(patientData?.transfer_details?.created_at))
   const now = dayjs()
 
   const minDate = createdAtLocal.startOf('day')
@@ -515,11 +515,20 @@ const PatientAdmitForm = () => {
                               cursor: 'pointer'
                             }}
                           >
-                            <UserAvatarDetails
-                              profile_image={selectedDoctor?.default_icon}
-                              user_name={selectedDoctor?.name}
-                              role={selectedDoctor?.role_name}
-                            />
+                            <Box
+                              sx={{
+                                maxWidth: '260px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              <UserAvatarDetails
+                                profile_image={selectedDoctor?.default_icon}
+                                user_name={selectedDoctor?.name}
+                                role={selectedDoctor?.role_name}
+                              />
+                            </Box>
                             <IconButton onClick={() => setSelectedDoctor(null)}>
                               <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
                             </IconButton>

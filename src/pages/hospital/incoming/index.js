@@ -321,9 +321,11 @@ const HospitalIncoming = () => {
     activeTab === 'pending' ? [...commonColumns, ...pendingColumns] : [...commonColumns, ...rejectedColumns]
 
   const handleRowClick = data => {
-    router.push({
-      pathname: `/hospital/incoming/${data?.row?.transfer_id}/patient-admit-form`
-    })
+    if (activeTab === 'pending') {
+      router.push({
+        pathname: `/hospital/incoming/${data?.row?.transfer_id}/patient-admit-form`
+      })
+    }
   }
 
   const handleTabChange = (_, newValue) => {

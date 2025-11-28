@@ -749,7 +749,7 @@ export const ADMIT_HOSPITAL_PATIENT = `v1/hospital/admit`
 
 export const ANIMAL_MEDICAL_ID_LIST = `medical/v2/`
 
-export const ADD_HOSPITAL_PATIENT = `/v1/create-transfer`
+export const ADD_HOSPITAL_PATIENT = `v1/transfer/create`
 
 export const GET_ANIMAL_TOTAL_HOSPITAL_VISIT = `v1/hospital/get-animal-hospital-visits`
 

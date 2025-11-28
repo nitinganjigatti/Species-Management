@@ -21,7 +21,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch }) => {
     { type: 'admitted_on', value: patientData?.admitted_at },
     { type: 'admitted_by', value: patientData?.admitted_by_full_name },
     { type: 'admitted_for', value: patientData?.admitted_for_day },
-    { type: 'holding_location', value: patientData?.bed_name }
+    { type: 'holding_location', value: `${patientData?.bed_name}, ${patientData?.room_name}` }
   ]
   if (isPatientDischarged) {
     admissionData.push(
@@ -200,8 +200,8 @@ const PatientCard = ({ patientData, animalData, loading, refetch }) => {
                 sx={{
                   background: `linear-gradient(90deg, ${alpha(
                     theme.palette.customColors.SecondaryContainer,
-                    0.6
-                  )}, ${alpha(theme.palette.customColors.TertiaryContainer, 0.6)})`,
+                    0.25
+                  )}, ${alpha(theme.palette.customColors.TertiaryContainer, 0.25)})`,
                   py: 4,
                   px: 6,
                   borderRadius: 1,
