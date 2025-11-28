@@ -42,7 +42,6 @@ export default function ScheduleMedicine({
     prescriptionDeliveryRoute
   } = medicalMasterData
   const theme = useTheme()
-  const previousUnitsRef = useRef([])
   const hasSetDefaults = useRef(false)
 
   const now = new Date()
@@ -61,63 +60,31 @@ export default function ScheduleMedicine({
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'schedules',
-    keyName: 'fieldId' // add this to avoid key prop conflicts
+    keyName: 'fieldId'
   })
 
-  // Watch all schedules to sync units
+  // Watch all schedules
   const allSchedules = useWatch({
     control,
     name: 'schedules'
   })
 
-  // Sync unit across all schedules when any one changes
-  useEffect(() => {
-    if (allSchedules && allSchedules.length > 0) {
-      const currentUnits = allSchedules.map(schedule => schedule?.unit || '')
-
-      // Find which unit changed by comparing with previous values
-      let changedIndex = -1
-      let newUnit = null
-
-      for (let i = 0; i < currentUnits.length; i++) {
-        if (previousUnitsRef.current[i] !== currentUnits[i] && currentUnits[i]) {
-          changedIndex = i
-          newUnit = currentUnits[i]
-          break
-        }
-      }
-
-      // If a unit was changed and there are multiple schedules, sync all units
-      if (changedIndex !== -1 && newUnit && allSchedules.length > 1) {
-        allSchedules.forEach((schedule, idx) => {
-          if (idx !== changedIndex && schedule?.unit !== newUnit) {
-            setValue(`schedules.${idx}.unit`, newUnit, { shouldValidate: false })
-          }
-        })
-      }
-
-      // Update the ref with current units
-      previousUnitsRef.current = currentUnits
-    }
-  }, [allSchedules?.map(s => s?.unit).join(','), allSchedules?.length, setValue])
-
   // Set default values when medicine is selected
   useEffect(() => {
     if (isMedicineSelected && medicalMasterData && !hasSetDefaults.current) {
       const currentTime = dayjs()
-      const defaultUnit = prescriptionDosageMeasurementType?.[0]?.value || ''
 
       // Set default frequency (first item)
       if (prescriptionFrequency && prescriptionFrequency.length > 0) {
         setValue('frequency', prescriptionFrequency[0].value)
       }
 
-      // Set default schedule with current time
+      // Set default schedule with current time and EMPTY unit
       setValue('schedules', [
         {
           time: currentTime,
           quantity: '',
-          unit: defaultUnit
+          unit: '' // Empty by default
         }
       ])
 
@@ -131,9 +98,6 @@ export default function ScheduleMedicine({
       if (prescriptionDuration && prescriptionDuration.length > 0) {
         setValue('dosageDuration.unit', prescriptionDuration[0].value)
       }
-
-      // Initialize the ref with the default unit
-      previousUnitsRef.current = [defaultUnit]
 
       hasSetDefaults.current = true
     }
@@ -162,6 +126,24 @@ export default function ScheduleMedicine({
     }
   }, [isOneTimeFrequency, fields.length, getValues, setValue])
 
+  // Handler for adding new time slot
+  const handleAddTime = e => {
+    e.preventDefault()
+
+    // Get the current schedules
+    const currentSchedules = getValues('schedules')
+
+    // Get the unit from the last schedule (previous index)
+    const lastScheduleUnit = currentSchedules[currentSchedules.length - 1]?.unit || ''
+
+    // Add new schedule with the previous schedule's unit
+    append({
+      time: dayjs(),
+      quantity: '',
+      unit: lastScheduleUnit
+    })
+  }
+
   return (
     <Box
       sx={{
@@ -172,7 +154,6 @@ export default function ScheduleMedicine({
         // height: '100%',
         maxHeight: 850,
         overflowY: 'auto',
-
         background: theme.palette.customColors.OnBackground,
         borderRadius: '8px',
         display: 'flex',
@@ -211,7 +192,6 @@ export default function ScheduleMedicine({
               // maxWidth: '420px',
               flex: 1,
               overflowY: 'auto',
-
               '& .MuiGrid-item': {
                 paddingLeft: '8px !important',
                 paddingTop: '8px !important'
@@ -322,14 +302,14 @@ export default function ScheduleMedicine({
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      pt: '20px !important' // Align with input fields
+                      pt: '20px !important'
                     }}
                   >
                     <IconButton
                       onClick={() => remove(idx)}
                       size='small'
                       sx={{
-                        mt: '-4px' // Fine tune alignment with input fields
+                        mt: '-4px'
                       }}
                     >
                       <CloseIcon fontSize='small' />
@@ -339,7 +319,7 @@ export default function ScheduleMedicine({
               </Grid>
             ))}
 
-            {/* Conditionally render "Add Time" button - hide when one_time frequency is selected */}
+            {/* Conditionally render "Add Time" button */}
             {!isOneTimeFrequency && (
               <Button
                 startIcon={<AddIcon />}
@@ -356,15 +336,7 @@ export default function ScheduleMedicine({
                   fontWeight: 500,
                   padding: '10px 12px'
                 }}
-                onClick={e => {
-                  e.preventDefault()
-
-                  // Use the current first schedule's unit for new entries
-                  const currentSchedules = getValues('schedules')
-
-                  const currentUnit = currentSchedules?.[0]?.unit || prescriptionDosageMeasurementType?.[0]?.value || ''
-                  append({ time: dayjs(), quantity: '', unit: currentUnit })
-                }}
+                onClick={handleAddTime}
               >
                 Add Time
               </Button>
@@ -412,7 +384,7 @@ export default function ScheduleMedicine({
               </Box>
             </Box>
 
-            {/* Conditionally render Dosage Duration - hide when one_time frequency is selected */}
+            {/* Conditionally render Dosage Duration */}
             {!isOneTimeFrequency && (
               <>
                 <Grid container display='flex' justifyContent={'space-between'} spacing={2}>
@@ -436,6 +408,7 @@ export default function ScheduleMedicine({
                   <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                     <ControlledSelect
                       name='dosageDuration.unit'
+
                       // label='Dosage Unit*'
                       sx={{
                         textAlign: 'left',
@@ -609,18 +582,15 @@ export default function ScheduleMedicine({
                     getOptionLabel={option => {
                       if (typeof option === 'string') return option
 
-                      // API returns batch_no
                       return option?.batch_no || ''
                     }}
                     getOptionValue={option => {
                       if (typeof option === 'string') return option
 
-                      // API returns batch_no
                       return option?.batch_no || ''
                     }}
                     isOptionEqualToValue={(option, value) => {
                       if (!option || !value) return false
-
                       const optionVal = typeof option === 'string' ? option : option?.batch_no
                       const valueVal = typeof value === 'string' ? value : value?.batch_no
 
@@ -661,7 +631,6 @@ export default function ScheduleMedicine({
               width: '100%',
               flex: 1,
               overflowY: 'auto',
-
               '& .MuiGrid-item': {
                 paddingLeft: '8px !important',
                 paddingTop: '8px !important'
