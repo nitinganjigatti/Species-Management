@@ -24,7 +24,11 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
 import DoctorsDrawer from './DoctorsDrawer'
-import { admitHospitalPatient, getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
+import {
+  admitHospitalPatient,
+  getPatientDetails,
+  getPatientDetailsByTransferId
+} from 'src/lib/api/hospital/incomingPatient'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import { getHospitalRoomsList, getRoomsAndEnclosures } from 'src/lib/api/hospital/roomsAndEnclosures'
 import Toaster from 'src/components/Toaster'
@@ -102,7 +106,9 @@ const PatientAdmitForm = () => {
     const getPatientInfo = async () => {
       setPatientLoading(true)
       try {
-        await getPatientDetails(id).then(res => {
+        await getPatientDetailsByTransferId({
+          transfer_id: id
+        }).then(res => {
           if (res?.success === true) {
             setPatientData(res?.data)
             setPatientLoading(false)
@@ -187,10 +193,10 @@ const PatientAdmitForm = () => {
     try {
       const params = {
         action: 'admit',
+        transfer_id: id,
         treatment_type: data?.treatmentType,
         attend_by: selectedDoctor?.id,
         holding_enclosure: data?.holdingEnclosure?.value,
-        hospital_case_id: patientData?.hospital_case_id,
         admit_date: moment(data?.admission_date).format('YYYY-MM-DD'),
         admit_time: moment(data?.admission_time).format('HH:mm'),
         room_id: data?.room?.value
@@ -257,7 +263,7 @@ const PatientAdmitForm = () => {
     try {
       const params = {
         action: 'reject',
-        hospital_case_id: patientData?.hospital_case_id,
+        transfer_id: id,
         reject_reason: rejectionReason
       }
       await admitHospitalPatient(params).then(res => {
@@ -317,18 +323,18 @@ const PatientAdmitForm = () => {
                 ) : (
                   <AnimalCard
                     data={{
-                      default_icon: patientData?.animal_detail?.default_icon,
-                      sex: patientData?.animal_detail?.sex,
-                      type: patientData?.animal_detail?.type,
-                      local_identifier_name: patientData?.animal_detail?.local_identifier_name,
-                      local_identifier_value: patientData?.animal_detail?.local_identifier_value,
-                      animal_id: patientData?.animal_detail?.animal_id,
-                      common_name: patientData?.animal_detail?.common_name,
-                      scientific_name: patientData?.animal_detail?.scientific_name,
-                      age: patientData?.animal_detail?.age,
-                      site_name: patientData?.animal_detail?.site_name,
-                      section_name: patientData?.animal_detail?.section_name,
-                      user_enclosure_name: patientData?.animal_detail?.user_enclosure_name
+                      default_icon: patientData?.entity_details?.[0]?.default_icon_full_path,
+                      sex: patientData?.entity_details?.[0]?.sex,
+                      type: patientData?.entity_details?.[0]?.type,
+                      local_identifier_name: patientData?.entity_details?.[0]?.local_identifier_name,
+                      local_identifier_value: patientData?.entity_details?.[0]?.local_identifier_value,
+                      animal_id: patientData?.entity_details?.[0]?.animal_id,
+                      common_name: patientData?.entity_details?.[0]?.common_name,
+                      scientific_name: patientData?.entity_details?.[0]?.scientific_name,
+                      age: patientData?.entity_details?.[0]?.age,
+                      site_name: patientData?.entity_details?.[0]?.site_name,
+                      section_name: patientData?.entity_details?.[0]?.section_name,
+                      user_enclosure_name: patientData?.entity_details?.[0]?.user_enclosure_name
                     }}
                   />
                 )}
@@ -365,22 +371,24 @@ const PatientAdmitForm = () => {
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'flex-start', gap: 2.5 }}>
                         <MedicalIdChip
-                          medId={patientData?.medical_record_code}
+                          medId={patientData?.transfer_details?.transfer_reference_code}
                           backgroundColor={theme.palette.customColors.mdAntzNeutral}
                         />
-                        <VisitType title={patientData?.visit_type} />
+                        <VisitType title={patientData?.transfer_details?.visit_type} />
                       </Box>
                       <Typography
                         sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnPrimaryContainer }}
                       >
-                        {patientData?.purpose_of_visit ? patientData?.purpose_of_visit : 'NA'}
+                        {patientData?.transfer_details?.reason_for_transfer
+                          ? patientData?.transfer_details?.reason_for_transfer
+                          : 'NA'}
                       </Typography>
                       <UserAvatarDetails
-                        user_name={patientData?.created_by_full_name}
-                        date={patientData?.created_at}
+                        user_name={`${patientData?.transfer_details?.user_first_name} ${patientData?.transfer_details?.user_last_name}`}
+                        date={patientData?.transfer_details?.created_at}
                         show_time
                         size='medium'
-                        profile_image={patientData?.created_by_profile_pic}
+                        profile_image={patientData?.transfer_details?.user_profile_image}
                       />
                     </Box>
                   </>
@@ -575,7 +583,6 @@ const PatientAdmitForm = () => {
                       onInputChange={val => debouncedEnclosureSearch(val)}
                       sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
                       fullWidth
-                      // disabled={bedsLoading}
                       loading={bedsLoading}
                     />
                   </Grid>
