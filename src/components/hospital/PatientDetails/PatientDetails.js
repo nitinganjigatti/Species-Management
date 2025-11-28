@@ -54,7 +54,7 @@ const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'
 const PatientDetails = ({ category }) => {
   const router = useRouter()
   const theme = useTheme()
-  const { id, animal_id, tab: urlTab } = router.query
+  const { id, animal_id, medical_record_id, tab: urlTab } = router.query
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
@@ -104,6 +104,9 @@ const PatientDetails = ({ category }) => {
 
   const patientData = patientResponse?.data
   const animalData = patientResponse?.data?.animal_detail || {}
+  const hospitalCaseId = id || ''
+  const animalIdParam = animal_id || ''
+  const medicalRecordIdParam = medical_record_id || ''
 
   const isPatientDischarged = patientData?.status === 'discharge' ? true : false
 
@@ -278,14 +281,26 @@ const PatientDetails = ({ category }) => {
       selectedTab,
       setSelectedTab,
       ...drawerState,
-      patientId: id,
-      hospitalCaseId: id,
+      patientId: hospitalCaseId,
+      hospitalCaseId,
+      animalId: animalIdParam,
+      medicalRecordId: medicalRecordIdParam,
       overviewData: overviewData,
       patientData: patientData,
       loading: patientLoading,
       patientDischarged: isPatientDischarged
     }),
-    [selectedTab, drawerState, id, overviewData, patientData, patientLoading]
+    [
+      selectedTab,
+      drawerState,
+      hospitalCaseId,
+      animalIdParam,
+      medicalRecordIdParam,
+      overviewData,
+      patientData,
+      patientLoading,
+      isPatientDischarged
+    ]
   )
 
   return (

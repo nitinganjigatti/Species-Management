@@ -1,12 +1,14 @@
+import React, { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/router'
+
 import { Button, Tooltip, Typography, Skeleton } from '@mui/material'
 import { Box, Grid } from '@mui/system'
-import React, { useEffect, useMemo, useState } from 'react'
 import { alpha, useTheme } from '@mui/material/styles'
-import MediaCard from 'src/views/utility/MediaCard'
-import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
-import { getPatientSurgeryList } from 'src/lib/api/hospital/surgeryMaster'
+
 import Utility from 'src/utility'
+import MediaCard from 'src/views/utility/MediaCard'
+import { getPatientSurgeryList } from 'src/lib/api/hospital/surgeryMaster'
 
 const FieldTooltip = ({ title, placement = 'top-start', children }) => (
   <Tooltip
@@ -134,26 +136,6 @@ const parseProcedurePerformed = value => {
     .filter(Boolean)
 }
 
-const resolveValue = value => (Array.isArray(value) ? value[0] : value)
-
-const resolveHospitalCaseId = (propValue, query) => {
-  if (propValue !== undefined && propValue !== null && propValue !== '') return resolveValue(propValue)
-
-  const possibleKeys = ['hospital_case_id', 'hospitalCaseId', 'case_id', 'caseId', 'id']
-
-  for (const key of possibleKeys) {
-    if (query?.[key] !== undefined) {
-      const resolved = resolveValue(query[key])
-
-      if (resolved !== undefined && resolved !== null && resolved !== '') {
-        return resolved
-      }
-    }
-  }
-
-  return undefined
-}
-
 const getRecordIdentifier = record => {
   if (!record || typeof record !== 'object') return ''
   if (record.id !== undefined && record.id !== null) return String(record.id)
@@ -226,7 +208,7 @@ const MediaScroller = ({ items = [] }) => {
   )
 }
 
-function InpatientSurgery({ hospitalCaseId }) {
+function InpatientSurgery({ hospitalCaseId, medicalRecordId }) {
   const theme = useTheme()
   const scrollbarThumbColor = theme.palette.customColors.neutralSecondary
   const router = useRouter()
@@ -236,10 +218,7 @@ function InpatientSurgery({ hospitalCaseId }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const resolvedHospitalCaseId = useMemo(
-    () => resolveHospitalCaseId(hospitalCaseId, router?.query),
-    [hospitalCaseId, router?.query]
-  )
+  const resolvedHospitalCaseId = hospitalCaseId || ''
 
   useEffect(() => {
     let isMounted = true
@@ -296,18 +275,14 @@ function InpatientSurgery({ hospitalCaseId }) {
   }, [resolvedHospitalCaseId])
 
   const handleAddSurgeryRecord = () => {
-    const resolvedCaseId = resolveHospitalCaseId(hospitalCaseId, router?.query)
-    const medicalRecordId =
-      router?.query?.medical_record_id || router?.query?.medicalRecordId || router?.query?.medical_recordId
-
     const query = {}
 
-    if (resolvedCaseId) {
-      query.hospital_case_id = resolvedCaseId
+    if (resolvedHospitalCaseId) {
+      query.hospital_case_id = resolvedHospitalCaseId
     }
 
     if (medicalRecordId) {
-      query.medical_record_id = Array.isArray(medicalRecordId) ? medicalRecordId[0] : medicalRecordId
+      query.medical_record_id = medicalRecordId
     }
 
     const href =
