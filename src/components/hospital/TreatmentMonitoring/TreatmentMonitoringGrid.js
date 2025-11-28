@@ -1,5 +1,16 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
-import { Box, Typography, IconButton, Grid, Button, Skeleton, FormControlLabel, Radio, RadioGroup } from '@mui/material'
+import {
+  Box,
+  Typography,
+  IconButton,
+  Grid,
+  Button,
+  Skeleton,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  Tooltip
+} from '@mui/material'
 import { alpha, styled, useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
@@ -381,7 +392,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
           const isAfterAdmitTime = !isBeforeAdmitTime
 
           // Disable ONLY future slots. Nothing else.
-          const isDisabled = isFutureTodaySlot || isPatientDischarged
+          const isDisabled = isFutureTodaySlot
 
           let showPlus = true
 
@@ -433,13 +444,39 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
                   sx={{ display: 'flex', flexDirection: 'column', gap: 1, justifyContent: 'flex-start', width: '100%' }}
                 >
                   {timeSlot?.record?.unit !== null ? (
-                    <Typography
-                      sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.neutralPrimary }}
-                    >{`${timeSlot.record.value} ${timeSlot.record.unit}`}</Typography>
+                    <Tooltip title={`${timeSlot.record.value} ${timeSlot.record.unit}`} placement='top' arrow>
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: '1rem',
+                          color: theme.palette.customColors.neutralPrimary,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          width: '100%',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {`${timeSlot.record.value} ${timeSlot.record.unit}`}
+                      </Typography>
+                    </Tooltip>
                   ) : (
-                    <Typography
-                      sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.neutralPrimary }}
-                    >{`${timeSlot.record.value}`}</Typography>
+                    <Tooltip title={`${timeSlot.record.value}`} placement='top' arrow>
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: '1rem',
+                          color: theme.palette.customColors.neutralPrimary,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          width: '100%',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {`${timeSlot.record.value}`}
+                      </Typography>
+                    </Tooltip>
                   )}
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Typography
@@ -715,6 +752,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
           refetchMonitoringData={monitoringRefetch}
           selectedDate={selectedDate}
           monitoringRefetch={monitoringRefetch}
+          isPatientDischarged={isPatientDischarged}
         />
       )}
       {openDeleteDialog && (
@@ -848,6 +886,7 @@ const TimeSlot = styled(Box)(({ theme }) => ({
   transition: 'all 0.2s ease',
   position: 'relative',
   minWidth: '160px',
+  maxWidth: '160px',
   height: '72px',
   [theme.breakpoints.down('md')]: {
     fontSize: '11px',

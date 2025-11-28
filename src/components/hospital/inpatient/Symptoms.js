@@ -208,14 +208,15 @@ const Symptoms = ({ selectedTab, patientData }) => {
             </Button>
           </Box>
         </Box>
-
-        <MUISwitch
-          label='Current Medical Record Only'
-          checked={currentRecordOnly}
-          onChange={e => setCurrentRecordOnly(e.target.checked)}
-          size='small'
-          sx={{ ml: 2.6 }}
-        />
+        <Box>
+          <MUISwitch
+            label='Current Medical Record Only'
+            checked={currentRecordOnly}
+            onChange={e => setCurrentRecordOnly(e.target.checked)}
+            size='small'
+            sx={{ ml: 2.6 }}
+          />
+        </Box>
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

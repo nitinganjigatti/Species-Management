@@ -160,14 +160,14 @@ const TimeHeader = styled(Box)(({ theme }) => ({
 
 const TimeTooltip = styled(Box)(({ theme }) => ({
   position: 'absolute',
-  top: '100%',
+  top: '90%',
   left: '50%',
   transform: 'translateX(-50%)',
   backgroundColor: 'transparent',
   border: '1px solid',
   borderColor: theme.palette.customColors.Error,
   color: theme.palette.customColors.Error,
-  padding: '4px 8px',
+  padding: '2px 6px',
   fontSize: '12px',
   fontWeight: 600,
   borderRadius: '8px',
@@ -784,7 +784,7 @@ const PrescriptionMonitoringGrid = ({
             <DashboardContainer>
               <MainContainer>
                 <FixedColumn>
-                  <HeaderContainer>
+                  <HeaderContainer sx={{ mb: '16px' }}>
                     <Typography
                       sx={{ weight: 500, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}
                     >
@@ -813,7 +813,7 @@ const PrescriptionMonitoringGrid = ({
                 </FixedColumn>
 
                 <ScrollableContainer ref={scrollContainerRef}>
-                  <TimeSlotGrid numColumns={timeSlots.length}>
+                  <TimeSlotGrid numColumns={timeSlots.length} sx={{ mb: '16px' }}>
                     {timeSlots.map(time => {
                       const currentHour24 = currentTime.getHours()
                       const slotHour24 = convertLabelToHour24(time)

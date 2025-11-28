@@ -1,3 +1,6 @@
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
+import { useRouter } from 'next/router'
+
 import {
   Button,
   Tooltip,
@@ -12,21 +15,22 @@ import {
   TableRow,
   Paper
 } from '@mui/material'
-import Skeleton from '@mui/material/Skeleton'
-import LoadingSkeleton from 'src/components/hospital/inpatient/Anesthesia/LoadingSkeleton'
 import { Box, Grid } from '@mui/system'
-import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
+import Skeleton from '@mui/material/Skeleton'
 import { useTheme } from '@mui/material/styles'
-import MediaCard from 'src/views/utility/MediaCard'
-import { useRouter } from 'next/router'
 import { alpha } from '@mui/material/styles'
-import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
-import VitalMonitoringDetail from './Anesthesia/vitalForms/VitalMonitoringDetail'
-import { getAnesthesiaList, getAnesthesiaDetail, deleteAnesthesia } from 'src/lib/api/hospital/anesthesia'
-import Utility from 'src/utility'
+
 import dayjs from 'dayjs'
 import toast from 'react-hot-toast'
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
+
+import Utility from 'src/utility'
+import MediaCard from 'src/views/utility/MediaCard'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
+import LoadingSkeleton from 'src/components/hospital/inpatient/Anesthesia/LoadingSkeleton'
+import VitalMonitoringDetail from './Anesthesia/vitalForms/VitalMonitoringDetail'
+
+import { getAnesthesiaList, getAnesthesiaDetail, deleteAnesthesia } from 'src/lib/api/hospital/anesthesia'
 
 const PAGE_SIZE = 10
 const SCROLL_FETCH_THRESHOLD = 140
@@ -41,9 +45,6 @@ const formatTimeOnly = time => {
   const parsed = dayjs(`1970-01-01T${time}`)
   return parsed.isValid() ? parsed.format('hh:mm A') : time
 }
-
-const normalizeQueryValue = value => (Array.isArray(value) ? value[0] : value)
-const hasValue = value => value !== undefined && value !== null && value !== ''
 
 const formatDateTime = value => {
   if (!value) return '--'
@@ -106,22 +107,14 @@ const MediaScroller = ({ items = [] }) => {
   )
 }
 
-function Anesthesia({ hospitalCaseId, patientData }) {
+function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) {
   const theme = useTheme()
   const router = useRouter()
   const scrollContainerRef = useRef(null)
   const queryClient = useQueryClient()
 
-  const resolvedHospitalCaseId = useMemo(() => {
-    return hasValue(hospitalCaseId) ? hospitalCaseId : undefined
-  }, [hospitalCaseId])
-
-  const resolvedMedicalRecordId = useMemo(() => {
-    const queryValue = normalizeQueryValue(router?.query?.medical_record_id)
-    if (hasValue(queryValue)) return queryValue
-
-    return patientData?.medical_record_id
-  }, [router?.query, patientData?.medical_record_id])
+  const resolvedHospitalCaseId = hospitalCaseId || ''
+  const resolvedMedicalRecordId = medicalRecordId || patientData?.medical_record_id || ''
 
   const shouldFetchRecords = Boolean(resolvedHospitalCaseId && resolvedMedicalRecordId)
 

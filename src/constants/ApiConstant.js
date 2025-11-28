@@ -735,6 +735,8 @@ export const GET_FOLLOWUP_PATIENTS_LISTS = `v1/hospital/get-followup-discharge-l
 
 export const GET_PATIENTS_DETAILS = `v1/hospital/patient-details/`
 
+export const GET_PATIENT_DETAILS_BY_TRANSFER_ID = `v1/get-transfer-summary`
+
 export const EDIT_PATIENT_DETAILS = `v1/hospital/edit-patient-details`
 
 export const GET_ROOMS_AND_ENCLOSURES = 'v1/hospital/bed/list'
@@ -747,7 +749,7 @@ export const ADMIT_HOSPITAL_PATIENT = `v1/hospital/admit`
 
 export const ANIMAL_MEDICAL_ID_LIST = `medical/v2/`
 
-export const ADD_HOSPITAL_PATIENT = `/v1/create-transfer`
+export const ADD_HOSPITAL_PATIENT = `v1/transfer/create`
 
 export const GET_ANIMAL_TOTAL_HOSPITAL_VISIT = `v1/hospital/get-animal-hospital-visits`
 

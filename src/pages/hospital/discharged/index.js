@@ -336,7 +336,7 @@ const HospitalDischarged = () => {
               sx={{
                 p: 3,
                 display: 'flex',
-                justifyContent: 'space-between,',
+                justifyContent: 'space-between',
                 flexDirection: { xs: 'column', lg: 'row' },
                 gap: 4
               }}

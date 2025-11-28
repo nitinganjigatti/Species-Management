@@ -72,7 +72,8 @@ const AddParameterDataEntry = ({
   hospitalCaseId,
   animalId,
   refetchMonitoringData,
-  selectedDate
+  selectedDate,
+  isPatientDischarged
 }) => {
   const theme = useTheme()
 
@@ -128,6 +129,13 @@ const AddParameterDataEntry = ({
     refetchOnWindowFocus: false
   })
 
+  useEffect(() => {
+    if (open && isPatientDischarged) {
+      setActiveTab(1)
+      refetchHistory()
+    }
+  }, [open, isPatientDischarged])
+
   const historyList = historyData?.data || []
 
   const formatInterval = interval => {
@@ -139,10 +147,17 @@ const AddParameterDataEntry = ({
   }
 
   const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue)
-    if (newValue === 1) {
+    // If discharged → only one tab → history tab becomes index 0
+    if (isPatientDischarged) {
+      setActiveTab(1)
       refetchHistory()
+
+      return
     }
+
+    // Normal behaviour
+    setActiveTab(newValue)
+    if (newValue === 1) refetchHistory()
   }
 
   const handleDrawerClose = () => {
@@ -275,12 +290,12 @@ const AddParameterDataEntry = ({
                 }
               }}
             >
-              <Tab label='ADD NEW ENTRY' />
+              {!isPatientDischarged && <Tab label='ADD NEW ENTRY' />}
               <Tab label='VIEW PREVIOUS ENTRY' />
             </Tabs>
           </Box>
           <Box sx={{ flex: 1, overflow: 'auto', p: 6 }}>
-            {activeTab === 0 && (
+            {!isPatientDischarged && activeTab === 0 && (
               <>
                 <Box
                   sx={{
@@ -471,7 +486,7 @@ const AddParameterDataEntry = ({
               </>
             )}
 
-            {activeTab === 1 && (
+            {(isPatientDischarged || activeTab === 1) && (
               <>
                 <Box
                   sx={{
@@ -610,17 +625,19 @@ const AddParameterDataEntry = ({
                                   </Typography>
                                 )}
                               </Box>
-                              <IconButton
-                                onClick={() => {
-                                  setEditHistoryData({
-                                    ...item,
-                                    unitsData
-                                  })
-                                  setOpenEditHistoryDrawer(true)
-                                }}
-                              >
-                                <Icon icon={'material-symbols:edit-outline-rounded'} />
-                              </IconButton>
+                              {!isPatientDischarged && (
+                                <IconButton
+                                  onClick={() => {
+                                    setEditHistoryData({
+                                      ...item,
+                                      unitsData
+                                    })
+                                    setOpenEditHistoryDrawer(true)
+                                  }}
+                                >
+                                  <Icon icon={'material-symbols:edit-outline-rounded'} />
+                                </IconButton>
+                              )}
                             </Box>
 
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -653,7 +670,7 @@ const AddParameterDataEntry = ({
               </>
             )}
           </Box>
-          {activeTab === 0 && (
+          {!isPatientDischarged && activeTab === 0 && (
             <Box
               sx={{
                 p: 4,

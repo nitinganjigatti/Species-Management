@@ -115,10 +115,10 @@ const HospitalIncoming = () => {
     refetch()
   }, [refetch])
 
-  console.log(data)
-
   const total = data?.data?.total_count || 0
   const rows = data?.data?.result || []
+  const pendingCount = data?.data?.stats?.transfer_pending_count || 0
+  const rejectedCount = data?.data?.stats?.transfer_rejected_count || 0
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -206,7 +206,8 @@ const HospitalIncoming = () => {
             common_name: params.row?.common_name,
             scientific_name: params.row?.scientific_name,
             age: params.row?.age_formatted,
-            site_name: params.row?.site_name
+            site_name: params.row?.site_name,
+            total_animal: params?.row?.total_animal
           }}
         />
       )
@@ -221,7 +222,7 @@ const HospitalIncoming = () => {
       sortable: false,
       headerName: 'Purpose of Visit',
       renderCell: params => (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
             <VisitType title={params.row.purpose} />
             {params?.row?.transfer_reference_code && (
@@ -320,9 +321,11 @@ const HospitalIncoming = () => {
     activeTab === 'pending' ? [...commonColumns, ...pendingColumns] : [...commonColumns, ...rejectedColumns]
 
   const handleRowClick = data => {
-    router.push({
-      pathname: `/hospital/incoming/${data?.row?.hospital_case_id}/patient-admit-form`
-    })
+    if (activeTab === 'pending') {
+      router.push({
+        pathname: `/hospital/incoming/${data?.row?.transfer_id}/patient-admit-form`
+      })
+    }
   }
 
   const handleTabChange = (_, newValue) => {
@@ -332,10 +335,10 @@ const HospitalIncoming = () => {
   }
 
   const getTabLabel = (key, label) => {
-    if (activeTab !== key) return label
-    if (isFetching && !data) return label
+    if (key === 'pending') return `${label} - ${pendingCount}`
+    if (key === 'rejected') return `${label} - ${rejectedCount}`
 
-    return total ? `${label} - ${total}` : label
+    return label
   }
 
   return (

@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/router'
 import { Avatar, Box, Button, Skeleton, Tooltip, Typography } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 
@@ -294,10 +293,8 @@ const mapDetailRecordsToActivities = (records = []) => {
   })
 }
 
-const OtherTreatment = () => {
-  const router = useRouter()
+const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId }) => {
   const theme = useTheme()
-  const { animal_id, medical_record_id, id: hospital_case_id } = router.query
   const [isAddDrawerOpen, setAddDrawerOpen] = useState(false)
   const [isEditDrawerOpen, setEditDrawerOpen] = useState(false)
 
@@ -364,14 +361,14 @@ const OtherTreatment = () => {
   }, [])
 
   const fetchTreatments = useCallback(async () => {
-    if (!animal_id) return
+    if (!animalId) return
 
     setTreatmentsLoading(true)
     try {
       const response = await getTreatmentList({
-        animal_id,
-        medical_record_id,
-        hospital_case_id
+        animal_id: animalId,
+        medical_record_id: medicalRecordId,
+        hospital_case_id: hospitalCaseId
       })
 
       const records = response?.data?.records || []
@@ -382,12 +379,12 @@ const OtherTreatment = () => {
     } finally {
       setTreatmentsLoading(false)
     }
-  }, [animal_id, medical_record_id, hospital_case_id])
+  }, [animalId, medicalRecordId, hospitalCaseId])
 
   const loadTreatmentActivities = useCallback(
-    async ({ treatmentMasterId, medicalRecordId, animalId: fallbackAnimalId } = {}) => {
-      const finalAnimalId = animal_id || fallbackAnimalId
-      const finalMedicalRecordId = medicalRecordId || medical_record_id
+    async ({ treatmentMasterId, medicalRecordId: medicalRecordIdParam, animalId: fallbackAnimalId } = {}) => {
+      const finalAnimalId = animalId || fallbackAnimalId
+      const finalMedicalRecordId = medicalRecordIdParam || medicalRecordId
       const finalTreatmentMasterId = treatmentMasterId
 
       if (!finalAnimalId || !finalMedicalRecordId || !finalTreatmentMasterId) {
@@ -402,7 +399,7 @@ const OtherTreatment = () => {
           animal_id: finalAnimalId,
           medical_record_id: finalMedicalRecordId,
           treatment_master_id: finalTreatmentMasterId,
-          hospital_case_id
+          hospital_case_id: hospitalCaseId
         })
 
         const records = response?.data?.records || []
@@ -414,7 +411,7 @@ const OtherTreatment = () => {
         setTreatmentActivitiesLoading(false)
       }
     },
-    [animal_id, medical_record_id, hospital_case_id]
+    [animalId, medicalRecordId, hospitalCaseId]
   )
 
   useEffect(() => {
@@ -480,13 +477,13 @@ const OtherTreatment = () => {
 
     const treatmentNameValue = (treatmentInputValue || selectedValue || '').trim()
 
-    if (!treatmentNameValue || treatmentNameValue.length < 3) {
-      Toaster({ type: 'error', message: 'Treatment name must be at least 3 characters.' })
+    if (!treatmentNameValue) {
+      Toaster({ type: 'error', message: 'Treatment name is required.' })
 
       return
     }
 
-    if (!animal_id || !medical_record_id) {
+    if (!animalId || !medicalRecordId) {
       Toaster({ type: 'error', message: 'Missing patient identifiers to create treatment.' })
 
       return
@@ -495,9 +492,9 @@ const OtherTreatment = () => {
     const formattedStartTime = formData.startDate ? dayjs(formData.startDate).format('DD MMM YYYY HH:mm:ss') : ''
 
     const payload = {
-      animal_id,
-      medical_record_id,
-      hospital_case_id: hospital_case_id || '',
+      animal_id: animalId,
+      medical_record_id: medicalRecordId,
+      hospital_case_id: hospitalCaseId || '',
       start_time: formattedStartTime,
       treatment_master_id: treatmentNameValue,
       note: formData.notes || ''
@@ -580,8 +577,8 @@ const OtherTreatment = () => {
       return
     }
 
-    const finalAnimalId = selectedTreatment.animalId || animal_id
-    const finalMedicalRecordId = selectedTreatment.medicalRecordId || medical_record_id
+    const finalAnimalId = selectedTreatment.animalId || animalId
+    const finalMedicalRecordId = selectedTreatment.medicalRecordId || medicalRecordId
 
     if (!finalAnimalId || !finalMedicalRecordId) {
       Toaster({ type: 'error', message: 'Missing identifiers to update this treatment.' })
@@ -612,7 +609,7 @@ const OtherTreatment = () => {
     const payload = {
       animal_id: finalAnimalId,
       medical_record_id: finalMedicalRecordId,
-      hospital_case_id: selectedTreatment.hospitalCaseId || hospital_case_id || '',
+      hospital_case_id: selectedTreatment.hospitalCaseId || hospitalCaseId || '',
       start_time: formattedStartTime,
       treatment_master_id: treatmentMasterId,
       note: editFormData.notes || '',
