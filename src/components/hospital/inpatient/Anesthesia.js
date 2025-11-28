@@ -524,25 +524,13 @@ function Anesthesia({ hospitalCaseId, patientData }) {
   const handleEditClick = value => {
     console.log(value, 'value')
     if (value?.anaesthesia_id) {
-      const resolvedCaseId = resolvedHospitalCaseId
-      const animalId = normalizeQueryValue(router?.query?.animal_id)
-
-      const href = resolvedCaseId
-        ? {
-            pathname: `/hospital/inpatient/AddAnesthesiaRecord/`,
-            query: {
-              hospital_case_id: resolvedCaseId,
-              medical_record_id: patientData?.medical_record_id,
-              hospital_id: patientData?.hospital_id,
-              animal_id: animalId,
-              animal_admitted_date: router?.query?.animal_admitted_date,
-              tab: router?.query?.tab,
-              anaesthesia_id: value?.anaesthesia_id
-            }
-          }
-        : '/hospital/inpatient/AddAnesthesiaRecord'
-
-      router.push(href)
+      router.push({
+        pathname: `/hospital/inpatient/${router?.query?.id}/AddAnesthesiaRecord`,
+        query: {
+          tab: 'anesthesia',
+          anaesthesia_id: value?.anaesthesia_id
+        }
+      })
     }
   }
 
@@ -699,27 +687,6 @@ function Anesthesia({ hospitalCaseId, patientData }) {
     )
   }
 
-  const handleAddSurgeryRecord = () => {
-    const resolvedCaseId = resolvedHospitalCaseId
-    const animalId = normalizeQueryValue(router?.query?.animal_id)
-
-    const href = resolvedCaseId
-      ? {
-          pathname: `/hospital/inpatient/AddAnesthesiaRecord/`,
-          query: {
-            hospital_case_id: resolvedCaseId,
-            medical_record_id: patientData?.medical_record_id,
-            hospital_id: patientData?.hospital_id,
-            animal_id: animalId,
-            animal_admitted_date: router?.query?.animal_admitted_date,
-            tab: router?.query?.tab
-          }
-        }
-      : '/hospital/inpatient/AddAnesthesiaRecord'
-
-    router.push(href)
-  }
-
   const DetailsHeader = ({ text }) => (
     <Box
       sx={theme => ({
@@ -773,7 +740,7 @@ function Anesthesia({ hospitalCaseId, patientData }) {
           </Box>
 
           <Button
-            onClick={handleAddSurgeryRecord}
+            onClick={() => router.push(`/hospital/inpatient/${patientData?.hospital_case_id}/AddAnesthesiaRecord/`)}
             variant='contained'
             sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
           >

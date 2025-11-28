@@ -46,6 +46,7 @@ function PreAnesthesia({
             label='Temperature'
             name='preAnesthesia.temperature'
             placeholder='Enter Temperature'
+            type='number'
             inputSlotProps={{
               endAdornment: (
                 <InputAdornment position='end'>
@@ -63,6 +64,7 @@ function PreAnesthesia({
             label='Humidity'
             name='preAnesthesia.humidity'
             placeholder='Enter Humidity'
+            type='number'
             inputSlotProps={{
               endAdornment: (
                 <InputAdornment position='end'>
@@ -127,6 +129,7 @@ function PreAnesthesia({
             getOptionValue={option => option.value}
             showEmptyMenuItem={false}
             showEmptyMenuItemLabel={false}
+            min={1}
           />
         </Grid>
 

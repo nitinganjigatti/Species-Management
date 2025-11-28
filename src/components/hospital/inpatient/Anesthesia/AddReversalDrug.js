@@ -16,7 +16,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat'
 dayjs.extend(customParseFormat)
 
 const schema = yup.object().shape({
-  drug_namenew: yup.object().required('Drug Name is required').nullable(),
+  drug_name: yup.object().required('Drug Name is required').nullable(),
   amount: yup
     .string()
     .trim()
@@ -57,7 +57,7 @@ const deliveryStatus = [
 ]
 
 const defaultValues = {
-  drug_namenew: null,
+  drug_name: null,
   amount: '',
   unit: '',
   delivery_route: null,
@@ -158,7 +158,7 @@ function AddReversalDrug({
       const fmt = v => (v && dayjs(v).isValid() ? dayjs(v).format('hh:mm A') : null)
 
       const payload = {
-        drug_namenew: formData.drug_namenew,
+        drug_name: formData.drug_name,
         amount: formData.amount,
         unit: formData.unit,
         delivery_route: formData.delivery_route,
@@ -231,7 +231,7 @@ function AddReversalDrug({
               <Grid size={{ xs: 12 }}>
                 <ControlledAutocomplete
                   control={control}
-                  name='drug_namenew'
+                  name='drug_name'
                   errors={errors}
                   label='Enter Drug Name*'
                   options={drugOptions}

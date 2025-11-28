@@ -276,8 +276,17 @@ function ControlledSelectWithTextField({
                 error={hasError}
                 fullWidth={fullWidth}
                 size={size}
+                onChange={e => {
+                  const val = e.target.value
+                  if (type === 'number' && val !== '' && Number(val) < 1) {
+                    field.onChange(1)
+                  } else {
+                    field.onChange(e)
+                  }
+                }}
                 inputProps={{
                   readOnly,
+                  min: 1,
                   ...inputProps
                 }}
                 onWheel={handleWheel} // Prevent number input from changing value on mouse scroll

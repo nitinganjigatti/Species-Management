@@ -224,6 +224,12 @@ const toBackendTime = v => {
   return v
 }
 
+const formatDateTime = value => {
+  if (!value) return '--'
+  const formatted = Utility.convertUTCToLocalDateTime(value)
+  return formatted && formatted !== 'Invalid date' ? formatted : String(value)
+}
+
 export const anesthesiaSchema = yup.object({
   basicDetails: yup.object({
     location: yup.string().trim().required('Location is required'),
@@ -387,7 +393,7 @@ export default function AddAnesthesiaRecord() {
     const getPatientInfo = async () => {
       setPatientLoading(true)
       try {
-        await getPatientDetails(hospital_case_id).then(res => {
+        await getPatientDetails(id).then(res => {
           if (res?.success === true) {
             setPatientData(res?.data)
             setPatientLoading(false)
@@ -402,7 +408,7 @@ export default function AddAnesthesiaRecord() {
     }
 
     getPatientInfo()
-  }, [hospital_case_id])
+  }, [id])
 
   const fetchUnitList = async () => {
     try {
@@ -415,7 +421,7 @@ export default function AddAnesthesiaRecord() {
       }
     } catch (error) {}
   }
-
+  console.log(id, 'id')
   const fetchVitalList = async () => {
     try {
       const params = {
@@ -551,19 +557,7 @@ export default function AddAnesthesiaRecord() {
   })
 
   const handleCancel = () => {
-    const href = router?.query?.hospital_case_id
-      ? {
-          pathname: `/hospital/inpatient/${router?.query?.hospital_case_id}/`,
-          query: {
-            medical_record_id: patientData?.medical_record_id,
-            animal_id: router?.query?.animal_id,
-            animal_admitted_date: router?.query?.animal_admitted_date,
-            tab: router?.query?.tab
-          }
-        }
-      : `/hospital/inpatient/${router?.query?.hospital_case_id}/`
-
-    router.push(href)
+    router.push(`/hospital/inpatient/${id}/?tab=anesthesia`)
   }
 
   const {
@@ -712,7 +706,6 @@ export default function AddAnesthesiaRecord() {
     if (!anesthesiaDetail) return
 
     const detail = anesthesiaDetail
-    console.log(detail, 'detail')
     const purposeArray = detail.purpose || []
 
     const selectedPurposeIds = []
@@ -1339,8 +1332,8 @@ export default function AddAnesthesiaRecord() {
         formData.append('anaesthesia_id', anaesthesia_id)
       }
 
-      formData.append('hospital_case_id', hospital_case_id || '')
-      formData.append('medical_record_id', medical_record_id || '')
+      formData.append('hospital_case_id', id || '')
+      formData.append('medical_record_id', patientData?.medical_record_id || '')
       formData.append('location', data.basicDetails.location)
       formData.append('anaesthesia_datetime', data.basicDetails.anaesthesia_datetime)
       formData.append('estimated_time_required', data.basicDetails.estimated_time_required)
@@ -1351,19 +1344,34 @@ export default function AddAnesthesiaRecord() {
       formData.append('purpose', JSON.stringify(purposePayload))
 
       if (isEdit) {
-        formData.append('pre_anaesthesia', JSON.stringify(preAnaesthesiaPayload))
-        formData.append('anaesthesia_medications', JSON.stringify({ medications: medsPayload, gas: gasPayload }))
-        formData.append(
-          'recovery_and_reversal',
-          JSON.stringify({ recovery: recoveryPayload, reversal: reversalPayload })
-        )
-        formData.append('vital_monitoring_blocks', JSON.stringify(blocks))
-        formData.append('anaesthesia_setup', JSON.stringify(anaesthesiaSetupPayload))
+        if (hasPreAnesthesiaData(data.preAnesthesia)) {
+          formData.append('pre_anaesthesia', JSON.stringify(preAnaesthesiaPayload))
+        }
+
+        if (hasMedicationsGasData(medsPayload, gasPayload)) {
+          formData.append('anaesthesia_medications', JSON.stringify({ medications: medsPayload, gas: gasPayload }))
+        }
+
+        const hasRecRevData = hasRecoveryAndReversalData(recoveryPayload, reversalPayload)
+        if (hasRecRevData) {
+          formData.append(
+            'recovery_and_reversal',
+            JSON.stringify({ recovery: recoveryPayload, reversal: reversalPayload })
+          )
+        }
+
+        if (hasVitalBlocksData(blocks)) {
+          formData.append('vital_monitoring_blocks', JSON.stringify(blocks))
+        }
+
+        if (hasAnesthesiaSetupData(anaesthesiaSetupPayload)) {
+          formData.append('anaesthesia_setup', JSON.stringify(anaesthesiaSetupPayload))
+        }
       }
 
-      console.log('🔹 Final payload for API:', {
-        hospital_case_id: hospital_case_id || '',
-        medical_record_id: medical_record_id || '',
+      console.log(' Final payload for API:', {
+        hospital_case_id: id || '',
+        medical_record_id: patientData?.medical_record_id || '',
         location: data.basicDetails.location,
         anaesthesia_datetime: data.basicDetails.anaesthesia_datetime,
         estimated_time_required: data.basicDetails.estimated_time_required,
@@ -1400,7 +1408,6 @@ export default function AddAnesthesiaRecord() {
   }
 
   const onInvalid = errors => {
-    console.log(errors, 'errors')
     const firstPath = Object.keys(errors.basicDetails || {})[0] || (errors.attachments ? 'attachments' : 'basicDetails')
 
     if (firstPath) {
@@ -1411,6 +1418,81 @@ export default function AddAnesthesiaRecord() {
       })
     }
   }
+
+  const hasNonEmpty = v => {
+    if (v == null) return false
+
+    if (typeof v === 'string') return v.trim() !== ''
+    if (typeof v === 'number') return !Number.isNaN(v)
+    if (Array.isArray(v)) return v.length > 0
+
+    if (typeof v === 'object') {
+      return Object.values(v).some(hasNonEmpty)
+    }
+
+    return !!v
+  }
+
+  const hasPreAnesthesiaData = pre => {
+    if (!pre) return false
+
+    const fieldsToCheck = [
+      'temperature',
+      'humidity',
+      'physical_health_status',
+      'body_condition',
+      'animal_activity',
+      'fasting_time',
+      'previous_endotracheal_tube_size',
+      'code_status',
+      'weight',
+      'pre_anesthesia_notes'
+    ]
+
+    for (const key of fieldsToCheck) {
+      if (hasNonEmpty(pre[key])) return true
+    }
+
+    const clinPath = pre.clin_path || {}
+    const selected = clinPath.selected || {}
+    const custom = clinPath.custom || []
+
+    const hasSelected = Object.values(selected || {}).some(Boolean)
+    if (hasSelected || (Array.isArray(custom) && custom.length > 0)) {
+      return true
+    }
+
+    return false
+  }
+
+  const hasRecoveryAndReversalData = (recoveryForm, reversalPayload) => {
+    if (!recoveryForm && !reversalPayload?.length) return false
+
+    const hasRecovery =
+      !!recoveryForm?.recovery_type ||
+      !!recoveryForm?.recovery_first_effect ||
+      !!recoveryForm?.recovery_full_effect ||
+      !!recoveryForm?.describe_problem ||
+      !!recoveryForm?.notes ||
+      !!recoveryForm?.induction ||
+      !!recoveryForm?.tolerance ||
+      !!recoveryForm?.recovery ||
+      !!recoveryForm?.overall
+
+    const hasReversal = Array.isArray(reversalPayload) && reversalPayload.length > 0
+
+    return hasRecovery || hasReversal
+  }
+
+  const hasMedicationsGasData = (medsPayload, gasPayload) => {
+    return (
+      (Array.isArray(medsPayload) && medsPayload.length > 0) || (Array.isArray(gasPayload) && gasPayload.length > 0)
+    )
+  }
+
+  const hasVitalBlocksData = blocks => Array.isArray(blocks) && blocks.length > 0
+
+  const hasAnesthesiaSetupData = setupPayload => Array.isArray(setupPayload) && setupPayload.length > 0
 
   const preAnesthesia = watch('preAnesthesia')
   const vitalMonitoring = watch('vitalMonitoring')
@@ -1443,11 +1525,7 @@ export default function AddAnesthesiaRecord() {
 
       case 'preAnesthesia': {
         const pre = preAnesthesia || {}
-        return Object.values(pre).some(v => {
-          if (Array.isArray(v)) return v.length > 0
-          if (v && typeof v === 'object') return Object.values(v).some(x => !!x)
-          return v !== '' && v !== null && v !== undefined
-        })
+        return hasPreAnesthesiaData(pre)
       }
 
       case 'vitalMonitoring': {
@@ -1474,6 +1552,10 @@ export default function AddAnesthesiaRecord() {
   }
 
   const shouldEnableSections = isApiSuccess
+
+  // const lastUpdatedValue = formatDateTime(
+  //   anesthesiaDetail?.updated_at || anesthesiaDetail?.created_at || activeRecord?.updated_at || activeRecord?.created_at
+  // )
 
   return (
     <FormProvider {...methods}>
@@ -1520,7 +1602,6 @@ export default function AddAnesthesiaRecord() {
                 pl: 7
               }}
             >
-              {console.log(anesthesiaDetail, 'anesthesiaDetail')}
               <Box
                 sx={{
                   display: 'flex',
@@ -1542,7 +1623,7 @@ export default function AddAnesthesiaRecord() {
                 </Typography>
               </Box>
 
-              {/* <Typography
+              <Typography
                 sx={{
                   color: theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '12px',
@@ -1550,8 +1631,8 @@ export default function AddAnesthesiaRecord() {
                   ml: 6
                 }}
               >
-                Last Saved : 12 Aug 2025 · 12:00 PM
-              </Typography> */}
+                {/* Last Saved : {lastUpdatedValue} */}
+              </Typography>
             </Box>
 
             <AnimalDetails

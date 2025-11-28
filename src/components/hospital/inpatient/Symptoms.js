@@ -39,31 +39,35 @@ const Symptoms = ({ selectedTab, patientData }) => {
 
   const fetchSymptoms = async (query = '', newPage = 1, append = false) => {
     try {
-      if (newPage === 1) setLoading(true)
-      else setIsFetchingMore(true)
+      if (patientData) {
+        if (newPage === 1) setLoading(true)
+        else setIsFetchingMore(true)
 
-      const params = {
-        type: tabTypeMap[currentTab],
-        page_no: newPage,
-        limit: 20,
-        medical_type: 'complaint',
-        q: query,
-        hospital_case_id: patientData?.hospital_case_id
-      }
-
-      if (currentRecordOnly && patientData?.medical_record_id) {
-        params.medical_record_id = patientData?.medical_record_id
-      }
-
-      const response = await getSymptomsList(animal_id, params)
-
-      if (response.success === true) {
-        if (newPage > 1 && response?.data?.result?.length === 0) {
-          return
+        const params = {
+          type: tabTypeMap[currentTab],
+          page_no: newPage,
+          limit: 20,
+          medical_type: 'complaint',
+          q: query,
+          hospital_case_id: patientData?.hospital_case_id
         }
-        setRecords(prevRecords => (append ? [...prevRecords, ...response?.data?.result] : response?.data?.result || []))
-        setRecordTypeCount(response?.data)
-        setTotalCount(response?.data?.total_count || 0)
+
+        if (currentRecordOnly && patientData?.medical_record_id) {
+          params.medical_record_id = patientData?.medical_record_id
+        }
+
+        const response = await getSymptomsList(patientData?.animal_detail?.animal_id, params)
+
+        if (response.success === true) {
+          if (newPage > 1 && response?.data?.result?.length === 0) {
+            return
+          }
+          setRecords(prevRecords =>
+            append ? [...prevRecords, ...response?.data?.result] : response?.data?.result || []
+          )
+          setRecordTypeCount(response?.data)
+          setTotalCount(response?.data?.total_count || 0)
+        }
       }
     } catch (error) {
       console.error('Error fetching symptoms:', error)
@@ -78,9 +82,9 @@ const Symptoms = ({ selectedTab, patientData }) => {
       setPage(1)
       fetchSymptoms(query, 1, false)
     }, 500),
-    [currentTab, patientData, animal_id, currentRecordOnly]
+    [currentTab, patientData, patientData?.animal_detail?.animal_id, currentRecordOnly]
   )
-
+  console.log(patientData, 'patientData')
   const handleTabChange = newValue => {
     setCurrentTab(newValue)
     setPage(1)
@@ -198,11 +202,7 @@ const Symptoms = ({ selectedTab, patientData }) => {
             <Button
               variant='contained'
               startIcon={<AddIcon />}
-              onClick={() =>
-                router.push(
-                  `/hospital/inpatient/${id}/symptoms/?animal_id=${animal_id}&medical_record_id=${patientData?.medical_record_id}`
-                )
-              }
+              onClick={() => router.push(`/hospital/inpatient/${patientData?.hospital_case_id}/symptoms/`)}
             >
               ADD NEW
             </Button>
@@ -245,6 +245,7 @@ const Symptoms = ({ selectedTab, patientData }) => {
               isDifferential={record.type === 'Differential'}
               isResolved={record.status === 'closed'}
               fetchSymptoms={fetchSymptoms}
+              patientData={patientData}
             />
           ))
         )}
