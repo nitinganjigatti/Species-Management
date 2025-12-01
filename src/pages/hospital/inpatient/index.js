@@ -194,7 +194,7 @@ const HospitalInpatient = () => {
       headerName: 'Purpose of Visit',
       renderCell: params => (
         <>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
               <VisitType title={params.row.visit_type} />
               {params?.row?.medical_record_code && (
