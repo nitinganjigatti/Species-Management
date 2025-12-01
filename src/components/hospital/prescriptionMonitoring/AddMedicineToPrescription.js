@@ -875,7 +875,8 @@ export default function AddMedicineToPrescription() {
             batch_list: batchListPayload,
             request_from: 'hospital_module',
             dose_type: 'fixed_dose',
-            files: data.batchImage ? [data.batchImage] : []
+            files: data.batchImage ? [data.batchImage] : [],
+            1: data?.attachment?.[0] && data?.attachment[0]
           }
         ])
       }

@@ -408,7 +408,6 @@ export default function ScheduleMedicine({
                   <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                     <ControlledSelect
                       name='dosageDuration.unit'
-
                       // label='Dosage Unit*'
                       sx={{
                         textAlign: 'left',
@@ -608,8 +607,12 @@ export default function ScheduleMedicine({
                 <ControlledMultiFileUpload
                   name='batchImage'
                   control={control}
+                  errors={errors}
                   sx={commonFieldStyles}
                   label='Batch Image'
+                  maxFiles={1}
+                  maxFileSize={5 * 1024 * 1024} // 5MB
+                  acceptedFileTypes='image,pdf'
                 />
               </>
             )}

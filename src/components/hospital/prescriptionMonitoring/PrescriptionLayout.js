@@ -378,7 +378,8 @@ function PrescriptionLayout({ drawerType }) {
             }
           ]),
         administritive_time: time24,
-        group_prescription_id: data?.group_prescription_id || data?.id
+        group_prescription_id: data?.group_prescription_id || data?.id,
+        1: data?.attachment?.[0] && data?.attachment[0]
       }
       const response = await administerDose(payload)
       if (response?.success) {
@@ -442,7 +443,8 @@ function PrescriptionLayout({ drawerType }) {
         prescription_id: selectedSlotData?.data?.prescription_id,
         medicine_id: selectedSlotData?.data?.medicine_id,
         medical_record_type: 'SINGLE',
-        case_type: 1
+        case_type: 1,
+        1: formData?.attachment?.[0] && formData?.attachment[0]
       }
 
       const response = await directAdministerForPatSlot(payload)
@@ -929,27 +931,6 @@ function PrescriptionLayout({ drawerType }) {
       setIsAdministerOrSkipPopupLoading(false)
     }
   }
-
-  const timeSlots = [
-    {
-      id: 1,
-      time: '07:00 AM',
-      dosage: '10 mg/kg',
-      amount: '310 mg'
-    },
-    {
-      id: 2,
-      time: '11:00 AM',
-      dosage: '10 mg/kg',
-      amount: '310 mg'
-    },
-    {
-      id: 3,
-      time: '04:00 PM',
-      dosage: '10 mg/kg',
-      amount: '310 mg'
-    }
-  ]
 
   useEffect(() => {
     if (hospital?.id) fetchMedicalMasterData()
