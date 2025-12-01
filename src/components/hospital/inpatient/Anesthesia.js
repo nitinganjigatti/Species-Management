@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 
 import {
   Button,
-  Tooltip,
+  Tooltip as MuiTooltip,
   Typography,
   Chip,
   Divider,
@@ -31,6 +31,29 @@ import LoadingSkeleton from 'src/components/hospital/inpatient/Anesthesia/Loadin
 import VitalMonitoringDetail from './Anesthesia/vitalForms/VitalMonitoringDetail'
 
 import { getAnesthesiaList, getAnesthesiaDetail, deleteAnesthesia } from 'src/lib/api/hospital/anesthesia'
+
+const tooltipSlotProps = {
+  tooltip: {
+    sx: {
+      maxHeight: 200,
+      overflowY: 'auto'
+    }
+  }
+}
+
+const Tooltip = ({ slotProps, ...props }) => {
+  const mergedSlotProps = {
+    ...tooltipSlotProps,
+    ...(slotProps
+      ? {
+          ...slotProps,
+          tooltip: { ...tooltipSlotProps.tooltip, ...(slotProps.tooltip || {}) }
+        }
+      : undefined)
+  }
+
+  return <MuiTooltip slotProps={mergedSlotProps} {...props} />
+}
 
 const PAGE_SIZE = 10
 const SCROLL_FETCH_THRESHOLD = 140
@@ -716,14 +739,8 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
   }
 
   const DetailsHeader = ({ text }) => (
-    <Box
-      sx={theme => ({
-        // backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 0.6),
-        paddingTop: '24px',
-        // borderRadius: '4px',
-        borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`
-      })}
-    >
+    <Box sx={{}}>
+      <Divider sx={{ mb: 6 }} />
       <Typography
         sx={{
           fontWeight: 500,
@@ -893,23 +910,24 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
               {purposeItems.length ? (
                 purposeItems.map((item, index) => (
-                  <Chip
-                    key={`${item}-${index}`}
-                    label={item}
-                    sx={{
-                      height: '41px',
-                      backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
-                      border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
-                      borderRadius: '6px',
-                      '& .MuiChip-label': { px: 6, py: 0.5 },
-                      color: theme.palette.customColors.OnPrimaryContainer,
-                      fontWeight: 500,
-                      fontSize: '16px',
-                      textAlign: 'center'
-                    }}
-                  >
-                    {item}
-                  </Chip>
+                  <Tooltip key={`${item}-${index}`} title={item} placement='top'>
+                    <Chip
+                      label={item}
+                      sx={{
+                        height: '41px',
+                        backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
+                        border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
+                        borderRadius: '6px',
+                        '& .MuiChip-label': { px: 6, py: 0.5 },
+                        color: theme.palette.customColors.OnPrimaryContainer,
+                        fontWeight: 500,
+                        fontSize: '16px',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {item}
+                    </Chip>
+                  </Tooltip>
                 ))
               ) : (
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>No purpose added.</Typography>
@@ -988,23 +1006,24 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 {monitoringItems.length ? (
                   monitoringItems.map((item, index) => (
-                    <Chip
-                      key={`${item}-${index}`}
-                      label={item}
-                      sx={{
-                        height: '41px',
-                        backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
-                        border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
-                        borderRadius: '6px',
-                        '& .MuiChip-label': { px: 6, py: 0.5 },
-                        color: theme.palette.customColors.OnPrimaryContainer,
-                        fontWeight: 500,
-                        fontSize: '16px',
-                        textAlign: 'center'
-                      }}
-                    >
-                      {item}
-                    </Chip>
+                    <Tooltip key={`${item}-${index}`} title={item} placement='top'>
+                      <Chip
+                        label={item}
+                        sx={{
+                          height: '41px',
+                          backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
+                          border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
+                          borderRadius: '6px',
+                          '& .MuiChip-label': { px: 6, py: 0.5 },
+                          color: theme.palette.customColors.OnPrimaryContainer,
+                          fontWeight: 500,
+                          fontSize: '16px',
+                          textAlign: 'center'
+                        }}
+                      >
+                        {item}
+                      </Chip>
+                    </Tooltip>
                   ))
                 ) : (
                   <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
@@ -1370,10 +1389,11 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
           // selectedDate={selectedDate}
           // handleDateChange={handleDateChange}
           /> */}
+            <Divider sx={{ mb: 6, mt: 3 }} />
             <VitalMonitoringDetail data={vitalMonitoringData} />
           </Grid>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <DetailsHeader text={'Recovery & Reversal'} />
             <Box sx={{ mb: 4 }}>
               <Typography
