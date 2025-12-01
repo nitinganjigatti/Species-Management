@@ -218,7 +218,7 @@ const ClinicalAssessment = () => {
         setIsLoading(false)
       }
     },
-    [currentRecordOnly, id]
+    [currentRecordOnly, id, animal_id]
   )
 
   // Load more function for infinite scroll
@@ -235,8 +235,8 @@ const ClinicalAssessment = () => {
 
   // Fetch data when tab, search, or currentRecordOnly changes
   useEffect(() => {
-    fetchClinicalAssessments(1, searchQuery, getStatusFilter())
-  }, [searchQuery, currentTab, currentRecordOnly, fetchClinicalAssessments, getStatusFilter])
+    if (animal_id) fetchClinicalAssessments(1, searchQuery, getStatusFilter())
+  }, [searchQuery, currentTab, currentRecordOnly, fetchClinicalAssessments, getStatusFilter, animal_id])
 
   const handleTabChange = newValue => {
     setCurrentTab(newValue)
