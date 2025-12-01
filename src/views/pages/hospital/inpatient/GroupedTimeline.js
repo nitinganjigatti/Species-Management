@@ -112,7 +112,7 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
 const TimelineSection = ({ section }) => {
   const theme = useTheme()
 
-  if (!section?.entries || section.entries.length === 0) return
+  if (!section?.entries || section?.entries?.length === 0) return
 
   return (
     <Box sx={{}}>

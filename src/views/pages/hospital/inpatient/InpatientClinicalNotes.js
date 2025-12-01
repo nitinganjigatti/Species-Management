@@ -9,7 +9,6 @@ import { MedicalIdChip } from '../utility/hospitalSnippets'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import NoDataFound from 'src/views/utility/NoDataFound'
-import { useRouter } from 'next/router'
 
 // initial form values
 const defaultValues = {
@@ -29,8 +28,6 @@ const InpatientClinicalNotes = props => {
     patientData
   } = props
   const theme = useTheme()
-  const router = useRouter()
-  const { medical_record_id } = router.query
 
   const { control, handleSubmit, reset, watch } = useForm({ defaultValues })
 
@@ -38,13 +35,16 @@ const InpatientClinicalNotes = props => {
 
   const onSubmit = async formData => {
     const payload = {
-      medical_record_id,
+      medical_record_id: patientData?.medical_record_id,
       note: formData?.note,
       hospital_case_id: patientData?.hospital_case_id
     }
 
-    await onSubmitNote(payload)
-    reset(defaultValues)
+    const success = await onSubmitNote(payload)
+
+    if (success) {
+      reset(defaultValues)
+    }
   }
 
   return (
@@ -71,6 +71,7 @@ const InpatientClinicalNotes = props => {
                   placeholder='Add notes'
                   fullWidth={true}
                   minRows={3}
+                  inputBackgroundColor={theme.palette.customColors.OnPrimary}
                 />
               </Grid>
             </Grid>

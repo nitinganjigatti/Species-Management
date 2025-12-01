@@ -44,7 +44,7 @@ const MedicalSummaryFilterDrawer = ({
       let data = []
 
       if (userDetails?.user?.zoos?.length > 0) {
-        const zoo_id = userDetails.user.zoos[0].zoo_id
+        const zoo_id = userDetails?.user?.zoos[0]?.zoo_id
         const params = { zoo_id }
         if (query.trim() !== '') params.q = query
 
@@ -60,8 +60,8 @@ const MedicalSummaryFilterDrawer = ({
 
       setMenuData({ User: data })
     } catch (error) {
-      console.error('Error fetching users:', error)
-      Toaster({ type: 'error', message: 'Failed to load users' })
+      console.error('Error fetching users:', error?.message || error)
+      Toaster({ type: 'error', message: error?.message || error || 'Failed to load users' })
     } finally {
       setSearchLoading(false)
     }
@@ -94,9 +94,9 @@ const MedicalSummaryFilterDrawer = ({
   const handleCheckbox = useCallback(id => {
     setSelectedOptions(prev => {
       const prevMedicalType = prev?.['Medical Type'] || []
-      const isSelected = prev.User.includes(id)
+      const isSelected = prev?.User?.includes(id)
 
-      const newSelected = isSelected ? prev.User.filter(item => item !== id) : [...prev.User, id]
+      const newSelected = isSelected ? prev?.User?.filter(item => item !== id) : [...prev.User, id]
       const total = newSelected.length + (prevMedicalType[0] ? 1 : 0)
       setLocalFilterCount(total)
 
@@ -107,8 +107,8 @@ const MedicalSummaryFilterDrawer = ({
   const handleSelectAll = useCallback(() => {
     setSelectedOptions(prev => {
       const prevMedicalType = prev?.['Medical Type'] || []
-      const allIds = menuData.User?.map(item => item.value) || []
-      const isAllSelected = prev.User.length === allIds.length
+      const allIds = menuData?.User?.map(item => item.value) || []
+      const isAllSelected = prev?.User?.length === allIds.length
       const newSelected = isAllSelected ? [] : allIds
       const total = newSelected.length + (prevMedicalType[0] ? 1 : 0)
       setLocalFilterCount(total)
@@ -151,7 +151,7 @@ const MedicalSummaryFilterDrawer = ({
       const isMedicalTypeActive =
         initialSelectedOptions['Medical Type']?.[0] && initialSelectedOptions['Medical Type'][0] !== ''
 
-      const total = (isMedicalTypeActive ? 1 : 0) + (initialSelectedOptions.User?.length || 0)
+      const total = (isMedicalTypeActive ? 1 : 0) + (initialSelectedOptions?.User?.length || 0)
       setLocalFilterCount(total)
     }
   }, [open, fetchMenuData, initialSelectedOptions])
@@ -165,12 +165,12 @@ const MedicalSummaryFilterDrawer = ({
         <RadioGroup value={selectedOption[0] || ''} onChange={e => onOptionChange(e.target.value, menuName)}>
           {items?.map(item => (
             <FormControlLabel
-              key={item.value}
-              value={item.value}
+              key={item?.value}
+              value={item?.value}
               control={<Radio />}
               label={
                 <Typography sx={{ fontSize: '16px', color: theme.palette.customColors?.Outline }}>
-                  {item.label}
+                  {item?.label}
                 </Typography>
               }
             />
@@ -206,11 +206,11 @@ const MedicalSummaryFilterDrawer = ({
           menuName='User'
           searchQuery={searchQuery}
           onSearch={handleSearch}
-          selectedOptions={selectedOptions.User}
+          selectedOptions={selectedOptions?.User}
           onOptionChange={handleCheckbox}
           selectAllHandler={handleSelectAll}
-          items={menuData.User}
-          isAllSelected={menuData.User?.length > 0 && selectedOptions.User?.length === menuData.User?.length}
+          items={menuData?.User}
+          isAllSelected={menuData?.User?.length > 0 && selectedOptions?.User?.length === menuData?.User?.length}
           searchLoading={searchLoading}
           placeholder='Search User'
         />

@@ -16,7 +16,8 @@ const ClinicalNotes = ({ patientData }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
 
-  const { id, animal_id } = router.query
+  const { id } = router.query
+  const animalId = patientData?.animal_detail?.animal_id
 
   // Query parameters for fetching clinical notes
   const queryParams = useMemo(
@@ -33,7 +34,7 @@ const ClinicalNotes = ({ patientData }) => {
   const fetchClinicalNotes = async ({ pageParam = 1 }) => {
     try {
       const res = await getClinicalNotes({
-        animalId: animal_id,
+        animalId: animalId,
         params: { ...queryParams, page: pageParam }
       })
 
@@ -53,9 +54,9 @@ const ClinicalNotes = ({ patientData }) => {
   // Pagination function for infinite scroll
   const getNextPage = (lastPage, pages) => {
     const totalCount = Number(lastPage?.total_count) || 0
-    const fetchedCount = pages.reduce((sum, page) => sum + (page?.data?.length || 0), 0)
+    const fetchedCount = pages?.reduce((sum, page) => sum + (page?.data?.length || 0), 0)
 
-    return fetchedCount < totalCount ? pages.length + 1 : undefined
+    return fetchedCount < totalCount ? pages?.length + 1 : undefined
   }
 
   //  Fetch clinical notes
@@ -64,13 +65,12 @@ const ClinicalNotes = ({ patientData }) => {
     isFetching,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage,
-    refetch
+    isFetchingNextPage
   } = useInfiniteQuery({
-    queryKey: ['clinicalNotes', animal_id, queryParams],
+    queryKey: ['clinicalNotes', animalId, queryParams],
     queryFn: fetchClinicalNotes,
     getNextPageParam: getNextPage,
-    enabled: !!animal_id,
+    enabled: !!animalId,
     refetchOnWindowFocus: false, //Avoid unnecessary refetching when switching tabs
     onError: error => {
       console.error('Fetching Error:', error?.message)
@@ -103,21 +103,26 @@ const ClinicalNotes = ({ patientData }) => {
   )
 
   // Handle submission of new clinical notes
-  const handleSubmitData = async payLoad => {
+  const handleSubmitData = async payload => {
     setIsSubmitLoading(true)
     try {
-      const response = await addClinicalNotes({ payLoad })
+      const response = await addClinicalNotes({ payload })
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Note created successfully' })
+        Toaster({ type: 'success', message: response?.message || 'Note added successfully' })
+        queryClient.invalidateQueries(['clinicalNotes'])
 
-        await refetch()
+        return true
       } else {
         Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
+
+        return false
       }
     } catch (error) {
-      console.error('Submit Error:', error?.message)
+      console.error('Submit Error:', error?.message || error)
       Toaster({ type: 'error', message: error?.message || 'An unexpected error occurred' })
+
+      return false
     } finally {
       setIsSubmitLoading(false)
     }
@@ -129,11 +134,11 @@ const ClinicalNotes = ({ patientData }) => {
     onSuccess: async response => {
       Toaster({ type: 'success', message: response?.message || 'Note deleted successfully' })
 
-      queryClient.invalidateQueries(['clinicalNotes', animal_id, queryParams])
+      queryClient.invalidateQueries(['clinicalNotes'])
       handleDeleteDialogClose()
     },
     onError: error => {
-      console.error('Delete Error:', error?.message)
+      console.error('Delete Error:', error?.message || error)
       Toaster({ type: 'error', message: error?.message || 'An error occurred while deleting' })
     }
   })
@@ -156,8 +161,9 @@ const ClinicalNotes = ({ patientData }) => {
 
   // Confirm and proceed with deletion
   const handleConfirmDeleteNote = () => {
-    if (!selectedItemToDelete?.note_id) return
-    deleteClinicalNotesMutation.mutate(selectedItemToDelete?.note_id)
+    if (selectedItemToDelete?.note_id) {
+      deleteClinicalNotesMutation.mutate(selectedItemToDelete.note_id)
+    }
   }
 
   return (
@@ -167,7 +173,7 @@ const ClinicalNotes = ({ patientData }) => {
         onSubmitNote={handleSubmitData}
         isSubmitting={isSubmitLoading}
         onDeleteNote={handleDeleteNote}
-        isLoading={isFetching && allClinicalEntries.length === 0}
+        isLoading={isFetching && allClinicalEntries?.length === 0}
         lastClinicalNoteRef={lastClinicalNoteRef}
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
