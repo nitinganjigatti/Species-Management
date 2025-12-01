@@ -386,18 +386,25 @@ const MedicinePrescriptionCard = ({
         <Box sx={{ display: 'flex', padding: '0 16px', alignItems: 'center', gap: '4px', flex: '1 0 0' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {entry.variant === 'administered' ? (
-              <CheckCircleIcon sx={{ fontSize: '18px' }} color={'primary'} />
-            ) : (
-              <DoDisturbIcon
+              <Box
+                component='img'
+                src='/images/hospital/check.svg'
+                alt='Administered'
                 sx={{
-                  fontSize: '18px',
-                  color:
-                    entry.status?.toLowerCase() === 'stopped'
-                      ? theme.palette.customColors.Tertiary
-                      : theme.palette.customColors.neutralSecondary,
-                  '& path': {
-                    strokeWidth: 1.5
-                  }
+                  width: '18px',
+                  height: '18px'
+                }}
+              />
+            ) : (
+              <Box
+                component='img'
+                src={
+                  entry.status?.toLowerCase() === 'stopped' ? '/images/hospital/stop.svg' : '/images/hospital/skip.svg'
+                }
+                alt='Not Administered'
+                sx={{
+                  width: '18px',
+                  height: '18px'
                 }}
               />
             )}
@@ -954,7 +961,17 @@ const MedicinePrescriptionCard = ({
                     {!isStopDatePassed(medicineData?.stop_date) ? (
                       <Button
                         variant='text'
-                        startIcon={<Icon icon='jam:stop-sign' />}
+                        startIcon={
+                          <Box
+                            component='img'
+                            src='/images/hospital/stop.svg'
+                            alt='Stop'
+                            sx={{
+                              width: '18px',
+                              height: '18px'
+                            }}
+                          />
+                        }
                         onClick={handleStopMedicine}
                         disabled={isDetailLoading}
                         sx={{

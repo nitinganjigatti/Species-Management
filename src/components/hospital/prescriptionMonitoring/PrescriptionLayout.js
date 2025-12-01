@@ -79,9 +79,8 @@ function PrescriptionLayout({ drawerType }) {
   const id = router.query.id 
   const medical_record_id = medicalRecordData?.medical_record_id
   const animal_id = medicalRecordData?.animal_id
-  const date = medicalRecordData?.date
 
-  const [selectedDate, setSelectedDate] = useState(date || today)
+  const [selectedDate, setSelectedDate] = useState(today)
 
   const { selectedHospital: hospital } = useHospital()
 
@@ -401,8 +400,8 @@ function PrescriptionLayout({ drawerType }) {
   }, [detailSelectedDate])
 
   useEffect(() => {
-    if (hospital?.id) getPrescriptionList()
-  }, [hospital?.id, selectedDate, isCurrentMedicalRecord])
+    if (hospital?.id && animal_id) getPrescriptionList()
+  }, [hospital?.id, selectedDate, isCurrentMedicalRecord, animal_id])
 
   function toISTISOString(date) {
     if (!date) return ''
