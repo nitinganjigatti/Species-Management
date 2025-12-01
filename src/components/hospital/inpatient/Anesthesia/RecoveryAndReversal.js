@@ -39,7 +39,7 @@ function RecoveryAndReversal({
     formState: { errors }
   } = useFormContext()
   const reversalDrugs = watch('recoveryAndReversal.reversalDrugs') || []
-
+  const recoveryType = watch('recoveryAndReversal.recovery_type')
   const fetchDeliveryList = async () => {
     try {
       const response = await deliveryRouteList()
@@ -174,12 +174,12 @@ function RecoveryAndReversal({
       minWidth: 80,
       flex: 1,
       sortable: false,
-      renderCell: params => <StyledTypography>{params.row.id}</StyledTypography>
+      renderCell: params => <StyledTypography sx={{ pl: 5 }}>{params.row.id}</StyledTypography>
     },
     {
       field: 'drug_name',
       headerName: 'Drug',
-      minWidth: 220,
+      minWidth: 260,
       flex: 1,
       sortable: false,
       renderCell: params => (
@@ -191,7 +191,7 @@ function RecoveryAndReversal({
             fontSize: '14px',
             fontWeight: 500,
             pl: 2,
-            maxWidth: '200px'
+            maxWidth: '240px'
           }}
         />
       )
@@ -374,6 +374,18 @@ function RecoveryAndReversal({
               inputProps={{ 'data-field': 'recovery_full_effect' }}
             />
           </Grid>
+          {recoveryType === 'Problem' && (
+            <Grid size={{ xs: 12 }}>
+              <ControlledTextArea
+                name='recoveryAndReversal.describe_problem'
+                control={control}
+                label='Describe the Problem'
+                placeholder='Enter'
+                fullWidth={true}
+                rows={1}
+              />
+            </Grid>
+          )}
           <Grid size={{ xs: 12 }}>
             <ControlledTextArea
               name='recoveryAndReversal.notes'

@@ -106,7 +106,7 @@ function MedicationsGasSection({
       minWidth: 80,
       flex: 1,
       sortable: false,
-      renderCell: params => <StyledTypography>{params.row.id}</StyledTypography>
+      renderCell: params => <StyledTypography sx={{ pl: 5 }}>{params.row.id}</StyledTypography>
     },
     {
       field: 'drug',
@@ -235,12 +235,12 @@ function MedicationsGasSection({
       minWidth: 80,
       flex: 1,
       sortable: false,
-      renderCell: params => <StyledTypography>{params.row.id}</StyledTypography>
+      renderCell: params => <StyledTypography sx={{ pl: 5 }}>{params.row.id}</StyledTypography>
     },
     {
       field: 'gas',
       headerName: 'Gas',
-      minWidth: 180,
+      minWidth: 220,
       flex: 1,
       sortable: false,
       renderCell: params => (
@@ -447,7 +447,7 @@ function MedicationsGasSection({
   })
 
   return (
-    <Box sx={{ p: '0 0px 24px 0px' }}>
+    <Box sx={{ p: 0 }}>
       {medications.length > 0 && (
         <>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>

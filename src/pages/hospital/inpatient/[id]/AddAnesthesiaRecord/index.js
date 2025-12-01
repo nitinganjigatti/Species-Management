@@ -458,8 +458,10 @@ export default function AddAnesthesiaRecord() {
 
   const physicalHealthStatusOptions = [
     { label: 'Class I | Normal Health', value: 'Class I | Normal Health' },
-    { label: 'Class II | Minor Health', value: 'Class II | Minor Health' },
-    { label: 'Class III | Major Health', value: 'Class III | Major Health' }
+    { label: 'Class II | Minor Health Problem', value: 'Class II | Minor Health Problem' },
+    { label: 'Class III | Major Health Problem', value: 'Class III | Major Health Problem' },
+    { label: 'Class IV | Serious or Chronic illness', value: 'Class IV | Serious or Chronic illness' },
+    { label: 'Class V | May not Survive', value: 'Class V | May not Survive' }
   ]
 
   const bodyConditionOptions = [
@@ -1395,7 +1397,9 @@ export default function AddAnesthesiaRecord() {
         setIsApiSuccess(true)
         setExpanded('medicationsGas')
         Toaster({ type: 'success', message: response?.message })
-        handleCancel()
+        if (!anaesthesia_id) {
+          handleCancel()
+        }
         getAnesthesiaDetails(response?.data?.anaesthesia_id)
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to save record' })
@@ -1615,6 +1619,7 @@ export default function AddAnesthesiaRecord() {
                   style={{ cursor: 'pointer' }}
                   color={theme.palette.customColors.OnSurfaceVariant}
                   icon='material-symbols:arrow-back'
+                  onClick={handleCancel}
                 />
                 <Typography
                   fontWeight={500}
@@ -1678,11 +1683,11 @@ export default function AddAnesthesiaRecord() {
                     sx={{
                       color:
                         sec.id !== 'basicDetails' && !shouldEnableSections
-                          ? theme.palette.customColors.OnSurfaceVariant
+                          ? theme.palette.customColors.neutralSecondary
                           : theme.palette.customColors.secondaryBg,
                       fontSize: '14px',
                       fontWeight: '600!important',
-                      opacity: sec.id !== 'basicDetails' && !shouldEnableSections ? 0.5 : 1,
+                      opacity: !anaesthesia_id && sec.id !== 'basicDetails' ? 0.5 : 1,
                       pl: 12
                     }}
                   />
@@ -1698,7 +1703,7 @@ export default function AddAnesthesiaRecord() {
             overflow='auto'
             p={0}
             mt={4}
-            mb={10}
+            mb={3}
             sx={{
               '&::-webkit-scrollbar': {
                 width: '8px'
@@ -1812,7 +1817,7 @@ export default function AddAnesthesiaRecord() {
           addLabel={
             <Box display='flex' alignItems='center' gap={1}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-                {isSubmitting ? 'SUBMITTING...' : 'ADD'}
+                {isSubmitting ? 'SUBMITTING...' : anaesthesia_id ? 'SAVE' : 'ADD'}
               </span>
             </Box>
           }
