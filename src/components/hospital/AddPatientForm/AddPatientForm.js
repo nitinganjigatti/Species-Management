@@ -254,7 +254,7 @@ const AddPatientForm = () => {
         source_type: 'site',
         destination_id: selectedHospital?.id,
         destination_type: 'hospital',
-        transfer_type: 'inter',
+        transfer_type: selectedAnimal?.site_id === selectedHospital?.id ? 'intra' : 'inter',
         reason_for_transfer: data?.purposeOfVisit,
         ref_ids: JSON.stringify([
           {
