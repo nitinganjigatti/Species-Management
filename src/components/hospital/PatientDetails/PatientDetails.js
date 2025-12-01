@@ -57,7 +57,10 @@ const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'
 const PatientDetails = ({ category }) => {
   const router = useRouter()
   const theme = useTheme()
-  const { updateState } = useDynamicStateContext()
+  const { data, updateState } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
+  const medical_record_id = medicalRecordData?.medical_record_id
+  const animal_id = medicalRecordData?.animal_id
   const { id, tab: urlTab } = router.query
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
