@@ -136,7 +136,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleOpenPrescriptionCardForMultipleSlots = data => {
-    console.log('handleOpenPrescriptionCardForMultipleSlots data', data)
     getDetails(data)
   }
 
@@ -145,8 +144,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleStopMedicine = async data => {
-    console.log('Stop medicine confirmed:', data)
-    console.log('medicineData:', data.medicineData)
     setIsStopMedicineLoading(true)
     try {
       const payload = {
@@ -343,7 +340,6 @@ function PrescriptionLayout({ drawerType }) {
 
   const handleAdministerOrSubmit = async data => {
     setIsAdministerOrSkipPopupLoading(true)
-    console.log('handleAdministerOrSubmit data', data)
     try {
       const wastageUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
         item => item.uom_abbr === data?.wastageUnit
@@ -415,7 +411,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleAdministerSubmit = async formData => {
-    console.log('Administer Medicine Form Submitted:', formData)
     try {
       const payload = {
         record_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
@@ -456,8 +451,6 @@ function PrescriptionLayout({ drawerType }) {
       }
     } catch (error) {
       console.error('Error:', error)
-    } finally {
-      console.log('Administer')
     }
   }
 
@@ -566,7 +559,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleDetailDateChange = date => {
-    console.log('Detail date changed to:', date)
     setDetailSelectedDate(date)
   }
 
@@ -623,8 +615,6 @@ function PrescriptionLayout({ drawerType }) {
           .flat() // flatten the array of arrays into single array
       )
 
-      console.log('administerIds', administerIds)
-
       const payload = {
         medical_record_id: JSON.stringify([medical_record_id]),
         medicine_id: data?.length > 1 ? JSON.stringify(medicineIds) : JSON.stringify([data[0]?.medicine_id]),
@@ -655,8 +645,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleAdminister = async data => {
-    console.log('Administer clicked for selected metrics:', data)
-    console.log('SelectAll', SelectAll, data?.length, medicationData?.length)
     setIsAdministerLoading(true)
     if (SelectAll && data?.length === medicationData?.length) {
       handleSelectAllAdministerrOrSkip('administer')
@@ -666,8 +654,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleSkip = async data => {
-    console.log('Administer clicked for selected metrics:', data)
-    console.log('SelectAll', SelectAll, data?.length, medicationData?.length)
     setIsSkipLoading(true)
     if (SelectAll && data?.length === medicationData?.length) {
       handleSelectAllAdministerrOrSkip('withheld')
@@ -726,7 +712,6 @@ function PrescriptionLayout({ drawerType }) {
     setBatchList([])
     if (type === 'multiple') {
       setIsAdministerOrSkipForMultipleSlotsOpen(true)
-      console.log('data for multiple slots:', data?.data?.id)
       setAdministrativeIds()
       const administrative_ids = data?.timeSlot?.administrative_ids ? data.timeSlot.administrative_ids.join(',') : ''
       if (administrative_ids) setAdministrativeIds(administrative_ids)
@@ -806,7 +791,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleSkipSelectedFromDrawer = async (selectedItems, medicineData) => {
-    console.log('Skip selected medications from drawer:', selectedItems, medicineData)
 
     try {
       setIsSkipLoading(true)
@@ -859,7 +843,6 @@ function PrescriptionLayout({ drawerType }) {
   const debouncedBatchSearch = useCallback(
     debounce(async (medicineId, query = '') => {
       if (!medicineId) {
-        console.log('No medicineId provided, skipping batch fetch')
         setBatchList([])
 
         return
@@ -891,23 +874,19 @@ function PrescriptionLayout({ drawerType }) {
 
   const fetchMedicineBatches = useCallback(
     (medicineId, query = '') => {
-      console.log('Fetching batches for medicineId:', medicineId, 'with query:', query)
       debouncedBatchSearch(medicineId, query)
     },
     [debouncedBatchSearch]
   )
 
   const handleBatchSearch = value => {
-    console.log('Batch search triggered with value:', value)
     setBatchSearchQuery(value)
     const medicineId = selectedSlotData?.timeSlot?.medicine_id || selectedSlotData?.data?.medicine_id
 
-    // console.log('Calling fetchMedicineBatches for medicine:', temporarilySelectedMedicine.id)
     fetchMedicineBatches(medicineId, value)
   }
 
   const addPrescriptionToTimeslot = async (type, data) => {
-    console.log('addPrescriptionToTimeslot', type, data)
     setSelectedSlotData(data)
     if (!medicalMasterData) fetchMedicalMasterData()
     setBatchList([])
@@ -915,20 +894,6 @@ function PrescriptionLayout({ drawerType }) {
       setIsAdministerDosageModelOpen(true)
     } else if (type === 'future') {
       setIsScheduleDosageModelOpen(true)
-    }
-    console.log('addPrescriptionToTimeslot', type, data)
-  }
-
-  const handleAdministerOrSkipForMulipleSlotsSubmit = async data => {
-    console.log('Administer/Skip for multiple slots submitted:', data)
-    try {
-      setIsAdministerOrSkipPopupLoading(true)
-
-      // await handleSingleOrMultipleDoseAdministerOrSkip(data?.selectedSlots || [], data?.actionType)
-    } catch (error) {
-      console.error('Error in Administer/Skip for multiple slots:', error)
-    } finally {
-      setIsAdministerOrSkipPopupLoading(false)
     }
   }
 

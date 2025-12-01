@@ -63,14 +63,10 @@ const MetricCard = ({
               height='16px'
             />
           )}
-          {!metric?.canEdit && (
+          {metric?.status === 'administered' && (
             <Icon
-              icon={metric?.status === 'stopped' ? 'jam:stop-sign' : 'mingcute:check-fill'}
-              color={
-                metric?.status === 'stopped'
-                  ? theme.palette.customColors.Tertiary
-                  : theme.palette.customColors.OnSurface
-              }
+              icon={'mingcute:check-fill'}
+              color={theme.palette.customColors.OnSurface}
               width='16px'
               height='16px'
             />
