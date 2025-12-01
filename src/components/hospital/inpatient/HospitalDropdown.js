@@ -86,7 +86,7 @@ const HospitalDropdown = ({ disabled = false }) => {
       }
     },
     getNextPageParam: lastPage => lastPage.nextPage,
-    enabled: !disabled && (Boolean(anchorEl) || (shouldFetchInitial && !hospitals?.length)), // Fetch when dropdown is open OR when we need initial data
+    enabled: !disabled && (Boolean(anchorEl) || (shouldFetchInitial && !hospitals?.length)) // Fetch when dropdown is open OR when we need initial data
   })
 
   // Flatten all pages into a single list
@@ -166,7 +166,6 @@ const HospitalDropdown = ({ disabled = false }) => {
     }
   }, [hospitalList, selectedHospital, isFetching])
 
-
   useEffect(() => {
     if (selectedHospital && !hospitalStats) {
       handleHospitalSelect(read('selectedHospital'))
@@ -245,20 +244,22 @@ const HospitalDropdown = ({ disabled = false }) => {
                   {selectedHospital.hospital_name}
                 </Typography>
               </Tooltip>
-              <Tooltip title={selectedHospital?.location || '-'}>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '14px'
-                  }}
-                >
-                  {selectedHospital?.location || '-'}
-                </Typography>
-              </Tooltip>
+              {selectedHospital?.site_name && (
+                <Tooltip title={selectedHospital?.site_name || '-'}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontSize: '14px'
+                    }}
+                  >
+                    {selectedHospital?.site_name || '-'}
+                  </Typography>
+                </Tooltip>
+              )}
             </Box>
           ) : (
-
             // Shimmer for initial loading state
+
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
               <ShimmerBox width='160px' height='24px' mb={0} />
               <ShimmerBox width='120px' height='16px' mb={0} />
@@ -308,7 +309,6 @@ const HospitalDropdown = ({ disabled = false }) => {
             }}
           >
             {isLoading ? (
-
               // Shimmer for initial loading of hospital list
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {Array.from({ length: 5 }).map((_, index) => (
@@ -366,7 +366,7 @@ const HospitalDropdown = ({ disabled = false }) => {
                           {hospital.hospital_name}
                         </Typography>
                       </Tooltip>
-                      <Tooltip title={hospital.location}>
+                      <Tooltip title={hospital.site_name}>
                         <Typography
                           variant='body2'
                           sx={{
@@ -380,7 +380,7 @@ const HospitalDropdown = ({ disabled = false }) => {
                             textOverflow: 'ellipsis'
                           }}
                         >
-                          {hospital.location}
+                          {hospital.site_name}
                         </Typography>
                       </Tooltip>
                     </Box>
@@ -575,7 +575,6 @@ export default HospitalDropdown
 //       handleHospitalSelect(hospitalList[0])
 //     }
 //   }, [hospitalList, selectedHospital, isFetching])
-
 
 //   useEffect(() => {
 //     if (selectedHospital && !hospitalStats) {
