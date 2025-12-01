@@ -894,15 +894,19 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                     key={`${item}-${index}`}
                     label={item}
                     sx={{
+                      height: '41px',
                       backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
-                      color: theme.palette.customColors.OnPrimaryContainer,
-                      fontWeight: 500,
-                      fontSize: '14px',
                       border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
                       borderRadius: '6px',
-                      '& .MuiChip-label': { px: 2, py: 0.5 }
+                      '& .MuiChip-label': { px: 6, py: 0.5 },
+                      color: theme.palette.customColors.OnPrimaryContainer,
+                      fontWeight: 500,
+                      fontSize: '16px',
+                      textAlign: 'center'
                     }}
-                  />
+                  >
+                    {item}
+                  </Chip>
                 ))
               ) : (
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>No purpose added.</Typography>
@@ -1153,7 +1157,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                 )}
               </Grid>
               <Grid container spacing={4} sx={{ mt: 2, flexDirection: 'column' }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0, width: '100%' }}>
                   <Typography
                     sx={{
                       mb: '4px',
@@ -1180,6 +1184,8 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                         overflow: 'hidden',
                         whiteSpace: 'nowrap',
                         minWidth: 0,
+                        maxWidth: '100%',
+                        width: '100%',
                         display: 'block'
                       }}
                     >
@@ -1187,7 +1193,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                     </Typography>
                   </Tooltip>
                 </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0, width: '100%' }}>
                   <Typography
                     sx={{
                       mb: '4px',
@@ -1214,6 +1220,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                         overflow: 'hidden',
                         whiteSpace: 'nowrap',
                         width: '100%',
+                        maxWidth: '100%',
                         display: 'block'
                       }}
                     >
@@ -1593,11 +1600,23 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                   >
                     Notes
                   </Typography>
-                  <Tooltip title={recoveryNotesText} placement='bottom-start' arrow>
-                    <Typography
-                      sx={{
-                        fontWeight: 500,
-                        fontSize: '16px',
+              <Tooltip
+                title={recoveryNotesText}
+                placement='top'
+                arrow
+                slotProps={{
+                  tooltip: {
+                    sx: {
+                      maxHeight: 200,
+                      overflowY: 'auto'
+                    }
+                  }
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: '16px',
                         letterSpacing: 0,
                         color: theme.palette.customColors.OnSurfaceVariant,
                         textOverflow: 'ellipsis',
