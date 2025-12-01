@@ -254,7 +254,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
 
     return anesthesiaDetail.anaesthesia_setup.map((section, sectionIndex) => ({
       id: section.section_id || section.string_id || `section-${sectionIndex}`,
-      sectionName: section.section_name || 'Section',
+      sectionName: section.section_name,
       stringId: section.string_id,
       fields: (section.fields || []).map((field, index) => ({
         key: `${section.section_id || section.string_id || sectionIndex}-${field.field_id || index}`,
@@ -278,8 +278,40 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
   const monitoringItems = useMemo(() => {
     const monitoringSection = anesthesiaSetupSections.find(section => section.stringId === 'monitoring')
 
-    return monitoringSection?.monitoringItems || []
+    if (!monitoringSection?.monitoringItems?.length) return []
+
+    const seen = new Set()
+    const items = []
+
+    monitoringSection.monitoringItems.forEach(name => {
+      const trimmed = typeof name === 'string' ? name.trim() : ''
+      const key = trimmed.toLowerCase()
+      if (!trimmed || seen.has(key)) return
+      seen.add(key)
+      items.push(trimmed)
+    })
+
+    return items
   }, [anesthesiaSetupSections])
+
+  const setupFieldItems = useMemo(
+    () =>
+      nonMonitoringSetupSections
+        .map(section => {
+          const combinedValue = section.fields
+            .map(field => field.value)
+            .filter(val => val && val !== '--')
+            .join(' - ')
+
+          return {
+            key: section.id,
+            label: section.sectionName || 'Section',
+            value: combinedValue || '--'
+          }
+        })
+        .filter(item => item.label),
+    [nonMonitoringSetupSections]
+  )
 
   const preAnesthesiaDetail = anesthesiaDetail?.pre_anaesthesia || null
 
@@ -894,52 +926,45 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <DetailsHeader text={'Anesthesia Set Up'} />
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {nonMonitoringSetupSections.length ? (
-                nonMonitoringSetupSections.map(section => (
-                  <Box key={section.id} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Typography sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-                      {section.sectionName}
-                    </Typography>
-                    <Grid sx={{ px: '8px' }} container spacing={4}>
-                      {section.fields.map(field => (
-                        <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={field.key}>
-                          <Tooltip title={field.label} placement='bottom-start' arrow>
-                            <Typography
-                              sx={{
-                                mb: '4px',
-                                fontWeight: 400,
-                                fontSize: '14px',
-                                letterSpacing: 0,
-                                color: theme.palette.customColors.neutralSecondary,
-                                textTransform: 'capitalize',
-                                textOverflow: 'ellipsis',
-                                overflow: 'hidden',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              {field.label}
-                            </Typography>
-                          </Tooltip>
-                          <Tooltip title={field.value} placement='bottom-start' arrow>
-                            <Typography
-                              sx={{
-                                fontWeight: 500,
-                                fontSize: '16px',
-                                letterSpacing: 0,
-                                color: theme.palette.customColors.OnSurfaceVariant,
-                                textOverflow: 'ellipsis',
-                                overflow: 'hidden',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              {field.value}
-                            </Typography>
-                          </Tooltip>
-                        </Grid>
-                      ))}
+              {setupFieldItems.length ? (
+                <Grid container spacing={{ xs: 3, sm: 4 }}>
+                  {setupFieldItems.map(field => (
+                    <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={field.key}>
+                      <Tooltip title={field.label} placement='bottom-start' arrow>
+                        <Typography
+                          sx={{
+                            mb: '6px',
+                            fontWeight: 400,
+                            fontSize: '15px',
+                            letterSpacing: 0,
+                            color: theme.palette.customColors.neutralSecondary,
+                            textTransform: 'capitalize',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {field.label}
+                        </Typography>
+                      </Tooltip>
+                      <Tooltip title={field.value} placement='bottom-start' arrow>
+                        <Typography
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: '18px',
+                            letterSpacing: 0,
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {field.value}
+                        </Typography>
+                      </Tooltip>
                     </Grid>
-                  </Box>
-                ))
+                  ))}
+                </Grid>
               ) : (
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
                   No anesthesia setup data available.
@@ -960,15 +985,19 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                       key={`${item}-${index}`}
                       label={item}
                       sx={{
+                        height: '41px',
                         backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
-                        color: theme.palette.customColors.OnPrimaryContainer,
-                        fontWeight: 500,
-                        fontSize: '14px',
                         border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
                         borderRadius: '6px',
-                        '& .MuiChip-label': { px: 2, py: 0.5 }
+                        '& .MuiChip-label': { px: 6, py: 0.5 },
+                        color: theme.palette.customColors.OnPrimaryContainer,
+                        fontWeight: 500,
+                        fontSize: '16px',
+                        textAlign: 'center'
                       }}
-                    />
+                    >
+                      {item}
+                    </Chip>
                   ))
                 ) : (
                   <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
