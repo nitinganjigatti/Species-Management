@@ -913,7 +913,8 @@ const AddSurgeryRecord = () => {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '4px',
-                    height: '56px'
+                    height: '56px',
+                    backgroundColor: theme.palette.customColors.mdAntzNeutral
                   }
                 }}
                 name={'duration'}

@@ -628,7 +628,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId }) {
             <DetailsHeader text={'Basic details'} />
             <Grid sx={{ px: '8px' }} container spacing={4}>
               {basicDetails.map(detail => (
-                <Grid item size={{ xs: 6, md: 3 }} key={detail.label}>
+                <Grid item size={{ xs: 12, sm: 6, md: 3 }} key={detail.label}>
                   <FieldTooltip title={detail.label}>
                     <Typography
                       sx={{

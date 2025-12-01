@@ -52,15 +52,16 @@ const MetricCard = ({
           }}
         >
           {(metric?.status === 'stopped' || metric?.status === 'skipped') && (
-            <Icon
-              icon={metric?.status === 'stopped' ? 'jam:stop-sign' : 'mingcute:check-fill'}
-              color={
-                metric?.status === 'stopped'
-                  ? theme.palette.customColors.Tertiary
-                  : theme.palette.customColors.OnSurface
+            <Box
+              component='img'
+              src={
+                metric?.status === 'stopped' ? '/images/hospital/stop.svg' : '/images/hospital/skip.svg' 
               }
-              width='16px'
-              height='16px'
+              alt={metric?.status === 'stopped' ? 'Stopped' : 'Skipped'}
+              sx={{
+                width: '16px',
+                height: '16px'
+              }}
             />
           )}
           {metric?.status === 'administered' && (
