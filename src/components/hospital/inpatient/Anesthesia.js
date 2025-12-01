@@ -65,7 +65,7 @@ const formatStaffNames = list => {
 
 const MediaScroller = ({ items = [] }) => {
   if (!items.length) {
-    return <Typography sx={{ color: 'text.secondary', px: 2 }}>No attachments available.</Typography>
+    return <Typography sx={{ color: 'text.secondary' }}>No attachments available.</Typography>
   }
 
   return (
@@ -681,24 +681,24 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
   }
 
   const DetailsHeader = ({ text }) => (
-    <Box
-      sx={theme => ({
-        backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 0.6),
-        padding: '8px',
-        borderRadius: '4px'
-      })}
+    // <Box
+    //   sx={theme => ({
+    //     backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 0.6),
+    //     padding: '8px',
+    //     borderRadius: '4px'
+    //   })}
+    // >
+    <Typography
+      sx={{
+        fontWeight: 500,
+        fontSize: '20px',
+        letterSpacing: 0,
+        color: theme.palette.customColors.OnPrimaryContainer
+      }}
     >
-      <Typography
-        sx={{
-          fontWeight: 500,
-          fontSize: '20px',
-          letterSpacing: 0,
-          color: theme.palette.customColors.OnPrimaryContainer
-        }}
-      >
-        {text}
-      </Typography>
-    </Box>
+      {text}
+    </Typography>
+    // </Box>
   )
 
   if (isRecordsLoading) {
@@ -810,7 +810,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <DetailsHeader text={'Basic details'} />
-            <Grid sx={{ px: '8px' }} container spacing={4}>
+            <Grid container spacing={4}>
               {Object.entries(basicDetails).map(([label, value]) => (
                 <Grid item size={{ xs: 6, md: 4 }} key={label}>
                   <Tooltip title={label.replace(/([A-Z])/g, ' $1')} placement='bottom-start' arrow>
@@ -940,7 +940,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                   </Box>
                 ))
               ) : (
-                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, px: 2 }}>
+                <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
                   No anesthesia setup data available.
                 </Typography>
               )}
@@ -982,7 +982,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
 
             <Box
               sx={{
-                px: '8px',
+                // px: '8px',
                 //height: '20px',
                 display: 'flex',
                 flexWrap: 'wrap',
@@ -1055,7 +1055,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
 
             <Box
               sx={{
-                px: '8px',
+                // px: '8px',
                 //height: '20px',
                 display: 'flex',
                 flexWrap: 'wrap',
@@ -1072,7 +1072,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                   Pre Anesthetic Examination
                 </Typography>
               </Box>
-              <Grid sx={{ px: '0px' }} container spacing={4}>
+              <Grid container spacing={4}>
                 {examDetails.length ? (
                   examDetails.map(item => (
                     <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label} sx={{ minWidth: 0 }}>
@@ -1397,7 +1397,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <Box
                 sx={{
-                  px: '8px',
+                  // px: '8px',
                   //height: '20px',
                   display: 'flex',
                   flexWrap: 'wrap',
@@ -1472,7 +1472,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <Box
                 sx={{
-                  px: '8px',
+                  // px: '8px',
                   display: 'flex',
                   flexWrap: 'wrap',
                   columnGap: '4px',
@@ -1492,7 +1492,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
 
               <Box
                 sx={{
-                  px: '8px',
+                  // px: '8px',
                   //height: '20px',
                   display: 'flex',
                   flexWrap: 'wrap',
@@ -1583,7 +1583,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <Box
                   sx={{
-                    px: '8px',
+                    // px: '8px',
                     mt: 3,
                     display: 'flex',
                     flexWrap: 'wrap',
@@ -1643,10 +1643,10 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
             </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <DetailsHeader text={'ATTACHMENTS'} />
             <MediaScroller items={attachments} />
-          </Box>
+          </Box> */}
         </Box>
       </Box>
       <DeleteConfirmationDialog
