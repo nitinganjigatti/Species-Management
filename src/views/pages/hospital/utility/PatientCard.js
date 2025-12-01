@@ -1,4 +1,4 @@
-import { Card, Typography, Box, styled, CardContent, alpha, Skeleton, Button } from '@mui/material'
+import { Card, Typography, Box, styled, CardContent, alpha, Skeleton, Button, Tooltip } from '@mui/material'
 import { Grid } from '@mui/material'
 import React, { useState } from 'react'
 import { useTheme } from '@emotion/react'
@@ -127,7 +127,23 @@ const PatientCard = ({ patientData, animalData, loading, refetch }) => {
                           />
                         </>
                       )}
-                      <StyledTypography>Chief veterinarian : {patientData?.attend_by_full_name}</StyledTypography>
+                      <Box sx={{ maxWidth: { xs: '400px', sm: '450px', md: '450px', lg: '600px' } }}>
+                        <Tooltip title={patientData?.attend_by_full_name || ''}>
+                          <Typography
+                            sx={{
+                              fontSize: '1rem',
+                              fontWeight: 400,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Chief veterinarian : {patientData?.attend_by_full_name}
+                          </Typography>
+                        </Tooltip>
+                      </Box>
                     </>
                   )}
                 </Box>

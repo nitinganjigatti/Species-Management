@@ -20,11 +20,15 @@ import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 
 const PAGE_SIZE = 10
+const STORAGE_KEY = 'medical_record_data'
 
 const ClinicalAssessment = () => {
   const router = useRouter()
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [localSearch, setLocalSearch] = useState('')
@@ -53,7 +57,9 @@ const ClinicalAssessment = () => {
   const [notes, setNotes] = useState('')
   const [temporarilySelected, setTemporarilySelected] = useState(null)
 
-  const { id, animal_id, medical_record_id } = router.query
+  const { id } = router.query
+  const animal_id = medicalRecordData?.animal_id
+  const medical_record_id = medicalRecordData?.medical_record_id
 
   const theme = useTheme()
 
@@ -452,7 +458,7 @@ const ClinicalAssessment = () => {
               startIcon={<AddIcon />}
               onClick={() =>
                 router.push(
-                  `/hospital/inpatient/${id}/add-clinical-assessment?animalId=${animal_id}&medicalRecordId=${medical_record_id}`
+                  `/hospital/inpatient/${id}/add-clinical-assessment`
                 )
               }
             >

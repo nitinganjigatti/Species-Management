@@ -8,9 +8,9 @@ import Toaster from 'src/components/Toaster'
 import GroupedTimeline from 'src/views/pages/hospital/inpatient/GroupedTimeline'
 import MedicalSummaryFilterDrawer from '../drawer/MedicalSummaryFilterDrawer'
 
-const InpatientMedicalSummary = () => {
+const InpatientMedicalSummary = ({ patientData }) => {
   const router = useRouter()
-  const { animal_id } = router.query
+  const animalId = patientData?.animal_detail?.animal_id
 
   const [filters, setFilters] = useState({
     page: 1,
@@ -121,7 +121,7 @@ const InpatientMedicalSummary = () => {
 
   // Drawer Apply Filters
   const applyFilters = selectedOptions => {
-    const userIds = selectedOptions?.User ? selectedOptions.User : []
+    const userIds = selectedOptions?.User ? selectedOptions?.User : []
     const medicalType = selectedOptions?.['Medical Type']?.[0] || ''
 
     const updatedFilters = {
@@ -144,19 +144,19 @@ const InpatientMedicalSummary = () => {
     }))
   }, [filterDate])
 
-  const fetchAnimalJournalLogs = async ({ pageParam = 1, filters, animal_id, filterDate }) => {
+  const fetchAnimalJournalLogs = async ({ pageParam = 1, filters, filterDate }) => {
     const params = {
       ...filters,
       page: pageParam,
-      animal_id
+      animal_id: animalId
     }
 
     // Add date filters if selected
     if (filterDate?.startDate) {
-      params.start_date = Utility.formatDate(filterDate.startDate, 'YYYY-MM-DD')
+      params.start_date = Utility.formatDate(filterDate?.startDate, 'YYYY-MM-DD')
     }
     if (filterDate?.endDate) {
-      params.end_date = Utility.formatDate(filterDate.endDate, 'YYYY-MM-DD')
+      params.end_date = Utility.formatDate(filterDate?.endDate, 'YYYY-MM-DD')
     }
 
     const res = await getAnimalJournalLogs(params)
@@ -174,8 +174,8 @@ const InpatientMedicalSummary = () => {
 
   //  Fetch medical summary data
   const queryKey = useMemo(
-    () => ['animalMedicalSummary', animal_id, filters, filterDate?.startDate, filterDate?.endDate],
-    [animal_id, filters, filterDate]
+    () => ['animalMedicalSummary', animalId, filters, filterDate?.startDate, filterDate?.endDate],
+    [animalId, filters, filterDate]
   )
 
   const {
@@ -186,11 +186,11 @@ const InpatientMedicalSummary = () => {
     isFetchingNextPage
   } = useInfiniteQuery({
     queryKey,
-    queryFn: ({ pageParam = 1 }) => fetchAnimalJournalLogs({ pageParam, filters, animal_id, filterDate }),
+    queryFn: ({ pageParam = 1 }) => fetchAnimalJournalLogs({ pageParam, filters, filterDate }),
     getNextPageParam: getNextPage,
-    enabled: !!animal_id,
+    enabled: !!animalId,
     onError: error => {
-      console.error('Error fetching medical summary list:', error?.message)
+      console.error('Error fetching medical summary list:', error?.message || error)
       Toaster({ type: 'error', message: error?.response?.data?.message || error?.message || 'Failed to fetch data' })
     }
   })

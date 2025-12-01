@@ -719,7 +719,8 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId }) {
                 >
                   Surgery notes
                 </Typography>
-                <FieldTooltip title={surgeryNotesContent.text}>
+                {/* <FieldTooltip title={surgeryNotesContent.text}> */}
+                <FieldTooltip>
                   <Box
                     sx={{
                       fontWeight: 400,

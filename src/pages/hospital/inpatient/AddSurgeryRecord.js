@@ -235,8 +235,8 @@ const schema = yup.object().shape({
     .mixed()
     .nullable()
     .test('surgeon-required', 'Surgeon is required', value => Boolean(value)),
-  typeOfSurgery: yup.string().required('Type of surgery is required'),
-  surgicalApproach: yup.string().required('Surgical approach is required'),
+  typeOfSurgery: yup.string().trim().required('Type of surgery is required'),
+  surgicalApproach: yup.string().trim().required('Surgical approach is required'),
   duration: yup.string().trim().required('Duration is required'),
   complication: yup.string().required('Complication is required')
 })
@@ -1386,7 +1386,7 @@ const AddSurgeryRecord = () => {
           bottom: 0,
           left: 0,
           right: 0,
-          zIndex: 5,
+          zIndex: 11,
           backgroundColor: theme.palette.primary.contrastText,
           boxShadow: `0px -8px 12px 0px ${theme.palette.customColors.shadowColor}`,
           height: { sm: '108px' },

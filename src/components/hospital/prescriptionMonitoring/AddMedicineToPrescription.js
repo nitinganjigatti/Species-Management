@@ -28,9 +28,12 @@ import Toaster from 'src/components/Toaster'
 import { useHospital } from 'src/context/HospitalContext'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 
+const STORAGE_KEY = 'medical_record_data'
+
 export default function AddMedicineToPrescription() {
   const theme = useTheme()
   const { data, updateState } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
 
   // Form validation schema
   const prescriptionSchema = yup.object({
@@ -199,7 +202,9 @@ export default function AddMedicineToPrescription() {
   }
   const router = useRouter()
 
-  const { id, animal_id, medical_record_id, discharge_tab } = router.query
+  const { id, discharge_tab } = router.query 
+  const animal_id = medicalRecordData?.animal_id
+  const medical_record_id = medicalRecordData?.medical_record_id
 
   const {
     control,
@@ -870,7 +875,8 @@ export default function AddMedicineToPrescription() {
             batch_list: batchListPayload,
             request_from: 'hospital_module',
             dose_type: 'fixed_dose',
-            files: data.batchImage ? [data.batchImage] : []
+            files: data.batchImage ? [data.batchImage] : [],
+            1: data?.attachment?.[0] && data?.attachment[0]
           }
         ])
       }

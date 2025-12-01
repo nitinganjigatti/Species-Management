@@ -12,12 +12,16 @@ import { addClinicalAssessment, getDiagnosisList, getDiagnosysType } from 'src/l
 import Toaster from 'src/components/Toaster'
 import { useRouter } from 'next/router'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 
 const PAGE_SIZE = 10
+const STORAGE_KEY = 'medical_record_data'
 
 export default function AddClinicalAssessmentPage() {
   const theme = useTheme()
   const router = useRouter()
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [clinicalDrawerOpen, setClinicalDrawerOpen] = useState(false)
@@ -32,7 +36,10 @@ export default function AddClinicalAssessmentPage() {
   const [patientData, setPatientData] = useState(null)
   const [patientLoading, setPatientLoading] = useState(false)
 
-  const { id, animalId, medicalRecordId } = router.query
+  // Get ID from router (with fallback during initial render before router is ready)
+  const { id } = router.query
+  const animalId = medicalRecordData?.animal_id
+  const medicalRecordId = medicalRecordData?.medical_record_id
 
   // API states
   const [allAssessments, setAllAssessments] = useState([])
@@ -249,7 +256,7 @@ export default function AddClinicalAssessmentPage() {
         Toaster({ type: 'success', message: response?.message || 'Assessment created successfully' })
         router.push({
           pathname: `/hospital/inpatient/${id}`,
-          query: { animal_id: animalId, medical_record_id: medicalRecordId, tab: 'clinicalAssessment' }
+          query: { tab: 'clinicalAssessment' }
         })
       } else {
         Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
@@ -265,7 +272,7 @@ export default function AddClinicalAssessmentPage() {
   const handleAssessmentCancel = () => {
     router.push({
       pathname: `/hospital/inpatient/${id}`,
-      query: { animal_id: animalId, medical_record_id: medicalRecordId, tab: 'clinicalAssessment' }
+      query: { tab: 'clinicalAssessment' }
     })
   }
 

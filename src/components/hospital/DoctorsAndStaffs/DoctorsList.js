@@ -134,7 +134,7 @@ const DoctorsList = () => {
       )
     },
     {
-      minWidth: 200,
+      minWidth: 250,
       field: 'name',
       sortable: false,
       headerName: 'Doctors Name',
@@ -150,7 +150,7 @@ const DoctorsList = () => {
       )
     },
     {
-      minWidth: 200,
+      minWidth: 250,
       field: 'designation',
       sortable: false,
       headerName: 'Designation',
@@ -159,7 +159,7 @@ const DoctorsList = () => {
       renderCell: params => <StyledTypography paddingLeft={1}>{params.row?.designation}</StyledTypography>
     },
     {
-      minWidth: 200,
+      minWidth: 250,
       field: 'specialty',
       sortable: false,
       headerName: 'Specialty',
@@ -298,31 +298,6 @@ const DoctorsList = () => {
                     width: '100%'
                   }}
                 >
-                  <Select
-                    size='small'
-                    value={''}
-                    displayEmpty
-                    sx={{
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.customColors.Outline
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.customColors.Outline
-                      }
-                    }}
-                    MenuProps={{
-                      PaperProps: {
-                        style: {
-                          maxHeight: 300
-                        }
-                      }
-                    }}
-                  >
-                    <MenuItem value='' disabled>
-                      All case type
-                    </MenuItem>
-                  </Select>
-
                   <Button
                     variant='outlined'
                     sx={{

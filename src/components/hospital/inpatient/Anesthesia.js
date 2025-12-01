@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 
 import {
   Button,
-  Tooltip,
+  Tooltip as MuiTooltip,
   Typography,
   Chip,
   Divider,
@@ -31,6 +31,29 @@ import LoadingSkeleton from 'src/components/hospital/inpatient/Anesthesia/Loadin
 import VitalMonitoringDetail from './Anesthesia/vitalForms/VitalMonitoringDetail'
 
 import { getAnesthesiaList, getAnesthesiaDetail, deleteAnesthesia } from 'src/lib/api/hospital/anesthesia'
+
+const tooltipSlotProps = {
+  tooltip: {
+    sx: {
+      maxHeight: 200,
+      overflowY: 'auto'
+    }
+  }
+}
+
+const Tooltip = ({ slotProps, ...props }) => {
+  const mergedSlotProps = {
+    ...tooltipSlotProps,
+    ...(slotProps
+      ? {
+          ...slotProps,
+          tooltip: { ...tooltipSlotProps.tooltip, ...(slotProps.tooltip || {}) }
+        }
+      : undefined)
+  }
+
+  return <MuiTooltip slotProps={mergedSlotProps} {...props} />
+}
 
 const PAGE_SIZE = 10
 const SCROLL_FETCH_THRESHOLD = 140
@@ -65,7 +88,7 @@ const formatStaffNames = list => {
 
 const MediaScroller = ({ items = [] }) => {
   if (!items.length) {
-    return <Typography sx={{ color: 'text.secondary', px: 2 }}>No attachments available.</Typography>
+    return <Typography sx={{ color: 'text.secondary' }}>No attachments available.</Typography>
   }
 
   return (
@@ -254,7 +277,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
 
     return anesthesiaDetail.anaesthesia_setup.map((section, sectionIndex) => ({
       id: section.section_id || section.string_id || `section-${sectionIndex}`,
-      sectionName: section.section_name || 'Section',
+      sectionName: section.section_name,
       stringId: section.string_id,
       fields: (section.fields || []).map((field, index) => ({
         key: `${section.section_id || section.string_id || sectionIndex}-${field.field_id || index}`,
@@ -278,8 +301,40 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
   const monitoringItems = useMemo(() => {
     const monitoringSection = anesthesiaSetupSections.find(section => section.stringId === 'monitoring')
 
-    return monitoringSection?.monitoringItems || []
+    if (!monitoringSection?.monitoringItems?.length) return []
+
+    const seen = new Set()
+    const items = []
+
+    monitoringSection.monitoringItems.forEach(name => {
+      const trimmed = typeof name === 'string' ? name.trim() : ''
+      const key = trimmed.toLowerCase()
+      if (!trimmed || seen.has(key)) return
+      seen.add(key)
+      items.push(trimmed)
+    })
+
+    return items
   }, [anesthesiaSetupSections])
+
+  const setupFieldItems = useMemo(
+    () =>
+      nonMonitoringSetupSections
+        .map(section => {
+          const combinedValue = section.fields
+            .map(field => field.value)
+            .filter(val => val && val !== '--')
+            .join(' - ')
+
+          return {
+            key: section.id,
+            label: section.sectionName || 'Section',
+            value: combinedValue || '--'
+          }
+        })
+        .filter(item => item.label),
+    [nonMonitoringSetupSections]
+  )
 
   const preAnesthesiaDetail = anesthesiaDetail?.pre_anaesthesia || null
 
@@ -635,14 +690,17 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
   }
 
   const tableStyles = {
-    '& tr': {
+    '& thead tr': {
+      height: '48px'
+    },
+    '& tbody tr': {
       height: '55px'
     },
     '& th': {
       fontWeight: 600,
       fontSize: '12px',
       color: theme.palette.customColors.OnSurfaceVariant,
-      backgroundColor: theme.palette.customColors.displaybgSecondary,
+      backgroundColor: theme.palette.customColors.bodyBg,
       textTransform: 'uppercase'
     },
     '& td': {
@@ -681,13 +739,8 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
   }
 
   const DetailsHeader = ({ text }) => (
-    <Box
-      sx={theme => ({
-        backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 0.6),
-        padding: '8px',
-        borderRadius: '4px'
-      })}
-    >
+    <Box sx={{}}>
+      <Divider sx={{ mb: 6 }} />
       <Typography
         sx={{
           fontWeight: 500,
@@ -810,9 +863,9 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <DetailsHeader text={'Basic details'} />
-            <Grid sx={{ px: '8px' }} container spacing={4}>
+            <Grid container spacing={4}>
               {Object.entries(basicDetails).map(([label, value]) => (
-                <Grid item size={{ xs: 6, md: 4 }} key={label}>
+                <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={label}>
                   <Tooltip title={label.replace(/([A-Z])/g, ' $1')} placement='bottom-start' arrow>
                     <Typography
                       sx={{
@@ -857,19 +910,24 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
               {purposeItems.length ? (
                 purposeItems.map((item, index) => (
-                  <Chip
-                    key={`${item}-${index}`}
-                    label={item}
-                    sx={{
-                      backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
-                      color: theme.palette.customColors.OnPrimaryContainer,
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
-                      borderRadius: '6px',
-                      '& .MuiChip-label': { px: 2, py: 0.5 }
-                    }}
-                  />
+                  <Tooltip key={`${item}-${index}`} title={item} placement='top'>
+                    <Chip
+                      label={item}
+                      sx={{
+                        height: '41px',
+                        backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
+                        border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
+                        borderRadius: '6px',
+                        '& .MuiChip-label': { px: 6, py: 0.5 },
+                        color: theme.palette.customColors.OnPrimaryContainer,
+                        fontWeight: 500,
+                        fontSize: '16px',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {item}
+                    </Chip>
+                  </Tooltip>
                 ))
               ) : (
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>No purpose added.</Typography>
@@ -893,54 +951,47 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <DetailsHeader text={'Anesthesia Set Up'} />
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {nonMonitoringSetupSections.length ? (
-                nonMonitoringSetupSections.map(section => (
-                  <Box key={section.id} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Typography sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-                      {section.sectionName}
-                    </Typography>
-                    <Grid sx={{ px: '8px' }} container spacing={4}>
-                      {section.fields.map(field => (
-                        <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={field.key}>
-                          <Tooltip title={field.label} placement='bottom-start' arrow>
-                            <Typography
-                              sx={{
-                                mb: '4px',
-                                fontWeight: 400,
-                                fontSize: '14px',
-                                letterSpacing: 0,
-                                color: theme.palette.customColors.neutralSecondary,
-                                textTransform: 'capitalize',
-                                textOverflow: 'ellipsis',
-                                overflow: 'hidden',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              {field.label}
-                            </Typography>
-                          </Tooltip>
-                          <Tooltip title={field.value} placement='bottom-start' arrow>
-                            <Typography
-                              sx={{
-                                fontWeight: 500,
-                                fontSize: '16px',
-                                letterSpacing: 0,
-                                color: theme.palette.customColors.OnSurfaceVariant,
-                                textOverflow: 'ellipsis',
-                                overflow: 'hidden',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              {field.value}
-                            </Typography>
-                          </Tooltip>
-                        </Grid>
-                      ))}
+              {setupFieldItems.length ? (
+                <Grid container spacing={{ xs: 3, sm: 4 }}>
+                  {setupFieldItems.map(field => (
+                    <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={field.key}>
+                      <Tooltip title={field.label} placement='bottom-start' arrow>
+                        <Typography
+                          sx={{
+                            mb: '6px',
+                            fontWeight: 400,
+                            fontSize: '15px',
+                            letterSpacing: 0,
+                            color: theme.palette.customColors.neutralSecondary,
+                            textTransform: 'capitalize',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {field.label}
+                        </Typography>
+                      </Tooltip>
+                      <Tooltip title={field.value} placement='bottom-start' arrow>
+                        <Typography
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: '18px',
+                            letterSpacing: 0,
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {field.value}
+                        </Typography>
+                      </Tooltip>
                     </Grid>
-                  </Box>
-                ))
+                  ))}
+                </Grid>
               ) : (
-                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, px: 2 }}>
+                <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
                   No anesthesia setup data available.
                 </Typography>
               )}
@@ -955,19 +1006,24 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 {monitoringItems.length ? (
                   monitoringItems.map((item, index) => (
-                    <Chip
-                      key={`${item}-${index}`}
-                      label={item}
-                      sx={{
-                        backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
-                        color: theme.palette.customColors.OnPrimaryContainer,
-                        fontWeight: 500,
-                        fontSize: '14px',
-                        border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
-                        borderRadius: '6px',
-                        '& .MuiChip-label': { px: 2, py: 0.5 }
-                      }}
-                    />
+                    <Tooltip key={`${item}-${index}`} title={item} placement='top'>
+                      <Chip
+                        label={item}
+                        sx={{
+                          height: '41px',
+                          backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
+                          border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
+                          borderRadius: '6px',
+                          '& .MuiChip-label': { px: 6, py: 0.5 },
+                          color: theme.palette.customColors.OnPrimaryContainer,
+                          fontWeight: 500,
+                          fontSize: '16px',
+                          textAlign: 'center'
+                        }}
+                      >
+                        {item}
+                      </Chip>
+                    </Tooltip>
                   ))
                 ) : (
                   <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
@@ -982,7 +1038,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
 
             <Box
               sx={{
-                px: '8px',
+                // px: '8px',
                 //height: '20px',
                 display: 'flex',
                 flexWrap: 'wrap',
@@ -1055,7 +1111,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
 
             <Box
               sx={{
-                px: '8px',
+                // px: '8px',
                 //height: '20px',
                 display: 'flex',
                 flexWrap: 'wrap',
@@ -1072,7 +1128,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                   Pre Anesthetic Examination
                 </Typography>
               </Box>
-              <Grid sx={{ px: '0px' }} container spacing={4}>
+              <Grid container spacing={4}>
                 {examDetails.length ? (
                   examDetails.map(item => (
                     <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label} sx={{ minWidth: 0 }}>
@@ -1123,7 +1179,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                 )}
               </Grid>
               <Grid container spacing={4} sx={{ mt: 2, flexDirection: 'column' }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0, width: '100%' }}>
                   <Typography
                     sx={{
                       mb: '4px',
@@ -1150,6 +1206,8 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                         overflow: 'hidden',
                         whiteSpace: 'nowrap',
                         minWidth: 0,
+                        maxWidth: '100%',
+                        width: '100%',
                         display: 'block'
                       }}
                     >
@@ -1157,7 +1215,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                     </Typography>
                   </Tooltip>
                 </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0, width: '100%' }}>
                   <Typography
                     sx={{
                       mb: '4px',
@@ -1184,6 +1242,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                         overflow: 'hidden',
                         whiteSpace: 'nowrap',
                         width: '100%',
+                        maxWidth: '100%',
                         display: 'block'
                       }}
                     >
@@ -1195,7 +1254,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
             </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <DetailsHeader text={'Medication & Gas'} />
             <Box sx={{ mb: 4 }}>
               <Typography
@@ -1214,12 +1273,12 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                 variant='outlined'
                 sx={{
                   borderRadius: '8px!important',
-                  overflow: 'hidden',
+                  overflow: 'auto',
                   boxShadow: 'none',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                 }}
               >
-                <Table size='small' sx={tableStyles}>
+                <Table size='small' sx={{ ...tableStyles, minWidth: 1100 }}>
                   <TableHead>
                     <TableRow>
                       <TableCell>Drug</TableCell>
@@ -1277,12 +1336,12 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                 variant='outlined'
                 sx={{
                   borderRadius: '8px!important',
-                  overflow: 'hidden',
+                  overflow: 'auto',
                   boxShadow: 'none',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                 }}
               >
-                <Table size='small' sx={tableStyles}>
+                <Table size='small' sx={{ ...tableStyles, minWidth: 800 }}>
                   <TableHead>
                     <TableRow sx={{ height: '55px' }}>
                       <TableCell>Gas</TableCell>
@@ -1330,10 +1389,11 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
           // selectedDate={selectedDate}
           // handleDateChange={handleDateChange}
           /> */}
+            <Divider sx={{ mb: 6, mt: 3 }} />
             <VitalMonitoringDetail data={vitalMonitoringData} />
           </Grid>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <DetailsHeader text={'Recovery & Reversal'} />
             <Box sx={{ mb: 4 }}>
               <Typography
@@ -1352,12 +1412,12 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                 variant='outlined'
                 sx={{
                   borderRadius: '8px!important',
-                  overflow: 'hidden',
+                  overflow: 'auto',
                   boxShadow: 'none',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                 }}
               >
-                <Table size='small' sx={tableStyles}>
+                <Table size='small' sx={{ ...tableStyles, minWidth: 800 }}>
                   <TableHead>
                     <TableRow>
                       <TableCell>Drug Name</TableCell>
@@ -1397,7 +1457,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <Box
                 sx={{
-                  px: '8px',
+                  // px: '8px',
                   //height: '20px',
                   display: 'flex',
                   flexWrap: 'wrap',
@@ -1472,7 +1532,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <Box
                 sx={{
-                  px: '8px',
+                  // px: '8px',
                   display: 'flex',
                   flexWrap: 'wrap',
                   columnGap: '4px',
@@ -1492,7 +1552,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
 
               <Box
                 sx={{
-                  px: '8px',
+                  // px: '8px',
                   //height: '20px',
                   display: 'flex',
                   flexWrap: 'wrap',
@@ -1563,7 +1623,19 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                   >
                     Notes
                   </Typography>
-                  <Tooltip title={recoveryNotesText} placement='bottom-start' arrow>
+                  <Tooltip
+                    title={recoveryNotesText}
+                    placement='top'
+                    arrow
+                    slotProps={{
+                      tooltip: {
+                        sx: {
+                          maxHeight: 200,
+                          overflowY: 'auto'
+                        }
+                      }
+                    }}
+                  >
                     <Typography
                       sx={{
                         fontWeight: 500,
@@ -1583,7 +1655,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <Box
                   sx={{
-                    px: '8px',
+                    // px: '8px',
                     mt: 3,
                     display: 'flex',
                     flexWrap: 'wrap',
@@ -1643,10 +1715,10 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
             </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <DetailsHeader text={'ATTACHMENTS'} />
             <MediaScroller items={attachments} />
-          </Box>
+          </Box> */}
         </Box>
       </Box>
       <DeleteConfirmationDialog

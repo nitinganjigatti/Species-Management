@@ -6,6 +6,7 @@ import MedicinePrescriptionCard from 'src/views/pages/hospital/prescription-moni
 import { useRouter } from 'next/router'
 import { useHospital } from 'src/context/HospitalContext'
 import Toaster from 'src/components/Toaster'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import {
   administerAllMedicines,
   administerDose,
@@ -29,7 +30,13 @@ import moment from 'moment'
 import MedicinePrescriptionCardForMultipleTimeSlots from 'src/views/pages/hospital/prescription-monitoring/MedicinePrescriptionCarForMultipleTimeSlots'
 import dayjs from 'dayjs'
 
+const STORAGE_KEY = 'medical_record_data'
+
 function PrescriptionLayout({ drawerType }) {
+  const router = useRouter()
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
+
   const [openSchedule, setOpenSchedule] = useState(false)
   const [prescriptionCardOpen, setPrescriptionCardOpen] = useState(false)
   const [medicationData, setMedicationData] = useState([])
@@ -67,9 +74,12 @@ function PrescriptionLayout({ drawerType }) {
   const [selectedMetrics, setSelectedMetrics] = useState([])
   const [administrativeIds, setAdministrativeIds] = useState([])
 
-  const router = useRouter()
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
-  const { id, medical_record_id, animal_id, date } = router.query
+  // Get ID from router (with fallback during initial render before router is ready)
+  const id = router.query.id 
+  const medical_record_id = medicalRecordData?.medical_record_id
+  const animal_id = medicalRecordData?.animal_id
+  const date = medicalRecordData?.date
 
   const [selectedDate, setSelectedDate] = useState(date || today)
 
@@ -126,7 +136,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleOpenPrescriptionCardForMultipleSlots = data => {
-    console.log('handleOpenPrescriptionCardForMultipleSlots data', data)
     getDetails(data)
   }
 
@@ -135,8 +144,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleStopMedicine = async data => {
-    console.log('Stop medicine confirmed:', data)
-    console.log('medicineData:', data.medicineData)
     setIsStopMedicineLoading(true)
     try {
       const payload = {
@@ -333,7 +340,6 @@ function PrescriptionLayout({ drawerType }) {
 
   const handleAdministerOrSubmit = async data => {
     setIsAdministerOrSkipPopupLoading(true)
-    console.log('handleAdministerOrSubmit data', data)
     try {
       const wastageUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
         item => item.uom_abbr === data?.wastageUnit
@@ -368,7 +374,8 @@ function PrescriptionLayout({ drawerType }) {
             }
           ]),
         administritive_time: time24,
-        group_prescription_id: data?.group_prescription_id || data?.id
+        group_prescription_id: data?.group_prescription_id || data?.id,
+        1: data?.attachment?.[0] && data?.attachment[0]
       }
       const response = await administerDose(payload)
       if (response?.success) {
@@ -404,7 +411,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleAdministerSubmit = async formData => {
-    console.log('Administer Medicine Form Submitted:', formData)
     try {
       const payload = {
         record_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
@@ -432,7 +438,8 @@ function PrescriptionLayout({ drawerType }) {
         prescription_id: selectedSlotData?.data?.prescription_id,
         medicine_id: selectedSlotData?.data?.medicine_id,
         medical_record_type: 'SINGLE',
-        case_type: 1
+        case_type: 1,
+        1: formData?.attachment?.[0] && formData?.attachment[0]
       }
 
       const response = await directAdministerForPatSlot(payload)
@@ -444,8 +451,6 @@ function PrescriptionLayout({ drawerType }) {
       }
     } catch (error) {
       console.error('Error:', error)
-    } finally {
-      console.log('Administer')
     }
   }
 
@@ -554,7 +559,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleDetailDateChange = date => {
-    console.log('Detail date changed to:', date)
     setDetailSelectedDate(date)
   }
 
@@ -611,8 +615,6 @@ function PrescriptionLayout({ drawerType }) {
           .flat() // flatten the array of arrays into single array
       )
 
-      console.log('administerIds', administerIds)
-
       const payload = {
         medical_record_id: JSON.stringify([medical_record_id]),
         medicine_id: data?.length > 1 ? JSON.stringify(medicineIds) : JSON.stringify([data[0]?.medicine_id]),
@@ -643,8 +645,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleAdminister = async data => {
-    console.log('Administer clicked for selected metrics:', data)
-    console.log('SelectAll', SelectAll, data?.length, medicationData?.length)
     setIsAdministerLoading(true)
     if (SelectAll && data?.length === medicationData?.length) {
       handleSelectAllAdministerrOrSkip('administer')
@@ -654,8 +654,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleSkip = async data => {
-    console.log('Administer clicked for selected metrics:', data)
-    console.log('SelectAll', SelectAll, data?.length, medicationData?.length)
     setIsSkipLoading(true)
     if (SelectAll && data?.length === medicationData?.length) {
       handleSelectAllAdministerrOrSkip('withheld')
@@ -714,7 +712,6 @@ function PrescriptionLayout({ drawerType }) {
     setBatchList([])
     if (type === 'multiple') {
       setIsAdministerOrSkipForMultipleSlotsOpen(true)
-      console.log('data for multiple slots:', data?.data?.id)
       setAdministrativeIds()
       const administrative_ids = data?.timeSlot?.administrative_ids ? data.timeSlot.administrative_ids.join(',') : ''
       if (administrative_ids) setAdministrativeIds(administrative_ids)
@@ -794,7 +791,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleSkipSelectedFromDrawer = async (selectedItems, medicineData) => {
-    console.log('Skip selected medications from drawer:', selectedItems, medicineData)
 
     try {
       setIsSkipLoading(true)
@@ -847,7 +843,6 @@ function PrescriptionLayout({ drawerType }) {
   const debouncedBatchSearch = useCallback(
     debounce(async (medicineId, query = '') => {
       if (!medicineId) {
-        console.log('No medicineId provided, skipping batch fetch')
         setBatchList([])
 
         return
@@ -879,23 +874,19 @@ function PrescriptionLayout({ drawerType }) {
 
   const fetchMedicineBatches = useCallback(
     (medicineId, query = '') => {
-      console.log('Fetching batches for medicineId:', medicineId, 'with query:', query)
       debouncedBatchSearch(medicineId, query)
     },
     [debouncedBatchSearch]
   )
 
   const handleBatchSearch = value => {
-    console.log('Batch search triggered with value:', value)
     setBatchSearchQuery(value)
     const medicineId = selectedSlotData?.timeSlot?.medicine_id || selectedSlotData?.data?.medicine_id
 
-    // console.log('Calling fetchMedicineBatches for medicine:', temporarilySelectedMedicine.id)
     fetchMedicineBatches(medicineId, value)
   }
 
   const addPrescriptionToTimeslot = async (type, data) => {
-    console.log('addPrescriptionToTimeslot', type, data)
     setSelectedSlotData(data)
     if (!medicalMasterData) fetchMedicalMasterData()
     setBatchList([])
@@ -904,42 +895,7 @@ function PrescriptionLayout({ drawerType }) {
     } else if (type === 'future') {
       setIsScheduleDosageModelOpen(true)
     }
-    console.log('addPrescriptionToTimeslot', type, data)
   }
-
-  const handleAdministerOrSkipForMulipleSlotsSubmit = async data => {
-    console.log('Administer/Skip for multiple slots submitted:', data)
-    try {
-      setIsAdministerOrSkipPopupLoading(true)
-
-      // await handleSingleOrMultipleDoseAdministerOrSkip(data?.selectedSlots || [], data?.actionType)
-    } catch (error) {
-      console.error('Error in Administer/Skip for multiple slots:', error)
-    } finally {
-      setIsAdministerOrSkipPopupLoading(false)
-    }
-  }
-
-  const timeSlots = [
-    {
-      id: 1,
-      time: '07:00 AM',
-      dosage: '10 mg/kg',
-      amount: '310 mg'
-    },
-    {
-      id: 2,
-      time: '11:00 AM',
-      dosage: '10 mg/kg',
-      amount: '310 mg'
-    },
-    {
-      id: 3,
-      time: '04:00 PM',
-      dosage: '10 mg/kg',
-      amount: '310 mg'
-    }
-  ]
 
   useEffect(() => {
     if (hospital?.id) fetchMedicalMasterData()

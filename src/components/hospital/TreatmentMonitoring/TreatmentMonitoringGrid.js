@@ -29,6 +29,9 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import dayjs from 'dayjs'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+
+const STORAGE_KEY = 'medical_record_data'
 
 // Utility functions
 const getLabelForHour = hour => {
@@ -168,12 +171,16 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday, theme) => {
 
 const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischarged }) => {
   const theme = useTheme()
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
   const scrollContainerRef = useRef(null)
   const hourRefs = useRef({})
   const router = useRouter()
   const isPatientDischarged = patientData?.status === 'discharge' ? true : false
 
-  const { id, medical_record_id, animal_id } = router.query
+  const { id } = router.query
+  const medical_record_id = medicalRecordData?.medical_record_id
+  const animal_id = medicalRecordData?.animal_id
   const today = new Date().toISOString().split('T')[0]
 
   const [didInitialScroll, setDidInitialScroll] = useState(false)
@@ -572,7 +579,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
     <>
       <Grid container spacing={2} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
         <Grid container spacing={6} rowSpacing={4}>
-          <Grid item size={{ xs: 12, sm: 12, md: isPatientDischarged && isToday ? 12 : 9 }}>
+          <Grid item size={{ xs: 12, sm: 12, md: isPatientDischarged && isToday ? 12 : 10 }}>
             <HorizontalDateNav
               onDateSelect={handleDateChange}
               selectedDate={selectedDate}
@@ -580,7 +587,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
               isLoading={monitoringLoading}
             />
           </Grid>
-          <Grid item size={{ xs: 12, sm: 12, md: 3 }}>
+          <Grid item size={{ xs: 12, sm: 12, md: 2 }}>
             {!isPatientDischarged && isToday ? (
               <Button
                 sx={{ height: '48px', width: '100%', fontSize: '0.8rem' }}
