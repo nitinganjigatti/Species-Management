@@ -681,24 +681,25 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
   }
 
   const DetailsHeader = ({ text }) => (
-    // <Box
-    //   sx={theme => ({
-    //     backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 0.6),
-    //     padding: '8px',
-    //     borderRadius: '4px'
-    //   })}
-    // >
-    <Typography
-      sx={{
-        fontWeight: 500,
-        fontSize: '20px',
-        letterSpacing: 0,
-        color: theme.palette.customColors.OnPrimaryContainer
-      }}
+    <Box
+      sx={theme => ({
+        // backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 0.6),
+        paddingTop: '24px',
+        // borderRadius: '4px',
+        borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`
+      })}
     >
-      {text}
-    </Typography>
-    // </Box>
+      <Typography
+        sx={{
+          fontWeight: 500,
+          fontSize: '20px',
+          letterSpacing: 0,
+          color: theme.palette.customColors.OnPrimaryContainer
+        }}
+      >
+        {text}
+      </Typography>
+    </Box>
   )
 
   if (isRecordsLoading) {
@@ -812,7 +813,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
             <DetailsHeader text={'Basic details'} />
             <Grid container spacing={4}>
               {Object.entries(basicDetails).map(([label, value]) => (
-                <Grid item size={{ xs: 6, md: 4 }} key={label}>
+                <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={label}>
                   <Tooltip title={label.replace(/([A-Z])/g, ' $1')} placement='bottom-start' arrow>
                     <Typography
                       sx={{
