@@ -667,14 +667,17 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
   }
 
   const tableStyles = {
-    '& tr': {
+    '& thead tr': {
+      height: '48px'
+    },
+    '& tbody tr': {
       height: '55px'
     },
     '& th': {
       fontWeight: 600,
       fontSize: '12px',
       color: theme.palette.customColors.OnSurfaceVariant,
-      backgroundColor: theme.palette.customColors.displaybgSecondary,
+      backgroundColor: theme.palette.customColors.bodyBg,
       textTransform: 'uppercase'
     },
     '& td': {
@@ -1232,7 +1235,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
             </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <DetailsHeader text={'Medication & Gas'} />
             <Box sx={{ mb: 4 }}>
               <Typography
@@ -1251,12 +1254,12 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                 variant='outlined'
                 sx={{
                   borderRadius: '8px!important',
-                  overflow: 'hidden',
+                  overflow: 'auto',
                   boxShadow: 'none',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                 }}
               >
-                <Table size='small' sx={tableStyles}>
+                <Table size='small' sx={{ ...tableStyles, minWidth: 1100 }}>
                   <TableHead>
                     <TableRow>
                       <TableCell>Drug</TableCell>
@@ -1314,12 +1317,12 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                 variant='outlined'
                 sx={{
                   borderRadius: '8px!important',
-                  overflow: 'hidden',
+                  overflow: 'auto',
                   boxShadow: 'none',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                 }}
               >
-                <Table size='small' sx={tableStyles}>
+                <Table size='small' sx={{ ...tableStyles, minWidth: 800 }}>
                   <TableHead>
                     <TableRow sx={{ height: '55px' }}>
                       <TableCell>Gas</TableCell>
@@ -1389,12 +1392,12 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                 variant='outlined'
                 sx={{
                   borderRadius: '8px!important',
-                  overflow: 'hidden',
+                  overflow: 'auto',
                   boxShadow: 'none',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                 }}
               >
-                <Table size='small' sx={tableStyles}>
+                <Table size='small' sx={{ ...tableStyles, minWidth: 800 }}>
                   <TableHead>
                     <TableRow>
                       <TableCell>Drug Name</TableCell>
@@ -1600,23 +1603,23 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                   >
                     Notes
                   </Typography>
-              <Tooltip
-                title={recoveryNotesText}
-                placement='top'
-                arrow
-                slotProps={{
-                  tooltip: {
-                    sx: {
-                      maxHeight: 200,
-                      overflowY: 'auto'
-                    }
-                  }
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontWeight: 500,
-                    fontSize: '16px',
+                  <Tooltip
+                    title={recoveryNotesText}
+                    placement='top'
+                    arrow
+                    slotProps={{
+                      tooltip: {
+                        sx: {
+                          maxHeight: 200,
+                          overflowY: 'auto'
+                        }
+                      }
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: '16px',
                         letterSpacing: 0,
                         color: theme.palette.customColors.OnSurfaceVariant,
                         textOverflow: 'ellipsis',
