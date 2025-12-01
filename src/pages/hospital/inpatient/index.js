@@ -302,10 +302,11 @@ const HospitalInpatient = () => {
   ]
 
   const handleRowClick = params => {
-    router.push({
-      pathname: `/hospital/inpatient/${params.row.id}`,
-      query: { animal_id: params.row.animal_id, medical_record_id: params.row.medical_record_id }
-    })
+    const patientId = params?.id || params?.row?.id
+
+    if (patientId) {
+      router.push(`/hospital/inpatient/${patientId}`)
+    }
   }
 
   const headerAction = (

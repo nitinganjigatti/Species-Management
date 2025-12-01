@@ -281,7 +281,8 @@ const PrescriptionMonitoringGrid = ({
 }) => {
   const theme = useTheme()
   const router = useRouter()
-  const { id, animal_id, medical_record_id, animal_admitted_date } = router.query
+  const { id } = router.query
+
   const scrollContainerRef = useRef(null)
   const hourRefs = useRef({})
 
@@ -669,11 +670,7 @@ const PrescriptionMonitoringGrid = ({
             <Button
               onClick={() => {
                 router.push({
-                  pathname: `/hospital/inpatient/${id}/schedule-prescription`,
-                  query: {
-                    animal_id,
-                    medical_record_id
-                  }
+                  pathname: `/hospital/inpatient/${id}/schedule-prescription`
                 })
               }}
               sx={{ height: '48px', width: '100%' }}
@@ -725,12 +722,7 @@ const PrescriptionMonitoringGrid = ({
           <Button
             onClick={() => {
               router.push({
-                pathname: `/hospital/inpatient/${id}/schedule-prescription`,
-                query: {
-                  animal_id,
-                  medical_record_id,
-                  animal_admitted_date
-                }
+                pathname: `/hospital/inpatient/${id}/schedule-prescription`
               })
             }}
             sx={{ height: '48px', width: '100%' }}

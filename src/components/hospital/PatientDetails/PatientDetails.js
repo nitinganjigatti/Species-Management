@@ -13,6 +13,9 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import CloseIcon from '@mui/icons-material/Close'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { useQuery } from '@tanstack/react-query'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+
+const STORAGE_KEY = 'medical_record_data'
 
 const useDrawerState = () => {
   const router = useRouter()
@@ -54,34 +57,14 @@ const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'
 const PatientDetails = ({ category }) => {
   const router = useRouter()
   const theme = useTheme()
-  const { id, animal_id, medical_record_id, tab: urlTab } = router.query
+  const { updateState } = useDynamicStateContext()
+  const { id, tab: urlTab } = router.query
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
   const [anchorEl, setAnchorEl] = useState(null)
 
   const openMenu = Boolean(anchorEl)
-
-  const updateUrlWithAdmittedDate = admittedDate => {
-    const currentPath = router.pathname
-    const currentQuery = { ...router.query }
-
-    // Add or update animal_admitted_date
-    const updatedQuery = {
-      ...currentQuery,
-      animal_admitted_date: admittedDate
-    }
-
-    // Replace URL with new query params, without refreshing the page
-    router.replace(
-      {
-        pathname: currentPath,
-        query: updatedQuery
-      },
-      undefined,
-      { shallow: true }
-    )
-  }
 
   const {
     data: patientResponse,
@@ -93,14 +76,19 @@ const PatientDetails = ({ category }) => {
     queryKey: ['patientDetails', id],
     queryFn: () => getPatientDetails(id),
     enabled: !!id // only run when id exists
+    
   })
 
+  // Initialize medical record data when patient details are loaded
   useEffect(() => {
-    if (patientResponse?.data?.created_at) {
-      const admittedDate = patientResponse.data.admitted_at
-      updateUrlWithAdmittedDate(admittedDate)
+    if (patientResponse?.data) {
+      updateState(STORAGE_KEY, {
+        animal_id: patientResponse.data?.animal_detail?.animal_id,
+        medical_record_id: patientResponse.data?.medical_record_id,
+        animal_admitted_date: patientResponse.data?.admitted_at
+      })
     }
-  }, [patientResponse?.data?.created_at])
+  }, [patientResponse?.data])
 
   const patientData = patientResponse?.data
   const animalData = patientResponse?.data?.animal_detail || {}

@@ -6,6 +6,7 @@ import MedicinePrescriptionCard from 'src/views/pages/hospital/prescription-moni
 import { useRouter } from 'next/router'
 import { useHospital } from 'src/context/HospitalContext'
 import Toaster from 'src/components/Toaster'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import {
   administerAllMedicines,
   administerDose,
@@ -29,7 +30,13 @@ import moment from 'moment'
 import MedicinePrescriptionCardForMultipleTimeSlots from 'src/views/pages/hospital/prescription-monitoring/MedicinePrescriptionCarForMultipleTimeSlots'
 import dayjs from 'dayjs'
 
+const STORAGE_KEY = 'medical_record_data'
+
 function PrescriptionLayout({ drawerType }) {
+  const router = useRouter()
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
+
   const [openSchedule, setOpenSchedule] = useState(false)
   const [prescriptionCardOpen, setPrescriptionCardOpen] = useState(false)
   const [medicationData, setMedicationData] = useState([])
@@ -67,9 +74,12 @@ function PrescriptionLayout({ drawerType }) {
   const [selectedMetrics, setSelectedMetrics] = useState([])
   const [administrativeIds, setAdministrativeIds] = useState([])
 
-  const router = useRouter()
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
-  const { id, medical_record_id, animal_id, date } = router.query
+  // Get ID from router (with fallback during initial render before router is ready)
+  const id = router.query.id 
+  const medical_record_id = medicalRecordData?.medical_record_id
+  const animal_id = medicalRecordData?.animal_id
+  const date = medicalRecordData?.date
 
   const [selectedDate, setSelectedDate] = useState(date || today)
 
