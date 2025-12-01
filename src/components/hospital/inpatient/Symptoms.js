@@ -101,7 +101,7 @@ const Symptoms = ({ selectedTab, patientData }) => {
         fetchSymptoms('', 1, false)
       }
     }
-  }, [selectedTab, currentTab, searchQuery, currentRecordOnly])
+  }, [selectedTab, currentTab, searchQuery, currentRecordOnly, patientData])
 
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect()

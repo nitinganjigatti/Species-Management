@@ -1396,6 +1396,7 @@ export default function AddAnesthesiaRecord() {
         setExpanded('medicationsGas')
         Toaster({ type: 'success', message: response?.message })
         handleCancel()
+        getAnesthesiaDetails(response?.data?.anaesthesia_id)
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to save record' })
       }

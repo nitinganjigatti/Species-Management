@@ -20,6 +20,8 @@ import ControlledSelectWithTextField from 'src/views/forms/form-fields/Controlle
 import dayjs from 'dayjs'
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import utc from 'dayjs/plugin/utc'
+dayjs.extend(utc)
 
 export default function BasicDetails({
   vetOptions = [],
@@ -88,14 +90,14 @@ export default function BasicDetails({
             name='basicDetails.anaesthesia_datetime'
             control={control}
             render={({ field }) => {
-              const value = field.value ? dayjs(field.value, 'YYYY-MM-DD HH:mm:ss') : null
+              const value = field.value ? dayjs.utc(field.value).local() : null
 
               const handleDateChange = newValue => {
                 if (!newValue) {
                   field.onChange('')
                   return
                 }
-                const formatted = dayjs(newValue).format('YYYY-MM-DD HH:mm:ss')
+                const formatted = dayjs(newValue).utc().format('YYYY-MM-DD HH:mm:ss')
                 field.onChange(formatted)
               }
 
