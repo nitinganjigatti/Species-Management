@@ -17,6 +17,9 @@ import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMul
 import Utility from 'src/utility'
 import { useRouter } from 'next/router'
 import moment from 'moment'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+
+const STORAGE_KEY = 'medical_record_data'
 
 export default function ScheduleMedicine({
   control,
@@ -46,7 +49,10 @@ export default function ScheduleMedicine({
 
   const now = new Date()
   const router = useRouter()
-  const { animal_admitted_date } = router.query
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
+
+  const animal_admitted_date = medicalRecordData?.animal_admitted_date
 
   // Common styles for form fields
   const commonFieldStyles = {
