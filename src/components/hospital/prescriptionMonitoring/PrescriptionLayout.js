@@ -234,7 +234,11 @@ function PrescriptionLayout({ drawerType }) {
       const response = await getPrescriptions(payload)
 
       if (response?.success) {
-        setDates(response?.data?.schedulded_date)
+        if (response?.data?.schedulded_date?.length) {
+          setDates(response?.data?.schedulded_date)
+        } else {
+          setDates([selectedDate])
+        }
         const dates = response?.data?.schedulded_date
         if (dates?.length && !selectedDate) setSelectedDate(selectedDate)
 
@@ -790,7 +794,6 @@ function PrescriptionLayout({ drawerType }) {
   }
 
   const handleSkipSelectedFromDrawer = async (selectedItems, medicineData) => {
-
     try {
       setIsSkipLoading(true)
 
