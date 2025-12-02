@@ -902,15 +902,14 @@ function PrescriptionLayout({ drawerType }) {
 
   return (
     <Box>
-      <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+      <Grid container spacing={2} sx={{ alignItems: 'center', width: '100%' }}>
         {/* <Button onClick={() => setOpenSchedule(true)}>View Sample Schedule</Button> */}
-        <Grid xs={12}>
+        <Grid sx={{ alignItems: 'center', width: '100%' }}>
           <PrescriptionMonitoringGrid
             onOpenPrescriptionCard={handleOpenPrescriptionCard}
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
-
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -987,7 +986,6 @@ function PrescriptionLayout({ drawerType }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
-
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {

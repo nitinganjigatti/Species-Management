@@ -95,6 +95,7 @@ export default function AddClinicalAssessmentPage() {
   }, [medicalRecordId])
 
   // Fetch diagnosis list with infinite scroll
+
   const fetchDiagnosisItems = useCallback(
     async (pageNum = 1, search = '', categoryId = '') => {
       setIsLoading(true)
@@ -114,8 +115,14 @@ export default function AddClinicalAssessmentPage() {
           const totalCount = res.data?.totalRecords || 0
 
           setTotalCount(totalCount)
-          setAllAssessments(prev => (pageNum === 1 ? newItems : [...prev, ...newItems]))
-          setHasMore(allAssessments?.length < totalCount)
+          setAllAssessments(prev => {
+            const updatedList = pageNum === 1 ? newItems : [...prev, ...newItems]
+
+            // Calculate hasMore based on the UPDATED list length
+            setHasMore(updatedList.length < totalCount)
+
+            return updatedList
+          })
         } else {
           throw new Error(res.message || 'Failed to fetch diagnosis list')
         }
@@ -128,7 +135,7 @@ export default function AddClinicalAssessmentPage() {
         setIsLoading(false)
       }
     },
-    [allAssessments]
+    []
   )
 
   // Load more function for infinite scroll
@@ -151,15 +158,18 @@ export default function AddClinicalAssessmentPage() {
   // Fetch diagnosis items when tab or search changes
   useEffect(() => {
     if (currentTabId) {
+      setAllAssessments([]) // Clear before fetching
+      setPage(1)
       fetchDiagnosisItems(1, searchTerm, currentTabId)
     }
   }, [currentTabId, searchTerm])
 
   const handleTabChange = (tabValue, tabId) => {
-    setHasMore(false)
     setCurrentTab(tabValue)
     setCurrentTabId(tabId)
     setPage(1)
+    setAllAssessments([])
+    setHasMore(false)
   }
 
   const handleSymptomSelect = symptom => {
@@ -234,10 +244,10 @@ export default function AddClinicalAssessmentPage() {
         isChronic: symptom?.chronicVal === 'Yes',
         prognosis: symptom?.prognosisVal?.toLowerCase() || '',
         notes: symptom?.notes || '',
-        active_at: new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000))
-        .toISOString()
-        .replace('T', ' ')
-        .substring(0, 19),
+        active_at: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
+          .toISOString()
+          .replace('T', ' ')
+          .substring(0, 19),
         closed_at: null
       }
     }))
@@ -381,7 +391,7 @@ export default function AddClinicalAssessmentPage() {
             loaderRef={loaderRef}
             totalCount={totalCount}
             isTabsLoading={isTabsLoading}
-            isListLoading={isLoading && !hasMore}
+            isListLoading={isLoading}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
@@ -393,16 +403,17 @@ export default function AddClinicalAssessmentPage() {
           />
         </Grid>
       </Grid>
-
-      <ActionButtons
-        isSubmitLoading={isSubmitLoading}
-        cancelLabel='CANCEL'
-        addLabel='ADD'
-        onCancel={handleAssessmentCancel}
-        onAdd={handleAddAssessment}
-        width={200}
-        height={50}
-      />
+      <Box>
+        <ActionButtons
+          isSubmitLoading={isSubmitLoading}
+          cancelLabel='CANCEL'
+          addLabel='ADD'
+          onCancel={handleAssessmentCancel}
+          onAdd={handleAddAssessment}
+          width={200}
+          height={50}
+        />
+      </Box>
 
       {temporarilySelected && (
         <AddClinicalAsmntDrawer
