@@ -795,7 +795,7 @@ export const DELETE_NOTE_CLINICAL_ASSESSMENT = 'medical/v2/delete-note/diagnosis
 
 // Hospital Analytics
 
-export const HOSPITAL_LISTING = 'v1/hospital/listing'
+export const HOSPITAL_LISTING = 'v1/entity/types/withUserPermission'
 
 export const HOSPITAL_BED_STATS = 'v1/hospital/hospital-bed-stat/'
 
