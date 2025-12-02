@@ -39,7 +39,6 @@ const MetricCard = ({
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <Box
           sx={{
-            fontFamily: 'Inter, sans-serif',
             fontWeight: 500,
             fontSize: '16px',
             lineHeight: '100%',
@@ -54,9 +53,7 @@ const MetricCard = ({
           {(metric?.status === 'stopped' || metric?.status === 'skipped') && (
             <Box
               component='img'
-              src={
-                metric?.status === 'stopped' ? '/images/hospital/stop.svg' : '/images/hospital/skip.svg' 
-              }
+              src={metric?.status === 'stopped' ? '/images/hospital/stop.svg' : '/images/hospital/skip.svg'}
               alt={metric?.status === 'stopped' ? 'Stopped' : 'Skipped'}
               sx={{
                 width: '16px',

@@ -202,7 +202,7 @@ export default function AddMedicineToPrescription() {
   }
   const router = useRouter()
 
-  const { id, discharge_tab } = router.query 
+  const { id, discharge_tab } = router.query
   const animal_id = medicalRecordData?.animal_id
   const medical_record_id = medicalRecordData?.medical_record_id
 
@@ -541,13 +541,6 @@ export default function AddMedicineToPrescription() {
     fetchMedicalMasterData()
   }, [])
 
-  // Fetch prescription list when required params are available
-  useEffect(() => {
-    if (hospital?.id && animal_id && id) {
-      getPrescriptionList()
-    }
-  }, [hospital?.id, animal_id, id])
-
   useEffect(() => {
     const getPatientInfo = async () => {
       setPatientLoading(true)
@@ -555,6 +548,16 @@ export default function AddMedicineToPrescription() {
         await getPatientDetails(id).then(res => {
           if (res?.success === true) {
             setPatientData(res?.data)
+
+            if (hospital?.id && res.data?.animal_detail?.animal_id && id && res.data?.medical_record_id) {
+              getPrescriptionList(res.data?.animal_detail?.animal_id, res.data?.medical_record_id)
+            }
+            updateState(STORAGE_KEY, {
+              ...medicalRecordData,
+              animal_id: res.data?.animal_detail?.animal_id,
+              medical_record_id: res.data?.medical_record_id,
+              animal_admitted_date: res.data?.admitted_at
+            })
             setPatientLoading(false)
           } else {
             setPatientData(null)
@@ -570,18 +573,18 @@ export default function AddMedicineToPrescription() {
     getPatientInfo()
   }, [id])
 
-  const getPrescriptionList = async () => {
+  const getPrescriptionList = async (animalId, medicalRecordId) => {
+    console.log('Fetching prescription list with params:', animalId, medicalRecordId)
     try {
       setIsPrescriptionListLoading(true)
 
       const payload = {
         hospital_id: hospital?.id || '',
-        animal_id: animal_id || '',
+        animal_id: animal_id || animalId || '',
         medical_type: 'prescription',
         type: 'active',
-        medical_record_id: medical_record_id || '',
         generate_for_date: new Date().toISOString().split('T')[0],
-        medical_record_id: '',
+        medical_record_id: medical_record_id || medicalRecordId || '',
         hospital_case_id: id || ''
       }
 
@@ -1166,6 +1169,7 @@ export default function AddMedicineToPrescription() {
           <PrescriptionMedicineList
             medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
             temporarilySelectedMedicine={temporarilySelectedMedicine}
+
             // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
             selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
             onSelect={handleMedicineSelect}

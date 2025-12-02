@@ -86,6 +86,7 @@ const PatientDetails = ({ category }) => {
   useEffect(() => {
     if (patientResponse?.data) {
       updateState(STORAGE_KEY, {
+        ...medicalRecordData,
         animal_id: patientResponse.data?.animal_detail?.animal_id,
         medical_record_id: patientResponse.data?.medical_record_id,
         animal_admitted_date: patientResponse.data?.admitted_at

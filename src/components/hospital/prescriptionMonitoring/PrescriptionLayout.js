@@ -76,11 +76,11 @@ function PrescriptionLayout({ drawerType }) {
 
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
   // Get ID from router (with fallback during initial render before router is ready)
-  const id = router.query.id 
+  const { id, date } = router.query
   const medical_record_id = medicalRecordData?.medical_record_id
   const animal_id = medicalRecordData?.animal_id
 
-  const [selectedDate, setSelectedDate] = useState(today)
+  const [selectedDate, setSelectedDate] = useState(date || today)
 
   const { selectedHospital: hospital } = useHospital()
 
