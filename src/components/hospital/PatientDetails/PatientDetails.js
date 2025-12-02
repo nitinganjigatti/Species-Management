@@ -57,7 +57,7 @@ const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'
 const PatientDetails = ({ category }) => {
   const router = useRouter()
   const theme = useTheme()
-  const { data, updateState } = useDynamicStateContext()
+  const { data, updateState, resetState } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
   const medical_record_id = medicalRecordData?.medical_record_id
   const animal_id = medicalRecordData?.animal_id
@@ -79,7 +79,6 @@ const PatientDetails = ({ category }) => {
     queryKey: ['patientDetails', id],
     queryFn: () => getPatientDetails(id),
     enabled: !!id // only run when id exists
-    
   })
 
   // Initialize medical record data when patient details are loaded
@@ -176,6 +175,53 @@ const PatientDetails = ({ category }) => {
     (event, newValue) => {
       setSelectedTab(newValue)
 
+      const { discharge_tab, ...query } = router.query
+
+      // Entering Discharge Tab
+      if (newValue === 'discharge') {
+        router.replace(
+          {
+            pathname: router.pathname,
+            query: {
+              ...query,
+              id: router.query.id,
+              tab: 'discharge',
+              discharge_tab: discharge_tab || 'Mortality' // default
+            }
+          },
+          undefined,
+          { shallow: true }
+        )
+
+        return
+      }
+
+      // Leaving Discharge Tab  remove discharge_tab and  Update URL with the selected tab parameter
+      if (urlTab === 'discharge' && newValue !== 'discharge' && discharge_tab) {
+        // Clear discharge-related  context data
+        resetState('transfer_medicines')
+        resetState('transfer_temp_medicines')
+        resetState('enclosure_medicines')
+        resetState('enclosure_temp_medicines')
+        const updated = { ...router.query }
+        delete updated.discharge_tab
+
+        router.replace(
+          {
+            pathname: router.pathname,
+            query: {
+              ...updated,
+              id: router.query.id,
+              tab: newValue
+            }
+          },
+          undefined,
+          { shallow: true }
+        )
+
+        return
+      }
+
       // Update URL with the selected tab parameter
       router.replace(
         {
@@ -190,7 +236,7 @@ const PatientDetails = ({ category }) => {
         { shallow: true }
       )
     },
-    [router]
+    [router, urlTab]
   )
 
   // Handle menu item tab selection
@@ -199,6 +245,53 @@ const PatientDetails = ({ category }) => {
       setSelectedTab(newValue)
       handleMenuClose()
 
+      const { discharge_tab, ...query } = router.query
+
+      // Entering Discharge Tab
+      if (newValue === 'discharge') {
+        router.replace(
+          {
+            pathname: router.pathname,
+            query: {
+              ...query,
+              id: router.query.id,
+              tab: 'discharge',
+              discharge_tab: discharge_tab || 'Mortality' // default
+            }
+          },
+          undefined,
+          { shallow: true }
+        )
+
+        return
+      }
+
+      // Leaving Discharge Tab  remove discharge_tab and  Update URL with the selected tab parameter
+      if (urlTab === 'discharge' && newValue !== 'discharge' && discharge_tab) {
+        // Clear discharge-related  context data
+        resetState('transfer_medicines')
+        resetState('transfer_temp_medicines')
+        resetState('enclosure_medicines')
+        resetState('enclosure_temp_medicines')
+        const updated = { ...router.query }
+        delete updated.discharge_tab
+
+        router.replace(
+          {
+            pathname: router.pathname,
+            query: {
+              ...updated,
+              id: router.query.id,
+              tab: newValue
+            }
+          },
+          undefined,
+          { shallow: true }
+        )
+
+        return
+      }
+
       // Update URL with the selected tab parameter
       router.replace(
         {
@@ -213,7 +306,7 @@ const PatientDetails = ({ category }) => {
         { shallow: true }
       )
     },
-    [router]
+    [router, urlTab]
   )
 
   const handleBack = useCallback(() => {
