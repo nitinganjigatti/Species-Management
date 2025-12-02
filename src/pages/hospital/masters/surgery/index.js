@@ -35,10 +35,12 @@ import {
   getSurgeryMaster,
   updateSurgeryMaster
 } from 'src/lib/api/hospital/surgeryMaster'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const resolveBooleanStatus = value => {
   if (typeof value === 'string') {
     const normalized = value.trim().toLowerCase()
+
     return normalized === '1' || normalized === 'true' || normalized === 'active'
   }
 
@@ -51,6 +53,7 @@ const Surgery = () => {
 
   const [searchValue, setSearchValue] = useState('')
   const [selectedVisitType, setSelectedVisitType] = useState('')
+
   const [filters, setFilters] = useState({
     page: 1,
     limit: 10,
@@ -174,6 +177,7 @@ const Surgery = () => {
 
   const resolveSurgeryId = useCallback(row => {
     if (!row) return null
+
     return row?.id ?? row?.surgery_id ?? row?.master_surgery_id ?? row?.surgeryId ?? null
   }, [])
 
@@ -304,6 +308,7 @@ const Surgery = () => {
     const surgeryId = resolveSurgeryId(surgeryToDelete)
     if (!surgeryId) {
       handleCloseDeleteDialog()
+
       return
     }
 
@@ -421,22 +426,23 @@ const Surgery = () => {
         sortable: false,
         renderCell: params => {
           const isActive = resolveBooleanStatus(params.row.status_value)
+
           return (
-            <CustomChip
-              skin='light'
-              size='small'
-              label={isActive ? 'Active' : 'Inactive'}
-              color={isActive ? 'success' : 'error'}
-              sx={{
-                height: 20,
-                fontWeight: 600,
-                borderRadius: '16px',
-                fontSize: '0.75rem',
-                textTransform: 'capitalize',
-                '& .MuiChip-label': { mt: -0.25 }
-              }}
-            />
-          )
+  <CustomChip
+    skin='light'
+    size='small'
+    label={isActive ? 'Active' : 'Inactive'}
+    color={isActive ? 'success' : 'error'}
+    sx={{
+      height: 20,
+      fontWeight: 600,
+      borderRadius: '16px',
+      fontSize: '0.75rem',
+      textTransform: 'capitalize',
+      '& .MuiChip-label': { mt: -0.25 }
+    }}
+  />
+)
         }
       },
       {
@@ -633,4 +639,4 @@ const Surgery = () => {
   )
 }
 
-export default Surgery
+export default enforceModuleAccess(Surgery, 'add_hospital')

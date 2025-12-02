@@ -27,6 +27,7 @@ import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 
 import { addSurgeryRecord, getSurgeryMaster } from 'src/lib/api/hospital/surgeryMaster'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const DEFAULT_HOSPITAL_ID = '68'
 const FORM_ID = 'add-surgery-record-form'
@@ -74,6 +75,7 @@ const mapSurgeryToOption = surgery => {
     label: String(name).trim()
   }
 }
+
 const getSurgeryIdentifier = value => {
   if (!value) return ''
   if (typeof value === 'string' || typeof value === 'number') return value
@@ -247,18 +249,21 @@ const AddSurgeryRecord = () => {
   const auth = useAuth()
 
   const resolvedHospitalCaseId = useMemo(() => resolveHospitalCaseId(router.query), [router.query])
+
   const medicalRecordId = useMemo(() => {
     const possible = router.query?.medical_record_id || router.query?.medicalRecordId || router.query?.medical_recordId
 
     return Array.isArray(possible) ? possible[0] : possible || ''
   }, [router.query])
   const [patientData, setPatientData] = useState(null)
+
   const admissionDateTime = useMemo(
     () => (patientData?.admitted_at ? dayjs(patientData.admitted_at) : null),
     [patientData?.admitted_at]
   )
   const userZooId = useMemo(() => auth?.userData?.user?.zoos?.[0]?.zoo_id, [auth?.userData])
   const defaultNow = useMemo(() => dayjs(), [])
+
   const buildDefaultFormValues = useCallback(
     () => ({
       date: defaultNow,
@@ -309,6 +314,7 @@ const AddSurgeryRecord = () => {
   const endTimeValue = watch('endTime')
   const durationValue = watch('duration')
   const selectedAnesthesia = selectedAnesthesiaRecord
+
   const resetForm = useCallback(() => {
     const defaults = buildDefaultFormValues()
     reset(defaults)
@@ -470,6 +476,7 @@ const AddSurgeryRecord = () => {
   const animalInfoData = useMemo(() => buildAnimalInfoData(patientData), [patientData])
   const minDate = useMemo(() => (admissionDateTime ? admissionDateTime.startOf('day') : null), [admissionDateTime])
   const maxDate = dayjs()
+
   const maxTimeForSelectedDate = useMemo(() => {
     if (!selectedDate) return null
     const now = dayjs()
@@ -510,6 +517,7 @@ const AddSurgeryRecord = () => {
       if (durationValue) {
         setValue('duration', '', { shouldValidate: true, shouldDirty: true })
       }
+
       return
     }
 
@@ -520,6 +528,7 @@ const AddSurgeryRecord = () => {
       if (durationValue) {
         setValue('duration', '', { shouldValidate: true, shouldDirty: true })
       }
+
       return
     }
 
@@ -528,6 +537,7 @@ const AddSurgeryRecord = () => {
       if (durationValue) {
         setValue('duration', '', { shouldValidate: true, shouldDirty: true })
       }
+
       return
     }
 
@@ -703,6 +713,7 @@ const AddSurgeryRecord = () => {
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Surgery record added successfully' })
         resetForm()
+
         // const redirectUrl = buildReturnUrl()
         // router.push(redirectUrl)
         router.back()
@@ -1124,6 +1135,7 @@ const AddSurgeryRecord = () => {
                 onClick={handleSelectanesthesiaRecord}
                 sx={{
                   backgroundColor: theme.palette.primary.light,
+
                   // width: 141,
                   cursor: 'pointer',
                   height: 36,
@@ -1460,4 +1472,4 @@ const AddSurgeryRecord = () => {
   )
 }
 
-export default AddSurgeryRecord
+export default enforceModuleAccess(AddSurgeryRecord, 'add_hospital')

@@ -10,8 +10,9 @@ import SelectedSymptoms from 'src/components/hospital/Symptoms/SelectedSymptoms'
 import ActionButtons from 'src/components/hospital/FooterActionbuttons'
 import AddSymptomDrawer from 'src/components/hospital/drawer/AddSymptomDrawer'
 import Toaster from 'src/components/Toaster'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
-export default function AddSymptomsPage() {
+function AddSymptomsPage() {
   const theme = useTheme()
   const router = useRouter()
   const { id, animal_id, medical_record_id } = router.query
@@ -162,6 +163,7 @@ export default function AddSymptomsPage() {
     getPatientInfo()
   }, [id])
   console.log(id, 'id')
+
   const handleAddClick = async () => {
     try {
       if (selectedSymptoms.length === 0) {
@@ -293,3 +295,5 @@ export default function AddSymptomsPage() {
     </Box>
   )
 }
+
+export default enforceModuleAccess(AddSymptomsPage, 'add_hospital')

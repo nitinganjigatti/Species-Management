@@ -6,6 +6,7 @@ import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { visitTypeOptions } from 'src/constants/Constants'
 import { useHospital } from 'src/context/HospitalContext'
 import { getPatientsMortalityListings } from 'src/lib/api/hospital/inpatient'
@@ -476,4 +477,4 @@ const HospitalMortality = () => {
   )
 }
 
-export default HospitalMortality
+export default enforceModuleAccess(HospitalMortality, 'add_hospital')

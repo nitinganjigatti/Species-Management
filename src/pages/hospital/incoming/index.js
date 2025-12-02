@@ -19,6 +19,7 @@ import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import IncomingFilterDrawer from 'src/components/hospital/drawer/IncomingFilterDrawer'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { visitTypeOptions } from 'src/constants/Constants'
 import { useHospital } from 'src/context/HospitalContext'
 import { getNewIncomingPatientsLists } from 'src/lib/api/hospital/incomingPatient'
@@ -475,4 +476,4 @@ const HospitalIncoming = () => {
   )
 }
 
-export default HospitalIncoming
+export default enforceModuleAccess(HospitalIncoming, 'add_hospital')

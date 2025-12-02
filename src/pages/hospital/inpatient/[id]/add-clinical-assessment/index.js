@@ -13,11 +13,12 @@ import Toaster from 'src/components/Toaster'
 import { useRouter } from 'next/router'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
 
-export default function AddClinicalAssessmentPage() {
+function AddClinicalAssessmentPage() {
   const theme = useTheme()
   const router = useRouter()
   const { data } = useDynamicStateContext()
@@ -96,47 +97,44 @@ export default function AddClinicalAssessmentPage() {
 
   // Fetch diagnosis list with infinite scroll
 
-  const fetchDiagnosisItems = useCallback(
-    async (pageNum = 1, search = '', categoryId = '') => {
-      setIsLoading(true)
-      try {
-        const params = {
-          page: pageNum,
-          limit: PAGE_SIZE,
-          q: search,
-          category_id: categoryId,
-          type: 'diagnosis'
-        }
-
-        const res = await getDiagnosysType(params)
-
-        if (res.success) {
-          const newItems = res.data?.result || []
-          const totalCount = res.data?.totalRecords || 0
-
-          setTotalCount(totalCount)
-          setAllAssessments(prev => {
-            const updatedList = pageNum === 1 ? newItems : [...prev, ...newItems]
-
-            // Calculate hasMore based on the UPDATED list length
-            setHasMore(updatedList.length < totalCount)
-
-            return updatedList
-          })
-        } else {
-          throw new Error(res.message || 'Failed to fetch diagnosis list')
-        }
-      } catch (error) {
-        console.error('Error fetching diagnosis items:', error)
-        setAllAssessments([])
-        setTotalCount(0)
-        setHasMore(false)
-      } finally {
-        setIsLoading(false)
+  const fetchDiagnosisItems = useCallback(async (pageNum = 1, search = '', categoryId = '') => {
+    setIsLoading(true)
+    try {
+      const params = {
+        page: pageNum,
+        limit: PAGE_SIZE,
+        q: search,
+        category_id: categoryId,
+        type: 'diagnosis'
       }
-    },
-    []
-  )
+
+      const res = await getDiagnosysType(params)
+
+      if (res.success) {
+        const newItems = res.data?.result || []
+        const totalCount = res.data?.totalRecords || 0
+
+        setTotalCount(totalCount)
+        setAllAssessments(prev => {
+          const updatedList = pageNum === 1 ? newItems : [...prev, ...newItems]
+
+          // Calculate hasMore based on the UPDATED list length
+          setHasMore(updatedList.length < totalCount)
+
+          return updatedList
+        })
+      } else {
+        throw new Error(res.message || 'Failed to fetch diagnosis list')
+      }
+    } catch (error) {
+      console.error('Error fetching diagnosis items:', error)
+      setAllAssessments([])
+      setTotalCount(0)
+      setHasMore(false)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
 
   // Load more function for infinite scroll
   const loadMore = useCallback(() => {
@@ -437,3 +435,5 @@ export default function AddClinicalAssessmentPage() {
     </Box>
   )
 }
+
+export default enforceModuleAccess(AddClinicalAssessmentPage, 'add_hospital')

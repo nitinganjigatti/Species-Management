@@ -7,6 +7,7 @@ import { useRouter } from 'next/router'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { visitTypeOptions } from 'src/constants/Constants'
 import { AuthContext } from 'src/context/AuthContext'
 import { useHospital } from 'src/context/HospitalContext'
@@ -418,4 +419,4 @@ const HospitalOutPatient = () => {
   )
 }
 
-export default HospitalOutPatient
+export default enforceModuleAccess(HospitalOutPatient, 'add_hospital')

@@ -1,4 +1,4 @@
-const composeHospitalNavigation = () => {
+const composeHospitalNavigation = havePermissionToAddHospital => {
   const Title = {
     sectionTitle: 'Hospital'
   }
@@ -90,7 +90,10 @@ const composeHospitalNavigation = () => {
   // hospitalMastersParent.children.push(monitoringMaster)
   // hospitalMastersParent.children.push(anesthesiaMaster)
   hospitalMastersParent.children.push(surgeryMaster)
-  hospitalMastersParent.children.push(hospitalMaster)
+
+  if (havePermissionToAddHospital) {
+    hospitalMastersParent.children.push(hospitalMaster)
+  }
 
   const hospitalNavigationArray = []
 
@@ -100,6 +103,6 @@ const composeHospitalNavigation = () => {
   return hospitalNavigationArray
 }
 
-const hospitalNavigation = () => composeHospitalNavigation()
+const hospitalNavigation = havePermissionToAddHospital => composeHospitalNavigation(havePermissionToAddHospital)
 
 export default hospitalNavigation
