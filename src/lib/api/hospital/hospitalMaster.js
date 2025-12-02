@@ -13,7 +13,7 @@ export async function getHospitalMaster({ params }) {
 }
 
 export async function addHospitalMaster(payload) {
-  const response = await axiosFormPost({ url: `${CREATE_MASTERS_HOSPITAL}`, body: payload })
+  const response = await axiosPost({ url: `${CREATE_MASTERS_HOSPITAL}`, body: payload })
 
   return response?.data
 }

@@ -280,7 +280,7 @@ const HospitalRoomDetails = () => {
   }, [])
 
   const openEditHospitalDrawer = useCallback(() => {
-    if (Number(hospitalDetails.no_of_occupied) !== 0) {
+    if (Number(hospitalDetails?.no_of_occupied) !== 0) {
       setIsOccupiedRoomWarningOpen(true)
     } else {
       setEditParams(null)

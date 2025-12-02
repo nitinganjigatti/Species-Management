@@ -82,10 +82,11 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
   const onSubmit = useCallback(
     async formData => {
       const payload = {
-        hospital_name: formData.hospital_name,
+        name: formData.hospital_name,
         description: formData.description || null,
-        is_internal_hospital: formData.is_internal_hospital || 1,
-        site_id: formData.site_id?.site_id ?? null
+        site_id: formData.site_id?.site_id ?? null,
+        entity_type: 'hospital',
+        is_external: 0
       }
 
       const success = await handleSubmitData(payload)

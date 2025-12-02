@@ -701,7 +701,7 @@ export const GET_MASTERS_HOSPITAL = 'v1/hospital/listing'
 
 export const GET_MASTERS_SURGERY = 'v1/hospital/list-surgery'
 
-export const CREATE_MASTERS_HOSPITAL = 'v1/hospital/create'
+export const CREATE_MASTERS_HOSPITAL = 'v1/entity/types/add'
 
 export const CREATE_MASTERS_SURGERY = 'v1/hospital/create-surgery'
 
