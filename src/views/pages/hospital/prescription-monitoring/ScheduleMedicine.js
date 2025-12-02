@@ -53,6 +53,13 @@ export default function ScheduleMedicine({
   const medicalRecordData = data[STORAGE_KEY] || {}
 
   const animal_admitted_date = medicalRecordData?.animal_admitted_date
+  const { medicine_edit_id } = router.query
+
+  const editIdStr = medicine_edit_id?.toString()
+  const enclosureMedicines = data?.enclosure_medicines || []
+
+  // Find the selected medicine to edit
+  const editingMedicineData = editIdStr ? enclosureMedicines.find(m => m?.id?.toString() === editIdStr) : null
 
   // Common styles for form fields
   const commonFieldStyles = {
@@ -149,6 +156,51 @@ export default function ScheduleMedicine({
       unit: lastScheduleUnit
     })
   }
+
+  function convertTimeToToday(timeStr) {
+    if (!timeStr) return dayjs()
+
+    // Example format: "11 : 30 : AM" → "11:30 AM"
+    const cleaned = timeStr.replace(/\s*:\s*/g, ':')
+
+    return dayjs(cleaned, ['hh:mm A', 'h:mm A'])
+  }
+
+  // Prefill form when editing an existing medicine
+  useEffect(() => {
+    if (editingMedicineData) {
+      hasSetDefaults.current = true // prevent default overrides
+      const firstBatch = editingMedicineData.batch_list?.[0] || {}
+
+      reset({
+        frequency: editingMedicineData.frequency_id || editingMedicineData.frequency || '',
+        deliveryRoute: editingMedicineData?.delivery_route_name || '',
+
+        prescriptionStartDate: editingMedicineData?.start_date ? dayjs(editingMedicineData.start_date) : null,
+
+        dosageDuration: {
+          value: editingMedicineData?.duration_qty || '1',
+          unit: editingMedicineData?.duration_type?.toLowerCase() || ''
+        },
+
+        notes: editingMedicineData.notes || '',
+
+        wastageQuantity: firstBatch.wastage || '',
+        wastageUOM: firstBatch.wastageUnit || '',
+        wastageNotes: firstBatch.notes || '',
+
+        batchNumber: firstBatch.batchNumber || null,
+        batchImage: firstBatch.files || [],
+
+        schedules: editingMedicineData.schedule_doses?.map(s => ({
+          time: s.time ? dayjs(convertTimeToToday(s.time)) : dayjs(),
+          quantity: s.quantity || '',
+          unit: s.unit_name || ''
+        })) || [{ time: dayjs(), quantity: '', unit: '' }],
+        selectMedicineType: 'Schedule'
+      })
+    }
+  }, [editingMedicineData, reset, medicalMasterData])
 
   return (
     <Box
@@ -625,7 +677,6 @@ export default function ScheduleMedicine({
           </Box>
         ) : (
           <Box
-            container
             sx={{
               background: theme.palette.common.white,
 

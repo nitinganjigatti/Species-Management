@@ -16,6 +16,8 @@ import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
 
 import { keyframes } from '@emotion/react'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useRouter } from 'next/router'
 
 // Shimmer animation
 const shimmerAnimation = keyframes`
@@ -42,9 +44,20 @@ export default function PrescriptionMedicineList({
   prescribedMedicines = []
 }) {
   const theme = useTheme()
+  const router = useRouter()
+  const { medicine_edit_id, tab } = router.query
+  const editIdStr = medicine_edit_id?.toString()
+  const { data } = useDynamicStateContext() // Dynamic Context Access
+  const enclosureMedicines = data.enclosure_medicines || []
+
+  // If editing  show only the selected medicine
+  const filteredList = editIdStr ? enclosureMedicines?.filter(med => med.id.toString() == editIdStr) : medicineList
+  const isEnclosureMedicineAdded = idStr => enclosureMedicines.some(m => m.id === idStr)
 
   const isMedicinePrescribed = medicineId => {
-    const isPrescribed = prescribedMedicines.some(prescription => prescription?.schedule?.[0]?.medicine_id === medicineId.toString())
+    const isPrescribed = prescribedMedicines.some(
+      prescription => prescription?.schedule?.[0]?.medicine_id === medicineId.toString()
+    )
 
     // if (isPrescribed) {
     //   console.log(` Medicine ${medicineId} is already prescribed`)
@@ -131,11 +144,18 @@ export default function PrescriptionMedicineList({
             </Typography>
           </Box>
         ) : (
-          medicineList.map((medicine, index) => {
+          (medicine_edit_id ? filteredList : medicineList).map((medicine, index) => {
+            // const isSelected = selectedMedicine?.includes(medicine?.id)
+            // const isTemporarilySelected = temporarilySelectedMedicine?.id === medicine?.id
+            // const isPrescribed = isMedicinePrescribed(medicine?.id)
+            // const isDisabled = isPrescribed
+
             const isSelected = selectedMedicine?.includes(medicine?.id)
             const isTemporarilySelected = temporarilySelectedMedicine?.id === medicine?.id
-            const isPrescribed = isMedicinePrescribed(medicine?.id)
-            const isDisabled = isPrescribed
+
+            const isPrescribed =
+              tab == 'discharge' ? isEnclosureMedicineAdded(medicine.id.toString()) : isMedicinePrescribed(medicine?.id)
+            const isDisabled = medicine_edit_id ? false : isPrescribed
 
             const MedicineRow = (
               <Box

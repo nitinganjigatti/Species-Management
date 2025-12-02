@@ -23,37 +23,40 @@ import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 
 const transferEnclosureSchema = yup.object({
-  discharge_date: yup
-    .date()
-    .nullable()
-    .required('Date of discharge is required')
-    .max(new Date(), 'Date of discharge cannot be in the future'),
-  discharge_time: yup
-    .date()
-    .nullable()
-    .required('Time of discharge is required')
-    .max(new Date(), 'Time of discharge cannot be in the future'),
+  discharge_date: yup.date().nullable().required('Date of discharge is required'),
+  discharge_time: yup.date().nullable().required('Time of discharge is required'),
   follow_up_required: yup.boolean().optional(),
+
+  // follow_up_date: yup
+  //   .date()
+  //   .nullable()
+  //   .when('follow_up_required', {
+  //     is: true,
+  //     then: schema =>
+  //       schema.required('Follow up date required').test('afterNow', 'Follow-up cannot be in past', v => {
+  //         if (!v) return true
+
+  //         // Compare pure dates (midnight)
+  //         const selected = dayjs(v).startOf('day')
+  //         const today = dayjs().startOf('day')
+
+  //         return selected.isSame(today) || selected.isAfter(today)
+  //       })
+  //   }),
   follow_up_date: yup
     .date()
     .nullable()
     .when('follow_up_required', {
       is: true,
       then: schema =>
-        schema.required('Follow up date required').test('afterNow', 'Follow-up cannot be in past', v => {
-          if (!v) return true
-
-          // Compare pure dates (midnight)
-          const selected = dayjs(v).startOf('day')
-          const today = dayjs().startOf('day')
-
-          return selected.isSame(today) || selected.isAfter(today)
-        })
+        schema
+          .required('Follow up date required')
+          .min(dayjs().startOf('day').toDate(), 'Follow up cannot be in the past')
     }),
-  reason: yup.string().optional(),
-  care_diet_instruction: yup.string().trim().required('Care Diet Instructions is required'),
-  care_restriction: yup.string().trim().required('Care Restriction activities is required'),
-  care_notes: yup.string().trim().required('Care notes is required'),
+  reason: yup.string().required(),
+  care_diet_instruction: yup.string().trim().optional(),
+  care_restriction: yup.string().trim().optional(),
+  care_notes: yup.string().trim().optional(),
   attachments: yup.array().nullable().optional()
 })
 
@@ -67,7 +70,8 @@ const EnclosureDischargeForm = props => {
     medicationsColumns,
     isTransferEnclosureMedicationLoading,
     clearData,
-    onDirtyChange
+    onDirtyChange,
+    medicationData
   } = props
 
   const theme = useTheme()
@@ -76,36 +80,31 @@ const EnclosureDischargeForm = props => {
   const patientDetails = patientData?.animal_detail
   const { data, updateState } = useDynamicStateContext()
 
-  const enclosureMedicines = useMemo(() => data.enclosure_medicines || [], [data.enclosure_medicines]) // medicine table data
-
   // Index medicines
   const indexedMedicines = useMemo(
     () =>
-      enclosureMedicines.map((data, i) => ({
+      medicationData.map((data, i) => ({
         ...data,
         sl_no: i + 1
       })),
-    [enclosureMedicines]
+    [medicationData]
   )
 
-  const defaultValues = useMemo(
-    () => ({
-      discharge_type: 'TransferEnclosure',
-      site_name: patientDetails?.site_name || '',
-      section_name: patientDetails?.section_name || '',
-      user_enclosure_name: patientDetails?.user_enclosure_name || '',
-      discharge_date: null,
-      discharge_time: null,
-      reason: '',
-      follow_up_required: false,
-      follow_up_date: null,
-      care_diet_instruction: '',
-      care_restriction: '',
-      care_notes: '',
-      attachments: []
-    }),
-    [patientDetails]
-  )
+  const defaultValues = {
+    discharge_type: 'TransferEnclosure',
+    site_name: patientDetails?.site_name || '',
+    section_name: patientDetails?.section_name || '',
+    user_enclosure_name: patientDetails?.user_enclosure_name || '',
+    discharge_date: dayjs(),
+    discharge_time: dayjs(),
+    reason: '',
+    follow_up_required: false,
+    follow_up_date: null,
+    care_diet_instruction: '',
+    care_restriction: '',
+    care_notes: '',
+    attachments: []
+  }
 
   const {
     control,
@@ -147,15 +146,12 @@ const EnclosureDischargeForm = props => {
 
   // Disable selecting past/future times based on rules
   const shouldDisableDischargeTime = (timeValue, clockType) => {
-    if (timeValue === null || timeValue === undefined) return false
+    if (timeValue == null) return false
 
-    const t = dayjs().set(clockType, timeValue)
+    const t = dayjs(selectedDischargeDate).set(clockType, timeValue)
 
-    // Disable earlier than admission time
-    if (minTime && t.isBefore(minTime, clockType)) return true
-
-    // Disable future time (current day)
-    if (maxTime && t.isAfter(maxTime, clockType)) return true
+    if (minTime && t.isBefore(minTime)) return true
+    if (maxTime && t.isAfter(maxTime)) return true
 
     return false
   }
@@ -181,24 +177,22 @@ const EnclosureDischargeForm = props => {
       router.push({
         pathname: `/hospital/inpatient/${id}/schedule-prescription`,
         query: {
-          animal_id: patientData?.animal_detail?.animal_id,
-          medical_record_id: patientData?.medical_record_id,
           discharge_tab: 'TransferEnclosure',
-          edit_id: med.id
+          medicine_edit_id: med.id
         }
       })
     },
-    [router, id, patientData]
+    [router, id]
   )
 
   // Delete a medicine: update context state
   const handleDeleteMedicine = useCallback(
     medId => {
-      const updated = enclosureMedicines.filter(med => med.id !== medId)
+      const updated = medicationData.filter(med => med.id !== medId)
       updateState('enclosure_medicines', updated)
       onDirtyChange?.(true)
     },
-    [enclosureMedicines, updateState, onDirtyChange]
+    [medicationData, updateState, onDirtyChange]
   )
 
   // Add actions column
@@ -235,7 +229,6 @@ const EnclosureDischargeForm = props => {
       hospital_case_id: id,
       animal_id: patientDetails?.animal_id,
       discharge_type: watchDischargeType,
-      enclosure_id: patientDetails?.user_enclosure_id,
       discharge_date: formData.discharge_date,
       discharge_time: formData.discharge_time,
       reason: formData.reason,
@@ -245,7 +238,13 @@ const EnclosureDischargeForm = props => {
       follow_up_required: formData.follow_up_required ? '1' : '0',
       follow_up_date: formData.follow_up_date,
       attachments: formData.attachments.length > 0 ? formData.attachments : undefined,
-      medications: JSON.stringify(enclosureMedicines)
+      medications: JSON.stringify(medicationData),
+      transfer_back_to_original_location: 1,
+      transfer_to_site_id: patientDetails?.site_id,
+      transfer_to_enclosure_id: patientDetails?.user_enclosure_id,
+      request_from: 'web'
+
+      // enclosure_id: patientDetails?.user_enclosure_id,
     }
 
     const success = await handleSubmitData(payload)
@@ -350,7 +349,7 @@ const EnclosureDischargeForm = props => {
           <Divider />
 
           {/* Follow-up Section */}
-          <Grid container alignItems='center' spacing={2} justifyContent='space-between'>
+          <Grid container alignItems='center' spacing={2} justifyContent='space-between' id='medications-section'>
             <Grid size={{ xs: 12, sm: 6 }}>
               <ControlledSwitch
                 name='follow_up_required'
@@ -418,19 +417,17 @@ const EnclosureDischargeForm = props => {
                 }
               }}
             >
-              <StyledTypography fontSize='1.25rem'>
-                Medications {indexedMedicines?.length > 0 && `- ${indexedMedicines?.length}`}
-              </StyledTypography>
+              <StyledTypography fontSize='1.25rem'>Medications</StyledTypography>
               <Box sx={{ display: 'flex', gap: 4 }}>
                 <Button
                   onClick={() => {
                     router.push({
                       pathname: `/hospital/inpatient/${id}/schedule-prescription`,
                       query: {
-                        ...router.query,
-                        animal_id: patientData?.animal_detail?.animal_id,
-                        medical_record_id: patientData.medical_record_id,
+                        tab: 'discharge',
                         discharge_tab: 'TransferEnclosure'
+
+                        // return_to: '#medications-section'
                       }
                     })
                   }}
