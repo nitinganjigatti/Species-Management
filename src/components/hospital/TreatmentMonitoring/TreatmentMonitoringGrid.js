@@ -601,7 +601,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
                 variant='contained'
                 onClick={() => setOpenScheduleDrawer(true)}
               >
-                {monitoringDataListings?.is_scheduled_for_particular_day == '1' ? 'Edit Schedule' : 'Schedule'}
+                {monitoringDataListings?.show_edit_schedule_button ? 'Edit Schedule' : 'Schedule'}
               </Button>
             ) : (
               !isToday && (
