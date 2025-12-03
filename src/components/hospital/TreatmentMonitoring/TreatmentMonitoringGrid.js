@@ -397,24 +397,31 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
           const isFutureTodaySlot = isToday && hour > currentHour
           const isBeforeAdmitTime = isAdmittedDay && admittedAtHourIST !== null && hour < admittedAtHourIST
           const isAfterAdmitTime = !isBeforeAdmitTime
-
-          // Disable ONLY future slots. Nothing else.
           const isDisabled = isFutureTodaySlot
 
           let showPlus = true
-
-          // hide plus only in future today slots
           if (isFutureTodaySlot) showPlus = false
           let isYellow = false
 
           if (durationMinutes) {
             const intervalHours = durationMinutes / 60
-            const isIntervalSlot = hour % intervalHours === 0
 
-            // Yellow should appear everywhere AFTER admitted time — even future hours
-            if (isIntervalSlot && isAfterAdmitTime) {
-              isYellow = true
-              bgColor = alpha(theme.palette.customColors.antzNotes, 0.64)
+            let isIntervalSlot = false
+
+            if (isAdmittedDay && admittedAtHourIST != null) {
+              if (hour >= admittedAtHourIST) {
+                const diff = hour - admittedAtHourIST
+                isIntervalSlot = diff % intervalHours === 0
+              }
+            } else {
+              isIntervalSlot = hour % intervalHours === 0
+            }
+
+            if (durationMinutes) {
+              if (isIntervalSlot) {
+                isYellow = true
+                bgColor = alpha(theme.palette.customColors.antzNotes, 0.64)
+              }
             }
           }
 
@@ -594,7 +601,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
                 variant='contained'
                 onClick={() => setOpenScheduleDrawer(true)}
               >
-                {monitoringDataListings?.is_scheduled_for_particular_day ? 'Edit Schedule' : 'Schedule'}
+                {monitoringDataListings?.is_scheduled_for_particular_day == '1' ? 'Edit Schedule' : 'Schedule'}
               </Button>
             ) : (
               !isToday && (
