@@ -159,6 +159,8 @@ const AuthProvider = ({ children }) => {
         }
       } else {
         setLoading(false)
+        logOutUser()
+        router.replace('/login')
       }
     }
     initAuth()
