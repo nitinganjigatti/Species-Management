@@ -55,13 +55,16 @@ const defaultValues = {
   note: ''
 }
 
-const getSchema = resType =>
+const getSchema = (resType, measurementType) =>
   yup.object().shape({
     observation_value: ['numeric_value', 'numeric_scale', 'text', 'list'].includes(resType)
       ? yup.string().required('Observation Value is required')
       : yup.mixed().notRequired(),
     observation_time: yup.string().required('Observation time is required'),
-    value_unit: resType === 'numeric_value' ? yup.string().required('Unit is required') : yup.mixed().notRequired()
+    value_unit:
+      resType === 'numeric_value' && measurementType.trim() !== ''
+        ? yup.string().required('Unit is required')
+        : yup.mixed().notRequired()
   })
 
 const AddParameterDataEntry = ({
@@ -88,11 +91,12 @@ const AddParameterDataEntry = ({
     enabled: !!data?.parameter?.assessment_type_id
   })
 
-  const { resType, unitsData } = useMemo(() => {
+  const { resType, unitsData, measurementType } = useMemo(() => {
     const responseType = parameterUnit?.data?.[0]?.response_type
+    const measurementType = parameterUnit?.data?.[0]?.measurement_type
     let formattedUnits = []
 
-    if (responseType === 'numeric_value') {
+    if (responseType === 'numeric_value' && measurementType !== '') {
       formattedUnits =
         parameterUnit?.data?.[0]?.measurement_units_dropdown?.map(item => ({
           label: item?.uom_abbr,
@@ -107,7 +111,7 @@ const AddParameterDataEntry = ({
         })) || []
     }
 
-    return { resType: responseType, unitsData: formattedUnits }
+    return { resType: responseType, unitsData: formattedUnits, measurementType }
   }, [parameterUnit])
 
   const {
@@ -147,15 +151,12 @@ const AddParameterDataEntry = ({
   }
 
   const handleTabChange = (event, newValue) => {
-    // If discharged → only one tab → history tab becomes index 0
     if (isPatientDischarged) {
       setActiveTab(1)
       refetchHistory()
 
       return
     }
-
-    // Normal behaviour
     setActiveTab(newValue)
     if (newValue === 1) refetchHistory()
   }
@@ -198,7 +199,7 @@ const AddParameterDataEntry = ({
     }
   }
 
-  const schema = useMemo(() => getSchema(resType), [resType])
+  const schema = useMemo(() => getSchema(resType, measurementType), [resType, measurementType])
 
   const {
     control,
@@ -395,7 +396,22 @@ const AddParameterDataEntry = ({
                             </Typography>
                           </Grid>
 
-                          {resType === 'numeric_value' && (
+                          {resType === 'numeric_value' && measurementType.trim() === '' && (
+                            <Grid size={{ xs: 12 }}>
+                              <ControlledTextField
+                                control={control}
+                                name='observation_value'
+                                label='Enter Value'
+                                type='number'
+                                errors={errors}
+                                required
+                                inputBackgroundColor={theme.palette.customColors.Surface}
+                                sx={{ borderRadius: 1 }}
+                              />
+                            </Grid>
+                          )}
+
+                          {resType === 'numeric_value' && measurementType.trim() !== '' && (
                             <>
                               <Grid size={{ xs: 12, sm: 8 }}>
                                 <ControlledTextField
@@ -403,6 +419,7 @@ const AddParameterDataEntry = ({
                                   name='observation_value'
                                   label='Enter Value'
                                   errors={errors}
+                                  type='number'
                                   required
                                   inputBackgroundColor={theme.palette.customColors.Surface}
                                   sx={{ borderRadius: 1 }}
