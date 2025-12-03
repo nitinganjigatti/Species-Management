@@ -30,6 +30,7 @@ import PreAnesthesia from 'src/components/hospital/inpatient/Anesthesia/PreAnest
 import RecoveryAndReversal from 'src/components/hospital/inpatient/Anesthesia/RecoveryAndReversal'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
+import Utility from 'src/utility'
 import {
   getAssesmentList,
   addAnesthesia,
@@ -1402,8 +1403,8 @@ export default function AddAnesthesiaRecord() {
         Toaster({ type: 'success', message: response?.message })
         if (!anaesthesia_id) {
           handleCancel()
+          await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
         }
-        await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to save record' })
       }
@@ -1560,10 +1561,9 @@ export default function AddAnesthesiaRecord() {
   }
 
   const shouldEnableSections = isApiSuccess
-
-  // const lastUpdatedValue = formatDateTime(
-  //   anesthesiaDetail?.updated_at || anesthesiaDetail?.created_at || activeRecord?.updated_at || activeRecord?.created_at
-  // )
+  console.log(anesthesiaDetail?.updated_at, 'lll')
+  const lastUpdatedValue =
+    anesthesiaDetail?.updated_at !== undefined ? formatDateTime(anesthesiaDetail.updated_at) : '-'
 
   return (
     <FormProvider {...methods}>
@@ -1631,17 +1631,18 @@ export default function AddAnesthesiaRecord() {
                   Anesthesia Record {anesthesiaDetail?.code ? '- ' + anesthesiaDetail?.code : ''}
                 </Typography>
               </Box>
-
-              <Typography
-                sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontSize: '12px',
-                  fontWeight: 400,
-                  ml: 6
-                }}
-              >
-                {/* Last Saved : {lastUpdatedValue} */}
-              </Typography>
+              {lastUpdatedValue && lastUpdatedValue !== '-' && (
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    ml: 6
+                  }}
+                >
+                  Last Saved : {lastUpdatedValue}
+                </Typography>
+              )}
             </Box>
 
             <AnimalDetails

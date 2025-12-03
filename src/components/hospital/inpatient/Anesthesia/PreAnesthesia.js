@@ -204,7 +204,7 @@ function PreAnesthesia({
           <StyledTypography>Clin Path</StyledTypography>
         </Grid>
 
-        <Grid size={{ xs: 12 }} sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 2 }}>
+        <Grid size={{ xs: 12 }} sx={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
           {clinPathOptions.map(option => (
             <Controller
               key={option.id}

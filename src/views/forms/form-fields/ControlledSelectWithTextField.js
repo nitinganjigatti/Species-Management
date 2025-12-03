@@ -261,7 +261,28 @@ function ControlledSelectWithTextField({
                     {label}
                   </Box>
                 ) : (
-                  label
+                  <Box
+                    component='span'
+                    sx={{
+                      position: 'relative',
+                      display: 'inline-block',
+                      px: '4px',
+                      color: theme.palette.customColors.secondaryBg,
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: '48%',
+                        left: 0,
+                        right: 0,
+                        height: '3px',
+                        backgroundColor: theme.palette.background.paper,
+                        transform: 'translateY(-50%)',
+                        zIndex: -1
+                      }
+                    }}
+                  >
+                    {label}
+                  </Box>
                 )}
               </InputLabel>
 
