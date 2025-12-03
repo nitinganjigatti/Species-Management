@@ -6,7 +6,7 @@ import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import { MedicalIdChip } from '../utility/hospitalSnippets'
 import Utility from 'src/utility'
 
-const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick }) => {
+const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, isDischared }) => {
   const theme = useTheme()
   const { getSeverityColor, getTypeChipColor, getPrognosisColor } = useHospitalColorUtils()
 
@@ -52,7 +52,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
         backgroundColor: resolved
           ? alpha(theme.palette.customColors.neutralSecondary, 0.05)
           : !isDifferential && getSeverityColor(mappedRecord.prognosis).bgColor,
-        cursor: 'pointer'
+        cursor: isDischared ? 'not-allowed' : 'pointer'
       }}
     >
       <Box

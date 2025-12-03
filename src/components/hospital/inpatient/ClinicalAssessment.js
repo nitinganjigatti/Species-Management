@@ -25,7 +25,7 @@ import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
 
-const ClinicalAssessment = () => {
+const ClinicalAssessment = ({ overviewData }) => {
   const router = useRouter()
   const { data } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
@@ -60,6 +60,7 @@ const ClinicalAssessment = () => {
   const { id } = router.query
   const animal_id = medicalRecordData?.animal_id
   const medical_record_id = medicalRecordData?.medical_record_id
+  const isDischared = overviewData?.status === 'discharge'
 
   const theme = useTheme()
 
@@ -303,7 +304,6 @@ const ClinicalAssessment = () => {
   }
 
   const updateAssessment = async () => {
-
     // Check if any values have been modified
     const isClinicalAsmntChanged =
       clinicalAsmnt?.toLowerCase() !== selectedAssessment?.clinical_assessment?.toLowerCase()
@@ -311,7 +311,7 @@ const ClinicalAssessment = () => {
     const isPrognosisChanged =
       prognosisVal?.toLowerCase() !== selectedAssessment?.additional_info?.prognosis?.toLowerCase()
 
-    const isChronicChanged = chronicVal !== (selectedAssessment?.additional_info?.isChronic)
+    const isChronicChanged = chronicVal !== selectedAssessment?.additional_info?.isChronic
 
     const isStatusChanged = status?.toLowerCase() !== selectedAssessment?.additional_info?.status?.toLowerCase()
 
@@ -453,17 +453,15 @@ const ClinicalAssessment = () => {
                 debouncedSearch('')
               }}
             />
-            <Button
-              variant='contained'
-              startIcon={<AddIcon />}
-              onClick={() =>
-                router.push(
-                  `/hospital/inpatient/${id}/add-clinical-assessment`
-                )
-              }
-            >
-              ADD NEW
-            </Button>
+            {!isDischared && (
+              <Button
+                variant='contained'
+                startIcon={<AddIcon />}
+                onClick={() => router.push(`/hospital/inpatient/${id}/add-clinical-assessment`)}
+              >
+                ADD NEW
+              </Button>
+            )}
           </Box>
         </Box>
         <Box>
@@ -491,7 +489,8 @@ const ClinicalAssessment = () => {
             record={record}
             isDifferential={record.clinical_assessment === 'differential'}
             isResolved={record.additional_info?.status === 'closed'}
-            handleClick={() => handleAssessmentClick(record)}
+            isDischared={isDischared}
+            handleClick={() => (isDischared ? null : handleAssessmentClick(record))}
           />
         ))}
 

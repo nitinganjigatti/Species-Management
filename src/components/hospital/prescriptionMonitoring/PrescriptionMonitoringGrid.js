@@ -113,14 +113,14 @@ const MetricLabel = styled(Box, {
 
 const TimeSlot = styled(Box, {
   shouldForwardProp: prop => prop !== 'config'
-})(({ theme, config }) => ({
+})(({ theme, config, disabled }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   backgroundColor: 'white',
   fontSize: '13px',
   fontWeight: 500,
-  cursor: 'pointer',
+  cursor: disabled ? 'not-allowed' : 'pointer',
   transition: 'all 0.2s ease',
   position: 'relative',
   margin: 0,
@@ -134,10 +134,12 @@ const TimeSlot = styled(Box, {
   borderColor: config?.borderColor,
   padding: '8px',
   borderRadius: '8px',
-  '&:hover': {
-    backgroundColor: '#f8f9fa',
-    borderColor: '#dee2e6'
-  }
+  '&:hover': disabled
+    ? {}
+    : {
+        backgroundColor: '#f8f9fa',
+        borderColor: '#dee2e6'
+      }
 }))
 
 const TimeHeader = styled(Box)(({ theme }) => ({
@@ -277,7 +279,8 @@ const PrescriptionMonitoringGrid = ({
   handleAdministerOrSkipOpen,
   addPrescriptionToTimeslot,
   selectedMetrics,
-  setSelectedMetrics
+  setSelectedMetrics,
+  isDischared
 }) => {
   const theme = useTheme()
   const router = useRouter()
@@ -478,8 +481,6 @@ const PrescriptionMonitoringGrid = ({
 
   const handleTimeSlotClick = (metricId, timeValue) => {
     onTimeSlotClick(metricId, timeValue)
-    console.log('metricId', metricId)
-    console.log('timeValue', timeValue)
   }
 
   // On initial load, scroll current hour's slot flush right in container
@@ -619,10 +620,6 @@ const PrescriptionMonitoringGrid = ({
     }
   }
 
-  useEffect(() => {
-    console.log('addPrescriptionToTimeslot past displayMetrics', displayMetrics)
-  }, [displayMetrics])
-
   const isScheduledFuture = (scheduledDate, scheduledTime) => {
     // Parse the scheduled time (e.g., "03 AM")
     const [hours, modifier] = scheduledTime.split(' ')
@@ -710,7 +707,7 @@ const PrescriptionMonitoringGrid = ({
   return (
     <>
       <Grid container spacing={4} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
-        <Grid item size={{ xs: 8, sm: 9, lg: 9.5 }}>
+        <Grid item size={isDischared ? { xs: 12 } : { xs: 8, sm: 9, lg: 9.5 }}>
           <HorizontalDateNav
             isLoading={isLoading}
             onDateSelect={handleDateChange}
@@ -718,19 +715,21 @@ const PrescriptionMonitoringGrid = ({
             dates={dates}
           />
         </Grid>
-        <Grid item size={{ xs: 4, sm: 3, lg: 2.5 }}>
-          <Button
-            onClick={() => {
-              router.push({
-                pathname: `/hospital/inpatient/${id}/schedule-prescription`
-              })
-            }}
-            sx={{ height: '48px', width: '100%' }}
-            variant='contained'
-          >
-            ADD PRESCRIPTION
-          </Button>
-        </Grid>
+        {!isDischared ? (
+          <Grid item size={{ xs: 4, sm: 3, lg: 2.5 }}>
+            <Button
+              onClick={() => {
+                router.push({
+                  pathname: `/hospital/inpatient/${id}/schedule-prescription`
+                })
+              }}
+              sx={{ height: '48px', width: '100%' }}
+              variant='contained'
+            >
+              ADD PRESCRIPTION
+            </Button>
+          </Grid>
+        ) : null}
         <Grid
           item
           size={{ xs: 12, sm: 12 }}
@@ -792,9 +791,10 @@ const PrescriptionMonitoringGrid = ({
                         selected={selectedMetrics.some(m => m.id === metric.id)}
                         onSelect={() => handleSelectMetric(metric)}
                         disabled={
-                          Array.isArray(metric.schedule) &&
-                          metric.schedule.length > 0 &&
-                          metric.schedule.every(s => s.status === 'administered')
+                          (Array.isArray(metric.schedule) &&
+                            metric.schedule.length > 0 &&
+                            metric.schedule.every(s => s.status === 'administered')) ||
+                          isDischared
                         }
                         theme={theme}
                         MetricLabel={MetricLabel}
@@ -805,6 +805,7 @@ const PrescriptionMonitoringGrid = ({
                 </FixedColumn>
 
                 <ScrollableContainer ref={scrollContainerRef}>
+                  ;
                   <TimeSlotGrid numColumns={timeSlots.length} sx={{ mb: '16px' }}>
                     {timeSlots.map(time => {
                       const currentHour24 = currentTime.getHours()
@@ -816,9 +817,7 @@ const PrescriptionMonitoringGrid = ({
 
                       return (
                         <TimeHeader
-                          onClick={() => {
-                            console.log('onclick of time slots', time)
-                          }}
+                          onClick={() => {}}
                           key={time}
                           sx={{
                             position: 'relative',
@@ -841,14 +840,7 @@ const PrescriptionMonitoringGrid = ({
                     })}
                   </TimeSlotGrid>
                   {displayMetrics?.map(metric => (
-                    <TimeSlotGrid
-                      onClick={() => {
-                        // setSelectedMedicine(metric)
-                        console.log('onclick of time slot grid', metric)
-                      }}
-                      key={metric.id}
-                      numColumns={timeSlots.length}
-                    >
+                    <TimeSlotGrid onClick={() => {}} key={metric.id} numColumns={timeSlots.length}>
                       {metric.timeSlots.map((timeSlot, index) => {
                         const slotKey = `${metric.id}-${index}`
                         const hasSchedule = timeSlot.isActive
@@ -862,14 +854,14 @@ const PrescriptionMonitoringGrid = ({
                             config={timeSlotGridConfig(status)}
                             key={slotKey}
                             onClick={() => {
+                              if (isDischared) return
+
                               const data = {
                                 scheduledTime: scheduledTime,
                                 timeSlot: timeSlot?.value,
                                 staus: status,
                                 data: metric
                               }
-                              console.log('data', data)
-                              console.log('selectedDate', selectedDate)
                               if (!status) handleAddPrescriptionToTimeslot(data)
                               if (status === 'pending') {
                                 const isFuture = isScheduledFuture(selectedDate, scheduledTime)
@@ -881,13 +873,11 @@ const PrescriptionMonitoringGrid = ({
                                     handleAdministerOrSkipOpen(data, 'single')
                                   }
                                   // onOpenPrescriptionCard(timeSlot)
-                                } else {
-                                  console.log('Cannot administer/skip future scheduled medications')
                                 }
                               }
                               // handleTimeSlotClick(metric.id, timeSlot)
                             }}
-                            disabled
+                            disabled={isDischared}
                           >
                             <TimeSlotCell
                               hasSchedule={hasSchedule}
