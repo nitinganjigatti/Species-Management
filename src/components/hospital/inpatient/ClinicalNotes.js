@@ -6,18 +6,23 @@ import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { addClinicalNotes, deleteClinicalNotes, getClinicalNotes } from 'src/lib/api/hospital/clinicalNotesApi'
 import InpatientClinicalNotes from 'src/views/pages/hospital/inpatient/InpatientClinicalNotes'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+
+const STORAGE_KEY = 'medical_record_data'
 
 const ClinicalNotes = ({ patientData }) => {
   const [isSubmitLoading, setIsSubmitLoading] = useState(false)
   const [selectedItemToDelete, setSelectedItemToDelete] = useState(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
-  const router = useRouter()
   const theme = useTheme()
-  const queryClient = useQueryClient()
-
+  const router = useRouter()
   const { id } = router.query
-  const animalId = patientData?.animal_detail?.animal_id
+
+  const queryClient = useQueryClient()
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
+  const animal_id = medicalRecordData?.animal_id
 
   // Query parameters for fetching clinical notes
   const queryParams = useMemo(
@@ -34,7 +39,7 @@ const ClinicalNotes = ({ patientData }) => {
   const fetchClinicalNotes = async ({ pageParam = 1 }) => {
     try {
       const res = await getClinicalNotes({
-        animalId: animalId,
+        animalId: animal_id,
         params: { ...queryParams, page: pageParam }
       })
 
@@ -67,10 +72,10 @@ const ClinicalNotes = ({ patientData }) => {
     hasNextPage,
     isFetchingNextPage
   } = useInfiniteQuery({
-    queryKey: ['clinicalNotes', animalId, queryParams],
+    queryKey: ['clinicalNotes', animal_id, queryParams],
     queryFn: fetchClinicalNotes,
     getNextPageParam: getNextPage,
-    enabled: !!animalId,
+    enabled: !!animal_id,
     refetchOnWindowFocus: false, //Avoid unnecessary refetching when switching tabs
     onError: error => {
       console.error('Fetching Error:', error?.message)

@@ -7,10 +7,15 @@ import Utility from 'src/utility'
 import Toaster from 'src/components/Toaster'
 import GroupedTimeline from 'src/views/pages/hospital/inpatient/GroupedTimeline'
 import MedicalSummaryFilterDrawer from '../drawer/MedicalSummaryFilterDrawer'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+
+const STORAGE_KEY = 'medical_record_data'
 
 const InpatientMedicalSummary = ({ patientData }) => {
   const router = useRouter()
-  const animalId = patientData?.animal_detail?.animal_id
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
+  const animal_id = medicalRecordData?.animal_id
 
   const [filters, setFilters] = useState({
     page: 1,
@@ -148,7 +153,7 @@ const InpatientMedicalSummary = ({ patientData }) => {
     const params = {
       ...filters,
       page: pageParam,
-      animal_id: animalId
+      animal_id: animal_id
     }
 
     // Add date filters if selected
@@ -174,8 +179,8 @@ const InpatientMedicalSummary = ({ patientData }) => {
 
   //  Fetch medical summary data
   const queryKey = useMemo(
-    () => ['animalMedicalSummary', animalId, filters, filterDate?.startDate, filterDate?.endDate],
-    [animalId, filters, filterDate]
+    () => ['animalMedicalSummary', animal_id, filters, filterDate?.startDate, filterDate?.endDate],
+    [animal_id, filters, filterDate]
   )
 
   const {
@@ -188,7 +193,7 @@ const InpatientMedicalSummary = ({ patientData }) => {
     queryKey,
     queryFn: ({ pageParam = 1 }) => fetchAnimalJournalLogs({ pageParam, filters, filterDate }),
     getNextPageParam: getNextPage,
-    enabled: !!animalId,
+    enabled: !!animal_id,
     onError: error => {
       console.error('Error fetching medical summary list:', error?.message || error)
       Toaster({ type: 'error', message: error?.response?.data?.message || error?.message || 'Failed to fetch data' })
