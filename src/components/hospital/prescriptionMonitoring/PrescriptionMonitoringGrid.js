@@ -676,7 +676,7 @@ const PrescriptionMonitoringGrid = ({
               sx={{ height: '48px', width: '100%' }}
               variant='contained'
             >
-              Add new
+              ADD PRESCRIPTION
             </Button>
           </Grid>
           <Grid
@@ -728,7 +728,7 @@ const PrescriptionMonitoringGrid = ({
             sx={{ height: '48px', width: '100%' }}
             variant='contained'
           >
-            Add new
+            ADD PRESCRIPTION
           </Button>
         </Grid>
         <Grid

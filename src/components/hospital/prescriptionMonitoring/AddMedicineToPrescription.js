@@ -1245,18 +1245,16 @@ export default function AddMedicineToPrescription() {
           />
         </Grid>
       </Grid>
-
-      {temporarilySelectedMedicine && (
-        <ActionButtons
-          cancelLabel='CANCEL'
-          addLabel={watch('selectMedicineType') === 'Direct Administer' ? 'Administer' : 'Schedule'}
-          onCancel={handleCancel}
-          isSubmitLoading={isSubmitting}
-          onAdd={prescriptionSubmitHandler}
-          width={200}
-          height={50}
-        />
-      )}
+      <ActionButtons
+        cancelLabel='CANCEL'
+        addLabel={watch('selectMedicineType') === 'Direct Administer' ? 'Administer' : 'Schedule'}
+        onCancel={handleCancel}
+        isSubmitLoading={isSubmitting}
+        isAddDisabled={temporarilySelectedMedicine?.id ? false : true}
+        onAdd={prescriptionSubmitHandler}
+        width={200}
+        height={50}
+      />
     </Box>
   )
 }
