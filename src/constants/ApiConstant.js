@@ -715,7 +715,7 @@ export const DELETE_TEMPLATE = 'v1/hospital/delete-template'
 
 export const UPDATE_TEMPLATE = 'v1/hospital/update-template'
 
-export const UPDATE_MASTERS_HOSPITAL = 'v1/hospital/update'
+export const UPDATE_MASTERS_HOSPITAL = 'v1/entity/types/update'
 
 export const UPDATE_MASTERS_SURGERY = 'v1/hospital/update-surgery'
 

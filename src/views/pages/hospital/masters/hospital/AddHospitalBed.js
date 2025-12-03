@@ -270,15 +270,15 @@ const AddHospitalBed = props => {
               backgroundColor: theme.palette.background.paper
             }}
           >
-            {editParams?.id || isRoomEditMode ? (
-              <Box sx={{ display: 'flex', gap: 6, width: '100%' }}>
+            <Box sx={{ display: 'flex', gap: 6, width: '100%' }}>
+              {(editParams?.id || isRoomEditMode) && (
                 <LoadingButton
                   variant='outlined'
                   type='button'
                   loading={submitLoader}
                   sx={{
                     flex: 1,
-                    py: 2,
+                    py: 4,
                     color: theme.palette.customColors.OnPrimaryContainer,
                     borderColor: theme.palette.customColors.OnPrimaryContainer
                   }}
@@ -286,27 +286,17 @@ const AddHospitalBed = props => {
                 >
                   Cancel
                 </LoadingButton>
-                <LoadingButton
-                  variant='contained'
-                  type='submit'
-                  loading={submitLoader}
-                  sx={{ flex: 1, py: 2 }}
-                  disabled={!isValid || submitLoader}
-                >
-                  Update
-                </LoadingButton>
-              </Box>
-            ) : (
+              )}
               <LoadingButton
                 variant='contained'
                 type='submit'
                 loading={submitLoader}
-                sx={{ flex: 1, py: 2 }}
+                sx={{ flex: 1, py: 4 }}
                 disabled={!isValid || submitLoader}
               >
-                Add Bed
+                {editParams?.id || isRoomEditMode ? 'Update' : 'Add Bed'}
               </LoadingButton>
-            )}
+            </Box>
           </Box>
         </form>
       </Box>
@@ -315,3 +305,154 @@ const AddHospitalBed = props => {
 }
 
 export default AddHospitalBed
+
+// 'use client'
+
+// import { useEffect, useRef } from 'react'
+// import 'quill/dist/quill.snow.css'
+// import { Box, Typography, useTheme } from '@mui/material'
+
+// const extractDelta = input => {
+//   if (!input) return null
+//   if (input?.delta?.ops) return input.delta
+//   if (input?.ops) return input
+
+//   return null
+// }
+
+// const extractHtml = input => {
+//   if (!input) return ''
+//   if (typeof input === 'string') return input
+
+//   return input?.html || ''
+// }
+
+// const extractText = input => {
+//   if (!input) return ''
+//   if (typeof input === 'string') return input
+
+//   return input?.text || ''
+// }
+
+// export default function RichTextEditor({ value, onChange, label, placeholder = 'Start typing...', minHeight = 200 }) {
+//   const theme = useTheme()
+//   const editorRef = useRef(null)
+//   const quillRef = useRef(null)
+
+//   useEffect(() => {
+//     if (editorRef.current && !quillRef.current) {
+//       import('quill').then(({ default: Quill }) => {
+//         const quill = new Quill(editorRef.current, {
+//           theme: 'snow',
+//           placeholder,
+//           modules: {
+//             toolbar: [
+//               [{ header: [1, 2, 3, 4, 5, 6, false] }],
+//               ['blockquote', 'code-block'],
+//               ['bold', 'italic', 'underline', 'strike'],
+//               [{ script: 'sub' }, { script: 'super' }],
+//               [{ indent: '-1' }, { indent: '+1' }],
+//               [{ list: 'ordered' }, { list: 'bullet' }],
+//               [{ size: ['small', false, 'large', 'huge'] }],
+//               [{ align: [] }],
+//               ['link', 'image'],
+//               ['clean']
+//             ]
+//           }
+//         })
+
+//         const initialDelta = extractDelta(value)
+//         const initialHtml = extractHtml(value)
+//         const initialText = extractText(value)
+
+//         if (initialDelta) {
+//           quill.setContents(initialDelta)
+//         } else if (initialHtml) {
+//           quill.clipboard.dangerouslyPasteHTML(initialHtml)
+//         } else if (initialText) {
+//           quill.setText(initialText)
+//         } else {
+//           quill.setContents([{ insert: '\n' }])
+//         }
+
+//         // ✅ Listen for changes
+//         quill.on('text-change', () => {
+//           const delta = quill.getContents()
+//           const html = quill.root.innerHTML
+//           const text = quill.getText()
+
+//           onChange?.({
+//             delta,
+//             html,
+//             text,
+//             ops: delta?.ops
+//           })
+//         })
+
+//         quillRef.current = quill
+//       })
+//     }
+//   }, [placeholder]) // only run once on mount
+
+//   // ✅ Sync external value changes → update editor when prop changes
+//   useEffect(() => {
+//     if (!quillRef.current) return
+
+//     const quill = quillRef.current
+//     const delta = extractDelta(value)
+//     const html = extractHtml(value)
+//     const text = extractText(value)
+//     const currentDelta = quill.getContents()
+
+//     if (delta) {
+//       if (JSON.stringify(currentDelta) !== JSON.stringify(delta)) {
+//         quill.setContents(delta)
+//       }
+//     } else if (html) {
+//       if (quill.root.innerHTML !== html) {
+//         const selection = quill.getSelection()
+//         quill.clipboard.dangerouslyPasteHTML(html)
+//         if (selection) quill.setSelection(selection)
+//       }
+//     } else if (text) {
+//       if (quill.getText() !== text) {
+//         quill.setText(text)
+//       }
+//     } else if (!value) {
+//       quill.setContents([{ insert: '\n' }])
+//     }
+//   }, [value])
+
+//   return (
+//     <Box>
+//       {label && (
+//         <Typography variant='subtitle1' sx={{ mb: 1, fontWeight: 600 }}>
+//           {label}
+//         </Typography>
+//       )}
+//       <Box
+//         sx={{
+//           border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+//           borderRadius: 1,
+//           '& .ql-container': {
+//             border: 'none',
+//             fontSize: '0.95rem'
+//           },
+//           '& .ql-toolbar': {
+//             border: 'none',
+//             borderBottom: '1px solid',
+//             borderColor: 'divider',
+//             borderTopLeftRadius: 8,
+//             borderTopRightRadius: 8
+//           },
+//           '& .ql-editor': {
+//             minHeight
+//           },
+//           background: theme.palette.customColors.OnPrimary
+//         }}
+//       >
+//         <div ref={editorRef} />
+//       </Box>
+//     </Box>
+//   )
+// }

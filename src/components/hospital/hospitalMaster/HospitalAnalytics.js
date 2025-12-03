@@ -12,34 +12,22 @@ import {
 } from '@mui/material'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import styled from '@emotion/styled'
 
-const HospitalAnalytics = ({ isHospitalStatsLoading, hospitalDetails }) => {
+const HospitalAnalytics = ({ isHospitalStatsLoading, isInitialLoading, hospitalDetails }) => {
   const theme = useTheme()
   const isBelowMd = useMediaQuery(theme.breakpoints.down('md')) // true for <1024px
   const isBelowSm = useMediaQuery(theme.breakpoints.down('sm')) // true for <1024px
 
   const StatBox = ({ label, value }) => (
     <Box>
-      <Typography
-        sx={{
-          color: theme.palette.customColors.neutralSecondary,
-          fontSize: '0.875rem'
-        }}
-      >
-        {label}
-      </Typography>
-      {isHospitalStatsLoading ? (
+      <StyledTypography>{label}</StyledTypography>
+      {isInitialLoading ? (
         <CircularProgress size={20} />
       ) : (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontWeight: 500,
-            fontSize: '1rem'
-          }}
-        >
+        <StyledTypography color={theme.palette.customColors.OnSurfaceVariant} fontSize={'1rem'} fontWeight={500}>
           {value ?? '-'}
-        </Typography>
+        </StyledTypography>
       )}
     </Box>
   )
@@ -91,47 +79,50 @@ const HospitalAnalytics = ({ isHospitalStatsLoading, hospitalDetails }) => {
                     }}
                   />
                   <Box>
-                    <Typography
-                      sx={{
-                        color: theme.palette.customColors.neutralSecondary,
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      Hospital Name
-                    </Typography>
-                    <TextEllipsisWithModal
-                      enableDialog={false}
-                      text={hospitalDetails?.hospital_name ?? '-'}
-                      style={{
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        fontSize: '1rem',
-                        fontWeight: 500,
-                        maxWidth: { xs: '230px', md: '200px' }
-                      }}
-                    />
+                    <StyledTypography>Hospital Name</StyledTypography>
+                    {isHospitalStatsLoading ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <TextEllipsisWithModal
+                        enableDialog={false}
+                        text={hospitalDetails?.hospital_name ?? '-'}
+                        style={{
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontSize: '1rem',
+                          fontWeight: 500,
+                          maxWidth: { xs: '230px', md: '200px' }
+                        }}
+                      />
+                    )}
                   </Box>
                 </Box>
 
                 {/* User Avatar beside Hospital Name */}
-                {isBelowMd && !isBelowSm && (
-                  <UserAvatarDetails
-                    user_name={
-                      hospitalDetails?.updated_by
-                        ? hospitalDetails?.updated_by_name
-                        : hospitalDetails?.created_by_name ?? '-'
-                    }
-                    date={
-                      hospitalDetails?.updated_by ? hospitalDetails?.updated_at : hospitalDetails?.created_at ?? '-'
-                    }
-                    show_time={false}
-                    size='medium'
-                    profile_image={
-                      hospitalDetails?.updated_by
-                        ? hospitalDetails?.updated_user_profile_pic
-                        : hospitalDetails?.profile_pic ?? '-'
-                    }
-                    dateType={hospitalDetails?.updated_by ? 'updated' : 'created'}
-                  />
+                {isInitialLoading ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <>
+                    {isBelowMd && !isBelowSm && (
+                      <UserAvatarDetails
+                        user_name={
+                          hospitalDetails?.updated_by_name
+                            ? hospitalDetails?.updated_by_name
+                            : hospitalDetails?.created_by_name ?? '-'
+                        }
+                        date={
+                          hospitalDetails?.updated_by ? hospitalDetails?.updated_at : hospitalDetails?.created_at ?? '-'
+                        }
+                        show_time={false}
+                        size='medium'
+                        profile_image={
+                          hospitalDetails?.updated_by_name
+                            ? hospitalDetails?.updated_user_profile_pic
+                            : hospitalDetails?.profile_pic ?? '-'
+                        }
+                        dateType={hospitalDetails?.updated_by ? 'updated' : 'created'}
+                      />
+                    )}
+                  </>
                 )}
               </Box>
             </Grid>
@@ -163,24 +154,21 @@ const HospitalAnalytics = ({ isHospitalStatsLoading, hospitalDetails }) => {
                     }}
                   />
                   <Box>
-                    <Typography
-                      sx={{
-                        color: theme.palette.customColors.neutralSecondary,
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      Hospital Name
-                    </Typography>
-                    <TextEllipsisWithModal
-                      enableDialog={false}
-                      text={hospitalDetails?.hospital_name ?? '-'}
-                      style={{
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        fontSize: '1rem',
-                        fontWeight: 500,
-                        maxWidth: { xs: '230px', md: '200px' }
-                      }}
-                    />
+                    <StyledTypography>Hospital Name</StyledTypography>
+                    {isHospitalStatsLoading ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <TextEllipsisWithModal
+                        enableDialog={false}
+                        text={hospitalDetails?.hospital_name ?? '-'}
+                        style={{
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontSize: '1rem',
+                          fontWeight: 500,
+                          maxWidth: { xs: '230px', md: '200px' }
+                        }}
+                      />
+                    )}
                   </Box>
                 </Box>
               </Grid>
@@ -210,38 +198,46 @@ const HospitalAnalytics = ({ isHospitalStatsLoading, hospitalDetails }) => {
               >
                 Site
               </Typography>
-              <TextEllipsisWithModal
-                enableDialog={false}
-                text={hospitalDetails?.site_name ?? '-'}
-                style={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontSize: '1rem',
-                  fontWeight: 500,
-                  maxWidth: { xs: '230px', md: '200px' }
-                }}
-              />
+              {isInitialLoading ? (
+                <CircularProgress size={20} />
+              ) : (
+                <TextEllipsisWithModal
+                  enableDialog={false}
+                  text={hospitalDetails?.site_name ?? '-'}
+                  style={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '1rem',
+                    fontWeight: 500,
+                    maxWidth: { xs: '230px', md: '200px' }
+                  }}
+                />
+              )}
             </Box>
           </Grid>
 
           {/* --- User Avatar Details for large screens only --- */}
           {(!isBelowMd || isBelowSm) && (
             <Grid size={{ xs: 6, sm: 3, md: 2.3 }}>
-              <UserAvatarDetails
-                user_name={
-                  hospitalDetails?.updated_by
-                    ? hospitalDetails?.updated_by_name
-                    : hospitalDetails?.created_by_name ?? '-'
-                }
-                date={hospitalDetails?.updated_by ? hospitalDetails?.updated_at : hospitalDetails?.created_at ?? '-'}
-                show_time={false}
-                size='medium'
-                profile_image={
-                  hospitalDetails?.updated_by
-                    ? hospitalDetails?.updated_user_profile_pic
-                    : hospitalDetails?.profile_pic ?? '-'
-                }
-                dateType={hospitalDetails?.updated_by ? 'updated' : 'created'}
-              />
+              {isInitialLoading ? (
+                <CircularProgress size={20} />
+              ) : (
+                <UserAvatarDetails
+                  user_name={
+                    hospitalDetails?.updated_by
+                      ? hospitalDetails?.updated_by_name
+                      : hospitalDetails?.created_by_name ?? '-'
+                  }
+                  date={hospitalDetails?.updated_by ? hospitalDetails?.updated_at : hospitalDetails?.created_at ?? '-'}
+                  show_time={false}
+                  size='medium'
+                  profile_image={
+                    hospitalDetails?.updated_by
+                      ? hospitalDetails?.updated_user_profile_pic
+                      : hospitalDetails?.profile_pic ?? '-'
+                  }
+                  dateType={hospitalDetails?.updated_by ? 'updated' : 'created'}
+                />
+              )}
             </Grid>
           )}
         </Grid>
@@ -251,3 +247,10 @@ const HospitalAnalytics = ({ isHospitalStatsLoading, hospitalDetails }) => {
 }
 
 export default HospitalAnalytics
+
+const StyledTypography = styled(Typography)(({ theme, fontWeight, fontSize, color, sx }) => ({
+  fontSize: fontSize || '0.875rem',
+  fontWeight: fontWeight || 400,
+  color: color || theme.palette.customColors.neutralSecondary,
+  ...sx
+}))
