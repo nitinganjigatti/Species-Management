@@ -30,6 +30,7 @@ import dayjs from 'dayjs'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -169,7 +170,7 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday, theme) => {
   }, [scrollContainerRef, timeSlots, isToday])
 }
 
-const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischarged }) => {
+const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   const theme = useTheme()
   const { data } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
@@ -601,7 +602,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
                 variant='contained'
                 onClick={() => setOpenScheduleDrawer(true)}
               >
-                {monitoringDataListings?.show_edit_schedule_button ? 'Edit Schedule' : 'Schedule'}
+                {monitoringDataListings?.show_edit_schedule_button == '1' ? 'Edit Schedule' : 'Schedule'}
               </Button>
             ) : (
               !isToday && (
@@ -660,6 +661,22 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
                   </Box>
                 ))}
               </Box>
+            </Box>
+          ) : displayMetrics.length === 0 ? (
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <NoMedicalData
+                btnText={'Add Monitoring'}
+                text={'All Added Treatments Will Appear here'}
+                isDischarged={isPatientDischarged}
+                btnAction={() => setAddParameterDrawerOpen(true)}
+              />
             </Box>
           ) : (
             <DashboardContainer>

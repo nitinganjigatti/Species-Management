@@ -190,9 +190,16 @@ const HospitalFollowUp = () => {
       headerName: 'Discharge Summary',
       renderCell: params => (
         <>
-          <Tooltip title={params?.row?.reason}>
-            <Typography
-              variant='body2'
+          <Tooltip
+            title={
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: params?.row?.reason || 'NA'
+                }}
+              />
+            }
+          >
+            <Box
               sx={{
                 fontSize: '14px',
                 fontWeight: 400,
@@ -206,9 +213,10 @@ const HospitalFollowUp = () => {
                 whiteSpace: 'normal',
                 py: 4
               }}
-            >
-              <>{params?.row?.reason || ''}</>
-            </Typography>
+              dangerouslySetInnerHTML={{
+                __html: params?.row?.reason || 'NA'
+              }}
+            />
           </Tooltip>
         </>
       )

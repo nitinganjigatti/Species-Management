@@ -32,7 +32,7 @@ import dayjs from 'dayjs'
 
 const STORAGE_KEY = 'medical_record_data'
 
-function PrescriptionLayout({ drawerType }) {
+function PrescriptionLayout({ drawerType, overviewData }) {
   const router = useRouter()
   const { data } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
@@ -913,6 +913,7 @@ function PrescriptionLayout({ drawerType }) {
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
+
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -929,6 +930,7 @@ function PrescriptionLayout({ drawerType }) {
             addPrescriptionToTimeslot={addPrescriptionToTimeslot}
             selectedMetrics={selectedMetrics}
             setSelectedMetrics={setSelectedMetrics}
+            isDischared={overviewData?.status === 'discharge'}
           />
         </Grid>
       </Grid>
@@ -989,6 +991,7 @@ function PrescriptionLayout({ drawerType }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
+
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {

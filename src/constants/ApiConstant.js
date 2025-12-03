@@ -847,6 +847,10 @@ export const DELETE_HOSPITAL_ROOM = 'v1/hospital/room/delete'
 
 export const HOSPITAL_STATUS_UPDATE = 'v1/hospital/status/update'
 
+//Hospital staff
+
+export const GET_HOSPITAL_STAFF = 'v1/hospital/staff'
+
 //Hospital beds
 
 export const GET_HOSPITAL_BED = `v1/hospital/bed/list`

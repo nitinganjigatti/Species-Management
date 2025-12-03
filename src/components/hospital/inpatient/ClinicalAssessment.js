@@ -21,11 +21,12 @@ import Utility from 'src/utility'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
 
-const ClinicalAssessment = () => {
+const ClinicalAssessment = ({ overviewData }) => {
   const router = useRouter()
   const { data } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
@@ -60,6 +61,7 @@ const ClinicalAssessment = () => {
   const { id } = router.query
   const animal_id = medicalRecordData?.animal_id
   const medical_record_id = medicalRecordData?.medical_record_id
+  const isDischared = overviewData?.status === 'discharge'
 
   const theme = useTheme()
 
@@ -303,7 +305,6 @@ const ClinicalAssessment = () => {
   }
 
   const updateAssessment = async () => {
-
     // Check if any values have been modified
     const isClinicalAsmntChanged =
       clinicalAsmnt?.toLowerCase() !== selectedAssessment?.clinical_assessment?.toLowerCase()
@@ -311,7 +312,7 @@ const ClinicalAssessment = () => {
     const isPrognosisChanged =
       prognosisVal?.toLowerCase() !== selectedAssessment?.additional_info?.prognosis?.toLowerCase()
 
-    const isChronicChanged = chronicVal !== (selectedAssessment?.additional_info?.isChronic)
+    const isChronicChanged = chronicVal !== selectedAssessment?.additional_info?.isChronic
 
     const isStatusChanged = status?.toLowerCase() !== selectedAssessment?.additional_info?.status?.toLowerCase()
 
@@ -453,17 +454,15 @@ const ClinicalAssessment = () => {
                 debouncedSearch('')
               }}
             />
-            <Button
-              variant='contained'
-              startIcon={<AddIcon />}
-              onClick={() =>
-                router.push(
-                  `/hospital/inpatient/${id}/add-clinical-assessment`
-                )
-              }
-            >
-              ADD NEW
-            </Button>
+            {!isDischared && (
+              <Button
+                variant='contained'
+                startIcon={<AddIcon />}
+                onClick={() => router.push(`/hospital/inpatient/${id}/add-clinical-assessment`)}
+              >
+                ADD NEW
+              </Button>
+            )}
           </Box>
         </Box>
         <Box>
@@ -491,7 +490,8 @@ const ClinicalAssessment = () => {
             record={record}
             isDifferential={record.clinical_assessment === 'differential'}
             isResolved={record.additional_info?.status === 'closed'}
-            handleClick={() => handleAssessmentClick(record)}
+            isDischared={isDischared}
+            handleClick={() => (isDischared ? null : handleAssessmentClick(record))}
           />
         ))}
 
@@ -504,9 +504,21 @@ const ClinicalAssessment = () => {
 
         {/* Empty State */}
         {!isLoading && filteredRecords.length === 0 && (
-          <Typography sx={{ textAlign: 'center', mt: 4, color: theme.palette.text.secondary }}>
-            No clinical assessments found
-          </Typography>
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          >
+            <NoMedicalData
+              btnText={'ADD NEW CLINICAL ASSESSMENT'}
+              text={'All Added Clinical Assessments Will Appear here'}
+              isDischarged={isDischared}
+              btnAction={() => router.push(`/hospital/inpatient/${id}/add-clinical-assessment`)}
+            />
+          </Box>
         )}
 
         {/* End of List */}

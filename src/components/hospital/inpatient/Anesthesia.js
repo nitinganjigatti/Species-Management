@@ -182,27 +182,35 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
   const [activeRecordId, setActiveRecordId] = useState('')
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const previousFirstRecordIdRef = useRef('')
 
   useEffect(() => {
     if (!anesthesiaRecords.length) {
       setActiveRecordId('')
+      previousFirstRecordIdRef.current = ''
 
       return
     }
 
-    setActiveRecordId(prev => {
-      if (
-        prev &&
-        anesthesiaRecords.some(record => String(record?.anaesthesia_id || record?.id || '') === String(prev))
-      ) {
-        return prev
-      }
+    const currentIds = anesthesiaRecords
+      .map(record => record?.anaesthesia_id || record?.id)
+      .map(id => (id == null ? '' : String(id)))
+      .filter(Boolean)
 
-      const firstId = anesthesiaRecords[0]?.anaesthesia_id || anesthesiaRecords[0]?.id || ''
+    const firstId = currentIds[0] || ''
+    const previousFirstId = previousFirstRecordIdRef.current
+    previousFirstRecordIdRef.current = firstId
 
-      return firstId ? String(firstId) : ''
-    })
-  }, [anesthesiaRecords])
+    if (firstId && firstId !== previousFirstId) {
+      setActiveRecordId(firstId)
+
+      return
+    }
+
+    if (!currentIds.includes(String(activeRecordId))) {
+      setActiveRecordId(firstId)
+    }
+  }, [anesthesiaRecords, activeRecordId])
 
   const activeRecord = useMemo(() => {
     if (!anesthesiaRecords.length) return null

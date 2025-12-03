@@ -164,12 +164,14 @@ const AddPatientForm = () => {
           availability: 'available'
         }).then(res => {
           if (res?.success === true) {
-            setRooms(
-              res?.data?.records?.map(item => ({
+            const filteredRooms = res?.data?.records
+              ?.filter(item => item?.status !== '0')
+              ?.map(item => ({
                 label: item?.room_name,
                 value: item?.id
               }))
-            )
+
+            setRooms(filteredRooms)
           }
         })
       } catch (error) {
@@ -376,7 +378,9 @@ const AddPatientForm = () => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      border: errors.selectedAnimal
+                        ? ` 1px solid ${theme.palette.customColors.Error}`
+                        : `1px solid ${theme.palette.customColors.OutlineVariant}`,
                       borderRadius: 1,
                       p: 4,
                       background: theme.palette.customColors.Surface,
@@ -558,7 +562,9 @@ const AddPatientForm = () => {
                         sx={{
                           // background: theme.palette.customColors.Surface,
                           borderRadius: 1,
-                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                          border: errors.selectedDoctor
+                            ? ` 1px solid ${theme.palette.customColors.Error}`
+                            : `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           p: 3,
                           display: 'flex',
                           alignItems: 'center',
@@ -661,6 +667,7 @@ const AddPatientForm = () => {
                     control={control}
                     errors={errors}
                     options={rooms}
+                    disabled={rooms.length === 0}
                     getOptionValue={option => option.value || ''}
                     getOptionLabel={option => option.label || ''}
                     isOptionEqualToValue={(option, value) => option.value === value?.value}
@@ -669,6 +676,19 @@ const AddPatientForm = () => {
                     sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
                     fullWidth
                   />
+                  {rooms.length === 0 && (
+                    <Typography
+                      sx={{
+                        color: theme.palette.error.main,
+                        mt: '0px',
+                        mx: '4px',
+                        fontSize: '0.75rem',
+                        fontWeight: 400
+                      }}
+                    >
+                      No available beds, All beds are occupied
+                    </Typography>
+                  )}
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   <Typography
@@ -682,6 +702,7 @@ const AddPatientForm = () => {
                     control={control}
                     errors={errors}
                     options={holdingEnclosures}
+                    disabled={rooms.length === 0 || holdingEnclosures.length === 0}
                     getOptionValue={option => option.value || ''}
                     getOptionLabel={option => option.label || ''}
                     isOptionEqualToValue={(option, value) => option.value === value?.value}
