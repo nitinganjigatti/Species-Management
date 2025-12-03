@@ -41,7 +41,8 @@ export default function PrescriptionMedicineList({
   loading,
   searching,
   error,
-  prescribedMedicines = []
+  prescribedMedicines = [],
+  isDirectAdminister
 }) {
   const theme = useTheme()
   const router = useRouter()
@@ -154,7 +155,11 @@ export default function PrescriptionMedicineList({
             const isTemporarilySelected = temporarilySelectedMedicine?.id === medicine?.id
 
             const isPrescribed =
-              tab == 'discharge' ? isEnclosureMedicineAdded(medicine.id.toString()) : isMedicinePrescribed(medicine?.id)
+              tab == 'discharge'
+                ? isEnclosureMedicineAdded(medicine.id.toString())
+                : isDirectAdminister
+                ? false
+                : isMedicinePrescribed(medicine?.id)
             const isDisabled = medicine_edit_id ? false : isPrescribed
 
             const MedicineRow = (

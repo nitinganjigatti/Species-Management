@@ -1219,6 +1219,7 @@ export default function AddMedicineToPrescription() {
             searchQuery={medicineSearchQuery}
             handleSearchChange={handleMedicineSearch}
             handleClearSearch={handleClearSearch}
+            isDirectAdminister={watch('selectMedicineType') === 'Direct Administer'}
             handleScroll={handleScroll}
             loading={medicineLoading}
             searching={searching}
