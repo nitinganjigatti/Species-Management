@@ -6,6 +6,7 @@ import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { useHospital } from 'src/context/HospitalContext'
 import { getFollowUpPatientsListings } from 'src/lib/api/hospital/inpatient'
 import Utility from 'src/utility'
@@ -189,9 +190,16 @@ const HospitalFollowUp = () => {
       headerName: 'Discharge Summary',
       renderCell: params => (
         <>
-          <Tooltip title={params?.row?.reason}>
-            <Typography
-              variant='body2'
+          <Tooltip
+            title={
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: params?.row?.reason || 'NA'
+                }}
+              />
+            }
+          >
+            <Box
               sx={{
                 fontSize: '14px',
                 fontWeight: 400,
@@ -205,9 +213,10 @@ const HospitalFollowUp = () => {
                 whiteSpace: 'normal',
                 py: 4
               }}
-            >
-              <>{params?.row?.reason || ''}</>
-            </Typography>
+              dangerouslySetInnerHTML={{
+                __html: params?.row?.reason || 'NA'
+              }}
+            />
           </Tooltip>
         </>
       )
@@ -283,7 +292,15 @@ const HospitalFollowUp = () => {
         <Box sx={{ mt: 6 }}>
           <Card>
             <CardHeader title={RenderUtility?.pageTitle('Follow Up')} />
-            <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between' }}>
+            <Box
+              sx={{
+                p: 3,
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexDirection: { xs: 'column', lg: 'row' },
+                gap: 4
+              }}
+            >
               <Box sx={{ ml: 2 }}>
                 <Search
                   borderRadius='4px'
@@ -299,7 +316,7 @@ const HospitalFollowUp = () => {
                   }}
                 />
               </Box>
-              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
                 <CommonDateRangePickers
                   filterDates={filterDate}
                   onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
@@ -312,7 +329,7 @@ const HospitalFollowUp = () => {
             </Box>
             <Grid
               sx={{
-                mx: { xs: 3, md: 5 }
+                mx: { xs: 5 }
               }}
             >
               <CommonTable
@@ -352,4 +369,4 @@ const HospitalFollowUp = () => {
   )
 }
 
-export default HospitalFollowUp
+export default enforceModuleAccess(HospitalFollowUp, 'add_hospital')

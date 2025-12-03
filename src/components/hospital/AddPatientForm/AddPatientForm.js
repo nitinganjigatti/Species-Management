@@ -164,12 +164,14 @@ const AddPatientForm = () => {
           availability: 'available'
         }).then(res => {
           if (res?.success === true) {
-            setRooms(
-              res?.data?.records?.map(item => ({
+            const filteredRooms = res?.data?.records
+              ?.filter(item => item?.status !== '0')
+              ?.map(item => ({
                 label: item?.room_name,
                 value: item?.id
               }))
-            )
+
+            setRooms(filteredRooms)
           }
         })
       } catch (error) {
@@ -250,27 +252,30 @@ const AddPatientForm = () => {
     setSubmitLoader(true)
     try {
       const params = {
-        entity_items: JSON.stringify([selectedAnimal?.animal_id]),
-        source_id: selectedAnimal?.enclosure_id,
-        source_type: 'enclosure',
+        source_id: selectedAnimal?.site_id,
+        source_type: 'site',
         destination_id: selectedHospital?.id,
         destination_type: 'hospital',
-        transfer_type: 'inter',
-        visit_type: data?.visitType,
-        holding_enclosure_id: data?.holdingEnclosure?.value,
-        doctor_id: selectedDoctor?.id,
-        treatment_type: data?.treatmentType,
-        request_from: 'web',
+        transfer_type: selectedAnimal?.site_id === selectedHospital?.id ? 'intra' : 'inter',
+        reason_for_transfer: data?.purposeOfVisit,
+        ref_ids: JSON.stringify([
+          {
+            ref_id: data?.medicalRecordId,
+            entity_ids: [String(selectedAnimal?.animal_id)]
+          }
+        ]),
+        transfer_entity_type: 'medical_record',
         entitiy_item_type: 'animal',
-        transfer_entity_type: 'hospital',
-        ref_type: 'medical_record',
-        ref_id: data?.medicalRecordId,
-        source_site_id: selectedAnimal?.site_id,
-        destination_site_id: selectedAnimal?.site_id,
-        comments: data?.purposeOfVisit,
-        admit_date: moment(data?.admission_date).format('YYYY-MM-DD'),
-        admit_time: dayjs(data?.admission_time).format('HH:mm'),
-        room_id: data?.room?.value
+        request_from: 'web',
+        module: 'hospital_transfer',
+        additional_info: JSON.stringify({
+          treatment_type: data?.treatmentType,
+          doctor_id: String(selectedDoctor?.id),
+          holding_enclosure_id: String(data?.holdingEnclosure?.value),
+          room_id: String(data?.room?.value),
+          admit_date: moment(data?.admission_date).format('YYYY-MM-DD'),
+          admit_time: dayjs(data?.admission_time).format('HH:mm')
+        })
       }
 
       await addHospitalPatient(params).then(res => {
@@ -373,7 +378,9 @@ const AddPatientForm = () => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      border: errors.selectedAnimal
+                        ? ` 1px solid ${theme.palette.customColors.Error}`
+                        : `1px solid ${theme.palette.customColors.OutlineVariant}`,
                       borderRadius: 1,
                       p: 4,
                       background: theme.palette.customColors.Surface,
@@ -555,7 +562,9 @@ const AddPatientForm = () => {
                         sx={{
                           // background: theme.palette.customColors.Surface,
                           borderRadius: 1,
-                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                          border: errors.selectedDoctor
+                            ? ` 1px solid ${theme.palette.customColors.Error}`
+                            : `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           p: 3,
                           display: 'flex',
                           alignItems: 'center',
@@ -597,11 +606,20 @@ const AddPatientForm = () => {
                             cursor: 'pointer'
                           }}
                         >
-                          <UserAvatarDetails
-                            profile_image={selectedDoctor?.default_icon}
-                            user_name={selectedDoctor?.name}
-                            role={selectedDoctor?.role_name}
-                          />
+                          <Box
+                            sx={{
+                              maxWidth: '260px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            <UserAvatarDetails
+                              profile_image={selectedDoctor?.default_icon}
+                              user_name={selectedDoctor?.name}
+                              role={selectedDoctor?.role_name}
+                            />
+                          </Box>
                           <IconButton onClick={handleRemoveDoctor}>
                             <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
                           </IconButton>
@@ -649,6 +667,7 @@ const AddPatientForm = () => {
                     control={control}
                     errors={errors}
                     options={rooms}
+                    disabled={rooms.length === 0}
                     getOptionValue={option => option.value || ''}
                     getOptionLabel={option => option.label || ''}
                     isOptionEqualToValue={(option, value) => option.value === value?.value}
@@ -657,6 +676,19 @@ const AddPatientForm = () => {
                     sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
                     fullWidth
                   />
+                  {rooms.length === 0 && (
+                    <Typography
+                      sx={{
+                        color: theme.palette.error.main,
+                        mt: '0px',
+                        mx: '4px',
+                        fontSize: '0.75rem',
+                        fontWeight: 400
+                      }}
+                    >
+                      No available beds, All beds are occupied
+                    </Typography>
+                  )}
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   <Typography
@@ -670,6 +702,7 @@ const AddPatientForm = () => {
                     control={control}
                     errors={errors}
                     options={holdingEnclosures}
+                    disabled={rooms.length === 0 || holdingEnclosures.length === 0}
                     getOptionValue={option => option.value || ''}
                     getOptionLabel={option => option.label || ''}
                     isOptionEqualToValue={(option, value) => option.value === value?.value}

@@ -7,6 +7,7 @@ import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { visitTypeOptions } from 'src/constants/Constants'
 import { useHospital } from 'src/context/HospitalContext'
 import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
@@ -75,7 +76,7 @@ const HospitalInpatient = () => {
       getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
-        search: filters?.q,
+        q: filters?.q,
         hospital_id: selectedHospital?.id,
         visit_type: selectedVisitType,
         patient_category: 'inpatient',
@@ -194,7 +195,7 @@ const HospitalInpatient = () => {
       headerName: 'Purpose of Visit',
       renderCell: params => (
         <>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
               <VisitType title={params.row.visit_type} />
               {params?.row?.medical_record_code && (
@@ -302,10 +303,11 @@ const HospitalInpatient = () => {
   ]
 
   const handleRowClick = params => {
-    router.push({
-      pathname: `/hospital/inpatient/${params.row.id}`,
-      query: { animal_id: params.row.animal_id, medical_record_id: params.row.medical_record_id }
-    })
+    const patientId = params?.id || params?.row?.id
+
+    if (patientId) {
+      router.push(`/hospital/inpatient/${patientId}`)
+    }
   }
 
   const headerAction = (
@@ -328,7 +330,15 @@ const HospitalInpatient = () => {
         <Box sx={{ mt: 6 }}>
           <Card>
             <CardHeader title={RenderUtility?.pageTitle('Inpatients')} action={headerAction} />
-            <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between' }}>
+            <Box
+              sx={{
+                p: 3,
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexDirection: { xs: 'column', lg: 'row' },
+                gap: 4
+              }}
+            >
               <Box sx={{ ml: 2 }}>
                 <Search
                   borderRadius='4px'
@@ -344,7 +354,7 @@ const HospitalInpatient = () => {
                   }}
                 />
               </Box>
-              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
                 <CommonDateRangePickers
                   filterDates={filterDate}
                   onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
@@ -369,7 +379,7 @@ const HospitalInpatient = () => {
             </Box>
             <Grid
               sx={{
-                mx: { xs: 3, md: 5 }
+                mx: { xs: 5 }
               }}
             >
               <CommonTable
@@ -409,4 +419,4 @@ const HospitalInpatient = () => {
   )
 }
 
-export default HospitalInpatient
+export default enforceModuleAccess(HospitalInpatient, 'add_hospital')

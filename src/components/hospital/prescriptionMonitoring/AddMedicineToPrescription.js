@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { Box, Grid, Typography, Button } from '@mui/material'
 import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
 import { useTheme } from '@mui/material/styles'
@@ -28,20 +28,38 @@ import Toaster from 'src/components/Toaster'
 import { useHospital } from 'src/context/HospitalContext'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 
+const STORAGE_KEY = 'medical_record_data'
+
 export default function AddMedicineToPrescription() {
   const theme = useTheme()
+  const router = useRouter()
+  const { id, medicine_edit_id, discharge_tab } = router.query
+
   const { data, updateState } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
+
+  const editingMedicine = useMemo(() => {
+    const list = discharge_tab === 'TransferEnclosure' ? data.enclosure_medicines : data.transfer_medicines
+
+    if (!list) return null
+
+    // fallback to id matching
+    if (medicine_edit_id) {
+      const result = list.find(med => med.id?.toString() === medicine_edit_id?.toString())
+      console.log('result', result)
+
+      return result
+    }
+
+    return null
+  }, [data, medicine_edit_id, discharge_tab])
 
   // Form validation schema
   const prescriptionSchema = yup.object({
     // Common fields for both Schedule and Direct Administer
-    selectedMedicineId: yup.string().trim().required('Please select a medicine'),
+    selectedMedicineId: yup.string(),
 
-    selectedMedicine: yup
-      .object()
-      .nullable()
-      .required('Please select a medicine')
-      .test('is-valid-medicine', 'Please select a valid medicine', value => !!(value && value.id)),
+    selectedMedicine: yup.object().nullable(),
 
     selectMedicineType: yup
       .string()
@@ -197,9 +215,9 @@ export default function AddMedicineToPrescription() {
     wastageNotes: null,
     batchImage: null
   }
-  const router = useRouter()
 
-  const { id, animal_id, medical_record_id, discharge_tab } = router.query
+  const animal_id = medicalRecordData?.animal_id
+  const medical_record_id = medicalRecordData?.medical_record_id
 
   const {
     control,
@@ -207,6 +225,7 @@ export default function AddMedicineToPrescription() {
     setValue,
     watch,
     getValues,
+    reset,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -536,13 +555,6 @@ export default function AddMedicineToPrescription() {
     fetchMedicalMasterData()
   }, [])
 
-  // Fetch prescription list when required params are available
-  useEffect(() => {
-    if (hospital?.id && animal_id && id) {
-      getPrescriptionList()
-    }
-  }, [hospital?.id, animal_id, id])
-
   useEffect(() => {
     const getPatientInfo = async () => {
       setPatientLoading(true)
@@ -550,6 +562,16 @@ export default function AddMedicineToPrescription() {
         await getPatientDetails(id).then(res => {
           if (res?.success === true) {
             setPatientData(res?.data)
+
+            if (hospital?.id && res.data?.animal_detail?.animal_id && id && res.data?.medical_record_id) {
+              getPrescriptionList(res.data?.animal_detail?.animal_id, res.data?.medical_record_id)
+            }
+            updateState(STORAGE_KEY, {
+              ...medicalRecordData,
+              animal_id: res.data?.animal_detail?.animal_id,
+              medical_record_id: res.data?.medical_record_id,
+              animal_admitted_date: res.data?.admitted_at
+            })
             setPatientLoading(false)
           } else {
             setPatientData(null)
@@ -565,18 +587,18 @@ export default function AddMedicineToPrescription() {
     getPatientInfo()
   }, [id])
 
-  const getPrescriptionList = async () => {
+  const getPrescriptionList = async (animalId, medicalRecordId) => {
+    console.log('Fetching prescription list with params:', animalId, medicalRecordId)
     try {
       setIsPrescriptionListLoading(true)
 
       const payload = {
         hospital_id: hospital?.id || '',
-        animal_id: animal_id || '',
+        animal_id: animal_id || animalId || '',
         medical_type: 'prescription',
         type: 'active',
-        medical_record_id: medical_record_id || '',
         generate_for_date: new Date().toISOString().split('T')[0],
-        medical_record_id: '',
+        medical_record_id: medical_record_id || medicalRecordId || '',
         hospital_case_id: id || ''
       }
 
@@ -870,7 +892,8 @@ export default function AddMedicineToPrescription() {
             batch_list: batchListPayload,
             request_from: 'hospital_module',
             dose_type: 'fixed_dose',
-            files: data.batchImage ? [data.batchImage] : []
+            files: data.batchImage ? [data.batchImage] : [],
+            1: data?.attachment?.[0] && data?.attachment[0]
           }
         ])
       }
@@ -972,9 +995,17 @@ export default function AddMedicineToPrescription() {
 
           duration_qty: data.dosageDuration?.value?.toString(),
           duration_id: interval?.id || '',
-          duration: `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`,
+
+          // duration: `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`,
+          duration: data.dosageDuration?.value
+            ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
+            : '1 days',
           duration_string_id: interval?.string_id || '',
-          duration_type: data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1),
+
+          //   duration_type: data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1),
+          duration_type: data.dosageDuration?.unit
+            ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
+            : 'Days',
 
           notes: data?.notes || '',
 
@@ -984,7 +1015,11 @@ export default function AddMedicineToPrescription() {
           delivery_route_label: deliveryRoute?.label, //new added
 
           start_date: toISTISOString(data.prescriptionStartDate),
-          end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
+
+          //  end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
+          end_date: isOneTimeFrequency
+            ? toISTISOString(data.prescriptionStartDate)
+            : calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
 
           restart_reason: '',
           stop_reason: '',
@@ -995,11 +1030,13 @@ export default function AddMedicineToPrescription() {
           administer_date: toISTISOString(data.prescriptionStartDate),
 
           batch_list: [],
-          dose_type: data.doseType
+
+          //     dose_type: data.doseType,
+          dose_type: 'fixed_dose',
+          selectMedicineType: 'Schedule'
         }
       ]
     }
-    console.log('payload', payload)
 
     if (discharge_tab === 'TransferHospital' || discharge_tab === 'TransferEnclosure') {
       const newMedicine = payload.data[0]
@@ -1018,19 +1055,26 @@ export default function AddMedicineToPrescription() {
 
       // Save to context under the correct key
       updateState(tempKey, updatedList)
+      router.back()
 
-      setTimeout(() => {
-        router.push({
-          pathname: `/hospital/inpatient/${id}`,
-          query: { ...router.query, discharge_tab, tab: 'discharge' }
-        })
-      }, 0)
+      // setTimeout(() => {
+      //   router.push({
+      //     pathname: `/hospital/inpatient/${id}`,
+      //     query: { ...router.query, discharge_tab, tab: 'discharge' }
+      //   })
+      // }, 0)
 
       return
     } else {
       submitHandler(data)
     }
   })
+
+  // Prefill form when editing a medicine from discharge
+  useEffect(() => {
+    if (!editingMedicine) return
+    handleMedicineSelect(editingMedicine)
+  }, [editingMedicine])
 
   const getUnitIdFromName = (unitName, medicalMasterData) => {
     const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
@@ -1127,7 +1171,15 @@ export default function AddMedicineToPrescription() {
         container
         spacing={5}
         className='match-height'
-        sx={{ mt: 5, mb: 8, background: theme.palette.common.white, px: 6, py: 4, borderRadius: '8px' }}
+        sx={{
+          mt: 5,
+          mb: 8,
+          background: theme.palette.common.white,
+          px: 6,
+          py: 4,
+          borderRadius: '8px',
+          alignItems: 'center'
+        }}
       >
         <Grid size={{ xs: 12, md: 4, lg: 4 }}>
           <Typography variant='h6' sx={{ mb: 2 }}>
@@ -1144,17 +1196,18 @@ export default function AddMedicineToPrescription() {
             onClick={() => setValue('selectMedicineType', 'Schedule')}
           />
         </Grid>
-
-        <Grid size={{ xs: 12, md: 4, lg: 4 }}>
-          <TreatmentTypeRadioButtons
-            label='Direct Administer'
-            isSelected={watch('selectMedicineType') === 'Direct Administer'}
-            sx={{
-              borderColor: `${theme.palette.customColors.OutlineVariant}`
-            }}
-            onClick={() => setValue('selectMedicineType', 'Direct Administer')}
-          />
-        </Grid>
+        {!discharge_tab && (
+          <Grid size={{ xs: 12, md: 4, lg: 4 }}>
+            <TreatmentTypeRadioButtons
+              label='Direct Administer'
+              isSelected={watch('selectMedicineType') === 'Direct Administer'}
+              sx={{
+                borderColor: `${theme.palette.customColors.OutlineVariant}`
+              }}
+              onClick={() => setValue('selectMedicineType', 'Direct Administer')}
+            />
+          </Grid>
+        )}
 
         <Grid size={{ xs: 12, md: 7, lg: 7 }}>
           <PrescriptionMedicineList
@@ -1166,6 +1219,7 @@ export default function AddMedicineToPrescription() {
             searchQuery={medicineSearchQuery}
             handleSearchChange={handleMedicineSearch}
             handleClearSearch={handleClearSearch}
+            isDirectAdminister={watch('selectMedicineType') === 'Direct Administer'}
             handleScroll={handleScroll}
             loading={medicineLoading}
             searching={searching}
@@ -1188,15 +1242,16 @@ export default function AddMedicineToPrescription() {
             isControlledSubstance={temporarilySelectedMedicine?.controlled_substance === 1}
             isOneTimeFrequency={isOneTimeFrequency}
             endsOn={endsOn}
+            reset={reset}
           />
         </Grid>
       </Grid>
-
       <ActionButtons
         cancelLabel='CANCEL'
         addLabel={watch('selectMedicineType') === 'Direct Administer' ? 'Administer' : 'Schedule'}
         onCancel={handleCancel}
         isSubmitLoading={isSubmitting}
+        isAddDisabled={temporarilySelectedMedicine?.id ? false : true}
         onAdd={prescriptionSubmitHandler}
         width={200}
         height={50}

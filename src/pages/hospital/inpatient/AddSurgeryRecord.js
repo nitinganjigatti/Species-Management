@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 
-import { Breadcrumbs, Typography, Card, Box, Avatar, TextField, Button, IconButton, Grid } from '@mui/material'
+import { Breadcrumbs, Typography, Card, Box, Button, IconButton, Grid } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import { Icon } from '@iconify/react'
 
@@ -11,41 +11,25 @@ import * as yup from 'yup'
 import dayjs from 'dayjs'
 import { useQuery } from '@tanstack/react-query'
 
-import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
-import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { useAuth } from 'src/hooks/useAuth'
+import Toaster from 'src/components/Toaster'
+import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 import AddAnesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnesthesiaRecord'
 import SelectAnesthesiaRecordDrawer from 'src/components/hospital/inpatient/SelectAnesthesiaRecordDrawer'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
-import Toaster from 'src/components/Toaster'
-import RichTextEditor from 'src/components/RichTextEditor'
-import SurgeryRecordTemplateList from 'src/views/pages/hospital/inpatient/SurgeryRecordTemplateList'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+
+import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 
-import {
-  addSurgeryRecord,
-  getSurgeryMaster,
-  getSurgeryTemplates,
-  createSurgeryTemplate
-} from 'src/lib/api/hospital/surgeryMaster'
-
-const createEmptyRichTextValue = () => {
-  const delta = { ops: [{ insert: '\n' }] }
-
-  return {
-    delta,
-    html: '<p><br></p>',
-    text: '',
-    ops: delta.ops
-  }
-}
+import { addSurgeryRecord, getSurgeryMaster } from 'src/lib/api/hospital/surgeryMaster'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const DEFAULT_HOSPITAL_ID = '68'
-const TEMPLATE_LIST_LIMIT = 20
 const FORM_ID = 'add-surgery-record-form'
 
 const getSafeString = value => {
@@ -75,27 +59,6 @@ const getRichTextHtml = note => {
   return ''
 }
 
-const stripHtmlTags = input => {
-  if (!input) return ''
-
-  return String(input)
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-const buildRichTextValueFromHtml = html => {
-  const safeHtml = typeof html === 'string' ? html : ''
-  const finalHtml = safeHtml || '<p><br></p>'
-
-  return {
-    html: finalHtml,
-    text: stripHtmlTags(finalHtml),
-    delta: undefined,
-    ops: undefined
-  }
-}
-
 const mapSurgeryToOption = surgery => {
   if (!surgery || typeof surgery !== 'object') return null
 
@@ -111,140 +74,6 @@ const mapSurgeryToOption = surgery => {
     value: String(id),
     label: String(name).trim()
   }
-}
-
-const mapTemplateRecord = record => {
-  if (!record || typeof record !== 'object') return null
-
-  const id = record?.id ?? record?.template_id ?? record?.hospital_template_id ?? record?.value
-  const name = record?.template_name ?? record?.name ?? record?.title
-
-  if (!id || !name) return null
-
-  return {
-    id: String(id),
-    title: String(name).trim(),
-    description: record?.description ?? '',
-    type: record?.type ?? 'Surgery',
-    category: record?.category ?? record?.type ?? 'Surgery',
-    raw: record
-  }
-}
-
-// Save Template UI Component
-const SaveTemplateUI = ({ onClose, onSave, loading = false }) => {
-  const theme = useTheme()
-  const [templateName, setTemplateName] = useState('')
-
-  const handleSave = async () => {
-    if (!templateName.trim() || loading) return
-
-    const success = await onSave(templateName.trim())
-
-    if (success) {
-      setTemplateName('')
-    }
-  }
-
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: { xs: 'start', sm: 'center' },
-        gap: '16px',
-        flexDirection: { xs: 'column', sm: 'row' }
-      }}
-    >
-      <TextField
-        size='small'
-        placeholder='Enter template name'
-        value={templateName}
-        onChange={e => setTemplateName(e.target.value)}
-        sx={{
-          maxWidth: '413px',
-          minWidth: { xs: '100%', sm: '200px' },
-          height: '48px',
-          flex: 1,
-          borderRadius: '4px',
-          borderColor: theme.palette.customColors.OutlineVariant,
-          backgroundColor: theme.palette.customColors.Surface,
-          '& .MuiOutlinedInput-root': {
-            height: '48px',
-            '& fieldset': {}
-          }
-        }}
-      />
-      <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-        <Button
-          variant='contained'
-          onClick={handleSave}
-          disabled={loading || !templateName.trim()}
-          startIcon={
-            <Avatar
-              src='/icons/FloppyDisk.svg'
-              variant='square'
-              sx={{
-                objectFit: 'contain',
-                height: '24px',
-                width: '24px',
-                filter: 'brightness(0) invert(1)'
-              }}
-            />
-          }
-          sx={{
-            height: '48px',
-            width: '104px',
-            backgroundColor: theme.palette.primary.main,
-            color: 'white',
-            borderRadius: '6px',
-            textTransform: 'uppercase',
-            fontWeight: 500,
-            fontSize: 15,
-            '&:hover': {
-              backgroundColor: theme.palette.primary.dark
-            }
-          }}
-        >
-          {loading ? 'Saving...' : 'Save'}
-        </Button>
-        <IconButton
-          onClick={onClose}
-          sx={{
-            color: theme.palette.primary.light,
-            '&:hover': {
-              backgroundColor: 'rgba(0,0,0,0.04)'
-            }
-          }}
-        >
-          <Icon icon='mdi:close' fontSize={19} />
-        </IconButton>
-      </Box>
-    </Box>
-  )
-}
-
-const extractSurgeryTemplates = response => {
-  const candidates = [response, response?.data, response?.data?.data, response?.data?.templates, response?.templates]
-
-  let records = []
-  for (const candidate of candidates) {
-    if (Array.isArray(candidate) && candidate.length > 0) {
-      records = candidate
-      break
-    }
-  }
-
-  const unique = new Map()
-
-  records.forEach(item => {
-    const mapped = mapTemplateRecord(item)
-
-    if (mapped && !unique.has(mapped.id)) {
-      unique.set(mapped.id, mapped)
-    }
-  })
-
-  return Array.from(unique.values())
 }
 
 const getSurgeryIdentifier = value => {
@@ -408,8 +237,8 @@ const schema = yup.object().shape({
     .mixed()
     .nullable()
     .test('surgeon-required', 'Surgeon is required', value => Boolean(value)),
-  typeOfSurgery: yup.string().required('Type of surgery is required'),
-  surgicalApproach: yup.string().required('Surgical approach is required'),
+  typeOfSurgery: yup.string().trim().required('Type of surgery is required'),
+  surgicalApproach: yup.string().trim().required('Surgical approach is required'),
   duration: yup.string().trim().required('Duration is required'),
   complication: yup.string().required('Complication is required')
 })
@@ -420,18 +249,21 @@ const AddSurgeryRecord = () => {
   const auth = useAuth()
 
   const resolvedHospitalCaseId = useMemo(() => resolveHospitalCaseId(router.query), [router.query])
+
   const medicalRecordId = useMemo(() => {
     const possible = router.query?.medical_record_id || router.query?.medicalRecordId || router.query?.medical_recordId
 
     return Array.isArray(possible) ? possible[0] : possible || ''
   }, [router.query])
   const [patientData, setPatientData] = useState(null)
+
   const admissionDateTime = useMemo(
     () => (patientData?.admitted_at ? dayjs(patientData.admitted_at) : null),
     [patientData?.admitted_at]
   )
   const userZooId = useMemo(() => auth?.userData?.user?.zoos?.[0]?.zoo_id, [auth?.userData])
   const defaultNow = useMemo(() => dayjs(), [])
+
   const buildDefaultFormValues = useCallback(
     () => ({
       date: defaultNow,
@@ -468,16 +300,12 @@ const AddSurgeryRecord = () => {
     defaultValues: buildDefaultFormValues()
   })
 
-  const [activeTemplate, setActiveTemplate] = useState('')
-  const [showSaveTemplate, setShowSaveTemplate] = useState(false)
   const [openAddanesthesiaDrawer, setOpenAddanesthesiaDrawer] = useState(false)
-  const [openSurgeryTemplateDrawer, setOpenSurgeryTemplateDrawer] = useState(false)
   const [openSelectAnesthesiaDrawer, setOpenSelectAnesthesiaDrawer] = useState(false)
   const [selectedAnesthesiaRecord, setSelectedAnesthesiaRecord] = useState(null)
   const [pendingAnesthesiaRecord, setPendingAnesthesiaRecord] = useState(null)
-  const [richNote, setRichNote] = useState(() => createEmptyRichTextValue())
+  const [richNote, setRichNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSavingTemplate, setIsSavingTemplate] = useState(false)
   const [procedureSearchTerm, setProcedureSearchTerm] = useState('')
   const [surgeonSearchTerm, setSurgeonSearchTerm] = useState('')
   const [formResetKey, setFormResetKey] = useState(0)
@@ -486,6 +314,7 @@ const AddSurgeryRecord = () => {
   const endTimeValue = watch('endTime')
   const durationValue = watch('duration')
   const selectedAnesthesia = selectedAnesthesiaRecord
+
   const resetForm = useCallback(() => {
     const defaults = buildDefaultFormValues()
     reset(defaults)
@@ -493,8 +322,7 @@ const AddSurgeryRecord = () => {
     setValue('procedure', null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
     setSelectedAnesthesiaRecord(null)
     setPendingAnesthesiaRecord(null)
-    setRichNote(createEmptyRichTextValue())
-    setActiveTemplate('')
+    setRichNote('')
     setProcedureSearchTerm('')
     setSurgeonSearchTerm('')
     setFormResetKey(prev => prev + 1)
@@ -505,32 +333,9 @@ const AddSurgeryRecord = () => {
     setSelectedAnesthesiaRecord,
     setPendingAnesthesiaRecord,
     setRichNote,
-    setActiveTemplate,
     setProcedureSearchTerm,
     setSurgeonSearchTerm
   ])
-
-  const {
-    data: surgeryTemplatesResponse,
-    isFetching: isTemplatesLoading,
-    refetch: refetchSurgeryTemplates
-  } = useQuery({
-    queryKey: ['hospital-surgery-templates', DEFAULT_HOSPITAL_ID],
-    queryFn: () =>
-      getSurgeryTemplates({
-        page_no: 1,
-        hospital_id: DEFAULT_HOSPITAL_ID,
-        limit: TEMPLATE_LIST_LIMIT,
-        type: 'surgery'
-      }),
-    keepPreviousData: true,
-    staleTime: 5 * 60 * 1000,
-    retry: false,
-    onError: error => {
-      console.error('Failed to fetch surgery templates:', error)
-      Toaster({ type: 'error', message: error?.message || 'Failed to load surgery templates' })
-    }
-  })
 
   const { data: surgeryMasterResponse, isFetching: isProceduresLoading } = useQuery({
     queryKey: ['hospital-surgeries', procedureSearchTerm],
@@ -631,20 +436,6 @@ const AddSurgeryRecord = () => {
     [surgeonOptions]
   )
 
-  const surgeryTemplates = useMemo(() => extractSurgeryTemplates(surgeryTemplatesResponse), [surgeryTemplatesResponse])
-
-  const templateNames = useMemo(() => surgeryTemplates.map(template => template.title), [surgeryTemplates])
-
-  const templateNamesKey = useMemo(() => templateNames.join('|'), [templateNames])
-
-  useEffect(() => {
-    if (!activeTemplate) return
-
-    if (!templateNames.includes(activeTemplate)) {
-      setActiveTemplate('')
-    }
-  }, [activeTemplate, templateNames, templateNamesKey])
-
   useEffect(() => {
     if (!resolvedHospitalCaseId) {
       setPatientData(null)
@@ -685,6 +476,7 @@ const AddSurgeryRecord = () => {
   const animalInfoData = useMemo(() => buildAnimalInfoData(patientData), [patientData])
   const minDate = useMemo(() => (admissionDateTime ? admissionDateTime.startOf('day') : null), [admissionDateTime])
   const maxDate = dayjs()
+
   const maxTimeForSelectedDate = useMemo(() => {
     if (!selectedDate) return null
     const now = dayjs()
@@ -725,6 +517,7 @@ const AddSurgeryRecord = () => {
       if (durationValue) {
         setValue('duration', '', { shouldValidate: true, shouldDirty: true })
       }
+
       return
     }
 
@@ -735,6 +528,7 @@ const AddSurgeryRecord = () => {
       if (durationValue) {
         setValue('duration', '', { shouldValidate: true, shouldDirty: true })
       }
+
       return
     }
 
@@ -743,6 +537,7 @@ const AddSurgeryRecord = () => {
       if (durationValue) {
         setValue('duration', '', { shouldValidate: true, shouldDirty: true })
       }
+
       return
     }
 
@@ -779,47 +574,6 @@ const AddSurgeryRecord = () => {
 
     return selectedAnesthesia.purpose.map(item => item?.name).filter(Boolean)
   }, [selectedAnesthesia?.purpose])
-
-  const applyTemplateToRichNote = useCallback(
-    template => {
-      if (!template) return
-
-      const safeTitle = template?.title ? String(template.title) : ''
-      const html = typeof template?.description === 'string' ? template.description : ''
-      const richValue = buildRichTextValueFromHtml(html)
-
-      setActiveTemplate(safeTitle)
-      setRichNote(prev => {
-        if (prev?.html === richValue.html) {
-          return prev
-        }
-
-        return richValue
-      })
-    },
-    [setRichNote, setActiveTemplate]
-  )
-
-  const handleTemplateSelect = useCallback(
-    templateName => {
-      const safeName = templateName ? String(templateName) : ''
-
-      if (!safeName) {
-        setActiveTemplate('')
-
-        return
-      }
-
-      const matchedTemplate = surgeryTemplates.find(template => template.title === safeName)
-
-      if (matchedTemplate) {
-        applyTemplateToRichNote(matchedTemplate)
-      } else {
-        setActiveTemplate(safeName)
-      }
-    },
-    [surgeryTemplates, applyTemplateToRichNote, setActiveTemplate]
-  )
 
   const handleProcedureInputChange = useCallback(value => {
     if (typeof value === 'string') {
@@ -874,71 +628,6 @@ const AddSurgeryRecord = () => {
 
     return option?.label === selected?.label
   }, [])
-
-  const handleSaveTemplate = useCallback(
-    async templateName => {
-      const trimmedName = templateName?.trim()
-
-      if (!trimmedName) {
-        Toaster({ type: 'error', message: 'Template name is required' })
-
-        return false
-      }
-
-      const payload = new FormData()
-      payload.append('template_name', trimmedName)
-      payload.append('type', 'surgery')
-      payload.append('hospital_id', DEFAULT_HOSPITAL_ID)
-      payload.append('description', getSafeString(getRichTextHtml(richNote)))
-
-      setIsSavingTemplate(true)
-
-      try {
-        const response = await createSurgeryTemplate(payload)
-
-        if (response?.success) {
-          Toaster({ type: 'success', message: response?.message || 'Template saved successfully' })
-          setActiveTemplate(trimmedName)
-
-          const refetchResult = await refetchSurgeryTemplates()
-          const refreshedTemplates = extractSurgeryTemplates(refetchResult?.data)
-          const newTemplate = refreshedTemplates.find(template => template.title === trimmedName)
-
-          if (newTemplate) {
-            applyTemplateToRichNote(newTemplate)
-          }
-
-          return true
-        }
-
-        Toaster({ type: 'error', message: response?.message || 'Failed to save template' })
-
-        return false
-      } catch (error) {
-        console.error('Create surgery template error:', error)
-        const message = error?.response?.data?.message || error?.message || 'An unexpected error occurred'
-        Toaster({ type: 'error', message })
-
-        return false
-      } finally {
-        setIsSavingTemplate(false)
-      }
-    },
-    [richNote, refetchSurgeryTemplates, applyTemplateToRichNote]
-  )
-
-  const handleSaveTemplateInline = useCallback(
-    async templateName => {
-      const success = await handleSaveTemplate(templateName)
-
-      if (success) {
-        setShowSaveTemplate(false)
-      }
-
-      return success
-    },
-    [handleSaveTemplate, setShowSaveTemplate]
-  )
 
   const handleAddNewanesthesia = useCallback(() => {
     setOpenAddanesthesiaDrawer(true)
@@ -1024,6 +713,7 @@ const AddSurgeryRecord = () => {
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Surgery record added successfully' })
         resetForm()
+
         // const redirectUrl = buildReturnUrl()
         // router.push(redirectUrl)
         router.back()
@@ -1234,7 +924,8 @@ const AddSurgeryRecord = () => {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '4px',
-                    height: '56px'
+                    height: '56px',
+                    backgroundColor: theme.palette.customColors.mdAntzNeutral
                   }
                 }}
                 name={'duration'}
@@ -1341,141 +1032,13 @@ const AddSurgeryRecord = () => {
               </Grid>
             </Grid>
 
-            <Box
-              sx={{
-                backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 102 / 255),
-                padding: '20px',
-                borderRadius: '8px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '16px'
-              }}
-            >
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <Typography
-                  sx={{
-                    fontWeight: 500,
-                    fontSize: '16px',
-                    letterSpacing: 0,
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                >
-                  Enter surgery notes
-                </Typography>
-
-                <RichTextEditor value={richNote} onChange={setRichNote} placeholder='Enter text...' />
-              </Box>
-
-              {showSaveTemplate ? (
-                <SaveTemplateUI
-                  onClose={() => setShowSaveTemplate(false)}
-                  onSave={handleSaveTemplateInline}
-                  loading={isSavingTemplate}
-                />
-              ) : (
-                <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center', mb: '8px', cursor: 'pointer' }}>
-                  <Avatar
-                    src='/icons/FloppyDisk.svg'
-                    variant='square'
-                    sx={{ objectFit: 'contain', height: '24px', width: '24px' }}
-                  />
-                  <Typography
-                    onClick={() => setShowSaveTemplate(true)}
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: '16px',
-                      letterSpacing: 0,
-                      color: theme.palette.primary.dark
-                    }}
-                  >
-                    Save as template
-                  </Typography>
-                </Box>
-              )}
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '16px',
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    Select from templates
-                  </Typography>
-                  <Box
-                    onClick={() => setOpenSurgeryTemplateDrawer(true)}
-                    sx={{ display: 'flex', gap: '12px', alignItems: 'center', cursor: 'pointer' }}
-                  >
-                    <Typography sx={{ color: theme.palette.primary.dark }}>See all</Typography>
-                    <Icon icon='fa:angle-right' color={theme.palette.primary.dark} fontSize={24} />
-                  </Box>
-                </Box>
-                <Box
-                  sx={{
-                    flex: '1 1 auto',
-                    minWidth: 0,
-                    overflowX: 'auto',
-                    scrollbarColor: 'transparent transparent'
-                  }}
-                >
-                  <Box sx={{ display: 'inline-flex', gap: '10px', pr: 1 }}>
-                    {isTemplatesLoading
-                      ? Array.from({ length: 3 }).map((_, idx) => (
-                          <Box
-                            key={`template-skel-${idx}`}
-                            sx={{
-                              width: 100,
-                              height: 40,
-                              borderRadius: '8px',
-                              backgroundColor: theme.palette.customColors.mdAntzNeutral
-                            }}
-                          />
-                        ))
-                      : templateNames.map(template => {
-                          const templateLabel = typeof template === 'string' ? template : String(template || '')
-                          if (!templateLabel) {
-                            return null
-                          }
-                          return (
-                            <Box
-                              key={templateLabel}
-                              onClick={() => handleTemplateSelect(templateLabel)}
-                              sx={{
-                                flexShrink: 0,
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                p: '8px 24px',
-                                height: '40px',
-                                borderRadius: '8px',
-                                backgroundColor:
-                                  activeTemplate === templateLabel
-                                    ? theme.palette.secondary.dark
-                                    : theme.palette.customColors.mdAntzNeutral,
-                                cursor: 'pointer'
-                              }}
-                            >
-                              <Typography
-                                sx={{
-                                  color:
-                                    activeTemplate === templateLabel
-                                      ? theme.palette.primary.contrastText
-                                      : theme.palette.customColors.neutralPrimary,
-                                  whiteSpace: 'nowrap'
-                                }}
-                              >
-                                {templateLabel}
-                              </Typography>
-                            </Box>
-                          )
-                        })}
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
+            <TemplateSection
+              label='Enter surgery notes'
+              value={richNote}
+              onChange={setRichNote}
+              hospitalId={DEFAULT_HOSPITAL_ID}
+              templateType='surgery'
+            />
 
             <ControlledTextField
               name={'complication'}
@@ -1572,6 +1135,7 @@ const AddSurgeryRecord = () => {
                 onClick={handleSelectanesthesiaRecord}
                 sx={{
                   backgroundColor: theme.palette.primary.light,
+
                   // width: 141,
                   cursor: 'pointer',
                   height: 36,
@@ -1835,7 +1399,7 @@ const AddSurgeryRecord = () => {
           bottom: 0,
           left: 0,
           right: 0,
-          zIndex: 5,
+          zIndex: 11,
           backgroundColor: theme.palette.primary.contrastText,
           boxShadow: `0px -8px 12px 0px ${theme.palette.customColors.shadowColor}`,
           height: { sm: '108px' },
@@ -1904,15 +1468,8 @@ const AddSurgeryRecord = () => {
         onSelect={handleAnesthesiaRecordSelect}
         onConfirm={handleConfirmAnesthesiaRecord}
       />
-      <SurgeryRecordTemplateList
-        setOpenSurgeryTemplateDrawer={setOpenSurgeryTemplateDrawer}
-        openSurgeryTemplateDrawer={openSurgeryTemplateDrawer}
-        templates={surgeryTemplates}
-        loading={isTemplatesLoading}
-        onApplyTemplate={applyTemplateToRichNote}
-      />
     </Box>
   )
 }
 
-export default AddSurgeryRecord
+export default enforceModuleAccess(AddSurgeryRecord, 'add_hospital')

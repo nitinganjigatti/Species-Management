@@ -159,7 +159,7 @@ const HospitalAnalytics = ({ disabled = false }) => {
             </Grid>
 
             {/* Site Information */}
-            <Grid item xs={12} md={3}>
+            {/* <Grid item xs={12} md={3}>
               <Box>
                 {isHospitalStatsLoading ? (
                   <ShimmerBox width='100px' height='24px' mb={1} />
@@ -185,7 +185,7 @@ const HospitalAnalytics = ({ disabled = false }) => {
                   Site
                 </Typography>
               </Box>
-            </Grid>
+            </Grid> */}
           </Grid>
         </CardContent>
       </Card>

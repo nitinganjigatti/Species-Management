@@ -92,15 +92,19 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
                   {symptom.name}
                 </Typography>
                 <Typography
-                  variant='body2'
                   sx={{
                     textAlign: 'left',
-                    background: theme.palette.customColors.tableHeaderBg,
+                    background:
+                      symptom.clinicalAsmnt === 'Differential'
+                        ? theme.palette.customColors.antzNotes
+                        : theme.palette.customColors.tableHeaderBg,
                     color: theme.palette.customColors.OnSecondaryContainer,
                     borderRadius: '4px',
                     border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
                     px: 3.5,
                     py: 1,
+                    fontSize: '16px',
+                    fontWeight: 500,
                     width: 'fit-content',
                     minWidth: 'auto',
                     display: 'inline'

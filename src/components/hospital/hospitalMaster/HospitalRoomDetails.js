@@ -45,6 +45,8 @@ import {
   updateHospitalStatus
 } from 'src/lib/api/hospital/hospitalRooms'
 
+// import UpdateHospitalDrawer from 'src/views/pages/hospital/masters/hospital/UpdateHospitalDrawer'
+
 const HospitalRoomDetails = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -57,6 +59,8 @@ const HospitalRoomDetails = () => {
   const [editParams, setEditParams] = useState(null)
   const [hospitalStatusEdit, setHospitalStatusEdit] = useState(null)
   const [isStatusUpdating, setIsStatusUpdating] = useState(false)
+  const [hospitalDetails, setHospitalDetails] = useState(null)
+  const [isHospitalActive, setIsHospitalActive] = useState(false)
 
   const [filterCount, setFilterCount] = useState(0)
   const [appliedFilters, setAppliedFilters] = useState({})
@@ -137,7 +141,7 @@ const HospitalRoomDetails = () => {
   }, [router.isReady, router.query, id])
 
   // fetch room list
-  const queryKey = useMemo(() => ['room-list', filters], [filters])
+  const queryKey = useMemo(() => ['room-list', id, filters], [id, filters])
 
   const {
     data: roomData,
@@ -156,61 +160,74 @@ const HospitalRoomDetails = () => {
           status: filters.status || undefined
         }
       }),
-    enabled: !!id,
-    keepPreviousData: true,
-    staleTime: 60 * 1000
+    enabled: router.isReady && !!id
   })
 
   const rows = useMemo(() => roomData?.data?.records || [], [roomData?.data?.records])
   const total = useMemo(() => roomData?.data?.total || 0, [roomData?.data?.total])
 
-  // Hospital details from room data
-  const hospitalDetails = useMemo(() => {
-    return roomData?.data?.hospital_detail || null
+  useEffect(() => {
+    if (roomData?.data?.hospital_detail) {
+      setHospitalDetails(roomData?.data?.hospital_detail)
+      setIsHospitalActive(Number(roomData?.data?.hospital_detail?.is_active))
+    }
   }, [roomData?.data?.hospital_detail])
 
-  const isActive = useMemo(() => {
-    if (!hospitalDetails) return false
-    const rawActive = hospitalDetails.active
-
-    return rawActive === 1 || rawActive === '1' || rawActive === true
-  }, [hospitalDetails])
-
   // Toggle hospital status
-  const handleHospitalStatus = useCallback(
-    async event => {
-      if (Number(hospitalDetails?.no_of_occupied) !== 0) {
-        setIsOccupiedRoomWarningOpen(true)
+  // const handleHospitalStatus = useCallback(
+  //   async event => {
+  //     if (hospitalDetails?.no_of_occupied !== null && Number(hospitalDetails?.no_of_occupied) !== 0) {
+  //       setIsOccupiedRoomWarningOpen(true)
 
-        return
-      }
+  //       return
+  //     }
 
-      const checked = event.target.checked
-      setIsStatusUpdating(true)
+  //     const checked = event.target.checked
+  //     setIsStatusUpdating(true)
 
-      try {
-        const payload = { hospital_id: id, active: checked ? 1 : 0 }
-        const response = await updateHospitalStatus(payload)
+  //     try {
+  //       const payload = { hospital_id: id, active: checked ? 1 : 0 }
+  //       const response = await updateHospitalStatus(payload)
 
-        if (response?.success) {
-          Toaster({
-            type: 'success',
-            message: response?.message || `Hospital ${checked ? 'activated' : 'deactivated'} successfully`
-          })
-          setHospitalStatusEdit({ hospital_id: id, active: checked ? 1 : 0 })
-          refetchRooms()
-        } else {
-          throw new Error(response.message || 'Failed to update hospital status')
-        }
-      } catch (error) {
-        console.error('Status update failed:', error)
-        Toaster({ type: 'error', message: error?.message || 'An unexpected error occurred' })
-      } finally {
-        setIsStatusUpdating(false)
-      }
-    },
-    [hospitalDetails, id, refetchRooms]
-  )
+  //       if (response?.success) {
+  //         Toaster({
+  //           type: 'success',
+  //           message: response?.message || `Hospital ${checked ? 'activated' : 'deactivated'} successfully`
+  //         })
+
+  //         // setHospitalStatusEdit({ hospital_id: id, active: checked ? 1 : 0 })
+  //         setIsHospitalActive(checked)
+
+  //         // Correct cache update
+  //         queryClient.setQueryData(['room-list', filters], old => {
+  //           if (!old?.data) return old
+
+  //           return {
+  //             ...old,
+  //             data: {
+  //               ...old.data,
+  //               hospital_detail: {
+  //                 ...old.data.hospital_detail,
+  //                 is_active: checked ? 1 : 0
+  //               }
+  //             }
+  //           }
+  //         })
+
+  //         // refetchRooms()
+  //       } else {
+  //         throw new Error(response.message || 'Failed to update hospital status')
+  //       }
+  //     } catch (error) {
+  //       console.error('Status update failed:', error || error?.message)
+  //       Toaster({ type: 'error', message: error?.message || 'An unexpected error occurred' })
+  //       refetchRooms() // Revert optimistic update on error
+  //     } finally {
+  //       setIsStatusUpdating(false)
+  //     }
+  //   },
+  //   [hospitalDetails, id, filters, queryClient, refetchRooms]
+  // )
 
   // Pagination
   const handlePaginationChange = useCallback(
@@ -280,14 +297,14 @@ const HospitalRoomDetails = () => {
   }, [])
 
   const openEditHospitalDrawer = useCallback(() => {
-    if (Number(hospitalDetails.no_of_occupied) !== 0) {
+    if (hospitalDetails?.no_of_occupied !== null || Number(hospitalDetails?.no_of_occupied) !== 0) {
       setIsOccupiedRoomWarningOpen(true)
     } else {
       setEditParams(null)
-      setHospitalStatusEdit({ hospital_id: id, active: isActive ? 1 : 0 })
+      setHospitalStatusEdit({ hospital_id: id, active: isHospitalActive ? 1 : 0 })
       setOpenDrawer(true)
     }
-  }, [id, isActive, hospitalDetails])
+  }, [id, isHospitalActive, hospitalDetails])
 
   const closeDrawer = useCallback(() => {
     setOpenDrawer(false)
@@ -333,10 +350,8 @@ const HospitalRoomDetails = () => {
 
       try {
         if (type === 'hospital') {
-          const updatePayload = { ...payload, site_id: 1, hospital_id: id }
-          const response = await updateHospitalMaster(id, updatePayload)
-
-          if (response?.success) {
+          const response = await updateHospitalMaster(id, payload)
+          if (response?.status) {
             try {
               queryClient.setQueryData(['room-list', filters], old => {
                 if (!old?.data) return old
@@ -370,7 +385,7 @@ const HospitalRoomDetails = () => {
           }
         }
       } catch (error) {
-        console.error('Error submitting data:', error)
+        console.error('Error submitting data:', error || error?.message)
         Toaster({ type: 'error', message: error?.message || 'An unexpected error occurred' })
       } finally {
         setSubmitLoader(false)
@@ -538,15 +553,15 @@ const HospitalRoomDetails = () => {
           }
           action={
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
-              <FormControlLabel
+              {/* <FormControlLabel
                 control={
                   isStatusUpdating ? (
                     <CircularProgress size={20} sx={{ ml: 4 }} />
                   ) : (
-                    <Switch size='small' onChange={handleHospitalStatus} checked={Boolean(isActive)} />
+                    <Switch size='small' onChange={handleHospitalStatus} checked={isHospitalActive} />
                   )
                 }
-                label={isStatusUpdating ? 'Loading...' : isActive ? 'Active' : 'Inactive'}
+                label={isStatusUpdating ? 'Loading...' : isHospitalActive ? 'Active' : 'Inactive'}
                 labelPlacement='start'
                 sx={{
                   margin: 0,
@@ -555,7 +570,8 @@ const HospitalRoomDetails = () => {
                     color: theme.palette.customColors.OnSurfaceVariant
                   }
                 }}
-              />
+              /> */}
+
               <Tooltip title='Edit'>
                 <IconButton onClick={openEditHospitalDrawer} size='small'>
                   <Icon icon='mdi:pencil-outline' style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
@@ -641,7 +657,7 @@ const HospitalRoomDetails = () => {
           editParams={editParams}
           hospitalDetails={hospitalDetails}
           hospitalId={id}
-          isActive={isActive}
+          isActive={isHospitalActive}
           hospitalStatus={hospitalStatusEdit}
         />
       )}

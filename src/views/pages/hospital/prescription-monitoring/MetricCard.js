@@ -39,7 +39,6 @@ const MetricCard = ({
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <Box
           sx={{
-            fontFamily: 'Inter, sans-serif',
             fontWeight: 500,
             fontSize: '16px',
             lineHeight: '100%',
@@ -52,25 +51,20 @@ const MetricCard = ({
           }}
         >
           {(metric?.status === 'stopped' || metric?.status === 'skipped') && (
-            <Icon
-              icon={metric?.status === 'stopped' ? 'jam:stop-sign' : 'mingcute:check-fill'}
-              color={
-                metric?.status === 'stopped'
-                  ? theme.palette.customColors.Tertiary
-                  : theme.palette.customColors.OnSurface
-              }
-              width='16px'
-              height='16px'
+            <Box
+              component='img'
+              src={metric?.status === 'stopped' ? '/images/hospital/stop.svg' : '/images/hospital/skip.svg'}
+              alt={metric?.status === 'stopped' ? 'Stopped' : 'Skipped'}
+              sx={{
+                width: '16px',
+                height: '16px'
+              }}
             />
           )}
-          {!metric?.canEdit && (
+          {metric?.status === 'administered' && (
             <Icon
-              icon={metric?.status === 'stopped' ? 'jam:stop-sign' : 'mingcute:check-fill'}
-              color={
-                metric?.status === 'stopped'
-                  ? theme.palette.customColors.Tertiary
-                  : theme.palette.customColors.OnSurface
-              }
+              icon={'mingcute:check-fill'}
+              color={theme.palette.customColors.OnSurface}
               width='16px'
               height='16px'
             />

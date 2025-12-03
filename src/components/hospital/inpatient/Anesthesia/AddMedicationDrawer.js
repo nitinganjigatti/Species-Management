@@ -81,7 +81,10 @@ function AddMedicationDrawer({
   drugOptions = [],
   purposeStageOptions = [],
   unitList = [],
-  deliveryRouteOptions = []
+  deliveryRouteOptions = [],
+  onLoadMoreDrugs,
+  hasMoreDrugs = false,
+  isLoadingDrugs = false
 }) {
   const theme = useTheme()
   const [selectedStatus, setSelectedStatus] = useState(null)
@@ -239,6 +242,24 @@ function AddMedicationDrawer({
                       {option.name}
                     </li>
                   )}
+                  loading={isLoadingDrugs}
+                  autocompleteProps={{
+                    slotProps: {
+                      listbox: {
+                        onScroll: event => {
+                          const listboxNode = event.currentTarget
+                          const scrollBottom = listboxNode.scrollTop + listboxNode.clientHeight
+                          const threshold = listboxNode.scrollHeight - 50
+
+                          if (scrollBottom >= threshold) {
+                            if (hasMoreDrugs && !isLoadingDrugs && typeof onLoadMoreDrugs === 'function') {
+                              onLoadMoreDrugs()
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }}
                 />
               </Grid>
               {console.log(purposeStageOptions, 'purposeStageOptions')}

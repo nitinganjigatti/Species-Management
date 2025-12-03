@@ -1,4 +1,4 @@
-import { Card, Typography, Box, styled, CardContent, alpha, Skeleton, Button } from '@mui/material'
+import { Card, Typography, Box, styled, CardContent, alpha, Skeleton, Button, Tooltip } from '@mui/material'
 import { Grid } from '@mui/material'
 import React, { useState } from 'react'
 import { useTheme } from '@emotion/react'
@@ -11,6 +11,7 @@ import AddPatientDrawer from 'src/components/hospital/drawer/AddPatientDrawer'
 
 const PatientCard = ({ patientData, animalData, loading, refetch }) => {
   const theme = useTheme()
+  console.log(patientData)
 
   const isPatientDischarged = patientData?.status === 'discharge' ? true : false
 
@@ -21,7 +22,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch }) => {
     { type: 'admitted_on', value: patientData?.admitted_at },
     { type: 'admitted_by', value: patientData?.admitted_by_full_name },
     { type: 'admitted_for', value: patientData?.admitted_for_day },
-    { type: 'holding_location', value: patientData?.bed_name }
+    { type: 'holding_location', value: `${patientData?.bed_name}, ${patientData?.room_name}` }
   ]
   if (isPatientDischarged) {
     admissionData.push(
@@ -93,7 +94,28 @@ const PatientCard = ({ patientData, animalData, loading, refetch }) => {
                       </>
                     ) : (
                       <>
-                        <VisitType title={patientData?.treatment_type} />
+                        {patientData?.status === 'discharge' ? (
+                          <>
+                            <Typography
+                              sx={{
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                color: theme.palette.customColors.Tertiary,
+                                px: 2,
+                                py: 1,
+                                background: alpha(theme.palette.customColors.Tertiary, 0.3),
+                                borderRadius: 0.5,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              DISCHARGED
+                            </Typography>
+                          </>
+                        ) : (
+                          <VisitType title={patientData?.treatment_type} />
+                        )}
                         <VisitType title={patientData?.visit_type} />
                       </>
                     )}
@@ -127,7 +149,23 @@ const PatientCard = ({ patientData, animalData, loading, refetch }) => {
                           />
                         </>
                       )}
-                      <StyledTypography>Chief veterinarian : {patientData?.attend_by_full_name}</StyledTypography>
+                      <Box sx={{ maxWidth: { xs: '400px', sm: '450px', md: '450px', lg: '600px' } }}>
+                        <Tooltip title={patientData?.attend_by_full_name || ''}>
+                          <Typography
+                            sx={{
+                              fontSize: '1rem',
+                              fontWeight: 400,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Chief veterinarian : {patientData?.attend_by_full_name}
+                          </Typography>
+                        </Tooltip>
+                      </Box>
                     </>
                   )}
                 </Box>
@@ -200,8 +238,8 @@ const PatientCard = ({ patientData, animalData, loading, refetch }) => {
                 sx={{
                   background: `linear-gradient(90deg, ${alpha(
                     theme.palette.customColors.SecondaryContainer,
-                    0.6
-                  )}, ${alpha(theme.palette.customColors.TertiaryContainer, 0.6)})`,
+                    0.25
+                  )}, ${alpha(theme.palette.customColors.TertiaryContainer, 0.25)})`,
                   py: 4,
                   px: 6,
                   borderRadius: 1,

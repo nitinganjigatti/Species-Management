@@ -23,6 +23,7 @@ const SurgeryRecordTemplateList = ({
   const [openEditPopup, setOpenEditPopup] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState(null)
   const [actionLoading, setActionLoading] = useState(false)
+  const [deletingTemplateId, setDeletingTemplateId] = useState(null)
 
   // Filter templates based on search
   const filteredTemplates = useMemo(() => {
@@ -134,6 +135,7 @@ const SurgeryRecordTemplateList = ({
 
       try {
         setActionLoading(true)
+        setDeletingTemplateId(templateId)
         const response = await deleteTemplate({ id: templateId })
 
         if (response?.success) {
@@ -161,6 +163,7 @@ const SurgeryRecordTemplateList = ({
         })
       } finally {
         setActionLoading(false)
+        setDeletingTemplateId(null)
       }
     },
     [editingTemplate, onTemplatesUpdated, selectedTemplate]
@@ -270,6 +273,8 @@ const SurgeryRecordTemplateList = ({
                   onSelect={handleTemplateSelect}
                   onEdit={handleEditTemplateOpen}
                   onDelete={() => handleDeleteTemplate(template.id)}
+                  disabled={actionLoading}
+                  isDeleting={deletingTemplateId === template.id}
                 />
               ))
             ) : (

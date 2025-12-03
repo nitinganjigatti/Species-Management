@@ -3,6 +3,7 @@ import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import React from 'react'
 import AnimalCard from './AnimalCard'
+import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 
 const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelete, radio = false, sx }) => {
   const theme = useTheme()
@@ -30,6 +31,13 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelet
           <AnimalCard data={data} size={size} animal={animal} />
 
           {/* Right-aligned Radio Button */}
+
+          {data?.in_transit === '1' ? (
+            <Box>
+              <MedicalIdChip medId='In Transit' backgroundColor={theme.palette.customColors.mdAntzNeutral} />
+            </Box>
+          ) : null}
+
           {radio && (
             <Box>
               <Radio

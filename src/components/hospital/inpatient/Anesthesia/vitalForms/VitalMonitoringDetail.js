@@ -144,7 +144,7 @@ export default function VitalMonitoringDetail({ data }) {
                       {value ? (
                         <Typography sx={{ fontSize: '16px', fontWeight: 500 }}>{value}</Typography>
                       ) : (
-                        <AddRoundedIcon sx={{ fontSize: 20, color: colors.dashedBorder }} />
+                        <AddRoundedIcon sx={{ fontSize: 20, color: colors.dashedBorder, display: 'none' }} />
                       )}
                     </Box>
                   )
@@ -153,7 +153,7 @@ export default function VitalMonitoringDetail({ data }) {
             ))}
 
             {/* Add Column */}
-            <Box sx={{ display: 'grid', rowGap: '8px' }}>
+            {/* <Box sx={{ display: 'grid', rowGap: '8px' }}>
               {rowLabels.map((label, index) => (
                 <Box
                   key={`add-${label}`}
@@ -171,7 +171,7 @@ export default function VitalMonitoringDetail({ data }) {
                   {index === 0 ? <AddRoundedIcon sx={{ color: theme.palette.primary.main }} /> : null}
                 </Box>
               ))}
-            </Box>
+            </Box> */}
           </Box>
         </Box>
       </Box>

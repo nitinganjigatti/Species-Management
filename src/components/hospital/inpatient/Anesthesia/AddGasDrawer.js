@@ -74,7 +74,10 @@ function AddGasDrawer({
   submitLoader,
   editData,
   gasOptions = [],
-  deliveryRouteOptions = []
+  deliveryRouteOptions = [],
+  onLoadMoreDrugs,
+  hasMoreDrugs = false,
+  isLoadingDrugs = false
 }) {
   const theme = useTheme()
   const [selectedStatus, setSelectedStatus] = useState(null)
@@ -228,6 +231,24 @@ function AddGasDrawer({
                       {option.name}
                     </li>
                   )}
+                  loading={isLoadingDrugs}
+                  autocompleteProps={{
+                    slotProps: {
+                      listbox: {
+                        onScroll: event => {
+                          const listboxNode = event.currentTarget
+                          const scrollBottom = listboxNode.scrollTop + listboxNode.clientHeight
+                          const threshold = listboxNode.scrollHeight - 50
+
+                          if (scrollBottom >= threshold) {
+                            if (hasMoreDrugs && !isLoadingDrugs && typeof onLoadMoreDrugs === 'function') {
+                              onLoadMoreDrugs()
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }}
                 />
               </Grid>
               <Grid size={{ xs: 6 }}>

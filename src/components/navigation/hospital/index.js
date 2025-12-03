@@ -1,4 +1,4 @@
-const composeHospitalNavigation = () => {
+const composeHospitalNavigation = havePermissionToAddHospital => {
   const Title = {
     sectionTitle: 'Hospital'
   }
@@ -46,11 +46,11 @@ const composeHospitalNavigation = () => {
     icon: 'tabler:align-box-top-left'
   }
 
-  const roomsAndEnclosures = {
-    title: 'Rooms / Enclosures',
-    path: '/hospital/rooms-and-enclosures',
-    icon: 'tabler:align-box-top-left'
-  }
+  // const roomsAndEnclosures = {
+  //   title: 'Rooms / Enclosures',
+  //   path: '/hospital/rooms-and-enclosures',
+  //   icon: 'tabler:align-box-top-left'
+  // }
 
   const hospitalMastersParent = {
     title: 'Masters',
@@ -60,15 +60,15 @@ const composeHospitalNavigation = () => {
     children: []
   }
 
-  const monitoringMaster = {
-    title: 'Monitoring',
-    path: '/hospital/masters/monitoring'
-  }
+  // const monitoringMaster = {
+  //   title: 'Monitoring',
+  //   path: '/hospital/masters/monitoring'
+  // }
 
-  const anesthesiaMaster = {
-    title: 'Anesthesia',
-    path: '/hospital/masters/anesthesia'
-  }
+  // const anesthesiaMaster = {
+  //   title: 'Anesthesia',
+  //   path: '/hospital/masters/anesthesia'
+  // }
 
   const surgeryMaster = {
     title: 'Surgery',
@@ -87,19 +87,22 @@ const composeHospitalNavigation = () => {
   patientsParent.children.push(mortality)
   patientsParent.children.push(followUp)
 
-  hospitalMastersParent.children.push(monitoringMaster)
-  hospitalMastersParent.children.push(anesthesiaMaster)
+  // hospitalMastersParent.children.push(monitoringMaster)
+  // hospitalMastersParent.children.push(anesthesiaMaster)
   hospitalMastersParent.children.push(surgeryMaster)
-  hospitalMastersParent.children.push(hospitalMaster)
+
+  if (havePermissionToAddHospital) {
+    hospitalMastersParent.children.push(hospitalMaster)
+  }
 
   const hospitalNavigationArray = []
 
   hospitalNavigationArray.push(Title)
-  hospitalNavigationArray.push(patientsParent, roomsAndEnclosures, doctorsANdStaffs, hospitalMastersParent)
+  hospitalNavigationArray.push(patientsParent, doctorsANdStaffs, hospitalMastersParent)
 
   return hospitalNavigationArray
 }
 
-const hospitalNavigation = () => composeHospitalNavigation()
+const hospitalNavigation = havePermissionToAddHospital => composeHospitalNavigation(havePermissionToAddHospital)
 
 export default hospitalNavigation
