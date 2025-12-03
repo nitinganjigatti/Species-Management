@@ -44,7 +44,8 @@ import {
   updateHospitalRoom,
   updateHospitalStatus
 } from 'src/lib/api/hospital/hospitalRooms'
-import UpdateHospitalDrawer from 'src/views/pages/hospital/masters/hospital/UpdateHospitalDrawer'
+
+// import UpdateHospitalDrawer from 'src/views/pages/hospital/masters/hospital/UpdateHospitalDrawer'
 
 const HospitalRoomDetails = () => {
   const theme = useTheme()
