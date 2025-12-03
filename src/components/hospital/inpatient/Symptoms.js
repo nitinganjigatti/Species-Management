@@ -8,10 +8,14 @@ import { useTheme } from '@mui/material/styles'
 import { getSymptomsList } from 'src/lib/api/hospital/symptoms'
 import SymptomsCard from 'src/views/pages/hospital/inpatient/SymptomsCard'
 import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+
+const STORAGE_KEY = 'medical_record_data'
 
 const Symptoms = ({ selectedTab, patientData }) => {
   const router = useRouter()
-  const { id, animal_id } = router.query
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [currentRecordOnly, setCurrentRecordOnly] = useState(false)
@@ -22,6 +26,9 @@ const Symptoms = ({ selectedTab, patientData }) => {
   const [page, setPage] = useState(1)
   const [isFetchingMore, setIsFetchingMore] = useState(false)
 
+  const { id } = router.query
+  const animalId = medicalRecordData?.animal_id
+  const medicalRecordId = medicalRecordData?.medical_record_id
   const theme = useTheme()
   const observerRef = useRef(null)
 
@@ -39,31 +46,35 @@ const Symptoms = ({ selectedTab, patientData }) => {
 
   const fetchSymptoms = async (query = '', newPage = 1, append = false) => {
     try {
-      if (newPage === 1) setLoading(true)
-      else setIsFetchingMore(true)
+      if (animalId !== undefined) {
+        if (newPage === 1) setLoading(true)
+        else setIsFetchingMore(true)
 
-      const params = {
-        type: tabTypeMap[currentTab],
-        page_no: newPage,
-        limit: 20,
-        medical_type: 'complaint',
-        q: query,
-        hospital_case_id: patientData?.hospital_case_id
-      }
-
-      if (currentRecordOnly && patientData?.medical_record_id) {
-        params.medical_record_id = patientData?.medical_record_id
-      }
-
-      const response = await getSymptomsList(animal_id, params)
-
-      if (response.success === true) {
-        if (newPage > 1 && response?.data?.result?.length === 0) {
-          return
+        const params = {
+          type: tabTypeMap[currentTab],
+          page_no: newPage,
+          limit: 20,
+          medical_type: 'complaint',
+          q: query,
+          hospital_case_id: id
         }
-        setRecords(prevRecords => (append ? [...prevRecords, ...response?.data?.result] : response?.data?.result || []))
-        setRecordTypeCount(response?.data)
-        setTotalCount(response?.data?.total_count || 0)
+
+        if (currentRecordOnly && medicalRecordId) {
+          params.medical_record_id = medicalRecordId
+        }
+
+        const response = await getSymptomsList(animalId, params)
+
+        if (response.success === true) {
+          if (newPage > 1 && response?.data?.result?.length === 0) {
+            return
+          }
+          setRecords(prevRecords =>
+            append ? [...prevRecords, ...response?.data?.result] : response?.data?.result || []
+          )
+          setRecordTypeCount(response?.data)
+          setTotalCount(response?.data?.total_count || 0)
+        }
       }
     } catch (error) {
       console.error('Error fetching symptoms:', error)
@@ -78,7 +89,7 @@ const Symptoms = ({ selectedTab, patientData }) => {
       setPage(1)
       fetchSymptoms(query, 1, false)
     }, 500),
-    [currentTab, patientData, animal_id, currentRecordOnly]
+    [currentTab, patientData, animalId, currentRecordOnly]
   )
 
   const handleTabChange = newValue => {
@@ -97,7 +108,7 @@ const Symptoms = ({ selectedTab, patientData }) => {
         fetchSymptoms('', 1, false)
       }
     }
-  }, [selectedTab, currentTab, searchQuery, currentRecordOnly])
+  }, [selectedTab, currentTab, searchQuery, currentRecordOnly, patientData, animalId])
 
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect()
@@ -198,24 +209,21 @@ const Symptoms = ({ selectedTab, patientData }) => {
             <Button
               variant='contained'
               startIcon={<AddIcon />}
-              onClick={() =>
-                router.push(
-                  `/hospital/inpatient/${id}/symptoms/?animal_id=${animal_id}&medical_record_id=${patientData?.medical_record_id}`
-                )
-              }
+              onClick={() => router.push(`/hospital/inpatient/${id}/symptoms/`)}
             >
               ADD NEW
             </Button>
           </Box>
         </Box>
-
-        <MUISwitch
-          label='Current Medical Record Only'
-          checked={currentRecordOnly}
-          onChange={e => setCurrentRecordOnly(e.target.checked)}
-          size='small'
-          sx={{ ml: 2.6 }}
-        />
+        <Box>
+          <MUISwitch
+            label='Current Medical Record Only'
+            checked={currentRecordOnly}
+            onChange={e => setCurrentRecordOnly(e.target.checked)}
+            size='small'
+            sx={{ ml: 2.6 }}
+          />
+        </Box>
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -245,6 +253,7 @@ const Symptoms = ({ selectedTab, patientData }) => {
               isDifferential={record.type === 'Differential'}
               isResolved={record.status === 'closed'}
               fetchSymptoms={fetchSymptoms}
+              patientData={patientData}
             />
           ))
         )}

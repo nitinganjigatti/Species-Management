@@ -21,16 +21,8 @@ import Utility from 'src/utility'
 
 // Validation schema
 const mortalitySchema = yup.object({
-  date_of_death: yup
-    .date()
-    .nullable()
-    .required('Date of death is required')
-    .max(new Date(), 'Date of death cannot be in the future'),
-  time_of_death: yup
-    .date()
-    .nullable()
-    .required('Time of death is required')
-    .max(new Date(), 'Time of death cannot be in the future'),
+  date_of_death: yup.date().nullable().required('Date of death is required'),
+  time_of_death: yup.date().nullable().required('Time of death is required'),
   manner_of_death: yup
     .object({
       value: yup.string().required(),
@@ -86,24 +78,21 @@ const MortalityDischargeForm = props => {
 
   const theme = useTheme()
   const router = useRouter()
-  const { id, animal_id } = router.query
+  const { id } = router.query
 
-  const defaultValues = useMemo(
-    () => ({
-      discharge_type: 'Mortality',
-      date_of_death: null,
-      time_of_death: null,
-      manner_of_death: null,
-      carcass_condition: null,
-      carcass_disposition: null,
-      reason: '',
-      necropsy_requested: false,
-      priority: 'high',
-      necropsy_reason: '',
-      attachments: []
-    }),
-    []
-  )
+  const defaultValues = {
+    discharge_type: 'Mortality',
+    date_of_death: dayjs(),
+    time_of_death: dayjs(),
+    manner_of_death: null,
+    carcass_condition: null,
+    carcass_disposition: null,
+    reason: '',
+    necropsy_requested: false,
+    priority: 'high',
+    necropsy_reason: '',
+    attachments: []
+  }
 
   const {
     control,
@@ -147,7 +136,7 @@ const MortalityDischargeForm = props => {
 
   // strict time limits for death time
   const selectedDateOfDeath = watch('date_of_death')
-  const admittedAtLocal = dayjs(Utility.convertUTCToLocal(patientData?.admitted_at))
+  const admittedAtLocal = dayjs(patientData?.admitted_at)
   const now = dayjs()
 
   let minTime = null
@@ -167,17 +156,13 @@ const MortalityDischargeForm = props => {
     }
   }
 
-  // Disable selecting past/future times based on rules
   const shouldDisableDeathTime = (timeValue, clockType) => {
-    if (timeValue === null || timeValue === undefined) return false
+    if (timeValue == null) return false
 
-    const t = dayjs().set(clockType, timeValue)
+    const t = dayjs(selectedDateOfDeath).set(clockType, timeValue)
 
-    // Disable earlier than admission time
-    if (minTime && t.isBefore(minTime, clockType)) return true
-
-    // Disable future time (current day)
-    if (maxTime && t.isAfter(maxTime, clockType)) return true
+    if (minTime && t.isBefore(minTime)) return true
+    if (maxTime && t.isAfter(maxTime)) return true
 
     return false
   }
@@ -186,7 +171,7 @@ const MortalityDischargeForm = props => {
   const onSubmit = async formData => {
     const payload = {
       hospital_case_id: id,
-      animal_id: animal_id,
+      animal_id: patientData?.animal_detail?.animal_id,
       discharge_type: watchDischargeType,
       date_of_death: formData.date_of_death,
       time_of_death: formData.time_of_death,
@@ -203,7 +188,7 @@ const MortalityDischargeForm = props => {
 
     const success = await handleSubmitData(payload)
     if (success) {
-      reset(defaultValues)
+      reset()
     }
   }
 

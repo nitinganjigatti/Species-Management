@@ -419,7 +419,9 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
                   <Checkbox
                     checked={isSelected}
                     disableRipple
-                    inputProps={{ readOnly: true }}
+                    slotProps={{
+                      input: { readOnly: true }
+                    }}
                     sx={{ pointerEvents: 'none' }}
                   />
                 </ToggleButton>

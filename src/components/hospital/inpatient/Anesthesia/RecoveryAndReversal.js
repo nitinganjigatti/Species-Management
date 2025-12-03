@@ -29,6 +29,9 @@ function RecoveryAndReversal({
   const [submitLoader, setSubmitLoader] = useState(false)
   const [deliveryRouteOptionsState, setDeliveryRouteOptionsState] = useState([])
   const [medicationGasList, setMedicationGasList] = useState([])
+  const [productPage, setProductPage] = useState(1)
+  const [productTotal, setProductTotal] = useState(0)
+  const [isProductLoading, setIsProductLoading] = useState(false)
 
   const {
     control,
@@ -36,11 +39,11 @@ function RecoveryAndReversal({
     formState: { errors }
   } = useFormContext()
   const reversalDrugs = watch('recoveryAndReversal.reversalDrugs') || []
-
+  const recoveryType = watch('recoveryAndReversal.recovery_type')
   const fetchDeliveryList = async () => {
     try {
       const response = await deliveryRouteList()
-      console.log(response, 'response')
+
       if (response?.success && response?.data?.length > 0) {
         setDeliveryRouteOptionsState(response?.data)
       } else {
@@ -49,30 +52,45 @@ function RecoveryAndReversal({
     } catch (error) {}
   }
 
-  const fetchMedicationGasList = async () => {
+  const fetchMedicationGasList = async (pageToLoad = 1, append = false) => {
+    if (isProductLoading) return
+
+    setIsProductLoading(true)
     const params = {
       sort: 'asc',
       q: '',
       limit: 50,
-      column: 'package'
+      column: 'package',
+      page: pageToLoad
     }
     try {
       const response = await getProductList({ params })
-      console.log(response, 'response')
+
       if (response?.success && response?.data?.list_items?.length > 0) {
-        setMedicationGasList(response?.data?.list_items)
+        const newItems = response?.data?.list_items || []
+        const totalCount = response?.data?.total_count || 0
+
+        setProductTotal(totalCount)
+        setMedicationGasList(prev => (append ? [...prev, ...newItems] : newItems))
+        setProductPage(pageToLoad)
       } else {
-        Toaster({ type: 'error', message: response?.message })
+        Toaster({ type: 'error', message: response?.message || 'Failed to fetch products' })
       }
-    } catch (error) {}
+    } catch (error) {
+      Toaster({ type: 'error', message: 'Failed to fetch products' })
+    } finally {
+      setIsProductLoading(false)
+    }
   }
 
   useEffect(() => {
     if (openDrawer) {
       fetchDeliveryList()
-      fetchMedicationGasList()
+      fetchMedicationGasList(1, false)
     }
   }, [openDrawer])
+
+  const hasMoreProducts = medicationGasList.length < productTotal
 
   const getUnitAbbr = unitId => {
     const unit = unitList?.find(item => String(item.id) === String(unitId))
@@ -135,7 +153,6 @@ function RecoveryAndReversal({
           onAddReversalDrug(normalized)
         }
       } catch (error) {
-        console.error('Error adding/updating reversal drug:', error)
       } finally {
         setSubmitLoader(false)
         setOpenDrawer(false)
@@ -157,12 +174,12 @@ function RecoveryAndReversal({
       minWidth: 80,
       flex: 1,
       sortable: false,
-      renderCell: params => <StyledTypography>{params.row.id}</StyledTypography>
+      renderCell: params => <StyledTypography sx={{ pl: 5 }}>{params.row.id}</StyledTypography>
     },
     {
       field: 'drug_name',
       headerName: 'Drug',
-      minWidth: 220,
+      minWidth: 260,
       flex: 1,
       sortable: false,
       renderCell: params => (
@@ -174,7 +191,7 @@ function RecoveryAndReversal({
             fontSize: '14px',
             fontWeight: 500,
             pl: 2,
-            maxWidth: '200px'
+            maxWidth: '240px'
           }}
         />
       )
@@ -253,7 +270,7 @@ function RecoveryAndReversal({
     display_delivery_time: safeFormat(drug.delivery_time),
     display_max_effect_time: safeFormat(drug.max_effect_time)
   }))
-  console.log(reversalDrugs, 'reversalDrugs')
+
   return (
     <Box>
       {reversalDrugs?.length === 0 ? (
@@ -345,6 +362,7 @@ function RecoveryAndReversal({
               name={'recoveryAndReversal.recovery_first_effect'}
               label='Recovery 1st Effect*'
               errors={errors}
+              inputProps={{ 'data-field': 'recovery_first_effect' }}
             />
           </Grid>
           <Grid size={{ xs: 4 }}>
@@ -353,8 +371,21 @@ function RecoveryAndReversal({
               name={'recoveryAndReversal.recovery_full_effect'}
               label='Recovery Full Effect*'
               errors={errors}
+              inputProps={{ 'data-field': 'recovery_full_effect' }}
             />
           </Grid>
+          {recoveryType === 'Problem' && (
+            <Grid size={{ xs: 12 }}>
+              <ControlledTextArea
+                name='recoveryAndReversal.describe_problem'
+                control={control}
+                label='Describe the Problem'
+                placeholder='Enter'
+                fullWidth={true}
+                rows={1}
+              />
+            </Grid>
+          )}
           <Grid size={{ xs: 12 }}>
             <ControlledTextArea
               name='recoveryAndReversal.notes'
@@ -428,6 +459,13 @@ function RecoveryAndReversal({
           drugOptions={medicationGasList}
           unitList={unitList}
           deliveryRouteOptions={deliveryRouteOptionsState}
+          onLoadMoreDrugs={() => {
+            if (hasMoreProducts && !isProductLoading) {
+              fetchMedicationGasList(productPage + 1, true)
+            }
+          }}
+          hasMoreDrugs={hasMoreProducts}
+          isLoadingDrugs={isProductLoading}
         />
       )}
     </Box>

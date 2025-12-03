@@ -11,7 +11,7 @@ import { updateSymptoms, getNotesListForSymptom } from 'src/lib/api/hospital/sym
 import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 
-const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
+const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData }) => {
   const theme = useTheme()
   const router = useRouter()
   const { id, animal_id } = router.query
@@ -118,7 +118,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
       const payload = {
         main_id: temporarilySelected?.complaint_id,
         med_id: temporarilySelected?.medical_record_id,
-        animal_id: animal_id,
+        animal_id: patientData?.animal_detail?.animal_id,
         type: 'COMPLAINT',
         is_system_generated: isSystemGenerated ? 1 : 0,
         severity: pendingDetails?.severity,

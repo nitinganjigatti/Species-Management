@@ -138,7 +138,11 @@ function ControlledSelectWithTextField({
       duration: theme.transitions.duration.shorter,
       easing: theme.transitions.easing.easeOut
     }),
-    color: shouldShrink ? theme.palette.primary.main : theme.palette.text.secondary
+    color: hasError
+      ? theme.palette.error.main
+      : isFocused
+      ? theme.palette.primary.main
+      : theme.palette.customColors.OnSurfaceVariant
   })
 
   // Prevent scroll wheel on number inputs
@@ -231,7 +235,7 @@ function ControlledSelectWithTextField({
                 htmlFor={`${textFieldName}-input`}
                 error={hasError}
                 shrink={shouldShrink}
-                sx={getLabelSx(shouldShrink, isBackgroundColor)}
+                sx={getLabelSx(shouldShrink, isBackgroundColor, hasError, isFocused)}
               >
                 {/* If label is floating AND input has a background color, render a background */}
                 {shouldShrink && isBackgroundColor ? (
@@ -276,8 +280,17 @@ function ControlledSelectWithTextField({
                 error={hasError}
                 fullWidth={fullWidth}
                 size={size}
+                onChange={e => {
+                  const val = e.target.value
+                  if (type === 'number' && val !== '' && Number(val) < 1) {
+                    field.onChange(1)
+                  } else {
+                    field.onChange(e)
+                  }
+                }}
                 inputProps={{
                   readOnly,
+                  min: 1,
                   ...inputProps
                 }}
                 onWheel={handleWheel} // Prevent number input from changing value on mouse scroll

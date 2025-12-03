@@ -6,9 +6,11 @@ import {
   DIRECT_ADMINISTER_FOR_PAST_SLOT,
   GET_BATCH_LIST,
   GET_FREQUENCY,
+  GET_PRESCRIPTION_BY_RECORD,
   GET_PRESCRIPTION_DETAILS,
   GET_PRESCRIPTION_DETAILS_DATES,
   GET_PRESCRIPTION_LIST,
+  GET_TRANSFER_CHECK,
   SCHEDULE_PRESCRIPTION,
   SKIP_PRESCRIPTION,
   STOP_PRESCRIPTION,
@@ -151,4 +153,21 @@ export async function directAdministerForPatSlot(payLoad) {
   } catch (error) {
     console.error('Error adding prescription:', error.message)
   }
+}
+
+export async function getPrescriptionsByRecord(params) {
+  try {
+    const url = GET_PRESCRIPTION_BY_RECORD
+    const response = await axiosGet({ url, params })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error fetching Prescriptions Record:', error?.message)
+  }
+}
+
+export async function getSecurityCheckForTransfer(siteId) {
+  const response = await axiosGet({ url: `${GET_TRANSFER_CHECK}/${siteId}` })
+
+  return response?.data
 }

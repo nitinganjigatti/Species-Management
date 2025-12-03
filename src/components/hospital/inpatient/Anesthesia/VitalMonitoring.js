@@ -182,13 +182,19 @@ function getCellDisplay(rowKey, entry, timeLabel) {
         if (!obj) return null
         const v = obj.value == null ? '' : String(obj.value).trim()
         if (!v) return null
-        return obj.unit ? `${v} ${obj.unit}` : v
+        return v
       })
       .filter(Boolean)
 
     if (vals.length > 0) {
       // join with " / " (e.g. "120 mmHg / 80 mmHg") — this shows multiple fields like BP
-      return { primary: vals.join(' / '), secondary }
+      //return { primary: vals.join(' / '), secondary }
+      const unitFromFields = Object.values(entry.fieldsById).find(f => f?.unit)?.unit
+      const unit = unitFromFields || entry.unit || ''
+
+      const primary = unit ? `${vals.join(' / ')} ${unit}` : vals.join(' / ')
+
+      return { primary, secondary }
     }
   }
 
@@ -204,7 +210,10 @@ function getCellDisplay(rowKey, entry, timeLabel) {
 
     if (vals.length > 0) {
       const u = entry.unit ? ` ${entry.unit}` : ''
-      return vals.length === 1 ? { primary: `${vals[0]}${u}`, secondary } : { primary: vals.join(' / '), secondary }
+      //const primary = vals.map(v => `${v}${u}`).join(' / ')
+      const primary = vals.length === 1 ? `${vals[0]}${u}` : `${vals.join(' / ')}${u}`
+      return { primary, secondary }
+      //return vals.length === 1 ? { primary: `${vals[0]}${u}`, secondary } : { primary: vals.join(' / '), secondary }
     }
   }
 
@@ -217,13 +226,12 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
   const { control, setValue } = useFormContext()
   const columns = useWatch({ control, name: 'vitalMonitoring' }) || []
   const [isTimeFormOpen, setIsTimeFormOpen] = useState(false)
-  const [activeCell, setActiveCell] = useState(null) // { columnId, rowKey }
+  const [activeCell, setActiveCell] = useState(null)
   const [hasOverflow, setHasOverflow] = useState(false)
   const [isScrolledToEnd, setIsScrolledToEnd] = useState(true)
 
   const scrollContainerRef = useRef(null)
 
-  // build ROWS dynamically: recordedTime first, then each section from vitalMonitorList
   const ROWS = useMemo(() => {
     return [
       { key: 'recordedTime', label: 'Recorded Time' },
@@ -231,7 +239,6 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
     ]
   }, [vitalMonitorList])
 
-  // helper to update columns (persist into form)
   const updateColumns = newColumns => {
     setValue('vitalMonitoring', newColumns, {
       shouldDirty: true,
@@ -294,15 +301,26 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
           newEntry.unit = data.unit
           return
         }
+
         if (k === 'selection') {
           newEntry.selection = data.selection
+
+          if (sectionMeta && Array.isArray(sectionMeta.fields) && sectionMeta.fields.length === 1) {
+            const fld = sectionMeta.fields[0]
+            const fid = String(fld.field_id)
+            fieldsById[fid] = {
+              field_key: fld.field_key,
+              value: data.selection == null ? '' : String(data.selection),
+              unit: (fieldsById[fid] && fieldsById[fid].unit) ?? newEntry.unit ?? null
+            }
+          }
+
           return
         }
 
         const val = data[k]
 
         if (keyToFields[k] && keyToFields[k].length > 0) {
-          let assigned = false
           for (const fld of keyToFields[k]) {
             const fid = String(fld.field_id)
             fieldsById[fid] = {
@@ -310,11 +328,9 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
               value: val == null ? '' : String(val),
               unit: data.unit ?? (fieldsById[fid] && fieldsById[fid].unit) ?? null
             }
-            assigned = true
           }
-          if (!assigned) {
-            newEntry[k] = val
-          }
+
+          newEntry[k] = val
         } else {
           newEntry[k] = val
         }

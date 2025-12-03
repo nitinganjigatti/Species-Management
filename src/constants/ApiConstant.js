@@ -701,7 +701,7 @@ export const GET_MASTERS_HOSPITAL = 'v1/hospital/listing'
 
 export const GET_MASTERS_SURGERY = 'v1/hospital/list-surgery'
 
-export const CREATE_MASTERS_HOSPITAL = 'v1/hospital/create'
+export const CREATE_MASTERS_HOSPITAL = 'v1/entity/types/add'
 
 export const CREATE_MASTERS_SURGERY = 'v1/hospital/create-surgery'
 
@@ -715,7 +715,7 @@ export const DELETE_TEMPLATE = 'v1/hospital/delete-template'
 
 export const UPDATE_TEMPLATE = 'v1/hospital/update-template'
 
-export const UPDATE_MASTERS_HOSPITAL = 'v1/hospital/update'
+export const UPDATE_MASTERS_HOSPITAL = 'v1/entity/types/update'
 
 export const UPDATE_MASTERS_SURGERY = 'v1/hospital/update-surgery'
 
@@ -727,11 +727,15 @@ export const GET_PATIENT_SURGERY_LIST = 'v1/hospital/patient-surgery-list'
 
 export const GET_HOSPITAL_PATIENTS_LISTS = `v1/hospital/get-hospital-patients`
 
+export const GET_NEW_INCOMING_PATIENTS_LISTS = `v1/get-transfer-list`
+
 export const GET_MORTALITY_PATIENTS_LISTS = `v1/hospital/get-mortality-discharge-list`
 
 export const GET_FOLLOWUP_PATIENTS_LISTS = `v1/hospital/get-followup-discharge-list`
 
 export const GET_PATIENTS_DETAILS = `v1/hospital/patient-details/`
+
+export const GET_PATIENT_DETAILS_BY_TRANSFER_ID = `v1/get-transfer-summary`
 
 export const EDIT_PATIENT_DETAILS = `v1/hospital/edit-patient-details`
 
@@ -745,7 +749,7 @@ export const ADMIT_HOSPITAL_PATIENT = `v1/hospital/admit`
 
 export const ANIMAL_MEDICAL_ID_LIST = `medical/v2/`
 
-export const ADD_HOSPITAL_PATIENT = `/v1/create-transfer`
+export const ADD_HOSPITAL_PATIENT = `v1/transfer/create`
 
 export const GET_ANIMAL_TOTAL_HOSPITAL_VISIT = `v1/hospital/get-animal-hospital-visits`
 
@@ -791,7 +795,7 @@ export const DELETE_NOTE_CLINICAL_ASSESSMENT = 'medical/v2/delete-note/diagnosis
 
 // Hospital Analytics
 
-export const HOSPITAL_LISTING = 'v1/hospital/listing'
+export const HOSPITAL_LISTING = 'v1/entity/types/withUserPermission'
 
 export const HOSPITAL_BED_STATS = 'v1/hospital/hospital-bed-stat/'
 
@@ -842,6 +846,10 @@ export const UPDATE_HOSPITAL_ROOM = 'v1/hospital/room/update'
 export const DELETE_HOSPITAL_ROOM = 'v1/hospital/room/delete'
 
 export const HOSPITAL_STATUS_UPDATE = 'v1/hospital/status/update'
+
+//Hospital staff
+
+export const GET_HOSPITAL_STAFF = 'v1/hospital/staff'
 
 //Hospital beds
 
@@ -920,3 +928,5 @@ export const GET_MEDICAL_DELIVERY_ROUTE = `master/get-medical-delivery-route`
 export const GET_VITAL_MONITORING_LIST = `v1/hospital/anaesthesia/sections`
 
 export const GET_ANESTHESIA_DETAIL = `v1/hospital/anaesthesia/detail`
+
+export const GET_TRANSFER_CHECK = `v1/site/transfer/check/authority`

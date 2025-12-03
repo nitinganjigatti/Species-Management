@@ -159,21 +159,28 @@ const AuthProvider = ({ children }) => {
         }
       } else {
         setLoading(false)
+        logOutUser()
+        router.replace('/login')
       }
     }
     initAuth()
   }, [])
 
   const logOutUser = () => {
-    localStorage.removeItem('userData')
-    localStorage.removeItem('userDetails')
-    localStorage.removeItem('refreshToken')
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('provider')
-    localStorage.removeItem('selectedStore')
-    localStorage.removeItem('selectedParivesh')
+    // localStorage.removeItem('userData')
+    // localStorage.removeItem('userDetails')
+    // localStorage.removeItem('refreshToken')
+    // localStorage.removeItem('accessToken')
+    // localStorage.removeItem('provider')
+    // localStorage.removeItem('selectedStore')
+    // localStorage.removeItem('selectedParivesh')
 
-    debugger
+    // Clear all localStorage items (comprehensive approach)
+    localStorage.clear()
+
+    // Clear sessionStorage
+    sessionStorage.clear()
+
     setUser(null)
     setUserData(null)
     setSelectedPharmacy('')

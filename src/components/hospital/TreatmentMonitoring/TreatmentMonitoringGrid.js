@@ -1,5 +1,16 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
-import { Box, Typography, IconButton, Grid, Button, Skeleton, FormControlLabel, Radio, RadioGroup } from '@mui/material'
+import {
+  Box,
+  Typography,
+  IconButton,
+  Grid,
+  Button,
+  Skeleton,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  Tooltip
+} from '@mui/material'
 import { alpha, styled, useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
@@ -18,6 +29,10 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import dayjs from 'dayjs'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
+
+const STORAGE_KEY = 'medical_record_data'
 
 // Utility functions
 const getLabelForHour = hour => {
@@ -155,14 +170,18 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday, theme) => {
   }, [scrollContainerRef, timeSlots, isToday])
 }
 
-const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischarged }) => {
+const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   const theme = useTheme()
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
   const scrollContainerRef = useRef(null)
   const hourRefs = useRef({})
   const router = useRouter()
   const isPatientDischarged = patientData?.status === 'discharge' ? true : false
 
-  const { id, medical_record_id, animal_id } = router.query
+  const { id } = router.query
+  const medical_record_id = medicalRecordData?.medical_record_id
+  const animal_id = medicalRecordData?.animal_id
   const today = new Date().toISOString().split('T')[0]
 
   const [didInitialScroll, setDidInitialScroll] = useState(false)
@@ -208,9 +227,9 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
     enabled: !!id
   })
 
-  useEffect(() => {
-    refetchMonitoringParams()
-  }, [id])
+  // useEffect(() => {
+  //   refetchMonitoringParams()
+  // }, [id])
 
   const timeSlots = useMemo(() => {
     const slots = []
@@ -379,24 +398,31 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
           const isFutureTodaySlot = isToday && hour > currentHour
           const isBeforeAdmitTime = isAdmittedDay && admittedAtHourIST !== null && hour < admittedAtHourIST
           const isAfterAdmitTime = !isBeforeAdmitTime
-
-          // Disable ONLY future slots. Nothing else.
-          const isDisabled = isFutureTodaySlot || isPatientDischarged
+          const isDisabled = isFutureTodaySlot
 
           let showPlus = true
-
-          // hide plus only in future today slots
           if (isFutureTodaySlot) showPlus = false
           let isYellow = false
 
           if (durationMinutes) {
             const intervalHours = durationMinutes / 60
-            const isIntervalSlot = hour % intervalHours === 0
 
-            // Yellow should appear everywhere AFTER admitted time — even future hours
-            if (isIntervalSlot && isAfterAdmitTime) {
-              isYellow = true
-              bgColor = alpha(theme.palette.customColors.antzNotes, 0.64)
+            let isIntervalSlot = false
+
+            if (isAdmittedDay && admittedAtHourIST != null) {
+              if (hour >= admittedAtHourIST) {
+                const diff = hour - admittedAtHourIST
+                isIntervalSlot = diff % intervalHours === 0
+              }
+            } else {
+              isIntervalSlot = hour % intervalHours === 0
+            }
+
+            if (durationMinutes) {
+              if (isIntervalSlot) {
+                isYellow = true
+                bgColor = alpha(theme.palette.customColors.antzNotes, 0.64)
+              }
             }
           }
 
@@ -433,13 +459,39 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
                   sx={{ display: 'flex', flexDirection: 'column', gap: 1, justifyContent: 'flex-start', width: '100%' }}
                 >
                   {timeSlot?.record?.unit !== null ? (
-                    <Typography
-                      sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.neutralPrimary }}
-                    >{`${timeSlot.record.value} ${timeSlot.record.unit}`}</Typography>
+                    <Tooltip title={`${timeSlot.record.value} ${timeSlot.record.unit}`} placement='top' arrow>
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: '1rem',
+                          color: theme.palette.customColors.neutralPrimary,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          width: '100%',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {`${timeSlot.record.value} ${timeSlot.record.unit}`}
+                      </Typography>
+                    </Tooltip>
                   ) : (
-                    <Typography
-                      sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.neutralPrimary }}
-                    >{`${timeSlot.record.value}`}</Typography>
+                    <Tooltip title={`${timeSlot.record.value}`} placement='top' arrow>
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: '1rem',
+                          color: theme.palette.customColors.neutralPrimary,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          width: '100%',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {`${timeSlot.record.value}`}
+                      </Typography>
+                    </Tooltip>
                   )}
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Typography
@@ -535,7 +587,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
     <>
       <Grid container spacing={2} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
         <Grid container spacing={6} rowSpacing={4}>
-          <Grid item size={{ xs: 12, sm: 12, md: isPatientDischarged && isToday ? 12 : 9 }}>
+          <Grid item size={{ xs: 12, sm: 12, md: isPatientDischarged && isToday ? 12 : 10 }}>
             <HorizontalDateNav
               onDateSelect={handleDateChange}
               selectedDate={selectedDate}
@@ -543,14 +595,14 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
               isLoading={monitoringLoading}
             />
           </Grid>
-          <Grid item size={{ xs: 12, sm: 12, md: 3 }}>
+          <Grid item size={{ xs: 12, sm: 12, md: 2 }}>
             {!isPatientDischarged && isToday ? (
               <Button
                 sx={{ height: '48px', width: '100%', fontSize: '0.8rem' }}
                 variant='contained'
                 onClick={() => setOpenScheduleDrawer(true)}
               >
-                {monitoringDataListings?.is_scheduled_for_particular_day ? 'Edit Schedule' : 'Schedule'}
+                {monitoringDataListings?.show_edit_schedule_button == '1' ? 'Edit Schedule' : 'Schedule'}
               </Button>
             ) : (
               !isToday && (
@@ -609,6 +661,22 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
                   </Box>
                 ))}
               </Box>
+            </Box>
+          ) : displayMetrics.length === 0 ? (
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <NoMedicalData
+                btnText={'Add Monitoring'}
+                text={'All Added Treatments Will Appear here'}
+                isDischarged={isPatientDischarged}
+                btnAction={() => setAddParameterDrawerOpen(true)}
+              />
             </Box>
           ) : (
             <DashboardContainer>
@@ -715,6 +783,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, patientDischa
           refetchMonitoringData={monitoringRefetch}
           selectedDate={selectedDate}
           monitoringRefetch={monitoringRefetch}
+          isPatientDischarged={isPatientDischarged}
         />
       )}
       {openDeleteDialog && (
@@ -848,6 +917,7 @@ const TimeSlot = styled(Box)(({ theme }) => ({
   transition: 'all 0.2s ease',
   position: 'relative',
   minWidth: '160px',
+  maxWidth: '160px',
   height: '72px',
   [theme.breakpoints.down('md')]: {
     fontSize: '11px',

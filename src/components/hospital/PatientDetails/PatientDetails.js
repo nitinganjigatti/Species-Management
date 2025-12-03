@@ -13,6 +13,9 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import CloseIcon from '@mui/icons-material/Close'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { useQuery } from '@tanstack/react-query'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+
+const STORAGE_KEY = 'medical_record_data'
 
 const useDrawerState = () => {
   const router = useRouter()
@@ -54,34 +57,17 @@ const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'
 const PatientDetails = ({ category }) => {
   const router = useRouter()
   const theme = useTheme()
-  const { id, animal_id, tab: urlTab } = router.query
+  const { data, updateState, resetState } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
+  const medical_record_id = medicalRecordData?.medical_record_id
+  const animal_id = medicalRecordData?.animal_id
+  const { id, tab: urlTab } = router.query
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
   const [anchorEl, setAnchorEl] = useState(null)
 
   const openMenu = Boolean(anchorEl)
-
-  const updateUrlWithAdmittedDate = admittedDate => {
-    const currentPath = router.pathname
-    const currentQuery = { ...router.query }
-
-    // Add or update animal_admitted_date
-    const updatedQuery = {
-      ...currentQuery,
-      animal_admitted_date: admittedDate
-    }
-
-    // Replace URL with new query params, without refreshing the page
-    router.replace(
-      {
-        pathname: currentPath,
-        query: updatedQuery
-      },
-      undefined,
-      { shallow: true }
-    )
-  }
 
   const {
     data: patientResponse,
@@ -95,15 +81,26 @@ const PatientDetails = ({ category }) => {
     enabled: !!id // only run when id exists
   })
 
+  // Initialize medical record data when patient details are loaded
   useEffect(() => {
-    if (patientResponse?.data?.created_at) {
-      const admittedDate = patientResponse.data.admitted_at
-      updateUrlWithAdmittedDate(admittedDate)
+    if (patientResponse?.data) {
+      updateState(STORAGE_KEY, {
+        ...medicalRecordData,
+        animal_id: patientResponse.data?.animal_detail?.animal_id,
+        medical_record_id: patientResponse.data?.medical_record_id,
+        animal_admitted_date: patientResponse.data?.admitted_at,
+        purpose_of_visit: patientResponse.data?.purpose_of_visit,
+        discharge_at: patientResponse.data?.discharge_at,
+        site_id: patientData?.animal_detail?.site_id
+      })
     }
-  }, [patientResponse?.data?.created_at])
+  }, [patientResponse?.data])
 
   const patientData = patientResponse?.data
   const animalData = patientResponse?.data?.animal_detail || {}
+  const hospitalCaseId = id || ''
+  const animalIdParam = animal_id || ''
+  const medicalRecordIdParam = medical_record_id || ''
 
   const isPatientDischarged = patientData?.status === 'discharge' ? true : false
 
@@ -117,7 +114,8 @@ const PatientDetails = ({ category }) => {
         created_by_full_name: patientResponse.data?.created_by_full_name,
         created_at: patientResponse.data?.created_at,
         created_by_profile_pic: patientResponse.data?.created_by_profile_pic,
-        reason_for_admission: patientResponse.data?.reason_for_admission
+        reason_for_admission: patientResponse.data?.reason_for_admission,
+        status: patientResponse.data?.status
       }
     : {}
 
@@ -181,6 +179,53 @@ const PatientDetails = ({ category }) => {
     (event, newValue) => {
       setSelectedTab(newValue)
 
+      const { discharge_tab, ...query } = router.query
+
+      // Entering Discharge Tab
+      if (newValue === 'discharge') {
+        router.replace(
+          {
+            pathname: router.pathname,
+            query: {
+              ...query,
+              id: router.query.id,
+              tab: 'discharge',
+              discharge_tab: discharge_tab || 'Mortality' // default
+            }
+          },
+          undefined,
+          { shallow: true }
+        )
+
+        return
+      }
+
+      // Leaving Discharge Tab  remove discharge_tab and  Update URL with the selected tab parameter
+      if (urlTab === 'discharge' && newValue !== 'discharge' && discharge_tab) {
+        // Clear discharge-related  context data
+        resetState('transfer_medicines')
+        resetState('transfer_temp_medicines')
+        resetState('enclosure_medicines')
+        resetState('enclosure_temp_medicines')
+        const updated = { ...router.query }
+        delete updated.discharge_tab
+
+        router.replace(
+          {
+            pathname: router.pathname,
+            query: {
+              ...updated,
+              id: router.query.id,
+              tab: newValue
+            }
+          },
+          undefined,
+          { shallow: true }
+        )
+
+        return
+      }
+
       // Update URL with the selected tab parameter
       router.replace(
         {
@@ -195,7 +240,7 @@ const PatientDetails = ({ category }) => {
         { shallow: true }
       )
     },
-    [router]
+    [router, urlTab]
   )
 
   // Handle menu item tab selection
@@ -204,6 +249,53 @@ const PatientDetails = ({ category }) => {
       setSelectedTab(newValue)
       handleMenuClose()
 
+      const { discharge_tab, ...query } = router.query
+
+      // Entering Discharge Tab
+      if (newValue === 'discharge') {
+        router.replace(
+          {
+            pathname: router.pathname,
+            query: {
+              ...query,
+              id: router.query.id,
+              tab: 'discharge',
+              discharge_tab: discharge_tab || 'Mortality' // default
+            }
+          },
+          undefined,
+          { shallow: true }
+        )
+
+        return
+      }
+
+      // Leaving Discharge Tab  remove discharge_tab and  Update URL with the selected tab parameter
+      if (urlTab === 'discharge' && newValue !== 'discharge' && discharge_tab) {
+        // Clear discharge-related  context data
+        resetState('transfer_medicines')
+        resetState('transfer_temp_medicines')
+        resetState('enclosure_medicines')
+        resetState('enclosure_temp_medicines')
+        const updated = { ...router.query }
+        delete updated.discharge_tab
+
+        router.replace(
+          {
+            pathname: router.pathname,
+            query: {
+              ...updated,
+              id: router.query.id,
+              tab: newValue
+            }
+          },
+          undefined,
+          { shallow: true }
+        )
+
+        return
+      }
+
       // Update URL with the selected tab parameter
       router.replace(
         {
@@ -218,7 +310,7 @@ const PatientDetails = ({ category }) => {
         { shallow: true }
       )
     },
-    [router]
+    [router, urlTab]
   )
 
   const handleBack = useCallback(() => {
@@ -261,14 +353,27 @@ const PatientDetails = ({ category }) => {
       selectedTab,
       setSelectedTab,
       ...drawerState,
-      patientId: id,
-      hospitalCaseId: id,
+      patientId: hospitalCaseId,
+      hospitalCaseId,
+      animalId: animalIdParam,
+      medicalRecordId: medicalRecordIdParam,
       overviewData: overviewData,
       patientData: patientData,
       loading: patientLoading,
-      patientDischarged: isPatientDischarged
+      patientDischarged: isPatientDischarged,
+      refetchPatient: refetchPatient
     }),
-    [selectedTab, drawerState, id, overviewData, patientData, patientLoading]
+    [
+      selectedTab,
+      drawerState,
+      hospitalCaseId,
+      animalIdParam,
+      medicalRecordIdParam,
+      overviewData,
+      patientData,
+      patientLoading,
+      isPatientDischarged
+    ]
   )
 
   return (

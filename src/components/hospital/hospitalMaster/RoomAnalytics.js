@@ -55,16 +55,20 @@ const RoomAnalytics = ({ isRoomStatsLoading, roomDetails }) => {
               >
                 Hospital Name
               </Typography>
-              <TextEllipsisWithModal
-                enableDialog={false}
-                text={roomDetails?.hospital_name ?? '-'}
-                style={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontSize: '1rem',
-                  fontWeight: 500,
-                  maxWidth: { xs: '230px', md: '260px' }
-                }}
-              />
+              {isRoomStatsLoading ? (
+                <CircularProgress size={20} />
+              ) : (
+                <TextEllipsisWithModal
+                  enableDialog={false}
+                  text={roomDetails?.hospital_name ?? '-'}
+                  style={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '1rem',
+                    fontWeight: 500,
+                    maxWidth: { xs: '230px', md: '260px' }
+                  }}
+                />
+              )}
             </Box>
           </Grid>
 
@@ -78,16 +82,20 @@ const RoomAnalytics = ({ isRoomStatsLoading, roomDetails }) => {
             <StatBox label='Floor' value={roomDetails?.floor_name ?? '-'} />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2.3 }}>
-            <UserAvatarDetails
-              user_name={roomDetails?.updated_by ? roomDetails?.updated_by_name : roomDetails?.created_by_name ?? '-'}
-              date={roomDetails?.updated_by ? roomDetails?.updated_at : roomDetails?.created_at ?? '-'}
-              show_time={false}
-              size='medium'
-              profile_image={
-                roomDetails?.updated_by ? roomDetails?.updated_user_profile_pic : roomDetails?.profile_pic ?? '-'
-              }
-              dateType={roomDetails?.updated_by ? 'updated' : 'created'}
-            />
+            {isRoomStatsLoading ? (
+              <CircularProgress size={20} />
+            ) : (
+              <UserAvatarDetails
+                user_name={roomDetails?.updated_by ? roomDetails?.updated_by_name : roomDetails?.created_by_name ?? '-'}
+                date={roomDetails?.updated_by ? roomDetails?.updated_at : roomDetails?.created_at ?? '-'}
+                show_time={false}
+                size='medium'
+                profile_image={
+                  roomDetails?.updated_by ? roomDetails?.updated_user_profile_pic : roomDetails?.profile_pic ?? '-'
+                }
+                dateType={roomDetails?.updated_by ? 'updated' : 'created'}
+              />
+            )}
           </Grid>
         </Grid>
       </CardContent>

@@ -28,6 +28,9 @@ function MedicationsGasSection({
 
   const [deliveryRouteOptions, setdeliveryRouteList] = useState([])
   const [medicationGasList, setmedicationGasList] = useState([])
+  const [productPage, setProductPage] = useState(1)
+  const [productTotal, setProductTotal] = useState(0)
+  const [isProductLoading, setIsProductLoading] = useState(false)
 
   const { watch } = useFormContext()
   const medications = watch('medicationsGas.medications') || []
@@ -36,7 +39,7 @@ function MedicationsGasSection({
   const fetchDeliveryList = async () => {
     try {
       const response = await deliveryRouteList()
-      console.log(response, 'response')
+
       if (response?.success && response?.data?.length > 0) {
         setdeliveryRouteList(response?.data)
       } else {
@@ -45,29 +48,45 @@ function MedicationsGasSection({
     } catch (error) {}
   }
 
-  const fetchMedicationGasList = async () => {
+  const fetchMedicationGasList = async (pageToLoad = 1, append = false) => {
+    if (isProductLoading) return
+
+    setIsProductLoading(true)
     const params = {
       sort: 'asc',
       q: '',
       limit: 50,
-      column: 'package'
+      column: 'package',
+      page: pageToLoad
     }
     try {
       const response = await getProductList({ params })
       if (response?.success && response?.data?.list_items?.length > 0) {
-        setmedicationGasList(response?.data?.list_items)
+        const newItems = response?.data?.list_items || []
+        const totalCount = response?.data?.total_count || 0
+
+        setProductTotal(totalCount)
+        setmedicationGasList(prev => (append ? [...prev, ...newItems] : newItems))
+        setProductPage(pageToLoad)
       } else {
-        Toaster({ type: 'error', message: response?.message })
+        Toaster({ type: 'error', message: response?.message || 'Failed to fetch products' })
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('getProductList error:', error)
+      Toaster({ type: 'error', message: 'Failed to fetch products' })
+    } finally {
+      setIsProductLoading(false)
+    }
   }
 
   useEffect(() => {
     if (drawerType) {
       fetchDeliveryList()
-      fetchMedicationGasList()
+      fetchMedicationGasList(1, false)
     }
   }, [drawerType])
+
+  const hasMoreProducts = medicationGasList.length < productTotal
 
   const getUnitAbbr = unitId => {
     const unit = unitList?.find(item => String(item.id) === String(unitId))
@@ -87,7 +106,7 @@ function MedicationsGasSection({
       minWidth: 80,
       flex: 1,
       sortable: false,
-      renderCell: params => <StyledTypography>{params.row.id}</StyledTypography>
+      renderCell: params => <StyledTypography sx={{ pl: 5 }}>{params.row.id}</StyledTypography>
     },
     {
       field: 'drug',
@@ -216,12 +235,12 @@ function MedicationsGasSection({
       minWidth: 80,
       flex: 1,
       sortable: false,
-      renderCell: params => <StyledTypography>{params.row.id}</StyledTypography>
+      renderCell: params => <StyledTypography sx={{ pl: 5 }}>{params.row.id}</StyledTypography>
     },
     {
       field: 'gas',
       headerName: 'Gas',
-      minWidth: 180,
+      minWidth: 220,
       flex: 1,
       sortable: false,
       renderCell: params => (
@@ -428,7 +447,7 @@ function MedicationsGasSection({
   })
 
   return (
-    <Box sx={{ p: '0 0px 24px 0px' }}>
+    <Box sx={{ p: 0 }}>
       {medications.length > 0 && (
         <>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -513,6 +532,13 @@ function MedicationsGasSection({
           purposeStageOptions={purposeStageOptions}
           deliveryRouteOptions={deliveryRouteOptions}
           unitList={unitList}
+          onLoadMoreDrugs={() => {
+            if (hasMoreProducts && !isProductLoading) {
+              fetchMedicationGasList(productPage + 1, true)
+            }
+          }}
+          hasMoreDrugs={hasMoreProducts}
+          isLoadingDrugs={isProductLoading}
         />
       )}
       {drawerType === 'gas' && (
@@ -524,6 +550,13 @@ function MedicationsGasSection({
           editData={editIndex !== null ? gases[editIndex] : null}
           gasOptions={medicationGasList}
           deliveryRouteOptions={deliveryRouteOptions}
+          onLoadMoreDrugs={() => {
+            if (hasMoreProducts && !isProductLoading) {
+              fetchMedicationGasList(productPage + 1, true)
+            }
+          }}
+          hasMoreDrugs={hasMoreProducts}
+          isLoadingDrugs={isProductLoading}
         />
       )}
     </Box>
