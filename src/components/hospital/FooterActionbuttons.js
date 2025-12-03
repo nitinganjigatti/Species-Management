@@ -18,6 +18,10 @@ export default function ActionButtons({
   return (
     <Box
       sx={{
+        position: 'fixed',
+        bottom: 0,
+        left: isSmallDevice ? '0px' : '295px',
+        right: 0,
         display: 'flex',
         justifyContent: 'flex-end',
         gap: 4,

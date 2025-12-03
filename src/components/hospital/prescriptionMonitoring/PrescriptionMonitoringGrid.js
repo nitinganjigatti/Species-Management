@@ -662,11 +662,11 @@ const PrescriptionMonitoringGrid = ({
   if (isLoading) {
     return (
       <>
-        <Grid container spacing={2} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
-          <Grid item size={{ xs: 10, sm: 10 }}>
+        <Grid container spacing={4} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
+          <Grid item size={{ xs: 8, sm: 9, lg: 9.5 }}>
             <ShimmerHorizontalDateNav />
           </Grid>
-          <Grid item size={{ xs: 2, sm: 2 }}>
+          <Grid item size={{ xs: 4, sm: 3, lg: 2.5 }}>
             <Button
               onClick={() => {
                 router.push({
@@ -676,7 +676,7 @@ const PrescriptionMonitoringGrid = ({
               sx={{ height: '48px', width: '100%' }}
               variant='contained'
             >
-              Add new
+              ADD PRESCRIPTION
             </Button>
           </Grid>
           <Grid
@@ -709,8 +709,8 @@ const PrescriptionMonitoringGrid = ({
 
   return (
     <>
-      <Grid container spacing={2} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
-        <Grid item size={{ xs: 10, sm: 10 }}>
+      <Grid container spacing={4} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
+        <Grid item size={{ xs: 8, sm: 9, lg: 9.5 }}>
           <HorizontalDateNav
             isLoading={isLoading}
             onDateSelect={handleDateChange}
@@ -718,7 +718,7 @@ const PrescriptionMonitoringGrid = ({
             dates={dates}
           />
         </Grid>
-        <Grid item size={{ xs: 2, sm: 2 }}>
+        <Grid item size={{ xs: 4, sm: 3, lg: 2.5 }}>
           <Button
             onClick={() => {
               router.push({
@@ -728,7 +728,7 @@ const PrescriptionMonitoringGrid = ({
             sx={{ height: '48px', width: '100%' }}
             variant='contained'
           >
-            Add new
+            ADD PRESCRIPTION
           </Button>
         </Grid>
         <Grid

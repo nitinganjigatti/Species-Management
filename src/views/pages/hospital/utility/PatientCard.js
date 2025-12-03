@@ -11,6 +11,7 @@ import AddPatientDrawer from 'src/components/hospital/drawer/AddPatientDrawer'
 
 const PatientCard = ({ patientData, animalData, loading, refetch }) => {
   const theme = useTheme()
+  console.log(patientData)
 
   const isPatientDischarged = patientData?.status === 'discharge' ? true : false
 
@@ -93,7 +94,28 @@ const PatientCard = ({ patientData, animalData, loading, refetch }) => {
                       </>
                     ) : (
                       <>
-                        <VisitType title={patientData?.treatment_type} />
+                        {patientData?.status === 'discharge' ? (
+                          <>
+                            <Typography
+                              sx={{
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                color: theme.palette.customColors.Tertiary,
+                                px: 2,
+                                py: 1,
+                                background: alpha(theme.palette.customColors.Tertiary, 0.3),
+                                borderRadius: 0.5,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              DISCHARGED
+                            </Typography>
+                          </>
+                        ) : (
+                          <VisitType title={patientData?.treatment_type} />
+                        )}
                         <VisitType title={patientData?.visit_type} />
                       </>
                     )}
