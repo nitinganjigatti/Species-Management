@@ -113,7 +113,25 @@ export default function BasicDetails({
                         fullWidth: true,
                         error: !!errors.basicDetails?.anaesthesia_datetime,
                         helperText: errors.basicDetails?.anaesthesia_datetime?.message,
-                        sx: commonTextFieldSx,
+                        sx: {
+                          ...commonTextFieldSx,
+                          '& .MuiInputLabel-root': {
+                            color: errors.basicDetails?.anaesthesia_datetime
+                              ? theme.palette.error.main
+                              : theme.palette.customColors.OnSurfaceVariant
+                          },
+                          '& .MuiInputLabel-root.Mui-focused': {
+                            color: errors.basicDetails?.anaesthesia_datetime
+                              ? theme.palette.error.main
+                              : theme.palette.customColors.OnSurfaceVariant
+                          },
+                          '& input::placeholder': {
+                            color: errors.basicDetails?.anaesthesia_datetime
+                              ? theme.palette.error.main
+                              : theme.palette.text.disabled,
+                            opacity: 1
+                          }
+                        },
                         inputProps: { 'data-field': 'anaesthesia_datetime' }
                       }
                     }}

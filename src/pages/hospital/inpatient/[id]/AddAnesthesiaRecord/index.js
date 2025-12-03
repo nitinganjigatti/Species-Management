@@ -36,10 +36,12 @@ import {
   getAnesthesiaSetupList,
   getUnitList,
   getvitalMonitoringList,
-  getAnesthesiaDetails
+  getAnesthesiaDetails,
+  getAnesthesiaList
 } from 'src/lib/api/hospital/anesthesia'
 import Toaster from 'src/components/Toaster'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
+import { useQueryClient } from '@tanstack/react-query'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 dayjs.extend(customParseFormat)
 
@@ -269,6 +271,7 @@ const sections = [
 export default function AddAnesthesiaRecord() {
   const router = useRouter()
   const { id, hospital_case_id, medical_record_id, hospital_id, anaesthesia_id } = router.query
+  const queryClient = useQueryClient()
   const [expanded, setExpanded] = useState('basicDetails')
   const [isBasicDetailsValid, setIsBasicDetailsValid] = useState(false)
   const [isApiSuccess, setIsApiSuccess] = useState(false)
@@ -559,7 +562,7 @@ export default function AddAnesthesiaRecord() {
   })
 
   const handleCancel = () => {
-    router.push(`/hospital/inpatient/${id}/?tab=anesthesia`)
+    router.back()
   }
 
   const {
@@ -1400,7 +1403,7 @@ export default function AddAnesthesiaRecord() {
         if (!anaesthesia_id) {
           handleCancel()
         }
-        getAnesthesiaDetails(response?.data?.anaesthesia_id)
+        await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to save record' })
       }
