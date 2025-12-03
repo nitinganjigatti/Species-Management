@@ -10,6 +10,7 @@ import {
   GET_PRESCRIPTION_DETAILS,
   GET_PRESCRIPTION_DETAILS_DATES,
   GET_PRESCRIPTION_LIST,
+  GET_TRANSFER_CHECK,
   SCHEDULE_PRESCRIPTION,
   SKIP_PRESCRIPTION,
   STOP_PRESCRIPTION,
@@ -163,4 +164,10 @@ export async function getPrescriptionsByRecord(params) {
   } catch (error) {
     console.error('Error fetching Prescriptions Record:', error?.message)
   }
+}
+
+export async function getSecurityCheckForTransfer(siteId) {
+  const response = await axiosGet({ url: `${GET_TRANSFER_CHECK}/${siteId}` })
+
+  return response?.data
 }

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Button, Divider, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import { alpha, styled } from '@mui/system'
 import { LoadingButton } from '@mui/lab'
@@ -21,6 +21,9 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
+import { getSecurityCheckForTransfer } from 'src/lib/api/hospital/prescription'
+
+const STORAGE_KEY = 'transfer_enclosure_form'
 
 const transferEnclosureSchema = yup.object({
   discharge_date: yup.date().nullable().required('Date of discharge is required'),
@@ -71,8 +74,12 @@ const EnclosureDischargeForm = props => {
     isTransferEnclosureMedicationLoading,
     clearData,
     onDirtyChange,
-    medicationData
+    medicationData,
+    refetchPatient,
+    medicalRecordId
   } = props
+
+  const isRestoring = useRef(true)
 
   const theme = useTheme()
   const router = useRouter()
@@ -113,6 +120,7 @@ const EnclosureDischargeForm = props => {
     watch,
     setValue,
     clearErrors,
+    getValues,
     formState: { errors, isDirty }
   } = useForm({
     defaultValues,
@@ -121,6 +129,26 @@ const EnclosureDischargeForm = props => {
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
+
+  useEffect(() => {
+    const saved = sessionStorage.getItem(STORAGE_KEY)
+
+    if (saved) {
+      const parsed = JSON.parse(saved)
+
+      reset({
+        ...defaultValues,
+        ...parsed,
+        discharge_date: parsed.discharge_date ? dayjs(parsed.discharge_date) : dayjs(),
+        discharge_time: parsed.discharge_time ? dayjs(parsed.discharge_time) : dayjs(),
+        follow_up_required: parsed.follow_up_required ?? false,
+        follow_up_date: parsed.follow_up_required && parsed.follow_up_date ? dayjs(parsed.follow_up_date) : null,
+        reason: parsed.reason || ''
+      })
+
+      isRestoring.current = false
+    }
+  }, [])
 
   // strict time limits for discharge time
   const selectedDischargeDate = watch('discharge_date')
@@ -164,12 +192,12 @@ const EnclosureDischargeForm = props => {
   }, [isDirty, onDirtyChange])
 
   // Reset irrelevant fields on follow-up toggle
-  useEffect(() => {
-    if (!followUp) {
-      setValue('follow_up_date', null)
-      clearErrors('follow_up_date')
-    }
-  }, [followUp, setValue, clearErrors])
+  // useEffect(() => {
+  //   if (!followUp) {
+  //     setValue('follow_up_date', null)
+  //     clearErrors('follow_up_date')
+  //   }
+  // }, [followUp, setValue, clearErrors])
 
   // Edit medicine – go to schedule-prescription
   const handleEditMedicine = useCallback(
@@ -249,8 +277,10 @@ const EnclosureDischargeForm = props => {
 
     const success = await handleSubmitData(payload)
     if (success) {
+      sessionStorage.removeItem(STORAGE_KEY)
       reset(defaultValues)
       clearData() // clear medicines + reset storage after submit
+      refetchPatient()
     }
   }
 
@@ -336,6 +366,7 @@ const EnclosureDischargeForm = props => {
             control={control}
             render={({ field, fieldState }) => (
               <TemplateSection
+                key={isRestoring.current ? 'restoring' : 'normal'}
                 value={field.value}
                 onChange={field.onChange}
                 error={!!fieldState.error}
@@ -359,6 +390,12 @@ const EnclosureDischargeForm = props => {
                 errors={errors}
                 size='large'
                 gap={4}
+                onChangeOverride={checked => {
+                  if (!checked) {
+                    setValue('follow_up_date', null, { shouldDirty: true })
+                    clearErrors('follow_up_date')
+                  }
+                }}
               />
             </Grid>
             {followUp && (
@@ -421,6 +458,7 @@ const EnclosureDischargeForm = props => {
               <Box sx={{ display: 'flex', gap: 4 }}>
                 <Button
                   onClick={() => {
+                    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(getValues()))
                     router.push({
                       pathname: `/hospital/inpatient/${id}/schedule-prescription`,
                       query: {

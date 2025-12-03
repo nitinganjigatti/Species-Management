@@ -928,3 +928,5 @@ export const GET_MEDICAL_DELIVERY_ROUTE = `master/get-medical-delivery-route`
 export const GET_VITAL_MONITORING_LIST = `v1/hospital/anaesthesia/sections`
 
 export const GET_ANESTHESIA_DETAIL = `v1/hospital/anaesthesia/detail`
+
+export const GET_TRANSFER_CHECK = `v1/site/transfer/check/authority`

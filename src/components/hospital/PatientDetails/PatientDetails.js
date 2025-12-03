@@ -360,7 +360,8 @@ const PatientDetails = ({ category }) => {
       overviewData: overviewData,
       patientData: patientData,
       loading: patientLoading,
-      patientDischarged: isPatientDischarged
+      patientDischarged: isPatientDischarged,
+      refetchPatient: refetchPatient
     }),
     [
       selectedTab,
