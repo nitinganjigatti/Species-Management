@@ -21,6 +21,7 @@ import Utility from 'src/utility'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
@@ -503,9 +504,21 @@ const ClinicalAssessment = ({ overviewData }) => {
 
         {/* Empty State */}
         {!isLoading && filteredRecords.length === 0 && (
-          <Typography sx={{ textAlign: 'center', mt: 4, color: theme.palette.text.secondary }}>
-            No clinical assessments found
-          </Typography>
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          >
+            <NoMedicalData
+              btnText={'ADD NEW CLINICAL ASSESSMENT'}
+              text={'All Added Clinical Assessments Will Appear here'}
+              isDischarged={isDischared}
+              btnAction={() => router.push(`/hospital/inpatient/${id}/add-clinical-assessment`)}
+            />
+          </Box>
         )}
 
         {/* End of List */}

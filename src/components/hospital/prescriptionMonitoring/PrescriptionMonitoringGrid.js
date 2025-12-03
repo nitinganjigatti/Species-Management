@@ -15,6 +15,7 @@ import { useRouter } from 'next/router'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import ActionButtonsWithSelection from '../ActionButtonsWithSelection'
 import AdministerOrSkipModal from 'src/views/pages/hospital/prescription-monitoring/AdministerOrSkipModal'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 // Utility functions
 const getLabelForHour = hour => {
@@ -805,7 +806,6 @@ const PrescriptionMonitoringGrid = ({
                 </FixedColumn>
 
                 <ScrollableContainer ref={scrollContainerRef}>
-                  ;
                   <TimeSlotGrid numColumns={timeSlots.length} sx={{ mb: '16px' }}>
                     {timeSlots.map(time => {
                       const currentHour24 = currentTime.getHours()
@@ -896,8 +896,25 @@ const PrescriptionMonitoringGrid = ({
               </MainContainer>
             </DashboardContainer>
           ) : (
-            <Typography>No Medications Scheduled for this date.</Typography>
-            // <NoDataFound />
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <NoMedicalData
+                btnText={'ADD PRESCRIPTION'}
+                text={'All Added Prescriptions Will Appear here'}
+                isDischarged={isDischared}
+                btnAction={() => {
+                  router.push({
+                    pathname: `/hospital/inpatient/${id}/schedule-prescription`
+                  })
+                }}
+              />
+            </Box>
           )}
         </Grid>
       </Grid>
