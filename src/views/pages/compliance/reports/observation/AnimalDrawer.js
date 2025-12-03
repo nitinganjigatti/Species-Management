@@ -151,7 +151,8 @@ const AnimalDrawer = ({
           local_identifier_name: animal?.local_identifier_name,
           local_identifier_value: animal?.local_identifier_value,
           site_id: animal?.site_id,
-          enclosure_id: animal?.enclosure_id
+          enclosure_id: animal?.enclosure_id,
+          ...(module === 'hospital' && { in_transit: animal?.in_transit })
         }))
       ) || [],
     [data]
@@ -390,10 +391,14 @@ const AnimalDrawer = ({
                 <AnimalParentCard
                   key={animal.animal_id}
                   data={animal}
-                  radio={{
-                    checked: internalSelected?.animal_id === animal.animal_id,
-                    onChange: () => setInternalSelected(animal)
-                  }}
+                  radio={
+                    module === 'hospital' && animal?.in_transit === '1'
+                      ? false
+                      : {
+                          checked: internalSelected?.animal_id === animal.animal_id,
+                          onChange: () => setInternalSelected(animal)
+                        }
+                  }
                 />
               ))}
               {list.length === 0 && (

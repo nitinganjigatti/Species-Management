@@ -142,6 +142,7 @@ const HospitalBedDetails = () => {
   })
 
   const rows = useMemo(() => bedData?.data?.records || [], [bedData?.data?.records])
+
   const total = useMemo(() => bedData?.data?.total || 0, [bedData?.data?.total])
 
   // Room details from bed data
