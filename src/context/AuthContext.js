@@ -297,14 +297,19 @@ const AuthProvider = ({ children }) => {
     setSelectedPharmacy('')
     setSelectedParivesh('')
     setOrganizationList([])
-    localStorage.removeItem('userData')
-    localStorage.removeItem('userDetails')
-    localStorage.removeItem('refreshToken')
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('provider')
-    localStorage.removeItem('selectedStore')
-    localStorage.removeItem('selectedParivesh')
-    window.localStorage.removeItem(authConfig.storageTokenKeyName)
+
+    // localStorage.removeItem('userData')
+    // localStorage.removeItem('userDetails')
+    // localStorage.removeItem('refreshToken')
+    // localStorage.removeItem('accessToken')
+    // localStorage.removeItem('provider')
+    // localStorage.removeItem('selectedStore')
+    // localStorage.removeItem('selectedParivesh')
+    // window.localStorage.removeItem(authConfig.storageTokenKeyName)
+
+    localStorage.clear()
+    sessionStorage.clear()
+
     router.push('/login')
   }
 
