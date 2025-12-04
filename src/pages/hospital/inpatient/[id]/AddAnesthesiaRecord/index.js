@@ -37,8 +37,7 @@ import {
   getAnesthesiaSetupList,
   getUnitList,
   getvitalMonitoringList,
-  getAnesthesiaDetails,
-  getAnesthesiaList
+  getAnesthesiaDetails
 } from 'src/lib/api/hospital/anesthesia'
 import Toaster from 'src/components/Toaster'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
@@ -384,7 +383,6 @@ export default function AddAnesthesiaRecord() {
     }
     try {
       const response = await getAnesthesiaSetupList(params)
-      console.log(response, 'response')
       if (response?.success && response?.data?.result?.length > 0) {
         setanesthesiaSetupList(response.data.result)
       } else {
@@ -417,7 +415,6 @@ export default function AddAnesthesiaRecord() {
   const fetchUnitList = async () => {
     try {
       const response = await getUnitList()
-      console.log(response, 'response')
       if (response?.success && response?.data) {
         setunitList(response?.data?.prescriptionMeasurementType)
       } else {
@@ -668,25 +665,6 @@ export default function AddAnesthesiaRecord() {
     },
     [reversalDrugs, setValue]
   )
-
-  // Validate basic details for internal tracking
-  // React.useEffect(() => {
-  //   const validateBasicDetails = async () => {
-  //     const valid = await trigger('basicDetails')
-  //     setIsBasicDetailsValid(valid)
-  //   }
-
-  //   validateBasicDetails()
-  // }, [
-  //   location,
-  //   anaesthesia_datetime,
-  //   estimated_time_required,
-  //   veterinarian_id,
-  //   anesthetist_id,
-  //   selected,
-  //   notes,
-  //   trigger
-  // ])
 
   React.useEffect(() => {
     const checkBasicDetailsValid = async () => {
@@ -1237,15 +1215,15 @@ export default function AddAnesthesiaRecord() {
         const columns = methods.getValues('vitalMonitoring') || []
         const vitalMetaForBlocks = vitalMonitorList || []
 
-        console.log('columns:', JSON.stringify(columns, null, 2))
-        console.log('vitalMetaForBlocks (from vitalMonitorList):', JSON.stringify(vitalMetaForBlocks, null, 2))
+        // console.log('columns:', JSON.stringify(columns, null, 2))
+        // console.log('vitalMetaForBlocks (from vitalMonitorList):', JSON.stringify(vitalMetaForBlocks, null, 2))
 
         blocks = formColumnsToVitalMonitoringBlocks(columns, vitalMetaForBlocks)
         blocks = (blocks || []).map(block => ({
           ...block,
           recorded_time: toBackendTime(block.recorded_time)
         }))
-        console.log('blocks:', JSON.stringify(blocks, null, 2))
+        // console.log('blocks:', JSON.stringify(blocks, null, 2))
         // ----------- VALIDATE & BUILD ANAESTHESIA SETUP (EDIT-ONLY) -----------
         const invalidSections = []
         clearErrors('anesthesiaSetup')
@@ -1403,25 +1381,25 @@ export default function AddAnesthesiaRecord() {
           formData.append('anaesthesia_setup', JSON.stringify(anaesthesiaSetupPayload))
         }
       }
-      console.log(' Final payload for API:', {
-        hospital_case_id: id || '',
-        medical_record_id: patientData?.medical_record_id || '',
-        location: data.basicDetails.location,
-        anaesthesia_datetime: data.basicDetails.anaesthesia_datetime,
-        estimated_time_required: data.basicDetails.estimated_time_required,
-        estimated_time_unit: data.basicDetails.estimated_time_unit,
-        veterinarian_id: data.basicDetails.veterinarian_id,
-        anesthetist_id: data.basicDetails.anesthetist_id,
-        notes: data.basicDetails.notes,
-        purpose: purposePayload,
-        ...(isEdit && {
-          pre_anaesthesia: preAnaesthesiaPayload,
-          anaesthesia_setup: anaesthesiaSetupPayload,
-          medications: { medications: medsPayload, gas: gasPayload },
-          recovery_and_reversal: { recovery: recoveryPayload, reversal: reversalPayload },
-          vital_monitoring_blocks: blocks
-        })
-      })
+      // console.log(' Final payload for API:', {
+      //   hospital_case_id: id || '',
+      //   medical_record_id: patientData?.medical_record_id || '',
+      //   location: data.basicDetails.location,
+      //   anaesthesia_datetime: data.basicDetails.anaesthesia_datetime,
+      //   estimated_time_required: data.basicDetails.estimated_time_required,
+      //   estimated_time_unit: data.basicDetails.estimated_time_unit,
+      //   veterinarian_id: data.basicDetails.veterinarian_id,
+      //   anesthetist_id: data.basicDetails.anesthetist_id,
+      //   notes: data.basicDetails.notes,
+      //   purpose: purposePayload,
+      //   ...(isEdit && {
+      //     pre_anaesthesia: preAnaesthesiaPayload,
+      //     anaesthesia_setup: anaesthesiaSetupPayload,
+      //     medications: { medications: medsPayload, gas: gasPayload },
+      //     recovery_and_reversal: { recovery: recoveryPayload, reversal: reversalPayload },
+      //     vital_monitoring_blocks: blocks
+      //   })
+      // })
 
       const response = await addAnesthesia(formData)
 
@@ -1439,7 +1417,6 @@ export default function AddAnesthesiaRecord() {
         Toaster({ type: 'error', message: response?.message || 'Failed to save record' })
       }
     } catch (error) {
-      console.error(error)
       Toaster({ type: 'error', message: 'Something went wrong. Please try again.' })
     } finally {
       setIsSubmitting(false)
