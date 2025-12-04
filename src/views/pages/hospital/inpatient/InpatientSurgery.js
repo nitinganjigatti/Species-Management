@@ -208,7 +208,7 @@ const MediaScroller = ({ items = [] }) => {
   )
 }
 
-function InpatientSurgery({ hospitalCaseId, medicalRecordId }) {
+function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged = false }) {
   const theme = useTheme()
   const scrollbarThumbColor = theme.palette.customColors.neutralSecondary
   const router = useRouter()
@@ -562,13 +562,15 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId }) {
           </Box>
         </Box>
 
-        <Button
-          onClick={handleAddSurgeryRecord}
-          variant='contained'
-          sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
-        >
-          Add SURGERY RECORD
-        </Button>
+        {!patientDischarged && (
+          <Button
+            onClick={handleAddSurgeryRecord}
+            variant='contained'
+            sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
+          >
+            Add SURGERY RECORD
+          </Button>
+        )}
       </Box>
 
       {!shouldShowDetails ? (

@@ -130,7 +130,14 @@ const MediaScroller = ({ items = [] }) => {
   )
 }
 
-function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData, overviewData }) {
+function Anesthesia({
+  hospitalCaseId,
+  medicalRecordId,
+  animalId,
+  patientData,
+  overviewData,
+  patientDischarged = false
+}) {
   const theme = useTheme()
   const router = useRouter()
   const scrollContainerRef = useRef(null)
@@ -792,7 +799,8 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData, ov
               ) : null}
             </Box>
           </Box>
-          {anesthesiaRecords.length > 0 && (
+
+          {!patientDischarged && anesthesiaRecords.length > 0 && (
             <Button
               onClick={() => router.push(`/hospital/inpatient/${patientData?.hospital_case_id}/AddAnesthesiaRecord/`)}
               variant='contained'
@@ -864,13 +872,15 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData, ov
                 </Box>
 
                 <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <Box
-                    component='img'
-                    src='/icons/pencil_outlined.svg'
-                    alt='Edit'
-                    sx={{ width: 24, height: 24, cursor: 'pointer' }}
-                    onClick={() => handleEditClick(anesthesiaDetail)}
-                  />
+                  {!patientDischarged && (
+                    <Box
+                      component='img'
+                      src='/icons/pencil_outlined.svg'
+                      alt='Edit'
+                      sx={{ width: 24, height: 24, cursor: 'pointer' }}
+                      onClick={() => handleEditClick(anesthesiaDetail)}
+                    />
+                  )}
                   <Box
                     component='img'
                     src='/icons/delete_outlined.svg'

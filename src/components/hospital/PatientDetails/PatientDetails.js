@@ -88,7 +88,10 @@ const PatientDetails = ({ category }) => {
         ...medicalRecordData,
         animal_id: patientResponse.data?.animal_detail?.animal_id,
         medical_record_id: patientResponse.data?.medical_record_id,
-        animal_admitted_date: patientResponse.data?.admitted_at
+        animal_admitted_date: patientResponse.data?.admitted_at,
+        purpose_of_visit: patientResponse.data?.purpose_of_visit,
+        discharge_at: patientResponse.data?.discharge_at,
+        site_id: patientData?.animal_detail?.site_id
       })
     }
   }, [patientResponse?.data])
@@ -99,7 +102,7 @@ const PatientDetails = ({ category }) => {
   const animalIdParam = animal_id || ''
   const medicalRecordIdParam = medical_record_id || ''
 
-  const isPatientDischarged = patientData?.status === 'discharge' ? true : false
+  const isPatientDischarged = patientData?.status === 'discharge'
 
   const overviewData = patientResponse
     ? {
@@ -357,7 +360,8 @@ const PatientDetails = ({ category }) => {
       overviewData: overviewData,
       patientData: patientData,
       loading: patientLoading,
-      patientDischarged: isPatientDischarged
+      patientDischarged: isPatientDischarged,
+      refetchPatient: refetchPatient
     }),
     [
       selectedTab,
