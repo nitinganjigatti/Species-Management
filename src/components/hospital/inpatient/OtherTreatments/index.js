@@ -265,7 +265,7 @@ const mapDetailRecordsToActivities = (records = []) => {
     const treatmentId = record.id || null
     const treatmentMasterId = record.treatment_master_id || null
 
-    const treatmentStartDate = record.start_time || record.created_at || null
+    const treatmentStartDate = record.update_at || record.created_at || null
     const note = record.note || ''
 
     return {
@@ -912,21 +912,35 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
                             />
                           </Box>
 
-                          <Typography
-                            sx={{
-                              fontWeight: 400,
-                              fontSize: '14px',
-                              color: theme.palette.customColors.OnSurfaceVariant,
-                              letterSpacing: 0,
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis'
+                          <Tooltip
+                            title={treatment.noteSummary || ''}
+                            placement='bottom-start'
+                            arrow
+                            slotProps={{
+                              tooltip: {
+                                sx: {
+                                  maxHeight: 200,
+                                  overflowY: 'auto'
+                                }
+                              }
                             }}
                           >
-                            {treatment.noteSummary}
-                          </Typography>
+                            <Typography
+                              sx={{
+                                fontWeight: 400,
+                                fontSize: '14px',
+                                color: theme.palette.customColors.OnSurfaceVariant,
+                                letterSpacing: 0,
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }}
+                            >
+                              {treatment.noteSummary}
+                            </Typography>
+                          </Tooltip>
 
                           <Typography
                             sx={{
