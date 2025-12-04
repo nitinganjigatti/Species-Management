@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 // ** MUI Imports
 
 import IconButton from '@mui/material/IconButton'
@@ -8,18 +6,7 @@ import { useTheme } from '@emotion/react'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import {
-  Drawer,
-  CardHeader,
-  Grid,
-  Card,
-  Avatar,
-  Box,
-  Typography,
-  Button,
-  Divider,
-  CircularProgress
-} from '@mui/material'
+import { Drawer, CardHeader, Grid, Card, Box, Typography, Button, Divider, CircularProgress } from '@mui/material'
 
 import RenderUtility from 'src/utility/render'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
@@ -73,7 +60,7 @@ const RequestedProductDetails = props => {
           color: item?.request_status === 'Alternate' ? theme.palette.customColors.OnSurfaceVariant : color,
           fontSize: '12px',
           fontWeight: 400,
-          fontFamily: 'Inter',
+
           padding: '4px',
           borderRadius: '4px',
           backgroundColor: backgroundColor,
@@ -165,7 +152,7 @@ const RequestedProductDetails = props => {
                             color: theme.palette.customColors.OnPrimaryContainer,
                             fontSize: '16px',
                             fontWeight: 500,
-                            fontFamily: 'Inter',
+
                             display: 'flex',
                             gap: 2
                           }}
@@ -187,7 +174,7 @@ const RequestedProductDetails = props => {
                               color: theme.palette.customColors.neutralSecondary,
                               fontSize: '12px',
                               fontWeight: 400,
-                              fontFamily: 'Inter',
+
                               mr: 2,
                               py: '4px'
                             }}
@@ -283,8 +270,7 @@ const RequestedProductDetails = props => {
                             sx={{
                               color: theme.palette.customColors.OnSurfaceVariant,
                               fontSize: '14px',
-                              fontWeight: 400,
-                              fontFamily: 'Inter'
+                              fontWeight: 400
                             }}
                           >
                             {item.label}
@@ -293,8 +279,7 @@ const RequestedProductDetails = props => {
                             sx={{
                               color: theme.palette.customColors.OnPrimaryContainer,
                               fontSize: '20px',
-                              fontWeight: 500,
-                              fontFamily: 'Inter'
+                              fontWeight: 500
                             }}
                           >
                             {item.value}
@@ -442,8 +427,7 @@ const RequestedProductDetails = props => {
                           sx={{
                             color: theme.palette.customColors.OnSurfaceVariant,
                             fontSize: '12px',
-                            fontWeight: 400,
-                            fontFamily: 'Inter'
+                            fontWeight: 400
                           }}
                         >
                           Available Quantity:
@@ -452,8 +436,7 @@ const RequestedProductDetails = props => {
                             sx={{
                               color: theme.palette.customColors.neutralPrimary,
                               fontSize: '14px',
-                              fontWeight: 400,
-                              fontFamily: 'Inter'
+                              fontWeight: 400
                             }}
                           >
                             {requestedProducts?.total_available_quantity
@@ -493,7 +476,7 @@ const RequestedProductDetails = props => {
                         color: theme.palette.customColors.OnSurfaceVariant,
                         fontSize: '20px',
                         fontWeight: 500,
-                        fontFamily: 'Inter'
+
                       }}
                     >
                       {requestedProducts?.stock_name ? requestedProducts?.stock_name : 'NA'}
@@ -504,7 +487,7 @@ const RequestedProductDetails = props => {
                         color: theme.palette.customColors.neutralSecondary,
                         fontSize: '14px',
                         fontWeight: 400,
-                        fontFamily: 'Inter'
+
                       }}
                     >
                       {requestedProducts?.package ||
@@ -522,7 +505,7 @@ const RequestedProductDetails = props => {
                           color: theme.palette.customColors.OnSurfaceVariant,
                           fontSize: '12px',
                           fontWeight: 400,
-                          fontFamily: 'Inter'
+
                         }}
                       >
                         Available Quantity:
@@ -532,7 +515,7 @@ const RequestedProductDetails = props => {
                             color: theme.palette.customColors.neutralPrimary,
                             fontSize: '14px',
                             fontWeight: 400,
-                            fontFamily: 'Inter'
+
                           }}
                         >
                           {requestedProducts?.total_available_quantity
@@ -566,7 +549,7 @@ const RequestedProductDetails = props => {
                       color: theme.palette.customColors.OnSurfaceVariant,
                       fontSize: '14px',
                       fontWeight: 500,
-                      fontFamily: 'Inter',
+
                       padding: '8px'
                     }}
                   >
@@ -576,8 +559,7 @@ const RequestedProductDetails = props => {
                       sx={{
                         color: theme.palette.customColors.Tertiary,
                         fontSize: '14px',
-                        fontWeight: 500,
-                        fontFamily: 'Inter'
+                        fontWeight: 500
                       }}
                     >
                       {' '}
@@ -614,7 +596,7 @@ const RequestedProductDetails = props => {
                     color: theme.palette.customColors.OnSurfaceVariant,
                     fontSize: '16px',
                     fontWeight: 500,
-                    fontFamily: 'Inter',
+
                     pb: '8px',
                     height: 'auto'
                   }}
@@ -655,7 +637,7 @@ const RequestedProductDetails = props => {
                                 color: theme.palette.customColors.OnPrimaryContainer,
                                 fontSize: '16px',
                                 fontWeight: 500,
-                                fontFamily: 'Inter',
+
                                 display: 'flex',
                                 gap: 2
                               }}
@@ -677,7 +659,7 @@ const RequestedProductDetails = props => {
                                     color: theme.palette.customColors.neutralSecondary,
                                     fontSize: '12px',
                                     fontWeight: 400,
-                                    fontFamily: 'Inter',
+
                                     mr: 2,
                                     py: '4px'
                                   }}
@@ -784,8 +766,7 @@ const RequestedProductDetails = props => {
                                   sx={{
                                     color: theme.palette.customColors.OnSurfaceVariant,
                                     fontSize: '14px',
-                                    fontWeight: 400,
-                                    fontFamily: 'Inter'
+                                    fontWeight: 400
                                   }}
                                 >
                                   {item?.label}
@@ -794,8 +775,7 @@ const RequestedProductDetails = props => {
                                   sx={{
                                     color: theme.palette.customColors.OnPrimaryContainer,
                                     fontSize: '20px',
-                                    fontWeight: 500,
-                                    fontFamily: 'Inter'
+                                    fontWeight: 500
                                   }}
                                 >
                                   {item.value}
