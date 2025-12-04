@@ -293,7 +293,7 @@ const mapDetailRecordsToActivities = (records = []) => {
   })
 }
 
-const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId }) => {
+const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDischarged = false }) => {
   const theme = useTheme()
   const [isAddDrawerOpen, setAddDrawerOpen] = useState(false)
   const [isEditDrawerOpen, setEditDrawerOpen] = useState(false)
@@ -728,20 +728,22 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId }) => {
         >
           Treatments {totalTreatments > 0 ? ` - ${totalTreatments}` : ''}
         </Typography>
-        <Button
-          variant='contained'
-          startIcon={<AddIcon />}
-          onClick={handleOpenAddDrawer}
-          sx={{
-            boxShadow: `0px 4px 8px -4px ${theme.palette.customColors.shadowColor || '#4C4E646B'}`,
-            height: '42px',
-            borderRadius: '8px',
-            textTransform: 'none',
-            fontWeight: 600
-          }}
-        >
-          Add New Treatment
-        </Button>
+        {!patientDischarged && (
+          <Button
+            variant='contained'
+            startIcon={<AddIcon />}
+            onClick={handleOpenAddDrawer}
+            sx={{
+              boxShadow: `0px 4px 8px -4px ${theme.palette.customColors.shadowColor || '#4C4E646B'}`,
+              height: '42px',
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 600
+            }}
+          >
+            Add New Treatment
+          </Button>
+        )}
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
