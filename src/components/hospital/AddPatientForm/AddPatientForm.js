@@ -268,6 +268,7 @@ const AddPatientForm = () => {
         entitiy_item_type: 'animal',
         request_from: 'web',
         module: 'hospital_transfer',
+        visit_type: data?.visitType,
         additional_info: JSON.stringify({
           treatment_type: data?.treatmentType,
           doctor_id: String(selectedDoctor?.id),

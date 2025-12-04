@@ -27,7 +27,6 @@ const InpatientOverview = ({ overviewData, refetchPatient }) => {
   const theme = useTheme()
 
   const { selectedHospital } = useHospital()
-  const rd = 131
   const { id, animal_id } = router.query
 
   const [openDrawer, setOpenDrawer] = useState(false)
