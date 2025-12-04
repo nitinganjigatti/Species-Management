@@ -36,8 +36,8 @@ const MUISelect = ({
         disabled={disabled}
       >
         {options?.map(option => (
-          <MenuItem key={option.id} value={option.id}>
-            {option.name}
+          <MenuItem key={option?.id} value={option?.id}>
+            {option?.name || option?.label}
           </MenuItem>
         ))}
       </Select>

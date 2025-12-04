@@ -27,7 +27,7 @@ import RenderUtility from 'src/utility/render'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
-import { dateRangeOptions } from 'src/constants/Constants'
+import { dateRangeOptions } from 'src/constants/PharmacyConstants'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 
 const RequestList = () => {

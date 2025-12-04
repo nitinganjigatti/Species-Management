@@ -16,6 +16,8 @@ import dayjs from 'dayjs'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
+import MUISelect from 'src/views/forms/form-fields/MUISelect'
+import { statusOptions } from 'src/constants/PharmacyConstants'
 
 const ReconciliationReport = () => {
   const router = useRouter()
@@ -28,11 +30,11 @@ const ReconciliationReport = () => {
     router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
-  const statusOptions = [
-    { id: 'all', label: 'All' },
-    { id: 'active', label: 'Active' },
-    { id: 'inactive', label: 'Inactive' }
-  ]
+  // const statusOptions = [
+  //   { id: 'all', label: 'All' },
+  //   { id: 'active', label: 'Active' },
+  //   { id: 'inactive', label: 'Inactive' }
+  // ]
 
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
@@ -813,15 +815,13 @@ const ReconciliationReport = () => {
               />
             </Grid>
             <Grid item size={{ xs: 12, sm: 2.5, md: 2, lg: 2 }}>
-              <MUIAutocomplete
+              <MUISelect
                 value={activeStatus}
                 label='Filter by Status'
-                valueType='id'
-                onChange={newValue => {
+                onChange={e => {
                   setTotal(0)
                   setPaginationModel({ page: 0, pageSize: 50 })
-                  debugger
-                  setActiveStatus(newValue)
+                  setActiveStatus(e.target.value)
                   setSearchValue('')
                 }}
                 options={statusOptions}
@@ -833,14 +833,7 @@ const ReconciliationReport = () => {
               sx={{
                 display: 'flex',
                 flexDirection: 'row',
-
-                // justifyContent: { xs: 'flex-start', sm: 'flex-end', md: 'flex-end', lg: 'flex-end' },
-
                 alignItems: 'center'
-
-                // ml: 'auto',
-
-                // gap: { xs: 3, sm: 1 },
               }}
             >
               <MUISwitch
@@ -851,6 +844,7 @@ const ReconciliationReport = () => {
                   fontWeight: 400
                 }}
                 labelPlacement='end'
+                formControlStyle={{ m: 0 }}
                 value={filterSwitch}
                 defaultChecked={filterSwitch}
                 onChange={e => {
