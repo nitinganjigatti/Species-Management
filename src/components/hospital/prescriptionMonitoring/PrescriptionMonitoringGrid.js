@@ -812,6 +812,10 @@ const PrescriptionMonitoringGrid = ({
                       const slotHour24 = convertLabelToHour24(time)
                       const isCurrentHour = slotHour24 === currentHour24
 
+                      // Check if selectedDate is today AND it's the current hour
+                      const shouldShowTooltip =
+                        isCurrentHour && new Date(selectedDate).toDateString() === new Date().toDateString()
+
                       const currentMinutes = currentTime.getMinutes()
                       const positionPercentage = (currentMinutes / 60) * 100
 
@@ -826,7 +830,7 @@ const PrescriptionMonitoringGrid = ({
                           ref={el => (hourRefs.current[time] = el)}
                         >
                           {time}
-                          {isCurrentHour && (
+                          {shouldShowTooltip && (
                             <TimeTooltip sx={{ left: `${positionPercentage}%` }}>
                               {currentTime.toLocaleTimeString([], {
                                 hour: '2-digit',
