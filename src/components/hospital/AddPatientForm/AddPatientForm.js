@@ -788,7 +788,12 @@ const AddPatientForm = () => {
         />
       )}
       {doctorDrawerOpen && (
-        <DoctorsDrawer open={doctorDrawerOpen} setOpen={setDoctorDrawerOpen} onSelectDoctor={handleDoctorSelection} />
+        <DoctorsDrawer
+          open={doctorDrawerOpen}
+          setOpen={setDoctorDrawerOpen}
+          onSelectDoctor={handleDoctorSelection}
+          hospitalId={selectedHospital?.id}
+        />
       )}
       {isSortBottomSheetOpen && (
         <SortBottomSheet

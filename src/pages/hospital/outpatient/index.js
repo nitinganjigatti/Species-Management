@@ -413,6 +413,7 @@ const HospitalOutPatient = () => {
           onApplyFilters={applyFilters}
           setFilterCount={setFilterCount}
           initialSelectedOptions={selectedOptions}
+          hospitalId={selectedHospital?.id}
         />
       )}
     </>
