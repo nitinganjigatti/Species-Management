@@ -85,8 +85,6 @@ const InpatientOverview = ({ overviewData, refetchPatient }) => {
   })
   const mediaFiles = mediaItems?.data?.media?.files || []
 
-  console.log(mediaItems?.data.media.files)
-
   const handlePaginationModelChange = model => {
     const updated = {
       ...filters,
@@ -410,29 +408,33 @@ const InpatientOverview = ({ overviewData, refetchPatient }) => {
             </>
           )}
           {/* Table */}
-          <Grid size={{ xs: 12 }}>
-            <Typography sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-              Animal Visit History
-            </Typography>
-            <CommonTable
-              columns={columns}
-              indexedRows={indexedRows}
-              total={total}
-              loading={isFetching}
-              paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
-              setPaginationModel={handlePaginationModelChange}
-              getRowHeight={() => 'auto'}
-              externalTableStyle={{
-                '& .MuiDataGrid-cell': {
-                  padding: 4
-                },
-                '& .MuiDataGrid-row:hover': {
-                  // backgroundColor: 'transparent',
-                  cursor: 'pointer'
-                }
-              }}
-            />
-          </Grid>
+          {indexedRows?.length > 0 && (
+            <Grid size={{ xs: 12 }}>
+              <Typography
+                sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+              >
+                Animal Visit History
+              </Typography>
+              <CommonTable
+                columns={columns}
+                indexedRows={indexedRows}
+                total={total}
+                loading={isFetching}
+                paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
+                setPaginationModel={handlePaginationModelChange}
+                getRowHeight={() => 'auto'}
+                externalTableStyle={{
+                  '& .MuiDataGrid-cell': {
+                    padding: 4
+                  },
+                  '& .MuiDataGrid-row:hover': {
+                    // backgroundColor: 'transparent',
+                    cursor: 'pointer'
+                  }
+                }}
+              />
+            </Grid>
+          )}
         </Grid>
       </Box>
       {/* Media Drawer */}

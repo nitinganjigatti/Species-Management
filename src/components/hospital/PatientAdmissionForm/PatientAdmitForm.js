@@ -44,7 +44,7 @@ import { debounce } from 'lodash'
 import Utility from 'src/utility'
 
 const treatmentType = [
-  { label: 'OPD (outpatient)', value: 'opd' },
+  { label: 'OPD (outpatient)', value: 'outpatient' },
   { label: 'Hospital Admission (inpatient)', value: 'inpatient' }
 ]
 
@@ -98,6 +98,7 @@ const PatientAdmitForm = () => {
   const [isRejectLoading, setIsSubmitLoading] = useState(false)
   const [rejectionReason, setRejectionReason] = useState('')
   const [rooms, setRooms] = useState([])
+  const [roomLoading, setRoomLoading] = useState(false)
   const [searchRoom, setSearchRoom] = useState('')
   const [bedsLoading, setBedsLoading] = useState(false)
   const [searchEnclosure, setSearchEnclosure] = useState('')
@@ -126,10 +127,9 @@ const PatientAdmitForm = () => {
     getPatientInfo()
   }, [id])
 
-  console.log(patientData)
-
   useEffect(() => {
     const getHospitalRooms = async () => {
+      setRoomLoading(true)
       try {
         await getHospitalRoomsList({
           hospital_id: selectedHospital?.id,
@@ -146,6 +146,10 @@ const PatientAdmitForm = () => {
                 value: item?.id
               }))
             setRooms(filteredRooms)
+            setRoomLoading(false)
+          } else {
+            setRooms([])
+            setRoomLoading(false)
           }
         })
       } catch (error) {
@@ -157,6 +161,7 @@ const PatientAdmitForm = () => {
   }, [selectedHospital, searchRoom])
 
   const selectedRoom = watch('room')
+  const watchTreatmentType = watch('treatmentType')
 
   useEffect(() => {
     const getHospitalBeds = async () => {
@@ -206,9 +211,15 @@ const PatientAdmitForm = () => {
       await admitHospitalPatient(params).then(res => {
         if (res?.success === true) {
           Toaster({ type: 'success', message: res?.message })
-          router.push({
-            pathname: `/hospital/inpatient`
-          })
+          if (watchTreatmentType === 'opd') {
+            router.push({
+              pathname: `/hospital/outpatient`
+            })
+          } else {
+            router.push({
+              pathname: `/hospital/inpatient`
+            })
+          }
           setSubmitLoader(false)
         } else {
           Toaster({ type: 'error', message: res?.message })
@@ -565,7 +576,6 @@ const PatientAdmitForm = () => {
                       control={control}
                       errors={errors}
                       options={rooms}
-                      disabled={rooms.length === 0}
                       getOptionValue={option => option.value || ''}
                       getOptionLabel={option => option.label || ''}
                       isOptionEqualToValue={(option, value) => option.value === value?.value}
@@ -573,6 +583,7 @@ const PatientAdmitForm = () => {
                       onInputChange={val => debouncedSearch(val)}
                       sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
                       fullWidth
+                      loading={roomLoading}
                     />
                     {rooms.length === 0 && (
                       <Typography
@@ -599,7 +610,6 @@ const PatientAdmitForm = () => {
                       label='Select Holding Unit'
                       control={control}
                       errors={errors}
-                      disabled={rooms.length === 0}
                       options={holdingEnclosures}
                       getOptionValue={option => option.value || ''}
                       getOptionLabel={option => option.label || ''}
