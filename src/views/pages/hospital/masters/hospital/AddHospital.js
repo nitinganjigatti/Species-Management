@@ -148,7 +148,7 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
           pb: 16
         }}
       >
-        <form autoComplete='off' onSubmit={submitLoader ? undefined : handleSubmit(onSubmit)}>
+        <form autoComplete='off'>
           <Card sx={{ padding: 6, boxShadow: 0, border: `2px solid ${theme.palette.customColors.SurfaceVariant}` }}>
             <Grid container spacing={6}>
               <Grid size={{ xs: 12 }}>
@@ -261,7 +261,7 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
       >
         <LoadingButton
           variant='contained'
-          type='submit'
+          onClick={handleSubmit(onSubmit)}
           loading={submitLoader}
           sx={{ flex: 1, py: 4 }}
           disabled={!isValid || submitLoader}
