@@ -22,12 +22,11 @@ import { VisitType } from '../utility/hospitalSnippets'
 import { useHospital } from 'src/context/HospitalContext'
 import OverviewMediaListingDrawer from 'src/components/hospital/drawer/OverviewMediaListingDrawer'
 
-const InpatientOverview = ({ overviewData }) => {
+const InpatientOverview = ({ overviewData, refetchPatient }) => {
   const router = useRouter()
   const theme = useTheme()
 
   const { selectedHospital } = useHospital()
-  const rd = 131
   const { id, animal_id } = router.query
 
   const [openDrawer, setOpenDrawer] = useState(false)
@@ -36,6 +35,10 @@ const InpatientOverview = ({ overviewData }) => {
     page: 1,
     limit: 10
   })
+
+  useEffect(() => {
+    refetchPatient()
+  }, [refetchPatient])
 
   useEffect(() => {
     const { page = '1', limit = '10' } = router.query

@@ -647,7 +647,11 @@ export default function AddMedicineToPrescription() {
 
   const resetForm = useCallback(() => {
     Object.keys(defaultValues).forEach(key => {
-      setValue(key, defaultValues[key])
+      if (key === 'selectMedicineType') {
+        setValue(key, watch('selectMedicineType'))
+      } else {
+        setValue(key, defaultValues[key])
+      }
     })
     setSelectedMedicine(null)
     setTemporarilySelectedMedicine(null)

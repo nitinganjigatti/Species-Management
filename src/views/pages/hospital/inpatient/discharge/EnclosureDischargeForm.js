@@ -21,9 +21,8 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
-import { getSecurityCheckForTransfer } from 'src/lib/api/hospital/prescription'
 
-const STORAGE_KEY = 'transfer_enclosure_form'
+// const STORAGE_KEY = 'transfer_enclosure_form'
 
 const transferEnclosureSchema = yup.object({
   discharge_date: yup.date().nullable().required('Date of discharge is required'),
@@ -79,6 +78,8 @@ const EnclosureDischargeForm = props => {
     medicalRecordId
   } = props
 
+  const STORAGE_KEY = `transfer_enclosure_form_${medicalRecordId}`
+
   const isRestoring = useRef(true)
 
   const theme = useTheme()
@@ -131,6 +132,15 @@ const EnclosureDischargeForm = props => {
   })
 
   useEffect(() => {
+    if (!medicalRecordId) return
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith('transfer_enclosure_form_') && key !== STORAGE_KEY) {
+        sessionStorage.removeItem(key)
+      }
+    })
+  }, [medicalRecordId])
+
+  useEffect(() => {
     const saved = sessionStorage.getItem(STORAGE_KEY)
 
     if (saved) {
@@ -142,13 +152,12 @@ const EnclosureDischargeForm = props => {
         discharge_date: parsed.discharge_date ? dayjs(parsed.discharge_date) : dayjs(),
         discharge_time: parsed.discharge_time ? dayjs(parsed.discharge_time) : dayjs(),
         follow_up_required: parsed.follow_up_required ?? false,
-        follow_up_date: parsed.follow_up_required && parsed.follow_up_date ? dayjs(parsed.follow_up_date) : null,
-        reason: parsed.reason || ''
+        follow_up_date: parsed.follow_up_required && parsed.follow_up_date ? dayjs(parsed.follow_up_date) : null
       })
 
       isRestoring.current = false
     }
-  }, [])
+  }, [STORAGE_KEY])
 
   // strict time limits for discharge time
   const selectedDischargeDate = watch('discharge_date')

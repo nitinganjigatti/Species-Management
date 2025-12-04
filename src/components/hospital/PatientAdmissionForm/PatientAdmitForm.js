@@ -599,7 +599,7 @@ const PatientAdmitForm = () => {
                       label='Select Holding Unit'
                       control={control}
                       errors={errors}
-                      disabled={rooms.length === 0 || holdingEnclosures.length === 0}
+                      disabled={rooms.length === 0}
                       options={holdingEnclosures}
                       getOptionValue={option => option.value || ''}
                       getOptionLabel={option => option.label || ''}
@@ -653,13 +653,19 @@ const PatientAdmitForm = () => {
             onClick={handleSubmit(onSubmit)}
             loading={submitLoader}
             loadingIndicator={<CircularProgress size={24} sx={{ color: theme.palette.customColors.OnPrimary }} />}
+            disabled={submitLoader}
           >
             ADMIT
           </LoadingButton>
         </Box>
       </Box>
       {doctorDrawerOpen && (
-        <DoctorsDrawer open={doctorDrawerOpen} setOpen={setDoctorDrawerOpen} onSelectDoctor={handleDoctorSelection} />
+        <DoctorsDrawer
+          open={doctorDrawerOpen}
+          setOpen={setDoctorDrawerOpen}
+          onSelectDoctor={handleDoctorSelection}
+          hospitalId={selectedHospital?.id}
+        />
       )}
       {isRejecting && (
         <ConfirmationDialog

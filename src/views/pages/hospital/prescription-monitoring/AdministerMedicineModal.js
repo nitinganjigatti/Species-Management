@@ -269,7 +269,7 @@ const AdministerMedicineSidesheet = ({
       time: data.time ? dayjs(data.time).format('hh:mm A') : ''
     }
     onSubmit(formattedData)
-    handleClose()
+
   }
 
   const handleSkip = () => {
