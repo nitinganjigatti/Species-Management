@@ -130,7 +130,7 @@ const MediaScroller = ({ items = [] }) => {
   )
 }
 
-function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) {
+function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData, patientDischarged = false }) {
   const theme = useTheme()
   const router = useRouter()
   const scrollContainerRef = useRef(null)
@@ -793,13 +793,15 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
             </Box>
           </Box>
 
-          <Button
-            onClick={() => router.push(`/hospital/inpatient/${patientData?.hospital_case_id}/AddAnesthesiaRecord/`)}
-            variant='contained'
-            sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
-          >
-            Add Anesthesia
-          </Button>
+          {!patientDischarged && (
+            <Button
+              onClick={() => router.push(`/hospital/inpatient/${patientData?.hospital_case_id}/AddAnesthesiaRecord/`)}
+              variant='contained'
+              sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
+            >
+              Add Anesthesia
+            </Button>
+          )}
         </Box>
         {anesthesiaRecords.length > 0 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -846,13 +848,15 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
                 </Box>
 
                 <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <Box
-                    component='img'
-                    src='/icons/pencil_outlined.svg'
-                    alt='Edit'
-                    sx={{ width: 24, height: 24, cursor: 'pointer' }}
-                    onClick={() => handleEditClick(anesthesiaDetail)}
-                  />
+                  {!patientDischarged && (
+                    <Box
+                      component='img'
+                      src='/icons/pencil_outlined.svg'
+                      alt='Edit'
+                      sx={{ width: 24, height: 24, cursor: 'pointer' }}
+                      onClick={() => handleEditClick(anesthesiaDetail)}
+                    />
+                  )}
                   <Box
                     component='img'
                     src='/icons/delete_outlined.svg'

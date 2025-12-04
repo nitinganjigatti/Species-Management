@@ -102,7 +102,7 @@ const PatientDetails = ({ category }) => {
   const animalIdParam = animal_id || ''
   const medicalRecordIdParam = medical_record_id || ''
 
-  const isPatientDischarged = patientData?.status === 'discharge' ? true : false
+  const isPatientDischarged = patientData?.status === 'discharge'
 
   const overviewData = patientResponse
     ? {
