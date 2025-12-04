@@ -29,7 +29,7 @@ import MediaCard from 'src/views/utility/MediaCard'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 import LoadingSkeleton from 'src/components/hospital/inpatient/Anesthesia/LoadingSkeleton'
 import VitalMonitoringDetail from './Anesthesia/vitalForms/VitalMonitoringDetail'
-
+import NoMedicalData from 'src/views/utility/NoMedicalData'
 import { getAnesthesiaList, getAnesthesiaDetail, deleteAnesthesia } from 'src/lib/api/hospital/anesthesia'
 
 const tooltipSlotProps = {
@@ -130,7 +130,7 @@ const MediaScroller = ({ items = [] }) => {
   )
 }
 
-function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) {
+function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData, overviewData }) {
   const theme = useTheme()
   const router = useRouter()
   const scrollContainerRef = useRef(null)
@@ -182,6 +182,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
   const [activeRecordId, setActiveRecordId] = useState('')
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const isDischared = overviewData?.status === 'discharge'
   const previousFirstRecordIdRef = useRef('')
 
   useEffect(() => {
@@ -578,7 +579,6 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
   }, [deleteLoading])
 
   const handleEditClick = value => {
-    console.log(value, 'value')
     if (value?.anaesthesia_id) {
       router.push({
         pathname: `/hospital/inpatient/${router?.query?.id}/AddAnesthesiaRecord`,
@@ -654,13 +654,13 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
       )
     }
 
-    if (!anesthesiaRecords.length) {
-      return (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap' }}>
-          No anesthesia records found.
-        </Typography>
-      )
-    }
+    // if (!anesthesiaRecords.length) {
+    //   return (
+    //     <Typography sx={{ color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap' }}>
+    //       No anesthesia records found.
+    //     </Typography>
+    //   )
+    // }
 
     return anesthesiaRecords.map((record, index) => {
       const label = record?.code || `Record ${index + 1}`
@@ -792,15 +792,33 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, animalId, patientData }) 
               ) : null}
             </Box>
           </Box>
-
-          <Button
-            onClick={() => router.push(`/hospital/inpatient/${patientData?.hospital_case_id}/AddAnesthesiaRecord/`)}
-            variant='contained'
-            sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
-          >
-            Add Anesthesia
-          </Button>
+          {anesthesiaRecords.length > 0 && (
+            <Button
+              onClick={() => router.push(`/hospital/inpatient/${patientData?.hospital_case_id}/AddAnesthesiaRecord/`)}
+              variant='contained'
+              sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
+            >
+              Add Anesthesia
+            </Button>
+          )}
         </Box>
+        {anesthesiaRecords.length === 0 && (
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          >
+            <NoMedicalData
+              btnText={'ADD ANESTHESIA'}
+              text={'All Added Anesthesia Will Appear here'}
+              isDischarged={isDischared}
+              btnAction={() => router.push(`/hospital/inpatient/${hospitalCaseId}/AddAnesthesiaRecord`)}
+            />
+          </Box>
+        )}
         {anesthesiaRecords.length > 0 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

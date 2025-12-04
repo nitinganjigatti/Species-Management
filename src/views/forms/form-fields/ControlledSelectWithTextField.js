@@ -142,7 +142,7 @@ function ControlledSelectWithTextField({
       ? theme.palette.error.main
       : isFocused
       ? theme.palette.primary.main
-      : theme.palette.customColors.OnSurfaceVariant
+      : theme.palette.customColors.Outline
   })
 
   // Prevent scroll wheel on number inputs
@@ -261,28 +261,7 @@ function ControlledSelectWithTextField({
                     {label}
                   </Box>
                 ) : (
-                  <Box
-                    component='span'
-                    sx={{
-                      position: 'relative',
-                      display: 'inline-block',
-                      px: '4px',
-                      color: theme.palette.customColors.secondaryBg,
-                      '&::before': {
-                        content: '""',
-                        position: 'absolute',
-                        top: '48%',
-                        left: 0,
-                        right: 0,
-                        height: '3px',
-                        backgroundColor: theme.palette.background.paper,
-                        transform: 'translateY(-50%)',
-                        zIndex: -1
-                      }
-                    }}
-                  >
-                    {label}
-                  </Box>
+                  label
                 )}
               </InputLabel>
 

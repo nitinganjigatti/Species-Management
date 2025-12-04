@@ -425,7 +425,7 @@ export default function AddAnesthesiaRecord() {
       }
     } catch (error) {}
   }
-  console.log(id, 'id')
+
   const fetchVitalList = async () => {
     try {
       const params = {
@@ -436,7 +436,7 @@ export default function AddAnesthesiaRecord() {
         // anaesthesia_id:""
       }
       const response = await getvitalMonitoringList(params)
-      console.log(response, 'response')
+
       if (response?.success && response?.data) {
         setVitalMonitorList(response?.data?.result)
       } else {
@@ -563,7 +563,12 @@ export default function AddAnesthesiaRecord() {
   })
 
   const handleCancel = () => {
-    router.back()
+    router.push(`/hospital/inpatient/${id}/?tab=anesthesia`)
+  }
+
+  const handleCancelNew = async () => {
+    await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
+    router.push(`/hospital/inpatient/${id}/?tab=anesthesia`)
   }
 
   const {
@@ -665,13 +670,40 @@ export default function AddAnesthesiaRecord() {
   )
 
   // Validate basic details for internal tracking
+  // React.useEffect(() => {
+  //   const validateBasicDetails = async () => {
+  //     const valid = await trigger('basicDetails')
+  //     setIsBasicDetailsValid(valid)
+  //   }
+
+  //   validateBasicDetails()
+  // }, [
+  //   location,
+  //   anaesthesia_datetime,
+  //   estimated_time_required,
+  //   veterinarian_id,
+  //   anesthetist_id,
+  //   selected,
+  //   notes,
+  //   trigger
+  // ])
+
   React.useEffect(() => {
-    const validateBasicDetails = async () => {
-      const valid = await trigger('basicDetails')
-      setIsBasicDetailsValid(valid)
+    const checkBasicDetailsValid = async () => {
+      const basicValues = methods.getValues('basicDetails')
+
+      try {
+        // validate only the basicDetails part of schema
+        const isValid = await anesthesiaSchema.fields.basicDetails.isValid(basicValues, {
+          abortEarly: false
+        })
+        setIsBasicDetailsValid(isValid)
+      } catch (e) {
+        setIsBasicDetailsValid(false)
+      }
     }
 
-    validateBasicDetails()
+    checkBasicDetailsValid()
   }, [
     location,
     anaesthesia_datetime,
@@ -680,7 +712,7 @@ export default function AddAnesthesiaRecord() {
     anesthetist_id,
     selected,
     notes,
-    trigger
+    methods
   ])
 
   const fetchAnesthesiaDetails = async anaesthesia_id => {
@@ -689,8 +721,6 @@ export default function AddAnesthesiaRecord() {
     try {
       setAddLoader(true)
       const response = await getAnesthesiaDetails(anaesthesia_id)
-      console.log(response, 'getAnesthesiaDetails response')
-
       if (response?.success && response?.data) {
         setAnesthesiaDetail(response.data)
         setAddLoader(false)
@@ -1071,7 +1101,6 @@ export default function AddAnesthesiaRecord() {
 
   const onValid = async data => {
     setIsSubmitting(true)
-    console.log(data, 'data')
 
     try {
       const anesthesiaSetupValues = methods.getValues('anesthesiaSetup') || {}
@@ -1374,7 +1403,6 @@ export default function AddAnesthesiaRecord() {
           formData.append('anaesthesia_setup', JSON.stringify(anaesthesiaSetupPayload))
         }
       }
-
       console.log(' Final payload for API:', {
         hospital_case_id: id || '',
         medical_record_id: patientData?.medical_record_id || '',
@@ -1399,12 +1427,14 @@ export default function AddAnesthesiaRecord() {
 
       if (response?.status === true) {
         setIsApiSuccess(true)
-        setExpanded('medicationsGas')
-        Toaster({ type: 'success', message: response?.message })
-        if (!anaesthesia_id) {
-          handleCancel()
-          await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
+        // setExpanded('medicationsGas')
+        if (!hasMedicationsGasData(medsPayload, gasPayload)) {
+          handleChange('medicationsGas')
         }
+        Toaster({ type: 'success', message: response?.message })
+        router.push(
+          `/hospital/inpatient/${id}/AddAnesthesiaRecord/?tab=anesthesia&anaesthesia_id=${response?.data?.anaesthesia_id}`
+        )
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to save record' })
       }
@@ -1498,7 +1528,6 @@ export default function AddAnesthesiaRecord() {
       (Array.isArray(medsPayload) && medsPayload.length > 0) || (Array.isArray(gasPayload) && gasPayload.length > 0)
     )
   }
-
   const hasVitalBlocksData = blocks => Array.isArray(blocks) && blocks.length > 0
 
   const hasAnesthesiaSetupData = setupPayload => Array.isArray(setupPayload) && setupPayload.length > 0
@@ -1561,7 +1590,6 @@ export default function AddAnesthesiaRecord() {
   }
 
   const shouldEnableSections = isApiSuccess
-  console.log(anesthesiaDetail?.updated_at, 'lll')
   const lastUpdatedValue =
     anesthesiaDetail?.updated_at !== undefined ? formatDateTime(anesthesiaDetail.updated_at) : '-'
 
@@ -1826,7 +1854,7 @@ export default function AddAnesthesiaRecord() {
             </Box>
           }
           onAdd={handleSubmit(onValid, onInvalid)}
-          onCancel={handleCancel}
+          onCancel={handleCancelNew}
           width={200}
           height={50}
           isSubmitLoading={isSubmitting}
