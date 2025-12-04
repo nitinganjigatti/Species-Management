@@ -54,6 +54,7 @@ const areArraysEqual = (a = [], b = []) => a.length === b.length && a.every((val
 const normalizeId = id => {
   if (id === undefined || id === null || id === '') return ''
   const parsed = Number(id)
+
   return Number.isNaN(parsed) ? id : parsed
 }
 
@@ -160,6 +161,7 @@ const AnimalFilterDrawer = ({
       setLocationSelections(prevSelections => {
         const nextSelections = typeof updater === 'function' ? updater(prevSelections) : updater
         syncLocationOptions(nextSelections)
+
         return nextSelections
       })
     },
@@ -213,6 +215,7 @@ const AnimalFilterDrawer = ({
 
     const currentTokens = selectedOptions[MENU.LOCATION] || []
     const parsed = parseLocationTokens(currentTokens)
+
     const initialLocation = {
       Site: parsed.sites,
       Section: parsed.sections,
@@ -251,6 +254,7 @@ const AnimalFilterDrawer = ({
   const fetchMenuData = useCallback(async (menuName, query = '') => {
     if (menuName === MENU.LOCATION) {
       setSearchLoading(false)
+
       return
     }
 
@@ -312,12 +316,14 @@ const AnimalFilterDrawer = ({
     if (selectedMenu === MENU.GENDER) {
       setMenuData(prev => ({ ...prev, [MENU.GENDER]: GENDER_OPTIONS }))
       setSearchLoading(false)
+
       return
     }
 
     if (selectedMenu === MENU.AGE) {
       setMenuData(prev => ({ ...prev, [MENU.AGE]: AGE_OPTIONS }))
       setSearchLoading(false)
+
       return
     }
 
@@ -356,6 +362,7 @@ const AnimalFilterDrawer = ({
 
       if (menuName === MENU.GENDER || menuName === MENU.AGE) {
         const source = menuName === MENU.GENDER ? GENDER_OPTIONS : AGE_OPTIONS
+
         const filtered = query
           ? source.filter(option => option.label.toLowerCase().includes(query.toLowerCase()))
           : source
@@ -386,6 +393,7 @@ const AnimalFilterDrawer = ({
       setSelectedOptions(prev => {
         const current = prev[menuName] || []
         const exists = current.includes(id)
+
         const next = {
           ...prev,
           [menuName]: exists ? current.filter(item => item !== id) : [...current, id]
@@ -406,6 +414,7 @@ const AnimalFilterDrawer = ({
         const allValues = menuData[menuName]?.map(item => item.value) || []
         const current = prev[menuName] || []
         const allSelected = allValues.length > 0 && current.length === allValues.length
+
         const next = {
           ...prev,
           [menuName]: allSelected ? [] : allValues

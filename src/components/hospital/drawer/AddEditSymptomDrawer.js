@@ -49,7 +49,8 @@ const AddEditSymptomDrawer = ({
   isUpdating,
   setIsDeleting,
   isDeleting,
-  setActivityListData
+  setActivityListData,
+  isChanged
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
@@ -69,22 +70,22 @@ const AddEditSymptomDrawer = ({
   }
 
   const processedActivities =
-    activityListData?.complaint_notes
-      ?.map(activity => ({
-        ...activity,
-        isSystemGenerated: activity?.is_system_generated === 1,
-        oldSeverity: activity?.notes_dump?.old_data?.severity || '',
-        newSeverity: activity?.notes_dump?.new_data?.severity || '',
-        createdBy: activity?.created_by_user_name || '',
-        formattedTime: `${Utility.convertUTCToLocaltime(activity?.created_at)} • ${Utility.formatDisplayDate(
-          activity?.created_at
-        )}`,
-        note: activity.note || 'N/A'
-      }))
+    activityListData?.complaint_notes?.map(activity => ({
+      ...activity,
+      isSystemGenerated: activity?.is_system_generated === 1,
+      oldSeverity: activity?.notes_dump?.old_data?.severity || '',
+      newSeverity: activity?.notes_dump?.new_data?.severity || '',
+      createdBy: activity?.created_by_user_name || '',
+      formattedTime: `${Utility.convertUTCToLocaltime(activity?.created_at)} • ${Utility.formatDisplayDate(
+        activity?.created_at
+      )}`,
+      note: activity.note || 'N/A'
+    })) ||
+    // .sort((a, b) => {
+    //   return b.isSystemGenerated - a.isSystemGenerated
+    // })
 
-      .sort((a, b) => {
-        return b.isSystemGenerated - a.isSystemGenerated
-      }) || []
+    []
 
   const handleEditActivity = value => {
     setSymptomNoteModal(true)
@@ -99,8 +100,8 @@ const AddEditSymptomDrawer = ({
   const handleUpdateNotes = async newNotes => {
     if (!notes?.trim()) {
       Toaster({ type: 'error', message: 'Please enter notes before updating.' })
-      
-return
+
+      return
     }
     setIsUpdating(true)
 
@@ -139,8 +140,8 @@ return
   const handleDeleteNotes = async () => {
     if (!notes?.trim()) {
       Toaster({ type: 'error', message: 'Please enter notes to delete.' })
-      
-return
+
+      return
     }
     setIsDeleting(true)
 
@@ -167,11 +168,13 @@ return
       setIsDeleting(false)
     }
   }
+  {
+    console.log(status, 'status')
+  }
 
   return (
     <Drawer
       open={open}
-
       //onClose={onClose}
       anchor='right'
     >
@@ -185,7 +188,14 @@ return
           backgroundColor: theme.palette.common.white
         }}
       >
-        <Box sx={{ px: 5, pt: 4, pb: 2, borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
+        <Box
+          sx={{
+            px: 5,
+            pt: 4,
+            pb: 2,
+            borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+          }}
+        >
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Box display='flex' alignItems='center' gap={3}>
               <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{selectedSymptom?.name}</Typography>
@@ -196,8 +206,21 @@ return
           </Box>
         </Box>
 
-        <Box sx={{ pt: 4, pb: 2, borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
-          <Box sx={{ p: 5, background: theme.palette.common.white, px: 5 }}>
+        <Box
+          sx={{
+            pb: 2,
+            borderBottom:
+              processedActivities?.length > 0 ? `1px solid ${theme.palette.customColors.OutlineVariant}` : 'none',
+            height: processedActivities?.length > 0 ? '-webkit-fill-available' : '80%'
+          }}
+        >
+          <Box
+            sx={{
+              p: 5,
+              background: status === 'closed' ? theme.palette.customColors.mdAntzNeutral : theme.palette.common.white,
+              px: 5
+            }}
+          >
             <Typography
               sx={{ color: theme.palette.customColors.OnPrimaryContainer, fontWeight: 500, fontSize: '16px' }}
             >
@@ -231,7 +254,7 @@ return
               }}
             >
               <MenuItem value='active'>Active</MenuItem>
-              <MenuItem value='closed'>Inactive</MenuItem>
+              <MenuItem value='closed'>Resolved</MenuItem>
             </Select>
 
             <Box sx={{ display: 'flex', gap: 2, mt: 6 }}>
@@ -341,20 +364,29 @@ return
               fullWidth
               multiline
               rows={3}
-
               //value={notes}
               onChange={e => setNotes(e.target.value)}
               sx={{
-                background: theme.palette.common.white,
-                mb: 3
+                mb: 3,
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: theme.palette.common.white
+                }
               }}
             />
           </Box>
-          <Divider color={theme.palette.customColors.OutlineVariant} />
-
-          <ActivityList activities={processedActivities} onEdit={handleEditActivity} activityLoader={activityLoader} />
+          {processedActivities?.length > 0 ? (
+            <>
+              <Divider color={theme.palette.customColors.OutlineVariant} />
+              <ActivityList
+                activities={processedActivities}
+                onEdit={handleEditActivity}
+                activityLoader={activityLoader}
+              />
+            </>
+          ) : (
+            ''
+          )}
         </Box>
-
         <SideSheetActionButtons
           addLabel='UPDATE'
           cancelLabel='CANCEL'
@@ -362,8 +394,10 @@ return
           onCancel={handleCancel}
           width={260}
           height={50}
+          isDisabled={!isChanged}
         />
       </Box>
+
       <EditNotes
         open={symptomNoteModal}
         onClose={handleCloseModal}

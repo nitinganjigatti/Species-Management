@@ -1,10 +1,9 @@
 import { HOSPITAL_BED_STATS, HOSPITAL_LISTING } from 'src/constants/ApiConstant'
 import { axiosGet } from '../utility'
 
-export async function getHospitalListing(params) {
+export async function getHospitalListing(params, userId) {
   try {
-
-    const url = HOSPITAL_LISTING
+    const url = `${HOSPITAL_LISTING}/${userId}/hospital`
     const response = await axiosGet({ url, params })
 
     return response?.data

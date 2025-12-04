@@ -12,12 +12,17 @@ import { addClinicalAssessment, getDiagnosisList, getDiagnosysType } from 'src/l
 import Toaster from 'src/components/Toaster'
 import { useRouter } from 'next/router'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const PAGE_SIZE = 10
+const STORAGE_KEY = 'medical_record_data'
 
-export default function AddClinicalAssessmentPage() {
+function AddClinicalAssessmentPage() {
   const theme = useTheme()
   const router = useRouter()
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [clinicalDrawerOpen, setClinicalDrawerOpen] = useState(false)
@@ -32,7 +37,10 @@ export default function AddClinicalAssessmentPage() {
   const [patientData, setPatientData] = useState(null)
   const [patientLoading, setPatientLoading] = useState(false)
 
-  const { id, animalId, medicalRecordId } = router.query
+  // Get ID from router (with fallback during initial render before router is ready)
+  const { id } = router.query
+  const animalId = medicalRecordData?.animal_id
+  const medicalRecordId = medicalRecordData?.medical_record_id
 
   // API states
   const [allAssessments, setAllAssessments] = useState([])
@@ -88,41 +96,45 @@ export default function AddClinicalAssessmentPage() {
   }, [medicalRecordId])
 
   // Fetch diagnosis list with infinite scroll
-  const fetchDiagnosisItems = useCallback(
-    async (pageNum = 1, search = '', categoryId = '') => {
-      setIsLoading(true)
-      try {
-        const params = {
-          page: pageNum,
-          limit: PAGE_SIZE,
-          q: search,
-          category_id: categoryId,
-          type: 'diagnosis'
-        }
 
-        const res = await getDiagnosysType(params)
-
-        if (res.success) {
-          const newItems = res.data?.result || []
-          const totalCount = res.data?.totalRecords || 0
-
-          setTotalCount(totalCount)
-          setAllAssessments(prev => (pageNum === 1 ? newItems : [...prev, ...newItems]))
-          setHasMore(allAssessments?.length < totalCount)
-        } else {
-          throw new Error(res.message || 'Failed to fetch diagnosis list')
-        }
-      } catch (error) {
-        console.error('Error fetching diagnosis items:', error)
-        setAllAssessments([])
-        setTotalCount(0)
-        setHasMore(false)
-      } finally {
-        setIsLoading(false)
+  const fetchDiagnosisItems = useCallback(async (pageNum = 1, search = '', categoryId = '') => {
+    setIsLoading(true)
+    try {
+      const params = {
+        page: pageNum,
+        limit: PAGE_SIZE,
+        q: search,
+        category_id: categoryId,
+        type: 'diagnosis'
       }
-    },
-    [allAssessments]
-  )
+
+      const res = await getDiagnosysType(params)
+
+      if (res.success) {
+        const newItems = res.data?.result || []
+        const totalCount = res.data?.totalRecords || 0
+
+        setTotalCount(totalCount)
+        setAllAssessments(prev => {
+          const updatedList = pageNum === 1 ? newItems : [...prev, ...newItems]
+
+          // Calculate hasMore based on the UPDATED list length
+          setHasMore(updatedList.length < totalCount)
+
+          return updatedList
+        })
+      } else {
+        throw new Error(res.message || 'Failed to fetch diagnosis list')
+      }
+    } catch (error) {
+      console.error('Error fetching diagnosis items:', error)
+      setAllAssessments([])
+      setTotalCount(0)
+      setHasMore(false)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
 
   // Load more function for infinite scroll
   const loadMore = useCallback(() => {
@@ -144,15 +156,18 @@ export default function AddClinicalAssessmentPage() {
   // Fetch diagnosis items when tab or search changes
   useEffect(() => {
     if (currentTabId) {
+      setAllAssessments([]) // Clear before fetching
+      setPage(1)
       fetchDiagnosisItems(1, searchTerm, currentTabId)
     }
   }, [currentTabId, searchTerm])
 
   const handleTabChange = (tabValue, tabId) => {
-    setHasMore(false)
     setCurrentTab(tabValue)
     setCurrentTabId(tabId)
     setPage(1)
+    setAllAssessments([])
+    setHasMore(false)
   }
 
   const handleSymptomSelect = symptom => {
@@ -161,7 +176,25 @@ export default function AddClinicalAssessmentPage() {
   }
 
   const addSymptomDetails = details => {
-    setSelectedSymptoms(prev => [...prev, { ...temporarilySelected, ...details }])
+    if (temporarilySelected?.id && selectedSymptoms.some(s => s.id === temporarilySelected.id)) {
+      // Update existing symptom
+      setSelectedSymptoms(prev =>
+        prev.map(symptom =>
+          symptom.id === temporarilySelected.id
+            ? {
+                ...symptom,
+                ...details,
+                chronicVal: details.clinicalAsmnt === 'Differential' ? 'No' : details.chronicVal,
+                prognosisVal: details.clinicalAsmnt === 'Differential' ? '' : details.prognosisVal
+              }
+            : symptom
+        )
+      )
+    } else {
+      // Add new symptom
+      setSelectedSymptoms(prev => [...prev, { ...temporarilySelected, ...details }])
+    }
+
     setTemporarilySelected(null)
     setClinicalDrawerOpen(false)
 
@@ -207,13 +240,20 @@ export default function AddClinicalAssessmentPage() {
         clinical_assessment: symptom.clinicalAsmnt.toLowerCase(),
         note: symptom?.notes || '',
         isChronic: symptom?.chronicVal === 'Yes',
-        prognosis: symptom?.prognosisVal?.toLowerCase() || ''
+        prognosis: symptom?.prognosisVal?.toLowerCase() || '',
+        notes: symptom?.notes || '',
+        active_at: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
+          .toISOString()
+          .replace('T', ' ')
+          .substring(0, 19),
+        closed_at: null
       }
     }))
 
     const payload = {
       medical_record_id: medicalRecordId,
-      animal_id: JSON.stringify([animalId]),
+
+      // animal_id: JSON.stringify([animalId]),
       diagnosis: JSON.stringify(diagnosis)
     }
 
@@ -224,7 +264,7 @@ export default function AddClinicalAssessmentPage() {
         Toaster({ type: 'success', message: response?.message || 'Assessment created successfully' })
         router.push({
           pathname: `/hospital/inpatient/${id}`,
-          query: { animal_id: animalId, medical_record_id: medicalRecordId, tab: 'clinical-assessment' }
+          query: { tab: 'clinicalAssessment' }
         })
       } else {
         Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
@@ -240,7 +280,7 @@ export default function AddClinicalAssessmentPage() {
   const handleAssessmentCancel = () => {
     router.push({
       pathname: `/hospital/inpatient/${id}`,
-      query: { animal_id: animalId, medical_record_id: medicalRecordId, tab: 'clinical-assessment' }
+      query: { tab: 'clinicalAssessment' }
     })
   }
 
@@ -279,6 +319,19 @@ export default function AddClinicalAssessmentPage() {
       console.error('Cannot Fetch Patient Details', error)
       setPatientLoading(false)
     }
+  }
+
+  const handleAssessmentEdit = symptom => {
+    console.log('Selected Symptom:', symptom)
+    setClinicalAsmnt(symptom?.clinicalAsmnt || '')
+    setPrognosisValue(symptom?.prognosisVal || '')
+    setChronicVal(symptom?.chronicVal || 'No')
+    setNotes(symptom?.notes || '')
+    setStatus(symptom?.status || '')
+
+    // Make sure we're passing the complete symptom object with id
+    setTemporarilySelected(symptom)
+    setClinicalDrawerOpen(true)
   }
 
   useEffect(() => {
@@ -336,27 +389,29 @@ export default function AddClinicalAssessmentPage() {
             loaderRef={loaderRef}
             totalCount={totalCount}
             isTabsLoading={isTabsLoading}
-            isListLoading={isLoading && !hasMore}
+            isListLoading={isLoading}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
           <SelectedClinicalAssessment
             selected={selectedSymptoms}
+            onEdit={handleAssessmentEdit}
             onRemove={removeSymptom}
             clinicalAsmnt={clinicalAsmnt}
           />
         </Grid>
       </Grid>
-
-      <ActionButtons
-        isSubmitLoading={isSubmitLoading}
-        cancelLabel='CANCEL'
-        addLabel='ADD'
-        onCancel={handleAssessmentCancel}
-        onAdd={handleAddAssessment}
-        width={200}
-        height={50}
-      />
+      <Box>
+        <ActionButtons
+          isSubmitLoading={isSubmitLoading}
+          cancelLabel='CANCEL'
+          addLabel='ADD'
+          onCancel={handleAssessmentCancel}
+          onAdd={handleAddAssessment}
+          width={200}
+          height={50}
+        />
+      </Box>
 
       {temporarilySelected && (
         <AddClinicalAsmntDrawer
@@ -380,3 +435,5 @@ export default function AddClinicalAssessmentPage() {
     </Box>
   )
 }
+
+export default enforceModuleAccess(AddClinicalAssessmentPage, 'add_hospital')

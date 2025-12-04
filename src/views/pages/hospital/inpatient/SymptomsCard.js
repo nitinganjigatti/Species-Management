@@ -11,7 +11,7 @@ import { updateSymptoms, getNotesListForSymptom } from 'src/lib/api/hospital/sym
 import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 
-const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
+const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData }) => {
   const theme = useTheme()
   const router = useRouter()
   const { id, animal_id } = router.query
@@ -25,33 +25,42 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
   const [status, setStatus] = useState('')
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [pendingDetails, setPendingDetails] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [activityLoader, setactivityLoader] = useState(false)
   const [activityListData, setActivityListData] = useState()
   const [symptomNoteModal, setSymptomNoteModal] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [pendingDetails, setPendingDetails] = useState(null)
+  const [previousDetails, setPreviousDetails] = useState(null)
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
 
   const handleClickDetail = async recordData => {
     try {
       setactivityLoader(true)
       setSymptomDrawerNewOpen(true)
-      setSeverity(
+
+      const mappedSeverity =
         recordData?.additional_info?.severity === 'Mild'
           ? 'Low'
           : recordData?.additional_info?.severity === 'Moderate'
           ? 'Medium'
           : recordData?.additional_info?.severity
-      )
+
+      setPreviousDetails({
+        severity: mappedSeverity,
+        durationValue: recordData?.additional_info?.duration,
+        durationUnit: recordData?.additional_info?.duration_unit,
+        status: recordData?.status
+      })
+
+      setSeverity(mappedSeverity)
       setDurationValue(recordData?.additional_info?.duration)
       setDurationUnit(recordData?.additional_info?.duration_unit)
       setStatus(recordData?.status)
       setTemporarilySelected(recordData)
 
       const response = await fetchNotesForSymptom(recordData)
-
       if (response?.success) {
         setActivityListData(response?.data || [])
       } else {
@@ -90,18 +99,28 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
     setIsDeleteDialogOpen(true)
   }
 
+  const isChanged =
+    previousDetails?.severity !== severity ||
+    previousDetails?.durationValue !== durationValue ||
+    previousDetails?.durationUnit !== durationUnit ||
+    previousDetails?.status !== status
+
+  const canEnableButton = isChanged || notes?.trim()?.length > 0
+
   const handleConfirmAddSymptom = async () => {
     if (!pendingDetails) return
 
     try {
       setDeleteLoading(true)
 
+      const isSystemGenerated = isChanged ? true : false
+
       const payload = {
         main_id: temporarilySelected?.complaint_id,
         med_id: temporarilySelected?.medical_record_id,
-        animal_id: animal_id,
+        animal_id: patientData?.animal_detail?.animal_id,
         type: 'COMPLAINT',
-        is_system_generated: false,
+        is_system_generated: isSystemGenerated ? 1 : 0,
         severity: pendingDetails?.severity,
         duration: pendingDetails?.durationValue,
         duration_unit: pendingDetails?.durationUnit,
@@ -183,7 +202,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
               textDecoration: isResolved ? 'line-through' : 'none',
               fontSize: { xs: '1.1rem', sm: '1.25rem' },
               color: isResolved
-                ? theme.palette.customColors.OnSurfaceVarient
+                ? theme.palette.customColors.OnSurfaceVariant
                 : getSymptomsSeverityColor(
                     record?.additional_info?.severity === 'Mild'
                       ? 'Low'
@@ -226,7 +245,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
                   alignItems: 'center',
                   fontSize: '0.9rem',
                   fontWeight: 500,
-                  color: theme.palette.customColors.OnSurfaceVarient
+                  color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
                 {record?.additional_info?.duration} {record?.additional_info?.duration_unit}
@@ -236,28 +255,48 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
         </Box>
 
         <Box sx={{ gridColumn: { xs: '1', sm: '2', md: '2' } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
-            <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
-              Activity:
-            </Typography>
-            <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurface, fontWeight: 600 }}>
-              {'+' + record?.comment_count}
-            </Typography>
-          </Box>
+          {record?.comment_count > 0 && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
+              <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
+                Activity:
+              </Typography>
+
+              <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurface, fontWeight: 600 }}>
+                {record?.comment_count === '1' ? '1' : '+' + (record?.comment_count - 1)}
+              </Typography>
+            </Box>
+          )}
 
           {record?.additional_info &&
             (hasData(record?.latest_note?.notes_dump?.new_data) ||
               hasData(record?.latest_note?.notes_dump?.old_data)) && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
-                <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  mb: 0.5,
+                  flexWrap: 'wrap'
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: '0.875rem',
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
                   Severity :{' '}
                 </Typography>
-                <Typography
-                  sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient, fontWeight: 400 }}
-                >
-                  {record?.latest_note?.notes_dump?.old_data?.severity}
-                  {record?.latest_note?.notes_dump?.old_data?.severity && ' → '}
-                  <strong>{record?.latest_note?.notes_dump?.new_data?.severity}</strong>
+                <Typography sx={{ fontSize: '0.875rem', fontWeight: 400 }}>
+                  <span style={{ color: theme.palette.customColors.secondaryBg }}>
+                    {record?.latest_note?.notes_dump?.old_data?.severity}
+                  </span>
+                  {record?.latest_note?.notes_dump?.old_data?.severity && (
+                    <span style={{ color: theme.palette.customColors.OnSurfaceVariant }}> → </span>
+                  )}
+                  <strong style={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+                    {record?.latest_note?.notes_dump?.new_data?.severity}
+                  </strong>
                 </Typography>
               </Box>
             )}
@@ -269,7 +308,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
                 <Typography
                   sx={{
                     fontSize: '0.875rem',
-                    color: theme.palette.customColors.OnSurfaceVarient,
+                    color: theme.palette.customColors.OnSurfaceVariant,
                     mb: 1,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -291,7 +330,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
                 <Typography
                   sx={{
                     fontSize: '0.875rem',
-                    color: theme.palette.customColors.OnSurfaceVarient,
+                    color: theme.palette.customColors.OnSurfaceVariant,
                     mb: 1,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -372,6 +411,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
           setIsDeleting={setIsDeleting}
           isDeleting={isDeleting}
           setActivityListData={setActivityListData}
+          isChanged={canEnableButton}
         />
       )}
       {isDeleteDialogOpen && (

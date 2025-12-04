@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Drawer, Avatar, Typography, IconButton, CircularProgress, Button, Skeleton } from '@mui/material'
+import { Box, Drawer, Typography, IconButton, CircularProgress, Button, Skeleton, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
@@ -11,6 +11,7 @@ import { useInView } from 'react-intersection-observer'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { getAnimalFilterList, getAnimalListForObservationReport } from 'src/lib/api/compliance/reports'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
 import AnimalFilterDrawer from './AnimalFilterDrawer'
 
 const PAGE_SIZE = 10
@@ -67,7 +68,13 @@ const AnimalDrawer = ({
   onClose,
   handleAnimalClick,
   btnText = 'GENERATE OBSERVATION REPORT',
-  showAnimalFilter = true
+  showAnimalFilter = true,
+  showFilterAndSort = false,
+  handleFilterClick = () => {},
+  handleSortClick = () => {},
+  module = 'housing',
+  filters = {},
+  sortType
 }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
@@ -117,22 +124,50 @@ const AnimalDrawer = ({
   }
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, remove } = useInfiniteQuery({
-    queryKey: ['animal-List-Observation-Report', search, activeTab, filtersKey],
+    queryKey: ['animal-List-Observation-Report', search, activeTab, filters, sortType],
     queryFn: async ({ pageParam = 1 }) => {
-      const params = {
-        page_no: pageParam,
-        limit: PAGE_SIZE,
-        q: search,
-        type: activeTab,
-        end_date: formatDate(new Date()),
-        ...filterParams
-      }
-      const res = await getAnimalListForObservationReport(params)
+      if (module === 'housing') {
+        const params = {
+          page_no: pageParam,
+          limit: PAGE_SIZE,
+          q: search,
+          type: activeTab,
+          end_date: formatDate(new Date())
+        }
+        const res = await getAnimalListForObservationReport(params)
 
-      return {
-        animals: res?.data?.animals || [],
-        nextPage: res?.data?.animals?.length === PAGE_SIZE ? pageParam + 1 : undefined,
-        total_animal_count: res?.data?.total_animal_count || 0
+        return {
+          animals: res?.data?.animals || [],
+          nextPage: res?.data?.animals?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+          total_animal_count: res?.data?.total_animal_count || 0
+        }
+      }
+      if (module === 'hospital') {
+        const params = {
+          page_no: pageParam,
+          q: search,
+          limit: PAGE_SIZE,
+          list_type: 'animals',
+          type: 'single',
+          animal_list_type: 'all_animals',
+          gender: filters?.Gender || [],
+          tsn_id: filters?.Species || [],
+          site_id: filters?.Site || [],
+          section_id: filters?.Section || [],
+          enclosure_id: filters?.Enclosure || [],
+          sort: sortType?.sort,
+          column: sortType?.column
+        }
+
+        console.log(params)
+
+        const res = await getNewAnimalListWithFilters(params)
+
+        return {
+          animals: res?.data || [],
+          nextPage: res?.data?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+          total_animal_count: res?.total_count || 0
+        }
       }
     },
     getNextPageParam: lastPage => lastPage.nextPage
@@ -164,8 +199,8 @@ const AnimalDrawer = ({
       data?.pages?.flatMap(page =>
         page.animals.map(animal => ({
           animal_id: animal?.animal_id,
-          default_common_name: animal?.default_common_name,
-          scientific_name: animal?.complete_name,
+          default_common_name: animal?.default_common_name || animal?.common_name,
+          scientific_name: animal?.complete_name || animal?.scientific_name,
           user_enclosure_name: animal?.user_enclosure_name,
           section_name: animal?.section_name,
           site_name: animal?.site_name,
@@ -176,7 +211,8 @@ const AnimalDrawer = ({
           local_identifier_name: animal?.local_identifier_name,
           local_identifier_value: animal?.local_identifier_value,
           site_id: animal?.site_id,
-          enclosure_id: animal?.enclosure_id
+          enclosure_id: animal?.enclosure_id,
+          ...(module === 'hospital' && { in_transit: animal?.in_transit })
         }))
       ) || [],
     [data]
@@ -262,55 +298,59 @@ const AnimalDrawer = ({
             </IconButton>
           </Box>
 
-          <Box
+          <Grid
+            container
+            spacing={2}
+            alignItems='center'
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
               px: 4,
               background: '#FFF',
+              pt: 0,
               pb: 4
             }}
           >
-            <Search
-              width='100%'
-              placeholder='Search by Animal name, AID or Identifier'
-              value={localSearch}
-              onChange={handleSearchChange}
-              onClear={handleSearchClear}
-              inputStyle={{ py: '18px', px: '12px' }}
-              sx={{
-                width: '100%',
-                '& .MuiTextField-root': {
-                  width: '100%'
-                }
-              }}
-            />
-
-            {/* {showAnimalFilter && (
-              <Box
-                onClick={() => setFilterDrawerOpen(true)}
-                sx={{
-                  cursor: 'pointer',
-                  height: '56px',
-                  minWidth: '56px',
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}
-              >
-                <Avatar
-                  sx={{ height: '36px', width: '36px' }}
-                  src={'/icons/filtericon.svg'}
-                  // appliedFiltersCount={filterCount}
-                  // icon='ic:round-tune'
-                  // placement='bottom'
-                />
-              </Box>
-            )} */}
-          </Box>
+            <Grid size={{ xs: 12, sm: showFilterAndSort ? 10 : 12 }}>
+              <Search
+                width='100%'
+                placeholder='Search by Animal name, AID or Identifier'
+                value={localSearch}
+                onChange={handleSearchChange}
+                onClear={handleSearchClear}
+                inputStyle={{ py: '12px', px: '12px' }}
+              />
+            </Grid>
+            {showFilterAndSort && (
+              <>
+                <Grid item size={{ xs: 1, sm: 1 }}>
+                  <FilterButton
+                    bgColor={theme?.palette?.customColors?.OnPrimary}
+                    border={`1px solid ${theme?.palette?.customColors?.OutlineVariant}`}
+                    onClick={handleFilterClick}
+                  />
+                </Grid>
+                <Grid size={{ xs: 1, sm: 1 }}>
+                  <Tooltip title='Sort' placement='bottom'>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '4px',
+                        bgcolor: theme?.palette.customColors?.OnPrimary,
+                        border: `1px solid ${theme?.palette?.customColors?.OutlineVariant}`,
+                        alignItems: 'center',
+                        cursor: 'pointer'
+                      }}
+                      onClick={handleSortClick}
+                    >
+                      <Icon icon={'lets-icons:sort-arrow'} fontSize={24} />
+                    </Box>
+                  </Tooltip>
+                </Grid>
+              </>
+            )}
+          </Grid>
 
           {showAnimalFilter && (
             <Box
@@ -414,10 +454,14 @@ const AnimalDrawer = ({
                   <AnimalParentCard
                     key={animal.animal_id}
                     data={animal}
-                    radio={{
-                      checked: internalSelected?.animal_id === animal.animal_id,
-                      onChange: () => setInternalSelected(animal)
-                    }}
+                    radio={
+                      module === 'hospital' && animal?.in_transit === '1'
+                        ? false
+                        : {
+                            checked: internalSelected?.animal_id === animal.animal_id,
+                            onChange: () => setInternalSelected(animal)
+                          }
+                    }
                   />
                 ))}
                 {list.length === 0 && (
@@ -432,7 +476,7 @@ const AnimalDrawer = ({
                       mt: 6
                     }}
                   >
-                    <NoDataFound variant='Seal' height={250} width={250} />
+                    <NoDataFound variant='Meerkat' height={250} width={250} />
                   </Box>
                 )}
                 {hasNextPage && (

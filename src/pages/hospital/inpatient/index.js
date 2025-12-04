@@ -5,32 +5,20 @@ import { differenceInDays } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
+import { visitTypeOptions } from 'src/constants/Constants'
 import { useHospital } from 'src/context/HospitalContext'
 import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
-import { VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
+import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
+import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
-
-const visitTypeOptions = [
-  { value: '', label: 'All visit' },
-  { value: 'checkup', label: 'Checkup' },
-  { value: 'emergency', label: 'Emergency' },
-  { value: 'opd', label: 'OPD' },
-  { value: 'follow_up', label: 'Follow-up' }
-]
-
-const getVisitTypeLabel = title => {
-  if (title === 'checkup') return 'Check up'
-  if (title === 'emergency') return 'Emergency'
-  if (title === 'follow_up') return 'Follow-up'
-  if (title === 'outpatient') return 'OUTPATIENT'
-  if (title === 'opd') return 'OUTPATIENT'
-  if (title === 'planned') return 'Planned'
-}
 
 const HospitalInpatient = () => {
   const theme = useTheme()
@@ -40,12 +28,25 @@ const HospitalInpatient = () => {
 
   const [searchValue, setSearchValue] = useState('')
   const [selectedVisitType, setSelectedVisitType] = useState('')
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [filterCount, setFilterCount] = useState(0)
+  const [filterDate, setFilterDate] = useState({})
+
+  const [selectedOptions, setSelectedOptions] = useState({
+    'Chief Veterinarian': [],
+    'Origin Site': []
+  })
 
   const [filters, setFilters] = useState({
     page: 1,
     limit: 50,
     q: ''
   })
+
+  const applyFilters = selectedOptions => {
+    setSelectedOptions(selectedOptions)
+    setOpenFilterDrawer(false)
+  }
 
   useEffect(() => {
     const { page = '1', limit = '50', q = '' } = router.query
@@ -59,17 +60,30 @@ const HospitalInpatient = () => {
     setSearchValue(q)
   }, [router.query])
 
+  const prepareFilterParams = key => {
+    return selectedOptions[key]?.length > 0 ? selectedOptions[key].join(',') : undefined
+  }
+
+  const formatDate = dateString => {
+    if (!dateString) return null
+
+    return new Date(dateString).toISOString().split('T')[0]
+  }
+
   const { data, isFetching, refetch } = useQuery({
-    queryKey: ['inpatients-listings', filters, selectedVisitType, selectedHospital?.id],
+    queryKey: ['inpatients-listings', filters, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions],
     queryFn: () =>
       getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
-        search: filters?.q,
+        q: filters?.q,
         hospital_id: selectedHospital?.id,
-        status: 'admitted',
         visit_type: selectedVisitType,
-        patient_category: 'inpatient'
+        patient_category: 'inpatient',
+        from_date: formatDate(filterDate.startDate),
+        to_date: formatDate(filterDate.endDate),
+        users: prepareFilterParams('Chief Veterinarian'),
+        origin_site: prepareFilterParams('Origin Site')
       })
   })
 
@@ -181,42 +195,38 @@ const HospitalInpatient = () => {
       headerName: 'Purpose of Visit',
       renderCell: params => (
         <>
-          <Tooltip title={params.row.purpose_of_visit}>
-            <Typography
-              variant='body2'
-              sx={{
-                fontSize: '14px',
-                fontWeight: 400,
-                fontFamily: 'Inter',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                display: '-webkit-box',
-                WebkitLineClamp: 5,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'normal'
-              }}
-            >
-              <>{params.row.purpose_of_visit || ''}</>
-            </Typography>
-          </Tooltip>
-        </>
-      )
-    },
-    {
-      width: 150,
-      minWidth: 20,
-      field: 'medical_record_code',
-      sortable: false,
-      headerName: 'Medical Id',
-      align: 'left',
-      headerAlign: 'left',
-
-      renderCell: params => (
-        <>
-          <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.medical_record_code}
-          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+              <VisitType title={params.row.visit_type} />
+              {params?.row?.medical_record_code && (
+                <MedicalIdChip
+                  medId={params?.row?.medical_record_code}
+                  backgroundColor={theme.palette.customColors.mdAntzNeutral}
+                />
+              )}
+            </Box>
+            {params.row.purpose_of_visit && (
+              <Tooltip title={params.row.purpose_of_visit} arrow>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    fontFamily: 'Inter',
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 5,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'normal'
+                  }}
+                >
+                  <>{params.row.purpose_of_visit || ''}</>
+                </Typography>
+              </Tooltip>
+            )}
+          </Box>
         </>
       )
     },
@@ -249,40 +259,18 @@ const HospitalInpatient = () => {
     {
       width: 180,
       minWidth: 20,
-      field: 'duration',
+      field: 'total_admitted_days',
       sortable: false,
       headerName: 'duration',
       align: 'left',
       headerAlign: 'left',
-
       renderCell: params => {
-        const admittedAt = params?.row?.admitted_at
-        let days = '-'
-
-        if (admittedAt) {
-          const admittedDate = new Date(admittedAt)
-          const today = new Date()
-          days = differenceInDays(today, admittedDate)
-        }
-
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {days} {days !== '-' ? 'days' : ''}
+            {params?.row?.total_admitted_days} {params?.row?.total_admitted_days > 1 ? 'days' : 'day'}
           </Typography>
         )
       }
-    },
-    {
-      width: 200,
-      minWidth: 20,
-      field: 'visit_type',
-      sortable: false,
-      headerName: 'Visit Type',
-      renderCell: params => (
-        <>
-          <VisitType title={getVisitTypeLabel(params.row.visit_type)} />
-        </>
-      )
     },
     {
       width: 200,
@@ -315,10 +303,11 @@ const HospitalInpatient = () => {
   ]
 
   const handleRowClick = params => {
-    router.push({
-      pathname: `/hospital/inpatient/${params.row.id}`,
-      query: { animal_id: params.row.animal_id, medical_record_id: params.row.medical_record_id }
-    })
+    const patientId = params?.id || params?.row?.id
+
+    if (patientId) {
+      router.push(`/hospital/inpatient/${patientId}`)
+    }
   }
 
   const headerAction = (
@@ -341,7 +330,15 @@ const HospitalInpatient = () => {
         <Box sx={{ mt: 6 }}>
           <Card>
             <CardHeader title={RenderUtility?.pageTitle('Inpatients')} action={headerAction} />
-            <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between' }}>
+            <Box
+              sx={{
+                p: 3,
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexDirection: { xs: 'column', lg: 'row' },
+                gap: 4
+              }}
+            >
               <Box sx={{ ml: 2 }}>
                 <Search
                   borderRadius='4px'
@@ -357,7 +354,11 @@ const HospitalInpatient = () => {
                   }}
                 />
               </Box>
-              <Box sx={{ mr: 2 }}>
+              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
+                <CommonDateRangePickers
+                  filterDates={filterDate}
+                  onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
+                />
                 <Select
                   size='small'
                   value={selectedVisitType}
@@ -370,12 +371,15 @@ const HospitalInpatient = () => {
                     </MenuItem>
                   ))}
                 </Select>
-                <Box></Box>
+                <FilterButtonWithNotification
+                  onClick={() => setOpenFilterDrawer(true)}
+                  appliedFiltersCount={filterCount}
+                />
               </Box>
             </Box>
             <Grid
               sx={{
-                mx: { xs: 3, md: 5 }
+                mx: { xs: 5 }
               }}
             >
               <CommonTable
@@ -402,8 +406,17 @@ const HospitalInpatient = () => {
           </Card>
         </Box>
       </Box>
+      {openFilterDrawer && (
+        <InpatientFilterDrawer
+          open={openFilterDrawer}
+          onClose={() => setOpenFilterDrawer(false)}
+          onApplyFilters={applyFilters}
+          setFilterCount={setFilterCount}
+          initialSelectedOptions={selectedOptions}
+        />
+      )}
     </>
   )
 }
 
-export default HospitalInpatient
+export default enforceModuleAccess(HospitalInpatient, 'add_hospital')

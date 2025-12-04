@@ -10,8 +10,9 @@ import SelectedSymptoms from 'src/components/hospital/Symptoms/SelectedSymptoms'
 import ActionButtons from 'src/components/hospital/FooterActionbuttons'
 import AddSymptomDrawer from 'src/components/hospital/drawer/AddSymptomDrawer'
 import Toaster from 'src/components/Toaster'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
-export default function AddSymptomsPage() {
+function AddSymptomsPage() {
   const theme = useTheme()
   const router = useRouter()
   const { id, animal_id, medical_record_id } = router.query
@@ -82,7 +83,7 @@ export default function AddSymptomsPage() {
         page_no: pageNo,
         type: 'complaints',
         q: query,
-        medical_record_id: medical_record_id
+        medical_record_id: patientData?.medical_record_id
       }
 
       const response = await getSymptomsListForAdding(params)
@@ -161,6 +162,7 @@ export default function AddSymptomsPage() {
 
     getPatientInfo()
   }, [id])
+  console.log(id, 'id')
 
   const handleAddClick = async () => {
     try {
@@ -186,8 +188,8 @@ export default function AddSymptomsPage() {
       }))
 
       const formData = new FormData()
-      formData.append('medical_record_id', medical_record_id)
-      formData.append('animal_id', JSON.stringify([Number(animal_id)]))
+      formData.append('medical_record_id', patientData?.medical_record_id)
+      formData.append('animal_id', JSON.stringify([Number(patientData?.animal_detail?.animal_id)]))
       formData.append('complaints', JSON.stringify(complaints))
 
       const response = await addSymptoms(formData)
@@ -196,7 +198,7 @@ export default function AddSymptomsPage() {
         Toaster({ type: 'success', message: response?.message })
         setSelectedSymptoms([])
 
-        router.push(`/hospital/inpatient/${id}/?animal_id=${animal_id}&tab=symptoms`)
+        router.push(`/hospital/inpatient/${id}/?tab=symptoms`)
         setAddLoading(false)
       } else {
         Toaster({ type: 'error', message: response?.message })
@@ -265,7 +267,7 @@ export default function AddSymptomsPage() {
             </span>
           </Box>
         }
-        onCancel={() => router.push(`/hospital/inpatient/${id}/?animal_id=${animal_id}&tab=symptoms`)}
+        onCancel={() => router.push(`/hospital/inpatient/${id}/?tab=symptoms`)}
         onAdd={handleAddClick}
         width={200}
         height={50}
@@ -293,3 +295,5 @@ export default function AddSymptomsPage() {
     </Box>
   )
 }
+
+export default enforceModuleAccess(AddSymptomsPage, 'add_hospital')

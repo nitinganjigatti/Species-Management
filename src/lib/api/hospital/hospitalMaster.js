@@ -2,7 +2,8 @@ import {
   GET_MASTERS_HOSPITAL,
   CREATE_MASTERS_HOSPITAL,
   UPDATE_MASTERS_HOSPITAL,
-  ANIMAL_MEDICAL_ID_LIST
+  ANIMAL_MEDICAL_ID_LIST,
+  HOSPITAL_STATUS_UPDATE
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
@@ -13,14 +14,20 @@ export async function getHospitalMaster({ params }) {
 }
 
 export async function addHospitalMaster(payload) {
-  const response = await axiosFormPost({ url: `${CREATE_MASTERS_HOSPITAL}`, body: payload })
+  const response = await axiosPost({ url: `${CREATE_MASTERS_HOSPITAL}`, body: payload })
 
   return response?.data
 }
 
+// export async function updateHospitalMaster(id, payload) {
+//   const url = `${UPDATE_MASTERS_HOSPITAL}/${id}`
+//   const response = await axiosFormPost({ url, body: payload })
+
+//   return response?.data
+// }
 export async function updateHospitalMaster(id, payload) {
-  const url = `${UPDATE_MASTERS_HOSPITAL}/${id}`
-  const response = await axiosFormPost({ url, body: payload })
+  const url = `${UPDATE_MASTERS_HOSPITAL}`
+  const response = await axiosPost({ url: `${UPDATE_MASTERS_HOSPITAL}/${id}`, body: payload })
 
   return response?.data
 }

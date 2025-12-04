@@ -1,10 +1,38 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
-import { Box, Typography, IconButton, Grid, Button } from '@mui/material'
-import { styled } from '@mui/material/styles'
+import {
+  Box,
+  Typography,
+  IconButton,
+  Grid,
+  Button,
+  Skeleton,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  Tooltip
+} from '@mui/material'
+import { alpha, styled, useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
-import { useTheme } from '@emotion/react'
 import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
 import AddScheduleDrawer from 'src/views/pages/hospital/treatment-monitoring/AddScheduleDrawer'
+import AddParameterDrawer from 'src/views/pages/hospital/treatment-monitoring/AddParameterDrawer'
+import { useRouter } from 'next/router'
+import {
+  deleteMonitoringParameter,
+  getMonitoringParameters,
+  getTreatmentIntervals,
+  getTreatmentMonitoringData
+} from 'src/lib/api/hospital/treatmentMonitoring'
+import AddParameterDataEntry from 'src/views/pages/hospital/treatment-monitoring/AddParameterDataEntry'
+import { useQuery } from '@tanstack/react-query'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
+import dayjs from 'dayjs'
+import Toaster from 'src/components/Toaster'
+import Utility from 'src/utility'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
+
+const STORAGE_KEY = 'medical_record_data'
 
 // Utility functions
 const getLabelForHour = hour => {
@@ -15,15 +43,18 @@ const getLabelForHour = hour => {
   return `${h} ${ampm}`
 }
 
-const convertLabelToHour24 = label => {
-  const [hourStr, meridian] = label.split(' ')
-  let hour = parseInt(hourStr, 10)
-  if (meridian === 'AM') return hour === 12 ? 0 : hour
-  else return hour === 12 ? 12 : hour + 12
+const formatInterval = interval => {
+  if (!interval) return ''
+  if (interval.includes(':')) return interval
+  const [hour, ampm] = interval.split(' ')
+
+  return `${hour}:00 ${ampm}`
 }
 
-const useRealtimeTooltip = (scrollContainerRef, timeSlots) => {
+const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday, theme) => {
   useEffect(() => {
+    if (!isToday) return
+
     let animationFrameId
     let tooltipElement = null
 
@@ -33,11 +64,11 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots) => {
       tooltipElement = document.createElement('div')
       tooltipElement.style.cssText = `
         position: absolute;
-        top: 0px;
+        bottom: -27px;      
         transform: translateX(-50%);
-        background-color: transparent;
-        border: 1px solid #E35163;
-        color: #E35163;
+        background-color: white;
+        border: 1px solid ${theme.palette.customColors.Error};
+        color: ${theme.palette.customColors.Error};
         padding: 4px 8px;
         font-size: 12px;
         font-weight: 600;
@@ -53,15 +84,15 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots) => {
         .tooltip-arrow::after {
           content: "";
           position: absolute;
-          top: 100%;
+          top: -25%;
           left: 50%;
           transform: translateX(-50%);
           width: 0;
           height: 0;
           border-left: 6px solid transparent;
           border-right: 6px solid transparent;
-          border-top: 6px solid #E35163;
-          border-bottom: none;
+          border-bottom: 6px solid ${theme.palette.customColors.Error};
+          border-top: none;
         }
       `
       document.head.appendChild(style)
@@ -131,24 +162,74 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots) => {
     animationFrameId = requestAnimationFrame(updateTooltip)
 
     return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId)
-      }
+      if (animationFrameId) cancelAnimationFrame(animationFrameId)
       if (tooltipElement && tooltipElement.parentElement) {
         tooltipElement.parentElement.removeChild(tooltipElement)
       }
     }
-  }, [scrollContainerRef, timeSlots])
+  }, [scrollContainerRef, timeSlots, isToday])
 }
 
-const PatientMonitoring = React.memo(({ metrics = [], onTimeSlotClick = () => {}, onRemoveMetric = () => {} }) => {
+const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   const theme = useTheme()
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
   const scrollContainerRef = useRef(null)
   const hourRefs = useRef({})
+  const router = useRouter()
+  const isPatientDischarged = patientData?.status === 'discharge' ? true : false
 
-  const [hoveredSlot, setHoveredSlot] = useState(null)
+  const { id } = router.query
+  const medical_record_id = medicalRecordData?.medical_record_id
+  const animal_id = medicalRecordData?.animal_id
+  const today = new Date().toISOString().split('T')[0]
+
   const [didInitialScroll, setDidInitialScroll] = useState(false)
   const [openScheduleDrawer, setOpenScheduleDrawer] = useState(false)
+  const [addParameterDrawerOpen, setAddParameterDrawerOpen] = useState(false)
+  const [openParamsEntryDrawer, setOpenParamsEntryDrawer] = useState(false)
+  const [dates, setDates] = useState(null)
+  const [selectedDate, setSelectedDate] = useState(today)
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [paramData, setParamData] = useState(null)
+  const [deleteScope, setDeleteScope] = useState('only_today')
+
+  const isToday = dayjs(selectedDate).isSame(dayjs(), 'day')
+
+  const [paramsDetails, setParamsDetails] = useState({
+    interval: '',
+    date: '',
+    parameter: null
+  })
+
+  const { data: treatmentIntervals, isLoading: intervalLoading } = useQuery({
+    queryKey: ['hospital-treatment-interval'],
+    queryFn: () => getTreatmentIntervals()
+  })
+
+  const intervalList = treatmentIntervals?.data?.map(
+    item =>
+      ({
+        id: item?.id,
+        label: item?.frequency_label,
+        duration: item?.duration_minutes
+      } || [])
+  )
+
+  const {
+    data: monitoringParams,
+    isLoading: monitoringParamsLoading,
+    refetch: refetchMonitoringParams
+  } = useQuery({
+    queryKey: ['treatment-monitoring-parameters'],
+    queryFn: () => getMonitoringParameters(id),
+    enabled: !!id
+  })
+
+  // useEffect(() => {
+  //   refetchMonitoringParams()
+  // }, [id])
 
   const timeSlots = useMemo(() => {
     const slots = []
@@ -159,80 +240,67 @@ const PatientMonitoring = React.memo(({ metrics = [], onTimeSlotClick = () => {}
     return slots
   }, [])
 
-  useRealtimeTooltip(scrollContainerRef, timeSlots)
+  useRealtimeTooltip(scrollContainerRef, timeSlots, isToday, theme)
 
-  const createTimeSlotStructure = useCallback(timeSlots => {
-    return timeSlots.map(time => ({
-      time,
-      isActive: false,
-      value: undefined
-    }))
-  }, [])
+  const createTimeSlotStructure = useCallback(slots => slots.map(time => ({ time, isActive: false })), [])
 
-  const defaultMetrics = useMemo(() => {
-    return [
-      {
-        id: 'temperature',
-        name: 'Temperature',
-        subtext: 'Custom',
-        timeSlots: createTimeSlotStructure(timeSlots),
-        canEdit: true
-      },
-      {
-        id: 'heartRate',
-        name: 'Heart Rate',
-        subtext: 'Custom',
-        timeSlots: createTimeSlotStructure(timeSlots),
-        canEdit: true
-      },
-      {
-        id: 'respirationRate',
-        name: 'Respiration Rate',
-        subtext: 'Custom',
-        timeSlots: createTimeSlotStructure(timeSlots),
-        canEdit: true
-      },
-      {
-        id: 'appetite',
-        name: 'Appetite',
-        subtext: 'Custom',
-        timeSlots: createTimeSlotStructure(timeSlots),
-        canEdit: true
-      },
-      {
-        id: 'crt',
-        name: 'CRT',
-        subtext: 'Custom',
-        timeSlots: createTimeSlotStructure(timeSlots),
-        canEdit: true
-      },
-      {
-        id: 'urination',
-        name: 'Urination',
-        subtext: 'Custom',
-        timeSlots: createTimeSlotStructure(timeSlots),
-        canEdit: true
-      },
-      {
-        id: 'defecation',
-        name: 'Defecation',
-        subtext: 'Custom',
-        timeSlots: createTimeSlotStructure(timeSlots),
+  const {
+    data: monitoringDataListings,
+    isLoading: monitoringLoading,
+    refetch: monitoringRefetch
+  } = useQuery({
+    queryKey: ['hospital-treatment-monitoring-listings', id, selectedDate],
+    queryFn: () =>
+      getTreatmentMonitoringData({
+        date: selectedDate,
+        hospital_case_id: id
+      })
+  })
+
+  const monitoringData = useMemo(() => {
+    if (!monitoringDataListings?.data) return []
+
+    return monitoringDataListings.data.map(item => {
+      const slots = createTimeSlotStructure(timeSlots)
+
+      item.assessment_details?.forEach(detail => {
+        const istRecordTime = detail?.record_time_ist
+        const slotLabel = getLabelForHour(parseInt(istRecordTime.split(':')[0]))
+        const slot = slots.find(s => s.time === slotLabel)
+        if (slot) {
+          slot.isActive = true
+          slot.record = {
+            value: detail.assessment_value,
+            unit: detail.unit_name,
+            total: Number(detail.total_records || 1),
+            recorded_time: dayjs(detail.record_time_ist, 'HH:mm').format('hh:mm A')
+          }
+        }
+      })
+
+      return {
+        ...item,
+        timeSlots: slots,
         canEdit: true
       }
-    ]
-  }, [timeSlots, createTimeSlotStructure])
+    })
+  }, [monitoringDataListings, createTimeSlotStructure, timeSlots])
+
+  useEffect(() => {
+    if (monitoringDataListings?.header_date?.between_date) {
+      setDates(monitoringDataListings.header_date.between_date)
+    }
+  }, [monitoringDataListings])
+
+  const defaultMetrics = useMemo(() => monitoringData, [monitoringData])
 
   const displayMetrics = metrics?.length > 0 ? metrics : defaultMetrics
 
-  const handleTimeSlotClick = useCallback(
-    (metricId, timeValue) => {
-      onTimeSlotClick(metricId, timeValue)
-    },
-    [onTimeSlotClick]
-  )
+  const handleTimeSlotClick = ({ interval, date, parameter }) => {
+    setOpenParamsEntryDrawer(true)
+    setParamsDetails({ interval: interval, date: date, parameter: parameter })
+  }
 
-  // One-time initial scroll - no re-renders after this
   useEffect(() => {
     if (!didInitialScroll && scrollContainerRef.current) {
       const now = new Date()
@@ -257,96 +325,493 @@ const PatientMonitoring = React.memo(({ metrics = [], onTimeSlotClick = () => {}
     }
   }, [didInitialScroll])
 
+  const handleDateChange = date => {
+    setSelectedDate(date)
+  }
+
+  useEffect(() => {
+    if (selectedDate) {
+      monitoringRefetch()
+    }
+  }, [selectedDate])
+
+  const handleParamDelete = async () => {
+    setDeleteLoading(true)
+
+    try {
+      const payload = {
+        hospital_case_id: id,
+        assessment_type_id: paramData?.assessment_type_id,
+        scheduled_date_time: dayjs(selectedDate)
+          .hour(dayjs().hour())
+          .minute(dayjs().minute())
+          .second(dayjs().second())
+          .format('YYYY-MM-DD HH:mm:ss')
+      }
+
+      if (isToday) {
+        payload.remove_parameter_period = deleteScope
+      }
+
+      await deleteMonitoringParameter(payload).then(res => {
+        if (res?.status === true) {
+          Toaster({ type: 'success', message: res?.message })
+          setDeleteLoading(false)
+          setOpenDeleteDialog(false)
+          monitoringRefetch()
+          refetchMonitoringParams()
+        } else {
+          setDeleteLoading(false)
+          Toaster({ type: 'error', message: res?.message })
+        }
+      })
+    } catch (error) {
+      console.error('Cannot Delete Parameter', error)
+      setDeleteLoading(false)
+    }
+  }
+
+  const admittedAtLocal = monitoringDataListings?.current_day_schedule_date_time
+    ? Utility.convertUTCToLocal(monitoringDataListings?.current_day_schedule_date_time)
+    : null
+
+  const admittedAtHourIST = admittedAtLocal ? dayjs(admittedAtLocal, 'YYYY-MM-DD HH:mm:ss').hour() : null
+
+  const isAdmittedDay = admittedAtLocal
+    ? dayjs(selectedDate).isSame(dayjs(admittedAtLocal, 'YYYY-MM-DD HH:mm:ss'), 'day')
+    : false
+
+  const renderedMetrics = useMemo(() => {
+    return displayMetrics?.map(metric => (
+      <TimeSlotGrid key={metric?.id} numColumns={timeSlots.length}>
+        {metric?.timeSlots.map((timeSlot, index) => {
+          const slotKey = `${metric.assessment_type_id}-${index}`
+          const durationMinutes = metric?.duration_minutes
+          const [h, ampm] = timeSlot.time.split(' ')
+          let hour = parseInt(h)
+          if (ampm === 'PM' && hour !== 12) hour += 12
+          if (ampm === 'AM' && hour === 12) hour = 0
+
+          const currentHour = new Date().getHours()
+          let bgColor = theme.palette.customColors.OnPrimary
+
+          const isFutureTodaySlot = isToday && hour > currentHour
+          const isBeforeAdmitTime = isAdmittedDay && admittedAtHourIST !== null && hour < admittedAtHourIST
+          const isAfterAdmitTime = !isBeforeAdmitTime
+          const isDisabled = isFutureTodaySlot
+
+          let showPlus = true
+          if (isFutureTodaySlot) showPlus = false
+          let isYellow = false
+
+          if (durationMinutes) {
+            const intervalHours = durationMinutes / 60
+
+            let isIntervalSlot = false
+
+            if (isAdmittedDay && admittedAtHourIST != null) {
+              if (hour >= admittedAtHourIST) {
+                const diff = hour - admittedAtHourIST
+                isIntervalSlot = diff % intervalHours === 0
+              }
+            } else {
+              isIntervalSlot = hour % intervalHours === 0
+            }
+
+            if (durationMinutes) {
+              if (isIntervalSlot) {
+                isYellow = true
+                bgColor = alpha(theme.palette.customColors.antzNotes, 0.64)
+              }
+            }
+          }
+
+          return (
+            <TimeSlot
+              key={slotKey}
+              sx={{
+                backgroundColor: timeSlot.record ? alpha(theme.palette.customColors.SecondaryContainer, 0.24) : bgColor,
+                border: timeSlot.record
+                  ? `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  : isYellow
+                  ? `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  : `1px dashed ${theme.palette.customColors.OutlineVariant}`,
+                opacity: isDisabled ? 0.5 : 1,
+                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                alignItems: timeSlot.record ? 'flex-start' : 'center',
+                justifyContent: timeSlot.record ? 'flex-start' : 'center',
+                padding: timeSlot.record ? '12px' : 0,
+                '&:hover': {
+                  border: `2px solid${theme.palette.primary.main}`
+                }
+              }}
+              onClick={() => {
+                if (!isDisabled)
+                  handleTimeSlotClick({
+                    interval: timeSlot.time,
+                    date: selectedDate,
+                    parameter: metric
+                  })
+              }}
+            >
+              {timeSlot.record ? (
+                <Box
+                  sx={{ display: 'flex', flexDirection: 'column', gap: 1, justifyContent: 'flex-start', width: '100%' }}
+                >
+                  {timeSlot?.record?.unit !== null ? (
+                    <Tooltip title={`${timeSlot.record.value} ${timeSlot.record.unit}`} placement='top' arrow>
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: '1rem',
+                          color: theme.palette.customColors.neutralPrimary,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          width: '100%',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {`${timeSlot.record.value} ${timeSlot.record.unit}`}
+                      </Typography>
+                    </Tooltip>
+                  ) : (
+                    <Tooltip title={`${timeSlot.record.value}`} placement='top' arrow>
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: '1rem',
+                          color: theme.palette.customColors.neutralPrimary,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          width: '100%',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {`${timeSlot.record.value}`}
+                      </Typography>
+                    </Tooltip>
+                  )}
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Typography
+                      sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      {timeSlot?.record?.recorded_time || formatInterval(timeSlot?.time)}
+                    </Typography>
+                    {timeSlot.record.total > 1 && (
+                      <Typography
+                        sx={{
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          color: theme.palette.customColors.OnPrimaryContainer
+                        }}
+                      >
+                        +{timeSlot.record.total - 1}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+              ) : (
+                (!isDisabled || isPatientDischarged) && showPlus && <Icon icon={'mdi-plus'} fontSize={20} />
+              )}
+            </TimeSlot>
+          )
+        })}
+      </TimeSlotGrid>
+    ))
+  }, [displayMetrics, timeSlots, selectedDate])
+
+  const renderDeleteForm = (
+    <Box
+      sx={{
+        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+        width: '100%',
+        p: 3,
+        borderRadius: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: 2
+      }}
+    >
+      <Typography sx={{ fontSize: '1rem', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
+        How would you like to apply this change?
+      </Typography>
+
+      <RadioGroup
+        value={deleteScope}
+        onChange={e => setDeleteScope(e.target.value)}
+        sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}
+      >
+        <FormControlLabel
+          value='only_today'
+          control={<Radio />}
+          label={
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <Typography sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.neutralPrimary }}>
+                Only for Today
+              </Typography>
+              <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
+                Remove only for today.
+              </Typography>
+            </Box>
+          }
+          sx={{
+            alignItems: 'flex-start'
+          }}
+        />
+
+        <FormControlLabel
+          value='from_today_onwards'
+          control={<Radio />}
+          label={
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <Typography sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.neutralPrimary }}>
+                From Today Onward
+              </Typography>
+              <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
+                Remove this parameter for today and future days.
+              </Typography>
+            </Box>
+          }
+          sx={{
+            alignItems: 'flex-start'
+          }}
+        />
+      </RadioGroup>
+    </Box>
+  )
+
   return (
     <>
       <Grid container spacing={2} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
-        <Grid container spacing={6}>
-          <Grid item size={{ xs: 12, sm: 12, md: 10 }}>
-            <HorizontalDateNav numberOfDays={7} />
+        <Grid container spacing={6} rowSpacing={4}>
+          <Grid item size={{ xs: 12, sm: 12, md: isPatientDischarged && isToday ? 12 : 10 }}>
+            <HorizontalDateNav
+              onDateSelect={handleDateChange}
+              selectedDate={selectedDate}
+              dates={dates}
+              isLoading={monitoringLoading}
+            />
           </Grid>
           <Grid item size={{ xs: 12, sm: 12, md: 2 }}>
-            <Button
-              sx={{ height: '48px', width: '100%', fontSize: '0.8rem' }}
-              variant='contained'
-              onClick={() => setOpenScheduleDrawer(true)}
-            >
-              Schedule
-            </Button>
+            {!isPatientDischarged && isToday ? (
+              <Button
+                sx={{ height: '48px', width: '100%', fontSize: '0.8rem' }}
+                variant='contained'
+                onClick={() => setOpenScheduleDrawer(true)}
+              >
+                {monitoringDataListings?.show_edit_schedule_button == '1' ? 'Edit Schedule' : 'Schedule'}
+              </Button>
+            ) : (
+              !isToday && (
+                <Button
+                  sx={{
+                    height: '48px',
+                    width: '100%',
+                    border: `1px solid ${theme.palette.primary.main}`,
+                    fontSize: '12px',
+                    fontWeight: 600
+                  }}
+                  variant='outlined'
+                  onClick={() => setSelectedDate(dayjs().format('YYYY-MM-DD'))}
+                  startIcon={<Icon icon={'uil:calender'} />}
+                >
+                  Today
+                </Button>
+              )
+            )}
           </Grid>
         </Grid>
-        <Grid size={{ xs: 12 }} sx={{ mt: 6 }}>
-          <DashboardContainer>
-            <MainContainer>
-              <FixedColumn>
-                <HeaderContainer>
-                  <Typography>Monitoring</Typography>
-                  <IconButton size='small'>
-                    <Icon icon={'mdi-plus'} fontSize={20} />
-                  </IconButton>
-                </HeaderContainer>
-
-                {displayMetrics?.map(metric => (
-                  <MetricLabel key={metric.id}>
-                    <Box>
-                      <MetricName>{metric.name}</MetricName>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Icon />
-                        <MetricSubtext>{metric.subtext}</MetricSubtext>
-                      </Box>
-                    </Box>
-
-                    {metric.canEdit && (
-                      <IconButton
-                        size='small'
-                        onClick={() => onRemoveMetric(metric.id)}
-                        sx={{ color: '#6c757d', ml: 1 }}
-                      >
-                        <Icon icon={'mdi-close'} fontSize={20} />
+        <Grid size={{ xs: 12 }} sx={{ mt: 4 }}>
+          {monitoringLoading ? (
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4 }}>
+              <Box sx={{ width: '180px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Skeleton variant='rectangular' height={56} sx={{ borderRadius: 2 }} animation='wave' />
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} variant='rectangular' height={72} sx={{ borderRadius: 2 }} animation='wave' />
+                ))}
+              </Box>
+              <Box sx={{ flex: 1, overflowX: 'auto' }}>
+                <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                  {[...Array(6)].map((_, i) => (
+                    <Skeleton
+                      key={i}
+                      variant='rectangular'
+                      height={56}
+                      width={160}
+                      sx={{ borderRadius: 2 }}
+                      animation='wave'
+                    />
+                  ))}
+                </Box>
+                {[...Array(4)].map((_, rowIndex) => (
+                  <Box key={rowIndex} sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                    {[...Array(6)].map((_, colIndex) => (
+                      <Skeleton
+                        key={colIndex}
+                        variant='rectangular'
+                        height={72}
+                        width={160}
+                        sx={{ borderRadius: 2 }}
+                        animation='wave'
+                      />
+                    ))}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          ) : displayMetrics.length === 0 ? (
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <NoMedicalData
+                btnText={'Add Monitoring'}
+                text={'All Added Treatments Will Appear here'}
+                isDischarged={isPatientDischarged}
+                btnAction={() => setAddParameterDrawerOpen(true)}
+              />
+            </Box>
+          ) : (
+            <DashboardContainer>
+              <MainContainer>
+                <FixedColumn>
+                  <HeaderContainer>
+                    <Typography
+                      sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}
+                    >
+                      Monitoring
+                    </Typography>
+                    {!isPatientDischarged && (
+                      <IconButton size='small' onClick={() => setAddParameterDrawerOpen(true)}>
+                        <Icon icon={'icons8:plus'} fontSize={30} color={theme.palette.primary.main} />
                       </IconButton>
                     )}
-                  </MetricLabel>
-                ))}
-              </FixedColumn>
+                  </HeaderContainer>
 
-              <ScrollableContainer ref={scrollContainerRef}>
-                {/* Time headers with NO tooltip logic - just static rendering */}
-                <TimeSlotGrid numColumns={timeSlots.length}>
-                  {timeSlots.map(time => (
-                    <TimeHeader key={time} data-hour={time} ref={el => (hourRefs.current[time] = el)}>
-                      {time}
-                    </TimeHeader>
-                  ))}
-                  {/* Tooltip is added here dynamically by useRealtimeTooltip hook */}
-                </TimeSlotGrid>
+                  {displayMetrics?.map(metric => (
+                    <MetricLabel key={metric.assessment_type_id}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          gap: 1
+                        }}
+                      >
+                        <MetricName>{metric.label}</MetricName>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Icon icon={'f7:waveform-path-ecg'} fontSize={16} />
+                          <MetricSubtext>{metric.frequency_label}</MetricSubtext>
+                        </Box>
+                      </Box>
 
-                {displayMetrics?.map(metric => (
-                  <TimeSlotGrid key={metric?.id} numColumns={timeSlots.length}>
-                    {metric?.timeSlots.map((timeSlot, index) => {
-                      const slotKey = `${metric.id}-${index}`
-
-                      return (
-                        <TimeSlot
-                          key={slotKey}
-                          onClick={() => handleTimeSlotClick(metric.id, timeSlot)}
-                          onMouseEnter={() => setHoveredSlot(slotKey)}
-                          onMouseLeave={() => setHoveredSlot(null)}
-                          sx={{
-                            transform: hoveredSlot === slotKey ? 'translateY(-1px)' : 'none'
+                      {metric?.canEdit && !isPatientDischarged && (
+                        <IconButton
+                          size='small'
+                          onClick={() => {
+                            const hasEntries = metric?.timeSlots?.some(slot => slot.record)
+                            setParamData({
+                              ...metric,
+                              hasEntries
+                            })
+                            setOpenDeleteDialog(true)
                           }}
+                          sx={{ color: theme.palette.customColors.OnPrimaryContainer, ml: 1 }}
                         >
-                          <Icon icon={'mdi-plus'} fontSize={20} />
-                        </TimeSlot>
-                      )
-                    })}
+                          <Icon icon={'mdi-close'} fontSize={20} />
+                        </IconButton>
+                      )}
+                    </MetricLabel>
+                  ))}
+                </FixedColumn>
+
+                <ScrollableContainer ref={scrollContainerRef}>
+                  <TimeSlotGrid numColumns={timeSlots.length} sx={{ mb: 8 }}>
+                    {timeSlots.map(time => (
+                      <TimeHeader key={time} data-hour={time} ref={el => (hourRefs.current[time] = el)}>
+                        {time}
+                      </TimeHeader>
+                    ))}
                   </TimeSlotGrid>
-                ))}
-              </ScrollableContainer>
-            </MainContainer>
-          </DashboardContainer>
+
+                  {renderedMetrics}
+                </ScrollableContainer>
+              </MainContainer>
+            </DashboardContainer>
+          )}
         </Grid>
       </Grid>
       {openScheduleDrawer && (
-        <AddScheduleDrawer open={openScheduleDrawer} setOpen={setOpenScheduleDrawer} monitoring={defaultMetrics} />
+        <AddScheduleDrawer
+          open={openScheduleDrawer}
+          setOpen={setOpenScheduleDrawer}
+          monitoring={defaultMetrics}
+          hospitalCaseId={id}
+          refetchMonitoringData={monitoringRefetch}
+          intervalList={intervalList}
+          intervalLoading={intervalLoading}
+          monitoringParams={monitoringParams}
+          refetchMonitoringParams={refetchMonitoringParams}
+        />
+      )}
+      {addParameterDrawerOpen && (
+        <AddParameterDrawer
+          open={addParameterDrawerOpen}
+          setOpen={setAddParameterDrawerOpen}
+          hospitalCaseId={id}
+          refetchMonitoringData={monitoringRefetch}
+          isToday={isToday}
+          selectedDate={selectedDate}
+          refetchMonitoringParams={refetchMonitoringParams}
+        />
+      )}
+      {openParamsEntryDrawer && (
+        <AddParameterDataEntry
+          open={openParamsEntryDrawer}
+          setOpen={setOpenParamsEntryDrawer}
+          data={paramsDetails}
+          hospitalCaseId={id}
+          medicalRecordId={medical_record_id}
+          animalId={animal_id}
+          refetchMonitoringData={monitoringRefetch}
+          selectedDate={selectedDate}
+          monitoringRefetch={monitoringRefetch}
+          isPatientDischarged={isPatientDischarged}
+        />
+      )}
+      {openDeleteDialog && (
+        <ConfirmationDialog
+          dialogBoxStatus={openDeleteDialog}
+          onClose={() => setOpenDeleteDialog(false)}
+          title={`Remove ${paramData?.label} parameter`}
+          description={
+            paramData?.hasEntries
+              ? 'This parameter has recorded entries. Removing it will also delete all recorded values'
+              : null
+          }
+          cancelText='CANCEL'
+          cancelBtnStyle={{
+            borderColor: theme.palette.customColors.OnPrimaryContainer,
+            color: theme.palette.customColors.OnPrimaryContainer,
+            width: '100%'
+          }}
+          confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2, height: '56px', width: '100%' }}
+          image='/images/warning-icon.svg'
+          imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 3 }}
+          confirmAction={handleParamDelete}
+          loading={deleteLoading}
+          ConfirmationText='CONFIRM'
+          imgHeight='36px'
+          imgWidth='36px'
+          formComponent={isToday ? renderDeleteForm : null}
+        />
       )}
     </>
   )
@@ -396,7 +861,7 @@ const TimeSlotGrid = styled(Box)(({ theme, numColumns }) => ({
   alignItems: 'stretch',
   width: 'max-content',
   marginBottom: theme.spacing(2),
-  position: 'relative', // Critical for tooltip positioning
+  position: 'relative',
   [theme.breakpoints.down('md')]: {
     gridTemplateColumns: `repeat(${numColumns}, minmax(120px, 1fr))`,
     gap: theme.spacing(1.5)
@@ -407,21 +872,21 @@ const HeaderContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  padding: theme.spacing(2, 2.5),
+  padding: theme.spacing(2, 3),
   background: theme.palette.customColors.lightBg,
-  borderRadius: 1,
-  height: '56px',
-  marginBottom: theme.spacing(2),
-  width: '100%'
+  borderRadius: '4px',
+  marginBottom: theme.spacing(8),
+  width: '100%',
+  height: '56px'
 }))
 
 const MetricLabel = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  padding: theme.spacing(2, 2.5),
+  padding: theme.spacing(2, 3),
   backgroundColor: theme.palette.customColors.lightBg,
-  borderRadius: 1,
+  borderRadius: theme.spacing(1),
   height: '72px',
   marginBottom: theme.spacing(2),
   width: '100%'
@@ -444,21 +909,16 @@ const TimeSlot = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   backgroundColor: 'white',
-  borderRadius: '6px',
-  border: '1px dashed',
+  borderRadius: theme.spacing(1),
   borderColor: theme.palette.customColors.OutlineVariant,
-  fontSize: '13px',
   fontWeight: 500,
   color: theme.palette.customColors.OutlineVariant,
   cursor: 'pointer',
   transition: 'all 0.2s ease',
   position: 'relative',
   minWidth: '160px',
+  maxWidth: '160px',
   height: '72px',
-  '&:hover': {
-    backgroundColor: '#f8f9fa',
-    borderColor: '#dee2e6'
-  },
   [theme.breakpoints.down('md')]: {
     fontSize: '11px',
     minWidth: '120px'
@@ -468,13 +928,13 @@ const TimeSlot = styled(Box)(({ theme }) => ({
 const TimeHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'center',
+  padding: theme.spacing(2, 3),
   textAlign: 'center',
   fontSize: '16px',
   fontWeight: 500,
   color: theme.palette.customColors.deepDark,
   background: theme.palette.customColors.lightBg,
-  borderRadius: 1,
+  borderRadius: '4px',
   position: 'relative',
   minWidth: '160px',
   height: '56px',

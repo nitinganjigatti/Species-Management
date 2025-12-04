@@ -1,5 +1,5 @@
 import React from 'react'
-import { Grid, Box, FormControl, MenuItem, Select, Skeleton, Tooltip, Typography } from '@mui/material'
+import { Grid, Box, FormControl, MenuItem, Select, Skeleton, Typography } from '@mui/material'
 import Timeline from '@mui/lab/Timeline'
 import TimelineItem, { timelineItemClasses } from '@mui/lab/TimelineItem'
 import { timelineOppositeContentClasses } from '@mui/lab'
@@ -11,10 +11,10 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import { useTheme, styled } from '@mui/material/styles'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import Search from 'src/views/utility/Search'
-import { FilterButton } from 'src/views/utility/render-snippets'
 import Utility from 'src/utility'
 import NoDataFound from 'src/views/utility/NoDataFound'
-import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 
 const medicalTypeOptions = [
   { label: 'All Activities', value: '' },
@@ -27,15 +27,6 @@ const medicalTypeOptions = [
 const TimelineEvent = ({ entry, isFirst, isLast }) => {
   const theme = useTheme()
 
-  const snakeToTitleCase = title => {
-    if (!title || typeof title !== 'string') return 'NA'
-
-    return title
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
-  }
-
   return (
     <TimelineItem sx={{ minHeight: '5rem' }}>
       <StyledTimelineOppositeContent>
@@ -47,7 +38,7 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
             visibility: isFirst ? 'hidden' : 'visible',
             minHeight: isFirst ? 0 : '1.25rem',
             backgroundColor: theme.palette.customColors.OnPrimaryContainer,
-            width: '1.6px'
+            width: '1.5px'
           }}
         />
         <Box
@@ -68,7 +59,7 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
             visibility: isLast ? 'hidden' : 'visible',
             minHeight: isLast ? 0 : '1.25rem',
             backgroundColor: theme.palette.customColors.OnPrimaryContainer,
-            width: '1.6px'
+            width: '1.5px'
           }}
         />
       </TimelineSeparator>
@@ -82,46 +73,21 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
           wrap='nowrap' // Prevents wrapping
           sx={{ xs: '100%', minWidth: '540px' }} // Minimum width similar to iPad layout
         >
-          <Grid size={{ xs: 3 }} sx={{ display: 'flex', flexDirection: 'column' }}>
-            <TextEllipsisWithModal
-              placement='top'
-              enableDialog={false}
-              text={snakeToTitleCase(entry?.title)}
-              style={{
-                fontWeight: 600,
-                fontSize: '1rem',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                maxWidth: '100%'
-              }}
-            />
-            <TextEllipsisWithModal
-              enableDialog={false}
-              text={snakeToTitleCase(
-                entry?.details?.medical_record_number ? entry?.details?.medical_record_number : 'NA'
-              )}
-              style={{
-                fontWeight: 400,
-                fontSize: '0.75rem',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                maxWidth: '100%'
-              }}
-            />
+          <Grid size={{ xs: 3 }} sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', gap: 1 }}>
+            <StyledTypography fontWeight={600}>{entry?.title}</StyledTypography>
+            <StyledTypography fontWeight={400} fontSize={'0.75rem'}>
+              {entry?.details?.medical_record_number}
+            </StyledTypography>
           </Grid>
           <Grid
             size={{ xs: 6 }}
             sx={{
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              textAlign: entry?.complaints ? 'justify' : 'center'
+              display: 'flex',
+              alignItems: 'center'
             }}
           >
             <StyledTypography fontSize={'0.875rem'} fontWeight={500}>
-              <Tooltip title={entry?.complaints || 'NA'} arrow placement='top'>
-                {entry?.details?.complaints || 'NA'}
-              </Tooltip>
+              {entry?.details?.complaints || '--'}
             </StyledTypography>
           </Grid>
           <Grid
@@ -146,7 +112,7 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
 const TimelineSection = ({ section }) => {
   const theme = useTheme()
 
-  if (!section?.entries || section.entries.length === 0) return
+  if (!section?.entries || section?.entries?.length === 0) return
 
   return (
     <Box sx={{}}>
@@ -180,7 +146,11 @@ const GroupedTimeline = ({
   onClearSearch,
   lastTimelineRef,
   hasNextPage,
-  isFetchingNextPage
+  isFetchingNextPage,
+  setOpenFilterDrawer,
+  filterCount,
+  filterDate,
+  setFilterDate
 }) => {
   const theme = useTheme()
 
@@ -206,7 +176,11 @@ const GroupedTimeline = ({
               onClear={onClearSearch}
             />
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <FormControl sx={{ minWidth: 120, flex: 1, m: 0 }}>
+              <CommonDateRangePickers
+                filterDates={filterDate}
+                onChange={(start, end) => setFilterDate({ startDate: start, endDate: end })}
+              />
+              {/* <FormControl sx={{ minWidth: 120, flex: 1, m: 0 }}>
                 <Select
                   value={medicalType}
                   onChange={e => onMedicalTypeChange(e.target.value)}
@@ -224,9 +198,12 @@ const GroupedTimeline = ({
                     </MenuItem>
                   ))}
                 </Select>
-              </FormControl>
+              </FormControl> */}
 
-              <FilterButton />
+              <FilterButtonWithNotification
+                onClick={() => setOpenFilterDrawer(true)}
+                appliedFiltersCount={filterCount}
+              />
             </Box>
           </Box>
 

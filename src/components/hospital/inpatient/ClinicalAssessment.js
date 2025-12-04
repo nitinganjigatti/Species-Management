@@ -20,11 +20,16 @@ import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const PAGE_SIZE = 10
+const STORAGE_KEY = 'medical_record_data'
 
-const ClinicalAssessment = () => {
+const ClinicalAssessment = ({ overviewData }) => {
   const router = useRouter()
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [localSearch, setLocalSearch] = useState('')
@@ -49,11 +54,14 @@ const ClinicalAssessment = () => {
   const [clinicalAsmnt, setClinicalAsmnt] = useState('')
   const [prognosisVal, setPrognosisValue] = useState('')
   const [chronicVal, setChronicVal] = useState(false)
-  const [notes, setNotes] = useState('')
   const [status, setStatus] = useState('active')
+  const [notes, setNotes] = useState('')
   const [temporarilySelected, setTemporarilySelected] = useState(null)
 
-  const { id, animal_id, medical_record_id } = router.query
+  const { id } = router.query
+  const animal_id = medicalRecordData?.animal_id
+  const medical_record_id = medicalRecordData?.medical_record_id
+  const isDischared = overviewData?.status === 'discharge'
 
   const theme = useTheme()
 
@@ -80,15 +88,17 @@ const ClinicalAssessment = () => {
         setNoteRecord(null)
         setIsDrawerOpen(false)
 
+        fetchClinicalAssessments(1, searchQuery, getStatusFilter())
+
         // Optionally refresh activity list
-        const notesResponse = await getNotes({
-          entity: 'diagnosis',
-          medical_id: selectedAssessment?.medical_record_id,
-          record_id: selectedAssessment?.main_diagnosis_id
-        })
-        if (notesResponse?.success) {
-          setActivityListData(notesResponse?.data || [])
-        }
+        // const notesResponse = await getNotes({
+        //   entity: 'diagnosis',
+        //   medical_id: selectedAssessment?.medical_record_id,
+        //   record_id: selectedAssessment?.main_diagnosis_id
+        // })
+        // if (notesResponse?.success) {
+        //   setActivityListData(notesResponse?.data || [])
+        // }
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to update notes.' })
       }
@@ -117,6 +127,8 @@ const ClinicalAssessment = () => {
         setIsNotesOpen(false)
         setNoteRecord(null)
         setIsDrawerOpen(false)
+
+        fetchClinicalAssessments(1, searchQuery, getStatusFilter())
 
         // Optionally refresh activity list
         // const notesResponse = await getNotes({
@@ -179,6 +191,7 @@ const ClinicalAssessment = () => {
           page_no: pageNum,
           limit: PAGE_SIZE,
           animal_id: animal_id || '',
+          hospital_case_id: id || '',
           q: search,
           medical_record_id: currentRecordOnly && medical_record_id ? medical_record_id : ''
         })
@@ -207,7 +220,7 @@ const ClinicalAssessment = () => {
         setIsLoading(false)
       }
     },
-    [currentRecordOnly, id]
+    [currentRecordOnly, id, animal_id]
   )
 
   // Load more function for infinite scroll
@@ -224,8 +237,8 @@ const ClinicalAssessment = () => {
 
   // Fetch data when tab, search, or currentRecordOnly changes
   useEffect(() => {
-    fetchClinicalAssessments(1, searchQuery, getStatusFilter())
-  }, [searchQuery, currentTab, currentRecordOnly, fetchClinicalAssessments, getStatusFilter])
+    if (animal_id) fetchClinicalAssessments(1, searchQuery, getStatusFilter())
+  }, [searchQuery, currentTab, currentRecordOnly, fetchClinicalAssessments, getStatusFilter, animal_id])
 
   const handleTabChange = newValue => {
     setCurrentTab(newValue)
@@ -250,7 +263,10 @@ const ClinicalAssessment = () => {
   }
 
   const handleAssessmentClick = async assessment => {
-    setSelectedAssessment(assessment)
+    setSelectedAssessment({
+      ...assessment,
+      additional_info: { ...assessment.additional_info, isChronic: assessment.additional_info.isChronic ? 'Yes' : 'No' }
+    })
     setTemporarilySelected(assessment)
     setClinicalAsmnt(assessment?.additional_info?.clinical_assessment || 'primary')
     setPrognosisValue(
@@ -289,17 +305,52 @@ const ClinicalAssessment = () => {
   }
 
   const updateAssessment = async () => {
+    // Check if any values have been modified
+    const isClinicalAsmntChanged =
+      clinicalAsmnt?.toLowerCase() !== selectedAssessment?.clinical_assessment?.toLowerCase()
+
+    const isPrognosisChanged =
+      prognosisVal?.toLowerCase() !== selectedAssessment?.additional_info?.prognosis?.toLowerCase()
+
+    const isChronicChanged = chronicVal !== selectedAssessment?.additional_info?.isChronic
+
+    const isStatusChanged = status?.toLowerCase() !== selectedAssessment?.additional_info?.status?.toLowerCase()
+
+    // Set is_system_generated to true if any value has changed
+    const isSystemGenerated = isClinicalAsmntChanged || isPrognosisChanged || isChronicChanged || isStatusChanged
+
+    // Base payload with required fields
     const payload = {
       main_id: selectedAssessment?.main_diagnosis_id || '',
       med_id: medical_record_id || '',
       type: 'DIAGNOSIS',
-      is_system_generated: false,
-      animal_id: animal_id || '',
-      note: notes || '',
-      clinical_assessment: clinicalAsmnt?.toLowerCase() || '',
-      prognosis: clinicalAsmnt?.toLowerCase() === 'diagnosis' ? prognosisVal.toLowerCase() : '',
-      isChronic: clinicalAsmnt?.toLowerCase() === 'diagnosis' ? chronicVal === 'Yes' : '',
-      status: status?.toLowerCase() === 'inactive' ? 'closed' : 'active'
+      is_system_generated: isSystemGenerated,
+      animal_id: animal_id || ''
+    }
+
+    // Only add clinical_assessment if changed
+    if (isClinicalAsmntChanged) {
+      payload.clinical_assessment = clinicalAsmnt?.toLowerCase() || ''
+    }
+
+    // Only add prognosis if changed and clinical assessment is diagnosis
+    if (isPrognosisChanged && clinicalAsmnt?.toLowerCase() === 'diagnosis') {
+      payload.prognosis = prognosisVal.toLowerCase()
+    }
+
+    // Only add chronic if changed and clinical assessment is diagnosis
+    if (isChronicChanged && clinicalAsmnt?.toLowerCase() === 'diagnosis') {
+      payload.chronic = chronicVal === 'Yes' ? 1 : 0
+    }
+
+    // Only add status if changed
+    if (isStatusChanged) {
+      payload.status = status?.toLowerCase() === 'inactive' ? 'resolved' : 'active'
+    }
+
+    // Only add note if changed
+    if (notes) {
+      payload.note = notes || ''
     }
 
     setIsSubmitLoading(true)
@@ -313,11 +364,11 @@ const ClinicalAssessment = () => {
         setIsDrawerOpen(false)
         setIsSaveDialogOpen(false)
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Something went wrong' }) // TODO: Replace with actual error message
+        Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
       }
     } catch (error) {
       console.error('Submit Error:', error)
-      Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' }) // TODO: Replace with actual error message
+      Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' })
     } finally {
       setIsSubmitLoading(false)
     }
@@ -403,55 +454,71 @@ const ClinicalAssessment = () => {
                 debouncedSearch('')
               }}
             />
-            <Button
-              variant='contained'
-              startIcon={<AddIcon />}
-              onClick={() =>
-                router.push(
-                  `/hospital/inpatient/${id}/add-clinical-assessment?animalId=${animal_id}&medicalRecordId=${medical_record_id}`
-                )
-              }
-            >
-              ADD NEW
-            </Button>
+            {!isDischared && (
+              <Button
+                variant='contained'
+                startIcon={<AddIcon />}
+                onClick={() => router.push(`/hospital/inpatient/${id}/add-clinical-assessment`)}
+              >
+                ADD NEW
+              </Button>
+            )}
           </Box>
         </Box>
-
-        <MUISwitch
-          label='Current Medical Record Only'
-          checked={currentRecordOnly}
-          onChange={e => setCurrentRecordOnly(e.target.checked)}
-          size='small'
-          sx={{ ml: 2.6 }}
-        />
+        <Box>
+          <MUISwitch
+            label='Current Medical Record Only'
+            checked={currentRecordOnly}
+            onChange={e => {
+              setRecords([])
+              setPage(1)
+              setCurrentRecordOnly(e.target.checked)
+            }}
+            size='small'
+            sx={{ ml: 2.6 }}
+          />
+        </Box>
       </Box>
 
       {/* Records List */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {/* Loading State */}
-        {isLoading && filteredRecords.length === 0 && <ClinicalAssessmentShimmer count={5} />}
-        {filteredRecords.map((record, index) => (
+        {isLoading && filteredRecords?.length === 0 && <ClinicalAssessmentShimmer count={5} />}
+        {filteredRecords?.map((record, index) => (
           <ClinicalAssessmentCard
             key={record.id || index}
             record={record}
             isDifferential={record.clinical_assessment === 'differential'}
             isResolved={record.additional_info?.status === 'closed'}
-            handleClick={() => handleAssessmentClick(record)}
+            isDischared={isDischared}
+            handleClick={() => (isDischared ? null : handleAssessmentClick(record))}
           />
         ))}
 
         {/* Infinite Scroll Loader */}
         {(isLoading || hasMore) && filteredRecords.length > 0 && (
-          <Box ref={loaderRef} display='flex' justifyContent='center' py={2}>
-            <ClinicalAssessmentShimmer count={3} />
+          <Box ref={loaderRef}>
+            <ClinicalAssessmentShimmer count={1} />
           </Box>
         )}
 
         {/* Empty State */}
         {!isLoading && filteredRecords.length === 0 && (
-          <Typography sx={{ textAlign: 'center', mt: 4, color: theme.palette.text.secondary }}>
-            No clinical assessments found
-          </Typography>
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          >
+            <NoMedicalData
+              btnText={'ADD NEW CLINICAL ASSESSMENT'}
+              text={'All Added Clinical Assessments Will Appear here'}
+              isDischarged={isDischared}
+              btnAction={() => router.push(`/hospital/inpatient/${id}/add-clinical-assessment`)}
+            />
+          </Box>
         )}
 
         {/* End of List */}

@@ -123,7 +123,8 @@ const CustomFilterDrawer = ({
             backgroundColor: theme.palette.customColors.OnPrimary,
             borderTopRightRadius: '8px',
             p: '24px',
-            pb: 0
+            pb: 0,
+            flex: 1
           }}
         >
           {children}

@@ -28,7 +28,7 @@ export const addSymptoms = async payload => {
 }
 
 export const updateSymptoms = async payload => {
-  const response = await axiosFormPost({ url: `${ANIMAL_MEDICAL_ID_LIST}/${UPDATE_HOSPITAL_SYMPTOMS}`, body: payload })
+  const response = await axiosFormPost({ url: `${ANIMAL_MEDICAL_ID_LIST}${UPDATE_HOSPITAL_SYMPTOMS}`, body: payload })
 
   return response?.data
 }

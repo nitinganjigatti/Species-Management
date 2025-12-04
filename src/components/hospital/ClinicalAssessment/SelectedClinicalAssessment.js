@@ -4,7 +4,7 @@ import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 
-export default function SelectedClinicalAssessment({ selected, onRemove, clinicalAsmnt }) {
+export default function SelectedClinicalAssessment({ selected, onRemove, clinicalAsmnt, onEdit }) {
   const theme = useTheme()
   const { getSeverityColor } = useHospitalColorUtils()
 
@@ -66,6 +66,7 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
           {selected.map((symptom, idx) => (
             <Box
               key={idx}
+              onClick={() => onEdit(symptom)}
               sx={{
                 backgroundColor: getSeverityColor(selected[idx]?.prognosisVal).bgColor,
                 p: 4,
@@ -73,7 +74,8 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                textAlign: 'left'
+                textAlign: 'left',
+                cursor: 'pointer'
               }}
             >
               <Box>
@@ -90,15 +92,19 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
                   {symptom.name}
                 </Typography>
                 <Typography
-                  variant='body2'
                   sx={{
                     textAlign: 'left',
-                    background: theme.palette.customColors.tableHeaderBg,
+                    background:
+                      symptom.clinicalAsmnt === 'Differential'
+                        ? theme.palette.customColors.antzNotes
+                        : theme.palette.customColors.tableHeaderBg,
                     color: theme.palette.customColors.OnSecondaryContainer,
                     borderRadius: '4px',
                     border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
                     px: 3.5,
                     py: 1,
+                    fontSize: '16px',
+                    fontWeight: 500,
                     width: 'fit-content',
                     minWidth: 'auto',
                     display: 'inline'
@@ -141,7 +147,12 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
                   ''
                 )}
               </Box>
-              <IconButton onClick={() => onRemove(symptom)}>
+              <IconButton
+                onClick={e => {
+                  e.stopPropagation()
+                  onRemove(symptom)
+                }}
+              >
                 <CloseIcon sx={{ color: '#1F515B', fontSize: '22px' }} />
               </IconButton>
             </Box>
