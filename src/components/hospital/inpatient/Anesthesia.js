@@ -563,14 +563,16 @@ function Anesthesia({
   const handleRecordTabClick = useCallback(
     selectionId => {
       if (selectionId === activeRecordId) {
-        refetchAnesthesiaDetail()
-
+        // refetchAnesthesiaDetail()
         return
       }
 
       setActiveRecordId(selectionId)
     },
-    [activeRecordId, refetchAnesthesiaDetail]
+    [
+      activeRecordId
+      // refetchAnesthesiaDetail
+    ]
   )
 
   const handleDeleteClick = useCallback(() => {
