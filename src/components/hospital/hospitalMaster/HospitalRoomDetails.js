@@ -45,8 +45,6 @@ import {
   updateHospitalStatus
 } from 'src/lib/api/hospital/hospitalRooms'
 
-// import UpdateHospitalDrawer from 'src/views/pages/hospital/masters/hospital/UpdateHospitalDrawer'
-
 const HospitalRoomDetails = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -59,7 +57,8 @@ const HospitalRoomDetails = () => {
   const [editParams, setEditParams] = useState(null)
   const [hospitalStatusEdit, setHospitalStatusEdit] = useState(null)
   const [isStatusUpdating, setIsStatusUpdating] = useState(false)
-  const [hospitalDetails, setHospitalDetails] = useState(null)
+
+  // const [hospitalDetails, setHospitalDetails] = useState(null)
   const [isHospitalActive, setIsHospitalActive] = useState(false)
 
   const [filterCount, setFilterCount] = useState(0)
@@ -160,18 +159,37 @@ const HospitalRoomDetails = () => {
           status: filters.status || undefined
         }
       }),
-    enabled: router.isReady && !!id
+    enabled: router.isReady && !!id,
+    select: response => {
+      if (!response?.success) {
+        return {
+          success: false,
+          records: [],
+          total: 0,
+          hospital_detail: null
+        }
+      }
+
+      return {
+        success: true,
+        records: response.data?.records || [],
+        total: response.data?.total || 0,
+        hospital_detail: response.data?.hospital_detail || null
+      }
+    },
+    onError: error => {
+      console.error('Error fetching hospital list:', error?.message)
+    }
   })
 
-  const rows = useMemo(() => roomData?.data?.records || [], [roomData?.data?.records])
-  const total = useMemo(() => roomData?.data?.total || 0, [roomData?.data?.total])
+  const rows = useMemo(() => roomData?.records || [], [roomData?.records])
+  const total = useMemo(() => roomData?.total || 0, [roomData?.total])
+  const hospitalDetails = useMemo(() => roomData?.hospital_detail || [], [roomData?.hospital_detail])
+  const occupied = hospitalDetails?.no_of_occupied
 
   useEffect(() => {
-    if (roomData?.data?.hospital_detail) {
-      setHospitalDetails(roomData?.data?.hospital_detail)
-      setIsHospitalActive(Number(roomData?.data?.hospital_detail?.is_active))
-    }
-  }, [roomData?.data?.hospital_detail])
+    setIsHospitalActive(Number(roomData?.hospital_detail?.is_active) || 0)
+  }, [roomData?.hospital_detail?.is_active])
 
   // Toggle hospital status
   // const handleHospitalStatus = useCallback(
@@ -220,7 +238,6 @@ const HospitalRoomDetails = () => {
   //       }
   //     } catch (error) {
   //       console.error('Status update failed:', error || error?.message)
-  //       Toaster({ type: 'error', message: error?.message || 'An unexpected error occurred' })
   //       refetchRooms() // Revert optimistic update on error
   //     } finally {
   //       setIsStatusUpdating(false)
@@ -297,14 +314,14 @@ const HospitalRoomDetails = () => {
   }, [])
 
   const openEditHospitalDrawer = useCallback(() => {
-    if (hospitalDetails?.no_of_occupied !== null || Number(hospitalDetails?.no_of_occupied) !== 0) {
-      setIsOccupiedRoomWarningOpen(true)
-    } else {
+    if (occupied === null || occupied == '0') {
       setEditParams(null)
-      setHospitalStatusEdit({ hospital_id: id, active: isHospitalActive ? 1 : 0 })
+      setHospitalStatusEdit({ hospital_id: id, active: hospitalDetails?.is_active ? 1 : 0 })
       setOpenDrawer(true)
+    } else {
+      setIsOccupiedRoomWarningOpen(true)
     }
-  }, [id, isHospitalActive, hospitalDetails])
+  }, [occupied, hospitalDetails?.is_active, id])
 
   const closeDrawer = useCallback(() => {
     setOpenDrawer(false)
@@ -364,8 +381,8 @@ const HospitalRoomDetails = () => {
                   }
                 }
               })
-            } catch (err) {
-              console.warn('Failed to update query cache', err)
+            } catch (error) {
+              console.warn('Failed to update query cache', error?.message || error)
             }
 
             Toaster({ type: 'success', message: response?.message || 'Hospital updated successfully' })
@@ -385,14 +402,13 @@ const HospitalRoomDetails = () => {
           }
         }
       } catch (error) {
-        console.error('Error submitting data:', error || error?.message)
-        Toaster({ type: 'error', message: error?.message || 'An unexpected error occurred' })
+        console.error('Error submitting data:', error?.message || error)
       } finally {
         setSubmitLoader(false)
         setOpenDrawer(false)
       }
     },
-    [id, editParams, filters, queryClient, refetchRooms]
+    [id, editParams, filters, refetchRooms]
   )
 
   // Edit room options
@@ -408,7 +424,7 @@ const HospitalRoomDetails = () => {
         action: () => openEditRoomDrawer(row)
       }
     ],
-    [openEditRoomDrawer, theme.palette.customColors.neutralPrimary]
+    [openEditRoomDrawer]
   )
 
   // Add serial numbers to each row
@@ -499,7 +515,7 @@ const HospitalRoomDetails = () => {
         )
       }
     ]
-  }, [getMenuOptions, theme.palette.customColors.OnSurfaceVariant])
+  }, [getMenuOptions])
 
   // getRowClassName function
   const getRowClassName = params => {
@@ -520,7 +536,7 @@ const HospitalRoomDetails = () => {
         query: { id: id, roomId: params.row.id }
       })
     },
-    [router, id]
+    [id]
   )
 
   return (
