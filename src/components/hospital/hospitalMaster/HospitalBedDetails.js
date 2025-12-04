@@ -118,7 +118,7 @@ const HospitalBedDetails = () => {
   }, [router.isReady, router.query, id])
 
   // Fetch bed list
-  const queryKey = useMemo(() => ['bed-list', filters], [filters])
+  const queryKey = useMemo(() => ['bed-list', id, roomId, filters], [id, roomId, filters])
 
   const {
     data: bedData,
