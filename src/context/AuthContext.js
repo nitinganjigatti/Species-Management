@@ -44,7 +44,7 @@ const AuthProvider = ({ children }) => {
   const [loginLoading, setLoginLoading] = useState(defaultProvider.loginLoading)
   const { setSelectedParivesh, setOrganizationList } = usePariveshContext()
   const { selectedPharmacy, setSelectedPharmacy } = usePharmacyContext()
-  const { updateSelectedHospital } = useHospital()
+  const { updateSelectedHospital, updateHospitalStats } = useHospital()
 
   const queryClient = useQueryClient()
 
@@ -200,6 +200,7 @@ const AuthProvider = ({ children }) => {
     setOrganizationList([])
     setLoading(false)
     updateSelectedHospital(null)
+    updateHospitalStats(null)
 
     // 5. Remove the specific auth token (optional, but good for consistency)
     window.localStorage.removeItem(authConfig.storageTokenKeyName)
@@ -326,6 +327,7 @@ const AuthProvider = ({ children }) => {
       setSelectedParivesh('')
       setOrganizationList([])
       updateSelectedHospital(null)
+      updateHospitalStats(null)
 
       // 5. Remove the specific auth token (optional, but good for consistency)
       window.localStorage.removeItem(authConfig.storageTokenKeyName)
