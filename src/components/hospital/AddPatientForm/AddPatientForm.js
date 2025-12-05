@@ -9,8 +9,7 @@ import {
   Button,
   alpha,
   IconButton,
-  useTheme,
-  CircularProgress
+  useTheme
 } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
@@ -56,7 +55,7 @@ const defaultValues = {
 }
 
 const treatmentType = [
-  { label: 'OPD(outpatient)', value: 'opt' },
+  { label: 'OPD(outpatient)', value: 'opd' },
   { label: 'Hospital Admission(inpatient)', value: 'inpatient' }
 ]
 
@@ -106,6 +105,7 @@ const AddPatientForm = () => {
   const [bedsLoading, setBedsLoading] = useState(false)
   const [searchEnclosure, setSearchEnclosure] = useState('')
   const [rooms, setRooms] = useState([])
+  const [roomsLoading, setRoomsLoading] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -155,6 +155,7 @@ const AddPatientForm = () => {
 
   useEffect(() => {
     const getHospitalRooms = async () => {
+      setRoomsLoading(true)
       try {
         await getHospitalRoomsList({
           hospital_id: selectedHospital?.id,
@@ -172,6 +173,10 @@ const AddPatientForm = () => {
               }))
 
             setRooms(filteredRooms)
+            setRoomsLoading(false)
+          } else {
+            setRooms([])
+            setRoomsLoading(false)
           }
         })
       } catch (error) {
@@ -268,6 +273,7 @@ const AddPatientForm = () => {
         entitiy_item_type: 'animal',
         request_from: 'web',
         module: 'hospital_transfer',
+        visit_type: data?.visitType,
         additional_info: JSON.stringify({
           treatment_type: data?.treatmentType,
           doctor_id: String(selectedDoctor?.id),
@@ -281,7 +287,13 @@ const AddPatientForm = () => {
       await addHospitalPatient(params).then(res => {
         if (res?.success === true) {
           Toaster({ type: 'success', message: res?.message })
-          router.back()
+          if (watchTreatmentType === 'opd') {
+            router.push({
+              pathname: `/hospital/outpatient`
+            })
+          } else if (watchTreatmentType === 'inpatient') {
+            router.back()
+          }
         } else {
           Toaster({ type: 'error', message: res?.message })
         }
@@ -667,7 +679,6 @@ const AddPatientForm = () => {
                     control={control}
                     errors={errors}
                     options={rooms}
-                    disabled={rooms.length === 0}
                     getOptionValue={option => option.value || ''}
                     getOptionLabel={option => option.label || ''}
                     isOptionEqualToValue={(option, value) => option.value === value?.value}
@@ -675,6 +686,7 @@ const AddPatientForm = () => {
                     onInputChange={val => debouncedSearch(val)}
                     sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
                     fullWidth
+                    loading={roomsLoading}
                   />
                   {rooms.length === 0 && (
                     <Typography
@@ -702,7 +714,6 @@ const AddPatientForm = () => {
                     control={control}
                     errors={errors}
                     options={holdingEnclosures}
-                    disabled={rooms.length === 0 || holdingEnclosures.length === 0}
                     getOptionValue={option => option.value || ''}
                     getOptionLabel={option => option.label || ''}
                     isOptionEqualToValue={(option, value) => option.value === value?.value}
@@ -788,7 +799,12 @@ const AddPatientForm = () => {
         />
       )}
       {doctorDrawerOpen && (
-        <DoctorsDrawer open={doctorDrawerOpen} setOpen={setDoctorDrawerOpen} onSelectDoctor={handleDoctorSelection} />
+        <DoctorsDrawer
+          open={doctorDrawerOpen}
+          setOpen={setDoctorDrawerOpen}
+          onSelectDoctor={handleDoctorSelection}
+          hospitalId={selectedHospital?.id}
+        />
       )}
       {isSortBottomSheetOpen && (
         <SortBottomSheet

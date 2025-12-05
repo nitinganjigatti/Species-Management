@@ -12,9 +12,9 @@ import { useTheme, styled } from '@mui/material/styles'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import Search from 'src/views/utility/Search'
 import Utility from 'src/utility'
-import NoDataFound from 'src/views/utility/NoDataFound'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const medicalTypeOptions = [
   { label: 'All Activities', value: '' },
@@ -206,7 +206,6 @@ const GroupedTimeline = ({
               />
             </Box>
           </Box>
-
           {isLoading ? (
             <TimelineSkeleton />
           ) : medicalSummaryData?.length > 0 ? (
@@ -235,7 +234,16 @@ const GroupedTimeline = ({
               )}
             </>
           ) : (
-            <NoDataFound variant='Seal' height={300} width={300} />
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <NoMedicalData isDischarged={true} />
+            </Box>
           )}
         </>
       </Box>

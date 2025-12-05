@@ -30,14 +30,14 @@ import PreAnesthesia from 'src/components/hospital/inpatient/Anesthesia/PreAnest
 import RecoveryAndReversal from 'src/components/hospital/inpatient/Anesthesia/RecoveryAndReversal'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
+import Utility from 'src/utility'
 import {
   getAssesmentList,
   addAnesthesia,
   getAnesthesiaSetupList,
   getUnitList,
   getvitalMonitoringList,
-  getAnesthesiaDetails,
-  getAnesthesiaList
+  getAnesthesiaDetails
 } from 'src/lib/api/hospital/anesthesia'
 import Toaster from 'src/components/Toaster'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
@@ -383,7 +383,6 @@ export default function AddAnesthesiaRecord() {
     }
     try {
       const response = await getAnesthesiaSetupList(params)
-      console.log(response, 'response')
       if (response?.success && response?.data?.result?.length > 0) {
         setanesthesiaSetupList(response.data.result)
       } else {
@@ -416,7 +415,6 @@ export default function AddAnesthesiaRecord() {
   const fetchUnitList = async () => {
     try {
       const response = await getUnitList()
-      console.log(response, 'response')
       if (response?.success && response?.data) {
         setunitList(response?.data?.prescriptionMeasurementType)
       } else {
@@ -424,7 +422,7 @@ export default function AddAnesthesiaRecord() {
       }
     } catch (error) {}
   }
-  console.log(id, 'id')
+
   const fetchVitalList = async () => {
     try {
       const params = {
@@ -435,7 +433,7 @@ export default function AddAnesthesiaRecord() {
         // anaesthesia_id:""
       }
       const response = await getvitalMonitoringList(params)
-      console.log(response, 'response')
+
       if (response?.success && response?.data) {
         setVitalMonitorList(response?.data?.result)
       } else {
@@ -562,7 +560,12 @@ export default function AddAnesthesiaRecord() {
   })
 
   const handleCancel = () => {
-    router.back()
+    router.push(`/hospital/inpatient/${id}/?tab=anesthesia`)
+  }
+
+  const handleCancelNew = async () => {
+    await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
+    router.push(`/hospital/inpatient/${id}/?tab=anesthesia`)
   }
 
   const {
@@ -663,14 +666,22 @@ export default function AddAnesthesiaRecord() {
     [reversalDrugs, setValue]
   )
 
-  // Validate basic details for internal tracking
   React.useEffect(() => {
-    const validateBasicDetails = async () => {
-      const valid = await trigger('basicDetails')
-      setIsBasicDetailsValid(valid)
+    const checkBasicDetailsValid = async () => {
+      const basicValues = methods.getValues('basicDetails')
+
+      try {
+        // validate only the basicDetails part of schema
+        const isValid = await anesthesiaSchema.fields.basicDetails.isValid(basicValues, {
+          abortEarly: false
+        })
+        setIsBasicDetailsValid(isValid)
+      } catch (e) {
+        setIsBasicDetailsValid(false)
+      }
     }
 
-    validateBasicDetails()
+    checkBasicDetailsValid()
   }, [
     location,
     anaesthesia_datetime,
@@ -679,7 +690,7 @@ export default function AddAnesthesiaRecord() {
     anesthetist_id,
     selected,
     notes,
-    trigger
+    methods
   ])
 
   const fetchAnesthesiaDetails = async anaesthesia_id => {
@@ -688,8 +699,6 @@ export default function AddAnesthesiaRecord() {
     try {
       setAddLoader(true)
       const response = await getAnesthesiaDetails(anaesthesia_id)
-      console.log(response, 'getAnesthesiaDetails response')
-
       if (response?.success && response?.data) {
         setAnesthesiaDetail(response.data)
         setAddLoader(false)
@@ -1070,7 +1079,6 @@ export default function AddAnesthesiaRecord() {
 
   const onValid = async data => {
     setIsSubmitting(true)
-    console.log(data, 'data')
 
     try {
       const anesthesiaSetupValues = methods.getValues('anesthesiaSetup') || {}
@@ -1207,15 +1215,15 @@ export default function AddAnesthesiaRecord() {
         const columns = methods.getValues('vitalMonitoring') || []
         const vitalMetaForBlocks = vitalMonitorList || []
 
-        console.log('columns:', JSON.stringify(columns, null, 2))
-        console.log('vitalMetaForBlocks (from vitalMonitorList):', JSON.stringify(vitalMetaForBlocks, null, 2))
+        // console.log('columns:', JSON.stringify(columns, null, 2))
+        // console.log('vitalMetaForBlocks (from vitalMonitorList):', JSON.stringify(vitalMetaForBlocks, null, 2))
 
         blocks = formColumnsToVitalMonitoringBlocks(columns, vitalMetaForBlocks)
         blocks = (blocks || []).map(block => ({
           ...block,
           recorded_time: toBackendTime(block.recorded_time)
         }))
-        console.log('blocks:', JSON.stringify(blocks, null, 2))
+        // console.log('blocks:', JSON.stringify(blocks, null, 2))
         // ----------- VALIDATE & BUILD ANAESTHESIA SETUP (EDIT-ONLY) -----------
         const invalidSections = []
         clearErrors('anesthesiaSetup')
@@ -1373,42 +1381,42 @@ export default function AddAnesthesiaRecord() {
           formData.append('anaesthesia_setup', JSON.stringify(anaesthesiaSetupPayload))
         }
       }
-
-      console.log(' Final payload for API:', {
-        hospital_case_id: id || '',
-        medical_record_id: patientData?.medical_record_id || '',
-        location: data.basicDetails.location,
-        anaesthesia_datetime: data.basicDetails.anaesthesia_datetime,
-        estimated_time_required: data.basicDetails.estimated_time_required,
-        estimated_time_unit: data.basicDetails.estimated_time_unit,
-        veterinarian_id: data.basicDetails.veterinarian_id,
-        anesthetist_id: data.basicDetails.anesthetist_id,
-        notes: data.basicDetails.notes,
-        purpose: purposePayload,
-        ...(isEdit && {
-          pre_anaesthesia: preAnaesthesiaPayload,
-          anaesthesia_setup: anaesthesiaSetupPayload,
-          medications: { medications: medsPayload, gas: gasPayload },
-          recovery_and_reversal: { recovery: recoveryPayload, reversal: reversalPayload },
-          vital_monitoring_blocks: blocks
-        })
-      })
+      // console.log(' Final payload for API:', {
+      //   hospital_case_id: id || '',
+      //   medical_record_id: patientData?.medical_record_id || '',
+      //   location: data.basicDetails.location,
+      //   anaesthesia_datetime: data.basicDetails.anaesthesia_datetime,
+      //   estimated_time_required: data.basicDetails.estimated_time_required,
+      //   estimated_time_unit: data.basicDetails.estimated_time_unit,
+      //   veterinarian_id: data.basicDetails.veterinarian_id,
+      //   anesthetist_id: data.basicDetails.anesthetist_id,
+      //   notes: data.basicDetails.notes,
+      //   purpose: purposePayload,
+      //   ...(isEdit && {
+      //     pre_anaesthesia: preAnaesthesiaPayload,
+      //     anaesthesia_setup: anaesthesiaSetupPayload,
+      //     medications: { medications: medsPayload, gas: gasPayload },
+      //     recovery_and_reversal: { recovery: recoveryPayload, reversal: reversalPayload },
+      //     vital_monitoring_blocks: blocks
+      //   })
+      // })
 
       const response = await addAnesthesia(formData)
 
       if (response?.status === true) {
         setIsApiSuccess(true)
-        setExpanded('medicationsGas')
-        Toaster({ type: 'success', message: response?.message })
-        if (!anaesthesia_id) {
-          handleCancel()
+        // setExpanded('medicationsGas')
+        if (!hasMedicationsGasData(medsPayload, gasPayload)) {
+          handleChange('medicationsGas')
         }
-        await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
+        Toaster({ type: 'success', message: response?.message })
+        router.push(
+          `/hospital/inpatient/${id}/AddAnesthesiaRecord/?tab=anesthesia&anaesthesia_id=${response?.data?.anaesthesia_id}`
+        )
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to save record' })
       }
     } catch (error) {
-      console.error(error)
       Toaster({ type: 'error', message: 'Something went wrong. Please try again.' })
     } finally {
       setIsSubmitting(false)
@@ -1497,7 +1505,6 @@ export default function AddAnesthesiaRecord() {
       (Array.isArray(medsPayload) && medsPayload.length > 0) || (Array.isArray(gasPayload) && gasPayload.length > 0)
     )
   }
-
   const hasVitalBlocksData = blocks => Array.isArray(blocks) && blocks.length > 0
 
   const hasAnesthesiaSetupData = setupPayload => Array.isArray(setupPayload) && setupPayload.length > 0
@@ -1560,10 +1567,8 @@ export default function AddAnesthesiaRecord() {
   }
 
   const shouldEnableSections = isApiSuccess
-
-  // const lastUpdatedValue = formatDateTime(
-  //   anesthesiaDetail?.updated_at || anesthesiaDetail?.created_at || activeRecord?.updated_at || activeRecord?.created_at
-  // )
+  const lastUpdatedValue =
+    anesthesiaDetail?.updated_at !== undefined ? formatDateTime(anesthesiaDetail.updated_at) : '-'
 
   return (
     <FormProvider {...methods}>
@@ -1631,17 +1636,18 @@ export default function AddAnesthesiaRecord() {
                   Anesthesia Record {anesthesiaDetail?.code ? '- ' + anesthesiaDetail?.code : ''}
                 </Typography>
               </Box>
-
-              <Typography
-                sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontSize: '12px',
-                  fontWeight: 400,
-                  ml: 6
-                }}
-              >
-                {/* Last Saved : {lastUpdatedValue} */}
-              </Typography>
+              {lastUpdatedValue && lastUpdatedValue !== '-' && (
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    ml: 6
+                  }}
+                >
+                  Last Saved : {lastUpdatedValue}
+                </Typography>
+              )}
             </Box>
 
             <AnimalDetails
@@ -1825,7 +1831,7 @@ export default function AddAnesthesiaRecord() {
             </Box>
           }
           onAdd={handleSubmit(onValid, onInvalid)}
-          onCancel={handleCancel}
+          onCancel={handleCancelNew}
           width={200}
           height={50}
           isSubmitLoading={isSubmitting}

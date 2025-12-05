@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Typography, Button, Grid, Paper, IconButton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useFieldArray, useWatch } from 'react-hook-form'
@@ -61,6 +61,79 @@ export default function ScheduleMedicine({
   // Find the selected medicine to edit
   const editingMedicineData = editIdStr ? enclosureMedicines.find(m => m?.id?.toString() === editIdStr) : null
 
+  // Add this state to track start date validation
+  const [startDateWarning, setStartDateWarning] = useState('')
+
+  // Watch for date and medicine type changes
+  const prescriptionStartDate = useWatch({
+    control,
+    name: 'prescriptionStartDate'
+  })
+  
+  // NEW: Watch dosage duration value changes
+  const dosageDurationValue = useWatch({
+    control,
+    name: 'dosageDuration.value'
+  })
+  
+  // NEW: Watch dosage duration unit changes
+  const dosageDurationUnit = useWatch({
+    control,
+    name: 'dosageDuration.unit'
+  })
+  
+  // Updated useEffect with all necessary dependencies
+  useEffect(() => {
+    if (selectedMedicineTo === 'Direct Administer' && prescriptionStartDate) {
+      const dosageDuration = getValues('dosageDuration')
+  
+      if (dosageDuration?.value && dosageDuration?.unit) {
+        const endDate = prescriptionStartDate
+        const admittedDate = dayjs(medicalRecordData?.animal_admitted_date)
+  
+        // Calculate start date
+        let calculatedStart = dayjs(endDate)
+        const durationValue = parseInt(dosageDuration.value)
+  
+        switch (dosageDuration.unit) {
+          case 'days':
+            calculatedStart = calculatedStart.subtract(durationValue, 'days')
+            break
+          case 'weeks':
+            calculatedStart = calculatedStart.subtract(durationValue, 'weeks')
+            break
+          case 'months':
+            calculatedStart = calculatedStart.subtract(durationValue, 'months')
+            break
+          case 'years':
+            calculatedStart = calculatedStart.subtract(durationValue, 'years')
+            break
+        }
+  
+        if (calculatedStart.isBefore(admittedDate, 'day')) {
+          setStartDateWarning(
+            `Warning: Start date (${calculatedStart.format(
+              'DD MMM YYYY'
+            )}) is before admission date (${admittedDate.format('DD MMM YYYY')})`
+          )
+        } else {
+          setStartDateWarning('')
+        }
+      } else {
+        setStartDateWarning('')
+      }
+    } else {
+      setStartDateWarning('')
+    }
+  }, [
+    selectedMedicineTo, 
+    prescriptionStartDate, 
+    dosageDurationValue,      // ← Triggers when duration value changes
+    dosageDurationUnit,        // ← Triggers when unit (days/weeks/months/years) changes
+    getValues, 
+    medicalRecordData?.animal_admitted_date
+  ])
+  
   // Common styles for form fields
   const commonFieldStyles = {
     textAlign: 'left',
@@ -81,6 +154,27 @@ export default function ScheduleMedicine({
     control,
     name: 'schedules'
   })
+
+  // Calculate if we should restrict time to now
+  const shouldRestrictTimeToNow = useMemo(() => {
+    if (selectedMedicineTo !== 'Direct Administer') {
+      return false
+    }
+
+    const isOneTime = isOneTimeFrequency
+    if (!isOneTime) {
+      return false
+    }
+
+    if (!prescriptionStartDate) {
+      return false
+    }
+
+    const selectedDate = dayjs(prescriptionStartDate)
+    const today = dayjs()
+
+    return selectedDate.isSame(today, 'day')
+  }, [selectedMedicineTo, isOneTimeFrequency, prescriptionStartDate])
 
   // Set default values when medicine is selected
   useEffect(() => {
@@ -332,6 +426,8 @@ export default function ScheduleMedicine({
                     required
                     sx={commonFieldStyles}
                     size='large'
+                    maxTime={shouldRestrictTimeToNow ? dayjs() : undefined}
+                    helperText={shouldRestrictTimeToNow ? "Time cannot be in future for today's date" : undefined}
                   />
                 </Grid>
 
@@ -466,6 +562,7 @@ export default function ScheduleMedicine({
                   <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                     <ControlledSelect
                       name='dosageDuration.unit'
+
                       // label='Dosage Unit*'
                       sx={{
                         textAlign: 'left',
@@ -494,6 +591,24 @@ export default function ScheduleMedicine({
                     }}
                   >
                     Prescription {selectedMedicineTo === 'Direct Administer' ? 'starts' : 'ends'} on {endsOn}
+                  </Typography>
+                )}
+                {startDateWarning && (
+                  <Typography
+                    sx={{
+                      display: 'flex',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      color: theme.palette.error.main,
+                      mb: 3,
+                      mt: -2,
+                      padding: '8px 12px',
+                      backgroundColor: theme.palette.error.lighter || '#FFEBEE',
+                      borderRadius: '4px',
+                      border: `1px solid ${theme.palette.error.main}`
+                    }}
+                  >
+                    ⚠️ {startDateWarning}
                   </Typography>
                 )}
               </>

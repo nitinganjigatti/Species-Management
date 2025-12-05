@@ -57,7 +57,8 @@ export default function PrescriptionMedicineList({
 
   const isMedicinePrescribed = medicineId => {
     const isPrescribed = prescribedMedicines.some(
-      prescription => prescription?.schedule?.[0]?.medicine_id === medicineId.toString()
+      prescription =>
+        prescription?.schedule?.[0]?.medicine_id === medicineId.toString() && prescription?.status !== 'stopped'
     )
 
     // if (isPrescribed) {

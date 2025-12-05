@@ -168,8 +168,20 @@ const AddEditSymptomDrawer = ({
       setIsDeleting(false)
     }
   }
-  {
-    console.log(status, 'status')
+  const renderStatusIcon = statusValue => {
+    const isActive = statusValue === 'active'
+
+    return (
+      <Box
+        sx={{
+          width: '12px',
+          height: '12px',
+          borderRadius: '50%',
+          backgroundColor: isActive ? theme.palette.primary.main : theme.palette.customColors.neutral_50,
+          marginRight: 1
+        }}
+      />
+    )
   }
 
   return (
@@ -252,9 +264,25 @@ const AddEditSymptomDrawer = ({
                 borderRadius: '4px',
                 '& .MuiSelect-select': { py: 4.0 }
               }}
+              renderValue={selected => (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {renderStatusIcon(selected)}
+                  <Typography>{selected === 'active' ? 'Active' : 'Resolved'}</Typography>
+                </Box>
+              )}
             >
-              <MenuItem value='active'>Active</MenuItem>
-              <MenuItem value='closed'>Resolved</MenuItem>
+              <MenuItem value='active'>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {renderStatusIcon('active')}
+                  <Typography>Active</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem value='closed'>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {renderStatusIcon('closed')}
+                  <Typography>Resolved</Typography>
+                </Box>
+              </MenuItem>
             </Select>
 
             <Box sx={{ display: 'flex', gap: 2, mt: 6 }}>

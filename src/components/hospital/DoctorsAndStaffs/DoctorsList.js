@@ -23,11 +23,14 @@ import Icon from 'src/@core/components/icon'
 import AddStaffsDrawer from './AddStaffsDrawer'
 import Toaster from 'src/components/Toaster'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
+import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
+import { useHospital } from 'src/context/HospitalContext'
 
 const DoctorsList = () => {
   const theme = useTheme()
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
+  const { selectedHospital } = useHospital()
 
   const [searchValue, setSearchValue] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -35,6 +38,7 @@ const DoctorsList = () => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
+
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 10
@@ -58,7 +62,8 @@ const DoctorsList = () => {
         params: {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          q: debouncedSearch
+          q: debouncedSearch,
+          hospital_id: selectedHospital?.id
         }
       })
 
@@ -79,7 +84,7 @@ const DoctorsList = () => {
     } finally {
       setLoading(false)
     }
-  }, [paginationModel.page, paginationModel.pageSize, debouncedSearch])
+  }, [paginationModel.page, paginationModel.pageSize, debouncedSearch, selectedHospital?.id])
 
   useEffect(() => {
     fetchHospitalStaff()
@@ -139,6 +144,7 @@ const DoctorsList = () => {
       headerAlign: 'left',
       renderCell: params => <StyledTypography paddingLeft={1}>{params.row?.designation || '-'}</StyledTypography>
     },
+
     // {
     //   minWidth: 250,
     //   field: 'specialty',
@@ -221,6 +227,7 @@ const DoctorsList = () => {
         )
       }
     }
+
     // {
     //   minWidth: 100,
     //   field: 'actions',
@@ -255,11 +262,12 @@ const DoctorsList = () => {
           <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
           <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Doctors And Staffs</Typography>
         </Breadcrumbs>
-        <Box></Box>
+        <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>
             <CardHeader
               title={headerTitle}
+
               // action={actionHeader}
             />
             <CardContent>

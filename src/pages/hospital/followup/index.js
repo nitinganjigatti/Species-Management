@@ -363,6 +363,7 @@ const HospitalFollowUp = () => {
           onApplyFilters={applyFilters}
           setFilterCount={setFilterCount}
           initialSelectedOptions={selectedOptions}
+          hospitalId={selectedHospital?.id}
         />
       )}
     </>

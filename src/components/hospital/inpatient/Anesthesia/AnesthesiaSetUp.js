@@ -305,7 +305,11 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
                     placeholder='Enter'
                     value={flatValue}
                     onChange={e => setValue(`anesthesiaSetup.${key}.${uiKey}`, e.target.value, { shouldDirty: true })}
-                    InputLabelProps={{ shrink: true }}
+                    slotProps={{
+                      inputLabel: {
+                        shrink: true
+                      }
+                    }}
                     sx={textFieldStyles}
                     error={!!fieldError}
                     helperText={fieldError?.message || ''}
@@ -322,19 +326,27 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
                     label={f.field_label}
                     placeholder='Enter'
                     value={flatValue}
-                    onChange={e => setValue(`anesthesiaSetup.${key}.${uiKey}`, e.target.value, { shouldDirty: true })}
+                    onChange={e => {
+                      const val = e.target.value
+                      if (Number(val) < 0) return
+                      setValue(`anesthesiaSetup.${key}.${uiKey}`, val, { shouldDirty: true })
+                    }}
                     type='number'
-                    InputLabelProps={{ shrink: true }}
-                    InputProps={{
-                      inputMode: 'decimal',
-                      pattern: '[0-9]*',
-                      min: 0,
-                      endAdornment:
-                        f.units && f.units.length > 0 ? (
+                    slotProps={{
+                      inputLabel: {
+                        shrink: true
+                      },
+                      input: {
+                        inputMode: 'decimal',
+                        pattern: '[0-9]*',
+                        min: 0,
+                        onWheel: e => e.target.blur(),
+                        endAdornment: f.units?.length ? (
                           <InputAdornment position='end'>
                             <Typography sx={{ fontSize: '14px' }}>{f.units[0]}</Typography>
                           </InputAdornment>
                         ) : null
+                      }
                     }}
                     sx={textFieldStyles}
                     error={!!fieldError}
@@ -383,7 +395,11 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
                   placeholder='Enter'
                   value={flatValue}
                   onChange={e => setValue(`anesthesiaSetup.${key}.${uiKey}`, e.target.value, { shouldDirty: true })}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{
+                    inputLabel: {
+                      shrink: true
+                    }
+                  }}
                   sx={textFieldStyles}
                   error={!!fieldError}
                   helperText={fieldError?.message || ''}
