@@ -9,8 +9,7 @@ import {
   Button,
   alpha,
   IconButton,
-  useTheme,
-  CircularProgress
+  useTheme
 } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
@@ -56,7 +55,7 @@ const defaultValues = {
 }
 
 const treatmentType = [
-  { label: 'OPD(outpatient)', value: 'outpatient' },
+  { label: 'OPD(outpatient)', value: 'opd' },
   { label: 'Hospital Admission(inpatient)', value: 'inpatient' }
 ]
 
@@ -288,7 +287,7 @@ const AddPatientForm = () => {
       await addHospitalPatient(params).then(res => {
         if (res?.success === true) {
           Toaster({ type: 'success', message: res?.message })
-          if (watchTreatmentType === 'outpatient') {
+          if (watchTreatmentType === 'opd') {
             router.push({
               pathname: `/hospital/outpatient`
             })

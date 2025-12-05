@@ -24,11 +24,7 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
 import DoctorsDrawer from './DoctorsDrawer'
-import {
-  admitHospitalPatient,
-  getPatientDetails,
-  getPatientDetailsByTransferId
-} from 'src/lib/api/hospital/incomingPatient'
+import { admitHospitalPatient, getPatientDetailsByTransferId } from 'src/lib/api/hospital/incomingPatient'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import { getHospitalRoomsList, getRoomsAndEnclosures } from 'src/lib/api/hospital/roomsAndEnclosures'
 import Toaster from 'src/components/Toaster'
@@ -44,7 +40,7 @@ import { debounce } from 'lodash'
 import Utility from 'src/utility'
 
 const treatmentType = [
-  { label: 'OPD (outpatient)', value: 'outpatient' },
+  { label: 'OPD (outpatient)', value: 'opd' },
   { label: 'Hospital Admission (inpatient)', value: 'inpatient' }
 ]
 
@@ -343,7 +339,7 @@ const PatientAdmitForm = () => {
                       animal_id: patientData?.entity_details?.[0]?.animal_id,
                       common_name: patientData?.entity_details?.[0]?.common_name,
                       scientific_name: patientData?.entity_details?.[0]?.scientific_name,
-                      age: patientData?.entity_details?.[0]?.age,
+                      age: patientData?.entity_details?.[0]?.age_formatted,
                       site_name: patientData?.entity_details?.[0]?.site_name,
                       section_name: patientData?.entity_details?.[0]?.section_name,
                       user_enclosure_name: patientData?.entity_details?.[0]?.user_enclosure_name
