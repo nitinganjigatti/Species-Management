@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Drawer, Box, Typography, IconButton, Button, Radio } from '@mui/material'
+import { Drawer, Box, Typography, IconButton, Button, Radio, Skeleton } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
@@ -7,45 +7,12 @@ import { alpha, useTheme } from '@mui/material/styles'
 
 import { getAnesthesiaList } from 'src/lib/api/hospital/anesthesia'
 
-const baseSampleRecords = [
-  {
-    id: 'AN2345/25',
-    procedures: ['Endoscopy', 'CT Scan', 'MRI'],
-    createdBy: 'Dr. Madhav Mehta',
-    createdOn: '12 Aug 2025',
-    time: '12:00 PM'
-  },
-  {
-    id: 'AN4567/25',
-    procedures: ['X-ray', 'Blood Test'],
-    createdBy: 'Dr. Madhav Mehta',
-    createdOn: '5 Aug 2025',
-    time: '10:30 AM'
-  },
-  {
-    id: 'AN7890/25',
-    procedures: ['Ultrasound', 'MRI'],
-    createdBy: 'Dr. Madhav Mehta',
-    createdOn: '28 Jul 2025',
-    time: '03:15 PM'
-  }
-]
-
-const generatedSampleRecords = Array.from({ length: 12 }).map((_, index) => {
-  const template = baseSampleRecords[index % baseSampleRecords.length]
-
-  return {
-    ...template,
-    id: `${template.id}-${index + 1}`
-  }
-})
-
 const SelectAnesthesiaRecordDrawer = ({
   open,
   onClose,
   hospitalCaseId,
   medicalRecordId,
-  records = generatedSampleRecords,
+  records = [],
   initialSelectedId = null,
   onSelect = () => {},
   onConfirm = () => {}
@@ -80,11 +47,9 @@ const SelectAnesthesiaRecordDrawer = ({
   const items = useMemo(() => {
     const apiRecords = Array.isArray(anesthesiaResponse?.data?.records) && anesthesiaResponse?.data?.records
 
-    if (Array.isArray(apiRecords) && apiRecords.length) {
-      return apiRecords
-    }
+    if (Array.isArray(apiRecords) && apiRecords.length) return apiRecords
 
-    return Array.isArray(records) && records.length ? records : generatedSampleRecords
+    return Array.isArray(records) && records.length ? records : []
   }, [anesthesiaResponse, records])
 
   const getRecordId = record => {
@@ -101,6 +66,28 @@ const SelectAnesthesiaRecordDrawer = ({
     const record = items.find(item => getRecordId(item) === selectedId) || null
     onConfirm(record)
   }
+
+  const renderSkeletonCard = count =>
+    Array.from({ length: count }).map((_, index) => (
+      <Box
+        key={`anesthesia-skeleton-${index}`}
+        sx={{
+          backgroundColor: theme.palette.primary.contrastText,
+          borderRadius: '8px',
+          display: 'flex',
+          gap: '24px',
+          padding: '35px 20px 24px 35px',
+          boxShadow: `0px 1px 2px ${alpha(theme.palette.common.black, 0.05)}`
+        }}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+          <Skeleton variant='rounded' width={120} height={28} />
+          <Skeleton variant='text' width='70%' height={20} />
+          <Skeleton variant='text' width='50%' height={18} />
+        </Box>
+        <Skeleton variant='circular' width={20} height={20} />
+      </Box>
+    ))
 
   return (
     <Drawer
@@ -134,7 +121,12 @@ const SelectAnesthesiaRecordDrawer = ({
         <Box sx={{ display: 'flex', flexDirection: 'row', gap: '12px', alignItems: 'center' }}>
           <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
           <Typography
-            sx={{ fontWeight: 500, fontSize: '24px', letterSpacing: 0, color: theme.palette.customColors.OnSurfaceVariant }}
+            sx={{
+              fontWeight: 500,
+              fontSize: '24px',
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
             component='div'
           >
             Select Anesthesia Record
@@ -156,154 +148,155 @@ const SelectAnesthesiaRecordDrawer = ({
           gap: '16px'
         }}
       >
-        {isAnesthesiaLoading && (
-          <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>Loading anesthesia records...</Typography>
-        )}
+        {isAnesthesiaLoading && renderSkeletonCard(7)}
         {!isAnesthesiaLoading && items.length === 0 && (
-          <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>No anesthesia records found.</Typography>
+          <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
+            No anesthesia records found.
+          </Typography>
         )}
-        {items.map(record => {
-          const recordId = getRecordId(record)
-          const isSelected = recordId === selectedId
-          const createdAt = record?.created_at ? dayjs(record.created_at) : null
-          const purposeNames = Array.isArray(record?.purpose)
-            ? record.purpose.map(item => item?.name).filter(Boolean)
-            : record?.procedures || []
-          const createdOn = createdAt?.isValid() ? createdAt.format('DD MMM YYYY') : record?.createdOn || '--'
-          const createdTime = createdAt?.isValid() ? createdAt.format('hh:mm A') : record?.time || '--'
+        {!isAnesthesiaLoading &&
+          items.map(record => {
+            const recordId = getRecordId(record)
+            const isSelected = recordId === selectedId
+            const createdAt = record?.created_at ? dayjs(record.created_at) : null
+            const purposeNames = Array.isArray(record?.purpose)
+              ? record.purpose.map(item => item?.name).filter(Boolean)
+              : record?.procedures || []
+            const createdOn = createdAt?.isValid() ? createdAt.format('DD MMM YYYY') : record?.createdOn || '--'
+            const createdTime = createdAt?.isValid() ? createdAt.format('hh:mm A') : record?.time || '--'
 
-          return (
-            <Box
-              key={recordId}
-              role='button'
-              tabIndex={0}
-              onClick={() => handleSelect(record)}
-              sx={{
-                backgroundColor: theme.palette.primary.contrastText,
-                borderRadius: '8px',
-                display: 'flex',
-                gap: '24px',
-                padding: '24px 20px 24px 24px',
-                border: `1px solid ${isSelected ? theme.palette.primary.main : 'transparent'}`,
-                boxShadow: `0px 1px 2px ${alpha(theme.palette.common.black, 0.05)}`,
-                cursor: 'pointer',
-                outline: 'none'
-              }}
-              onKeyDown={event => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault()
-                  handleSelect(record)
-                }
-              }}
-            >
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-                <Box
-                  sx={{
-                    height: '36px',
-                    borderRadius: '8px',
-                    backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 153 / 255),
-                    padding: '8px 12px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    width: 'fit-content'
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: '16px',
-                      letterSpacing: 0,
-                      color: theme.palette.primary.light,
-                      textAlign: 'center'
-                    }}
-                  >
-                    {record?.code || recordId}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  {purposeNames.map((procedure, index) => (
-                    <Typography
-                      key={`${recordId}-proc-${procedure}`}
-                      sx={{
-                        color: theme.palette.primary.light,
-                        fontWeight: 500,
-                        fontSize: '14px',
-                        letterSpacing: '0.1px'
-                      }}
-                    >
-                      {procedure}
-                      {index < purposeNames.length - 1 ? ' • ' : ''}
-                    </Typography>
-                  ))}
-                </Box>
-                <Box sx={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  <Typography
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '12px',
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.neutralSecondary
-                    }}
-                    component='span'
-                  >
-                    Created by: {record?.created_by_name || record?.createdBy || '--'}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '12px',
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.neutralSecondary
-                    }}
-                  >
-                    •
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '12px',
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.neutralSecondary
-                    }}
-                  >
-                    {createdOn}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '12px',
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.neutralSecondary
-                    }}
-                  >
-                    •
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '12px',
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.neutralSecondary
-                    }}
-                  >
-                    {createdTime}
-                  </Typography>
-                </Box>
-              </Box>
-              <Radio
-                checked={isSelected}
-                onChange={() => handleSelect(record)}
-                value={recordId}
+            return (
+              <Box
+                key={recordId}
+                role='button'
+                tabIndex={0}
+                onClick={() => handleSelect(record)}
                 sx={{
-                  pointerEvents: 'none',
-                  '&.Mui-checked': {
-                    color: theme.palette.primary.main
+                  backgroundColor: theme.palette.primary.contrastText,
+                  borderRadius: '8px',
+                  display: 'flex',
+                  gap: '24px',
+                  padding: '24px 20px 24px 24px',
+                  border: `1px solid ${isSelected ? theme.palette.primary.main : 'transparent'}`,
+                  boxShadow: `0px 1px 2px ${alpha(theme.palette.common.black, 0.05)}`,
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}
+                onKeyDown={event => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    handleSelect(record)
                   }
                 }}
-              />
-            </Box>
-          )
-        })}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                  <Box
+                    sx={{
+                      height: '36px',
+                      borderRadius: '8px',
+                      backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 153 / 255),
+                      padding: '8px 12px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      width: 'fit-content'
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '16px',
+                        letterSpacing: 0,
+                        color: theme.palette.primary.light,
+                        textAlign: 'center'
+                      }}
+                    >
+                      {record?.code || recordId}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    {purposeNames.map((procedure, index) => (
+                      <Typography
+                        key={`${recordId}-proc-${procedure}`}
+                        sx={{
+                          color: theme.palette.primary.light,
+                          fontWeight: 500,
+                          fontSize: '14px',
+                          letterSpacing: '0.1px'
+                        }}
+                      >
+                        {procedure}
+                        {index < purposeNames.length - 1 ? ' • ' : ''}
+                      </Typography>
+                    ))}
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <Typography
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        letterSpacing: 0,
+                        color: theme.palette.customColors.neutralSecondary
+                      }}
+                      component='span'
+                    >
+                      Created by: {record?.created_by_name || record?.createdBy || '--'}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        letterSpacing: 0,
+                        color: theme.palette.customColors.neutralSecondary
+                      }}
+                    >
+                      •
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        letterSpacing: 0,
+                        color: theme.palette.customColors.neutralSecondary
+                      }}
+                    >
+                      {createdOn}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        letterSpacing: 0,
+                        color: theme.palette.customColors.neutralSecondary
+                      }}
+                    >
+                      •
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        letterSpacing: 0,
+                        color: theme.palette.customColors.neutralSecondary
+                      }}
+                    >
+                      {createdTime}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Radio
+                  checked={isSelected}
+                  onChange={() => handleSelect(record)}
+                  value={recordId}
+                  sx={{
+                    pointerEvents: 'none',
+                    '&.Mui-checked': {
+                      color: theme.palette.primary.main
+                    }
+                  }}
+                />
+              </Box>
+            )
+          })}
       </Box>
 
       <Box

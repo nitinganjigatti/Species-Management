@@ -7,8 +7,9 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { debounce } from 'lodash'
+import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 
-const DoctorsDrawer = ({ open, setOpen, onSelectDoctor }) => {
+const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }) => {
   const theme = useTheme()
 
   const [searchValue, setSearchValue] = useState('')
@@ -19,18 +20,16 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor }) => {
   const getUserLists = async (query = '') => {
     setLoading(true)
     try {
-      const userDetails = await readAsync('userDetails')
-      if (userDetails?.user?.zoos.length > 0) {
-        const zoo_id = userDetails.user.zoos[0].zoo_id
-        const params = { zoo_id, permission: 'medical_records_access' }
-        if (query.trim() !== '') {
-          params.q = query
-        }
-        const res = await getUserList(params)
-        if (res?.data?.length > 0) {
+      const params = {}
+      if (query.trim() !== '') {
+        params.q = query
+      }
+      await getHospitalStaff({ params: { hospital_id: hospitalId, ...params } }).then(res => {
+        console.log(res)
+        if (res?.success === true) {
           setDoctors(
-            res.data.map(item => ({
-              name: item?.user_name,
+            res?.data?.records.map(item => ({
+              name: item?.user_full_name,
               id: item?.user_id,
               default_icon: item?.user_profile_pic,
               role_name: item?.role_name
@@ -39,7 +38,7 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor }) => {
         } else {
           setDoctors([])
         }
-      }
+      })
     } catch (error) {
       console.log('user error', error)
     }

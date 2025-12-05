@@ -116,10 +116,14 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
         className='sidebar-header'
         sx={{
           display: 'flex',
+          position: 'sticky',
+          top: 0,
           alignItems: 'center',
           justifyContent: 'space-between',
           p: 6,
-          borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+          borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+          backgroundColor: theme.palette.customColors.OnPrimary,
+          zIndex: 10
         }}
       >
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
@@ -137,7 +141,6 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
 
       {/* Sidebar Body */}
       <Box
-        className='sidebar-body'
         sx={{
           backgroundColor: theme.palette.background.default,
           p: 6,
@@ -145,7 +148,7 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
           pb: 16
         }}
       >
-        <form autoComplete='off' onSubmit={submitLoader ? undefined : handleSubmit(onSubmit)}>
+        <form autoComplete='off'>
           <Card sx={{ padding: 6, boxShadow: 0, border: `2px solid ${theme.palette.customColors.SurfaceVariant}` }}>
             <Grid container spacing={6}>
               <Grid size={{ xs: 12 }}>
@@ -217,7 +220,7 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
           </Card>
 
           {/* Footer button */}
-          <Box
+          {/* <Box
             sx={{
               position: 'absolute',
               bottom: 0,
@@ -239,8 +242,32 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
             >
               Add Hospital
             </LoadingButton>
-          </Box>
+          </Box> */}
         </form>
+      </Box>
+      <Box
+        sx={{
+          p: 4,
+          borderTop: `1px solid ${theme.palette.divider}`,
+          backgroundColor: theme.palette.background.paper,
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 2,
+          boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark, 0.1)}`,
+          bottom: 0,
+          position: 'sticky',
+          zIndex: 1
+        }}
+      >
+        <LoadingButton
+          variant='contained'
+          onClick={handleSubmit(onSubmit)}
+          loading={submitLoader}
+          sx={{ flex: 1, py: 4 }}
+          disabled={!isValid || submitLoader}
+        >
+          Add Hospital
+        </LoadingButton>
       </Box>
     </Drawer>
   )

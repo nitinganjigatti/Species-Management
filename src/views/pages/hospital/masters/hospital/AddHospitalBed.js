@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useCallback } from 'react'
-import { useTheme, Card, Typography, IconButton, Drawer, Box } from '@mui/material'
+import { useTheme, Card, Typography, IconButton, Drawer, Box, alpha } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
 import * as yup from 'yup'
@@ -105,7 +105,7 @@ const AddHospitalBed = props => {
       prefill = {
         hospital_id: roomDetails?.hospital_name || '',
         room_id: roomDetails?.room_name || '',
-        bed_name: editParams.bed_name || '',
+        bed_name: editParams?.bed_name || '',
         status: statusValue
       }
     }
@@ -120,7 +120,7 @@ const AddHospitalBed = props => {
       }
     }
 
-    reset(prefill, { keepIsValid: true })
+    reset(prefill)
   }, [isRoomEditMode, canEditStatus, roomDetails, editParams, isActive, reset])
 
   // Handle form submission to create or update bed  and  update room
@@ -147,7 +147,7 @@ const AddHospitalBed = props => {
           await handleSubmitData(payload, 'bed')
         }
       } catch (error) {
-        console.error('Error submitting form:', error)
+        console.error('Error submitting form:', error?.message)
       }
     },
     [isRoomEditMode, roomDetails, hospitalId, roomId, handleSubmitData, canEditStatus]
@@ -159,7 +159,7 @@ const AddHospitalBed = props => {
     handleSidebarClose()
   }, [reset, handleSidebarClose])
 
-  // Drawer title ---------
+  // Drawer title
   const drawerTitle = useMemo(() => {
     if (isRoomEditMode) return 'Update Room'
     if (editParams?.id) return 'Edit Bed'
@@ -172,7 +172,7 @@ const AddHospitalBed = props => {
       anchor='right'
       open={handleSidebarOpen}
       ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: ['100%', 500] } }}
+      sx={{ '& .MuiDrawer-paper': { width: ['100%', 562] } }}
     >
       {/* Drawer Header */}
       <Box
@@ -255,204 +255,54 @@ const AddHospitalBed = props => {
               )}
             </Box>
           </Card>
-
-          {/* Footer button */}
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              width: '100%',
-              p: 4,
-              display: 'flex',
-              justifyContent: 'center',
-              boxShadow: '0px -2px 6px rgba(0, 0, 0, 0.1)',
-              backgroundColor: theme.palette.background.paper
-            }}
-          >
-            <Box sx={{ display: 'flex', gap: 6, width: '100%' }}>
-              {(editParams?.id || isRoomEditMode) && (
-                <LoadingButton
-                  variant='outlined'
-                  type='button'
-                  loading={submitLoader}
-                  sx={{
-                    flex: 1,
-                    py: 4,
-                    color: theme.palette.customColors.OnPrimaryContainer,
-                    borderColor: theme.palette.customColors.OnPrimaryContainer
-                  }}
-                  onClick={handleSidebarClose}
-                >
-                  Cancel
-                </LoadingButton>
-              )}
-              <LoadingButton
-                variant='contained'
-                type='submit'
-                loading={submitLoader}
-                sx={{ flex: 1, py: 4 }}
-                disabled={!isValid || submitLoader}
-              >
-                {editParams?.id || isRoomEditMode ? 'Update' : 'Add Bed'}
-              </LoadingButton>
-            </Box>
-          </Box>
         </form>
+      </Box>
+
+      {/* Footer button */}
+      <Box
+        sx={{
+          p: 4,
+          borderTop: `1px solid ${theme.palette.divider}`,
+          backgroundColor: theme.palette.background.paper,
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 2,
+          boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark, 0.1)}`,
+          bottom: 0,
+          position: 'sticky',
+          zIndex: 1
+        }}
+      >
+        <Box sx={{ display: 'flex', gap: 6, width: '100%' }}>
+          {(editParams?.id || isRoomEditMode) && (
+            <LoadingButton
+              variant='outlined'
+              type='button'
+              loading={submitLoader}
+              sx={{
+                flex: 1,
+                py: 4,
+                color: theme.palette.customColors.OnPrimaryContainer,
+                borderColor: theme.palette.customColors.OnPrimaryContainer
+              }}
+              onClick={handleSidebarClose}
+            >
+              Cancel
+            </LoadingButton>
+          )}
+          <LoadingButton
+            variant='contained'
+            onClick={handleSubmit(onSubmit)}
+            loading={submitLoader}
+            sx={{ flex: 1, py: 4 }}
+            disabled={!isValid || submitLoader}
+          >
+            {editParams?.id || isRoomEditMode ? 'Update' : 'Add Bed'}
+          </LoadingButton>
+        </Box>
       </Box>
     </Drawer>
   )
 }
 
 export default AddHospitalBed
-
-// 'use client'
-
-// import { useEffect, useRef } from 'react'
-// import 'quill/dist/quill.snow.css'
-// import { Box, Typography, useTheme } from '@mui/material'
-
-// const extractDelta = input => {
-//   if (!input) return null
-//   if (input?.delta?.ops) return input.delta
-//   if (input?.ops) return input
-
-//   return null
-// }
-
-// const extractHtml = input => {
-//   if (!input) return ''
-//   if (typeof input === 'string') return input
-
-//   return input?.html || ''
-// }
-
-// const extractText = input => {
-//   if (!input) return ''
-//   if (typeof input === 'string') return input
-
-//   return input?.text || ''
-// }
-
-// export default function RichTextEditor({ value, onChange, label, placeholder = 'Start typing...', minHeight = 200 }) {
-//   const theme = useTheme()
-//   const editorRef = useRef(null)
-//   const quillRef = useRef(null)
-
-//   useEffect(() => {
-//     if (editorRef.current && !quillRef.current) {
-//       import('quill').then(({ default: Quill }) => {
-//         const quill = new Quill(editorRef.current, {
-//           theme: 'snow',
-//           placeholder,
-//           modules: {
-//             toolbar: [
-//               [{ header: [1, 2, 3, 4, 5, 6, false] }],
-//               ['blockquote', 'code-block'],
-//               ['bold', 'italic', 'underline', 'strike'],
-//               [{ script: 'sub' }, { script: 'super' }],
-//               [{ indent: '-1' }, { indent: '+1' }],
-//               [{ list: 'ordered' }, { list: 'bullet' }],
-//               [{ size: ['small', false, 'large', 'huge'] }],
-//               [{ align: [] }],
-//               ['link', 'image'],
-//               ['clean']
-//             ]
-//           }
-//         })
-
-//         const initialDelta = extractDelta(value)
-//         const initialHtml = extractHtml(value)
-//         const initialText = extractText(value)
-
-//         if (initialDelta) {
-//           quill.setContents(initialDelta)
-//         } else if (initialHtml) {
-//           quill.clipboard.dangerouslyPasteHTML(initialHtml)
-//         } else if (initialText) {
-//           quill.setText(initialText)
-//         } else {
-//           quill.setContents([{ insert: '\n' }])
-//         }
-
-//         // ✅ Listen for changes
-//         quill.on('text-change', () => {
-//           const delta = quill.getContents()
-//           const html = quill.root.innerHTML
-//           const text = quill.getText()
-
-//           onChange?.({
-//             delta,
-//             html,
-//             text,
-//             ops: delta?.ops
-//           })
-//         })
-
-//         quillRef.current = quill
-//       })
-//     }
-//   }, [placeholder]) // only run once on mount
-
-//   // ✅ Sync external value changes → update editor when prop changes
-//   useEffect(() => {
-//     if (!quillRef.current) return
-
-//     const quill = quillRef.current
-//     const delta = extractDelta(value)
-//     const html = extractHtml(value)
-//     const text = extractText(value)
-//     const currentDelta = quill.getContents()
-
-//     if (delta) {
-//       if (JSON.stringify(currentDelta) !== JSON.stringify(delta)) {
-//         quill.setContents(delta)
-//       }
-//     } else if (html) {
-//       if (quill.root.innerHTML !== html) {
-//         const selection = quill.getSelection()
-//         quill.clipboard.dangerouslyPasteHTML(html)
-//         if (selection) quill.setSelection(selection)
-//       }
-//     } else if (text) {
-//       if (quill.getText() !== text) {
-//         quill.setText(text)
-//       }
-//     } else if (!value) {
-//       quill.setContents([{ insert: '\n' }])
-//     }
-//   }, [value])
-
-//   return (
-//     <Box>
-//       {label && (
-//         <Typography variant='subtitle1' sx={{ mb: 1, fontWeight: 600 }}>
-//           {label}
-//         </Typography>
-//       )}
-//       <Box
-//         sx={{
-//           border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-//           borderRadius: 1,
-//           '& .ql-container': {
-//             border: 'none',
-//             fontSize: '0.95rem'
-//           },
-//           '& .ql-toolbar': {
-//             border: 'none',
-//             borderBottom: '1px solid',
-//             borderColor: 'divider',
-//             borderTopLeftRadius: 8,
-//             borderTopRightRadius: 8
-//           },
-//           '& .ql-editor': {
-//             minHeight
-//           },
-//           background: theme.palette.customColors.OnPrimary
-//         }}
-//       >
-//         <div ref={editorRef} />
-//       </Box>
-//     </Box>
-//   )
-// }

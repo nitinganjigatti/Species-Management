@@ -11,7 +11,6 @@ import AddPatientDrawer from 'src/components/hospital/drawer/AddPatientDrawer'
 
 const PatientCard = ({ patientData, animalData, loading, refetch }) => {
   const theme = useTheme()
-  console.log(patientData)
 
   const isPatientDischarged = patientData?.status === 'discharge' ? true : false
 
@@ -43,12 +42,12 @@ const PatientCard = ({ patientData, animalData, loading, refetch }) => {
       })
     }
 
-    options.push({
-      label: 'Print',
-      action: () => {
-        console.log('Print action triggered')
-      }
-    })
+    // options.push({
+    //   label: 'Print',
+    //   action: () => {
+    //     console.log('Print action triggered')
+    //   }
+    // })
 
     return options
   }
@@ -223,7 +222,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch }) => {
                 {loading ? (
                   <Skeleton variant='rounded' width={40} height={40} />
                 ) : (
-                  <MenuWithDots options={getMenuOptions()} />
+                  getMenuOptions()?.length > 0 && <MenuWithDots options={getMenuOptions()} />
                 )}
               </Box>
             </Box>

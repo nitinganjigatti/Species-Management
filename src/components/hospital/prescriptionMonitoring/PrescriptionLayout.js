@@ -73,6 +73,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
   const [isUndoLoading, setIsUndoLoading] = useState(false)
   const [selectedMetrics, setSelectedMetrics] = useState([])
   const [administrativeIds, setAdministrativeIds] = useState([])
+  const [isAdministerSlotLoading, setIsAdministerSlotLoading] = useState(false)
 
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
   // Get ID from router (with fallback during initial render before router is ready)
@@ -415,6 +416,8 @@ function PrescriptionLayout({ drawerType, overviewData }) {
 
   const handleAdministerSubmit = async formData => {
     try {
+      setIsAdministerSlotLoading(true)
+
       const payload = {
         record_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
         animal_id: JSON.stringify([animal_id]),
@@ -448,12 +451,15 @@ function PrescriptionLayout({ drawerType, overviewData }) {
       const response = await directAdministerForPatSlot(payload)
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message })
+        setIsAdministerDosageModelOpen(false)
         getPrescriptionList()
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
     } catch (error) {
       console.error('Error:', error)
+    } finally {
+      setIsAdministerSlotLoading(false)
     }
   }
 
@@ -913,7 +919,6 @@ function PrescriptionLayout({ drawerType, overviewData }) {
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
-
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -972,6 +977,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
         selectedDate={selectedDate}
         medicalMasterData={medicalMasterData}
         isControlledSubstance={selectedSlotData?.data?.controlled_substance == 1}
+        submitLoader={isAdministerSlotLoading}
       />
       <ScheduleDosage
         handleOpen={isScheduleDosageModelOpen}
@@ -991,7 +997,6 @@ function PrescriptionLayout({ drawerType, overviewData }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
-
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {

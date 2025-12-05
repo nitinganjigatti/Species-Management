@@ -18,12 +18,15 @@ const SUBMIT_BUTTON_STYLES = {
 }
 
 const parseInitialValue = initialValue => {
-  if (!initialValue) {
-    return null
+  if (initialValue) {
+    const parsed = dayjs(initialValue, 'hh:mm A', true)
+    if (parsed.isValid()) {
+      return parsed
+    }
   }
 
-  const parsed = dayjs(initialValue, 'hh:mm A', true)
-  return parsed.isValid() ? parsed : null
+  // 🔥 fallback to current time
+  return dayjs()
 }
 
 export default function AddTimeForm({ open, onClose, onSubmit, initialValue = '' }) {
@@ -149,7 +152,11 @@ export default function AddTimeForm({ open, onClose, onSubmit, initialValue = ''
       maxWidth='xs'
     >
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Box component='form' onSubmit={handleFormSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <Box
+          component='form'
+          onSubmit={handleFormSubmit}
+          sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+        >
           <Typography sx={labelStyles}>Recorded Time</Typography>
 
           <TimePicker

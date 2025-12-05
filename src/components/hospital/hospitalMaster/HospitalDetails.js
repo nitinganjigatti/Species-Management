@@ -67,7 +67,7 @@ const HospitalDetails = () => {
         }
       })
 
-      router.push({ pathname: router.pathname, query: params.toString() }, undefined, {
+      router.replace({ pathname: router.pathname, query: params.toString() }, undefined, {
         shallow: true
       })
     },
@@ -382,6 +382,10 @@ const HospitalDetails = () => {
     params => {
       router.push({
         pathname: `/hospital/masters/hospital/${params.row.id}`
+
+        // params: {
+        //   router.query
+        // }
       })
     },
     [router]

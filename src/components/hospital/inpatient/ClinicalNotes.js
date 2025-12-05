@@ -48,11 +48,7 @@ const ClinicalNotes = ({ patientData }) => {
         data: res?.data?.result || []
       }
     } catch (error) {
-      console.error('Error fetching clinical notes:', error?.message)
-      Toaster({
-        type: 'error',
-        message: error?.response?.data?.message || error?.message || 'An unexpected error occurred'
-      })
+      console.error('Error fetching clinical notes:', error?.message || error)
     }
   }
 
@@ -78,8 +74,7 @@ const ClinicalNotes = ({ patientData }) => {
     enabled: !!animal_id,
     refetchOnWindowFocus: false, //Avoid unnecessary refetching when switching tabs
     onError: error => {
-      console.error('Fetching Error:', error?.message)
-      Toaster({ type: 'error', message: error?.message || 'Failed to fetch data' })
+      console.error('Fetching Error:', error?.message || error)
     }
   })
 
@@ -119,13 +114,13 @@ const ClinicalNotes = ({ patientData }) => {
 
         return true
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
+        console.error('Submit Error:', response?.message)
+        Toaster({ type: 'error', message: response?.message || 'Note failed to add' })
 
         return false
       }
     } catch (error) {
       console.error('Submit Error:', error?.message || error)
-      Toaster({ type: 'error', message: error?.message || 'An unexpected error occurred' })
 
       return false
     } finally {

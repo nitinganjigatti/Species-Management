@@ -14,6 +14,8 @@ import axios from 'axios'
 
 // ** Config
 import authConfig from 'src/configs/auth'
+import { useQueryClient } from '@tanstack/react-query'
+import { useHospital } from './HospitalContext'
 
 const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 
@@ -42,6 +44,9 @@ const AuthProvider = ({ children }) => {
   const [loginLoading, setLoginLoading] = useState(defaultProvider.loginLoading)
   const { setSelectedParivesh, setOrganizationList } = usePariveshContext()
   const { selectedPharmacy, setSelectedPharmacy } = usePharmacyContext()
+  const { updateSelectedHospital, updateHospitalStats } = useHospital()
+
+  const queryClient = useQueryClient()
 
   // ** Hooks
   const router = useRouter()
@@ -166,7 +171,7 @@ const AuthProvider = ({ children }) => {
     initAuth()
   }, [])
 
-  const logOutUser = () => {
+  const logOutUser = async () => {
     // localStorage.removeItem('userData')
     // localStorage.removeItem('userDetails')
     // localStorage.removeItem('refreshToken')
@@ -175,18 +180,30 @@ const AuthProvider = ({ children }) => {
     // localStorage.removeItem('selectedStore')
     // localStorage.removeItem('selectedParivesh')
 
-    // Clear all localStorage items (comprehensive approach)
-    localStorage.clear()
+    // 1. Cancel all ongoing queries FIRST and clear the cache (prevents race conditions)
+    await queryClient.cancelQueries()
+    queryClient.clear()
 
-    // Clear sessionStorage
+    // 2. Clear ALL TanStack Query cache (queries + mutations) -> Fallback
+    queryClient.getQueryCache().clear()
+    queryClient.getMutationCache().clear()
+
+    // 3. Clear localStorage and sessionStorage
+    localStorage.clear()
     sessionStorage.clear()
 
+    // 4. Clear all state
     setUser(null)
     setUserData(null)
     setSelectedPharmacy('')
     setSelectedParivesh('')
     setOrganizationList([])
     setLoading(false)
+    updateSelectedHospital(null)
+    updateHospitalStats(null)
+
+    // 5. Remove the specific auth token (optional, but good for consistency)
+    window.localStorage.removeItem(authConfig.storageTokenKeyName)
   }
 
   const handleLogin = (params, errorCallback) => {
@@ -281,8 +298,6 @@ const AuthProvider = ({ children }) => {
           /*********pharmacy */
           const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
           router.replace(redirectURL)
-        } else {
-          if (errorCallback) errorCallback(err)
         }
       })
       .catch(err => {
@@ -291,26 +306,44 @@ const AuthProvider = ({ children }) => {
       })
   }
 
-  const handleLogout = () => {
-    setUser(null)
-    setUserData(null)
-    setSelectedPharmacy('')
-    setSelectedParivesh('')
-    setOrganizationList([])
+  const handleLogout = async () => {
+    try {
+      // 1. Cancel all ongoing queries FIRST and clear the cache (prevents race conditions)
+      await queryClient.cancelQueries()
+      queryClient.clear()
 
-    // localStorage.removeItem('userData')
-    // localStorage.removeItem('userDetails')
-    // localStorage.removeItem('refreshToken')
-    // localStorage.removeItem('accessToken')
-    // localStorage.removeItem('provider')
-    // localStorage.removeItem('selectedStore')
-    // localStorage.removeItem('selectedParivesh')
-    // window.localStorage.removeItem(authConfig.storageTokenKeyName)
+      // 2. Clear ALL TanStack Query cache (queries + mutations)
+      queryClient.getQueryCache().clear()
+      queryClient.getMutationCache().clear()
 
-    localStorage.clear()
-    sessionStorage.clear()
+      // 3. Clear localStorage and sessionStorage
+      localStorage.clear()
+      sessionStorage.clear()
 
-    router.push('/login')
+      // 4. Clear all state
+      setUser(null)
+      setUserData(null)
+      setSelectedPharmacy('')
+      setSelectedParivesh('')
+      setOrganizationList([])
+      updateSelectedHospital(null)
+      updateHospitalStats(null)
+
+      // 5. Remove the specific auth token (optional, but good for consistency)
+      window.localStorage.removeItem(authConfig.storageTokenKeyName)
+
+      // 6. Navigate to login
+      router.push('/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+
+      // Fallback: Force clear everything even if something fails
+      localStorage.clear()
+      sessionStorage.clear()
+      setUser(null)
+      setUserData(null)
+      router.push('/login')
+    }
   }
 
   const values = {

@@ -265,7 +265,7 @@ const mapDetailRecordsToActivities = (records = []) => {
     const treatmentId = record.id || null
     const treatmentMasterId = record.treatment_master_id || null
 
-    const treatmentStartDate = record.start_time || record.created_at || null
+    const treatmentStartDate = record.update_at || record.created_at || null
     const note = record.note || ''
 
     return {
@@ -293,7 +293,7 @@ const mapDetailRecordsToActivities = (records = []) => {
   })
 }
 
-const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId }) => {
+const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDischarged = false }) => {
   const theme = useTheme()
   const [isAddDrawerOpen, setAddDrawerOpen] = useState(false)
   const [isEditDrawerOpen, setEditDrawerOpen] = useState(false)
@@ -728,20 +728,22 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId }) => {
         >
           Treatments {totalTreatments > 0 ? ` - ${totalTreatments}` : ''}
         </Typography>
-        <Button
-          variant='contained'
-          startIcon={<AddIcon />}
-          onClick={handleOpenAddDrawer}
-          sx={{
-            boxShadow: `0px 4px 8px -4px ${theme.palette.customColors.shadowColor || '#4C4E646B'}`,
-            height: '42px',
-            borderRadius: '8px',
-            textTransform: 'none',
-            fontWeight: 600
-          }}
-        >
-          Add New Treatment
-        </Button>
+        {!patientDischarged && (
+          <Button
+            variant='contained'
+            startIcon={<AddIcon />}
+            onClick={handleOpenAddDrawer}
+            sx={{
+              boxShadow: `0px 4px 8px -4px ${theme.palette.customColors.shadowColor || '#4C4E646B'}`,
+              height: '42px',
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 600
+            }}
+          >
+            Add New Treatment
+          </Button>
+        )}
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -910,21 +912,35 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId }) => {
                             />
                           </Box>
 
-                          <Typography
-                            sx={{
-                              fontWeight: 400,
-                              fontSize: '14px',
-                              color: theme.palette.customColors.OnSurfaceVariant,
-                              letterSpacing: 0,
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis'
+                          <Tooltip
+                            title={treatment.noteSummary || ''}
+                            placement='bottom-start'
+                            arrow
+                            slotProps={{
+                              tooltip: {
+                                sx: {
+                                  maxHeight: 200,
+                                  overflowY: 'auto'
+                                }
+                              }
                             }}
                           >
-                            {treatment.noteSummary}
-                          </Typography>
+                            <Typography
+                              sx={{
+                                fontWeight: 400,
+                                fontSize: '14px',
+                                color: theme.palette.customColors.OnSurfaceVariant,
+                                letterSpacing: 0,
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }}
+                            >
+                              {treatment.noteSummary}
+                            </Typography>
+                          </Tooltip>
 
                           <Typography
                             sx={{
