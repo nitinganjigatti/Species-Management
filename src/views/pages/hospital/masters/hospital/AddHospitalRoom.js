@@ -85,10 +85,10 @@ const AddHospitalRoom = props => {
     if (isHospitalEditMode) {
       // update hospital payload
       const payload = {
-        name: formData.hospital_id,
-        description: formData.description,
+        name: formData?.hospital_id,
+        description: formData?.description,
         site_id: formData?.site_id?.site_id || null,
-        is_active: formData.status === true ? '1' : '0',
+        is_active: formData?.status === true ? '1' : '0',
         entity_type: 'hospital',
         is_external: 0
       }
@@ -101,9 +101,9 @@ const AddHospitalRoom = props => {
       // Room add/edit payload
       const payload = {
         hospital_id: hospitalId,
-        room_name: formData.room_name,
-        floor_name: formData.floor_name,
-        status: formData.status === true ? '1' : '0'
+        room_name: formData?.room_name,
+        floor_name: formData?.floor_name,
+        status: formData?.status === true ? '1' : '0'
       }
       const success = await handleSubmitData(payload, 'room')
       if (success) {
@@ -114,8 +114,10 @@ const AddHospitalRoom = props => {
 
   // Prefill form based on mode
   useEffect(() => {
+    if (!handleSidebarOpen) return
+
     let prefill = { ...defaultValues }
-    const matchedSite = getSitesList.find(s => Number(s.site_id) === Number(hospitalDetails?.site_id))
+    const matchedSite = getSitesList?.find(s => Number(s?.site_id) === Number(hospitalDetails?.site_id))
 
     // debugger
 
@@ -135,9 +137,9 @@ const AddHospitalRoom = props => {
 
       prefill = {
         hospital_id: hospitalDetails?.hospital_name || '',
-        room_name: editParams.room_name || '',
-        floor_name: editParams.floor_name || '',
-        status: statusValue
+        room_name: editParams?.room_name || '',
+        floor_name: editParams?.floor_name || '',
+        status: editParams.status === '1' || editParams.status === 1 || editParams.status === 'active'
       }
     }
 
@@ -152,7 +154,7 @@ const AddHospitalRoom = props => {
     }
 
     reset(prefill)
-  }, [isHospitalEditMode, hospitalDetails, editParams, isActive, getSitesList, reset])
+  }, [handleSidebarOpen])
 
   // Close handler
   const handleClose = useCallback(() => {
