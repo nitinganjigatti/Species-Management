@@ -71,6 +71,8 @@ jobs:
           rm -r .env
           cp -r env.farm .env
       - name: Build Next.js Application (Optimize for memory)
+        env:
+          NODE_OPTIONS: --max_old_space_size=4096
         run: |
           cat .env
           npm run build
