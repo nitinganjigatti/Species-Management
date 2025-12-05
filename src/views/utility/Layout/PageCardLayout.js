@@ -73,7 +73,7 @@ const PageCardLayout = ({
 
                 {/* Title + Subtitle */}
                 <Grid size={{ xs: 10, sm: 'auto' }} sx={{ ...headerTextContainerStyles }}>
-                  <Grid size={12} sx={{ ...titleStyles }}>
+                  <Grid size={12} sx={{ fontSize: { xs: '20px', sm: '24px' }, fontWeight: 500, ...titleStyles }}>
                     {title}
                   </Grid>
                   <Grid
