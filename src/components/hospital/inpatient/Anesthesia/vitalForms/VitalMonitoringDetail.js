@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { Box, Typography } from '@mui/material'
+import { Box, Divider, Typography } from '@mui/material'
 import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import { alpha, useTheme } from '@mui/material/styles'
 
@@ -28,12 +28,12 @@ export default function VitalMonitoringDetail({ data }) {
   if (!showData) {
     return (
       <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Typography variant='h6' sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 1 }}>
+        {/* <Typography variant='h6' sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 1 }}>
           Vital Monitoring
         </Typography>
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
           No vital monitoring data recorded.
-        </Typography>
+        </Typography> */}
       </Box>
     )
   }
@@ -43,6 +43,7 @@ export default function VitalMonitoringDetail({ data }) {
   return (
     <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
       {/* Title */}
+      <Divider sx={{ mb: 6, mt: 3 }} />
       <Typography variant='h6' sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 1 }}>
         Vital Monitoring
       </Typography>

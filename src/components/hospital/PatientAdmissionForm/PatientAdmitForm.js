@@ -24,11 +24,7 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
 import DoctorsDrawer from './DoctorsDrawer'
-import {
-  admitHospitalPatient,
-  getPatientDetails,
-  getPatientDetailsByTransferId
-} from 'src/lib/api/hospital/incomingPatient'
+import { admitHospitalPatient, getPatientDetailsByTransferId } from 'src/lib/api/hospital/incomingPatient'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import { getHospitalRoomsList, getRoomsAndEnclosures } from 'src/lib/api/hospital/roomsAndEnclosures'
 import Toaster from 'src/components/Toaster'
@@ -98,6 +94,7 @@ const PatientAdmitForm = () => {
   const [isRejectLoading, setIsSubmitLoading] = useState(false)
   const [rejectionReason, setRejectionReason] = useState('')
   const [rooms, setRooms] = useState([])
+  const [roomLoading, setRoomLoading] = useState(false)
   const [searchRoom, setSearchRoom] = useState('')
   const [bedsLoading, setBedsLoading] = useState(false)
   const [searchEnclosure, setSearchEnclosure] = useState('')
@@ -126,10 +123,9 @@ const PatientAdmitForm = () => {
     getPatientInfo()
   }, [id])
 
-  console.log(patientData)
-
   useEffect(() => {
     const getHospitalRooms = async () => {
+      setRoomLoading(true)
       try {
         await getHospitalRoomsList({
           hospital_id: selectedHospital?.id,
@@ -146,6 +142,10 @@ const PatientAdmitForm = () => {
                 value: item?.id
               }))
             setRooms(filteredRooms)
+            setRoomLoading(false)
+          } else {
+            setRooms([])
+            setRoomLoading(false)
           }
         })
       } catch (error) {
@@ -157,6 +157,7 @@ const PatientAdmitForm = () => {
   }, [selectedHospital, searchRoom])
 
   const selectedRoom = watch('room')
+  const watchTreatmentType = watch('treatmentType')
 
   useEffect(() => {
     const getHospitalBeds = async () => {
@@ -206,9 +207,15 @@ const PatientAdmitForm = () => {
       await admitHospitalPatient(params).then(res => {
         if (res?.success === true) {
           Toaster({ type: 'success', message: res?.message })
-          router.push({
-            pathname: `/hospital/inpatient`
-          })
+          if (watchTreatmentType === 'opd') {
+            router.push({
+              pathname: `/hospital/outpatient`
+            })
+          } else {
+            router.push({
+              pathname: `/hospital/inpatient`
+            })
+          }
           setSubmitLoader(false)
         } else {
           Toaster({ type: 'error', message: res?.message })
@@ -332,7 +339,7 @@ const PatientAdmitForm = () => {
                       animal_id: patientData?.entity_details?.[0]?.animal_id,
                       common_name: patientData?.entity_details?.[0]?.common_name,
                       scientific_name: patientData?.entity_details?.[0]?.scientific_name,
-                      age: patientData?.entity_details?.[0]?.age,
+                      age: patientData?.entity_details?.[0]?.age_formatted,
                       site_name: patientData?.entity_details?.[0]?.site_name,
                       section_name: patientData?.entity_details?.[0]?.section_name,
                       user_enclosure_name: patientData?.entity_details?.[0]?.user_enclosure_name
@@ -565,7 +572,6 @@ const PatientAdmitForm = () => {
                       control={control}
                       errors={errors}
                       options={rooms}
-                      disabled={rooms.length === 0}
                       getOptionValue={option => option.value || ''}
                       getOptionLabel={option => option.label || ''}
                       isOptionEqualToValue={(option, value) => option.value === value?.value}
@@ -573,6 +579,7 @@ const PatientAdmitForm = () => {
                       onInputChange={val => debouncedSearch(val)}
                       sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
                       fullWidth
+                      loading={roomLoading}
                     />
                     {rooms.length === 0 && (
                       <Typography
@@ -599,7 +606,6 @@ const PatientAdmitForm = () => {
                       label='Select Holding Unit'
                       control={control}
                       errors={errors}
-                      disabled={rooms.length === 0 || holdingEnclosures.length === 0}
                       options={holdingEnclosures}
                       getOptionValue={option => option.value || ''}
                       getOptionLabel={option => option.label || ''}
@@ -653,13 +659,19 @@ const PatientAdmitForm = () => {
             onClick={handleSubmit(onSubmit)}
             loading={submitLoader}
             loadingIndicator={<CircularProgress size={24} sx={{ color: theme.palette.customColors.OnPrimary }} />}
+            disabled={submitLoader}
           >
             ADMIT
           </LoadingButton>
         </Box>
       </Box>
       {doctorDrawerOpen && (
-        <DoctorsDrawer open={doctorDrawerOpen} setOpen={setDoctorDrawerOpen} onSelectDoctor={handleDoctorSelection} />
+        <DoctorsDrawer
+          open={doctorDrawerOpen}
+          setOpen={setDoctorDrawerOpen}
+          onSelectDoctor={handleDoctorSelection}
+          hospitalId={selectedHospital?.id}
+        />
       )}
       {isRejecting && (
         <ConfirmationDialog

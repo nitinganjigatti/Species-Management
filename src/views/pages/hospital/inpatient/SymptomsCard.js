@@ -11,7 +11,7 @@ import { updateSymptoms, getNotesListForSymptom } from 'src/lib/api/hospital/sym
 import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 
-const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData }) => {
+const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData, isDischared }) => {
   const theme = useTheme()
   const router = useRouter()
   const { id, animal_id } = router.query
@@ -187,7 +187,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData 
           gap: { xs: 1.5, sm: 2 },
           alignItems: { xs: 'flex-start', sm: 'center' }
         }}
-        onClick={() => handleClickDetail(record)}
+        onClick={() => (isDischared ? null : handleClickDetail(record))}
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           <MedicalIdChip

@@ -142,7 +142,7 @@ function ControlledSelectWithTextField({
       ? theme.palette.error.main
       : isFocused
       ? theme.palette.primary.main
-      : theme.palette.customColors.OnSurfaceVariant
+      : theme.palette.customColors.Outline
   })
 
   // Prevent scroll wheel on number inputs

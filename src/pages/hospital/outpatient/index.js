@@ -321,7 +321,7 @@ const HospitalOutPatient = () => {
 
   const headerAction = (
     <>
-      <Button variant='contained' onClick={() => router.push({ pathname: `/hospital/add-patient` })}>
+      <Button variant='contained' onClick={() => router.push({ pathname: `/hospital/inpatient/add-patient` })}>
         ADD PATIENT
       </Button>
     </>
@@ -413,6 +413,7 @@ const HospitalOutPatient = () => {
           onApplyFilters={applyFilters}
           setFilterCount={setFilterCount}
           initialSelectedOptions={selectedOptions}
+          hospitalId={selectedHospital?.id}
         />
       )}
     </>

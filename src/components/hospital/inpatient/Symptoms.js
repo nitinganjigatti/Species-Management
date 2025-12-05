@@ -9,12 +9,14 @@ import { getSymptomsList } from 'src/lib/api/hospital/symptoms'
 import SymptomsCard from 'src/views/pages/hospital/inpatient/SymptomsCard'
 import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const STORAGE_KEY = 'medical_record_data'
 
-const Symptoms = ({ selectedTab, patientData }) => {
+const Symptoms = ({ selectedTab, patientData, overviewData }) => {
   const router = useRouter()
   const { data } = useDynamicStateContext()
+  const isDischared = overviewData?.status === 'discharge'
   const medicalRecordData = data[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
@@ -203,17 +205,18 @@ const Symptoms = ({ selectedTab, patientData }) => {
               </Box>
             </Box>
           </Box>
-
-          <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Search value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onClear={handleSearchClear} />
-            <Button
-              variant='contained'
-              startIcon={<AddIcon />}
-              onClick={() => router.push(`/hospital/inpatient/${id}/symptoms/`)}
-            >
-              ADD NEW
-            </Button>
-          </Box>
+          {!isDischared && (
+            <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+              <Search value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onClear={handleSearchClear} />
+              <Button
+                variant='contained'
+                startIcon={<AddIcon />}
+                onClick={() => router.push(`/hospital/inpatient/${id}/symptoms/`)}
+              >
+                ADD NEW
+              </Button>
+            </Box>
+          )}
         </Box>
         <Box>
           <MUISwitch
@@ -226,23 +229,28 @@ const Symptoms = ({ selectedTab, patientData }) => {
         </Box>
       </Box>
 
+      {/* Empty State */}
+
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {loading ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', py: 2 }}>
             <ClinicalAssessmentShimmer count={5} />
           </Box>
-        ) : records?.length === 0 ? (
+        ) : !loading && records.length === 0 ? (
           <Box
             sx={{
+              width: '100%',
               display: 'flex',
-              flexDirection: 'column',
               justifyContent: 'center',
-              alignItems: 'center',
-              height: '70%',
-              textAlign: 'center'
+              alignItems: 'center'
             }}
           >
-            <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+            <NoMedicalData
+              btnText={'ADD NEW SYMPTOM'}
+              text={'All Added SYMPTOMS Will Appear here'}
+              isDischarged={isDischared}
+              btnAction={() => router.push(`/hospital/inpatient/${id}/symptoms`)}
+            />
           </Box>
         ) : (
           records.map((record, index) => (
@@ -254,6 +262,7 @@ const Symptoms = ({ selectedTab, patientData }) => {
               isResolved={record.status === 'closed'}
               fetchSymptoms={fetchSymptoms}
               patientData={patientData}
+              isDischared={isDischared}
             />
           ))
         )}

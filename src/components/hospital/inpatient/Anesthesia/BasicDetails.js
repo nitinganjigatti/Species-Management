@@ -50,10 +50,17 @@ export default function BasicDetails({
       color: theme.palette.customColors.OnSurfaceVariant
     },
     '& .MuiInputBase-input': {
-      color: theme.palette.customColors.OnSurfaceVariant
+      color: theme.palette.customColors.OnSurfaceVariant,
+      '&::placeholder': {
+        color: theme.palette.text.disabled,
+        opacity: 1
+      }
     },
     '& .MuiInputLabel-root': {
-      color: theme.palette.customColors.OnSurfaceVariant
+      color: theme.palette.customColors.Outline
+    },
+    '& .MuiInputLabel-root.Mui-focused': {
+      color: theme.palette.customColors.Outline
     }
   }
 
@@ -75,7 +82,7 @@ export default function BasicDetails({
               <TextField
                 {...field}
                 fullWidth
-                label='Location'
+                label='Location*'
                 error={!!errors.basicDetails?.location}
                 helperText={errors.basicDetails?.location?.message}
                 sx={commonTextFieldSx}
@@ -104,7 +111,7 @@ export default function BasicDetails({
               return (
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DateTimePicker
-                    label='Date & Time of Anesthesia'
+                    label='Date & Time of Anesthesia*'
                     value={value}
                     onChange={handleDateChange}
                     format='DD MMM YYYY · hh:mm A'
@@ -118,12 +125,12 @@ export default function BasicDetails({
                           '& .MuiInputLabel-root': {
                             color: errors.basicDetails?.anaesthesia_datetime
                               ? theme.palette.error.main
-                              : theme.palette.customColors.OnSurfaceVariant
+                              : theme.palette.customColors.Outline
                           },
                           '& .MuiInputLabel-root.Mui-focused': {
                             color: errors.basicDetails?.anaesthesia_datetime
                               ? theme.palette.error.main
-                              : theme.palette.customColors.OnSurfaceVariant
+                              : theme.palette.customColors.Outline
                           },
                           '& input::placeholder': {
                             color: errors.basicDetails?.anaesthesia_datetime
@@ -149,7 +156,7 @@ export default function BasicDetails({
             control={control}
             errors={errors}
             options={timeUnits}
-            label='Estimated Time Required'
+            label='Estimated Time Required*'
             placeholder='Enter'
             type='number'
             getOptionLabel={option => option.label}
@@ -189,7 +196,7 @@ export default function BasicDetails({
                 renderInput={params => (
                   <TextField
                     {...params}
-                    label='Veterinarian'
+                    label='Veterinarian*'
                     fullWidth
                     error={!!errors?.basicDetails?.veterinarian_id}
                     helperText={errors?.basicDetails?.veterinarian_id?.message}
@@ -233,7 +240,7 @@ export default function BasicDetails({
                 renderInput={params => (
                   <TextField
                     {...params}
-                    label='Anesthetist'
+                    label='Anesthetist*'
                     fullWidth
                     error={!!errors?.basicDetails?.anesthetist_id}
                     helperText={errors?.basicDetails?.anesthetist_id?.message}
@@ -254,7 +261,7 @@ export default function BasicDetails({
           mb={3}
           sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
         >
-          Purpose of Anesthesia{' '}
+          Purpose of Anesthesia*{' '}
           <Typography
             component='span'
             sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.secondaryBg, pl: 4 }}
@@ -428,7 +435,7 @@ export default function BasicDetails({
         <ControlledTextArea
           control={control}
           errors={errors}
-          label='Enter Notes'
+          label='Enter Notes*'
           name='basicDetails.notes'
           placeholder='Enter Notes'
           fullWidth
