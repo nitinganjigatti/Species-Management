@@ -7,7 +7,6 @@ import ClinicalAssessmentList from 'src/components/hospital/ClinicalAssessment/C
 import SelectedClinicalAssessment from 'src/components/hospital/ClinicalAssessment/SelectedClinicalAssessment'
 import AddClinicalAsmntDrawer from 'src/components/hospital/drawer/AddClinicalAsmntDrawer'
 import debounce from 'lodash/debounce'
-import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
 import { addClinicalAssessment, getDiagnosisList, getDiagnosysType } from 'src/lib/api/hospital/clinicalAssessment'
 import Toaster from 'src/components/Toaster'
 import { useRouter } from 'next/router'
@@ -21,7 +20,7 @@ const STORAGE_KEY = 'medical_record_data'
 function AddClinicalAssessmentPage() {
   const theme = useTheme()
   const router = useRouter()
-  const { data } = useDynamicStateContext()
+  const { data, updateState } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)
@@ -37,7 +36,6 @@ function AddClinicalAssessmentPage() {
   const [patientData, setPatientData] = useState(null)
   const [patientLoading, setPatientLoading] = useState(false)
 
-  // Get ID from router (with fallback during initial render before router is ready)
   const { id } = router.query
   const animalId = medicalRecordData?.animal_id
   const medicalRecordId = medicalRecordData?.medical_record_id
@@ -52,6 +50,10 @@ function AddClinicalAssessmentPage() {
   const [page, setPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const [isSubmitLoading, setIsSubmitLoading] = useState(false)
+
+  // Refs for intersection observer
+  const observerRef = useRef(null)
+  const loadMoreTriggerRef = useRef(null)
 
   // Debounced search
   const debouncedSearch = useRef(
@@ -76,11 +78,9 @@ function AddClinicalAssessmentPage() {
         request_from: 'web_hospital',
         medical_record_id: medicalRecordId || ''
       }
-      const res = await getDiagnosisList(params) // This gets categories
+      const res = await getDiagnosisList(params)
       if (res?.success) {
         const categories = res.data?.result || []
-
-        // setTabOptions([{ category: 'All', id: '' }, ...categories])
         setTabOptions(categories)
         if (categories.length > 0) {
           setCurrentTab(categories[0]?.category || '')
@@ -95,13 +95,21 @@ function AddClinicalAssessmentPage() {
     }
   }, [medicalRecordId])
 
-  // Fetch diagnosis list with infinite scroll
+  // Separate loading states for initial load and pagination
+  const [isInitialLoading, setIsInitialLoading] = useState(false)
 
+  // Fetch diagnosis list
   const fetchDiagnosisItems = useCallback(async (pageNum = 1, search = '', categoryId = '') => {
-    setIsLoading(true)
+    // Only show full shimmer on initial load (page 1)
+    if (pageNum === 1) {
+      setIsInitialLoading(true)
+    } else {
+      setIsLoading(true)
+    }
+
     try {
       const params = {
-        page: pageNum,
+        page_no: pageNum,
         limit: PAGE_SIZE,
         q: search,
         category_id: categoryId,
@@ -112,14 +120,14 @@ function AddClinicalAssessmentPage() {
 
       if (res.success) {
         const newItems = res.data?.result || []
-        const totalCount = res.data?.totalRecords || 0
+        const total = res.data?.totalRecords || 0
 
-        setTotalCount(totalCount)
+        setTotalCount(total)
+
         setAllAssessments(prev => {
           const updatedList = pageNum === 1 ? newItems : [...prev, ...newItems]
-
-          // Calculate hasMore based on the UPDATED list length
-          setHasMore(updatedList.length < totalCount)
+          const canLoadMore = updatedList.length < total
+          setHasMore(canLoadMore)
 
           return updatedList
         })
@@ -128,35 +136,71 @@ function AddClinicalAssessmentPage() {
       }
     } catch (error) {
       console.error('Error fetching diagnosis items:', error)
-      setAllAssessments([])
+      if (pageNum === 1) {
+        setAllAssessments([])
+      }
       setTotalCount(0)
       setHasMore(false)
     } finally {
       setIsLoading(false)
+      setIsInitialLoading(false)
     }
   }, [])
 
-  // Load more function for infinite scroll
-  const loadMore = useCallback(() => {
-    if (!isLoading && hasMore) {
-      const nextPage = page + 1
-      setPage(nextPage)
-      fetchDiagnosisItems(nextPage, searchTerm, currentTabId)
+  // Setup Intersection Observer for infinite scroll
+  useEffect(() => {
+    // Cleanup previous observer
+    if (observerRef.current) {
+      observerRef.current.disconnect()
     }
-  }, [isLoading, hasMore, page, searchTerm, currentTabId, fetchDiagnosisItems])
 
-  // Initialize infinite scroll
-  const loaderRef = useInfiniteScroll(loadMore, isLoading, hasMore)
+    // Create new observer
+    const observer = new IntersectionObserver(
+      entries => {
+        const firstEntry = entries[0]
+
+        // Load more when the trigger element is visible and we're not already loading
+        if (firstEntry.isIntersecting && !isLoading && hasMore) {
+          setPage(prevPage => {
+            const nextPage = prevPage + 1
+            fetchDiagnosisItems(nextPage, searchTerm, currentTabId)
+
+            return nextPage
+          })
+        }
+      },
+      {
+        root: null,
+        rootMargin: '100px', // Start loading 100px before reaching the bottom
+        threshold: 0.1
+      }
+    )
+
+    observerRef.current = observer
+
+    // Observe the trigger element
+    if (loadMoreTriggerRef.current) {
+      observer.observe(loadMoreTriggerRef.current)
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect()
+      }
+    }
+  }, [isLoading, hasMore, searchTerm, currentTabId, fetchDiagnosisItems])
 
   // Fetch data on component mount
   useEffect(() => {
+    if(medicalRecordId)
     fetchDiagnosisTypes()
-  }, [fetchDiagnosisTypes])
+  }, [fetchDiagnosisTypes, medicalRecordId])
 
   // Fetch diagnosis items when tab or search changes
   useEffect(() => {
     if (currentTabId) {
-      setAllAssessments([]) // Clear before fetching
+      setAllAssessments([])
       setPage(1)
       fetchDiagnosisItems(1, searchTerm, currentTabId)
     }
@@ -166,6 +210,7 @@ function AddClinicalAssessmentPage() {
     setCurrentTab(tabValue)
     setCurrentTabId(tabId)
     setPage(1)
+    setIsInitialLoading(true)
     setAllAssessments([])
     setHasMore(false)
   }
@@ -177,7 +222,6 @@ function AddClinicalAssessmentPage() {
 
   const addSymptomDetails = details => {
     if (temporarilySelected?.id && selectedSymptoms.some(s => s.id === temporarilySelected.id)) {
-      // Update existing symptom
       setSelectedSymptoms(prev =>
         prev.map(symptom =>
           symptom.id === temporarilySelected.id
@@ -191,14 +235,12 @@ function AddClinicalAssessmentPage() {
         )
       )
     } else {
-      // Add new symptom
       setSelectedSymptoms(prev => [...prev, { ...temporarilySelected, ...details }])
     }
 
     setTemporarilySelected(null)
     setClinicalDrawerOpen(false)
 
-    // Reset form fields
     setClinicalAsmnt('')
     setPrognosisValue('')
     setChronicVal('No')
@@ -210,7 +252,6 @@ function AddClinicalAssessmentPage() {
     setTemporarilySelected(null)
     setClinicalDrawerOpen(false)
 
-    // Reset form fields
     setClinicalAsmnt('')
     setPrognosisValue('')
     setChronicVal('No')
@@ -252,8 +293,6 @@ function AddClinicalAssessmentPage() {
 
     const payload = {
       medical_record_id: medicalRecordId,
-
-      // animal_id: JSON.stringify([animalId]),
       diagnosis: JSON.stringify(diagnosis)
     }
 
@@ -308,6 +347,12 @@ function AddClinicalAssessmentPage() {
     try {
       await getPatientDetails(id).then(res => {
         if (res?.success === true) {
+          updateState(STORAGE_KEY, {
+            ...medicalRecordData,
+            animal_id: res.data?.animal_detail?.animal_id,
+            medical_record_id: res.data?.medical_record_id,
+            animal_admitted_date: res.data?.admitted_at
+          })
           setPatientData(res?.data)
           setPatientLoading(false)
         } else {
@@ -329,7 +374,6 @@ function AddClinicalAssessmentPage() {
     setNotes(symptom?.notes || '')
     setStatus(symptom?.status || '')
 
-    // Make sure we're passing the complete symptom object with id
     setTemporarilySelected(symptom)
     setClinicalDrawerOpen(true)
   }
@@ -386,10 +430,11 @@ function AddClinicalAssessmentPage() {
             }}
             isLoading={isLoading}
             hasMore={hasMore}
-            loaderRef={loaderRef}
+            loadMoreTriggerRef={loadMoreTriggerRef}
             totalCount={totalCount}
             isTabsLoading={isTabsLoading}
             isListLoading={isLoading}
+            isInitialLoading={isInitialLoading}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
