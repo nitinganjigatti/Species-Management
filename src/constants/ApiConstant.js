@@ -930,3 +930,7 @@ export const GET_VITAL_MONITORING_LIST = `v1/hospital/anaesthesia/sections`
 export const GET_ANESTHESIA_DETAIL = `v1/hospital/anaesthesia/detail`
 
 export const GET_TRANSFER_CHECK = `v1/site/transfer/check/authority`
+
+export const GET_ANESTHESIA_MEDICATION = `v1/hospital/anaesthesia/medication/update`
+
+export const DELETE_ANESTHESIA_MEDICATION = `v1/hospital/anaesthesia/medication/delete`

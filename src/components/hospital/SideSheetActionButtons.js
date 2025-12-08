@@ -16,16 +16,6 @@ const SideSheetActionButtons = ({
 
   return (
     <Box
-      // sx={{
-      //   position: 'sticky',
-      //   bottom: 1,
-      //   backgroundColor: theme.palette.common.white,
-      //   borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-      //   px: 4,
-      //   py: 5,
-      //   display: 'flex',
-      //   gap: 3.5
-      // }}
       sx={{
         backgroundColor: theme.palette.common.white,
         borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`,

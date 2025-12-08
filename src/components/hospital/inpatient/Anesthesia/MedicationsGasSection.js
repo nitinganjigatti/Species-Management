@@ -72,7 +72,6 @@ function MedicationsGasSection({
         Toaster({ type: 'error', message: response?.message || 'Failed to fetch products' })
       }
     } catch (error) {
-      console.error('getProductList error:', error)
       Toaster({ type: 'error', message: 'Failed to fetch products' })
     } finally {
       setIsProductLoading(false)
@@ -212,17 +211,26 @@ function MedicationsGasSection({
       sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title='Edit'>
-            <IconButton size='small' onClick={() => handleEditMedication(params.row.id - 1)}>
-              <Icon icon='mdi:pencil-outline' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
-            </IconButton>
-          </Tooltip>
+          {params?.row?.medication_row_id !== undefined ? (
+            <>
+              <Tooltip title='Edit'>
+                <IconButton size='small' onClick={() => handleEditMedication(params.row.id - 1)}>
+                  <Icon icon='mdi:pencil-outline' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
+                </IconButton>
+              </Tooltip>
 
-          <Tooltip title='Delete'>
-            <IconButton size='small' onClick={() => onDeleteMedication(params.row.id - 1)}>
-              <Icon icon='mdi:delete-outline' fontSize={20} color={theme.palette.customColors.Error} />
-            </IconButton>
-          </Tooltip>
+              <Tooltip title='Delete'>
+                <IconButton
+                  size='small'
+                  onClick={() => onDeleteMedication(params.row.id - 1, params?.row?.medication_row_id)}
+                >
+                  <Icon icon='mdi:delete-outline' fontSize={20} color={theme.palette.customColors.Error} />
+                </IconButton>
+              </Tooltip>
+            </>
+          ) : (
+            '-'
+          )}
         </Box>
       )
     }
@@ -301,21 +309,29 @@ function MedicationsGasSection({
       align: 'center',
       width: 120,
       sortable: false,
-      renderCell: params => (
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title='Edit'>
-            <IconButton size='small' onClick={() => handleEditGas(params.row.id - 1)}>
-              <Icon icon='mdi:pencil-outline' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
-            </IconButton>
-          </Tooltip>
+      renderCell: params => {
+        return (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            {params?.row?.gas_row_id !== undefined ? (
+              <>
+                <Tooltip title='Edit'>
+                  <IconButton size='small' onClick={() => handleEditGas(params.row.id - 1)}>
+                    <Icon icon='mdi:pencil-outline' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
+                  </IconButton>
+                </Tooltip>
 
-          <Tooltip title='Delete'>
-            <IconButton size='small' onClick={() => onDeleteGas(params.row.id - 1)}>
-              <Icon icon='mdi:delete-outline' fontSize={20} color={theme.palette.customColors.Error} />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      )
+                <Tooltip title='Delete'>
+                  <IconButton size='small' onClick={() => onDeleteGas(params.row.id - 1, params?.row?.gas_row_id)}>
+                    <Icon icon='mdi:delete-outline' fontSize={20} color={theme.palette.customColors.Error} />
+                  </IconButton>
+                </Tooltip>
+              </>
+            ) : (
+              '-'
+            )}
+          </Box>
+        )
+      }
     }
   ]
 
@@ -431,6 +447,7 @@ function MedicationsGasSection({
   const medicationsData = (medications || []).map((med, index) => {
     return {
       ...med,
+      medication_row_id: med?.id,
       id: index + 1,
       display_delivery_time: safeFormat(med.delivery_time),
       display_max_effect_time: safeFormat(med.max_effect_time)
@@ -440,6 +457,7 @@ function MedicationsGasSection({
   const gasesData = (gases || []).map((gas, index) => {
     return {
       ...gas,
+      gas_row_id: gas?.id,
       id: index + 1,
       display_start_time: safeFormat(gas.start_time),
       display_end_time: safeFormat(gas.end_time)
@@ -529,6 +547,7 @@ function MedicationsGasSection({
           submitLoader={submitLoader}
           editData={editIndex !== null ? medications[editIndex] : null}
           drugOptions={medicationGasList}
+          existingMedications={medications}
           purposeStageOptions={purposeStageOptions}
           deliveryRouteOptions={deliveryRouteOptions}
           unitList={unitList}
@@ -549,6 +568,7 @@ function MedicationsGasSection({
           submitLoader={submitLoader}
           editData={editIndex !== null ? gases[editIndex] : null}
           gasOptions={medicationGasList}
+          existingMedications={gases}
           deliveryRouteOptions={deliveryRouteOptions}
           onLoadMoreDrugs={() => {
             if (hasMoreProducts && !isProductLoading) {

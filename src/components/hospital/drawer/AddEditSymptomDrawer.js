@@ -156,9 +156,6 @@ const AddEditSymptomDrawer = ({
         if (responseNotes?.success === true) {
           setActivityListData(responseNotes?.data || [])
         }
-
-        //onClose()
-        //fetchNotesForSymptom()
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to delete notes.' })
       }
@@ -185,11 +182,7 @@ const AddEditSymptomDrawer = ({
   }
 
   return (
-    <Drawer
-      open={open}
-      //onClose={onClose}
-      anchor='right'
-    >
+    <Drawer open={open} anchor='right'>
       <Box
         sx={{
           width: 570,
