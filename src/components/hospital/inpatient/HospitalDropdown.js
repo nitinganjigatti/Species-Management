@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo, useContext } 
 import { Box, Typography, Menu, MenuItem, CircularProgress, useTheme, Tooltip, Avatar } from '@mui/material'
 import { KeyboardArrowDown } from '@mui/icons-material'
 import { useHospital } from 'src/context/HospitalContext'
-import { getHospitalBedStats, getHospitalListing } from 'src/lib/api/hospital/hospitalAnalytics'
+import { getHospitalBedStats, getHospitalDetail, getHospitalListing } from 'src/lib/api/hospital/hospitalAnalytics'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useInView } from 'react-intersection-observer'
 import Search from 'src/views/utility/Search'
@@ -21,16 +21,20 @@ const HospitalDropdown = ({ disabled = false }) => {
     updateHospitals,
     hospitalStats,
     updateHospitalStats,
-    setHospitalStatsLoading
+    setHospitalStatsLoading,
+    hasFetchedStatsForCurrentHospital,
+    markStatsAsFetched,
+    setIsHospitalAccessChecked
   } = useHospital()
 
   const [anchorEl, setAnchorEl] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [localSearch, setLocalSearch] = useState('')
+  const [isCheckingHospitalAccess, setIsCheckingHospitalAccess] = useState(false)
+  const [hasCheckedLocalStorage, setHasCheckedLocalStorage] = useState(false)
   const searchInputRef = useRef(null)
 
   const authData = useContext(AuthContext)
-  console.log('authData in hospital dropdown', authData)
 
   const PAGE_SIZE = 10
 
@@ -42,6 +46,36 @@ const HospitalDropdown = ({ disabled = false }) => {
 
   // Track if we need to fetch initial data
   const shouldFetchInitial = useMemo(() => !disabled && !selectedHospital, [disabled, selectedHospital])
+
+  const fetchHospitalDetail = async id => {
+    try {
+      const response = await getHospitalDetail(id)
+
+      return response
+    } catch (error) {
+      console.error('Error fetching hospital detail:', error)
+
+      return null
+    }
+  }
+
+  // Function to fetch hospital stats (used for both enabled and disabled states)
+  const fetchAndUpdateHospitalStats = async hospitalId => {
+    if (!hospitalId) return
+
+    try {
+      setHospitalStatsLoading(true)
+      const statsResponse = await getHospitalBedStats(hospitalId)
+      if (statsResponse?.success) {
+        updateHospitalStats(statsResponse.data)
+        markStatsAsFetched() // Mark stats as fetched in context
+      }
+    } catch (error) {
+      console.error('Error fetching hospital stats:', error)
+    } finally {
+      setHospitalStatsLoading(false)
+    }
+  }
 
   // Create debounced search function with useRef to persist across renders
   const debouncedSearch = useRef(
@@ -57,7 +91,7 @@ const HospitalDropdown = ({ disabled = false }) => {
     }
   }, [debouncedSearch])
 
-  // Infinite query for hospitals - always enabled for initial fetch
+  // Infinite query for hospitals - only enabled when dropdown is NOT disabled
   const {
     data: queryData,
     fetchNextPage,
@@ -66,7 +100,7 @@ const HospitalDropdown = ({ disabled = false }) => {
     isFetchingNextPage,
     isLoading
   } = useInfiniteQuery({
-    queryKey: ['hospitals-inpatient', searchQuery],
+    queryKey: ['hospitals-listing-inpatient', searchQuery],
     queryFn: async ({ pageParam = 1 }) => {
       const params = {
         page_no: pageParam,
@@ -91,7 +125,7 @@ const HospitalDropdown = ({ disabled = false }) => {
       }
     },
     getNextPageParam: lastPage => lastPage.nextPage,
-    enabled: !disabled && (Boolean(anchorEl) || (shouldFetchInitial && !hospitals?.length)) // Fetch when dropdown is open OR when we need initial data
+    enabled: !disabled && (Boolean(anchorEl) || (shouldFetchInitial && !hospitals?.length && hasCheckedLocalStorage))
   })
 
   // Flatten all pages into a single list
@@ -105,17 +139,8 @@ const HospitalDropdown = ({ disabled = false }) => {
     updateSelectedHospital(hospital)
     setAnchorEl(null)
 
-    try {
-      setHospitalStatsLoading(true)
-      const statsResponse = await getHospitalBedStats(hospital.id)
-      if (statsResponse?.success) {
-        updateHospitalStats(statsResponse.data)
-      }
-    } catch (error) {
-      console.error('Error fetching hospital stats:', error)
-    } finally {
-      setHospitalStatsLoading(false)
-    }
+    // Fetch stats for the selected hospital
+    await fetchAndUpdateHospitalStats(hospital.id)
   }
 
   // Search handler with proper debouncing
@@ -140,7 +165,6 @@ const HospitalDropdown = ({ disabled = false }) => {
     if (!isFetchingNextPage && hasNextPage) {
       cooldownRef.current = true
       fetchNextPage().finally(() => {
-        // Add 300ms cooldown before allowing next fetch
         setTimeout(() => {
           cooldownRef.current = false
         }, 300)
@@ -164,18 +188,76 @@ const HospitalDropdown = ({ disabled = false }) => {
     }
   }, [anchorEl])
 
+  // Check hospital access from local storage on initial render ONLY ONCE
+  useEffect(() => {
+    const checkHospitalAccess = async () => {
+      if (hasCheckedLocalStorage) return
+
+      const storedHospital = read('selectedHospital')
+      console.log('Checking stored hospital:', storedHospital)
+
+      if (storedHospital && storedHospital.id) {
+        setIsCheckingHospitalAccess(true)
+        try {
+          const detailResponse = await fetchHospitalDetail(storedHospital.id)
+          console.log('Hospital detail response:', detailResponse)
+
+          if (detailResponse?.status) {
+            const hospitalData = detailResponse.data
+
+            // Check if hospital is active (is_active === 1 or true)
+            if (hospitalData?.has_permission) {
+              console.log('Hospital is active, setting from localStorage')
+
+              // User has access - set the hospital directly
+              updateSelectedHospital({
+                ...storedHospital
+              })
+              setIsHospitalAccessChecked(true)
+              setIsCheckingHospitalAccess(false)
+
+              // Fetch stats for the hospital (even if disabled)
+              await fetchAndUpdateHospitalStats(hospitalData.id)
+            } else {
+              // User doesn't have access - clear the stored hospital
+              updateSelectedHospital(null)
+              console.warn('User does not have access to the stored hospital:', storedHospital.name)
+            }
+          } else {
+            // If no valid response, clear stored hospital
+            updateSelectedHospital(null)
+          }
+        } catch (error) {
+          console.error('Error checking hospital access:', error)
+          updateSelectedHospital(null)
+        } finally {
+          if (isCheckingHospitalAccess) setIsCheckingHospitalAccess(false)
+          setHasCheckedLocalStorage(true)
+        }
+      } else {
+        // No stored hospital, mark as checked
+        setHasCheckedLocalStorage(true)
+      }
+    }
+
+    // Only run check on initial mount
+    if (!hasFetchedStatsForCurrentHospital) checkHospitalAccess()
+  }, []) // Empty dependency array - runs only once on mount
+
   // Auto-select first hospital when data loads and no hospital is selected
   useEffect(() => {
-    if (hospitalList.length > 0 && !selectedHospital && !isFetching) {
+    if (
+      // !disabled &&
+      hospitalList.length > 0 &&
+      !selectedHospital &&
+      !isFetching &&
+      hasCheckedLocalStorage &&
+      !isCheckingHospitalAccess
+    ) {
       handleHospitalSelect(hospitalList[0])
     }
-  }, [hospitalList, selectedHospital, isFetching])
+  }, [hospitalList, selectedHospital, isFetching, isCheckingHospitalAccess, hasCheckedLocalStorage, disabled])
 
-  useEffect(() => {
-    if (selectedHospital && !hospitalStats) {
-      handleHospitalSelect(read('selectedHospital'))
-    }
-  }, [])
 
   const handleDropdownClick = e => {
     if (disabled) return
@@ -227,7 +309,14 @@ const HospitalDropdown = ({ disabled = false }) => {
         }}
       >
         <Box sx={{ maxWidth: 200, display: 'flex', alignItems: 'center' }}>
-          {selectedHospital?.name ? (
+          {isCheckingHospitalAccess ? (
+
+            // Shimmer for checking hospital access state
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
+              <ShimmerBox width='160px' height='24px' mb={0} />
+              <ShimmerBox width='120px' height='16px' mb={0} />
+            </Box>
+          ) : selectedHospital?.name ? (
             <Box
               sx={{
                 display: 'flex',
@@ -264,8 +353,7 @@ const HospitalDropdown = ({ disabled = false }) => {
             </Box>
           ) : (
 
-            // Shimmer for initial loading state
-
+            // Shimmer for initial loading state when no stored hospital
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
               <ShimmerBox width='160px' height='24px' mb={0} />
               <ShimmerBox width='120px' height='16px' mb={0} />

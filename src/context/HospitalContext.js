@@ -8,10 +8,15 @@ export const HospitalProvider = ({ children }) => {
   const [hospitals, setHospitals] = useState([])
   const [hospitalStats, setHospitalStats] = useState(null)
   const [isHospitalStatsLoading, setHospitalStatsLoading] = useState(false)
+  const [hasFetchedStatsForCurrentHospital, setHasFetchedStatsForCurrentHospital] = useState(false)
+  const [isHospitalAccessChecked, setIsHospitalAccessChecked] = useState(false)
 
   const updateSelectedHospital = hospital => {
     setSelectedHospital(hospital)
     write('selectedHospital', hospital)
+
+    // Reset the fetched stats flag when hospital changes
+    setHasFetchedStatsForCurrentHospital(false)
   }
 
   useEffect(() => {
@@ -32,10 +37,15 @@ export const HospitalProvider = ({ children }) => {
     setHospitalStats(stats)
   }
 
+  const markStatsAsFetched = () => {
+    setHasFetchedStatsForCurrentHospital(true)
+  }
+
   const clearHospitalData = () => {
     setSelectedHospital(null)
     setHospitals([])
     setHospitalStats(null)
+    setHasFetchedStatsForCurrentHospital(false)
   }
 
   const value = {
@@ -45,9 +55,13 @@ export const HospitalProvider = ({ children }) => {
     updateSelectedHospital,
     updateHospitals,
     updateHospitalStats,
+    markStatsAsFetched,
     clearHospitalData,
     isHospitalStatsLoading,
-    setHospitalStatsLoading
+    setHospitalStatsLoading,
+    hasFetchedStatsForCurrentHospital,
+    isHospitalAccessChecked,
+    setIsHospitalAccessChecked
   }
 
   return <HospitalContext.Provider value={value}>{children}</HospitalContext.Provider>

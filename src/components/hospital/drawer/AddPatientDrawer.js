@@ -17,9 +17,10 @@ import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePick
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import moment from 'moment'
-import { admitHospitalPatient } from 'src/lib/api/hospital/incomingPatient'
 import Toaster from 'src/components/Toaster'
 import { useRouter } from 'next/router'
+import Utility from 'src/utility'
+import { editAnimalAdmissionDetails } from 'src/lib/api/hospital/inpatient'
 
 const defaultValues = {
   holdingEnclosure: null,
@@ -39,7 +40,7 @@ const schema = yup.object().shape({
   reason: yup.string().required('Reason for admission is required')
 })
 
-const AddPatientDrawer = ({ open, onClose, patientData, animalData }) => {
+const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) => {
   const theme = useTheme()
   const { selectedHospital } = useHospital()
   const router = useRouter()
@@ -48,6 +49,8 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData }) => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [selectedDoctor, setSelectedDoctor] = useState(null)
   const [holdingEnclosures, setHoldingEnclosures] = useState([])
+  const [enclosureLoading, setEnclosureLoading] = useState(false)
+  const [roomLoading, setRoomLoading] = useState(false)
   const [rooms, setRooms] = useState([])
   const [searchRoom, setSearchRoom] = useState('')
   const [searchEnclosure, setSearchEnclosure] = useState('')
@@ -61,8 +64,8 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData }) => {
     watch,
     formState: { errors }
   } = useForm({
-    resolver: yupResolver(schema),
     defaultValues,
+    resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onChange',
     reValidateMode: 'onChange'
@@ -77,7 +80,17 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData }) => {
         role_name: patientData?.attend_by_role
       }
       reset({
-        selectedDoctor: doctorData
+        holdingEnclosure: {
+          label: patientData?.bed_name,
+          value: patientData?.bed_id
+        },
+        room: {
+          label: patientData?.room_name,
+          value: patientData?.room_id
+        },
+        selectedDoctor: doctorData,
+        admission_date: dayjs(),
+        admission_time: dayjs()
       })
       setSelectedDoctor(doctorData)
     }
@@ -85,6 +98,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData }) => {
 
   useEffect(() => {
     const getHospitalRooms = async () => {
+      setRoomLoading(true)
       try {
         await getHospitalRoomsList({
           hospital_id: selectedHospital?.id,
@@ -94,16 +108,22 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData }) => {
           availability: 'available'
         }).then(res => {
           if (res?.success === true) {
-            setRooms(
-              res?.data?.records?.map(item => ({
+            const filteredRooms = res?.data?.records
+              ?.filter(item => item?.status !== '0')
+              ?.map(item => ({
                 label: item?.room_name,
                 value: item?.id
               }))
-            )
+            setRooms(filteredRooms)
+            setRoomLoading(false)
+          } else {
+            setRooms([])
+            setRoomLoading(false)
           }
         })
       } catch (error) {
         console.error(error, 'cannot Fetch hospital rooms listing')
+        setRoomLoading(false)
       }
     }
 
@@ -115,6 +135,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData }) => {
   useEffect(() => {
     const getHospitalBeds = async () => {
       if (!selectedRoom?.value) return
+      setEnclosureLoading(true)
       try {
         const res = await getRoomsAndEnclosures({
           hospital_id: selectedHospital?.id,
@@ -130,9 +151,11 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData }) => {
               value: item?.id
             }))
           )
+          setEnclosureLoading(false)
         }
       } catch (error) {
         console.error('Cannot fetch hospital beds listing', error)
+        setEnclosureLoading(false)
       }
     }
 
@@ -158,9 +181,9 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData }) => {
     setSubmitLoader(true)
     try {
       const payload = {
-        action: 'admit',
+        action: 'status_change',
         hospital_case_id: patientData?.hospital_case_id,
-        treatment_type: 'opd',
+        treatment_type: 'inpatient',
         attend_by: data?.selectedDoctor?.id,
         holding_enclosure: data?.holdingEnclosure?.value,
         room_id: data?.room?.value,
@@ -169,13 +192,17 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData }) => {
         reason_for_admission: data?.reason
       }
 
-      await admitHospitalPatient(payload).then(res => {
+      await editAnimalAdmissionDetails(payload).then(res => {
         if (res?.success === true) {
+          setSubmitLoader(false)
           Toaster({ type: 'success', message: res?.message })
+          onClose()
+
           router.push({
             pathname: `/hospital/inpatient`
           })
-          setSubmitLoader(false)
+
+          // refetch()
         } else {
           Toaster({ type: 'error', message: res?.message })
           setSubmitLoader(false)
@@ -184,6 +211,22 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData }) => {
     } catch (error) {
       console.error('Error admitting patient:', error)
       setSubmitLoader(false)
+    }
+  }
+
+  const selectedDate = watch('admission_date')
+
+  const createdAtLocal = dayjs(Utility.convertUTCToLocal(patientData?.admitted_at))
+
+  const minDate = createdAtLocal.startOf('day')
+
+  let minTime = null
+
+  if (selectedDate) {
+    const isCreatedDate = dayjs(selectedDate).isSame(createdAtLocal, 'day')
+
+    if (isCreatedDate) {
+      minTime = createdAtLocal
     }
   }
 
@@ -348,10 +391,11 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData }) => {
                       name={'admission_date'}
                       label='Date'
                       defaultValue={dayjs()}
+                      minDate={minDate}
                     />
                   </Grid>
                   <Grid size={{ sm: 6, xs: 6 }}>
-                    <ControlledTimePicker control={control} name={'admission_time'} label='Time' />
+                    <ControlledTimePicker control={control} name={'admission_time'} label='Time' minTime={minTime} />
                   </Grid>
                 </Grid>
               </Box>
@@ -374,6 +418,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData }) => {
                   onInputChange={val => debouncedSearch(val)}
                   sx={{ borderRadius: 1, background: theme.palette.customColors.Surface }}
                   fullWidth
+                  loading={roomLoading}
                 />
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -395,6 +440,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData }) => {
                   onInputChange={val => debouncedEnclosureSearch(val)}
                   sx={{ borderRadius: 1, background: theme.palette.customColors.Surface }}
                   fullWidth
+                  loading={enclosureLoading}
                 />
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -460,7 +506,12 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData }) => {
         </Box>
       </Drawer>
       {doctorDrawerOpen && (
-        <DoctorsDrawer open={doctorDrawerOpen} setOpen={setDoctorDrawerOpen} onSelectDoctor={handleDoctorSelection} />
+        <DoctorsDrawer
+          open={doctorDrawerOpen}
+          setOpen={setDoctorDrawerOpen}
+          onSelectDoctor={handleDoctorSelection}
+          hospitalId={selectedHospital?.id}
+        />
       )}
     </>
   )

@@ -13,6 +13,7 @@ import * as yup from 'yup'
 import Utility from 'src/utility'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
+import moment from 'moment'
 
 // Enable custom parse format plugin for dayjs
 dayjs.extend(customParseFormat)
@@ -28,7 +29,7 @@ const ScheduleDosageSidesheet = ({
   medicalMasterData
 }) => {
   const theme = useTheme()
-  const previousUnitsRef = useRef([])
+  const hasSetDefaults = useRef(false)
 
   const commonFieldStyles = {
     textAlign: 'left',
@@ -37,6 +38,9 @@ const ScheduleDosageSidesheet = ({
       borderRadius: '4px'
     }
   }
+
+  // Get dosage measurement types from medical master data
+  const prescriptionDosageMeasurementType = medicalMasterData?.prescriptionDosageMeasurementType || []
 
   // Validation schema based on reference component
   const validationSchema = yup.object({
@@ -69,7 +73,38 @@ const ScheduleDosageSidesheet = ({
         })
       )
       .min(1, 'At least one schedule time is required')
-      .required('Schedules are required'),
+      .required('Schedules are required')
+      .test('unique-times', 'Duplicate times are not allowed', function (schedules) {
+        if (!schedules || schedules.length <= 1) return true
+
+        const times = schedules
+          .map(schedule => {
+            if (!schedule?.time) return null
+
+            // Convert to standard format for comparison (HH:mm)
+            const timeStr = moment(schedule.time).format('HH:mm')
+
+            return timeStr
+          })
+          .filter(Boolean)
+
+        const uniqueTimes = new Set(times)
+        if (times.length !== uniqueTimes.size) {
+          // Find the duplicate time index
+          const seenTimes = new Map()
+          for (let i = 0; i < times.length; i++) {
+            if (seenTimes.has(times[i])) {
+              return this.createError({
+                path: `schedules[${i}].time`,
+                message: 'This time is already selected'
+              })
+            }
+            seenTimes.set(times[i], i)
+          }
+        }
+
+        return true
+      }),
     applyDosage: yup
       .string()
       .oneOf(['only_for_this_day', 'till_prescription_ends'], 'Please select dosage application type')
@@ -129,53 +164,69 @@ const ScheduleDosageSidesheet = ({
     keyName: 'fieldId'
   })
 
-  // Watch all dosage units
-  const allSchedules = watch('schedules')
-
-  // Sync dosageUnit across all schedules when any one changes
+  // Set default values when the component opens
   useEffect(() => {
-    if (allSchedules && allSchedules.length > 0) {
-      const currentUnits = allSchedules.map(schedule => schedule?.dosageUnit || '')
-
-      // Find which unit changed by comparing with previous values
-      let changedIndex = -1
-      let newUnit = null
-
-      for (let i = 0; i < currentUnits.length; i++) {
-        if (previousUnitsRef.current[i] !== currentUnits[i] && currentUnits[i]) {
-          changedIndex = i
-          newUnit = currentUnits[i]
-          break
+    if (handleOpen && !hasSetDefaults.current) {
+      // Set initial schedule with no unit selected
+      setValue('schedules', [
+        {
+          time: slotStart || dayjs(),
+          dosageQuantity: '',
+          dosageUnit: '', // Empty by default
+          dosageWeights: ''
         }
-      }
+      ])
 
-      // If a unit was changed and there are multiple schedules, sync all units
-      if (changedIndex !== -1 && newUnit && allSchedules.length > 1) {
-        allSchedules.forEach((schedule, idx) => {
-          if (idx !== changedIndex && schedule?.dosageUnit !== newUnit) {
-            setValue(`schedules.${idx}.dosageUnit`, newUnit, { shouldValidate: false })
-          }
-        })
-      }
-
-      // Update the ref with current units
-      previousUnitsRef.current = currentUnits
+      hasSetDefaults.current = true
     }
-  }, [allSchedules?.map(s => s?.dosageUnit).join(','), allSchedules?.length, setValue])
+  }, [handleOpen, slotStart, setValue])
+
+  // Reset the flag when component closes
+  useEffect(() => {
+    if (!handleOpen) {
+      hasSetDefaults.current = false
+    }
+  }, [handleOpen])
+
+  // Handler for adding new time slot - similar to reference component
+  const handleAddTime = e => {
+    e.preventDefault()
+
+    // Get the current schedules
+    const currentSchedules = getValues('schedules')
+
+    // Get the unit from the last schedule (previous index) if it exists
+    const lastScheduleUnit = currentSchedules[currentSchedules.length - 1]?.dosageUnit || ''
+
+    // Get default time - either current time or increment from last schedule
+    let defaultTime
+    if (currentSchedules[currentSchedules.length - 1]?.time) {
+      // Add 1 hour to the last schedule time
+      defaultTime = dayjs(currentSchedules[currentSchedules.length - 1].time)
+    } else {
+      defaultTime = slotStart || dayjs()
+    }
+
+    // Add new schedule with the previous schedule's unit (could be empty)
+    append({
+      time: defaultTime,
+      dosageQuantity: '',
+      dosageUnit: lastScheduleUnit, // This will be empty if previous schedule had no unit
+      dosageWeights: ''
+    })
+  }
 
   useEffect(() => {
     if (!handleOpen) {
       // Reset form when sidesheet closes
       reset(defaultValues)
-      previousUnitsRef.current = []
     }
   }, [handleOpen, reset])
 
   // Set default time if scheduledTime is present
   useEffect(() => {
-    if (scheduleDosage?.scheduledTime) {
+    if (scheduleDosage?.scheduledTime && !hasSetDefaults.current) {
       const defaultTime = convertTimeToMuiFormat(scheduleDosage.scheduledTime)
-      const defaultUnit = medicalMasterData?.prescriptionDosageMeasurementType?.[0]?.unit_name || ''
 
       reset(prev => ({
         ...prev,
@@ -183,20 +234,17 @@ const ScheduleDosageSidesheet = ({
           {
             time: defaultTime,
             dosageQuantity: '',
-            dosageUnit: defaultUnit,
+            dosageUnit: '', // Empty by default
             dosageWeights: ''
           }
         ]
       }))
-
-      // Initialize the ref with the default unit
-      previousUnitsRef.current = [defaultUnit]
     }
-  }, [scheduleDosage?.scheduledTime, medicalMasterData, reset])
+  }, [scheduleDosage?.scheduledTime, reset])
 
   const handleClose = () => {
     reset(defaultValues)
-    previousUnitsRef.current = []
+    hasSetDefaults.current = false
     handleSidebarClose()
   }
 
@@ -211,8 +259,6 @@ const ScheduleDosageSidesheet = ({
     }
 
     onSubmit(formattedData)
-
-    // handleClose()
   }
 
   useEffect(() => {
@@ -350,7 +396,7 @@ const ScheduleDosageSidesheet = ({
                             [`schedules.${idx}.dosageQuantity`]: errors?.schedules?.[idx]?.dosageQuantity,
                             [`schedules.${idx}.dosageUnit`]: errors?.schedules?.[idx]?.dosageUnit
                           }}
-                          options={medicalMasterData?.prescriptionDosageMeasurementType}
+                          options={prescriptionDosageMeasurementType}
                           label='Quantity'
                           placeholder='Enter quantity'
                           type='number'
@@ -394,23 +440,7 @@ const ScheduleDosageSidesheet = ({
                           color: theme.palette.action.disabled
                         }
                       }}
-                      onClick={e => {
-                        e.preventDefault()
-
-                        // Use the current first schedule's dosageUnit for new entries
-                        const currentSchedules = getValues('schedules')
-
-                        const currentUnit =
-                          currentSchedules?.[0]?.dosageUnit ||
-                          medicalMasterData?.prescriptionDosageMeasurementType?.[0]?.unit_name ||
-                          ''
-                        append({
-                          time: null,
-                          dosageQuantity: '',
-                          dosageUnit: currentUnit,
-                          dosageWeights: ''
-                        })
-                      }}
+                      onClick={handleAddTime}
                     >
                       Add Time
                     </Button>

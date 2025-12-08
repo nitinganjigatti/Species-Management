@@ -71,7 +71,46 @@ export default function AddMedicineToPrescription() {
       .array()
       .of(
         yup.object({
-          time: yup.string().required('Time is required'),
+          time: yup
+            .string()
+            .required('Time is required')
+            .test('valid-time-for-today', function (value) {
+              const { selectMedicineType, frequency, prescriptionStartDate } = this.from[1].value
+
+              // Only validate for Direct Administer + One Time + Today
+              if (selectMedicineType !== 'Direct Administer') {
+                return true
+              }
+
+              const isOneTime = frequency === '2' || frequency === 2
+              if (!isOneTime) {
+                return true
+              }
+
+              if (!value || !prescriptionStartDate) {
+                return true
+              }
+
+              const selectedDate = moment(prescriptionStartDate)
+              const today = moment()
+
+              // Only validate if selected date is today
+              if (!selectedDate.isSame(today, 'day')) {
+                return true
+              }
+
+              const selectedTime = moment(value)
+              const now = moment()
+
+              // Check if selected time is in the future
+              if (selectedTime.isAfter(now)) {
+                return this.createError({
+                  message: "Time cannot be in the future for today's date"
+                })
+              }
+
+              return true
+            }),
           quantity: yup
             .number()
             .typeError('Quantity must be a number')
@@ -89,8 +128,6 @@ export default function AddMedicineToPrescription() {
         const times = schedules
           .map(schedule => {
             if (!schedule?.time) return null
-
-            // Convert to standard format for comparison (HH:mm)
             const timeStr = moment(schedule.time).format('HH:mm')
 
             return timeStr
@@ -99,7 +136,6 @@ export default function AddMedicineToPrescription() {
 
         const uniqueTimes = new Set(times)
         if (times.length !== uniqueTimes.size) {
-          // Find the duplicate time index
           const seenTimes = new Map()
           for (let i = 0; i < times.length; i++) {
             if (seenTimes.has(times[i])) {
@@ -117,7 +153,39 @@ export default function AddMedicineToPrescription() {
 
     deliveryRoute: yup.string().required('Please select a delivery route'),
 
-    prescriptionStartDate: yup.string().required('Start date is required'),
+    prescriptionStartDate: yup
+      .string()
+      .required('Start date is required')
+      .test('valid-direct-admin-date', function (value) {
+        const { selectMedicineType, dosageDuration } = this.parent
+
+        // Only validate for Direct Administer
+        if (selectMedicineType !== 'Direct Administer') {
+          return true
+        }
+
+        if (!value || !dosageDuration?.value || !dosageDuration?.unit) {
+          return true // Let required validation handle empty values
+        }
+
+        const endDate = moment(value)
+        const admittedDate = moment(medicalRecordData?.animal_admitted_date)
+
+        // Calculate start date by going backwards
+        const calculatedStartDate = calculateStartDate(value, dosageDuration)
+        const startDate = moment(calculatedStartDate)
+
+        // Check if calculated start date is before admitted date
+        if (startDate.isBefore(admittedDate, 'day')) {
+          return this.createError({
+            message: `Start date cannot be before admission date (${admittedDate.format(
+              'DD MMM YYYY'
+            )}). Please reduce duration or select a later end date.`
+          })
+        }
+
+        return true
+      }),
 
     dosageDuration: yup.object().when('frequency', {
       is: frequency => {
@@ -1217,6 +1285,7 @@ export default function AddMedicineToPrescription() {
           <PrescriptionMedicineList
             medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
             temporarilySelectedMedicine={temporarilySelectedMedicine}
+
             // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
             selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
             onSelect={handleMedicineSelect}

@@ -387,6 +387,7 @@ const PatientDetails = ({ category }) => {
           patientData={patientData}
           loading={patientLoading}
           refetch={refetchPatient}
+          category={category}
         />
         <Card sx={{ mt: 6, p: { xs: 3, md: 6 }, mb: selectedTab === 'discharge' ? 4 : 0 }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
