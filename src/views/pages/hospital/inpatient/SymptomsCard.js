@@ -374,7 +374,11 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
             <UserAvatarDetails
               profile_image={record?.additional_info?.resolved_user_profile_pic}
               user_name={record?.additional_info?.resolved_user_name || record?.created_by_user_name}
-              date={record?.latest_note?.modified_at || record?.additional_info?.closed_comment_date}
+              date={
+                record?.status === 'active'
+                  ? record?.created_at
+                  : record?.latest_note?.modified_at || record?.additional_info?.closed_comment_date
+              }
               show_time
               compact={true}
             />
