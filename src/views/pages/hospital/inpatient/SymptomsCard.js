@@ -369,12 +369,12 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
                 ml: { xs: 0, md: 1 }
               }}
             >
-              Resolved by
+              {record?.status === 'active' ? 'Created by' : 'Resolved by'}
             </Typography>
             <UserAvatarDetails
               profile_image={record?.additional_info?.resolved_user_profile_pic}
               user_name={record?.additional_info?.resolved_user_name || record?.created_by_user_name}
-              date={Utility.formatDisplayDate(record?.created_at)}
+              date={record?.latest_note?.modified_at || record?.additional_info?.closed_comment_date}
               show_time
               compact={true}
             />
