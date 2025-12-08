@@ -394,7 +394,7 @@ const PatientAdmitForm = () => {
                   ) : (
                     <AnimalCard
                       data={{
-                        default_icon: patientData?.entity_details?.[0]?.default_icon_full_path,
+                        default_icon: patientData?.entity_details?.[0]?.default_icon,
                         sex: patientData?.entity_details?.[0]?.sex,
                         type: patientData?.entity_details?.[0]?.type,
                         local_identifier_name: patientData?.entity_details?.[0]?.local_identifier_name,
