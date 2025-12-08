@@ -37,6 +37,7 @@ const StockLocation = () => {
   const theme = useTheme()
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
+  const hasViewPermission = selectedPharmacy?.permission?.key === 'VIEW'
 
   const tabsForFilter = ['Racks']
 
@@ -303,18 +304,20 @@ const StockLocation = () => {
       sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-          <Tooltip title='Edit' placement='top'>
-            <IconButton
-              size='small'
-              onClick={() => {
-                setEditProduct(params?.row)
-                setShow(true)
-              }}
-              aria-label='Edit'
-            >
-              <Icon icon='mdi:pencil-outline' />
-            </IconButton>
-          </Tooltip>
+          {!hasViewPermission && (
+            <Tooltip title='Edit' placement='top'>
+              <IconButton
+                size='small'
+                onClick={() => {
+                  setEditProduct(params?.row)
+                  setShow(true)
+                }}
+                aria-label='Edit'
+              >
+                <Icon icon='mdi:pencil-outline' />
+              </IconButton>
+            </Tooltip>
+          )}
           <Tooltip title='More Options' placement='top'>
             <MenuWithDots options={getMenuOptions(params?.row)} />
           </Tooltip>
@@ -382,11 +385,9 @@ const StockLocation = () => {
     showDialog()
   }
 
-  const headerAction = (
-    <>
-      <AddButtonContained title='New Configurations' action={handleAddProduct} fullWidth={'fullWidth'} />
-    </>
-  )
+  const headerAction = !hasViewPermission ? (
+    <AddButtonContained title='New Configurations' action={handleAddProduct} fullWidth={'fullWidth'} />
+  ) : null
 
   const handleFilterDrawer = () => {
     setOpenFilter(true)

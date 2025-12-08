@@ -298,6 +298,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
   const router = useRouter()
   const { id } = router.query
   const pathname = router?.pathname
+  const hasViewPermission = selectedPharmacy?.permission?.key === 'VIEW'
 
   const closeDisputeDialog = () => {
     setDisputeDialog(false)
@@ -1203,7 +1204,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                       <FormControl size='small' style={{ width: '100%' }}>
                         <Select
                           label=''
-                          // disabled={getDisableStatus(params.row.id)}
+                          disabled={hasViewPermission}
                           name='wrong_count_type'
                           size='small'
                           style={{ fontSize: '12px' }}
@@ -1320,7 +1321,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                                 <FormControl size='small' style={{ width: '100%' }}>
                                   <Select
                                     label=''
-                                    // disabled={getDisableStatus(params.row.id)}
+                                    disabled={hasViewPermission}
 
                                     name='wrong_count_type'
                                     size='small'
@@ -1437,7 +1438,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                         ) : (
                           <FormControl fullWidth size='small'>
                             <Select
-                              // disabled={getDisableStatus(params.row.id)}
+                              disabled={hasViewPermission}
                               fullWidth
                               placeholder='Status'
                               name='status'

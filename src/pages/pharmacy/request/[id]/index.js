@@ -1515,6 +1515,7 @@ const IndividualRequest = () => {
                         onClick={() => {
                           handleRequestEdit()
                         }}
+                        disabled={selectedPharmacy?.permission?.key === 'VIEW'}
                       >
                         Edit
                       </Button>
