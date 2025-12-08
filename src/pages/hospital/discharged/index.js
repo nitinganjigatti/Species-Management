@@ -84,7 +84,8 @@ const HospitalDischarged = () => {
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('Chief Veterinarian'),
         origin_site: prepareFilterParams('Origin Site')
-      })
+      }),
+    enabled: !!selectedHospital?.id
   })
 
   const total = data?.data?.total || 0

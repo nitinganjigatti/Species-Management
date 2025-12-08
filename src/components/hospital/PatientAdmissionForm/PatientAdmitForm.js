@@ -318,7 +318,7 @@ const PatientAdmitForm = () => {
       const response = await getHospitalDetail(id)
 
       if (response?.status) {
-        if(response?.data?.has_permission == 1) {
+        if (response?.data?.has_permission == 1) {
           setHasPermission(response?.data?.has_permission)
         } else {
           setHasPermission(0)
@@ -394,7 +394,7 @@ const PatientAdmitForm = () => {
                   ) : (
                     <AnimalCard
                       data={{
-                        default_icon: patientData?.entity_details?.[0]?.default_icon_full_path,
+                        default_icon: patientData?.entity_details?.[0]?.default_icon,
                         sex: patientData?.entity_details?.[0]?.sex,
                         type: patientData?.entity_details?.[0]?.type,
                         local_identifier_name: patientData?.entity_details?.[0]?.local_identifier_name,
@@ -539,7 +539,7 @@ const PatientAdmitForm = () => {
                         <Typography
                           sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                         >
-                          Attending chief doctor
+                          Attending chief Veterinarian
                         </Typography>
                         {selectedDoctor === null ? (
                           <Box
@@ -840,7 +840,6 @@ const PatientAdmitForm = () => {
           dialogBoxStatus={showConfirmation}
           onClose={() => setShowConfirmation(false)}
           title={'Access Restricted'}
-
           // cancelText={'G'}
           cancelBtnStyle={{
             borderColor: theme.palette.grey[500],
