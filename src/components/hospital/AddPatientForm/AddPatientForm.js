@@ -582,7 +582,7 @@ const AddPatientForm = () => {
                     <Typography
                       sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      Attending chief doctor
+                      Attending chief Veterinarian
                     </Typography>
                     {selectedDoctor === null ? (
                       <Box

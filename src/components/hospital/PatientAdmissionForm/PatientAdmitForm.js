@@ -318,7 +318,7 @@ const PatientAdmitForm = () => {
       const response = await getHospitalDetail(id)
 
       if (response?.status) {
-        if(response?.data?.has_permission == 1) {
+        if (response?.data?.has_permission == 1) {
           setHasPermission(response?.data?.has_permission)
         } else {
           setHasPermission(0)
@@ -539,7 +539,7 @@ const PatientAdmitForm = () => {
                         <Typography
                           sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                         >
-                          Attending chief doctor
+                          Attending chief Veterinarian
                         </Typography>
                         {selectedDoctor === null ? (
                           <Box
@@ -840,7 +840,6 @@ const PatientAdmitForm = () => {
           dialogBoxStatus={showConfirmation}
           onClose={() => setShowConfirmation(false)}
           title={'Access Restricted'}
-
           // cancelText={'G'}
           cancelBtnStyle={{
             borderColor: theme.palette.grey[500],
