@@ -112,11 +112,28 @@ import debounce from 'lodash/debounce'
 import { getHospitalMaster } from 'src/lib/api/hospital/hospitalMaster'
 import { addInpatientDischarge } from 'src/lib/api/hospital/inpatientDischarge'
 import Toaster from 'src/components/Toaster'
+import { useHospital } from 'src/context/HospitalContext'
+import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 
 function TransferHospitalDischarge() {
   const [hospitalData, setHospitalData] = useState([])
   const [isLoadingHospital, setIsLoadingHospital] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
+
+  const { selectedHospital, updateHospitalStats } = useHospital()
+
+  const fetchAndUpdateHospitalStats = async hospitalId => {
+    if (!hospitalId) return
+
+    try {
+      const statsResponse = await getHospitalBedStats(hospitalId)
+      if (statsResponse?.success) {
+        updateHospitalStats(statsResponse.data)
+      }
+    } catch (error) {
+      console.error('Error fetching hospital stats:', error)
+    }
+  }
 
   //  Fetch hospital list
   const fetchHospital = useCallback(async (query = '') => {
@@ -171,6 +188,8 @@ function TransferHospitalDischarge() {
 
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message || 'Transfer to hospital Submitted successfully' })
+
+        fetchAndUpdateHospitalStats(selectedHospital?.id)
 
         return true
       }

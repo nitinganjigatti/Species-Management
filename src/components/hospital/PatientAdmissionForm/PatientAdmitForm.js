@@ -38,7 +38,7 @@ import moment from 'moment'
 import { useHospital } from 'src/context/HospitalContext'
 import { debounce } from 'lodash'
 import Utility from 'src/utility'
-import { getHospitalDetail } from 'src/lib/api/hospital/hospitalAnalytics'
+import { getHospitalBedStats, getHospitalDetail } from 'src/lib/api/hospital/hospitalAnalytics'
 import { write } from 'src/lib/windows/utils'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -197,6 +197,19 @@ const PatientAdmitForm = () => {
     getHospitalBeds()
   }, [selectedRoom, selectedHospital, searchEnclosure])
 
+  const fetchAndUpdateHospitalStats = async hospitalId => {
+    if (!hospitalId) return
+
+    try {
+      const statsResponse = await getHospitalBedStats(hospitalId)
+      if (statsResponse?.success) {
+        updateHospitalStats(statsResponse.data)
+      }
+    } catch (error) {
+      console.error('Error fetching hospital stats:', error)
+    }
+  }
+
   const onSubmit = async data => {
     setSubmitLoader(true)
     try {
@@ -223,6 +236,7 @@ const PatientAdmitForm = () => {
               pathname: `/hospital/inpatient`
             })
           }
+          fetchAndUpdateHospitalStats(selectedHospital?.id)
           setSubmitLoader(false)
         } else {
           Toaster({ type: 'error', message: res?.message })
@@ -304,13 +318,13 @@ const PatientAdmitForm = () => {
       const response = await getHospitalDetail(id)
 
       if (response?.status) {
-        if(response?.data?.has_permission == 1){
+        if(response?.data?.has_permission == 1) {
           setHasPermission(response?.data?.has_permission)
         } else {
           setHasPermission(0)
           setShowConfirmation(true)
         }
-      } 
+      }
     } catch (error) {
       console.error('Error fetching hospital detail:', error)
     }
@@ -323,11 +337,14 @@ const PatientAdmitForm = () => {
     updateHospitalStats(null)
 
     // Invalidate ALL queries that start with 'hospitals-inpatient'
-  queryClient.invalidateQueries({ 
-    queryKey: ['hospitals-listing-inpatient'] 
-  }, {
-    type: 'all' // This will invalidate all queries with this prefix
-  })
+    queryClient.invalidateQueries(
+      {
+        queryKey: ['hospitals-listing-inpatient']
+      },
+      {
+        type: 'all' // This will invalidate all queries with this prefix
+      }
+    )
     router.back()
   }
 

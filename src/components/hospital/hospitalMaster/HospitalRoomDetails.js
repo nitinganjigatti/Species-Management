@@ -43,6 +43,8 @@ import {
   updateHospitalRoom,
   updateHospitalStatus
 } from 'src/lib/api/hospital/hospitalRooms'
+import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
+import { useHospital } from 'src/context/HospitalContext'
 
 const HospitalRoomDetails = () => {
   const theme = useTheme()
@@ -72,6 +74,8 @@ const HospitalRoomDetails = () => {
     availability: '',
     status: ''
   })
+
+  const { updateHospitalStats, selectedHospital } = useHospital()
 
   // URL update helper function
   const updateUrlParams = useCallback(
@@ -373,6 +377,19 @@ const HospitalRoomDetails = () => {
     [filters, updateUrlParams]
   )
 
+  const fetchAndUpdateHospitalStats = async hospitalId => {
+    if (!hospitalId) return
+
+    try {
+      const statsResponse = await getHospitalBedStats(hospitalId)
+      if (statsResponse?.success) {
+        updateHospitalStats(statsResponse.data)
+      }
+    } catch (error) {
+      console.error('Error fetching hospital stats:', error)
+    }
+  }
+
   // Helper function to check if room matches current filters
   const roomMatchesFilters = useCallback(
     room => {
@@ -501,6 +518,9 @@ const HospitalRoomDetails = () => {
                 response?.message ||
                 `Room ${editParams?.id ? 'updated' : 'added'} successfully. It doesn't match current filters.`
             })
+          }
+          if (selectedHospital?.id === id) {
+            fetchAndUpdateHospitalStats(id)
           }
           refetchRooms()
         } else {

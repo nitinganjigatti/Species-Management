@@ -343,7 +343,7 @@ const HospitalBedDetails = () => {
           if (response?.success) {
             Toaster({ type: 'success', message: response?.message || 'Bed saved successfully' })
             refetchBeds()
-            if (!editParams?.id && selectedHospital?.id === id) {
+            if (selectedHospital?.id === id) {
               fetchAndUpdateHospitalStats(id)
             }
           } else {
