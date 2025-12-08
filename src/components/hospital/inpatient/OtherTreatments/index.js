@@ -30,7 +30,7 @@ const formatTimestamp = isoString => {
   const safeDate = datePart && datePart !== 'Invalid date' ? datePart : ''
 
   if (safeTime && safeDate) {
-    return `${safeTime} • ${safeDate}`
+    return `${safeDate} • ${safeTime}`
   }
 
   return safeTime || safeDate || '-'
@@ -45,7 +45,7 @@ const formatClinicianTimestamp = isoString => {
   const safeDate = datePart && datePart !== 'Invalid date' ? datePart : ''
 
   if (safeTime && safeDate) {
-    return `${safeTime} • ${safeDate}`
+    return `${safeDate} • ${safeTime}`
   }
 
   return safeTime || safeDate || ''
