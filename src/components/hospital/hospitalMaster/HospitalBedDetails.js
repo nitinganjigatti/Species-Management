@@ -40,6 +40,8 @@ import { updateHospitalRoom } from 'src/lib/api/hospital/hospitalRooms'
 import Utility from 'src/utility'
 import Link from 'next/link'
 import CommonDialogBox from 'src/components/CommonDialogBox'
+import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
+import { useHospital } from 'src/context/HospitalContext'
 
 const statusOptions = [
   { label: 'Bed Status', value: 'all' },
@@ -68,6 +70,8 @@ const HospitalBedDetails = () => {
     hospital_id: id,
     status: undefined
   })
+
+  const { updateHospitalStats, selectedHospital } = useHospital()
 
   // URL update helper function
   const updateUrlParams = useCallback(
@@ -278,6 +282,19 @@ const HospitalBedDetails = () => {
     setEditParams(null)
   }, [])
 
+  const fetchAndUpdateHospitalStats = async hospitalId => {
+    if (!hospitalId) return
+
+    try {
+      const statsResponse = await getHospitalBedStats(hospitalId)
+      if (statsResponse?.success) {
+        updateHospitalStats(statsResponse.data)
+      }
+    } catch (error) {
+      console.error('Error fetching hospital stats:', error)
+    }
+  }
+
   // Close Warning Dialog
   const closeOccupiedBedWarningDialog = () => setIsOccupiedBedWarningOpen(false)
 
@@ -326,6 +343,9 @@ const HospitalBedDetails = () => {
           if (response?.success) {
             Toaster({ type: 'success', message: response?.message || 'Bed saved successfully' })
             refetchBeds()
+            if (!editParams?.id && selectedHospital?.id === id) {
+              fetchAndUpdateHospitalStats(id)
+            }
           } else {
             Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
           }

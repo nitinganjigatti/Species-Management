@@ -24,7 +24,7 @@ const HospitalInpatient = () => {
   const theme = useTheme()
   const router = useRouter()
 
-  const { selectedHospital } = useHospital()
+  const { selectedHospital, isHospitalAccessChecked } = useHospital()
 
   const [searchValue, setSearchValue] = useState('')
   const [selectedVisitType, setSelectedVisitType] = useState('')
@@ -84,7 +84,8 @@ const HospitalInpatient = () => {
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('Chief Veterinarian'),
         origin_site: prepareFilterParams('Origin Site')
-      })
+      }),
+    enabled: !!(isHospitalAccessChecked && selectedHospital?.id)
   })
 
   const total = data?.data?.total || 0

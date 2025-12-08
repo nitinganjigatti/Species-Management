@@ -21,7 +21,8 @@ const ConfirmationDialog = ({
   cancelBtnStyle,
   imgStyle,
   imgHeight = '70px',
-  imgWidth = '70px'
+  imgWidth = '70px',
+  allowCancel = true
 }) => {
   const theme = useTheme()
 
@@ -94,19 +95,21 @@ const ConfirmationDialog = ({
           </Typography>
         </Box>
         {formComponent ? <Box sx={{ width: '100%' }}>{formComponent} </Box> : null}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: 5 }}>
-          <Button
-            disabled={loading}
-            onClick={() => onClose()}
-            variant='outlined'
-            sx={{
-              color: 'gray',
-              width: '45%',
-              ...cancelBtnStyle
-            }}
-          >
-            {cancelText ? cancelText : 'Cancel'}
-          </Button>
+        <Box sx={{ display: 'flex', justifyContent: allowCancel ? 'space-between' : 'center', width: '100%', gap: 5 }}>
+          {allowCancel && (
+            <Button
+              disabled={loading}
+              onClick={() => onClose()}
+              variant='outlined'
+              sx={{
+                color: 'gray',
+                width: '45%',
+                ...cancelBtnStyle
+              }}
+            >
+              {cancelText ? cancelText : 'Cancel'}
+            </Button>
+          )}
           <Button
             sx={{
               width: '45%',

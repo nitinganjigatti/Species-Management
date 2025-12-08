@@ -23,7 +23,8 @@ const HospitalDropdown = ({ disabled = false }) => {
     updateHospitalStats,
     setHospitalStatsLoading,
     hasFetchedStatsForCurrentHospital,
-    markStatsAsFetched
+    markStatsAsFetched,
+    setIsHospitalAccessChecked
   } = useHospital()
 
   const [anchorEl, setAnchorEl] = useState(null)
@@ -99,7 +100,7 @@ const HospitalDropdown = ({ disabled = false }) => {
     isFetchingNextPage,
     isLoading
   } = useInfiniteQuery({
-    queryKey: ['hospitals-inpatient', searchQuery],
+    queryKey: ['hospitals-listing-inpatient', searchQuery],
     queryFn: async ({ pageParam = 1 }) => {
       const params = {
         page_no: pageParam,
@@ -212,6 +213,8 @@ const HospitalDropdown = ({ disabled = false }) => {
               updateSelectedHospital({
                 ...storedHospital
               })
+              setIsHospitalAccessChecked(true)
+              setIsCheckingHospitalAccess(false)
 
               // Fetch stats for the hospital (even if disabled)
               await fetchAndUpdateHospitalStats(hospitalData.id)
@@ -228,7 +231,7 @@ const HospitalDropdown = ({ disabled = false }) => {
           console.error('Error checking hospital access:', error)
           updateSelectedHospital(null)
         } finally {
-          setIsCheckingHospitalAccess(false)
+          if (isCheckingHospitalAccess) setIsCheckingHospitalAccess(false)
           setHasCheckedLocalStorage(true)
         }
       } else {
