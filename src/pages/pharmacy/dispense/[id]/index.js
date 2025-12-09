@@ -70,7 +70,7 @@ const IndividualDispense = () => {
     {
       minWidth: 180,
       field: 'unit_price',
-      headerName: 'Net Unit Price(₹)',
+      headerName: 'Unit Price(₹)',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatAmountToReadableDigit(params.row.unit_price ? params.row.unit_price : 0)}
