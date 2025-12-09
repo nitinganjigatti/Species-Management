@@ -30,6 +30,8 @@ const RequestedProductDetails = props => {
   const theme = useTheme()
   const { selectedPharmacy } = usePharmacyContext()
 
+  const isViewOnlyPermission = selectedPharmacy?.permission?.key === 'VIEW'
+
   // ** State
 
   const getStatusLabel = item => {
@@ -825,7 +827,7 @@ const RequestedProductDetails = props => {
                                   }}
                                   variant='contained'
                                   size='small'
-                                  disabled={selectedPharmacy.type === 'local'}
+                                  disabled={selectedPharmacy.type === 'local' || isViewOnlyPermission}
                                 >
                                   Full fill
                                 </Button>
