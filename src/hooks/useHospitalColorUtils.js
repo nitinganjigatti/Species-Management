@@ -43,9 +43,9 @@ const useHospitalColorUtils = () => {
 
   const getSymptomsSeverityColor = severity => {
     switch (severity) {
-      case 'Low':
+      case 'Mild':
         return { bgColor: theme.palette.customColors.displaybgPrimary, color: theme.palette.customColors.addPrimary }
-      case 'Medium':
+      case 'Moderate':
         return {
           bgColor: alpha(theme.palette.customColors.moderateSecondary, 0.2),
           color: theme.palette.customColors.moderateSecondary

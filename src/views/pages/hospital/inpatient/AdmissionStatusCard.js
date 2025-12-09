@@ -25,7 +25,7 @@ const AdmissionStatusCard = ({ type = 'admitted_on', value, isPatientDischarged 
                 whiteSpace: 'nowrap'
               }}
             >
-              {Utility.convertUTCToLocaltime(value)} <span>&bull;</span> {Utility.convertUtcToLocalReadableDate(value)}
+              {Utility.convertUtcToLocalReadableDate(value)} <span>&bull;</span> {Utility.convertUTCToLocaltime(value)}
             </Typography>
           )
         }

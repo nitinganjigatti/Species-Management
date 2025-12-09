@@ -1238,87 +1238,95 @@ export default function AddMedicineToPrescription() {
         }`}
         isLoading={patientLoading}
       />
-
-      <Grid
-        container
-        spacing={5}
-        className='match-height'
+      <Box
         sx={{
-          mt: 5,
-          mb: 8,
-          background: theme.palette.common.white,
-          px: 6,
-          py: 4,
+          backgroundColor: theme.palette.common.white,
           borderRadius: '8px',
-          alignItems: 'center'
+          p: 6,
+          mt: 6,
+          background: theme.palette.common.white
         }}
       >
-        <Grid size={{ xs: 12, md: 4, lg: 4 }}>
-          <Typography variant='h6' sx={{ mb: 2 }}>
-            Select the medicine to
-          </Typography>
-        </Grid>
-        <Grid size={{ xs: 12, md: 4, lg: 4 }}>
-          <TreatmentTypeRadioButtons
-            label='Schedule'
-            isSelected={watch('selectMedicineType') === 'Schedule'}
-            sx={{
-              borderColor: `${theme.palette.customColors.OutlineVariant}`
-            }}
-            onClick={() => setValue('selectMedicineType', 'Schedule')}
-          />
-        </Grid>
-        {!discharge_tab && (
+        <Grid
+          container
+          spacing={5}
+          className='match-height'
+          sx={{ alignItems: 'center' }}
+        >
+          <Grid size={{ xs: 12, md: 4, lg: 4 }}>
+            <Typography variant='h6' sx={{ mb: 2 }}>
+              Select the medicine to
+            </Typography>
+          </Grid>
           <Grid size={{ xs: 12, md: 4, lg: 4 }}>
             <TreatmentTypeRadioButtons
-              label='Direct Administer'
-              isSelected={watch('selectMedicineType') === 'Direct Administer'}
+              label='Schedule'
+              isSelected={watch('selectMedicineType') === 'Schedule'}
               sx={{
                 borderColor: `${theme.palette.customColors.OutlineVariant}`
               }}
-              onClick={() => setValue('selectMedicineType', 'Direct Administer')}
+              onClick={() => setValue('selectMedicineType', 'Schedule')}
             />
           </Grid>
-        )}
-
-        <Grid size={{ xs: 12, md: 7, lg: 7 }}>
-          <PrescriptionMedicineList
-            medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
-            temporarilySelectedMedicine={temporarilySelectedMedicine}
-
-            // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
-            selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
-            onSelect={handleMedicineSelect}
-            searchQuery={medicineSearchQuery}
-            handleSearchChange={handleMedicineSearch}
-            handleClearSearch={handleClearSearch}
-            isDirectAdminister={watch('selectMedicineType') === 'Direct Administer'}
-            handleScroll={handleScroll}
-            loading={medicineLoading}
-            searching={searching}
-            error={errors.selectedMedicine?.message || errors.selectedMedicineId?.message}
-            prescribedMedicines={medicationData}
-          />
+          {!discharge_tab && (
+            <Grid size={{ xs: 12, md: 4, lg: 4 }}>
+              <TreatmentTypeRadioButtons
+                label='Direct Administer'
+                isSelected={watch('selectMedicineType') === 'Direct Administer'}
+                sx={{
+                  borderColor: `${theme.palette.customColors.OutlineVariant}`
+                }}
+                onClick={() => setValue('selectMedicineType', 'Direct Administer')}
+              />
+            </Grid>
+          )}
         </Grid>
-        <Grid size={{ xs: 12, md: 5, lg: 5 }}>
-          <ScheduleMedicine
-            medicalMasterData={medicalMasterData}
-            control={control}
-            setValue={setValue}
-            getValues={getValues}
-            errors={errors}
-            isMedicineSelected={temporarilySelectedMedicine?.id}
-            selectedMedicineTo={watch('selectMedicineType')}
-            batchList={batchList}
-            batchLoading={batchLoading}
-            handleBatchSearch={handleBatchSearch}
-            isControlledSubstance={temporarilySelectedMedicine?.controlled_substance === 1}
-            isOneTimeFrequency={isOneTimeFrequency}
-            endsOn={endsOn}
-            reset={reset}
-          />
+        <Grid
+          container
+          spacing={5}
+          className='match-height'
+          sx={{ pt: 6 }}
+        >
+          <Grid size={{ xs: 12, md: 7, lg: 7 }}>
+            <PrescriptionMedicineList
+              medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
+              temporarilySelectedMedicine={temporarilySelectedMedicine}
+
+              // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
+              selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
+              onSelect={handleMedicineSelect}
+              searchQuery={medicineSearchQuery}
+              handleSearchChange={handleMedicineSearch}
+              handleClearSearch={handleClearSearch}
+              isDirectAdminister={watch('selectMedicineType') === 'Direct Administer'}
+              handleScroll={handleScroll}
+              loading={medicineLoading}
+              searching={searching}
+              error={errors.selectedMedicine?.message || errors.selectedMedicineId?.message}
+              prescribedMedicines={medicationData}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, md: 5, lg: 5 }}>
+            <ScheduleMedicine
+              medicalMasterData={medicalMasterData}
+              control={control}
+              setValue={setValue}
+              getValues={getValues}
+              errors={errors}
+              isMedicineSelected={temporarilySelectedMedicine?.id}
+              selectedMedicineTo={watch('selectMedicineType')}
+              batchList={batchList}
+              batchLoading={batchLoading}
+              handleBatchSearch={handleBatchSearch}
+              isControlledSubstance={temporarilySelectedMedicine?.controlled_substance === 1}
+              isOneTimeFrequency={isOneTimeFrequency}
+              endsOn={endsOn}
+              reset={reset}
+            />
+          </Grid>
         </Grid>
-      </Grid>
+      </Box>
+
       <ActionButtons
         cancelLabel='CANCEL'
         addLabel={watch('selectMedicineType') === 'Direct Administer' ? 'Administer' : 'Schedule'}

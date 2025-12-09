@@ -124,7 +124,7 @@ const AddClinicalAsmntDrawer = ({
                 }
               }}
             >
-              <MenuItem value='Differential'>Differential</MenuItem>
+              <MenuItem value='Differential'>Tentative</MenuItem>
               <MenuItem value='Diagnosis'>Diagnosis</MenuItem>
             </Select>
             {!clinicalAsmnt && (

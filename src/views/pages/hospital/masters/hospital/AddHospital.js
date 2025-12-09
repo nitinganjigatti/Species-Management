@@ -63,7 +63,7 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
   const theme = useTheme()
   const authData = useContext(AuthContext)
 
-  const getSitesList = useMemo(() => authData?.userData?.user?.zoos?.[0]?.sites ?? [], [authData])
+  const getSitesList = useMemo(() => authData?.userData?.user?.zoos?.[0]?.sites ?? [], [authData?.userData?.user?.zoos])
 
   const {
     reset,
@@ -220,29 +220,6 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
           </Card>
 
           {/* Footer button */}
-          {/* <Box
-            sx={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              width: '100%',
-              p: 4,
-              display: 'flex',
-              justifyContent: 'center',
-              boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark, 0.1)}`,
-              backgroundColor: theme.palette.background.paper
-            }}
-          >
-            <LoadingButton
-              variant='contained'
-              type='submit'
-              loading={submitLoader}
-              sx={{ flex: 1, py: 4 }}
-              disabled={!isValid || submitLoader}
-            >
-              Add Hospital
-            </LoadingButton>
-          </Box> */}
         </form>
       </Box>
       <Box

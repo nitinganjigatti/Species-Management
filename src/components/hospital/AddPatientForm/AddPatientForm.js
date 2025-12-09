@@ -39,6 +39,7 @@ import dayjs from 'dayjs'
 import moment from 'moment'
 import AddPatientFiltersDrawer from '../inpatient/AddPatientFiltersDrawer'
 import SortBottomSheet from '../inpatient/SortBottomSheet'
+import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 
 const defaultValues = {
   treatmentType: 'inpatient',
@@ -92,7 +93,7 @@ const AddPatientForm = () => {
   const theme = useTheme()
   const router = useRouter()
 
-  const { selectedHospital } = useHospital()
+  const { selectedHospital, updateHospitalStats } = useHospital()
 
   const [medicalId, setMedicalId] = useState([])
   const [holdingEnclosures, setHoldingEnclosures] = useState([])
@@ -247,6 +248,19 @@ const AddPatientForm = () => {
     }
   }, [selectedAnimal?.animal_id])
 
+  const fetchAndUpdateHospitalStats = async hospitalId => {
+    if (!hospitalId) return
+
+    try {
+      const statsResponse = await getHospitalBedStats(hospitalId)
+      if (statsResponse?.success) {
+        updateHospitalStats(statsResponse.data)
+      }
+    } catch (error) {
+      console.error('Error fetching hospital stats:', error)
+    }
+  }
+
   const onSubmit = async data => {
     const valid = await trigger()
     if (!valid) {
@@ -294,6 +308,7 @@ const AddPatientForm = () => {
           } else if (watchTreatmentType === 'inpatient') {
             router.back()
           }
+          fetchAndUpdateHospitalStats(selectedHospital?.id)
         } else {
           Toaster({ type: 'error', message: res?.message })
         }
@@ -567,7 +582,7 @@ const AddPatientForm = () => {
                     <Typography
                       sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      Attending chief doctor
+                      Attending chief Veterinarian
                     </Typography>
                     {selectedDoctor === null ? (
                       <Box

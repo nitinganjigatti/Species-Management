@@ -35,7 +35,8 @@ import {
   stopPrescription
 } from 'src/lib/api/hospital/prescription'
 import Toaster from 'src/components/Toaster'
-import { useHospital } from 'src/context/HospitalContext'
+
+const STORAGE_KEY = 'medical_record_data'
 
 const dischargeTypeOptions = [
   { label: 'Mortality', value: 'Mortality' },
@@ -50,9 +51,12 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   const { id } = router.query
 
   const medicalRecordId = patientData?.medical_record_id
-  const { selectedHospital } = useHospital()
-
-  const { data, updateState, resetState } = useDynamicStateContext() // Dynamic Context Access
+  const { data, updateState, resetState } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
+  const medical_record_id = medicalRecordData?.medical_record_id
+  const discharge_at = medicalRecordData?.discharge_at
+  const site_id = medicalRecordData?.site_id
+  const purpose_of_visit = medicalRecordData?.purpose_of_visit
 
   // Separate dynamic states for each medicine table discharge type
   const transferMedicines = data.transfer_medicines || []
@@ -73,6 +77,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   const [isTransferEnclosureDirty, setIsTransferEnclosureDirty] = useState(false)
   const [selectedTab, setSelectedTab] = useState('TransferEnclosure')
   const [securityCheck, setSecurityCheck] = useState(null)
+  const [isSecurityCheckLoading, setIsSecurityCheckLoading] = useState(false)
 
   // Mortality
   const {
@@ -88,13 +93,13 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   } = MortalityDischarge()
 
   // Transfer Hospital
-  const {
-    isLoadingHospital,
-    hospitalData,
-    handleHospitalSearch,
-    submitLoader: transferHospitalSubmitLoader,
-    handleSubmitData: handleTransferHospitalSubmitData
-  } = TransferHospitalDischarge()
+  // const {
+  //   isLoadingHospital,
+  //   hospitalData,
+  //   handleHospitalSearch,
+  //   submitLoader: transferHospitalSubmitLoader,
+  //   handleSubmitData: handleTransferHospitalSubmitData
+  // } = TransferHospitalDischarge()
 
   // RHF for discharge type
   const { control, watch, setValue } = useForm({
@@ -106,223 +111,224 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   const { submitLoader: transferEnclosureSubmitLoader, handleSubmitData: handleTransferEnclosureSubmitData } =
     TransferEnclosureDischarge()
 
-  const transferType = patientData?.animal_detail?.site_id === selectedHospital?.site_id ? 'intra' : 'inter'
-
   useEffect(() => {
+    if (!site_id) return
+    setIsSecurityCheckLoading(true)
+
     const getTransferCheck = async () => {
-      await getSecurityCheckForTransfer(patientData?.animal_detail?.site_id).then(res => {
+      await getSecurityCheckForTransfer(site_id).then(res => {
         setSecurityCheck(res?.success)
+        setIsSecurityCheckLoading(false)
       })
     }
 
     getTransferCheck()
-  }, [patientData?.animal_detail?.site_id])
+  }, [site_id])
 
   // Fetch active prescriptions
-  const getPrescriptionList = async () => {
-    try {
-      setIsPrescriptionLoading(true)
+  // const getPrescriptionList = async () => {
+  //   try {
+  //     setIsPrescriptionLoading(true)
 
-      const payload = {
-        hospital_case_id: id,
-        medical_record_id: medicalRecordId,
-        status: 'active',
-        type: 'prescription'
-      }
-      const response = await getPrescriptionsByRecord(payload)
+  //     const payload = {
+  //       hospital_case_id: id,
+  //       medical_record_id: medicalRecordId,
+  //       status: 'active',
+  //       type: 'prescription'
+  //     }
+  //     const response = await getPrescriptionsByRecord(payload)
 
-      if (response?.success) {
-        setPrescription(response.data)
-      } else {
-        Toaster({ type: 'error', message: response?.message })
-      }
-    } catch (error) {
-      Toaster({ type: 'error', message: error?.response?.data?.message || error?.message || 'Something went wrong' })
-    } finally {
-      setIsPrescriptionLoading(false)
-    }
-  }
+  //     if (response?.success) {
+  //       setPrescription(response.data)
+  //     } else {
+  //       Toaster({ type: 'error', message: response?.message })
+  //     }
+  //   } catch (error) {
+  //     Toaster({ type: 'error', message: error?.response?.data?.message || error?.message || 'Something went wrong' })
+  //   } finally {
+  //     setIsPrescriptionLoading(false)
+  //   }
+  // }
 
   // Stop prescription
-  const handleStopPrescription = async row => {
-    try {
-      setIsStopPrescriptionLoading(true)
+  // const handleStopPrescription = async row => {
+  //   try {
+  //     setIsStopPrescriptionLoading(true)
 
-      const payload = {
-        medical_record_id: row?.medical_record_id,
-        prescription_id: row?.id,
-        type: 'prescription',
-        status: 'stop',
-        note: row?.notes,
-        side_effect: row?.side_effect,
-        case: 'single',
-        main_prescription_id: row?.prescription_id
-      }
+  //     const payload = {
+  //       medical_record_id: row?.medical_record_id,
+  //       prescription_id: row?.id,
+  //       type: 'prescription',
+  //       status: 'stop',
+  //       note: row?.notes,
+  //       side_effect: row?.side_effect,
+  //       case: 'single',
+  //       main_prescription_id: row?.prescription_id
+  //     }
 
-      const response = await stopPrescription(payload)
+  //     const response = await stopPrescription(payload)
 
-      if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Medicine stopped successfully' })
-        getPrescriptionList()
-      } else {
-        Toaster({ type: 'error', message: response?.message })
-      }
-    } catch (error) {
-      console.error('Error stopping medicine:', error?.message)
-      Toaster({ type: 'error', message: error?.response?.data?.message || error?.message || 'Failed to stop medicine' })
-    } finally {
-      setIsStopPrescriptionLoading(false)
-    }
-  }
+  //     if (response?.success) {
+  //       Toaster({ type: 'success', message: response?.message || 'Medicine stopped successfully' })
+  //       getPrescriptionList()
+  //     } else {
+  //       Toaster({ type: 'error', message: response?.message })
+  //     }
+  //   } catch (error) {
+  //     console.error('Error stopping medicine:', error?.message || error)
+  //   } finally {
+  //     setIsStopPrescriptionLoading(false)
+  //   }
+  // }
 
   // Active prescription table columns (for Transfer Hospital)
-  const prescriptionsColumns = [
-    {
-      field: 'id',
-      headerName: 'Sl.NO',
-      minWidth: 80,
-      flex: 1,
-      sortable: false,
-      renderCell: params => (
-        <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
-          {params.row.sl_no}
-        </StyledTypography>
-      )
-    },
-    {
-      field: 'name',
-      headerName: 'Medicine Name',
-      minWidth: 200,
-      flex: 1,
-      sortable: false,
-      renderCell: params => (
-        <TextEllipsisWithModal
-          enableDialog={false}
-          text={params.row.name ?? ''}
-          style={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '1rem',
-            fontWeight: 600,
-            pl: 1.4,
-            maxWidth: '180px'
-          }}
-        />
-      )
-    },
-    {
-      field: 'frequency',
-      headerName: 'Dosage Times & Frequency',
-      minWidth: 250,
-      flex: 1,
-      sortable: false,
-      renderCell: params => (
-        <TextEllipsisWithModal
-          enableDialog={false}
-          text={`${params.row.dosage_count} / ${params.row.frequency}` ?? ''}
-          style={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '1rem',
-            pl: 1.4,
-            maxWidth: '230px',
-            fontWeight: 400
-          }}
-        />
-      )
-    },
-    {
-      field: 'start_date',
-      headerName: 'Starting Date',
-      minWidth: 140,
-      sortable: false,
-      renderCell: params => (
-        <StyledTypography sx={{ pl: 1.4 }} fontWeight={400}>
-          {Utility.convertUtcToLocalReadableDate(params.row.start_date)}
-        </StyledTypography>
-      )
-    },
-    {
-      field: 'end_date',
-      headerName: 'Ending Date',
-      minWidth: 180,
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 1,
-            border: `1px solid ${theme.palette.customColors.OnSurface}`,
-            borderRadius: '4px',
-            ml: 1.4,
-            padding: '8px 16px',
-            width: '160px',
-            color: theme.palette.customColors.OnSurface
-          }}
-        >
-          <Icon icon='mdi:calendar-blank' style={{ fontSize: 18 }} />
-          <StyledTypography color={theme.palette.customColors.OnSurface}>
-            {Utility.convertUtcToLocalReadableDate(params.row.end_date)}
-          </StyledTypography>
-        </Box>
-      )
-    },
-    {
-      field: 'duration',
-      headerName: 'duration',
-      minWidth: 120,
-      sortable: false,
-      renderCell: params => (
-        <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
-          {params.row.duration}
-        </StyledTypography>
-      )
-    },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      minWidth: 180,
-      sortable: false,
-      renderCell: params =>
-        isStopPrescriptionLoading ? (
-          <CircularProgress size={20} />
-        ) : (
-          <StyledTypography
-            sx={{ pl: 2, textTransform: 'capitalize', cursor: 'pointer' }}
-            fontWeight={600}
-            color={theme.palette.customColors.OnSurface}
-            onClick={() => handleStopPrescription(params.row)}
-          >
-            Stop Medicine
-          </StyledTypography>
+  // const prescriptionsColumns = [
+  //   {
+  //     field: 'id',
+  //     headerName: 'Sl.NO',
+  //     minWidth: 80,
+  //     flex: 1,
+  //     sortable: false,
+  //     renderCell: params => (
+  //       <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
+  //         {params.row.sl_no}
+  //       </StyledTypography>
+  //     )
+  //   },
+  //   {
+  //     field: 'name',
+  //     headerName: 'Medicine Name',
+  //     minWidth: 200,
+  //     flex: 1,
+  //     sortable: false,
+  //     renderCell: params => (
+  //       <TextEllipsisWithModal
+  //         enableDialog={false}
+  //         text={params.row.name ?? ''}
+  //         style={{
+  //           color: theme.palette.customColors.OnSurfaceVariant,
+  //           fontSize: '1rem',
+  //           fontWeight: 600,
+  //           pl: 1.4,
+  //           maxWidth: '180px'
+  //         }}
+  //       />
+  //     )
+  //   },
+  //   {
+  //     field: 'frequency',
+  //     headerName: 'Dosage Times & Frequency',
+  //     minWidth: 250,
+  //     flex: 1,
+  //     sortable: false,
+  //     renderCell: params => (
+  //       <TextEllipsisWithModal
+  //         enableDialog={false}
+  //         text={`${params.row.dosage_count} / ${params.row.frequency}` ?? ''}
+  //         style={{
+  //           color: theme.palette.customColors.OnSurfaceVariant,
+  //           fontSize: '1rem',
+  //           pl: 1.4,
+  //           maxWidth: '230px',
+  //           fontWeight: 400
+  //         }}
+  //       />
+  //     )
+  //   },
+  //   {
+  //     field: 'start_date',
+  //     headerName: 'Starting Date',
+  //     minWidth: 140,
+  //     sortable: false,
+  //     renderCell: params => (
+  //       <StyledTypography sx={{ pl: 1.4 }} fontWeight={400}>
+  //         {Utility.convertUtcToLocalReadableDate(params.row.start_date)}
+  //       </StyledTypography>
+  //     )
+  //   },
+  //   {
+  //     field: 'end_date',
+  //     headerName: 'Ending Date',
+  //     minWidth: 180,
+  //     sortable: false,
+  //     renderCell: params => (
+  //       <Box
+  //         sx={{
+  //           display: 'inline-flex',
+  //           alignItems: 'center',
+  //           gap: 1,
+  //           border: `1px solid ${theme.palette.customColors.OnSurface}`,
+  //           borderRadius: '4px',
+  //           ml: 1.4,
+  //           padding: '8px 16px',
+  //           width: '160px',
+  //           color: theme.palette.customColors.OnSurface
+  //         }}
+  //       >
+  //         <Icon icon='mdi:calendar-blank' style={{ fontSize: 18 }} />
+  //         <StyledTypography color={theme.palette.customColors.OnSurface}>
+  //           {Utility.convertUtcToLocalReadableDate(params.row.end_date)}
+  //         </StyledTypography>
+  //       </Box>
+  //     )
+  //   },
+  //   {
+  //     field: 'duration',
+  //     headerName: 'duration',
+  //     minWidth: 120,
+  //     sortable: false,
+  //     renderCell: params => (
+  //       <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
+  //         {params.row.duration}
+  //       </StyledTypography>
+  //     )
+  //   },
+  //   {
+  //     field: 'actions',
+  //     headerName: 'Actions',
+  //     minWidth: 180,
+  //     sortable: false,
+  //     renderCell: params =>
+  //       isStopPrescriptionLoading ? (
+  //         <CircularProgress size={20} />
+  //       ) : (
+  //         <StyledTypography
+  //           sx={{ pl: 2, textTransform: 'capitalize', cursor: 'pointer' }}
+  //           fontWeight={600}
+  //           color={theme.palette.customColors.OnSurface}
+  //           onClick={() => handleStopPrescription(params.row)}
+  //         >
+  //           Stop Medicine
+  //         </StyledTypography>
 
-          // <Button
-          //   variant='outlined'
-          //   sx={{
-          //     // ml: 1.4,
-          //     padding: '8px ',
-          //     color: theme.palette.customColors.OnSurface,
-          //     fontSize: '1rem',
-          //     fontWeight: 600,
-          //     textTransform: 'capitalize',
-          //     border: 'none'
-          //   }}
-          //   onClick={() => handleStopPrescription(params.row)}
-          // >
-          //   Stop Medicine
-          // </Button>
-        )
-    }
-  ]
+  //         // <Button
+  //         //   variant='outlined'
+  //         //   sx={{
+  //         //     // ml: 1.4,
+  //         //     padding: '8px ',
+  //         //     color: theme.palette.customColors.OnSurface,
+  //         //     fontSize: '1rem',
+  //         //     fontWeight: 600,
+  //         //     textTransform: 'capitalize',
+  //         //     border: 'none'
+  //         //   }}
+  //         //   onClick={() => handleStopPrescription(params.row)}
+  //         // >
+  //         //   Stop Medicine
+  //         // </Button>
+  //       )
+  //   }
+  // ]
 
   // Add prescription rows with serial numbers
-  const prescriptionIndexedRows = useMemo(
-    () =>
-      prescription?.map((row, index) => ({
-        ...row,
-        sl_no: index + 1
-      })),
-    [prescription]
-  )
+  // const prescriptionIndexedRows = useMemo(
+  //   () =>
+  //     prescription?.map((row, index) => ({
+  //       ...row,
+  //       sl_no: index + 1
+  //     })),
+  //   [prescription]
+  // )
 
   // medications table columns
   const medicationsColumns = [
@@ -334,7 +340,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
       sortable: false,
       renderCell: params => (
         <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
-          {params.row.sl_no}
+          {params?.row?.sl_no}
         </StyledTypography>
       )
     },
@@ -353,7 +359,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
         >
           <TextEllipsisWithModal
             enableDialog={false}
-            text={params.row.name ?? ''}
+            text={params?.row?.name ?? ''}
             style={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '1rem',
@@ -364,7 +370,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
           />
           <TextEllipsisWithModal
             enableDialog={false}
-            text={params.row.generic_name ?? ''}
+            text={params?.row?.generic_name ?? ''}
             style={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '0.875rem',
@@ -385,7 +391,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
       renderCell: params => (
         <TextEllipsisWithModal
           enableDialog={false}
-          text={`${params.row.schedule_doses?.length} Time / ${params.row.frequency_name}` ?? ''}
+          text={`${params?.row?.schedule_doses?.length} Time / ${params?.row?.frequency_name}` ?? ''}
           style={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '1rem',
@@ -403,7 +409,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
       sortable: false,
       renderCell: params => (
         <StyledTypography sx={{ pl: 1.4 }} fontWeight={400}>
-          {Utility.convertUtcToLocalReadableDate(params.row.start_date)}
+          {Utility.convertUtcToLocalReadableDate(params?.row?.start_date)}
         </StyledTypography>
       )
     },
@@ -414,7 +420,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
       sortable: false,
       renderCell: params => (
         <StyledTypography sx={{ pl: 1.4 }} fontWeight={400}>
-          {Utility.convertUtcToLocalReadableDate(params.row.end_date)}
+          {Utility.convertUtcToLocalReadableDate(params?.row?.end_date)}
         </StyledTypography>
       )
     },
@@ -425,7 +431,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
       sortable: false,
       renderCell: params => (
         <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
-          {params.row.duration}
+          {params?.row?.duration}
         </StyledTypography>
       )
     },
@@ -437,7 +443,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
       renderCell: params => (
         <TextEllipsisWithModal
           enableDialog={false}
-          text={params.row.delivery_route_label ?? ''}
+          text={params?.row?.delivery_route_label ?? ''}
           style={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '1rem',
@@ -472,41 +478,40 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   ]
 
   // Add medication rows with serial numbers
-  const medicationIndexedRows = useMemo(
-    () =>
-      enclosureMedicines?.map((row, index) => ({
-        ...row,
-        sl_no: index + 1
-      })),
-    [enclosureMedicines]
-  )
+  // const medicationIndexedRows = useMemo(
+  //   () =>
+  //     enclosureMedicines?.map((row, index) => ({
+  //       ...row,
+  //       sl_no: index + 1
+  //     })),
+  //   [enclosureMedicines]
+  // )
 
   // Merge temp to final for Transfer Hospital
-  useEffect(() => {
-    if (!Array.isArray(transferTempMedicines) || transferTempMedicines.length === 0) return
+  // useEffect(() => {
+  //   if (!Array.isArray(transferTempMedicines) || transferTempMedicines?.length === 0) return
 
-    const existing = data.transfer_medicines || []
-    const merged = [...existing]
-    let hasChanges = false
+  //   const existing = data.transfer_medicines || []
+  //   const merged = [...existing]
+  //   let hasChanges = false
 
-    transferTempMedicines.forEach(newMed => {
-      if (!merged.some(med => med.id === newMed.id)) {
-        merged.unshift(newMed)
-        hasChanges = true
-      }
-    })
+  //   transferTempMedicines.forEach(newMed => {
+  //     if (!merged.some(med => med.id === newMed.id)) {
+  //       merged.unshift(newMed)
+  //       hasChanges = true
+  //     }
+  //   })
 
-    if (hasChanges) {
-      updateState('transfer_medicines', merged)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [transferTempMedicines])
+  //   if (hasChanges) {
+  //     updateState('transfer_medicines', merged)
+  //   }
+  // }, [transferTempMedicines])
 
-  useEffect(() => {
-    if (id && medicalRecordId) {
-      getPrescriptionList()
-    }
-  }, [])
+  // useEffect(() => {
+  //   if (id && medicalRecordId) {
+  //     getPrescriptionList()
+  //   }
+  // }, [])
 
   useEffect(() => {
     if (!Array.isArray(enclosureTempMedicines) || enclosureTempMedicines?.length === 0) return
@@ -519,11 +524,11 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
       const idx = merged.findIndex(med => med.id === newMed.id)
 
       if (idx >= 0) {
-        // ID FOUND → UPDATE
+        // ID FOUND UPDATE
         merged[idx] = { ...merged[idx], ...newMed }
         hasChanges = true
       } else {
-        // ID NOT FOUND → ADD NEW
+        // ID NOT FOUND ADD NEW
         merged.unshift(newMed)
         hasChanges = true
       }
@@ -580,7 +585,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     setPendingTabValue(null)
   }
 
-  // Handle tab change with form + table confirmation
+  // Handle tab change with form and table confirmation
   const handleTabChange = useCallback(
     newType => {
       const leavingHospital =
@@ -643,10 +648,14 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20, mb: 20 }}>
           <CircularProgress size={30} />
         </Box>
-      ) : patientData?.discharge_at === null ? (
-        securityCheck ? (
+      ) : discharge_at === null ? (
+        isSecurityCheckLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20, mb: 20 }}>
+            <CircularProgress size={30} />
+          </Box>
+        ) : securityCheck ? (
           <Box sx={{ mt: 6, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {patientData?.purpose_of_visit && (
+            {purpose_of_visit && (
               <Box
                 sx={{
                   background: alpha(theme.palette.customColors.antzNotes, 0.6),
@@ -665,7 +674,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
                   fontSize='0.875rem'
                   fontWeight={400}
                 >
-                  {patientData?.purpose_of_visit}
+                  {purpose_of_visit}
                 </StyledTypography>
               </Box>
             )}
@@ -696,7 +705,6 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
               />
             </Box>
 
-            {/* Conditional Forms */}
             {watchDischargeType === 'Mortality' && (
               <MortalityDischargeForm
                 patientData={patientData}
@@ -711,10 +719,11 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
                 submitLoader={mortalitySubmitLoader}
                 handleSubmitData={handleMortalitySubmitData}
                 onDirtyChange={setIsMortalityDirty}
+                refetchPatient={refetchPatient}
               />
             )}
 
-            {watchDischargeType === 'TransferHospital' && (
+            {/* {watchDischargeType === 'TransferHospital' && (
               <TransferDischargeForm
                 patientData={patientData}
                 watchDischargeType={watchDischargeType}
@@ -731,7 +740,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
                 clearData={clearTransferHospitalData}
                 onDirtyChange={setIsTransferHospitalDirty}
               />
-            )}
+            )} */}
 
             {watchDischargeType === 'TransferEnclosure' && (
               <EnclosureDischargeForm

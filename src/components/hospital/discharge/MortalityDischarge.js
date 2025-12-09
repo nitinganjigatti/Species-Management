@@ -3,6 +3,8 @@ import debounce from 'lodash/debounce'
 import { getMannerOfDeath, getCarcassCondition, getCarcassDeposition } from 'src/lib/api/housing'
 import { addInpatientDischarge } from 'src/lib/api/hospital/inpatientDischarge'
 import Toaster from 'src/components/Toaster'
+import { useHospital } from 'src/context/HospitalContext'
+import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 
 function MortalityDischarge() {
   const [causeOfDeath, setCauseOfDeath] = useState([])
@@ -11,6 +13,21 @@ function MortalityDischarge() {
 
   const [fetchLoading, setFetchLoading] = useState(true)
   const [submitLoader, setSubmitLoader] = useState(false)
+
+  const { selectedHospital, updateHospitalStats } = useHospital()
+
+  const fetchAndUpdateHospitalStats = async hospitalId => {
+    if (!hospitalId) return
+
+    try {
+      const statsResponse = await getHospitalBedStats(hospitalId)
+      if (statsResponse?.success) {
+        updateHospitalStats(statsResponse.data)
+      }
+    } catch (error) {
+      console.error('Error fetching hospital stats:', error?.message || error)
+    }
+  }
 
   //  Fetch cause of death list
   const fetchManner = async (q = '') => {
@@ -116,6 +133,8 @@ function MortalityDischarge() {
           message: response?.message || 'Mortality discharge submitted successfully'
         })
 
+        fetchAndUpdateHospitalStats(selectedHospital?.id)
+
         return true
       }
 
@@ -127,11 +146,6 @@ function MortalityDischarge() {
       return false
     } catch (error) {
       console.error('Mortality submission error:', error?.response?.data?.message || error?.message)
-
-      Toaster({
-        type: 'error',
-        message: error?.response?.data?.message || error?.message || 'An unexpected error occurred'
-      })
 
       return false
     } finally {

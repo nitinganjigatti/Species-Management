@@ -64,6 +64,7 @@ const ClinicalNotes = ({ patientData }) => {
   const {
     data: clinicalNotesData = [],
     isFetching,
+    isLoading,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage
@@ -82,6 +83,9 @@ const ClinicalNotes = ({ patientData }) => {
   const allClinicalEntries = useMemo(() => {
     return clinicalNotesData?.pages?.flatMap(page => page?.data || []) || []
   }, [clinicalNotesData])
+
+  const canFetchNotes = !!animal_id
+  const isInitialLoading = !canFetchNotes || (isLoading && !clinicalNotesData?.pages?.length)
 
   // infinite scroll observer
   const observer = useRef()
@@ -173,7 +177,8 @@ const ClinicalNotes = ({ patientData }) => {
         onSubmitNote={handleSubmitData}
         isSubmitting={isSubmitLoading}
         onDeleteNote={handleDeleteNote}
-        isLoading={isFetching && allClinicalEntries?.length === 0}
+        // isLoading={isFetching && allClinicalEntries?.length === 0}
+        isInitialLoading={isInitialLoading}
         lastClinicalNoteRef={lastClinicalNoteRef}
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}

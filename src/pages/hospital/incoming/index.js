@@ -36,7 +36,7 @@ const HospitalIncoming = () => {
   const theme = useTheme()
   const router = useRouter()
 
-  const { selectedHospital } = useHospital()
+  const { selectedHospital, isHospitalAccessChecked } = useHospital()
 
   const [searchValue, setSearchValue] = useState('')
   const [selectedVisitType, setSelectedVisitType] = useState('')
@@ -108,6 +108,7 @@ const HospitalIncoming = () => {
         users: prepareFilterParams('User'),
         origin_site: prepareFilterParams('Origin Site')
       }),
+    enabled: !!(isHospitalAccessChecked && selectedHospital?.id),
     refetchOnMount: true,
     refetchOnWindowFocus: true
   })

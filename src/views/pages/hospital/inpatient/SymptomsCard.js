@@ -17,7 +17,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
   const { id, animal_id } = router.query
   const [symptomDrawerNewOpen, setSymptomDrawerNewOpen] = useState(false)
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
-  const [severity, setSeverity] = useState('Low')
+  const [severity, setSeverity] = useState('Mild')
   const [durationValue, setDurationValue] = useState(1)
   const [durationUnit, setDurationUnit] = useState('Days')
   const [notes, setNotes] = useState('')
@@ -42,9 +42,9 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
 
       const mappedSeverity =
         recordData?.additional_info?.severity === 'Mild'
-          ? 'Low'
+          ? 'Mild'
           : recordData?.additional_info?.severity === 'Moderate'
-          ? 'Medium'
+          ? 'Moderate'
           : recordData?.additional_info?.severity
 
       setPreviousDetails({
@@ -169,9 +169,9 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
           ? alpha(theme.palette.customColors.neutralSecondary, 0.05)
           : getSymptomsSeverityColor(
               record?.additional_info?.severity === 'Mild'
-                ? 'Low'
+                ? 'Mild'
                 : record?.additional_info?.severity === 'Moderate'
-                ? 'Medium'
+                ? 'Moderate'
                 : record?.additional_info?.severity
             ).bgColor
       }}
@@ -205,9 +205,9 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
                 ? theme.palette.customColors.OnSurfaceVariant
                 : getSymptomsSeverityColor(
                     record?.additional_info?.severity === 'Mild'
-                      ? 'Low'
+                      ? 'Mild'
                       : record?.additional_info?.severity === 'Moderate'
-                      ? 'Medium'
+                      ? 'Moderate'
                       : record?.additional_info?.severity
                   ).color,
               fontWeight: 500
@@ -226,9 +226,9 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
                   ? theme.palette.customColors.neutralSecondary
                   : getSymptomsSeverityColor(
                       record?.additional_info?.severity === 'Mild'
-                        ? 'Low'
+                        ? 'Mild'
                         : record?.additional_info?.severity === 'Moderate'
-                        ? 'Medium'
+                        ? 'Moderate'
                         : record?.additional_info?.severity
                     ).color,
                 borderRadius: '4px',
@@ -369,12 +369,16 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
                 ml: { xs: 0, md: 1 }
               }}
             >
-              Resolved by
+              {record?.status === 'active' ? 'Created by' : 'Resolved by'}
             </Typography>
             <UserAvatarDetails
               profile_image={record?.additional_info?.resolved_user_profile_pic}
               user_name={record?.additional_info?.resolved_user_name || record?.created_by_user_name}
-              date={Utility.formatDisplayDate(record?.created_at)}
+              date={
+                record?.status === 'active'
+                  ? record?.created_at
+                  : record?.latest_note?.modified_at || record?.additional_info?.closed_comment_date
+              }
               show_time
               compact={true}
             />

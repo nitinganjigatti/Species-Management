@@ -75,6 +75,16 @@ const formatDateTime = value => {
   return formatted && formatted !== 'Invalid date' ? formatted : String(value)
 }
 
+const formatTimestamp = isoString => {
+  const date = new Date(isoString)
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = date.toLocaleString('en-US', { month: 'short' })
+  const year = date.getFullYear()
+  const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+
+  return `${day} ${month} ${year} • ${time}`
+}
+
 const formatStaffNames = list => {
   if (!Array.isArray(list) || !list.length) return '--'
 
@@ -251,7 +261,7 @@ function Anesthesia({
   const showDetailSkeleton = isAnesthesiaDetailFetching || isRecordsLoading || !activeRecordAnesthesiaId
 
   const recordCode = anesthesiaDetail?.code || activeRecord?.code || '--'
-  const lastUpdatedValue = formatDateTime(
+  const lastUpdatedValue = formatTimestamp(
     anesthesiaDetail?.updated_at || anesthesiaDetail?.created_at || activeRecord?.updated_at || activeRecord?.created_at
   )
 
@@ -263,7 +273,7 @@ function Anesthesia({
 
     return {
       location: source?.location || '--',
-      dateAndTimeOfAnesthesia: formatDateTime(source?.anaesthesia_datetime),
+      dateAndTimeOfAnesthesia: formatTimestamp(source?.anaesthesia_datetime),
       estimatedTimeRequired: estimatedTime || '--',
       Veterinarian: formatStaffNames(source?.veterinarians),
       Anesthetists: formatStaffNames(source?.anesthetists)
