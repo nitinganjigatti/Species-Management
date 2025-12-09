@@ -299,7 +299,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
   const [isEditDrawerOpen, setEditDrawerOpen] = useState(false)
 
   const [formData, setFormData] = useState({
-    startDate: dayjs('2025-07-12'),
+    startDate: dayjs(),
     treatmentName: null,
     notes: ''
   })
@@ -354,7 +354,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     setTreatmentInputValue('')
     setTreatmentOptionsLoading(false)
     setFormData({
-      startDate: dayjs('2025-07-12'),
+      startDate: dayjs(),
       treatmentName: null,
       notes: ''
     })
@@ -510,7 +510,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
       if (response?.success) {
         setAddDrawerOpen(false)
         setFormData({
-          startDate: dayjs('2025-07-12'),
+          startDate: dayjs(),
           treatmentName: null,
           notes: ''
         })
