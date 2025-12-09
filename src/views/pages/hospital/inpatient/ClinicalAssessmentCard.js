@@ -13,12 +13,12 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
   const mappedRecord = {
     id: record.id,
     title: record.name,
-    type: record.clinical_assessment === 'diagnosis' ? 'Diagnosis' : 'Differential',
+    type: record.clinical_assessment === 'diagnosis' ? 'Diagnosis' : 'Tentative',
     status: record.additional_info?.status || 'active',
     severity: record.additional_info?.severity || '',
     category: record.category,
     activity: record.comment_count - 1 > 0 ? `+${record.comment_count - 1}` : null,
-    clinicalAssessment: record.clinical_assessment === 'diagnosis' ? 'Diagnosis' : 'Differential',
+    clinicalAssessment: record.clinical_assessment === 'diagnosis' ? 'Diagnosis' : 'Tentative',
 
     oldRecord: record?.latest_note?.notes_dump?.old_data?.clinical_assessment,
     newRecord: record?.latest_note?.notes_dump?.new_data?.clinical_assessment,
@@ -261,7 +261,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
 
           <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.neutralSecondary }}>
             Last Updated:{' '}
-            {`${Utility.convertUTCToLocaltime(mappedRecord.lastUpdated)} • ${Utility.convertUtcToLocalReadableDate(
+            {`${Utility.convertUtcToLocalReadableDate(mappedRecord.lastUpdated)} • ${Utility.convertUTCToLocaltime(
               mappedRecord.lastUpdated
             )}`}
           </Typography>

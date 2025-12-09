@@ -730,7 +730,7 @@ const PatientAdmitForm = () => {
           </Box>
         )}
       </Box>
-      {hasPermission === true && (
+      {hasPermission && (
         <Box
           sx={{
             position: 'fixed',
