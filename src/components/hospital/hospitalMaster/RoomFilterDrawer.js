@@ -58,10 +58,16 @@ const RoomFilterDrawer = ({
         }))
       }
     } catch (error) {
-      console.error(`Error loading ${menuName}:`, error)
-      toast.error(`Failed to load ${menuName} options`)
+      console.error(`Error loading ${menuName}:`, error?.message || error)
     }
   }, [])
+
+  useEffect(() => {
+    if (openFilterDrawer) {
+      setSelectedMenu('Availability')
+      fetchMenuData('Availability')
+    }
+  }, [openFilterDrawer, fetchMenuData])
 
   // Clear all filters
   const handleClearAll = useCallback(() => {
@@ -131,12 +137,12 @@ const RoomFilterDrawer = ({
         <RadioGroup value={selectedOption[0] || ''} onChange={e => onOptionChange(e.target.value, menuName)}>
           {items?.map(item => (
             <FormControlLabel
-              key={item.value}
-              value={item.value}
+              key={item?.value}
+              value={item?.value}
               control={<Radio />}
               label={
-                <Typography sx={{ fontSize: '16px', color: theme.palette.customColors?.Outline }}>
-                  {item.label}
+                <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors?.Outline }}>
+                  {item?.label}
                 </Typography>
               }
             />

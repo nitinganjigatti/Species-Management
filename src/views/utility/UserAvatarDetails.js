@@ -104,27 +104,21 @@ function UserAvatarDetails({
             {date && (
               <Typography variant='caption' sx={{ lineHeight: 1.6667, ...(selectedAvatarSize?.date || {}) }}>
                 <span>
-                  {show_time ? (
-                    <>
-                      {Utility.convertUTCToLocaltime(date)}
-                      <span> &bull; </span>
-                    </>
+                  {dateType === 'created' ? (
+                    <span style={{ color: theme.palette.customColors.neutralSecondary }}>
+                      Created on {Utility.convertUtcToLocalReadableDate(date)}
+                    </span>
+                  ) : dateType === 'updated' ? (
+                    <span style={{ color: theme.palette.customColors.neutralSecondary }}>
+                      Updated on {Utility.convertUtcToLocalReadableDate(date)}
+                    </span>
                   ) : (
-                    ''
+                    <span>{date ? Utility.convertUtcToLocalReadableDate(date) : ''}</span>
                   )}
+                  <span> &bull; </span>
+                  {show_time ? <>{Utility.convertUTCToLocaltime(date)}</> : ''}
                 </span>
                 {/* <span>{date ? Utility.convertUtcToLocalReadableDate(date) : ''}</span> */}
-                {dateType === 'created' ? (
-                  <span style={{ color: theme.palette.customColors.neutralSecondary }}>
-                    Created on {Utility.convertUtcToLocalReadableDate(date)}
-                  </span>
-                ) : dateType === 'updated' ? (
-                  <span style={{ color: theme.palette.customColors.neutralSecondary }}>
-                    Updated on {Utility.convertUtcToLocalReadableDate(date)}
-                  </span>
-                ) : (
-                  <span>{date ? Utility.convertUtcToLocalReadableDate(date) : ''}</span>
-                )}
               </Typography>
             )}
           </Box>

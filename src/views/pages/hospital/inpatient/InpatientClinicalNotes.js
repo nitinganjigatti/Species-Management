@@ -9,6 +9,7 @@ import { MedicalIdChip } from '../utility/hospitalSnippets'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -22,6 +23,8 @@ const InpatientClinicalNotes = props => {
     clinicalNotesData,
     onSubmitNote,
     onDeleteNote,
+    isInitialLoading,
+
     isLoading,
     isSubmitting,
     lastClinicalNoteRef,
@@ -53,6 +56,32 @@ const InpatientClinicalNotes = props => {
     if (success) {
       reset(defaultValues)
     }
+  }
+
+  // show skeleton only during initial fetch
+  if (isInitialLoading) {
+    return (
+      <Box sx={{ mt: 4 }}>
+        <ClinicalNotesSkeleton clinicalNotesData={clinicalNotesData} />
+      </Box>
+    )
+  }
+
+  // // after fetch if no data shows empty state
+  if (!isInitialLoading && clinicalNotesData?.length === 0 && discharge_at !== null) {
+    return (
+      <Box
+        sx={{
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          mt: 6
+        }}
+      >
+        <NoMedicalData isDischarged={true} />
+      </Box>
+    )
   }
 
   return (
@@ -117,89 +146,85 @@ const InpatientClinicalNotes = props => {
         </Box>
       )}
       {/* Clinical Notes List or Skeletons */}
-      {isLoading ? (
-        <ClinicalNotesSkeleton />
-      ) : (
-        clinicalNotesData?.length > 0 && (
-          <>
-            {clinicalNotesData?.map((data, index) => {
-              const isLast = index === clinicalNotesData?.length - 1
+      {clinicalNotesData?.length > 0 && (
+        <>
+          {clinicalNotesData?.map((data, index) => {
+            const isLast = index === clinicalNotesData?.length - 1
 
-              return (
-                <Box
-                  key={data?.note_id || index}
-                  ref={isLast ? lastClinicalNoteRef : null}
-                  sx={{
-                    p: 6,
-                    mb: 5,
-                    mt: 6,
-                    background: alpha(theme.palette.customColors.antzNotes80, 0.2),
-                    borderRadius: '8px'
-                  }}
-                >
-                  <MedicalIdChip
-                    leftImage
-                    medId={data?.medical_record_code}
-                    rightDot
-                    dotColor={theme.palette.primary.main}
-                    textColor={theme.palette.customColors.OnSurface}
-                  />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
-                    <Typography
-                      sx={{
-                        fontSize: '1rem',
-                        fontWeight: 400,
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        textAlign: 'justify'
-                      }}
-                    >
-                      {data?.note || 'NA'}
-                    </Typography>
-
-                    {discharge_at === null && (
-                      <IconButton
-                        onClick={() => onDeleteNote(data?.note_id)}
-                        sx={{ color: theme.palette.customColors.Tertiary, p: 0, ml: 3 }}
-                      >
-                        <CancelOutlinedIcon fontSize='medium' />
-                      </IconButton>
-                    )}
-                  </Box>
-
-                  <UserAvatarDetails
-                    user_name={data?.created_by_user_name}
-                    date={data?.created_at}
-                    show_time
-                    size='medium'
-                    profile_image={data?.user_created_profile_pic}
-                  />
-                </Box>
-              )
-            })}
-
-            {/* Show skeleton only when fetching more pages and we already have data */}
-            {isFetchingNextPage && (
-              <Box sx={{ mt: 2 }}>
-                <ClinicalNotesSkeleton />
-              </Box>
-            )}
-
-            {/*  Show "No more data" */}
-            {!hasNextPage && (
-              <Typography
+            return (
+              <Box
+                key={data?.note_id || index}
+                ref={isLast ? lastClinicalNoteRef : null}
                 sx={{
-                  mt: 4,
-                  textAlign: 'center',
-                  fontSize: '1rem',
-                  fontWeight: 500,
-                  color: theme.palette.text.disabled
+                  p: 6,
+                  mb: 5,
+                  mt: 6,
+                  background: alpha(theme.palette.customColors.antzNotes80, 0.2),
+                  borderRadius: '8px'
                 }}
               >
-                No more clinical notes to load
-              </Typography>
-            )}
-          </>
-        )
+                <MedicalIdChip
+                  leftImage
+                  medId={data?.medical_record_code}
+                  rightDot
+                  dotColor={theme.palette.primary.main}
+                  textColor={theme.palette.customColors.OnSurface}
+                />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
+                  <Typography
+                    sx={{
+                      fontSize: '1rem',
+                      fontWeight: 400,
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      textAlign: 'justify'
+                    }}
+                  >
+                    {data?.note || 'NA'}
+                  </Typography>
+
+                  {discharge_at === null && (
+                    <IconButton
+                      onClick={() => onDeleteNote(data?.note_id)}
+                      sx={{ color: theme.palette.customColors.Tertiary, p: 0, ml: 3 }}
+                    >
+                      <CancelOutlinedIcon fontSize='medium' />
+                    </IconButton>
+                  )}
+                </Box>
+
+                <UserAvatarDetails
+                  user_name={data?.created_by_user_name}
+                  date={data?.created_at}
+                  show_time
+                  size='medium'
+                  profile_image={data?.user_created_profile_pic}
+                />
+              </Box>
+            )
+          })}
+
+          {/* Show skeleton only when fetching more pages and we already have data */}
+          {isFetchingNextPage && (
+            <Box sx={{ mt: 2 }}>
+              <ClinicalNotesSkeleton clinicalNotesData={clinicalNotesData} />
+            </Box>
+          )}
+
+          {/*  Show "No more data" */}
+          {!hasNextPage && (
+            <Typography
+              sx={{
+                mt: 4,
+                textAlign: 'center',
+                fontSize: '1rem',
+                fontWeight: 500,
+                color: theme.palette.text.disabled
+              }}
+            >
+              No more clinical notes to load
+            </Typography>
+          )}
+        </>
       )}
     </>
   )
@@ -208,11 +233,44 @@ const InpatientClinicalNotes = props => {
 export default InpatientClinicalNotes
 
 // Skeleton loader
-function ClinicalNotesSkeleton() {
+function ClinicalNotesSkeleton({ clinicalNotesData }) {
   const theme = useTheme()
 
   return (
     <>
+      {clinicalNotesData?.length === 0 && (
+        <Box
+          sx={{
+            p: 6,
+            backgroundColor: theme.palette.customColors.displaybgPrimary,
+            borderRadius: '12px',
+            mt: 8,
+            mb: 6
+          }}
+        >
+          <Skeleton variant='text' animation='wave' width='25%' height={28} sx={{ mb: 4 }} />
+          <Skeleton
+            variant='rectangular'
+            animation='wave'
+            height={90}
+            sx={{
+              width: '100%',
+              borderRadius: '8px'
+            }}
+          />
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mt: 4
+            }}
+          >
+            <Skeleton variant='rectangular' animation='wave' width={150} height={40} sx={{ borderRadius: '6px' }} />
+            <Skeleton variant='rectangular' animation='wave' width={150} height={40} sx={{ borderRadius: '6px' }} />
+          </Box>
+        </Box>
+      )}
       {Array.from({ length: 2 }).map((_, index) => (
         <Box
           key={index}
@@ -225,7 +283,13 @@ function ClinicalNotesSkeleton() {
         >
           <Skeleton variant='text' animation='wave' width='20%' height={24} sx={{ mb: 2 }} />
           <Skeleton variant='rectangular' width='100%' animation='wave' height={60} sx={{ mb: 4 }} />
-          <Skeleton variant='text' animation='wave' width='20%' height={20} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Skeleton variant='circular' width={40} height={40} />
+            <Box sx={{ flex: 1 }}>
+              <Skeleton variant='text' width='20%' height={20} />
+              <Skeleton variant='text' width='20%' height={20} />
+            </Box>
+          </Box>
         </Box>
       ))}
     </>

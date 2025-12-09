@@ -298,6 +298,8 @@ const AuthProvider = ({ children }) => {
           /*********pharmacy */
           const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
           router.replace(redirectURL)
+        } else {
+          if (errorCallback) errorCallback(response?.data?.message)
         }
       })
       .catch(err => {

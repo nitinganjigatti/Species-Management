@@ -248,17 +248,26 @@ function RecoveryAndReversal({
       sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title='Edit'>
-            <IconButton size='small' onClick={() => handleEditDrug(params.row.id - 1)}>
-              <Icon icon='mdi:pencil-outline' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
-            </IconButton>
-          </Tooltip>
+          {params?.row?.reversal_row_id !== undefined ? (
+            <>
+              <Tooltip title='Edit'>
+                <IconButton size='small' onClick={() => handleEditDrug(params.row.id - 1)}>
+                  <Icon icon='mdi:pencil-outline' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
+                </IconButton>
+              </Tooltip>
 
-          <Tooltip title='Delete'>
-            <IconButton size='small' onClick={() => onDeleteReversalDrug(params.row.id - 1)}>
-              <Icon icon='mdi:delete-outline' fontSize={20} color={theme.palette.customColors.Error} />
-            </IconButton>
-          </Tooltip>
+              <Tooltip title='Delete'>
+                <IconButton
+                  size='small'
+                  onClick={() => onDeleteReversalDrug(params.row.id - 1, params?.row?.reversal_row_id)}
+                >
+                  <Icon icon='mdi:delete-outline' fontSize={20} color={theme.palette.customColors.Error} />
+                </IconButton>
+              </Tooltip>
+            </>
+          ) : (
+            '-'
+          )}
         </Box>
       )
     }
@@ -266,6 +275,7 @@ function RecoveryAndReversal({
 
   const reversalDrugsData = reversalDrugs.map((drug, index) => ({
     ...drug,
+    reversal_row_id: drug?.id,
     id: index + 1,
     display_delivery_time: safeFormat(drug.delivery_time),
     display_max_effect_time: safeFormat(drug.max_effect_time)
@@ -457,6 +467,7 @@ function RecoveryAndReversal({
           submitLoader={submitLoader}
           editData={editIndex !== null ? reversalDrugs[editIndex] : null}
           drugOptions={medicationGasList}
+          existingMedications={reversalDrugs}
           unitList={unitList}
           deliveryRouteOptions={deliveryRouteOptionsState}
           onLoadMoreDrugs={() => {

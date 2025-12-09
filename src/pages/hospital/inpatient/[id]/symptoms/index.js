@@ -19,7 +19,7 @@ function AddSymptomsPage() {
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [symptomDrawerOpen, setSymptomDrawerOpen] = useState(false)
-  const [severity, setSeverity] = useState('Low')
+  const [severity, setSeverity] = useState('Mild')
   const [durationValue, setDurationValue] = useState(1)
   const [durationUnit, setDurationUnit] = useState('Days')
   const [notes, setNotes] = useState('')
@@ -51,7 +51,7 @@ function AddSymptomsPage() {
     setDurationValue(1)
     setNotes('')
     setDurationUnit('Days')
-    setSeverity('Low')
+    setSeverity('Mild')
   }
 
   const addSymptomDetails = details => {
@@ -177,7 +177,7 @@ function AddSymptomsPage() {
         id: symptom.id,
         name: symptom.name,
         additional_info: {
-          severity: symptom.severity || 'Low',
+          severity: symptom.severity || 'Mild',
           notes: symptom.notes || '',
           active_at: '',
           duration: String(symptom.durationValue || 0),

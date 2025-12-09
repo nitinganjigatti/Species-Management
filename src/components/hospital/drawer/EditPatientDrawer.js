@@ -5,7 +5,7 @@ import DoctorsDrawer from '../PatientAdmissionForm/DoctorsDrawer'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { useForm } from 'react-hook-form'
-import { getRoomsAndEnclosures } from 'src/lib/api/hospital/roomsAndEnclosures'
+import { getHospitalRoomsList, getRoomsAndEnclosures } from 'src/lib/api/hospital/roomsAndEnclosures'
 import { debounce } from 'lodash'
 import { useHospital } from 'src/context/HospitalContext'
 import { editAnimalAdmissionDetails } from 'src/lib/api/hospital/inpatient'
@@ -25,12 +25,17 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
   const [selectedDoctor, setSelectedDoctor] = useState(null)
   const [holdingEnclosures, setHoldingEnclosures] = useState([])
   const [search, setSearch] = useState('')
+  const [roomLoading, setRoomLoading] = useState(false)
+  const [rooms, setRooms] = useState([])
+  const [searchEnclosure, setSearchEnclosure] = useState('')
+  const [enclosureLoading, setEnclosureLoading] = useState(false)
 
   const {
     control,
     handleSubmit,
     setValue,
     reset,
+    watch,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -52,6 +57,10 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
           label: patientData?.bed_name,
           value: patientData?.bed_id
         },
+        room: {
+          label: patientData?.room_name,
+          value: patientData?.room_id
+        },
         selectedDoctor: doctorData
       })
       setSelectedDoctor(doctorData)
@@ -59,33 +68,74 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
   }, [patientData, reset])
 
   useEffect(() => {
-    const getHospitalBeds = async () => {
+    const getHospitalRooms = async () => {
+      setRoomLoading(true)
       try {
-        await getRoomsAndEnclosures({
+        await getHospitalRoomsList({
           hospital_id: selectedHospital?.id,
           page: 1,
-          per_page: 10,
-          is_occupied: 'available',
-          search
+          per_page: 20,
+          q: search,
+          availability: 'available'
         }).then(res => {
           if (res?.success === true) {
-            setHoldingEnclosures(
-              res?.data?.records?.map(item => ({
-                label: item?.bed_name,
+            const filteredRooms = res?.data?.records
+              ?.filter(item => item?.status !== '0')
+              ?.map(item => ({
+                label: item?.room_name,
                 value: item?.id
               }))
-            )
+            setRooms(filteredRooms)
+            setRoomLoading(false)
+          } else {
+            setRooms([])
+            setRoomLoading(false)
           }
         })
       } catch (error) {
-        console.error(error, 'cannot Fetch hospital beds listing')
+        console.error(error, 'cannot Fetch hospital rooms listing')
+        setRoomLoading(false)
+      }
+    }
+
+    getHospitalRooms()
+  }, [selectedHospital, search])
+
+  const selectedRoom = watch('room')
+
+  useEffect(() => {
+    const getHospitalBeds = async () => {
+      if (!selectedRoom?.value) return
+      setEnclosureLoading(true)
+      try {
+        const res = await getRoomsAndEnclosures({
+          hospital_id: selectedHospital?.id,
+          room_id: selectedRoom.value,
+          page: 1,
+          is_occupied: 'available',
+          q: searchEnclosure
+        })
+        if (res?.success === true) {
+          setHoldingEnclosures(
+            res?.data?.records?.map(item => ({
+              label: item?.bed_name,
+              value: item?.id
+            }))
+          )
+          setEnclosureLoading(false)
+        }
+      } catch (error) {
+        console.error('Cannot fetch hospital beds listing', error)
+        setEnclosureLoading(false)
       }
     }
 
     getHospitalBeds()
-  }, [search, selectedHospital?.id])
+  }, [selectedRoom, selectedHospital, searchEnclosure])
 
   const debouncedSearch = React.useMemo(() => debounce(val => setSearch(val), 1000), [])
+
+  const debouncedEnclosureSearch = React.useMemo(() => debounce(val => setSearchEnclosure(val), 1000), [])
 
   const handleDoctorSelection = doctor => {
     setSelectedDoctor(doctor)
@@ -101,7 +151,9 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
     setSubmitLoader(true)
     try {
       const payload = {
+        action: 'edit',
         hospital_case_id: patientData?.hospital_case_id,
+        room_id: data?.room?.value || '',
         holding_enclosure: data?.holdingEnclosure?.value || '',
         attend_by: data?.selectedDoctor?.id || ''
       }
@@ -235,6 +287,26 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
               </>
             )}
           </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+              Room
+            </Typography>
+            <ControlledAutocomplete
+              name='room'
+              label='Select Room'
+              control={control}
+              errors={errors}
+              options={rooms}
+              getOptionValue={option => option.value || ''}
+              getOptionLabel={option => option.label || ''}
+              isOptionEqualToValue={(option, value) => option.value === value?.value}
+              required
+              onInputChange={val => debouncedSearch(val)}
+              sx={{ borderRadius: 1, background: theme.palette.customColors.Surface }}
+              fullWidth
+              loading={roomLoading}
+            />
+          </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
               Holding Enclosure
@@ -249,9 +321,10 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
               getOptionLabel={option => option.label || ''}
               isOptionEqualToValue={(option, value) => option.value === value?.value}
               required
-              onInputChange={val => debouncedSearch(val)}
+              onInputChange={val => debouncedEnclosureSearch(val)}
               sx={{ borderRadius: 1 }}
               fullWidth
+              loading={enclosureLoading}
             />
           </Box>
         </Box>
@@ -296,7 +369,12 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
         </Box>
       </Drawer>
       {doctorDrawerOpen && (
-        <DoctorsDrawer open={doctorDrawerOpen} setOpen={setDoctorDrawerOpen} onSelectDoctor={handleDoctorSelection} />
+        <DoctorsDrawer
+          open={doctorDrawerOpen}
+          setOpen={setDoctorDrawerOpen}
+          onSelectDoctor={handleDoctorSelection}
+          hospitalId={selectedHospital?.id}
+        />
       )}
     </>
   )

@@ -25,6 +25,7 @@ const EditTreatmentDrawer = ({
   formatShortDate
 }) => {
   const theme = useTheme()
+
   const { control, reset } = useForm({
     defaultValues: {
       editNotes: formData.notes || '',
@@ -61,6 +62,7 @@ const EditTreatmentDrawer = ({
 
   const formatTreatmentName = name => {
     if (!name || typeof name !== 'string') return ''
+
     return name.charAt(0).toUpperCase() + name.slice(1)
   }
 

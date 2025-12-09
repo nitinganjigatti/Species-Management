@@ -42,13 +42,11 @@ export default function VitalMonitoringDetail({ data }) {
 
   return (
     <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {/* Title */}
       <Divider sx={{ mb: 6, mt: 3 }} />
       <Typography variant='h6' sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 1 }}>
         Vital Monitoring
       </Typography>
 
-      {/* Scrollable Table Container */}
       <Box
         sx={{
           position: 'relative',
@@ -59,7 +57,6 @@ export default function VitalMonitoringDetail({ data }) {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-          {/* Sticky First Column */}
           <Box
             sx={{
               flex: '0 0 auto',
@@ -95,7 +92,6 @@ export default function VitalMonitoringDetail({ data }) {
             ))}
           </Box>
 
-          {/* Scrollable Columns */}
           <Box sx={{ display: 'flex', gap: '8px' }}>
             {monitoringData.timeSlots.map(slot => (
               <Box key={slot.id} sx={{ display: 'grid', rowGap: '8px' }}>
@@ -152,32 +148,10 @@ export default function VitalMonitoringDetail({ data }) {
                 })}
               </Box>
             ))}
-
-            {/* Add Column */}
-            {/* <Box sx={{ display: 'grid', rowGap: '8px' }}>
-              {rowLabels.map((label, index) => (
-                <Box
-                  key={`add-${label}`}
-                  sx={{
-                    width: BASE_CELL_WIDTH,
-                    minWidth: BASE_CELL_WIDTH,
-                    height: index === 0 ? HEADER_CELL_HEIGHT : DATA_CELL_HEIGHT,
-                    borderRadius: '4px',
-                    border: `0.5px dashed ${colors.border}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  {index === 0 ? <AddRoundedIcon sx={{ color: theme.palette.primary.main }} /> : null}
-                </Box>
-              ))}
-            </Box> */}
           </Box>
         </Box>
       </Box>
 
-      {/* Notes Section */}
       <Box
         sx={{
           mt: 2,

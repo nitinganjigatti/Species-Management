@@ -79,7 +79,8 @@ const HospitalFollowUp = () => {
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('Chief Veterinarian'),
         origin_site: prepareFilterParams('Origin Site')
-      })
+      }),
+    enabled: !!selectedHospital?.id
   })
 
   const total = data?.data?.total || 0
@@ -224,7 +225,7 @@ const HospitalFollowUp = () => {
     {
       width: 200,
       minWidth: 20,
-      field: 'admitted_at',
+      field: 'follow_up_date',
       sortable: false,
       headerName: 'Follow Up',
       align: 'left',
@@ -236,7 +237,7 @@ const HospitalFollowUp = () => {
             <Typography
               sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
             >
-              {Utility.convertUtcToLocalReadableDate(params?.row?.admitted_at)}
+              {Utility.convertUtcToLocalReadableDate(params?.row?.follow_up_date)}
             </Typography>
           </Box>
         </>
@@ -318,6 +319,7 @@ const HospitalFollowUp = () => {
               </Box>
               <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
                 <CommonDateRangePickers
+                  showFutureDates
                   filterDates={filterDate}
                   onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
                 />

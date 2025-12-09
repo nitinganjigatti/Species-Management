@@ -731,22 +731,22 @@ const PrescriptionMonitoringGrid = ({
             </Button>
           </Grid>
         ) : null}
-        <Grid
-          item
-          size={{ xs: 12, sm: 12 }}
-          sx={{ display: 'flex', alignItems: 'center', my: 4, justifyContent: 'space-between' }}
-        >
-          <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <MUICheckbox
-              label='Select all'
-              labelStyle={isAllSelected && { color: 'green' }}
-              checked={isAllSelected}
-              indeterminate={isIndeterminate}
-              disabled={displayMetrics?.length === 0}
-              onChange={handleSelectAll}
-            />
-            {selectedMetrics.length > 0 && (
-              <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        {displayMetrics?.length > 0 && (
+          <Grid
+            item
+            size={{ xs: 12, sm: 12 }}
+            sx={{ display: 'flex', alignItems: 'center', my: 4, justifyContent: 'space-between' }}
+          >
+            <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <MUICheckbox
+                label='Select all'
+                labelStyle={isAllSelected && { color: 'green' }}
+                checked={isAllSelected}
+                indeterminate={isIndeterminate}
+                disabled={displayMetrics?.length === 0}
+                onChange={handleSelectAll}
+              />
+              {selectedMetrics.length > 0 && <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
                   Pending Dosage:
                 </Typography>
@@ -763,14 +763,15 @@ const PrescriptionMonitoringGrid = ({
                   }, 0)}
                 </Typography>
               </Box>
-            )}
-          </Box>
-          <MUISwitch
-            checked={isCurrentMedicalRecord}
-            onChange={() => setIsCurrentMedicalRecord(!isCurrentMedicalRecord)}
-            label='Current medical records only'
-          />
-        </Grid>
+              }
+            </Box>
+            <MUISwitch
+              checked={isCurrentMedicalRecord}
+              onChange={() => setIsCurrentMedicalRecord(!isCurrentMedicalRecord)}
+              label='Current medical records only'
+            />
+          </Grid>
+        )}
         <Grid item size={{ xs: 12, sm: 12 }}>
           {displayMetrics.length > 0 ? (
             <DashboardContainer>
