@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react'
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import {
   Box,
   Button,
@@ -22,7 +22,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { debounce } from 'lodash'
 
-// ** Custom Components
 import AddHospitalRoom from 'src/views/pages/hospital/masters/hospital/AddHospitalRoom'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import HospitalAnalytics from './HospitalAnalytics'
@@ -33,9 +32,7 @@ import Search from 'src/views/utility/Search'
 import MenuWithDots from 'src/components/MenuWithDots'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import RoomFilterDrawer from './RoomFilterDrawer'
-import CommonDialogBox from 'src/components/CommonDialogBox'
-
-// ** API
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { updateHospitalMaster } from 'src/lib/api/hospital/hospitalMaster'
 import {
   addHospitalRoom,
@@ -49,15 +46,15 @@ import { useHospital } from 'src/context/HospitalContext'
 const HospitalRoomDetails = () => {
   const theme = useTheme()
   const router = useRouter()
-  const { id } = router.query
   const queryClient = useQueryClient()
+  const { page, limit, q, availability, status, id } = router.query
 
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
 
-  const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState(q || '')
   const [editParams, setEditParams] = useState(null)
-  const [hospitalStatusEdit, setHospitalStatusEdit] = useState(null)
+  const [hospitalStatusEdit, setHospitalStatusEdit] = useState(false)
   const [isStatusUpdating, setIsStatusUpdating] = useState(false)
   const [isHospitalActive, setIsHospitalActive] = useState(false)
 
@@ -67,12 +64,11 @@ const HospitalRoomDetails = () => {
   const [isOccupiedRoomWarningOpen, setIsOccupiedRoomWarningOpen] = useState(false)
 
   const [filters, setFilters] = useState({
-    page: 1,
-    limit: 50,
-    q: '',
-    hospital_id: id,
-    availability: '',
-    status: ''
+    page: Number(page) || 1,
+    limit: Number(limit) || 50,
+    q: q || '',
+    availability: availability || '',
+    status: status || ''
   })
 
   const { updateHospitalStats, selectedHospital } = useHospital()
@@ -93,51 +89,13 @@ const HospitalRoomDetails = () => {
       const basePath = `/hospital/masters/hospital/${id}`
       const queryString = params.toString()
       const newUrl = queryString ? `${basePath}?${queryString}` : basePath
-
-      router.replace(newUrl, undefined, { shallow: true })
+      router.replace(newUrl)
     },
     [router, id]
   )
 
   // Sync router params on load and change
   useEffect(() => {
-    if (!router.isReady || !id) return
-
-    const { page = '1', limit = '50', q = '', availability = '', status = '' } = router.query
-
-    setFilters(prev => {
-      const newFilters = {
-        page: Number(page) || 1,
-        limit: Number(limit) || 50,
-        q: q || '',
-        hospital_id: id,
-        availability: availability || '',
-        status: status || ''
-      }
-
-      // Only update if values actually changed
-      const hasChanged =
-        prev.page !== newFilters.page ||
-        prev.limit !== newFilters.limit ||
-        prev.q !== newFilters.q ||
-        prev.hospital_id !== newFilters.hospital_id ||
-        prev.availability !== newFilters.availability ||
-        prev.status !== newFilters.status
-
-      if (hasChanged) {
-        return newFilters
-      }
-
-      return prev
-    })
-
-    if (!router.query.q) {
-      if (searchValue !== '') setSearchValue('')
-    } else {
-      if (!searchValue) setSearchValue(router.query.q)
-    }
-
-    // Sync applied filters from URL
     const syncedFilters = {}
     if (availability) {
       syncedFilters.Availability = availability.split(',').filter(Boolean)
@@ -150,7 +108,7 @@ const HospitalRoomDetails = () => {
     // Update filter count
     const count = Object.values(syncedFilters).reduce((acc, arr) => acc + arr.length, 0)
     setFilterCount(count)
-  }, [router.isReady, router.query, id])
+  }, [])
 
   // Fetch room list - React Query will automatically refetch when filters change
   const {
@@ -173,7 +131,9 @@ const HospitalRoomDetails = () => {
     },
     enabled: router.isReady && !!id,
     keepPreviousData: true,
-
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: false,
     select: response => {
       if (!response?.success) {
         return {
@@ -196,7 +156,7 @@ const HospitalRoomDetails = () => {
     }
   })
 
-  const rows = useMemo(() => roomData?.records || [], [roomData?.records])
+  const roomDetails = useMemo(() => roomData?.records || [], [roomData?.records])
   const total = useMemo(() => roomData?.total || 0, [roomData?.total])
   const hospitalDetails = useMemo(() => roomData?.hospital_detail || [], [roomData?.hospital_detail])
   const occupied = hospitalDetails?.no_of_occupied
@@ -278,84 +238,88 @@ const HospitalRoomDetails = () => {
     [filters, updateUrlParams]
   )
 
-  // Search
-  const debouncedSearch = useMemo(
-    () =>
-      debounce(value => {
-        setFilters(prev => {
-          const updated = { ...prev, q: value, page: 1, hospital_id: id }
-          updateUrlParams(updated)
+  // Debounced search function using useRef to persist across renders
+  const debouncedSearchRef = useRef(null)
 
-          return updated
-        })
-      }, 500),
-    [id, updateUrlParams]
-  )
+  const debouncedSearch = useCallback(() => {
+    if (!debouncedSearchRef.current) {
+      debouncedSearchRef.current = debounce((value, currentFilters, updateFn) => {
+        const updated = {
+          ...currentFilters,
+          q: value,
+          page: 1
+        }
+
+        setFilters(updated)
+        updateFn(updated)
+      }, 500)
+    }
+  }, [debouncedSearchRef])
 
   // Cleanup debounce on unmount
   useEffect(() => {
-    return () => debouncedSearch.cancel()
-  }, [debouncedSearch])
+    debouncedSearch()
 
-  // Search handler - updates UI immediately, debounces API call
+    return () => {
+      if (debouncedSearchRef.current) {
+        debouncedSearchRef.current.cancel()
+      }
+    }
+  }, [])
+
+  // Search handler - only updates local state immediately
   const handleSearch = useCallback(
     value => {
       setSearchValue(value)
-      debouncedSearch(value)
+      if (debouncedSearchRef.current) {
+        debouncedSearchRef.current(value, filters, updateUrlParams)
+      }
     },
-    [debouncedSearch]
+    [filters, updateUrlParams]
   )
 
   // Clear search handler
   const handleSearchClear = useCallback(() => {
-    debouncedSearch.cancel()
     setSearchValue('')
+    if (debouncedSearchRef.current) {
+      debouncedSearchRef.current.cancel()
+    }
 
-    const updated = { ...filters, q: '', page: 1, hospital_id: id }
+    const updated = {
+      ...filters,
+      q: '',
+      page: 1
+    }
+
     setFilters(updated)
     updateUrlParams(updated)
-  }, [debouncedSearch, filters, id, updateUrlParams])
+    refetchRooms()
+  }, [filters, updateUrlParams, refetchRooms])
 
   // Sidebar Controls
   const openAddRoomDrawer = useCallback(() => {
     setEditParams(null)
-    setHospitalStatusEdit(null)
     setOpenDrawer(true)
   }, [])
 
   const openEditRoomDrawer = useCallback(row => {
     setEditParams(row)
-    setHospitalStatusEdit(null)
     setOpenDrawer(true)
   }, [])
 
   const openEditHospitalDrawer = useCallback(() => {
     if (occupied === null || occupied == '0') {
-      setEditParams(null)
-      setHospitalStatusEdit({ hospital_id: id, active: hospitalDetails?.is_active ? 1 : 0 })
+      setHospitalStatusEdit(true)
       setOpenDrawer(true)
     } else {
       setIsOccupiedRoomWarningOpen(true)
     }
-  }, [occupied, hospitalDetails?.is_active, id])
+  }, [occupied])
 
   const closeDrawer = useCallback(() => {
     setOpenDrawer(false)
-    setHospitalStatusEdit(null)
+    setHospitalStatusEdit(false)
     setEditParams(null)
-  }, [])
-
-  // Close Warning Dialog
-  const closeOccupiedRoomWarningDialog = () => setIsOccupiedRoomWarningOpen(false)
-
-  // Open filter drawer
-  const handleOpenFilterDrawer = useCallback(() => {
-    setOpenFilterDrawer(true)
-  }, [])
-
-  // Close filter drawer
-  const handleCloseFilterDrawer = useCallback(() => {
-    setOpenFilterDrawer(false)
   }, [])
 
   // Apply filters from drawer
@@ -372,9 +336,11 @@ const HospitalRoomDetails = () => {
 
       setFilters(updated)
       updateUrlParams(updated)
+
+      refetchRooms()
       setOpenFilterDrawer(false)
     },
-    [filters, updateUrlParams]
+    [filters, updateUrlParams, refetchRooms]
   )
 
   const fetchAndUpdateHospitalStats = async hospitalId => {
@@ -430,7 +396,7 @@ const HospitalRoomDetails = () => {
   )
 
   // Add / Update room and Hospital update
-  const handleSubmitData = async (payload, type = 'room') => {
+  const handleSubmitData = async (payload, type) => {
     setSubmitLoader(true)
 
     try {
@@ -451,7 +417,7 @@ const HospitalRoomDetails = () => {
               }
             })
           } catch (error) {
-            console.warn('Failed to update query cache', error?.message || error)
+            console.error('Failed to update query cache', error?.message || error)
           }
 
           Toaster({ type: 'success', message: response?.message || 'Hospital updated successfully' })
@@ -475,12 +441,12 @@ const HospitalRoomDetails = () => {
               queryClient.setQueryData(['room-list', id, filters], old => {
                 if (!old?.data) return old
 
-                const existingRecords = old.data.records || []
+                const existingRecords = old?.data?.records || []
 
                 if (editParams?.id) {
                   // Update existing room
-                  const updatedRecords = existingRecords.map(room =>
-                    room.id === editParams.id ? { ...room, ...updatedOrNewRoom } : room
+                  const updatedRecords = existingRecords?.map(room =>
+                    room?.id === editParams?.id ? { ...room, ...updatedOrNewRoom } : room
                   )
 
                   return {
@@ -495,15 +461,15 @@ const HospitalRoomDetails = () => {
                   return {
                     ...old,
                     data: {
-                      ...old.data,
+                      ...old?.data,
                       records: [updatedOrNewRoom, ...existingRecords],
-                      total: (old.data.total || 0) + 1
+                      total: (old?.data?.total || 0) + 1
                     }
                   }
                 }
               })
             } catch (error) {
-              console.warn('Failed to update query cache', error?.message || error)
+              console.error('Failed to update query cache', error?.message || error)
             }
 
             Toaster({
@@ -552,13 +518,11 @@ const HospitalRoomDetails = () => {
   )
 
   // Add serial numbers to each row
-  const indexedRows = useMemo(() => {
-    return rows.map((row, index) => ({
-      id: row.id || row.room_id || `temp-${index}`,
-      ...row,
-      sl_no: (filters.page - 1) * filters.limit + index + 1
-    }))
-  }, [rows, filters.page, filters.limit])
+  const indexedRows = roomDetails?.map((row, index) => ({
+    ...row,
+    id: row.id ?? `${row.room_name || 'room'}-${index}`,
+    sl_no: (filters.page - 1) * filters.limit + index + 1
+  }))
 
   const columns = [
     {
@@ -569,7 +533,7 @@ const HospitalRoomDetails = () => {
       renderCell: params => {
         return (
           <StyledTypography fontSize={'0.75rem'} sx={{ pl: 3 }}>
-            {params.row.sl_no}
+            {params?.row?.sl_no}
           </StyledTypography>
         )
       }
@@ -598,28 +562,28 @@ const HospitalRoomDetails = () => {
       field: 'no_of_bed',
       headerName: 'Beds',
       sortable: false,
-      renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params.row.no_of_bed ?? '-'}</StyledTypography>
+      renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.no_of_bed ?? '-'}</StyledTypography>
     },
     {
       minWidth: 150,
       field: 'no_of_occupied',
       headerName: 'Occupants',
       sortable: false,
-      renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params.row.no_of_occupied ?? '-'}</StyledTypography>
+      renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.no_of_occupied ?? '-'}</StyledTypography>
     },
     {
       minWidth: 180,
       field: 'floor_name',
       headerName: 'Floor',
       sortable: false,
-      renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params.row.floor_name ?? '-'}</StyledTypography>
+      renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.floor_name ?? '-'}</StyledTypography>
     },
     {
       minWidth: 200,
       field: 'status',
       headerName: 'Status',
       sortable: false,
-      renderCell: params => <StatusChip chipStyles={{ ml: 1.4 }} status={params.row.status} />
+      renderCell: params => <StatusChip chipStyles={{ ml: 1.4 }} status={params?.row?.status} />
     },
     {
       minWidth: 150,
@@ -629,7 +593,7 @@ const HospitalRoomDetails = () => {
       renderCell: params => (
         <Box onClick={e => e.stopPropagation()}>
           <MenuWithDots
-            options={getMenuOptions(params.row)}
+            options={getMenuOptions(params?.row)}
             showBorder
             menuItemSx={{ padding: '0 20px' }}
             iconSx={{ padding: 0 }}
@@ -649,39 +613,13 @@ const HospitalRoomDetails = () => {
     return ''
   }
 
-  // useEffect(() => {
-  //   const refresh = () => {
-  //     refetchRooms()
-  //   }
-
-  //   // When the page becomes visible again (back/forward/tab switch)
-  //   const handleVisibility = () => {
-  //     if (document.visibilityState === 'visible') {
-  //       refresh()
-  //     }
-  //   }
-
-  //   document.addEventListener('visibilitychange', handleVisibility)
-
-  //   // When route navigation completes (back, forward, router.back)
-  //   router.events.on('routeChangeComplete', refresh)
-
-  //   return () => {
-  //     document.removeEventListener('visibilitychange', handleVisibility)
-  //     router.events.off('routeChangeComplete', refresh)
-  //   }
-  // }, [router.events, refetchRooms])
-
   // Navigate to bed detail on Row click
-  const handleRowClick = useCallback(
-    params => {
-      router.push({
-        pathname: '/hospital/masters/hospital/[id]/[roomId]',
-        query: { id: id, roomId: params?.row?.id }
-      })
-    },
-    [id, router]
-  )
+  const handleRowClick = params => {
+    router.push({
+      pathname: '/hospital/masters/hospital/[id]/[roomId]',
+      query: { id: id, roomId: params?.row?.id }
+    })
+  }
 
   return (
     <>
@@ -775,7 +713,7 @@ const HospitalRoomDetails = () => {
           <FilterButtonWithNotification
             iconPosition='end'
             appliedFiltersCount={filterCount}
-            onClick={handleOpenFilterDrawer}
+            onClick={() => setOpenFilterDrawer(true)}
             sx={{ padding: '6px 20px', gap: 2 }}
           />
         </Box>
@@ -820,7 +758,7 @@ const HospitalRoomDetails = () => {
       {/* Filter Drawer */}
       <RoomFilterDrawer
         openFilterDrawer={openFilterDrawer}
-        onCloseFilterDrawer={handleCloseFilterDrawer}
+        onCloseFilterDrawer={() => setOpenFilterDrawer(false)}
         onSubmitLoading={isLoadingRooms}
         onApplyFilters={handleApplyFilters}
         setFilterCount={setFilterCount}
@@ -828,11 +766,15 @@ const HospitalRoomDetails = () => {
       />
       {/* Room Occupied Warning Dialog for status update of hospital */}
       {isOccupiedRoomWarningOpen && (
-        <CommonDialogBox
-          title='Cannot change the status of a hospital with occupied beds'
+        <ConfirmationDialog
           dialogBoxStatus={isOccupiedRoomWarningOpen}
-          close={closeOccupiedRoomWarningDialog}
-          noWidth={true}
+          title='The hospital status cannot be changed because there are patients currently occupying the beds'
+          confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
+          image={'/images/warning-icon.svg'}
+          imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
+          confirmAction={() => setIsOccupiedRoomWarningOpen(false)}
+          ConfirmationText={'OK'}
+          allowCancel={false}
         />
       )}
     </>
