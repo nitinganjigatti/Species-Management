@@ -50,7 +50,7 @@ function AddDispense() {
   const [currentDate] = useState(() => {
     const today = new Date()
     const year = today.getFullYear()
-    const month = String(today.getMonth() + 1).padStart(2, '0') 
+    const month = String(today.getMonth() + 1).padStart(2, '0')
     const day = String(today.getDate()).padStart(2, '0')
 
     return `${year}-${month}-${day}`
@@ -164,16 +164,13 @@ function AddDispense() {
     }
   }
 
- 
   const deleteRowData = index => {
     const newArray = [...productArray]
     const newArrayUi = [...productArrayUi]
 
-  
     newArray.splice(index, 1)
     newArrayUi.splice(index, 1)
 
-   
     setProductArray(newArray)
     setProductArrayUi(newArrayUi)
     setDispensesPayload(newArrayUi)
@@ -214,7 +211,6 @@ function AddDispense() {
 
             // query: { id: res?.data }
           })
-
         } else {
           setSubmitLoading(false)
           setOpenSnackbar({
@@ -233,8 +229,6 @@ function AddDispense() {
 
   const totalQty = productArrayUi.reduce((sum, item) => sum + item.qty, 0)
   const totalUnitPrice = productArrayUi.reduce((sum, item) => sum + Number(item.unit_price) * item.qty, 0)
-
-
 
   return (
     <>
@@ -429,10 +423,7 @@ function AddDispense() {
             >
               <TableContainer>
                 <Table>
-                  <TableHead
-                    sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}
-
-                  >
+                  <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
                     <TableRow>
                       <TableCell>Product Name</TableCell>
                       <TableCell>Batch No.</TableCell>
@@ -543,7 +534,7 @@ function AddDispense() {
                       <TableCell>Animal Name</TableCell>
                       <TableCell>Animal Id</TableCell>
                       {/* <TableCell>animal Name</TableCell> */}
-                      <TableCell>enclosure Id</TableCell>
+                      <TableCell>enclosure Name</TableCell>
                       <TableCell>section Name</TableCell>
                       <TableCell>gender</TableCell>
                       <TableCell>Action</TableCell>
@@ -568,7 +559,7 @@ function AddDispense() {
                                 />
                               </TableCell>
                               <TableCell>{elmnt?.animal_id}</TableCell>
-                              <TableCell>{elmnt?.enclosure_id}</TableCell>
+                              <TableCell>{elmnt?.user_enclosure_name}</TableCell>
                               <TableCell>{elmnt?.section_name}</TableCell>
                               <TableCell>{elmnt?.gender}</TableCell>
                               <TableCell>
@@ -598,7 +589,8 @@ function AddDispense() {
                     alignItems: 'flex-end',
                     justifyContent: 'flex-end',
                     height: '100%'
-                  }}>
+                  }}
+                >
                   <Button
                     sx={{ width: '100px', height: '40px' }}
                     disabled={productArrayUi?.length === 0 || errors.user_id || submitLoading}
@@ -639,7 +631,7 @@ function AddDispense() {
         </>
       )}
     </>
-  );
+  )
 }
 
 export default AddDispense
