@@ -22,40 +22,18 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 
-// const STORAGE_KEY = 'transfer_enclosure_form'
-
 const transferEnclosureSchema = yup.object({
   discharge_date: yup.date().nullable().required('Date of discharge is required'),
   discharge_time: yup.date().nullable().required('Time of discharge is required'),
   follow_up_required: yup.boolean().optional(),
-
-  // follow_up_date: yup
-  //   .date()
-  //   .nullable()
-  //   .when('follow_up_required', {
-  //     is: true,
-  //     then: schema =>
-  //       schema.required('Follow up date required').test('afterNow', 'Follow-up cannot be in past', v => {
-  //         if (!v) return true
-
-  //         // Compare pure dates (midnight)
-  //         const selected = dayjs(v).startOf('day')
-  //         const today = dayjs().startOf('day')
-
-  //         return selected.isSame(today) || selected.isAfter(today)
-  //       })
-  //   }),
   follow_up_date: yup
     .date()
     .nullable()
     .when('follow_up_required', {
       is: true,
-      then: schema =>
-        schema
-          .required('Follow up date required')
-          .min(dayjs().startOf('day').toDate(), 'Follow up cannot be in the past')
+      then: schema => schema.required('Follow up date required')
     }),
-  reason: yup.string().required(),
+  reason: yup.string().optional(),
   care_diet_instruction: yup.string().trim().optional(),
   care_restriction: yup.string().trim().optional(),
   care_notes: yup.string().trim().optional(),
@@ -145,21 +123,20 @@ const EnclosureDischargeForm = props => {
 
     if (saved) {
       const parsed = JSON.parse(saved)
-
       reset({
         ...defaultValues,
         ...parsed,
         discharge_date: parsed.discharge_date ? dayjs(parsed.discharge_date) : dayjs(),
         discharge_time: parsed.discharge_time ? dayjs(parsed.discharge_time) : dayjs(),
         follow_up_required: parsed.follow_up_required ?? false,
-        follow_up_date: parsed.follow_up_required && parsed.follow_up_date ? dayjs(parsed.follow_up_date) : null
+        follow_up_date: parsed.follow_up_required && parsed.follow_up_date ? dayjs(parsed.follow_up_date) : dayjs()
       })
 
       isRestoring.current = false
     }
   }, [STORAGE_KEY])
 
-  // strict time limits for discharge time
+  // time limits for discharge time
   const selectedDischargeDate = watch('discharge_date')
   const admittedAtLocal = dayjs(patientData?.admitted_at)
   const now = dayjs()
@@ -170,12 +147,12 @@ const EnclosureDischargeForm = props => {
   if (selectedDischargeDate) {
     const selectedDay = dayjs(selectedDischargeDate)
 
-    // If discharge day is same as admission date → cannot select a time before admission
+    // If discharge day is same as admission date  cannot select a time before admission
     if (selectedDay.isSame(admittedAtLocal, 'day')) {
       minTime = admittedAtLocal
     }
 
-    // If discharge day is today → cannot pick time after current time
+    // If discharge day is today  cannot pick time after current time
     if (selectedDay.isSame(now, 'day')) {
       maxTime = now
     }
@@ -200,14 +177,6 @@ const EnclosureDischargeForm = props => {
     onDirtyChange?.(isDirty)
   }, [isDirty, onDirtyChange])
 
-  // Reset irrelevant fields on follow-up toggle
-  // useEffect(() => {
-  //   if (!followUp) {
-  //     setValue('follow_up_date', null)
-  //     clearErrors('follow_up_date')
-  //   }
-  // }, [followUp, setValue, clearErrors])
-
   // Edit medicine – go to schedule-prescription
   const handleEditMedicine = useCallback(
     med => {
@@ -222,7 +191,7 @@ const EnclosureDischargeForm = props => {
     [router, id]
   )
 
-  // Delete a medicine: update context state
+  // Delete a medicine update context state
   const handleDeleteMedicine = useCallback(
     medId => {
       const updated = medicationData.filter(med => med.id !== medId)
@@ -280,8 +249,6 @@ const EnclosureDischargeForm = props => {
       transfer_to_site_id: patientDetails?.site_id,
       transfer_to_enclosure_id: patientDetails?.user_enclosure_id,
       request_from: 'web'
-
-      // enclosure_id: patientDetails?.user_enclosure_id,
     }
 
     const success = await handleSubmitData(payload)
@@ -387,8 +354,6 @@ const EnclosureDischargeForm = props => {
           />
 
           <Divider />
-
-          {/* Follow-up Section */}
           <Grid container alignItems='center' spacing={2} justifyContent='space-between' id='medications-section'>
             <Grid size={{ xs: 12, sm: 6 }}>
               <ControlledSwitch
@@ -431,6 +396,22 @@ const EnclosureDischargeForm = props => {
                       label='Date'
                       errors={errors}
                       minDate={dayjs(new Date())}
+                      onChangeOverride={selectedDate => {
+                        if (!selectedDate) {
+                          setValue('follow_up_date', null)
+
+                          return
+                        }
+
+                        const now = dayjs()
+
+                        const finalDate = selectedDate
+                          .set('hour', now.hour())
+                          .set('minute', now.minute())
+                          .set('second', now.second())
+
+                        setValue('follow_up_date', finalDate)
+                      }}
                     />
                   </Grid>
                 </Grid>
@@ -439,8 +420,6 @@ const EnclosureDischargeForm = props => {
           </Grid>
 
           <Divider />
-
-          {/* Medications */}
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Box
               sx={{
@@ -473,8 +452,6 @@ const EnclosureDischargeForm = props => {
                       query: {
                         tab: 'discharge',
                         discharge_tab: 'TransferEnclosure'
-
-                        // return_to: '#medications-section'
                       }
                     })
                   }}
@@ -505,8 +482,6 @@ const EnclosureDischargeForm = props => {
           </Box>
 
           <Divider />
-
-          {/* Care Instructions */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <StyledTypography fontSize='1.25rem'>Care Instructions</StyledTypography>
 
@@ -535,8 +510,6 @@ const EnclosureDischargeForm = props => {
           </Box>
 
           <Divider />
-
-          {/* Attachments */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <StyledTypography>Attachments</StyledTypography>
             <ControlledMultiFileUpload name='attachments' control={control} errors={errors} label='Upload attachment' />

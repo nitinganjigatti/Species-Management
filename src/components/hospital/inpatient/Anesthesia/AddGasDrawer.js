@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { Box, Card, Chip, Drawer, IconButton, Typography, useTheme } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import * as yup from 'yup'
@@ -74,6 +74,7 @@ function AddGasDrawer({
   submitLoader,
   editData,
   gasOptions = [],
+  existingMedications = [],
   deliveryRouteOptions = [],
   onLoadMoreDrugs,
   hasMoreDrugs = false,
@@ -96,6 +97,28 @@ function AddGasDrawer({
     reValidateMode: 'onChange'
   })
 
+  const filteredGasOptions = useMemo(() => {
+    if (!Array.isArray(gasOptions) || !gasOptions.length) return []
+    const existing = Array.isArray(existingMedications) ? existingMedications : []
+
+    const excludedIds = new Set(
+      existing
+        .map(m => m?.gas_name?.id ?? m?.drug_id ?? null)
+        .filter(Boolean)
+        .map(id => String(id))
+    )
+    const editingId = editData?.gas_name?.id ?? editData?.drug_id ?? null
+    const editingIdStr = editingId ? String(editingId) : null
+
+    return gasOptions.filter(opt => {
+      const optId = opt?.id ?? opt?.drug_id ?? null
+      if (!optId) return true
+      const idStr = String(optId)
+      if (editingIdStr && idStr === editingIdStr) return true
+      return !excludedIds.has(idStr)
+    })
+  }, [gasOptions, existingMedications, editData])
+
   useEffect(() => {
     if (!handleSidebarOpen) return
     if (editData) {
@@ -108,7 +131,6 @@ function AddGasDrawer({
         for (const format of formats) {
           const parsed = dayjs(t, format, true)
           if (parsed.isValid()) {
-            // For time-only formats, combine with today's date
             if (format.includes('hh:mm') || format === 'HH:mm:ss') {
               const today = dayjs().format('YYYY-MM-DD')
               return dayjs(`${today} ${parsed.format('HH:mm:ss')}`, 'YYYY-MM-DD HH:mm:ss', true)
@@ -148,6 +170,7 @@ function AddGasDrawer({
     async formData => {
       const fmt = v => (v ? dayjs(v).format('hh:mm A') : null)
       const payload = {
+        ...(editData && editData.id ? { id: editData.id } : {}),
         gas_name: formData.gas_name,
         o2_flow: formData.o2_flow,
         concentration: formData.concentration,
@@ -223,7 +246,7 @@ function AddGasDrawer({
                   name='gas_name'
                   errors={errors}
                   label='Enter Gas Name*'
-                  options={gasOptions}
+                  options={filteredGasOptions}
                   getOptionLabel={option => option?.name || ''}
                   isOptionEqualToValue={(option, value) => option?.id === value?.id}
                   renderOption={(props, option) => (

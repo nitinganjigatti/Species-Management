@@ -30,7 +30,7 @@ const formatTimestamp = isoString => {
   const safeDate = datePart && datePart !== 'Invalid date' ? datePart : ''
 
   if (safeTime && safeDate) {
-    return `${safeTime} • ${safeDate}`
+    return `${safeDate} • ${safeTime}`
   }
 
   return safeTime || safeDate || '-'
@@ -45,7 +45,7 @@ const formatClinicianTimestamp = isoString => {
   const safeDate = datePart && datePart !== 'Invalid date' ? datePart : ''
 
   if (safeTime && safeDate) {
-    return `${safeTime} • ${safeDate}`
+    return `${safeDate} • ${safeTime}`
   }
 
   return safeTime || safeDate || ''
@@ -59,236 +59,102 @@ const formatShortDate = isoString => {
   return formatted && formatted !== 'Invalid date' ? formatted : '-'
 }
 
-const getUpdatedTimestamp = record => record?.update_at || null
+const getApiRecords = response => {
+  if (Array.isArray(response?.data?.records)) return response.data.records
 
-const getCreatedTimestamp = record => record?.created_at || null
-
-const getTimestampValue = record => {
-  const timestamp = typeof record === 'string' ? record : getUpdatedTimestamp(record)
-  if (!timestamp) return -Infinity
-  const parsed = dayjs(timestamp)
-
-  return parsed.isValid() ? parsed.valueOf() : -Infinity
+  return []
 }
 
-const deriveTreatmentId = entry => {
+const parseNotesCount = value => {
+  const parsed = Number(value)
+
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+const extractTreatmentEntries = record => {
+  if (Array.isArray(record?.treatments) && record.treatments.length) return record.treatments
+  if (record?.treatment_name) return [record]
+
+  return []
+}
+
+const mapTreatmentEntry = (entry, index = 0) => {
   if (!entry) return null
 
-  return (
-    entry.treatment_master_id ||
-    (entry.treatment_name ? entry.treatment_name.trim().toLowerCase().replace(/\s+/g, '-') : null)
-  )
-}
-
-const buildActivityFromSource = (activity = {}, fallbackRecord = {}, index = 0) => {
-  const timestamp =
-    activity.update_at || fallbackRecord?.update_at || activity.created_at || fallbackRecord?.created_at || null
-
-  const fallbackIdBase =
-    fallbackRecord.id ||
-    fallbackRecord.treatment_master_id ||
-    fallbackRecord.treatment_id ||
-    (fallbackRecord.treatment_name
-      ? fallbackRecord.treatment_name.trim().toLowerCase().replace(/\s+/g, '-')
-      : 'activity')
-
-  const treatmentStartDate =
-    activity.start_time || activity.created_at || fallbackRecord?.start_time || fallbackRecord?.created_at || null
+  const noteText = entry.note?.toString().trim() || ''
+  const notesCount = parseNotesCount(entry.notes_count)
+  const lastUpdated = entry.update_at || entry.created_at || null
 
   return {
-    id: activity.id || `${fallbackIdBase}-${index}`,
-    description: activity.description ?? activity.notes ?? activity.note ?? fallbackRecord.note ?? '',
-    author: activity.created_by_name || fallbackRecord.created_by_name || '—',
-    timestamp,
-    status: activity.status || fallbackRecord.status || 'completed',
-    title: activity.treatment_name || fallbackRecord.treatment_name || 'Status Update',
-    treatmentStartDate,
-    notes: activity.notes ?? activity.description ?? activity.note ?? fallbackRecord.note ?? ''
-  }
-}
-
-const extractActivitiesFromRecord = record => {
-  if (Array.isArray(record?.activities) && record.activities.length) {
-    return record.activities.map((activity, index) => buildActivityFromSource(activity, record, index))
-  }
-
-  return [
-    buildActivityFromSource(
-      {
-        id: record?.id,
-        description: record?.note,
-        notes: record?.note,
-        update_at: getUpdatedTimestamp(record),
-        created_at: getCreatedTimestamp(record),
-        created_by_name: record?.created_by_name,
-        treatmentStartDate: record?.start_time,
-        status: record?.status,
-        title: record?.treatment_name
-      },
-      record
-    )
-  ]
-}
-
-const buildTreatmentFromEntries = entries => {
-  if (!entries?.length) return null
-
-  const activities = entries.flatMap(extractActivitiesFromRecord)
-  const latestEntry = entries.slice().sort((a, b) => getTimestampValue(b) - getTimestampValue(a))[0] || entries[0]
-
-  const latestActivityWithNotes = activities
-    .slice()
-    .sort((a, b) => getTimestampValue(b) - getTimestampValue(a))
-    .find(activity => (activity.notes || activity.description)?.toString().trim())
-
-  const apiNotesCountValue = entries.find(
-    entry => entry.notes_count !== undefined && entry.notes_count !== null
-  )?.notes_count
-
-  const parsedApiNotesCount =
-    apiNotesCountValue !== undefined && apiNotesCountValue !== null ? Number(apiNotesCountValue) : null
-  const resolvedApiNotesCount = Number.isFinite(parsedApiNotesCount) ? parsedApiNotesCount : null
-
-  return {
-    id: deriveTreatmentId(latestEntry) || deriveTreatmentId(entries[0]) || 'treatment',
-    name: latestEntry?.treatment_name || entries[0]?.treatment_name || 'Treatment',
-    noteCount: activities.filter(activity => (activity.notes || activity.description)?.toString().trim()).length,
-    noteSummary:
-      latestActivityWithNotes?.notes?.toString().trim() ||
-      latestActivityWithNotes?.description?.toString().trim() ||
-      'No notes added yet.',
-    lastUpdated: getUpdatedTimestamp(latestEntry),
+    id: entry.id || entry.treatment_master_id || `${entry.medical_record_id || 'treatment'}-${index}`,
+    name: entry.treatment_name || '-',
+    noteCount: notesCount ?? (noteText ? 1 : 0),
+    noteSummary: noteText || 'No notes added yet.',
+    lastUpdated,
     clinician: {
-      name: latestEntry?.created_by_name || '—',
-      avatarUrl: latestEntry?.profile_pic || '',
-      createdAt: getCreatedTimestamp(latestEntry) || ''
+      name: entry.created_by_name || '—',
+      avatarUrl: entry.profile_pic || '',
+      createdAt: entry.created_at || ''
     },
-    animalId: latestEntry?.animal_id || entries[0]?.animal_id || null,
-    medicalRecordId: latestEntry?.medical_record_id || entries[0]?.medical_record_id || null,
-    medicalRecordCode: latestEntry?.medical_record_code || entries[0]?.medical_record_code || '',
-    treatmentMasterId: latestEntry?.treatment_master_id || entries[0]?.treatment_master_id || null,
-    treatmentId: latestEntry?.treatment_id || entries[0]?.treatment_id || null,
-    hospitalCaseId: latestEntry?.hospital_case_id || entries[0]?.hospital_case_id || null,
-    activities,
-    notes_count: resolvedApiNotesCount
+    animalId: entry.animal_id || null,
+    medicalRecordId: entry.medical_record_id || null,
+    medicalRecordCode: entry.medical_record_code || '',
+    treatmentMasterId: entry.treatment_master_id || null,
+    hospitalCaseId: entry.hospital_case_id || null,
+    notes_count: notesCount
   }
-}
-
-const aggregateTreatmentsByName = (treatments = []) => {
-  if (!treatments.length) return []
-
-  const grouped = treatments.reduce((acc, record) => {
-    if (!record) return acc
-
-    const key =
-      record.treatment_name?.trim().toLowerCase() ||
-      record.name?.trim().toLowerCase() ||
-      record.treatment_master_id ||
-      record.treatment_id ||
-      record.id ||
-      `treatment-${Object.keys(acc).length}`
-
-    if (!acc[key]) {
-      acc[key] = []
-    }
-
-    acc[key].push(record)
-
-    return acc
-  }, {})
-
-  return Object.values(grouped).map(buildTreatmentFromEntries).filter(Boolean)
 }
 
 const mapRecordsToGroups = (records = []) => {
   if (!records.length) return []
 
-  const hasNestedTreatments = records.some(record => Array.isArray(record?.treatments))
+  return records
+    .map((record, index) => {
+      const treatments = extractTreatmentEntries(record).map(mapTreatmentEntry).filter(Boolean)
 
-  if (hasNestedTreatments) {
-    return records
-      .map((record, index) => {
-        const treatments = (record.treatments || []).map(entry => buildTreatmentFromEntries([entry])).filter(Boolean)
+      if (!treatments.length) return null
 
-        if (!treatments.length) return null
-
-        return {
-          id: record.medical_record_id || record.medical_record_code || record.id || `medical-record-${index}`,
-          code:
-            record.code ||
-            (record.medical_record_code
-              ? `MED - ${record.medical_record_code}`
-              : record.medical_record_name || record.title || 'Medical Record'),
-          icon: record.icon || 'mdi:medical-bag-outline',
-          treatments
-        }
-      })
-      .filter(Boolean)
-  }
-
-  const groupedByMedicalRecord = records.reduce((acc, record) => {
-    if (!record) return acc
-
-    const key = record.medical_record_code || record.medical_record_id || 'default'
-    if (!acc[key]) {
-      acc[key] = {
-        id: key,
+      return {
+        id: record.medical_record_id || record.medical_record_code || record.id || `medical-record-${index}`,
         code: record.medical_record_code
-          ? `MED - ${record.medical_record_code}`
-          : record.treatment_name
-          ? `Treatment - ${record.treatment_name}`
-          : 'Treatment',
-        icon: 'mdi:medical-bag-outline',
-        entries: []
+          ? record.medical_record_code
+          : record.medical_record_name || record.title || 'Medical Record',
+        icon: record.icon || 'mdi:medical-bag-outline',
+        treatments
       }
-    }
-    acc[key].entries.push(record)
-
-    return acc
-  }, {})
-
-  return Object.values(groupedByMedicalRecord)
-    .map(group => ({
-      id: group.id,
-      code: group.code,
-      icon: group.icon,
-      treatments: aggregateTreatmentsByName(group.entries)
-    }))
-    .filter(group => group.treatments.length)
+    })
+    .filter(Boolean)
 }
 
 const mapDetailRecordsToActivities = (records = []) => {
-  if (!records.length) return []
+  const treatmentEntries = records.flatMap(extractTreatmentEntries)
+  if (!treatmentEntries.length) return []
 
-  return records.map((record, index) => {
-    const timestamp = record.update_at || null
-    const treatmentId = record.id || null
-    const treatmentMasterId = record.treatment_master_id || null
-
-    const treatmentStartDate = record.update_at || record.created_at || null
-    const note = record.note || ''
+  return treatmentEntries.map((entry, index) => {
+    const note = entry.note || ''
+    const timestamp = entry.update_at || entry.created_at || null
+    const isInitial = String(entry.is_first) === '1'
 
     return {
-      id: treatmentId,
-      treatmentId,
-      treatmentMasterId,
-      title: record.treatment_name || 'Status Update',
-      treatmentName: record.treatment_name || '',
-      author: record.created_by_name || '—',
+      id: entry.id || entry.treatment_master_id || `${entry.medical_record_id || 'activity'}-${index}`,
+      treatmentId: entry.id || null,
+      treatmentMasterId: entry.treatment_master_id || null,
+      treatmentName: entry.treatment_name || '',
+      author: entry.created_by_name || '—',
       clinician: {
-        name: record.created_by_name || '—',
-        avatarUrl: record.profile_pic || ''
+        name: entry.created_by_name || '—',
+        avatarUrl: entry.profile_pic || ''
       },
       timestamp,
-      treatmentStartDate,
+      treatmentStartDate: entry.start_time || entry.created_at || null,
       notes: note,
       description: note,
       note,
-      status: record.is_first === '1' ? 'initial' : 'update',
-      isFirst: record.is_first === '1',
-      isEditable: record.is_first !== '1',
-      medicalRecordCode: record.medical_record_code || '',
-      record
+      status: isInitial ? 'initial' : 'update',
+      isFirst: isInitial,
+      isEditable: !isInitial,
+      medicalRecordCode: entry.medical_record_code || '',
+      record: entry
     }
   })
 }
@@ -299,7 +165,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
   const [isEditDrawerOpen, setEditDrawerOpen] = useState(false)
 
   const [formData, setFormData] = useState({
-    startDate: dayjs('2025-07-12'),
+    startDate: dayjs(),
     treatmentName: null,
     notes: ''
   })
@@ -307,8 +173,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
   const [editFormData, setEditFormData] = useState({
     startDate: dayjs(),
     notes: '',
-    activeActivityId: null,
-    activeTreatmentMasterId: null
+    activeActivityId: null
   })
   const [selectedTreatment, setSelectedTreatment] = useState(null)
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -331,8 +196,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     setEditFormData({
       startDate: dayjs(),
       notes: '',
-      activeActivityId: null,
-      activeTreatmentMasterId: null
+      activeActivityId: null
     })
     setIsUpdatingTreatment(false)
     setIsDeletingTreatment(false)
@@ -354,7 +218,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     setTreatmentInputValue('')
     setTreatmentOptionsLoading(false)
     setFormData({
-      startDate: dayjs('2025-07-12'),
+      startDate: dayjs(),
       treatmentName: null,
       notes: ''
     })
@@ -371,8 +235,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         hospital_case_id: hospitalCaseId
       })
 
-      const records = response?.data?.records || []
-      setTreatmentGroups(mapRecordsToGroups(records))
+      setTreatmentGroups(mapRecordsToGroups(getApiRecords(response)))
     } catch (error) {
       Toaster({ type: 'error', message: error?.message || 'Failed to fetch treatments.' })
       setTreatmentGroups([])
@@ -402,8 +265,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
           hospital_case_id: hospitalCaseId
         })
 
-        const records = response?.data?.records || []
-        setSelectedTreatmentActivities(mapDetailRecordsToActivities(records))
+        setSelectedTreatmentActivities(mapDetailRecordsToActivities(getApiRecords(response)))
       } catch (error) {
         Toaster({ type: 'error', message: error?.message || 'Failed to fetch treatment details.' })
         setSelectedTreatmentActivities([])
@@ -510,7 +372,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
       if (response?.success) {
         setAddDrawerOpen(false)
         setFormData({
-          startDate: dayjs('2025-07-12'),
+          startDate: dayjs(),
           treatmentName: null,
           notes: ''
         })
@@ -551,16 +413,14 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     setEditFormData({
       startDate: inferredStartDate,
       notes: prefillNotes,
-      activeActivityId: activity?.treatmentId || activity?.id || null,
-      activeTreatmentMasterId: activity?.record?.treatment_master_id || treatment.treatment_master_id || null
+      activeActivityId: activity?.id || null
     })
     setEditDrawerOpen(true)
 
     loadTreatmentActivities({
-      treatmentMasterId:
-        treatment.treatmentMasterId || treatment.treatment_master_id || treatment.treatmentId || treatment.id,
-      medicalRecordId: treatment.medicalRecordId || treatment.medical_record_id,
-      animalId: treatment.animalId
+      treatmentMasterId: treatment.treatmentMasterId || treatment.id,
+      medicalRecordId: treatment.medicalRecordId || medicalRecordId,
+      animalId: treatment.animalId || animalId
     })
   }
 
@@ -590,15 +450,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
       ? dayjs(editFormData.startDate).format('DD MMM YYYY HH:mm:ss')
       : ''
 
-    const treatmentMasterId =
-      selectedTreatment?.name ||
-      selectedTreatment?.treatment_name ||
-      editFormData.activeTreatmentMasterId ||
-      selectedTreatment.treatmentMasterId ||
-      selectedTreatment.treatment_master_id ||
-      selectedTreatment.treatmentId ||
-      selectedTreatment.id ||
-      ''
+    const treatmentMasterId = selectedTreatment?.name || ''
 
     if (!treatmentMasterId) {
       Toaster({ type: 'error', message: 'Unable to determine treatment reference for update.' })
@@ -692,13 +544,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     setEditFormData({
       startDate: inferredStartDate,
       notes: prefillNotes,
-      activeActivityId: activity.treatmentId || activity.id || null,
-      activeTreatmentMasterId:
-        activity.treatmentMasterId ||
-        activity.record?.treatment_master_id ||
-        selectedTreatment.treatmentMasterId ||
-        selectedTreatment.treatment_master_id ||
-        null
+      activeActivityId: activity.id || null
     })
   }
 

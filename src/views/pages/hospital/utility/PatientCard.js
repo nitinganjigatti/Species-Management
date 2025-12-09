@@ -9,7 +9,7 @@ import MenuWithDots from 'src/components/MenuWithDots'
 import EditPatientDrawer from 'src/components/hospital/drawer/EditPatientDrawer'
 import AddPatientDrawer from 'src/components/hospital/drawer/AddPatientDrawer'
 
-const PatientCard = ({ patientData, animalData, loading, refetch }) => {
+const PatientCard = ({ patientData, animalData, loading, refetch, category }) => {
   const theme = useTheme()
 
   const isPatientDischarged = patientData?.status === 'discharge' ? true : false
@@ -175,7 +175,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch }) => {
               >
                 {loading ? (
                   <Skeleton variant='rounded' width={100} height={40} />
-                ) : patientData?.visit_type === 'opd' && patientData?.status === 'pending' ? (
+                ) : category === 'Outpatients' ? (
                   <Button
                     variant='outlined'
                     sx={{
@@ -294,6 +294,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch }) => {
           onClose={() => setOpenAddAnimalDrawer(false)}
           patientData={patientData}
           animalData={animalData}
+          refetch={refetch}
         />
       )}
     </>

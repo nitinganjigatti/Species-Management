@@ -31,13 +31,16 @@ import RecoveryAndReversal from 'src/components/hospital/inpatient/Anesthesia/Re
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
 import Utility from 'src/utility'
+import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 import {
   getAssesmentList,
   addAnesthesia,
   getAnesthesiaSetupList,
   getUnitList,
   getvitalMonitoringList,
-  getAnesthesiaDetails
+  getAnesthesiaDetails,
+  updateMedication,
+  deleteAnesthesiaMedication
 } from 'src/lib/api/hospital/anesthesia'
 import Toaster from 'src/components/Toaster'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
@@ -60,7 +63,7 @@ export function serverVitalToFormColumns(serverVital = {}, vitalMeta = []) {
   const columns = (timeSlots || []).map(slot => {
     const col = {
       id: slot.id ? String(slot.id) : `t_${Math.random().toString(36).slice(2, 9)}`,
-      timeLabel: slot.recorded_time || '', // raw time
+      timeLabel: slot.recorded_time || '',
       entries: {}
     }
 
@@ -232,16 +235,67 @@ const formatDateTime = value => {
   return formatted && formatted !== 'Invalid date' ? formatted : String(value)
 }
 
+const TIME_ONLY_RE = /^\s*\d{1,2}:\d{2}(:\d{2})?(\s*[AaPp]\.?[Mm]\.?)?\s*$/
+
+const fmt = v => {
+  if (v == null || v === '') return ''
+  if (dayjs.isDayjs(v)) return v.isValid() ? v.format('YYYY-MM-DD HH:mm:ss') : ''
+  if (v instanceof Date) return dayjs(v).format('YYYY-MM-DD HH:mm:ss')
+
+  const str = String(v).trim()
+
+  if (TIME_ONLY_RE.test(str)) {
+    const candidate = `${dayjs().format('YYYY-MM-DD')} ${str}`
+    const p = dayjs(candidate, ['YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DD hh:mm A', 'YYYY-MM-DD HH:mm'], true)
+    return p.isValid() ? p.format('YYYY-MM-DD HH:mm:ss') : ''
+  }
+
+  const p = dayjs(str, ['YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DDTHH:mm:ss', 'YYYY-MM-DD', 'HH:mm:ss', 'hh:mm A'], true)
+  return p.isValid()
+    ? p.format('YYYY-MM-DD HH:mm:ss')
+    : dayjs(str).isValid()
+    ? dayjs(str).format('YYYY-MM-DD HH:mm:ss')
+    : ''
+}
+
+const toTimeOnly = v => {
+  if (!v) return ''
+  let parsed = null
+  if (dayjs.isDayjs(v)) parsed = v
+  else if (v instanceof Date) parsed = dayjs(v)
+  else parsed = dayjs(String(v))
+
+  if (!parsed || !parsed.isValid()) {
+    const candidate = dayjs(`${dayjs().format('YYYY-MM-DD')} ${String(v).trim()}`, 'YYYY-MM-DD hh:mm A', true)
+    if (candidate.isValid()) parsed = candidate
+  }
+
+  return parsed && parsed.isValid() ? parsed.format('HH:mm:ss') : ''
+}
+
 export const anesthesiaSchema = yup.object({
-  basicDetails: yup.object({
-    location: yup.string().trim().required('Location is required'),
-    anaesthesia_datetime: yup.string().trim().required('Date & time is required'),
-    estimated_time_required: yup.string().trim().required('Estimated time is required'),
-    veterinarian_id: yup.array().of(yup.string()).min(1, 'Select at least one veterinarian'),
-    anesthetist_id: yup.array().of(yup.string()).min(1, 'Select at least one anesthetist'),
-    selected: yup.array().of(yup.string()).min(1, 'Select at least one purpose'),
-    notes: yup.string().trim().required('Notes are required')
-  }),
+  basicDetails: yup
+    .object({
+      location: yup.string().trim().required('Location is required'),
+      anaesthesia_datetime: yup.string().trim().required('Date & time is required'),
+      estimated_time_required: yup.string().trim().required('Estimated time is required'),
+      veterinarian_id: yup.array().of(yup.string()).min(1, 'Select at least one veterinarian'),
+      anesthetist_id: yup.array().of(yup.string()).min(1, 'Select at least one anesthetist'),
+      selected: yup.array().of(yup.string()).default([]),
+      custom: yup.array().of(yup.string().trim()).default([]),
+      notes: yup.string().trim().required('Notes are required')
+    })
+    .test('purpose-selected-or-custom', 'Select at least one purpose or add a custom purpose', value => {
+      if (!value) return false
+
+      const selected = Array.isArray(value.selected) ? value.selected : []
+      const custom = Array.isArray(value.custom) ? value.custom : []
+
+      const hasSelected = selected.length > 0
+      const hasCustom = custom.some(v => v && v.trim() !== '')
+
+      return hasSelected || hasCustom
+    }),
   vitalMonitoring: yup
     .array()
     .of(
@@ -270,7 +324,7 @@ const sections = [
 
 export default function AddAnesthesiaRecord() {
   const router = useRouter()
-  const { id, hospital_case_id, medical_record_id, hospital_id, anaesthesia_id } = router.query
+  const { id, anaesthesia_id } = router.query
   const queryClient = useQueryClient()
   const [expanded, setExpanded] = useState('basicDetails')
   const [isBasicDetailsValid, setIsBasicDetailsValid] = useState(false)
@@ -286,6 +340,9 @@ export default function AddAnesthesiaRecord() {
   const [vitalMonitorList, setVitalMonitorList] = useState([])
   const [anesthesiaDetail, setAnesthesiaDetail] = useState(null)
   const [addLoader, setAddLoader] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
   const sectionRefs = React.useRef({})
   const scrollContainerRef = React.useRef(null)
   const theme = useTheme()
@@ -585,6 +642,7 @@ export default function AddAnesthesiaRecord() {
   const veterinarian_id = watch('basicDetails.veterinarian_id')
   const anesthetist_id = watch('basicDetails.anesthetist_id')
   const selected = watch('basicDetails.selected')
+  const customPurposes = watch('basicDetails.custom')
   const notes = watch('basicDetails.notes')
 
   const medications = watch('medicationsGas.medications')
@@ -606,38 +664,146 @@ export default function AddAnesthesiaRecord() {
   )
 
   const handleUpdateMedication = React.useCallback(
-    (index, medicationData) => {
-      const updatedMedications = [...medications]
-      updatedMedications[index] = medicationData
-      setValue('medicationsGas.medications', updatedMedications)
+    async (index, medicationData) => {
+      const updatedMedications = Array.isArray(medications) ? [...medications] : []
+      const existing = updatedMedications[index] || {}
+      const merged = {
+        ...existing,
+        ...medicationData
+      }
+
+      const payload = {
+        id: merged.id,
+        drug_id: merged.drug_name?.id ?? merged.drug_id,
+        purpose_stage: merged.purpose_stage,
+        amount: merged.amount,
+        unit_id: merged.unit ?? merged.unit_id,
+        route: merged.delivery_route?.delivery ?? merged.route ?? '',
+        delivery_time: toTimeOnly(merged.delivery_time),
+        delivery_status: merged.delivery_status,
+        max_effect: toTimeOnly(merged.max_effect_time),
+        comments: merged.notes || '',
+        type: 'medication',
+        anaesthesia_id: anaesthesia_id
+      }
+      try {
+        const apiResponse = await updateMedication(payload)
+        if (apiResponse?.success === true) {
+          updatedMedications[index] = merged
+          setValue('medicationsGas.medications', updatedMedications)
+          Toaster({
+            type: 'success',
+            message: apiResponse.message || 'Medication saved successfully'
+          })
+        } else {
+          Toaster({
+            type: 'error',
+            message: apiResponse?.message || 'Failed to update medication'
+          })
+        }
+      } catch (err) {
+        console.error('Medication update error:', err)
+      }
     },
-    [medications, setValue]
+    [medications, setValue, anaesthesia_id]
   )
 
   const handleUpdateGas = React.useCallback(
-    (index, gasData) => {
-      const updatedGases = [...gases]
-      updatedGases[index] = gasData
-      setValue('medicationsGas.gases', updatedGases)
+    async (index, gasData) => {
+      const updatedGases = Array.isArray(gases) ? [...gases] : []
+      const existing = updatedGases[index] || {}
+      const merged = {
+        ...existing,
+        ...gasData
+      }
+
+      const payload = {
+        id: merged.id,
+        drug_id: merged.gas_name?.id ?? merged.gas_id,
+        oxygen_l_min: merged?.o2_flow,
+        concentration: merged?.concentration,
+        route: merged.delivery_route?.delivery ?? merged.route ?? '',
+        start_time: toTimeOnly(merged?.start_time),
+        end_time: toTimeOnly(merged?.end_time),
+        delivery_status: merged?.delivery_status,
+        type: 'gas',
+        anaesthesia_id: anaesthesia_id
+      }
+      try {
+        const apiResponse = await updateMedication(payload)
+        if (apiResponse?.success === true) {
+          updatedGases[index] = merged
+          setValue('medicationsGas.gases', updatedGases)
+          Toaster({
+            type: 'success',
+            message: apiResponse.message || 'Gas saved successfully'
+          })
+        } else {
+          Toaster({
+            type: 'error',
+            message: apiResponse?.message || 'Failed to update gas'
+          })
+        }
+      } catch (err) {
+        console.error('Gas update error:', err)
+      }
     },
-    [gases, setValue]
+    [gases, setValue, anaesthesia_id]
   )
 
-  const handleDeleteMedication = React.useCallback(
-    index => {
-      const updatedMedications = medications.filter((_, i) => i !== index)
-      setValue('medicationsGas.medications', updatedMedications)
-    },
-    [medications, setValue]
-  )
+  const handleDeleteMedication = (index, id) => {
+    setDeleteTarget({ type: 'medication', index, id })
+    setDeleteDialogOpen(true)
+  }
 
-  const handleDeleteGas = React.useCallback(
-    index => {
-      const updatedGases = gases.filter((_, i) => i !== index)
-      setValue('medicationsGas.gases', updatedGases)
-    },
-    [gases, setValue]
-  )
+  const handleDeleteGas = (index, id) => {
+    setDeleteTarget({ type: 'gas', index, id })
+    setDeleteDialogOpen(true)
+  }
+
+  const onDeleteReversalDrug = (index, id) => {
+    setDeleteTarget({ type: 'reversal', index, id })
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return
+
+    const { type, index, id } = deleteTarget
+    try {
+      setDeleteLoading(true)
+      const payload = { id, type }
+      const res = await deleteAnesthesiaMedication(payload)
+
+      if (res?.success) {
+        if (type === 'medication') {
+          const updated = medications.filter((_, i) => i !== index)
+          setValue('medicationsGas.medications', updated)
+        }
+
+        if (type === 'gas') {
+          const updated = gases.filter((_, i) => i !== index)
+          setValue('medicationsGas.gases', updated)
+        }
+
+        if (type === 'reversal') {
+          const updated = reversalDrugs.filter((_, i) => i !== index)
+          setValue('recoveryAndReversal.reversalDrugs', updated)
+        }
+
+        Toaster({ type: 'success', message: res.message || `${type} deleted successfully` })
+      } else {
+        Toaster({ type: 'error', message: res?.message || `Failed to delete ${type}` })
+      }
+    } catch (err) {
+      console.error('Delete error:', err)
+      Toaster({ type: 'error', message: 'Something went wrong while deleting' })
+    } finally {
+      setDeleteLoading(false)
+      setDeleteDialogOpen(false)
+      setDeleteTarget(null)
+    }
+  }
 
   const onAddReversalDrug = React.useCallback(
     drugData => {
@@ -648,28 +814,58 @@ export default function AddAnesthesiaRecord() {
   )
 
   const onUpdateReversalDrug = React.useCallback(
-    (index, drugData) => {
+    async (index, drugData) => {
       const current = Array.isArray(reversalDrugs) ? [...reversalDrugs] : []
       if (index < 0 || index >= current.length) return
-      current[index] = drugData
-      setValue('recoveryAndReversal.reversalDrugs', current, { shouldDirty: true, shouldTouch: true })
-    },
-    [reversalDrugs, setValue]
-  )
 
-  const onDeleteReversalDrug = React.useCallback(
-    index => {
-      const current = Array.isArray(reversalDrugs) ? [...reversalDrugs] : []
-      const updated = current.filter((_, i) => i !== index)
-      setValue('recoveryAndReversal.reversalDrugs', updated, { shouldDirty: true, shouldTouch: true })
+      const existing = current[index] || {}
+      const merged = { ...existing, ...drugData }
+
+      const payload = {
+        id: merged.id,
+        drug_id: merged.drug_name?.id ?? merged.drug_id,
+        amount: merged.amount,
+        unit_id: merged.unit ?? merged.unit_id,
+        route: merged.delivery_route?.delivery ?? merged.route ?? '',
+        delivery_time: toTimeOnly(merged.delivery_time),
+        delivery_status: merged.delivery_status,
+        max_effect: toTimeOnly(merged.max_effect_time),
+        comments: merged.notes || '',
+        type: 'reversal',
+        anaesthesia_id: anaesthesia_id
+      }
+
+      try {
+        const apiResponse = await updateMedication(payload)
+
+        if (apiResponse?.success === true) {
+          current[index] = merged
+
+          setValue('recoveryAndReversal.reversalDrugs', current, {
+            shouldDirty: true,
+            shouldTouch: true
+          })
+
+          Toaster({
+            type: 'success',
+            message: apiResponse?.message || 'Reversal drug updated successfully'
+          })
+        } else {
+          Toaster({
+            type: 'error',
+            message: apiResponse?.message || 'Failed to update reversal drug'
+          })
+        }
+      } catch (error) {
+        console.error('Reversal drug update error:', error)
+      }
     },
-    [reversalDrugs, setValue]
+    [reversalDrugs, setValue, anaesthesia_id]
   )
 
   React.useEffect(() => {
     const checkBasicDetailsValid = async () => {
       const basicValues = methods.getValues('basicDetails')
-
       try {
         // validate only the basicDetails part of schema
         const isValid = await anesthesiaSchema.fields.basicDetails.isValid(basicValues, {
@@ -689,6 +885,7 @@ export default function AddAnesthesiaRecord() {
     veterinarian_id,
     anesthetist_id,
     selected,
+    customPurposes,
     notes,
     methods
   ])
@@ -714,7 +911,7 @@ export default function AddAnesthesiaRecord() {
   useEffect(() => {
     if (!anaesthesia_id) return
     fetchAnesthesiaDetails(anaesthesia_id)
-  }, [anaesthesia_id])
+  }, [anaesthesia_id, reset])
 
   useEffect(() => {
     if (!anesthesiaDetail) return
@@ -1037,44 +1234,6 @@ export default function AddAnesthesiaRecord() {
 
   const uiKeyForField = (_sectionStringId, apiFieldKey) => {
     return toCamel(apiFieldKey)
-  }
-
-  const TIME_ONLY_RE = /^\s*\d{1,2}:\d{2}(:\d{2})?(\s*[AaPp]\.?[Mm]\.?)?\s*$/
-
-  const fmt = v => {
-    if (v == null || v === '') return ''
-    if (dayjs.isDayjs(v)) return v.isValid() ? v.format('YYYY-MM-DD HH:mm:ss') : ''
-    if (v instanceof Date) return dayjs(v).format('YYYY-MM-DD HH:mm:ss')
-
-    const str = String(v).trim()
-
-    if (TIME_ONLY_RE.test(str)) {
-      const candidate = `${dayjs().format('YYYY-MM-DD')} ${str}`
-      const p = dayjs(candidate, ['YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DD hh:mm A', 'YYYY-MM-DD HH:mm'], true)
-      return p.isValid() ? p.format('YYYY-MM-DD HH:mm:ss') : ''
-    }
-
-    const p = dayjs(str, ['YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DDTHH:mm:ss', 'YYYY-MM-DD', 'HH:mm:ss', 'hh:mm A'], true)
-    return p.isValid()
-      ? p.format('YYYY-MM-DD HH:mm:ss')
-      : dayjs(str).isValid()
-      ? dayjs(str).format('YYYY-MM-DD HH:mm:ss')
-      : ''
-  }
-
-  const toTimeOnly = v => {
-    if (!v) return ''
-    let parsed = null
-    if (dayjs.isDayjs(v)) parsed = v
-    else if (v instanceof Date) parsed = dayjs(v)
-    else parsed = dayjs(String(v))
-
-    if (!parsed || !parsed.isValid()) {
-      const candidate = dayjs(`${dayjs().format('YYYY-MM-DD')} ${String(v).trim()}`, 'YYYY-MM-DD hh:mm A', true)
-      if (candidate.isValid()) parsed = candidate
-    }
-
-    return parsed && parsed.isValid() ? parsed.format('HH:mm:ss') : ''
   }
 
   const onValid = async data => {
@@ -1410,6 +1569,7 @@ export default function AddAnesthesiaRecord() {
           handleChange('medicationsGas')
         }
         Toaster({ type: 'success', message: response?.message })
+        setAnesthesiaDetail(response?.data?.anaesthesia_detail)
         router.push(
           `/hospital/inpatient/${id}/AddAnesthesiaRecord/?tab=anesthesia&anaesthesia_id=${response?.data?.anaesthesia_id}`
         )
@@ -1697,7 +1857,8 @@ export default function AddAnesthesiaRecord() {
                       fontSize: '14px',
                       fontWeight: '600!important',
                       opacity: !anaesthesia_id && sec.id !== 'basicDetails' ? 0.5 : 1,
-                      pl: 12
+                      pl: 8,
+                      pr: 8
                     }}
                   />
                 )
@@ -1836,6 +1997,13 @@ export default function AddAnesthesiaRecord() {
           height={50}
           isSubmitLoading={isSubmitting}
           isAddDisabled={!isBasicDetailsValid}
+        />
+        <DeleteConfirmationDialog
+          open={deleteDialogOpen}
+          loading={deleteLoading}
+          handleClose={() => setDeleteDialogOpen(false)}
+          action={handleDeleteConfirm}
+          message={`Are you sure you want to delete this ${deleteTarget?.type}?`}
         />
       </Box>
     </FormProvider>

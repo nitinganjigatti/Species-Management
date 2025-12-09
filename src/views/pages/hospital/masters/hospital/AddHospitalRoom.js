@@ -40,14 +40,18 @@ const AddHospitalRoom = props => {
   const getSitesList = useMemo(() => authData?.userData?.user?.zoos?.[0]?.sites ?? [], [authData?.userData?.user?.zoos])
 
   // Determine mode and occupancy
-  const isHospitalEditMode = Boolean(hospitalStatus)
-  const hasOccupants = Number(hospitalDetails?.no_of_occupied || 0) > 0
-  const canEditStatus = !hasOccupants
+  const isHospitalEditMode = hospitalStatus
+  const hasOccupants = Number(hospitalDetails?.no_of_occupied || 0) === 0
+  const hasRoomOccupants = Number(editParams?.no_of_occupied || 0) === 0
+
+  // Conditional rendering flags
+  const showRoomFields = !isHospitalEditMode
+  const hospitalNameDisabled = !isHospitalEditMode
 
   // Dynamic Validation Schema
   const schema = useMemo(() => {
     if (isHospitalEditMode) {
-      if (canEditStatus) {
+      if (hasOccupants) {
         return yup.object().shape({
           hospital_id: yup.string().trim().required('Hospital Name is required'),
           status: yup.boolean().required('Status is required')
@@ -58,14 +62,21 @@ const AddHospitalRoom = props => {
         })
       }
     }
-
-    return yup.object().shape({
-      hospital_id: yup.string().trim().required('Hospital Name is required'),
-      room_name: yup.string().trim().required('Room Name is required'),
-      floor_name: yup.string().trim().required('Floor Name is required'),
-      status: yup.boolean().required('Status is required')
-    })
-  }, [isHospitalEditMode, canEditStatus])
+    if (hasRoomOccupants) {
+      return yup.object().shape({
+        hospital_id: yup.string().trim().required('Hospital Name is required'),
+        room_name: yup.string().trim().required('Room Name is required'),
+        floor_name: yup.string().trim().required('Floor Name is required'),
+        status: yup.boolean().required('Status is required')
+      })
+    } else {
+      return yup.object().shape({
+        hospital_id: yup.string().trim().required('Hospital Name is required'),
+        room_name: yup.string().trim().required('Room Name is required'),
+        floor_name: yup.string().trim().required('Floor Name is required')
+      })
+    }
+  }, [isHospitalEditMode, hasOccupants, hasRoomOccupants])
 
   const {
     reset,
@@ -117,9 +128,7 @@ const AddHospitalRoom = props => {
     if (!handleSidebarOpen) return
 
     let prefill = { ...defaultValues }
-    const matchedSite = getSitesList?.find(s => Number(s?.site_id) === Number(hospitalDetails?.site_id))
-
-    // debugger
+    const matchedSite = getSitesList?.find(site => Number(site?.site_id) === Number(hospitalDetails?.site_id))
 
     // Hospital edit modes
     if (isHospitalEditMode) {
@@ -129,22 +138,16 @@ const AddHospitalRoom = props => {
         description: hospitalDetails?.description || '',
         status: Boolean(isActive)
       }
-    }
-
-    //  Room edit mode
-    else if (editParams?.id) {
-      const statusValue = editParams.status === '1' || editParams.status === 1 || editParams.status === 'active'
-
+    } else if (editParams?.id) {
+      //  Room edit mode
       prefill = {
         hospital_id: hospitalDetails?.hospital_name || '',
         room_name: editParams?.room_name || '',
         floor_name: editParams?.floor_name || '',
-        status: editParams.status === '1' || editParams.status === 1 || editParams.status === 'active'
+        status: editParams?.status === '1' || editParams?.status === 1 || editParams?.status === 'active'
       }
-    }
-
-    // Room create mode
-    else {
+    } else {
+      // Room create mode
       prefill = {
         hospital_id: hospitalDetails?.hospital_name || '',
         room_name: '',
@@ -160,12 +163,7 @@ const AddHospitalRoom = props => {
   const handleClose = useCallback(() => {
     reset(defaultValues)
     handleSidebarClose()
-  }, [reset, handleSidebarClose])
-
-  // Conditional rendering flags
-  const showRoomFields = !isHospitalEditMode
-  const showStatusField = !isHospitalEditMode || canEditStatus
-  const hospitalNameDisabled = !isHospitalEditMode
+  }, [handleSidebarClose])
 
   // Drawer title
   const drawerTitle = useMemo(() => {
@@ -173,7 +171,7 @@ const AddHospitalRoom = props => {
     if (editParams?.id) return 'Edit Room'
 
     return 'Add New Room'
-  }, [isHospitalEditMode, editParams])
+  }, [isHospitalEditMode, editParams?.id])
 
   return (
     <Drawer
@@ -276,7 +274,7 @@ const AddHospitalRoom = props => {
                 </>
               )}
 
-              {showStatusField && (
+              {hasRoomOccupants && (
                 <ControlledRadioGroup
                   name='status'
                   control={control}

@@ -147,7 +147,13 @@ const EditClinicalAsmntDrawer = ({
         </Box>
 
         <Box sx={{ pb: 2, borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
-          <Box sx={{ p: 5, background: isResolved? theme.palette.customColors.neutral05   : theme.palette.common.white, px: 5 }}>
+          <Box
+            sx={{
+              p: 5,
+              background: isResolved ? theme.palette.customColors.neutral05 : theme.palette.common.white,
+              px: 5
+            }}
+          >
             <MedicalIdChip
               leftImage
               medId={medical_record_id ? `MID-${medical_record_id}` : ''}
@@ -237,7 +243,7 @@ const EditClinicalAsmntDrawer = ({
                   }}
                 >
                   <MenuItem value='diagnosis'>Diagnosis</MenuItem>
-                  <MenuItem value='differential'>Differential</MenuItem>
+                  <MenuItem value='differential'>Tentative</MenuItem>
                 </Select>
               </Box>
             </Box>

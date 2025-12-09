@@ -9,6 +9,7 @@ export const HospitalProvider = ({ children }) => {
   const [hospitalStats, setHospitalStats] = useState(null)
   const [isHospitalStatsLoading, setHospitalStatsLoading] = useState(false)
   const [hasFetchedStatsForCurrentHospital, setHasFetchedStatsForCurrentHospital] = useState(false)
+  const [isHospitalAccessChecked, setIsHospitalAccessChecked] = useState(false)
 
   const updateSelectedHospital = hospital => {
     setSelectedHospital(hospital)
@@ -58,7 +59,9 @@ export const HospitalProvider = ({ children }) => {
     clearHospitalData,
     isHospitalStatsLoading,
     setHospitalStatsLoading,
-    hasFetchedStatsForCurrentHospital
+    hasFetchedStatsForCurrentHospital,
+    isHospitalAccessChecked,
+    setIsHospitalAccessChecked
   }
 
   return <HospitalContext.Provider value={value}>{children}</HospitalContext.Provider>

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { Box, Card, Chip, Drawer, IconButton, Typography, useTheme } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import * as yup from 'yup'
@@ -73,6 +73,7 @@ function AddReversalDrug({
   submitLoader,
   editData,
   drugOptions = [],
+  existingMedications = [],
   unitList = [],
   deliveryRouteOptions = [],
   onLoadMoreDrugs,
@@ -105,6 +106,27 @@ function AddReversalDrug({
     console.log(' Is Valid:', isValid)
     console.log(' Selected Status:', selectedStatus)
   }, [formValues, errors, isValid, selectedStatus])
+
+  const filteredDrugOptions = useMemo(() => {
+    if (!Array.isArray(drugOptions) || !drugOptions.length) return []
+    const existing = Array.isArray(existingMedications) ? existingMedications : []
+    const excludedIds = new Set(
+      existing
+        .map(m => m?.drug_name?.id ?? m?.drug_id ?? null)
+        .filter(Boolean)
+        .map(id => String(id))
+    )
+
+    const editingId = editData?.drug_name?.id ?? editData?.drug_id ?? null
+    const editingIdStr = editingId ? String(editingId) : null
+    return drugOptions.filter(opt => {
+      const optId = opt?.id ?? opt?.drug_id ?? null
+      if (!optId) return true
+      const idStr = String(optId)
+      if (editingIdStr && idStr === editingIdStr) return true
+      return !excludedIds.has(idStr)
+    })
+  }, [drugOptions, existingMedications, editData])
 
   useEffect(() => {
     if (!handleSidebarOpen) return
@@ -158,6 +180,7 @@ function AddReversalDrug({
       const fmt = v => (v && dayjs(v).isValid() ? dayjs(v).format('hh:mm A') : null)
 
       const payload = {
+        ...(editData && editData.id ? { id: editData.id } : {}),
         drug_name: formData.drug_name,
         amount: formData.amount,
         unit: formData.unit,
@@ -234,7 +257,7 @@ function AddReversalDrug({
                   name='drug_name'
                   errors={errors}
                   label='Enter Drug Name*'
-                  options={drugOptions}
+                  options={filteredDrugOptions}
                   getOptionLabel={option => option?.name || ''}
                   isOptionEqualToValue={(option, value) => option?.id === value?.id}
                   renderOption={(props, option) => (

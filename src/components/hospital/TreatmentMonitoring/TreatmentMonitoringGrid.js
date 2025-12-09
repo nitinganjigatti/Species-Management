@@ -302,28 +302,29 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   }
 
   useEffect(() => {
-    if (!didInitialScroll && scrollContainerRef.current) {
-      const now = new Date()
-      const currentHour24 = now.getHours()
-      const currentHourLabel = getLabelForHour(currentHour24)
-      const currentHourElement = hourRefs.current[currentHourLabel]
-      const scrollContainer = scrollContainerRef.current
+    if (monitoringLoading) return
+    if (!scrollContainerRef.current) return
 
-      if (currentHourElement) {
-        const elOffsetLeft = currentHourElement.offsetLeft
-        const elWidth = currentHourElement.offsetWidth
-        const containerWidth = scrollContainer.clientWidth
-        let scrollLeftPos = elOffsetLeft + elWidth - containerWidth
-        if (scrollLeftPos < 0) scrollLeftPos = 0
+    const now = new Date()
+    const currentHour24 = now.getHours()
+    const currentHourLabel = getLabelForHour(currentHour24)
+    const currentHourElement = hourRefs.current[currentHourLabel]
+    const scrollContainer = scrollContainerRef.current
 
-        scrollContainer.scrollTo({
-          left: scrollLeftPos,
-          behavior: 'smooth'
-        })
-      }
-      setDidInitialScroll(true)
+    if (currentHourElement) {
+      const elOffsetLeft = currentHourElement.offsetLeft
+      const elWidth = currentHourElement.offsetWidth
+      const containerWidth = scrollContainer.clientWidth
+
+      let scrollLeftPos = elOffsetLeft + elWidth - containerWidth
+      if (scrollLeftPos < 0) scrollLeftPos = 0
+
+      scrollContainer.scrollTo({
+        left: scrollLeftPos,
+        behavior: 'smooth'
+      })
     }
-  }, [didInitialScroll])
+  }, [monitoringLoading])
 
   const handleDateChange = date => {
     setSelectedDate(date)
@@ -596,7 +597,9 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
             />
           </Grid>
           <Grid item size={{ xs: 12, sm: 12, md: 2 }}>
-            {!isPatientDischarged && isToday ? (
+            {monitoringLoading ? (
+              <Skeleton variant='rectangular' height={48} sx={{ borderRadius: 1 }} animation='wave' />
+            ) : !isPatientDischarged && isToday ? (
               <Button
                 sx={{ height: '48px', width: '100%', fontSize: '0.8rem' }}
                 variant='contained'

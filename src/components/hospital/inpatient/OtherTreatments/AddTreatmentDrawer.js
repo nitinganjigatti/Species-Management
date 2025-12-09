@@ -21,6 +21,7 @@ const AddTreatmentDrawer = ({
   isSubmitting
 }) => {
   const theme = useTheme()
+
   const handleTreatmentInputChange = (value, reason) => {
     if (reason === 'input') {
       onInputValueChange?.(value || '')

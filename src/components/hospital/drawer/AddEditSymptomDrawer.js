@@ -156,9 +156,6 @@ const AddEditSymptomDrawer = ({
         if (responseNotes?.success === true) {
           setActivityListData(responseNotes?.data || [])
         }
-
-        //onClose()
-        //fetchNotesForSymptom()
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to delete notes.' })
       }
@@ -168,6 +165,7 @@ const AddEditSymptomDrawer = ({
       setIsDeleting(false)
     }
   }
+
   const renderStatusIcon = statusValue => {
     const isActive = statusValue === 'active'
 
@@ -185,11 +183,7 @@ const AddEditSymptomDrawer = ({
   }
 
   return (
-    <Drawer
-      open={open}
-      //onClose={onClose}
-      anchor='right'
-    >
+    <Drawer open={open} anchor='right'>
       <Box
         sx={{
           width: 570,
@@ -322,8 +316,8 @@ const AddEditSymptomDrawer = ({
                     }
                   }}
                 >
-                  <MenuItem value='Low'>Low</MenuItem>
-                  <MenuItem value='Medium'>Medium</MenuItem>
+                  <MenuItem value='Mild'>Mild</MenuItem>
+                  <MenuItem value='Moderate'>Moderate</MenuItem>
                   <MenuItem value='High'>High</MenuItem>
                   <MenuItem value='Extreme'>Extreme</MenuItem>
                 </Select>
