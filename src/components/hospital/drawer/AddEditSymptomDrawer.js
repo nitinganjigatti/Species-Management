@@ -165,6 +165,7 @@ const AddEditSymptomDrawer = ({
       setIsDeleting(false)
     }
   }
+
   const renderStatusIcon = statusValue => {
     const isActive = statusValue === 'active'
 
@@ -315,8 +316,8 @@ const AddEditSymptomDrawer = ({
                     }
                   }}
                 >
-                  <MenuItem value='Low'>Low</MenuItem>
-                  <MenuItem value='Medium'>Medium</MenuItem>
+                  <MenuItem value='Mild'>Mild</MenuItem>
+                  <MenuItem value='Moderate'>Moderate</MenuItem>
                   <MenuItem value='High'>High</MenuItem>
                   <MenuItem value='Extreme'>Extreme</MenuItem>
                 </Select>
