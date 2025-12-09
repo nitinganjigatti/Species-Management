@@ -73,7 +73,8 @@ const MortalityDischargeForm = props => {
     handleDispositionSearch,
     submitLoader,
     handleSubmitData,
-    onDirtyChange
+    onDirtyChange,
+    refetchPatient
   } = props
 
   const theme = useTheme()
@@ -188,7 +189,8 @@ const MortalityDischargeForm = props => {
 
     const success = await handleSubmitData(payload)
     if (success) {
-      reset()
+      reset(defaultValues)
+      refetchPatient()
     }
   }
 

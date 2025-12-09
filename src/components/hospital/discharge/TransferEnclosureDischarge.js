@@ -38,13 +38,6 @@ function TransferEnclosureDischarge() {
         })
 
         fetchAndUpdateHospitalStats(selectedHospital?.id)
-        router.push(`/hospital/inpatient/${id}?tab=overview`)
-
-        // setTimeout(() => {
-        //   router.push(`/hospital/inpatient/${id}?tab=overview`).then(() => {
-        //     router.reload()
-        //   })
-        // }, 0)
 
         return true
       }
@@ -57,11 +50,6 @@ function TransferEnclosureDischarge() {
       return false
     } catch (error) {
       console.error('Transfer enclosure error:', error?.response?.data?.message || error?.message)
-
-      Toaster({
-        type: 'error',
-        message: error?.response?.data?.message || error?.message || 'An unexpected error occurred'
-      })
 
       return false
     } finally {

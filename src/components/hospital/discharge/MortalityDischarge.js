@@ -25,7 +25,7 @@ function MortalityDischarge() {
         updateHospitalStats(statsResponse.data)
       }
     } catch (error) {
-      console.error('Error fetching hospital stats:', error)
+      console.error('Error fetching hospital stats:', error?.message || error)
     }
   }
 
@@ -146,11 +146,6 @@ function MortalityDischarge() {
       return false
     } catch (error) {
       console.error('Mortality submission error:', error?.response?.data?.message || error?.message)
-
-      Toaster({
-        type: 'error',
-        message: error?.response?.data?.message || error?.message || 'An unexpected error occurred'
-      })
 
       return false
     } finally {
