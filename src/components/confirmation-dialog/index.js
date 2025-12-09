@@ -12,7 +12,7 @@ const ConfirmationDialog = ({
   loading = false,
   description,
   dialogBoxStatus,
-  onClose,
+  onClose = () => {},
   formComponent,
   ConfirmationText,
   confirmAction,
@@ -35,7 +35,7 @@ const ConfirmationDialog = ({
       disableEscapeKeyDown
       aria-labelledby='alert-dialog-title'
       aria-describedby='alert-dialog-description'
-      onClose={() => onClose()}
+      onClose={onClose}
       sx={{
         '& .MuiDialog-paper': {
           backgroundColor: '#fff',
