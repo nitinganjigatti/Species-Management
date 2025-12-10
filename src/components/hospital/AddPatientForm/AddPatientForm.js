@@ -298,24 +298,25 @@ const AddPatientForm = () => {
         })
       }
 
-      await addHospitalPatient(params).then(res => {
-        if (res?.success === true) {
-          Toaster({ type: 'success', message: res?.message })
-          if (watchTreatmentType === 'opd') {
-            router.push({
-              pathname: `/hospital/outpatient`
-            })
-          } else if (watchTreatmentType === 'inpatient') {
-            router.back()
-          }
-          fetchAndUpdateHospitalStats(selectedHospital?.id)
-        } else {
-          Toaster({ type: 'error', message: res?.message })
+      const res = await addHospitalPatient(params)
+
+      if (res?.success === true) {
+        Toaster({ type: 'success', message: res?.message })
+        if (watchTreatmentType === 'opd') {
+          router.push({
+            pathname: `/hospital/outpatient`
+          })
+        } else if (watchTreatmentType === 'inpatient') {
+          router.back()
         }
-        setSubmitLoader(false)
-      })
+        fetchAndUpdateHospitalStats(selectedHospital?.id)
+      } else {
+        throw res
+      }
+      setSubmitLoader(false)
     } catch (error) {
-      console.error(error, 'Cannot Add-Patient')
+      Toaster({ type: 'error', message: error?.message })
+      console.error(error?.message, 'Cannot Add-Patient')
       setSubmitLoader(false)
     }
   }
@@ -367,7 +368,17 @@ const AddPatientForm = () => {
         <Card sx={{ mb: 4 }}>
           <CardHeader sx={{ pb: 1, px: 6, pt: 6 }} title={RenderUtility.pageTitle('Add Patient')} />
           <CardContent sx={{ px: 6, pb: 6 }}>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form
+              onSubmit={handleSubmit(onSubmit, errors => {
+                if (Object.keys(errors).length > 0) {
+                  const firstError = Object.keys(errors)[0]
+                  const element = document.querySelector(`[name="${firstError}"]`)
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                  }
+                }
+              })}
+            >
               <Box
                 sx={{
                   display: 'flex',
@@ -390,7 +401,10 @@ const AddPatientForm = () => {
                         justifyContent: 'space-between',
                         p: 6,
                         background: theme.palette.customColors.displaybgPrimary,
-                        borderRadius: 1
+                        borderRadius: 1,
+                        cursor: submitLoader ? 'not-allowed' : 'pointer',
+                        opacity: submitLoader ? 0.6 : 1,
+                        pointerEvents: submitLoader ? 'not-allowed' : 'auto'
                       }}
                     >
                       <AnimalCard data={selectedAnimal} />
@@ -458,6 +472,7 @@ const AddPatientForm = () => {
                             selectedBorderColor={theme.palette.primary.main}
                             selectedBackgroundColor={theme.palette.customColors.OnPrimary}
                             sx={{ fontSize: '1rem', width: '100%' }}
+                            disabled={submitLoader}
                           />
                         </Grid>
                       ))}
@@ -482,10 +497,16 @@ const AddPatientForm = () => {
                       name={'admission_date'}
                       label='Date'
                       defaultValue={dayjs()}
+                      disabled={submitLoader}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
-                    <ControlledTimePicker control={control} name={'admission_time'} label='Time' />
+                    <ControlledTimePicker
+                      control={control}
+                      name={'admission_time'}
+                      label='Time'
+                      disabled={submitLoader}
+                    />
                   </Grid>
                 </Grid>
                 <Grid size={{ xs: 12 }}>
@@ -525,6 +546,7 @@ const AddPatientForm = () => {
                               selectedBackgroundColor={theme.palette.customColors.OnPrimaryContainer}
                               selectedFontColor={theme.palette.customColors.OnPrimary}
                               selectedBorderColor='none'
+                              disabled={submitLoader}
                             />
                           </Grid>
                         ))}
@@ -554,6 +576,7 @@ const AddPatientForm = () => {
                               getOptionLabel={option => option.label}
                               getOptionValue={option => option.value}
                               sx={{ background: theme.palette.customColors.Surface }}
+                              disabled={!selectedAnimal || submitLoader}
                             />
                           </Grid>
                         )}
@@ -575,6 +598,7 @@ const AddPatientForm = () => {
                     options={visitTypes}
                     getOptionLabel={option => option.label}
                     getOptionValue={option => option.value}
+                    disabled={submitLoader}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -630,7 +654,9 @@ const AddPatientForm = () => {
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             minHeight: '56px',
-                            cursor: 'pointer'
+                            cursor: submitLoader ? 'not-allowed' : 'pointer',
+                            opacity: submitLoader ? 0.6 : 1,
+                            pointerEvents: submitLoader ? 'not-allowed' : 'auto'
                           }}
                         >
                           <Box
@@ -638,7 +664,8 @@ const AddPatientForm = () => {
                               maxWidth: '260px',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
+                              whiteSpace: 'nowrap',
+                              opacity: submitLoader ? 0.7 : 1
                             }}
                           >
                             <UserAvatarDetails
@@ -647,7 +674,7 @@ const AddPatientForm = () => {
                               role={selectedDoctor?.role_name}
                             />
                           </Box>
-                          <IconButton onClick={handleRemoveDoctor}>
+                          <IconButton onClick={handleRemoveDoctor} disabled={submitLoader}>
                             <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
                           </IconButton>
                         </Box>
@@ -680,6 +707,7 @@ const AddPatientForm = () => {
                     errors={errors}
                     sx={{ borderRadius: 1 }}
                     label={'Enter Enter'}
+                    disabled={submitLoader}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -702,6 +730,7 @@ const AddPatientForm = () => {
                     sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
                     fullWidth
                     loading={roomsLoading}
+                    disabled={submitLoader}
                   />
                   {rooms.length === 0 && (
                     <Typography
@@ -737,6 +766,7 @@ const AddPatientForm = () => {
                     sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
                     fullWidth
                     loading={bedsLoading}
+                    disabled={submitLoader}
                   />
                 </Grid>
               </Grid>
@@ -790,7 +820,15 @@ const AddPatientForm = () => {
             disabled={submitLoader}
             variant='contained'
             sx={{ backgroundColor: theme.palette.primary.main, borderRadius: 0.5, minWidth: '160px' }}
-            onClick={handleSubmit(onSubmit)}
+            onClick={handleSubmit(onSubmit, errors => {
+              if (Object.keys(errors).length > 0) {
+                const firstError = Object.keys(errors)[0]
+                const element = document.querySelector(`[name="${firstError}"]`)
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                }
+              }
+            })}
           >
             ADMIT
           </LoadingButton>

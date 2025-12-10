@@ -193,8 +193,7 @@ function AddClinicalAssessmentPage() {
 
   // Fetch data on component mount
   useEffect(() => {
-    if(medicalRecordId)
-    fetchDiagnosisTypes()
+    if (medicalRecordId) fetchDiagnosisTypes()
   }, [fetchDiagnosisTypes, medicalRecordId])
 
   // Fetch diagnosis items when tab or search changes
@@ -228,8 +227,8 @@ function AddClinicalAssessmentPage() {
             ? {
                 ...symptom,
                 ...details,
-                chronicVal: details.clinicalAsmnt === 'Differential' ? 'No' : details.chronicVal,
-                prognosisVal: details.clinicalAsmnt === 'Differential' ? '' : details.prognosisVal
+                chronicVal: details.clinicalAsmnt === 'Tentative' ? 'No' : details.chronicVal,
+                prognosisVal: details.clinicalAsmnt === 'Tentative' ? '' : details.prognosisVal
               }
             : symptom
         )

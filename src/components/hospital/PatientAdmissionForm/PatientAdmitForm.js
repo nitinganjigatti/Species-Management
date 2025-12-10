@@ -224,26 +224,25 @@ const PatientAdmitForm = () => {
         room_id: data?.room?.value
       }
 
-      await admitHospitalPatient(params).then(res => {
-        if (res?.success === true) {
-          Toaster({ type: 'success', message: res?.message })
-          if (watchTreatmentType === 'opd') {
-            router.push({
-              pathname: `/hospital/outpatient`
-            })
-          } else {
-            router.push({
-              pathname: `/hospital/inpatient`
-            })
-          }
-          fetchAndUpdateHospitalStats(selectedHospital?.id)
-          setSubmitLoader(false)
+      const res = await admitHospitalPatient(params)
+      if (res?.success === true) {
+        Toaster({ type: 'success', message: res?.message })
+        if (watchTreatmentType === 'opd') {
+          router.push({
+            pathname: `/hospital/outpatient`
+          })
         } else {
-          Toaster({ type: 'error', message: res?.message })
-          setSubmitLoader(false)
+          router.push({
+            pathname: `/hospital/inpatient`
+          })
         }
-      })
+        fetchAndUpdateHospitalStats(selectedHospital?.id)
+        setSubmitLoader(false)
+      } else {
+        throw res
+      }
     } catch (error) {
+      Toaster({ type: 'error', message: error?.message })
       console.error(error, 'Cannot Admit Patient')
       setSubmitLoader(false)
     }
@@ -499,6 +498,7 @@ const PatientAdmitForm = () => {
                               borderColor={theme.palette.customColors.OutlineVariant}
                               selectedBorderColor={theme.palette.primary.main}
                               selectedBackgroundColor={theme.palette.customColors.OnPrimary}
+                              disabled={submitLoader}
                             />
                           ))}
                         </Box>
@@ -521,6 +521,7 @@ const PatientAdmitForm = () => {
                             defaultValue={dayjs()}
                             minDate={minDate}
                             maxDate={maxDate}
+                            disabled={submitLoader}
                           />
                         </Grid>
                         <Grid size={{ sm: 6, xs: 6 }}>
@@ -530,6 +531,7 @@ const PatientAdmitForm = () => {
                             label='Time'
                             minTime={minTime}
                             maxTime={maxTime}
+                            disabled={submitLoader}
                           />
                         </Grid>
                       </Grid>
@@ -587,7 +589,9 @@ const PatientAdmitForm = () => {
                                 alignItems: 'center',
                                 justifyContent: 'space-between',
                                 minHeight: '56px',
-                                cursor: 'pointer'
+                                cursor: submitLoader ? 'not-allowed' : 'pointer',
+                                opacity: submitLoader ? 0.6 : 1,
+                                pointerEvents: submitLoader ? 'not-allowed' : 'auto'
                               }}
                             >
                               <Box
@@ -595,7 +599,8 @@ const PatientAdmitForm = () => {
                                   maxWidth: '260px',
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap'
+                                  whiteSpace: 'nowrap',
+                                  opacity: submitLoader ? 0.7 : 1
                                 }}
                               >
                                 <UserAvatarDetails
@@ -604,7 +609,7 @@ const PatientAdmitForm = () => {
                                   role={selectedDoctor?.role_name}
                                 />
                               </Box>
-                              <IconButton onClick={() => setSelectedDoctor(null)}>
+                              <IconButton onClick={() => setSelectedDoctor(null)} disabled={submitLoader}>
                                 <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
                               </IconButton>
                             </Box>
@@ -644,9 +649,13 @@ const PatientAdmitForm = () => {
                         isOptionEqualToValue={(option, value) => option.value === value?.value}
                         required
                         onInputChange={val => debouncedSearch(val)}
-                        sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
+                        sx={{
+                          background: theme.palette.customColors.Surface,
+                          borderRadius: 1
+                        }}
                         fullWidth
                         loading={roomLoading}
+                        disabled={submitLoader}
                       />
                       {rooms.length === 0 && (
                         <Typography
@@ -682,6 +691,7 @@ const PatientAdmitForm = () => {
                         sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
                         fullWidth
                         loading={bedsLoading}
+                        disabled={submitLoader}
                       />
                     </Grid>
                   </Grid>
@@ -764,7 +774,15 @@ const PatientAdmitForm = () => {
             <LoadingButton
               variant='contained'
               sx={{ backgroundColor: theme.palette.primary.main, borderRadius: 0.5, minWidth: '160px' }}
-              onClick={handleSubmit(onSubmit)}
+              onClick={handleSubmit(onSubmit, errors => {
+                if (Object.keys(errors).length > 0) {
+                  const firstError = Object.keys(errors)[0]
+                  const element = document.querySelector(`[name="${firstError}"]`)
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                  }
+                }
+              })}
               loading={submitLoader}
               loadingIndicator={<CircularProgress size={24} sx={{ color: theme.palette.customColors.OnPrimary }} />}
               disabled={submitLoader}

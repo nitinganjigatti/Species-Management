@@ -400,6 +400,7 @@ const AddParameterDrawer = ({
                       sx={{ height: '48px' }}
                       startIcon={<Icon icon={'material-symbols:save-outline-rounded'} />}
                       onClick={handleSaveTemplate}
+                      disabled={templateName.trim() === '' || saveLoading}
                     >
                       {saveLoading ? <CircularProgress size={24} /> : 'SAVE'}
                     </Button>

@@ -258,7 +258,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
               key={index}
               record={record}
               setPage={setPage}
-              isDifferential={record.type === 'Differential'}
+              isDifferential={record.type === 'Tentative'}
               isResolved={record.status === 'closed'}
               fetchSymptoms={fetchSymptoms}
               patientData={patientData}

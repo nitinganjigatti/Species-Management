@@ -88,14 +88,13 @@ const EditClinicalAsmntDrawer = ({
         activity?.modified_at || activity?.created_at
       )} • ${Utility.convertUtcToLocalReadableDate(activity?.modified_at || activity.created_at)}`,
       note: activity.note || '',
-      clinicalAssessment: activity.clinical_assessment === 'diagnosis' ? 'Diagnosis' : 'Differential',
+      clinicalAssessment: activity.clinical_assessment === 'diagnosis' ? 'Diagnosis' : 'Tentative',
       oldRecord: activity?.notes_dump?.old_data?.clinical_assessment,
       newRecord: activity?.notes_dump?.new_data?.clinical_assessment,
       oldIsChronical: activity?.notes_dump?.old_data?.is_cronical,
       newIsChronical: activity?.notes_dump?.new_data?.is_cronical,
       isFromAssessment: true
     })) ||
-
     // .sort((a, b) => {
     //   return b.isSystemGenerated - a.isSystemGenerated
     // })
@@ -243,7 +242,7 @@ const EditClinicalAsmntDrawer = ({
                   }}
                 >
                   <MenuItem value='diagnosis'>Diagnosis</MenuItem>
-                  <MenuItem value='differential'>Tentative</MenuItem>
+                  <MenuItem value='tentative'>Tentative</MenuItem>
                 </Select>
               </Box>
             </Box>

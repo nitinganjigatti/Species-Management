@@ -105,8 +105,6 @@ const AnimalDrawer = ({
           column: sortType?.column
         }
 
-        console.log(params)
-
         const res = await getNewAnimalListWithFilters(params)
 
         return {

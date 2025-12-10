@@ -488,7 +488,7 @@ const ClinicalAssessment = ({ overviewData }) => {
           <ClinicalAssessmentCard
             key={record.id || index}
             record={record}
-            isDifferential={record.clinical_assessment === 'differential'}
+            isDifferential={record.clinical_assessment === 'tentative'}
             isResolved={record.additional_info?.status === 'closed'}
             isDischared={isDischared}
             handleClick={() => (isDischared ? null : handleAssessmentClick(record))}
