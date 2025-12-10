@@ -379,7 +379,7 @@ const InpatientOverview = ({ overviewData, refetchPatient }) => {
                 </Grid>
               )}
               {/* Media Section */}
-              {mediaFiles.length > 0 && (
+              {mediaFiles?.length > 0 && (
                 <Grid
                   size={{ xs: 12, sm: 12, md: 12, lg: 4.3 }}
                   sx={{
@@ -392,7 +392,7 @@ const InpatientOverview = ({ overviewData, refetchPatient }) => {
                 >
                   {isLoadingMedia ? (
                     <CircularProgress size={20} sx={{ ml: 4 }} />
-                  ) : mediaFiles.length > 0 ? (
+                  ) : mediaFiles?.length > 0 ? (
                     <MoreMediaListing
                       mediaItems={mediaFiles}
                       maxVisibleItems={{ xs: 1, sm: 3, md: 4, lg: 2 }}
