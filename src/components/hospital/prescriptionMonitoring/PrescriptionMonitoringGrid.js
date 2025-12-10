@@ -616,8 +616,10 @@ const PrescriptionMonitoringGrid = ({
 
     if (targetDateTime < now) {
       addPrescriptionToTimeslot('past', data)
-    } else {
+    } else if (targetDateTime > now && data?.data?.status !== 'stopped') {
       addPrescriptionToTimeslot('future', data)
+    } else {
+      return
     }
   }
 
@@ -746,24 +748,25 @@ const PrescriptionMonitoringGrid = ({
                 disabled={displayMetrics?.length === 0}
                 onChange={handleSelectAll}
               />
-              {selectedMetrics.length > 0 && <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                  Pending Dosage:
-                </Typography>
-                <Typography sx={{ weight: 600, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}>
-                  {selectedMetrics.reduce((total, metric) => {
-                    if (metric?.progress) {
-                      const [completed, totalDoses] = metric.progress.split('/').map(Number)
-                      const pending = totalDoses - completed
+              {selectedMetrics.length > 0 && (
+                <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                    Pending Dosage:
+                  </Typography>
+                  <Typography sx={{ weight: 600, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}>
+                    {selectedMetrics.reduce((total, metric) => {
+                      if (metric?.progress) {
+                        const [completed, totalDoses] = metric.progress.split('/').map(Number)
+                        const pending = totalDoses - completed
 
-                      return total + (isNaN(pending) ? 0 : pending)
-                    }
+                        return total + (isNaN(pending) ? 0 : pending)
+                      }
 
-                    return total
-                  }, 0)}
-                </Typography>
-              </Box>
-              }
+                      return total
+                    }, 0)}
+                  </Typography>
+                </Box>
+              )}
             </Box>
             <MUISwitch
               checked={isCurrentMedicalRecord}
@@ -772,6 +775,7 @@ const PrescriptionMonitoringGrid = ({
             />
           </Grid>
         )}
+
         <Grid item size={{ xs: 12, sm: 12 }}>
           {displayMetrics.length > 0 ? (
             <DashboardContainer>
@@ -882,7 +886,15 @@ const PrescriptionMonitoringGrid = ({
                               }
                               // handleTimeSlotClick(metric.id, timeSlot)
                             }}
-                            disabled={isDischared}
+                            disabled={
+                              isDischared ||
+                              status === 'administered' ||
+                              status === 'skipped' ||
+                              status === 'stopped' ||
+                              (metric?.status === 'stopped' &&
+                                !status &&
+                                isScheduledFuture(selectedDate, scheduledTime))
+                            }
                           >
                             <TimeSlotCell
                               hasSchedule={hasSchedule}

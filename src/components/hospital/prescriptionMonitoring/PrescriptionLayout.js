@@ -573,7 +573,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
   const handleSelectAllAdministerrOrSkip = async purpose => {
     try {
       const payload = {
-        administer_date: Utility.convertUTCToLocalDate(new Date().toISOString().slice(0, 10)),
+        administer_date: selectedDate,
         type: 'single',
         request_from: 'hospital_module',
         purpose: purpose,

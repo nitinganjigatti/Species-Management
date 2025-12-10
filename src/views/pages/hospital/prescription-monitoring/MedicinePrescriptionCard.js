@@ -999,7 +999,6 @@ const MedicinePrescriptionCard = ({
                         Stop Medicine
                       </Button>
                     ) : isStopDatePassed(medicineData?.stop_date) ? (
-
                       // <Button
                       //   variant='text'
                       //   startIcon={
@@ -1028,7 +1027,7 @@ const MedicinePrescriptionCard = ({
                     ) : (
                       <Box></Box>
                     )}
-                    {handleAddNewDosageTimeCheck(selectedDate) && (
+                    {handleAddNewDosageTimeCheck(selectedDate) && !isStopDatePassed(medicineData?.stop_date) && (
                       <Button
                         variant='text'
                         startIcon={<Icon icon='mdi:plus' />}
