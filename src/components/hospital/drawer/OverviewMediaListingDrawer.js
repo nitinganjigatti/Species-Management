@@ -48,10 +48,10 @@ const OverviewMediaListingDrawer = ({ open, onClose, media = [] }) => {
         }}
       >
         <Grid container spacing={4}>
-          {media.length > 0 ? (
-            media.map(item => (
+          {media?.length > 0 ? (
+            media?.map(item => (
               <Grid
-                key={item.id}
+                key={item?.id}
                 size={{ xs: 12, sm: 6 }}
                 sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
