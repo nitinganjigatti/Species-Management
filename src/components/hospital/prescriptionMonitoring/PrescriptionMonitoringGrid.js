@@ -893,7 +893,8 @@ const PrescriptionMonitoringGrid = ({
                               status === 'stopped' ||
                               (metric?.status === 'stopped' &&
                                 !status &&
-                                isScheduledFuture(selectedDate, scheduledTime))
+                                isScheduledFuture(selectedDate, scheduledTime)) ||
+                              (status?.toLowerCase() === 'pending' && isScheduledFuture(selectedDate, scheduledTime))
                             }
                           >
                             <TimeSlotCell
