@@ -114,8 +114,13 @@ function UserAvatarDetails({
                   ) : (
                     <span>{date ? Utility.convertUtcToLocalReadableDate(date) : ''}</span>
                   )}
-                  <span> &bull; </span>
-                  {show_time ? <>{Utility.convertUTCToLocaltime(date)}</> : ''}
+                  {show_time ? (
+                    <>
+                      <span> &bull; </span> {Utility.convertUTCToLocaltime(date)}
+                    </>
+                  ) : (
+                    ''
+                  )}
                 </span>
                 {/* <span>{date ? Utility.convertUtcToLocalReadableDate(date) : ''}</span> */}
               </Typography>
