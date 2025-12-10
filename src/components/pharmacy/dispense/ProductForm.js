@@ -875,7 +875,7 @@ function ProductForm({
 
         <Box sx={{ mb: 4 }}>
           <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '14px', fontWeight: 400 }}>
-            Dispense Quantity
+            Total Dispense Quantity: {totalQuantity}
           </Typography>
 
           {/* {totalQuantity > 0 && ( */}
@@ -884,7 +884,7 @@ function ProductForm({
               variant='body2'
               sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
             >
-              Total Dispense Quantity:{' '}
+              Total Dispense Price:{' '}
               <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
                 {/* {Utility.formatAmountToReadableDigit(watch('stock_id')?.unit_price)} */}
                 {Utility.formatAmountToReadableDigit(unitPrice * totalQuantity) || 0}

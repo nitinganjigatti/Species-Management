@@ -30,6 +30,8 @@ const RequestedProductDetails = props => {
   const theme = useTheme()
   const { selectedPharmacy } = usePharmacyContext()
 
+  const isViewOnlyPermission = selectedPharmacy?.permission?.key === 'VIEW'
+
   // ** State
 
   const getStatusLabel = item => {
@@ -527,8 +529,12 @@ const RequestedProductDetails = props => {
                   </Box> */}
                 </Grid>
                 <Grid item size={{ xs: 1, sm: 1 }} sx={{ float: 'right', textAlign: 'right', height: 'auto' }}>
-                  <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
-                    <Icon icon='mdi:close' fontSize={20} />
+                  <IconButton
+                    size='medium'
+                    onClick={handleSidebarClose}
+                    sx={{ cursor: 'pointer', mr: -2.5, color: 'text.primary' }}
+                  >
+                    <Icon icon='mdi:close' fontSize={28} />
                   </IconButton>
                 </Grid>
                 <Grid
@@ -825,7 +831,7 @@ const RequestedProductDetails = props => {
                                   }}
                                   variant='contained'
                                   size='small'
-                                  disabled={selectedPharmacy.type === 'local'}
+                                  disabled={selectedPharmacy.type === 'local' || isViewOnlyPermission}
                                 >
                                   Full fill
                                 </Button>

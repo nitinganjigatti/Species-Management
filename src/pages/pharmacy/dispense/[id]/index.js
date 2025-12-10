@@ -70,7 +70,7 @@ const IndividualDispense = () => {
     {
       minWidth: 180,
       field: 'unit_price',
-      headerName: 'Net Unit Price(₹)',
+      headerName: 'Unit Price(₹)',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatAmountToReadableDigit(params.row.unit_price ? params.row.unit_price : 0)}
@@ -117,12 +117,12 @@ const IndividualDispense = () => {
     },
 
     {
-      flex: 0.25,
+      flex: 0.35,
       field: 'enclosure_id',
-      headerName: 'Enclosure Id',
+      headerName: 'Enclosure Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.enclosure_id}
+          {params.row.user_enclosure_name}
         </Typography>
       )
     },

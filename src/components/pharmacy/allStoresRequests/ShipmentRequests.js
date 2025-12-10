@@ -85,6 +85,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
   const [handleExport, setHandleExport] = useState(null)
 
   const currentStoreId = selectedPharmacy.type === 'local' ? selectedPharmacy.id : id
+  const isViewOnlyPermission = selectedPharmacy?.permission?.key === 'VIEW'
 
   const shipItems = () => {
     updateMultipleStates({
@@ -108,6 +109,24 @@ export default function ShipmentRequests({ updateUrlParams }) {
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shipmentTab])
+
+  const actionColumn = {
+    minWidth: 20,
+    headerName: 'Action',
+    renderCell: params => (
+      <Typography variant='body2' sx={{ color: 'text.primary', display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ mr: 2 }}>
+          <Icon
+            onClick={() => {
+              setDeleteDialog(true)
+              setDeleteFullFillId(params?.row?.dispatch_item_id)
+            }}
+            icon='mdi:delete-outline'
+          />
+        </Box>
+      </Typography>
+    )
+  }
 
   const columns = [
     {
@@ -295,23 +314,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
         </Typography>
       )
     },
-    {
-      minWidth: 20,
-      headerName: 'Action',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ mr: 2 }}>
-            <Icon
-              onClick={() => {
-                setDeleteDialog(true)
-                setDeleteFullFillId(params?.row?.dispatch_item_id)
-              }}
-              icon='mdi:delete-outline'
-            />
-          </Box>
-        </Typography>
-      )
-    }
+    ...(isViewOnlyPermission ? [] : [actionColumn])
   ]
 
   const fetchTableData = useCallback(

@@ -199,6 +199,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
           section_name: item?.section_name,
           icon: item.default_icon,
           gender: item?.sex,
+          user_enclosure_name: item?.user_enclosure_name,
           full_animal_name: item?.complete_name
         })
       }
