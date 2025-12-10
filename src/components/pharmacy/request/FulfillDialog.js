@@ -1010,6 +1010,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             name={`product_batches[${index}].expiry_date`}
                             label='Expiry Date*'
                             control={control}
+                            sx={{ backgroundColor: theme.palette.primary.contrastText }}
                             errors={errors}
                             readOnly={true}
                             dateReader={true}
