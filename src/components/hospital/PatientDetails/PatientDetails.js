@@ -209,6 +209,8 @@ const PatientDetails = ({ category }) => {
         resetState('transfer_temp_medicines')
         resetState('enclosure_medicines')
         resetState('enclosure_temp_medicines')
+        sessionStorage.removeItem('transfer_enclosure_form')
+
         const updated = { ...router.query }
         delete updated.discharge_tab
 
@@ -279,6 +281,8 @@ const PatientDetails = ({ category }) => {
         resetState('transfer_temp_medicines')
         resetState('enclosure_medicines')
         resetState('enclosure_temp_medicines')
+        sessionStorage.removeItem('transfer_enclosure_form')
+
         const updated = { ...router.query }
         delete updated.discharge_tab
 
