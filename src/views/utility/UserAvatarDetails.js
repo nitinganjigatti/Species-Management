@@ -39,7 +39,7 @@ function UserAvatarDetails({
   return (
     <>
       {user_name ? (
-        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'default' }}>
+        <Box sx={{ display: 'flex', flex: 1, alignItems: 'center', cursor: 'default', minWidth: 0 }}>
           {profile_image ? (
             <CustomAvatar
               src={profile_image}
@@ -56,7 +56,7 @@ function UserAvatarDetails({
               }}
             ></CustomAvatar>
           )}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ display: 'flex', flex: 1, minWidth: 0, flexDirection: 'column' }}>
             {user_name && (
               <>
                 <Tooltip title={user_name}>
@@ -64,38 +64,68 @@ function UserAvatarDetails({
                     variant='subtitle2'
                     sx={{
                       color: text_color ?? 'text.primary',
-                      width: crby_width ? crby_width : '100px',
+                      width: crby_width ? crby_width : 'auto',
+                      maxWidth: '100%',
+
                       // fontSize: fontSize,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-
-                      // maxWidth: 100,
                       ...(selectedAvatarSize?.user_name || {})
                     }}
-
-                    // component={'span'}
                   >
                     {user_name ? user_name : 'NA'}
                   </Typography>
                 </Tooltip>
 
                 {description && (
-                  <>
+                  <Box sx={{ display: 'flex', flex: 1, minWidth: 0, flexDirection: 'column' }}>
                     <Tooltip title={description}>
-                      <Typography sx={{ color: theme => text_color ?? theme.palette.common.white }} variant='body2'>
+                      <Typography
+                        sx={{
+                          maxWidth: '100%',
+
+                          // fontSize: fontSize,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                        variant='body2'
+                      >
                         {description}
                       </Typography>
                     </Tooltip>
-                  </>
+                  </Box>
                 )}
               </>
             )}
 
             {role && (
-              <Typography variant='caption' sx={{ lineHeight: 1.6667, ...(selectedAvatarSize?.date || {}) }}>
-                <span>{role}</span>
-              </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flex: 1,
+                  minWidth: 0,
+                  flexDirection: 'column'
+                }}
+              >
+                <Tooltip title={role}>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      lineHeight: 1.6667,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '100%',
+
+                      ...(selectedAvatarSize?.date || {})
+                    }}
+                  >
+                    {role}
+                  </Typography>
+                </Tooltip>
+              </Box>
             )}
 
             {date && (
