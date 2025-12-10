@@ -350,6 +350,27 @@ const ShipmentReport = () => {
     },
     {
       minWidth: 20,
+      width: 190,
+      field: 'dispute_count',
+      headerName: 'DISPUTE QUANTITY',
+      sortable: true,
+      align: 'center',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.dispute_count ? Utility.formatNumber(params.row.dispute_count) : 0}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
       width: 160,
       field: 'net_unit_price',
       headerName: 'NET UNIT PRICE',

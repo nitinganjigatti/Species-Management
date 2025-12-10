@@ -409,8 +409,7 @@ const ReturnRequestList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Number(params.row.sl_no) + '.'}
@@ -429,8 +428,7 @@ const ReturnRequestList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.request_number}
@@ -447,8 +445,7 @@ const ReturnRequestList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {selectedPharmacy?.type === 'central' ? params.row.from_store : params?.row?.to_store}
@@ -468,7 +465,7 @@ const ReturnRequestList = () => {
     //         color: theme.palette.customColors.customHeadingTextColor,
     //         fontSize: '14px',
     //         fontWeight: 500,
-    //         fontFamily: 'Inter'
+    //
     //       }}
     //     >
     //       {Utility.formatDisplayDate(params.row.request_date)}
@@ -485,8 +482,7 @@ const ReturnRequestList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
@@ -496,7 +492,7 @@ const ReturnRequestList = () => {
     ,
     {
       minWidth: 140,
-      field: 'total_qty',
+      field: 'product_count',
       headerName: 'Total items',
       type: 'number',
       headerAlign: 'left',
@@ -507,11 +503,10 @@ const ReturnRequestList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
-          {params.row.total_qty}
+          {params.row.product_count}
         </Typography>
       )
     },
@@ -720,7 +715,7 @@ const ReturnRequestList = () => {
                 )}
 
                 {/* Filter by Days */}
-                <Grid size={{ xs: 12, sm: 12, md: 2.5,}}>
+                <Grid size={{ xs: 12, sm: 12, md: 2.5 }}>
                   <FormControl fullWidth size='small'>
                     <InputLabel>Filter by days</InputLabel>
                     <Select

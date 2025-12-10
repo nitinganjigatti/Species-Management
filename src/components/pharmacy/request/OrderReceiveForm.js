@@ -80,7 +80,8 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
     handleChange,
     setDisputeItemDetails,
     columns,
-    getBulkStatusUpdateRadioButton
+    getBulkStatusUpdateRadioButton,
+    hasViewPermission
   } = props
 
   return (
@@ -169,7 +170,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                             checked={checked}
                             onChange={handleChange}
                             name=' mark_all_as_received'
-                            // disabled={checked}
+                            disabled={hasViewPermission}
                           />
                         }
                       />
@@ -1322,7 +1323,6 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                                   <Select
                                     label=''
                                     disabled={hasViewPermission}
-
                                     name='wrong_count_type'
                                     size='small'
                                     style={{ fontSize: '12px' }}
@@ -1879,6 +1879,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                 setDisputeItemDetails={setDisputeItemDetails}
                 columns={columns}
                 getBulkStatusUpdateRadioButton={getBulkStatusUpdateRadioButton}
+                hasViewPermission={hasViewPermission}
               />
 
               {commentDialog && commentDialogBox()}

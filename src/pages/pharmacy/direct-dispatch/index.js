@@ -300,8 +300,7 @@ const DirectDispatchList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.request_number}
@@ -321,7 +320,7 @@ const DirectDispatchList = () => {
     //         color: theme.palette.customColors.customHeadingTextColor,
     //         fontSize: '14px',
     //         fontWeight: 500,
-    //         fontFamily: 'Inter'
+    //
     //       }}
     //     >
     //       {Utility.formatDisplayDate(params.row.request_date)}
@@ -338,8 +337,7 @@ const DirectDispatchList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params?.row?.last_shipping_date ? Utility.formatDisplayDate(params?.row?.last_shipping_date) : 'NA'}
@@ -356,8 +354,7 @@ const DirectDispatchList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {selectedPharmacy?.type === 'central' ? params.row.to_store : params.row.from_store}
@@ -367,7 +364,7 @@ const DirectDispatchList = () => {
 
     {
       minWidth: 120,
-      field: 'total_qty',
+      field: 'product_count',
       headerName: 'Total items',
       type: 'number',
       headerAlign: 'left',
@@ -378,11 +375,10 @@ const DirectDispatchList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
-          {params.row.total_qty}
+          {params.row.product_count}
         </Typography>
       )
     },
@@ -470,10 +466,10 @@ const DirectDispatchList = () => {
                 sx={{
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'row' },
-                  alignItems: {xs: 'flex-start', sm: 'center'},
+                  alignItems: { xs: 'flex-start', sm: 'center' },
                   gap: { xs: 2, sm: 0 },
-                  mx: { xs: 2, sm: 0, },
-              
+                  mx: { xs: 2, sm: 0 }
+
                   // '& .MuiCardHeader-action': {
                   //   width: { xs: '100% ', sm: 'auto' }
                   // },
@@ -488,19 +484,17 @@ const DirectDispatchList = () => {
                   mx: { xs: 2, sm: 4, md: 5 }
                 }}
               > */}
-                <Grid 
-                  container 
-                  spacing={4}
-
-                  sx = {{
-                   padding: '18px 22px 0 22px' ,
+              <Grid
+                container
+                spacing={4}
+                sx={{
+                  padding: '18px 22px 0 22px',
                   display: 'flex',
-                  justifyContent: 'space-between',
-                }}>
-                  <Grid 
-                    size={{ xs: 12, sm: 5, md: 3 }}
-                  >
-                    {/* <Box
+                  justifyContent: 'space-between'
+                }}
+              >
+                <Grid size={{ xs: 12, sm: 5, md: 3 }}>
+                  {/* <Box
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
@@ -512,46 +506,49 @@ const DirectDispatchList = () => {
                       }}
                     >
                       <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
-                      <TextField
-                        variant='outlined'
-                        placeholder='Search...'
-                        value={searchValue}
-                        onChange={e => handleSearch(e.target.value)}
-                        fullWidth
-                        size = 'small'
-                        sx={{
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    size='small'
+                    sx={{
                       '& .MuiOutlinedInput-root': {
                         borderRadius: '8px',
                         padding: '0 8px',
                         display: 'flex',
-                         alignItems: 'center',
-                        },}}
-                        slotProps = {{
-                          input: {
-                            startAdornment: (
-                            <InputAdornment position = 'start'>
-                              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                              </InputAdornment>
-                              )
-                            }
-                           }}
-                           />
-                  </Grid>
-
-                  {/* Switch Button */}
-                  {(status === 'all' || status === 'completed') && (
-                    <Grid size={{ xs: 12, sm: 'auto'}}
-                      // sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
-                    >
-                      <FormControlLabel
-                        control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
-                        label='Completed'
-                        labelPlacement='end'
-                        sx={{ margin: 0 }}
-                      />
-                    </Grid>
-                  )}
+                        alignItems: 'center'
+                      }
+                    }}
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position='start'>
+                            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                          </InputAdornment>
+                        )
+                      }
+                    }}
+                  />
                 </Grid>
+
+                {/* Switch Button */}
+                {(status === 'all' || status === 'completed') && (
+                  <Grid
+                    size={{ xs: 12, sm: 'auto' }}
+
+                    // sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
+                  >
+                    <FormControlLabel
+                      control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
+                      label='Completed'
+                      labelPlacement='end'
+                      sx={{ margin: 0 }}
+                    />
+                  </Grid>
+                )}
+              </Grid>
               {/* </Box> */}
 
               <Grid

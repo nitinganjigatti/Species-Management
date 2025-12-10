@@ -453,7 +453,8 @@ const AddRequestForm = () => {
         q: '',
         limit: 20,
         active: true,
-        generic: searchText
+        generic: searchText,
+        is_specific: 1
       }
 
       const searchResults = await getGenericMedicineList({ params: params })
@@ -633,8 +634,6 @@ const AddRequestForm = () => {
       getListOfItemsById(id)
     }
   }, [id, action])
-
- 
 
   const postItemsData = async () => {
     const updateData = { ...editParams }
@@ -955,7 +954,7 @@ const AddRequestForm = () => {
                   value={nestedRowMedicine.genericName ? nestedRowMedicine.genericName : ''}
                   onChange={(event, newValue) => {
                     if (newValue?.value) {
-                      requestPendingProducts(newValue.value) 
+                      requestPendingProducts(newValue.value)
                     }
                     setNestedRowMedicine({
                       ...nestedRowMedicine,

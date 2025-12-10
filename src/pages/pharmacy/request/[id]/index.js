@@ -2423,14 +2423,13 @@ const IndividualRequest = () => {
                             fontWeight: 500
                           }}
                         >
-                          {requestItems?.shipped_amount}
+                          {Utility.formatAmountToReadableDigit(requestItems?.shipped_amount)}
                         </Box>
                       </Typography>
                     </Box>
                   </Box>
 
                   <Divider sx={{ mb: 3 }} />
-
                   <Box
                     sx={{
                       height: 'calc(100% - 120px)', // Adjust this value based on your layout
