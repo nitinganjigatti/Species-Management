@@ -273,7 +273,7 @@ export default function ScheduleMedicine({
         prescriptionStartDate: editingMedicineData?.start_date ? dayjs(editingMedicineData.start_date) : null,
 
         dosageDuration: {
-          value: editingMedicineData?.duration_qty || '1',
+          value: editingMedicineData?.duration_qty || '0',
           unit: editingMedicineData?.duration_type?.toLowerCase() || ''
         },
 
