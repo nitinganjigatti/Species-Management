@@ -281,16 +281,31 @@ function ControlledSelectWithTextField({
                 fullWidth={fullWidth}
                 size={size}
                 onChange={e => {
-                  const val = e.target.value
-                  if (type === 'number' && val !== '' && Number(val) < 1) {
-                    field.onChange(1)
+                  const newValue = e.target.value
+
+                  // For number type, validate against 2 decimal pattern
+                  if (type === 'number') {
+                    const twoDecimalPattern = /^\d*\.?\d{0,2}$/
+
+                    // Allow empty string, or numbers with up to 2 decimals
+                    if (newValue === '' || twoDecimalPattern.test(newValue)) {
+                      field.onChange(newValue)
+                    }
+
+                    // If user types a third decimal, truncate to 2
+                    else if (/^\d*\.\d{3,}$/.test(newValue)) {
+                      const parts = newValue.split('.')
+                      const truncated = parts[0] + '.' + parts[1].substring(0, 2)
+                      field.onChange(truncated)
+                    }
                   } else {
-                    field.onChange(e)
+                    field.onChange(newValue)
                   }
                 }}
                 inputProps={{
                   readOnly,
                   min: 1,
+                  pattern: type === 'number' ? '^d*(.d{0,2})?$' : undefined, // Regex for max 2 decimals
                   ...inputProps
                 }}
                 onWheel={handleWheel} // Prevent number input from changing value on mouse scroll

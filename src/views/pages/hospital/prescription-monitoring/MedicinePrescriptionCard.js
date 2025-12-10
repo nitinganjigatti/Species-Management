@@ -380,6 +380,10 @@ const MedicinePrescriptionCard = ({
     })
   }
 
+  const handleRestartMedicine = async () => {
+    console.log('handleRestartMedicine')
+  }
+
   const renderDosageEntry = entry => (
     <DosageSection key={entry.id} variant={entry.variant}>
       <DosageHeader variant={entry.status}>
@@ -919,7 +923,10 @@ const MedicinePrescriptionCard = ({
                       time: formatTime(item?.administritive_time || item?.scheduled_time),
                       status: item?.status || 'Pending',
                       dosage: `${item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
-                      amount: `${item?.quantity_administered || item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
+                      amount:
+                        item?.status?.toLowerCase() === 'administered'
+                          ? `${item?.quantity_administered || item?.scheduled_quantity}`
+                          : `${item?.quantity_administered || item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
                       variant:
                         item?.status?.toLowerCase() === 'administered'
                           ? 'administered'
@@ -962,7 +969,8 @@ const MedicinePrescriptionCard = ({
                       mb: 12
                     }}
                   >
-                    {!isStopDatePassed(medicineData?.stop_date) ? (
+                    {!isStopDatePassed(medicineData?.stop_date) &&
+                    new Date().toISOString().split('T')[0] === selectedDate ? (
                       <Button
                         variant='text'
                         startIcon={
@@ -990,6 +998,33 @@ const MedicinePrescriptionCard = ({
                       >
                         Stop Medicine
                       </Button>
+                    ) : isStopDatePassed(medicineData?.stop_date) ? (
+
+                      // <Button
+                      //   variant='text'
+                      //   startIcon={
+                      //     <Box
+                      //       component='img'
+                      //       src='/images/hospital/restart.svg'
+                      //       alt='Restart'
+                      //       sx={{ width: '18px', height: '18px' }}
+                      //     />
+                      //   }
+                      //   onClick={handleRestartMedicine}
+                      //   disabled={isDetailLoading}
+                      //   sx={{
+                      //     color: theme.palette.success.main,
+                      //     fontSize: '16px',
+                      //     fontWeight: 500,
+                      //     justifyContent: 'left',
+                      //     transform: 'none',
+                      //     textTransform: 'none',
+                      //     width: 'auto'
+                      //   }}
+                      // >
+                      //   Restart Medicine
+                      // </Button>
+                      <></>
                     ) : (
                       <Box></Box>
                     )}

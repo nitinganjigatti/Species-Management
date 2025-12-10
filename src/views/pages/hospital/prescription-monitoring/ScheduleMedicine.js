@@ -199,7 +199,7 @@ export default function ScheduleMedicine({
       setValue('prescriptionStartDate', dayjs())
 
       // Set default dosage duration to 1
-      setValue('dosageDuration.value', '1')
+      setValue('dosageDuration.value', '0')
 
       // Set default dosage unit (first item)
       if (prescriptionDuration && prescriptionDuration.length > 0) {
@@ -441,6 +441,7 @@ export default function ScheduleMedicine({
                     label='Quantity*'
                     placeholder='Enter quantity'
                     type='number'
+                    selectWidth={{ xs: 80, sm: 80, md: 80, lg: 95 }}
                     getOptionLabel={option => option.label}
                     getOptionValue={option => option.value}
                     sx={commonFieldStyles}
@@ -562,7 +563,6 @@ export default function ScheduleMedicine({
                   <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                     <ControlledSelect
                       name='dosageDuration.unit'
-
                       // label='Dosage Unit*'
                       sx={{
                         textAlign: 'left',
@@ -614,7 +614,7 @@ export default function ScheduleMedicine({
               </>
             )}
 
-            {isOneTimeFrequency && endsOn && (
+            {/* {isOneTimeFrequency && endsOn && (
               <Typography
                 sx={{
                   display: 'flex',
@@ -628,7 +628,7 @@ export default function ScheduleMedicine({
                 Prescription {selectedMedicineTo === 'Direct Administer' ? 'starts and ends' : 'starts and ends'} on{' '}
                 {endsOn}
               </Typography>
-            )}
+            )} */}
 
             <Box sx={{ mb: 3 }}>
               <ControlledTextArea

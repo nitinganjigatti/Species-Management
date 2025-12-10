@@ -111,11 +111,11 @@ export default function AddMedicineToPrescription() {
 
               return true
             }),
-          quantity: yup
+            quantity: yup
             .number()
             .typeError('Quantity must be a number')
-            .min(1, 'Quantity must be at least 1')
-            .max(100, 'Quantity cannot exceed 100')
+            .moreThan(0, 'Quantity must be greater than 0')
+            .max(100000, 'Quantity cannot exceed 100000')
             .required('Quantity is required'),
           unit: yup.string().required('Please select a unit')
         })
@@ -273,7 +273,7 @@ export default function AddMedicineToPrescription() {
     deliveryRoute: '',
     prescriptionStartDate: null,
     dosageDuration: {
-      value: 5,
+      value: 0,
       unit: null
     },
     notes: '',
@@ -327,6 +327,7 @@ export default function AddMedicineToPrescription() {
   const [isPrescriptionListLoading, setIsPrescriptionListLoading] = useState(false)
   const [medicationData, setMedicationData] = useState([])
   const [endsOn, setEndsOn] = useState(null)
+  const [cancelOrCloseText, setCancelOrCloseText] = useState('CANCEL')
 
   const { selectedHospital: hospital } = useHospital()
 
@@ -470,8 +471,9 @@ export default function AddMedicineToPrescription() {
         fetchFrequencies()
         setMedicalMasterData({
           ...response?.data,
-
+          
           // prescriptionFrequency: frequencyData || [],
+          prescriptionFrequency: [],
           prescriptionDosageMeasurementType:
             response?.data?.prescriptionDosageMeasurementType?.map(item => ({
               ...item,
@@ -1013,6 +1015,7 @@ export default function AddMedicineToPrescription() {
       if (response?.success) {
         if (response?.success) {
           // Reset form values to default after successful submission
+          setCancelOrCloseText('CLOSE')
           resetForm()
         }
       }
@@ -1247,12 +1250,7 @@ export default function AddMedicineToPrescription() {
           background: theme.palette.common.white
         }}
       >
-        <Grid
-          container
-          spacing={5}
-          className='match-height'
-          sx={{ alignItems: 'center' }}
-        >
+        <Grid container spacing={5} className='match-height' sx={{ alignItems: 'center' }}>
           <Grid size={{ xs: 12, md: 4, lg: 4 }}>
             <Typography variant='h6' sx={{ mb: 2 }}>
               Select the medicine to
@@ -1281,12 +1279,7 @@ export default function AddMedicineToPrescription() {
             </Grid>
           )}
         </Grid>
-        <Grid
-          container
-          spacing={5}
-          className='match-height'
-          sx={{ pt: 6 }}
-        >
+        <Grid container spacing={5} className='match-height' sx={{ pt: 6 }}>
           <Grid size={{ xs: 12, md: 7, lg: 7 }}>
             <PrescriptionMedicineList
               medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
@@ -1328,7 +1321,7 @@ export default function AddMedicineToPrescription() {
       </Box>
 
       <ActionButtons
-        cancelLabel='CANCEL'
+        cancelLabel={cancelOrCloseText}
         addLabel={watch('selectMedicineType') === 'Direct Administer' ? 'Administer' : 'Schedule'}
         onCancel={handleCancel}
         isSubmitLoading={isSubmitting}

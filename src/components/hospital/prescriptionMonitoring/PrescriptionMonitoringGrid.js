@@ -888,6 +888,7 @@ const PrescriptionMonitoringGrid = ({
                               hasSchedule={hasSchedule}
                               status={status}
                               scheduledTime={scheduledTime}
+                              administeredTime={timeSlot?.value?.administered_time}
                               dosage={dosage}
                               config={timeSlotGridConfig(status)}
                               theme={theme}

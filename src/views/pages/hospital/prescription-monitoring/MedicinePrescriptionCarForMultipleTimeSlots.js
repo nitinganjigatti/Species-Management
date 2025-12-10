@@ -806,9 +806,10 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                         time: formatTime(item?.administritive_time || item?.scheduled_time),
                         status: item?.status || 'Pending',
                         dosage: `${item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
-                        amount: `${item?.quantity_administered || item?.scheduled_quantity} ${
-                          item?.scheduled_unit_name
-                        }`,
+                        amount:
+                          item?.status?.toLowerCase() === 'administered'
+                            ? `${item?.quantity_administered || item?.scheduled_quantity}`
+                            : `${item?.quantity_administered || item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
                         variant:
                           item?.status?.toLowerCase() === 'administered'
                             ? 'administered'

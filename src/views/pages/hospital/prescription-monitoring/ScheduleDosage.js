@@ -50,25 +50,11 @@ const ScheduleDosageSidesheet = ({
         yup.object({
           time: yup.string().required('Time is required'),
           dosageQuantity: yup
-            .mixed()
-            .test('is-valid-quantity', 'Quantity is required', function (value) {
-              if (!value || value === '') return false
-              const num = parseFloat(value)
-
-              return !isNaN(num) && num >= 0.1
-            })
-            .test('min-value', 'Quantity must be at least 0.1', function (value) {
-              if (!value) return false
-              const num = parseFloat(value)
-
-              return num >= 0.1
-            })
-            .test('max-value', 'Quantity cannot exceed 1000', function (value) {
-              if (!value) return false
-              const num = parseFloat(value)
-
-              return num <= 1000
-            }),
+            .number()
+            .typeError('Quantity must be a number')
+            .moreThan(0, 'Quantity must be greater than 0')
+            .max(100000, 'Quantity cannot exceed 100000')
+            .required('Quantity is required'),
           dosageUnit: yup.string().required('Please select a unit')
         })
       )
