@@ -17,9 +17,7 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
-import Utility from 'src/utility'
 
-// Validation schema
 const mortalitySchema = yup.object({
   date_of_death: yup.date().nullable().required('Date of death is required'),
   time_of_death: yup.date().nullable().required('Time of death is required'),
@@ -291,7 +289,6 @@ const MortalityDischargeForm = props => {
             </Grid>
           </Box>
 
-          {/* Summary & Templates – now via reusable TemplateSection */}
           <Controller
             name='reason'
             control={control}
@@ -310,7 +307,6 @@ const MortalityDischargeForm = props => {
 
           <Divider />
 
-          {/* Necropsy Section */}
           <Grid container spacing={4} alignItems='center'>
             <Grid
               size={{ xs: 12, sm: 6, md: 6 }}
@@ -325,7 +321,6 @@ const MortalityDischargeForm = props => {
               }}
             >
               <StyledTypography fontSize={'1.25rem'}>Request Necropsy</StyledTypography>
-
               <ControlledSwitch
                 name={'necropsy_requested'}
                 label={watchRequestNecropsy ? 'Yes' : 'No'}
@@ -369,7 +364,6 @@ const MortalityDischargeForm = props => {
 
           <Divider />
 
-          {/* Attachments */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <StyledTypography>Attachments</StyledTypography>
             <ControlledMultiFileUpload

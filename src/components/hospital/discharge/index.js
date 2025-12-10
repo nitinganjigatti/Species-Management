@@ -35,8 +35,10 @@ import {
   stopPrescription
 } from 'src/lib/api/hospital/prescription'
 import Toaster from 'src/components/Toaster'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 
 const STORAGE_KEY = 'medical_record_data'
+const STORAGE_KEY_FORM = 'transfer_enclosure_form'
 
 const dischargeTypeOptions = [
   { label: 'Mortality', value: 'Mortality' },
@@ -50,7 +52,6 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   const router = useRouter()
   const { id } = router.query
 
-  const medicalRecordId = patientData?.medical_record_id
   const { data, updateState, resetState } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
   const medical_record_id = medicalRecordData?.medical_record_id
@@ -79,7 +80,6 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   const [securityCheck, setSecurityCheck] = useState(null)
   const [isSecurityCheckLoading, setIsSecurityCheckLoading] = useState(false)
 
-  // Mortality
   const {
     causeOfDeath,
     carcassCondition,
@@ -92,7 +92,6 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     handleSubmitData: handleMortalitySubmitData
   } = MortalityDischarge()
 
-  // Transfer Hospital
   // const {
   //   isLoadingHospital,
   //   hospitalData,
@@ -101,15 +100,13 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   //   handleSubmitData: handleTransferHospitalSubmitData
   // } = TransferHospitalDischarge()
 
-  // RHF for discharge type
+  const { submitLoader: transferEnclosureSubmitLoader, handleSubmitData: handleTransferEnclosureSubmitData } =
+    TransferEnclosureDischarge()
+
   const { control, watch, setValue } = useForm({
     defaultValues: { discharge_type: 'Mortality' }
   })
   const watchDischargeType = watch('discharge_type')
-
-  // Transfer Enclosure
-  const { submitLoader: transferEnclosureSubmitLoader, handleSubmitData: handleTransferEnclosureSubmitData } =
-    TransferEnclosureDischarge()
 
   useEffect(() => {
     if (!site_id) return
@@ -125,6 +122,28 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     getTransferCheck()
   }, [site_id])
 
+  // useEffect(() => {
+  //   if (!site_id) return
+
+  //   setIsSecurityCheckLoading(true)
+
+  //   const getTransferCheck = async () => {
+  //     try {
+  //       const res = await getSecurityCheckForTransfer(site_id)
+
+  //       // res?.success → true or false
+  //       setSecurityCheck(res?.success)
+  //     } catch (err) {
+  //       // if API fails, treat as restricted
+  //       setSecurityCheck(false)
+  //     } finally {
+  //       setIsSecurityCheckLoading(false)
+  //     }
+  //   }
+
+  //   getTransferCheck()
+  // }, [site_id])
+
   // Fetch active prescriptions
   // const getPrescriptionList = async () => {
   //   try {
@@ -132,7 +151,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
 
   //     const payload = {
   //       hospital_case_id: id,
-  //       medical_record_id: medicalRecordId,
+  //       medical_record_id: medical_record_id,
   //       status: 'active',
   //       type: 'prescription'
   //     }
@@ -330,7 +349,6 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   //   [prescription]
   // )
 
-  // medications table columns
   const medicationsColumns = [
     {
       field: 'id',
@@ -508,7 +526,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   // }, [transferTempMedicines])
 
   // useEffect(() => {
-  //   if (id && medicalRecordId) {
+  //   if (id && medical_record_id) {
   //     getPrescriptionList()
   //   }
   // }, [])
@@ -524,11 +542,11 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
       const idx = merged.findIndex(med => med.id === newMed.id)
 
       if (idx >= 0) {
-        // ID FOUND UPDATE
+        // ID found update
         merged[idx] = { ...merged[idx], ...newMed }
         hasChanges = true
       } else {
-        // ID NOT FOUND ADD NEW
+        // ID not found add new
         merged.unshift(newMed)
         hasChanges = true
       }
@@ -539,22 +557,21 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     }
   }, [enclosureTempMedicines])
 
-  // Clear functions
-  const clearTransferHospitalData = useCallback(() => {
+  const clearTransferHospitalData = () => {
     resetState('transfer_medicines')
     resetState('transfer_temp_medicines')
     setIsTransferHospitalDirty(false)
-  }, [resetState])
+  }
 
-  const clearEnclosureData = useCallback(() => {
+  const clearEnclosureData = () => {
     resetState('enclosure_medicines')
     resetState('enclosure_temp_medicines')
+    sessionStorage.removeItem(STORAGE_KEY_FORM)
     setIsTransferEnclosureDirty(false)
-  }, [resetState])
+  }
 
   // Confirm dialog handlers
-  const handleConfirm = useCallback(() => {
-    // Clear pending data for the tab you're leaving
+  const handleConfirm = () => {
     if (selectedTab === 'TransferHospital') {
       clearTransferHospitalData()
     } else if (selectedTab === 'TransferEnclosure') {
@@ -578,7 +595,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
 
       setPendingTabValue(null)
     }
-  }, [selectedTab, pendingTabValue, clearTransferHospitalData, clearEnclosureData, router, setValue])
+  }
 
   const handleCancel = () => {
     setConfirmOpen(false)
@@ -586,52 +603,37 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   }
 
   // Handle tab change with form and table confirmation
-  const handleTabChange = useCallback(
-    newType => {
-      const leavingHospital =
-        selectedTab === 'TransferHospital' &&
-        (transferTempMedicines.length > 0 || transferMedicines.length > 0 || isTransferHospitalDirty)
+  const handleTabChange = newType => {
+    const leavingHospital =
+      selectedTab === 'TransferHospital' &&
+      (transferTempMedicines.length > 0 || transferMedicines.length > 0 || isTransferHospitalDirty)
 
-      const leavingEnclosure =
-        selectedTab === 'TransferEnclosure' &&
-        (enclosureTempMedicines.length > 0 || enclosureMedicines.length > 0 || isTransferEnclosureDirty)
+    const leavingEnclosure =
+      selectedTab === 'TransferEnclosure' &&
+      (enclosureTempMedicines.length > 0 || enclosureMedicines.length > 0 || isTransferEnclosureDirty)
 
-      const leavingMortality = selectedTab === 'Mortality' && isMortalityDirty
+    const leavingMortality = selectedTab === 'Mortality' && isMortalityDirty
+    const hasPending = leavingHospital || leavingEnclosure || leavingMortality
 
-      const hasPending = leavingHospital || leavingEnclosure || leavingMortality
+    if (hasPending) {
+      setPendingTabValue(newType)
+      setConfirmOpen(true)
 
-      if (hasPending) {
-        setPendingTabValue(newType)
-        setConfirmOpen(true)
+      return
+    }
 
-        return
-      }
+    setValue('discharge_type', newType)
+    setSelectedTab(newType)
 
-      setValue('discharge_type', newType)
-      setSelectedTab(newType)
-
-      router.replace(
-        {
-          pathname: router.pathname,
-          query: { ...router.query, discharge_tab: newType }
-        },
-        undefined,
-        { shallow: true }
-      )
-    },
-    [
-      selectedTab,
-      setValue,
-      router,
-      transferTempMedicines,
-      transferMedicines,
-      isTransferHospitalDirty,
-      enclosureTempMedicines,
-      enclosureMedicines,
-      isTransferEnclosureDirty,
-      isMortalityDirty
-    ]
-  )
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, discharge_tab: newType }
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
 
   // Initialize from URL
   useEffect(() => {
@@ -642,142 +644,167 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     }
   }, [router.query.discharge_tab, setValue])
 
+  // on refresh page clears the session storage data
+  useEffect(() => {
+    const handleRefresh = () => {
+      sessionStorage.removeItem('transfer_enclosure_form')
+    }
+    window.addEventListener('beforeunload', handleRefresh)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleRefresh)
+    }
+  }, [])
+
+  // patient data initial loading
+  if (!patientData) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', my: 20 }}>
+        <CircularProgress size={30} />
+      </Box>
+    )
+  }
+
+  //  if already discharged show message
+  if (discharge_at !== null) {
+    return (
+      <Box sx={{ my: 20 }}>
+        <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.customColors.OnSurfaceVariant }}>
+          This animal has been discharged — no further actions can be performed.
+        </StyledTypography>
+      </Box>
+    )
+  }
+
+  // security check loading
+  if (isSecurityCheckLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', my: 20 }}>
+        <CircularProgress size={30} />
+      </Box>
+    )
+  }
+
+  // if security restricted show message
+  if (securityCheck === false) {
+    return (
+      <Box sx={{ my: 20 }}>
+        <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.error.main }}>
+          Discharge is restricted due to the absence of the security group at the origin site
+        </StyledTypography>
+      </Box>
+    )
+  }
+
   return (
     <>
-      {!patientData ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20, mb: 20 }}>
-          <CircularProgress size={30} />
-        </Box>
-      ) : discharge_at === null ? (
-        isSecurityCheckLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20, mb: 20 }}>
-            <CircularProgress size={30} />
-          </Box>
-        ) : securityCheck ? (
-          <Box sx={{ mt: 6, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {purpose_of_visit && (
-              <Box
-                sx={{
-                  background: alpha(theme.palette.customColors.antzNotes, 0.6),
-                  p: 6,
-                  borderRadius: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 1
-                }}
-              >
-                <StyledTypography color={theme.palette.customColors.neutralPrimary}>
-                  Reason of Admission
-                </StyledTypography>
-                <StyledTypography
-                  color={theme.palette.customColors.neutralPrimary}
-                  fontSize='0.875rem'
-                  fontWeight={400}
-                >
-                  {purpose_of_visit}
-                </StyledTypography>
-              </Box>
-            )}
-
-            {/* Discharge Type Selection */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <StyledTypography>Discharge Type</StyledTypography>
-              <Controller
-                name='discharge_type'
-                control={control}
-                render={({ field }) => (
-                  <Grid container spacing={6}>
-                    {dischargeTypeOptions.map((item, index) => (
-                      <Grid key={index} size={{ xs: 12, sm: 6, md: 4 }}>
-                        <TreatmentTypeRadioButtons
-                          label={item.label}
-                          isSelected={field.value === item.value}
-                          radioPosition='right'
-                          selectedBackgroundColor={theme.palette.customColors.OnPrimaryContainer}
-                          selectedFontColor={theme.palette.primary.contrastText}
-                          selectedBorderColor='none'
-                          onClick={() => handleTabChange(item.value)}
-                        />
-                      </Grid>
-                    ))}
-                  </Grid>
-                )}
-              />
-            </Box>
-
-            {watchDischargeType === 'Mortality' && (
-              <MortalityDischargeForm
-                patientData={patientData}
-                watchDischargeType={watchDischargeType}
-                causeOfDeath={causeOfDeath}
-                carcassCondition={carcassCondition}
-                carcassDeposition={carcassDeposition}
-                fetchLoading={mortalityFetchLoading}
-                handleMannerSearch={handleMannerSearch}
-                handleConditionSearch={handleConditionSearch}
-                handleDispositionSearch={handleDispositionSearch}
-                submitLoader={mortalitySubmitLoader}
-                handleSubmitData={handleMortalitySubmitData}
-                onDirtyChange={setIsMortalityDirty}
-                refetchPatient={refetchPatient}
-              />
-            )}
-
-            {/* {watchDischargeType === 'TransferHospital' && (
-              <TransferDischargeForm
-                patientData={patientData}
-                watchDischargeType={watchDischargeType}
-                isLoadingHospital={isLoadingHospital}
-                hospitalData={hospitalData}
-                handleHospitalSearch={handleHospitalSearch}
-                prescriptionsColumns={prescriptionsColumns}
-                prescriptionData={prescriptionIndexedRows}
-                isPrescriptionLoading={isPrescriptionLoading}
-                submitLoader={transferHospitalSubmitLoader}
-                handleSubmitData={handleTransferHospitalSubmitData}
-                medicationsColumns={medicationsColumns}
-                medicationData={medicationIndexedRows}
-                clearData={clearTransferHospitalData}
-                onDirtyChange={setIsTransferHospitalDirty}
-              />
-            )} */}
-
-            {watchDischargeType === 'TransferEnclosure' && (
-              <EnclosureDischargeForm
-                patientData={patientData}
-                watchDischargeType={watchDischargeType}
-                submitLoader={transferEnclosureSubmitLoader}
-                handleSubmitData={handleTransferEnclosureSubmitData}
-                medicationsColumns={medicationsColumns}
-                medicationData={enclosureMedicines}
-                clearData={clearEnclosureData}
-                onDirtyChange={setIsTransferEnclosureDirty}
-                refetchPatient={refetchPatient}
-                medicalRecordId={id}
-              />
-            )}
-
-            <ConfirmDialog
-              open={confirmOpen}
-              message='You have unsaved changes. Do you really want to switch discharge type?'
-              onConfirm={handleConfirm}
-              onCancel={handleCancel}
-            />
-          </Box>
-        ) : (
-          <Box sx={{ my: 20 }}>
-            <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.error.main }}>
-              Discharge is restricted due to the absence of the security group at the origin site.
+      <Box sx={{ mt: 6, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {purpose_of_visit && (
+          <Box
+            sx={{
+              background: alpha(theme.palette.customColors.antzNotes, 0.6),
+              p: 6,
+              borderRadius: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1
+            }}
+          >
+            <StyledTypography color={theme.palette.customColors.neutralPrimary}>Reason of Admission</StyledTypography>
+            <StyledTypography color={theme.palette.customColors.neutralPrimary} fontSize='0.875rem' fontWeight={400}>
+              {purpose_of_visit}
             </StyledTypography>
           </Box>
-        )
-      ) : (
-        <Box sx={{ my: 20 }}>
-          <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.customColors.OnSurfaceVariant }}>
-            This animal has been discharged — no further actions can be performed.
-          </StyledTypography>
+        )}
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <StyledTypography>Discharge Type</StyledTypography>
+          <Controller
+            name='discharge_type'
+            control={control}
+            render={({ field }) => (
+              <Grid container spacing={6}>
+                {dischargeTypeOptions.map((item, index) => (
+                  <Grid key={index} size={{ xs: 12, sm: 6, md: 4 }}>
+                    <TreatmentTypeRadioButtons
+                      label={item.label}
+                      isSelected={field.value === item.value}
+                      radioPosition='right'
+                      selectedBackgroundColor={theme.palette.customColors.OnPrimaryContainer}
+                      selectedFontColor={theme.palette.primary.contrastText}
+                      selectedBorderColor='none'
+                      onClick={() => handleTabChange(item.value)}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+          />
         </Box>
-      )}
+
+        {watchDischargeType === 'Mortality' && (
+          <MortalityDischargeForm
+            patientData={patientData}
+            watchDischargeType={watchDischargeType}
+            causeOfDeath={causeOfDeath}
+            carcassCondition={carcassCondition}
+            carcassDeposition={carcassDeposition}
+            fetchLoading={mortalityFetchLoading}
+            handleMannerSearch={handleMannerSearch}
+            handleConditionSearch={handleConditionSearch}
+            handleDispositionSearch={handleDispositionSearch}
+            submitLoader={mortalitySubmitLoader}
+            handleSubmitData={handleMortalitySubmitData}
+            onDirtyChange={setIsMortalityDirty}
+            refetchPatient={refetchPatient}
+          />
+        )}
+
+        {/* {watchDischargeType === 'TransferHospital' && (
+        <TransferDischargeForm
+          patientData={patientData}
+          watchDischargeType={watchDischargeType}
+          isLoadingHospital={isLoadingHospital}
+          hospitalData={hospitalData}
+          handleHospitalSearch={handleHospitalSearch}
+          prescriptionsColumns={prescriptionsColumns}
+          prescriptionData={prescriptionIndexedRows}
+          isPrescriptionLoading={isPrescriptionLoading}
+          submitLoader={transferHospitalSubmitLoader}
+          handleSubmitData={handleTransferHospitalSubmitData}
+          medicationsColumns={medicationsColumns}
+          medicationData={medicationIndexedRows}
+          clearData={clearTransferHospitalData}
+          onDirtyChange={setIsTransferHospitalDirty}
+        />
+      )} */}
+
+        {watchDischargeType === 'TransferEnclosure' && (
+          <EnclosureDischargeForm
+            patientData={patientData}
+            watchDischargeType={watchDischargeType}
+            submitLoader={transferEnclosureSubmitLoader}
+            handleSubmitData={handleTransferEnclosureSubmitData}
+            medicationsColumns={medicationsColumns}
+            medicationData={enclosureMedicines}
+            clearData={clearEnclosureData}
+            onDirtyChange={setIsTransferEnclosureDirty}
+            refetchPatient={refetchPatient}
+            medicalRecordId={id}
+          />
+        )}
+        {confirmOpen && (
+          <ConfirmationDialog
+            dialogBoxStatus={confirmOpen}
+            onClose={handleCancel}
+            title={'You have unsaved changes. Do you really want to switch discharge type?'}
+            cancelText={'Cancel'}
+            confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 2 }}
+            confirmAction={handleConfirm}
+            ConfirmationText={'Discard'}
+          />
+        )}
+      </Box>
     </>
   )
 }
@@ -789,25 +816,3 @@ const StyledTypography = styled(Typography)(({ theme, fontWeight, fontSize, colo
   fontWeight: fontWeight || 500,
   color: color || theme.palette.customColors.OnSurfaceVariant
 }))
-
-function ConfirmDialog({ open, message, onConfirm, onCancel }) {
-  return (
-    <Dialog open={open} onClose={onCancel}>
-      <DialogTitle>Confirmation</DialogTitle>
-
-      <DialogContent>
-        <Typography>{message}</Typography>
-      </DialogContent>
-
-      <DialogActions>
-        <Button onClick={onCancel} color='inherit'>
-          Cancel
-        </Button>
-
-        <Button onClick={onConfirm} variant='contained' color='primary'>
-          Discard
-        </Button>
-      </DialogActions>
-    </Dialog>
-  )
-}

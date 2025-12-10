@@ -9,8 +9,8 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller, useForm } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 
-// ** Custom Form Components
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
@@ -18,8 +18,6 @@ import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePick
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 
 const transferEnclosureSchema = yup.object({
@@ -46,7 +44,6 @@ const EnclosureDischargeForm = props => {
     watchDischargeType,
     submitLoader,
     handleSubmitData,
-
     medicationsColumns,
     isTransferEnclosureMedicationLoading,
     clearData,
@@ -56,7 +53,7 @@ const EnclosureDischargeForm = props => {
     medicalRecordId
   } = props
 
-  const STORAGE_KEY = `transfer_enclosure_form_${medicalRecordId}`
+  const STORAGE_KEY_FORM = 'transfer_enclosure_form'
 
   const isRestoring = useRef(true)
 
@@ -112,14 +109,14 @@ const EnclosureDischargeForm = props => {
   useEffect(() => {
     if (!medicalRecordId) return
     Object.keys(sessionStorage).forEach(key => {
-      if (key.startsWith('transfer_enclosure_form_') && key !== STORAGE_KEY) {
+      if (key.startsWith('transfer_enclosure_form_') && key !== STORAGE_KEY_FORM) {
         sessionStorage.removeItem(key)
       }
     })
   }, [medicalRecordId])
 
   useEffect(() => {
-    const saved = sessionStorage.getItem(STORAGE_KEY)
+    const saved = sessionStorage.getItem(STORAGE_KEY_FORM)
 
     if (saved) {
       const parsed = JSON.parse(saved)
@@ -129,12 +126,12 @@ const EnclosureDischargeForm = props => {
         discharge_date: parsed.discharge_date ? dayjs(parsed.discharge_date) : dayjs(),
         discharge_time: parsed.discharge_time ? dayjs(parsed.discharge_time) : dayjs(),
         follow_up_required: parsed.follow_up_required ?? false,
-        follow_up_date: parsed.follow_up_required && parsed.follow_up_date ? dayjs(parsed.follow_up_date) : dayjs()
+        follow_up_date: parsed.follow_up_required && parsed.follow_up_date ? dayjs(parsed.follow_up_date) : null
       })
 
       isRestoring.current = false
     }
-  }, [STORAGE_KEY])
+  }, [STORAGE_KEY_FORM])
 
   // time limits for discharge time
   const selectedDischargeDate = watch('discharge_date')
@@ -253,12 +250,21 @@ const EnclosureDischargeForm = props => {
 
     const success = await handleSubmitData(payload)
     if (success) {
-      sessionStorage.removeItem(STORAGE_KEY)
+      sessionStorage.removeItem(STORAGE_KEY_FORM)
       reset(defaultValues)
       clearData() // clear medicines + reset storage after submit
       refetchPatient()
     }
   }
+
+  useEffect(() => {
+    if (window.location.hash) {
+      const target = document.querySelector(window.location.hash)
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' })
+      }
+    }
+  }, [])
 
   return (
     <>
@@ -354,7 +360,7 @@ const EnclosureDischargeForm = props => {
           />
 
           <Divider />
-          <Grid container alignItems='center' spacing={2} justifyContent='space-between' id='medications-section'>
+          <Grid container alignItems='center' spacing={2} justifyContent='space-between'>
             <Grid size={{ xs: 12, sm: 6 }}>
               <ControlledSwitch
                 name='follow_up_required'
@@ -420,7 +426,7 @@ const EnclosureDischargeForm = props => {
           </Grid>
 
           <Divider />
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }} id='medications-section'>
             <Box
               sx={{
                 display: 'flex',
@@ -443,23 +449,25 @@ const EnclosureDischargeForm = props => {
               }}
             >
               <StyledTypography fontSize='1.25rem'>Medications</StyledTypography>
-              <Box sx={{ display: 'flex', gap: 4 }}>
-                <Button
-                  onClick={() => {
-                    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(getValues()))
-                    router.push({
-                      pathname: `/hospital/inpatient/${id}/schedule-prescription`,
-                      query: {
-                        tab: 'discharge',
-                        discharge_tab: 'TransferEnclosure'
-                      }
-                    })
-                  }}
-                  variant='contained'
-                >
-                  Add New Prescription
-                </Button>
-              </Box>
+              <Button
+                sx={{ py: 2 }}
+                onClick={() => {
+                  sessionStorage.setItem(STORAGE_KEY_FORM, JSON.stringify(getValues()))
+
+                  window.location.hash = 'medications-section'
+
+                  router.push({
+                    pathname: `/hospital/inpatient/${id}/schedule-prescription`,
+                    query: {
+                      tab: 'discharge',
+                      discharge_tab: 'TransferEnclosure'
+                    }
+                  })
+                }}
+                variant='contained'
+              >
+                Add New Prescription
+              </Button>
             </Box>
 
             {indexedMedicines.length > 0 && (
