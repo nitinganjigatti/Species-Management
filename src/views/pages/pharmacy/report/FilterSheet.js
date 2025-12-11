@@ -42,15 +42,42 @@ const FilterSheet = ({
   const searchInputRef = useRef(null)
   const [activeCategory, setActiveCategory] = useState(categories[0])
   const [searchValue, setSearchValue] = useState('')
+  const [draftSelectedOptions, setDraftSelectedOptions] = useState(selectedOptions || {})
+  const toIdString = id => (id == null ? '' : String(id))
+  const getSelectedIdsForCategory = category =>
+    Array.isArray(draftSelectedOptions?.[category]) ? draftSelectedOptions[category].map(toIdString) : []
 
   useEffect(() => {
-    if (open && animalId) {
-      setSelectedOptions(prev => ({
-        ...prev,
-        Site: selectedSites.length ? selectedSites : []
-      }))
+    if (open) {
+      setActiveCategory(categories[0])
+      setSearchValue('')
+
+      setDraftSelectedOptions(prev => {
+        const base = { ...(selectedOptions || {}) }
+        if (animalId) {
+          base.Site = selectedSites.length ? selectedSites.map(toIdString) : base.Site || []
+        }
+
+        const normalized = {}
+        Object.keys(base).forEach(key => {
+          normalized[key] = Array.isArray(base[key]) ? base[key].map(toIdString) : base[key]
+        })
+
+        return normalized
+      })
+    } else {
+      setSearchValue('')
+      setActiveCategory(categories[0])
+      setDraftSelectedOptions(
+        Object.fromEntries(
+          Object.entries(selectedOptions || {}).map(([key, val]) => [
+            key,
+            Array.isArray(val) ? val.map(toIdString) : val
+          ])
+        )
+      )
     }
-  }, [open])
+  }, [open, categories, selectedOptions, selectedSites, animalId])
 
   // const handleSelectAll = event => {
   //   if (event.target.checked) {
@@ -91,7 +118,7 @@ const FilterSheet = ({
 
     if (event.target.checked) {
       // ✅ Add only filtered IDs to current selection (merge with previous)
-      setSelectedOptions(prev => {
+      setDraftSelectedOptions(prev => {
         const current = prev[activeCategory] || []
         return {
           ...prev,
@@ -100,7 +127,7 @@ const FilterSheet = ({
       })
     } else {
       // ❌ Remove only filtered IDs from selection
-      setSelectedOptions(prev => {
+      setDraftSelectedOptions(prev => {
         const current = prev[activeCategory] || []
         const updated = current.filter(id => !filteredIds.includes(id))
         return {
@@ -112,35 +139,44 @@ const FilterSheet = ({
   }
 
   const handleToggleOption = (optionId, category) => {
-    setSelectedOptions(prevSelectedOptions => {
+    setDraftSelectedOptions(prevSelectedOptions => {
       const updatedOptions = { ...prevSelectedOptions }
 
-      if (!updatedOptions[category]) {
-        updatedOptions[category] = []
-      }
+      const selectedIds = Array.isArray(updatedOptions[category]) ? updatedOptions[category].map(toIdString) : []
 
-      if (updatedOptions[category].includes(optionId)) {
-        updatedOptions[category] = updatedOptions[category].filter(id => id !== optionId)
-      } else {
-        updatedOptions[category] = [...updatedOptions[category], optionId]
-      }
+      const optionKey = toIdString(optionId)
+
+      const updatedCategoryIds = selectedIds.includes(optionKey)
+        ? selectedIds.filter(id => id !== optionKey)
+        : [...selectedIds, optionKey]
+
+      updatedOptions[category] = updatedCategoryIds
 
       return updatedOptions
     })
   }
 
   const handleConfirmSelection = () => {
-    const selectedSiteIDs = selectedOptions.Site || []
+    const normalized = Object.fromEntries(
+      Object.entries(draftSelectedOptions || {}).map(([key, val]) => [
+        key,
+        Array.isArray(val) ? val.map(toIdString) : val
+      ])
+    )
+
+    setSelectedOptions(normalized)
+
+    const selectedSiteIDs = normalized?.Site || []
     handleSelection(selectedSiteIDs, 'Site')
 
-    const selectedOrganizationIDs = selectedOptions.Organization || []
+    const selectedOrganizationIDs = normalized?.Organization || []
     handleSelection(selectedOrganizationIDs, 'Organization')
 
     setOpenFilterDrawer(false)
   }
 
   const handleClearFilter = () => {
-    setSelectedOptions([])
+    setDraftSelectedOptions({})
   }
 
   const filteredOptions =
@@ -159,15 +195,17 @@ const FilterSheet = ({
     setSearchValue('')
   }
 
-  const filteredIds = filteredOptions.map(option => (activeCategory === 'Site' ? option.site_id : option.id))
+  const filteredIds = filteredOptions
+    .map(option => (activeCategory === 'Site' ? toIdString(option.site_id) : toIdString(option.id)))
+    .filter(Boolean)
 
-  const selectedIds = selectedOptions[activeCategory] || []
+  const selectedIds = getSelectedIdsForCategory(activeCategory)
 
-  const isAllFilteredSelected = filteredIds.every(id => selectedIds.includes(id))
+  const isAllFilteredSelected = filteredIds.length > 0 && filteredIds.every(id => selectedIds.includes(id))
   const isSomeFilteredSelected = filteredIds.some(id => selectedIds.includes(id))
 
   const getCategoryBadgeCount = category =>
-    Array.isArray(selectedOptions?.[category]) ? selectedOptions[category].length : 0
+    Array.isArray(draftSelectedOptions?.[category]) ? draftSelectedOptions[category].length : 0
 
   useEffect(() => {
     if (open) {
@@ -203,7 +241,7 @@ const FilterSheet = ({
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Icon icon='mage:filter' fontSize={30} />
           <Typography sx={{ fontSize: '24px', fontWeight: 500, fontFamily: 'Inter' }}>
-            Filter - {getTotalSelectedFilters(selectedOptions)}
+            Filter - {getTotalSelectedFilters(draftSelectedOptions)}
           </Typography>
         </Box>
 
@@ -365,7 +403,7 @@ const FilterSheet = ({
                             }
                             control={
                               <Checkbox
-                                checked={(selectedOptions[activeCategory] || []).includes(option.site_id)}
+                                checked={getSelectedIdsForCategory(activeCategory).includes(toIdString(option.site_id))}
                                 onChange={() => handleToggleOption(option.site_id, activeCategory)}
                               />
                             }
@@ -390,7 +428,7 @@ const FilterSheet = ({
                           }
                           control={
                             <Checkbox
-                              checked={(selectedOptions[activeCategory] || []).includes(option.id)}
+                              checked={getSelectedIdsForCategory(activeCategory).includes(toIdString(option.id))}
                               onChange={() => handleToggleOption(option.id, activeCategory)}
                             />
                           }
