@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   TextField,
@@ -43,6 +43,15 @@ export default function BasicDetails({
     { label: 'min', value: 'min' }
   ]
   const data = watch()
+  const anaesthesiaDateTimeValue = watch('basicDetails.anaesthesia_datetime')
+
+  useEffect(() => {
+    if (!anaesthesiaDateTimeValue) {
+      setValue('basicDetails.anaesthesia_datetime', dayjs().format('YYYY-MM-DD HH:mm:ss'), {
+        shouldValidate: true
+      })
+    }
+  }, [anaesthesiaDateTimeValue, setValue])
 
   const commonTextFieldSx = {
     '& .MuiOutlinedInput-root': {
