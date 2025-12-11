@@ -10,7 +10,6 @@ import Icon from 'src/@core/components/icon'
 import TextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
 import {
-  Avatar,
   Card,
   CardContent,
   CardHeader,
@@ -30,6 +29,7 @@ import { getAnimalList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
 import TuneIcon from '@mui/icons-material/Tune'
+import AnimalCard from 'src/views/utility/AnimalCard'
 
 const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSidebarOpen, handleSidebarClose }) => {
   const [searchValue, setSearchValue] = useState('')
@@ -453,13 +453,11 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
                   p: 0,
                   display: 'flex',
                   justifyContent: 'space-between',
-
-                  // borderBottom: 2,
                   borderColor: '#dddddd'
                 }}
               >
                 <Box sx={{ display: 'flex', gap: 3, p: 4 }}>
-                  <Box
+                  {/* <Box
                     sx={{
                       display: 'flex',
                       flexDirection: 'column',
@@ -493,7 +491,15 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
                     <Typography sx={{ fontWeight: 600 }}>{item?.default_common_name}</Typography>
                     <Typography sx={{ fontWeight: 400 }}>Encl:{item?.user_enclosure_name}</Typography>
                     <Typography sx={{ fontWeight: 400 }}>Sec: {item?.section_name}</Typography>
-                  </Box>
+                  </Box> */}
+                  <AnimalCard
+                    data={{
+                      ...item,
+                      local_identifier_value: item?.local_id,
+                      common_name: item?.default_common_name || item?.common_name,
+                      complete_name: item?.complete_name || item?.scientific_name
+                    }}
+                  />
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#F2FFF8' }}>
                   <Checkbox
