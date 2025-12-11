@@ -1126,7 +1126,7 @@ const AddRequestForm = () => {
                     }}
                   />
                   <Chip
-                    label={`Total QTY Price - ${Utility?.formatAmountToReadableDigit(
+                    label={`Cost of requested medicine - ${Utility?.formatAmountToReadableDigit(
                       Number(nestedRowMedicine?.unit_price * nestedRowMedicine?.request_item_qty)
                     )}`}
                     variant='outlined'
