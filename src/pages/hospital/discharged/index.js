@@ -274,16 +274,15 @@ const HospitalDischarged = () => {
     {
       width: 180,
       minWidth: 20,
-      field: 'duration',
+      field: 'total_admitted_days',
       sortable: false,
       headerName: 'duration',
       align: 'left',
       headerAlign: 'left',
-
       renderCell: params => {
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.total_admitted_days} {params?.row?.total_admitted_days > 1 ? 'Days' : 'Day'}
+            {params?.row?.total_admitted_days}
           </Typography>
         )
       }
