@@ -476,6 +476,7 @@ const EnclosureDischargeForm = props => {
                 loading={isTransferEnclosureMedicationLoading}
                 indexedRows={indexedMedicines || []}
                 rowHeight={64}
+                hideFooterPagination
                 total={indexedMedicines?.length || 0}
                 externalTableStyle={{
                   '--unstable_DataGrid-headWeight': 600,
