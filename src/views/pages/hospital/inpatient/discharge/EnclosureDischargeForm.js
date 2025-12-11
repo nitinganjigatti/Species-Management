@@ -50,7 +50,10 @@ const EnclosureDischargeForm = props => {
     onDirtyChange,
     medicationData,
     refetchPatient,
-    medicalRecordId
+    medicalRecordId,
+    prescriptionsColumns,
+    prescriptionData,
+    isPrescriptionLoading
   } = props
 
   const STORAGE_KEY_FORM = 'transfer_enclosure_form'
@@ -426,6 +429,57 @@ const EnclosureDischargeForm = props => {
           </Grid>
 
           <Divider />
+          {/* Prescription table*/}
+          {prescriptionData?.length > 0 && (
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: {
+                    xs: 'flex-start',
+                    md: 'center'
+                  },
+                  flexDirection: {
+                    xs: 'column',
+                    sm: 'row'
+                  },
+                  justifyContent: {
+                    xs: 'flex-start',
+                    sm: 'space-between'
+                  },
+                  gap: {
+                    xs: 3,
+                    md: 0
+                  }
+                }}
+              >
+                <Box>
+                  <StyledTypography fontSize='1.25rem'>
+                    Active Prescriptions - {prescriptionData?.length}
+                  </StyledTypography>
+
+                  <StyledTypography fontSize='0.875rem'>
+                    You can stop the below prescriptions if its not needed after discharge
+                  </StyledTypography>
+                </Box>
+              </Box>
+              <CommonTable
+                columns={prescriptionsColumns}
+                loading={isPrescriptionLoading}
+                indexedRows={prescriptionData || []}
+                rowHeight={64}
+                externalTableStyle={{
+                  // '--unstable_DataGrid-headWeight': 600,
+                  '& .MuiDataGrid-columnHeaders': {
+                    backgroundColor: theme.palette.customColors.neutral05,
+                    fontSize: '0.75rem',
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }
+                }}
+                hideFooterPagination={true}
+              />
+            </Box>
+          )}
           <Box sx={{ display: 'flex', flexDirection: 'column' }} id='medications-section'>
             <Box
               sx={{
@@ -477,9 +531,8 @@ const EnclosureDischargeForm = props => {
                 indexedRows={indexedMedicines || []}
                 rowHeight={64}
                 hideFooterPagination
-                total={indexedMedicines?.length || 0}
                 externalTableStyle={{
-                  '--unstable_DataGrid-headWeight': 600,
+                  // '--unstable_DataGrid-headWeight': 600,
                   '& .MuiDataGrid-columnHeaders': {
                     backgroundColor: theme.palette.customColors.neutral05,
                     fontSize: '0.75rem',
