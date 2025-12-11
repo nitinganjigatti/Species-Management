@@ -477,9 +477,11 @@ const EnclosureDischargeForm = props => {
                   }
                 }}
                 hideFooterPagination={true}
+                hideFooter={true}
               />
             </Box>
           )}
+          <Divider />
           <Box sx={{ display: 'flex', flexDirection: 'column' }} id='medications-section'>
             <Box
               sx={{
