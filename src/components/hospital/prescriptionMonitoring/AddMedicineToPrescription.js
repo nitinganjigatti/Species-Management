@@ -116,7 +116,7 @@ export default function AddMedicineToPrescription() {
             }),
           quantity: yup
             .number()
-            .typeError('Quantity must be a number')
+            .typeError('Quantity is required')
             .moreThan(0, 'Quantity must be greater than 0')
             .max(100000, 'Quantity cannot exceed 100000')
             .required('Quantity is required'),
