@@ -584,11 +584,40 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
     </Box>
   )
 
+  // --- discharge conditions ---
+  const dischargeDate = patientData?.discharge_at
+    ? dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).format('YYYY-MM-DD')
+    : null
+
+  const isAfterDischarge = dischargeDate ? dayjs().isAfter(dayjs(dischargeDate), 'day') : false
+  const isDischargedToday = dischargeDate ? dayjs().isSame(dayjs(), 'day') : false
+
+  let dateNavGrid = 10
+  let scheduleGrid = 2
+
+  if (isPatientDischarged && isAfterDischarge) {
+    dateNavGrid = 12
+    scheduleGrid = 0
+  } else if (isPatientDischarged && isDischargedToday && isToday) {
+    dateNavGrid = 12
+    scheduleGrid = 0
+  } else if ((isPatientDischarged && isToday) || !(monitoringData?.length > 0)) {
+    dateNavGrid = 12
+    scheduleGrid = 0
+  }
+
   return (
     <>
       <Grid container spacing={2} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
         <Grid container spacing={6} rowSpacing={4}>
-          <Grid item size={{ xs: 12, sm: 12, md: isPatientDischarged && isToday ? 12 : 10 }}>
+          <Grid
+            item
+            size={{
+              xs: 12,
+              sm: 12,
+              md: dateNavGrid
+            }}
+          >
             <HorizontalDateNav
               onDateSelect={handleDateChange}
               selectedDate={selectedDate}
@@ -596,32 +625,35 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
               isLoading={monitoringLoading}
             />
           </Grid>
-          <Grid item size={{ xs: 12, sm: 12, md: 2 }}>
+          <Grid item size={{ xs: 12, sm: 12, md: scheduleGrid }}>
             {monitoringLoading ? (
               <Skeleton variant='rectangular' height={48} sx={{ borderRadius: 1 }} animation='wave' />
-            ) : !isPatientDischarged && isToday ? (
+            ) : !monitoringLoading && !isToday && !isAfterDischarge && (!isPatientDischarged || isDischargedToday) ? (
               <Button
-                sx={{ height: '48px', width: '100%', fontSize: '0.8rem' }}
-                variant='contained'
-                onClick={() => setOpenScheduleDrawer(true)}
+                sx={{
+                  height: '48px',
+                  width: '100%',
+                  border: `1px solid ${theme.palette.primary.main}`,
+                  fontSize: '12px',
+                  fontWeight: 600
+                }}
+                variant='outlined'
+                onClick={() => setSelectedDate(dayjs().format('YYYY-MM-DD'))}
+                startIcon={<Icon icon={'uil:calender'} />}
               >
-                {monitoringDataListings?.show_edit_schedule_button == '1' ? 'Edit Schedule' : 'Schedule'}
+                Today
               </Button>
             ) : (
-              !isToday && (
+              !isPatientDischarged &&
+              isToday &&
+              monitoringData?.length > 0 &&
+              !isAfterDischarge && (
                 <Button
-                  sx={{
-                    height: '48px',
-                    width: '100%',
-                    border: `1px solid ${theme.palette.primary.main}`,
-                    fontSize: '12px',
-                    fontWeight: 600
-                  }}
-                  variant='outlined'
-                  onClick={() => setSelectedDate(dayjs().format('YYYY-MM-DD'))}
-                  startIcon={<Icon icon={'uil:calender'} />}
+                  sx={{ height: '48px', width: '100%', fontSize: '0.8rem' }}
+                  variant='contained'
+                  onClick={() => setOpenScheduleDrawer(true)}
                 >
-                  Today
+                  {monitoringDataListings?.show_edit_schedule_button == '1' ? 'Edit Schedule' : 'Schedule'}
                 </Button>
               )
             )}
