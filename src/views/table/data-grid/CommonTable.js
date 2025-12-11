@@ -25,7 +25,8 @@ const CommonTable = ({
   externalTableStyle,
   getRowHeight,
   handleSearch,
-  getRowClassName // New prop for conditional row styling
+  getRowClassName, // New prop for conditional row styling
+  hideFooter = false
 }) => {
   const theme = useTheme()
 
@@ -124,6 +125,7 @@ const CommonTable = ({
       rowSelectionModel={selectedRows ? selectedRows : []}
       getRowHeight={getRowHeight ? getRowHeight : null}
       getRowClassName={getRowClassName ? getRowClassName : undefined}
+      hideFooter={hideFooter}
     />
   )
 }
