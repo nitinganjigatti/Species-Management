@@ -196,9 +196,16 @@ const HospitalDischarged = () => {
       headerName: 'Discharge Summary',
       renderCell: params => (
         <>
-          <Tooltip title={params.row?.discharge_reason}>
-            <Typography
-              variant='body2'
+          <Tooltip
+            title={
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: params?.row?.notes || 'NA'
+                }}
+              />
+            }
+          >
+            <Box
               sx={{
                 fontSize: '14px',
                 fontWeight: 400,
@@ -212,9 +219,10 @@ const HospitalDischarged = () => {
                 whiteSpace: 'normal',
                 py: 4
               }}
-            >
-              <>{params.row?.discharge_reason || 'NA'}</>
-            </Typography>
+              dangerouslySetInnerHTML={{
+                __html: params?.row?.discharge_reason || 'NA'
+              }}
+            />
           </Tooltip>
         </>
       )
