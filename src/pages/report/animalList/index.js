@@ -114,6 +114,7 @@ const AnimalList = () => {
   }
 
   const initialLoad = useRef(true)
+  const lastFetchKeyRef = useRef('')
 
   const open = Boolean(anchorEl)
   const id = open ? 'filter-popover' : undefined
@@ -266,9 +267,18 @@ const AnimalList = () => {
 
   useEffect(() => {
     if (!animalId && reports_module && enable_animal_report) {
+      const fetchKey = JSON.stringify({
+        params: apiFilterParams,
+        page: paginationModel.page,
+        pageSize: paginationModel.pageSize
+      })
+
+      if (lastFetchKeyRef.current === fetchKey) return
+
+      lastFetchKeyRef.current = fetchKey
       fetchData(apiFilterParams, paginationModel)
     }
-  }, [fetchData, apiFilterParams])
+  }, [fetchData, apiFilterParams, paginationModel, reports_module, enable_animal_report, animalId])
 
   const getSpecificAnimal = async (id, options = {}) => {
     try {
@@ -365,7 +375,8 @@ const AnimalList = () => {
   // }
 
   const getTotalSelectedFilters = selectedOptions => {
-    return Object.values(selectedOptions || {}).filter(selected => Array.isArray(selected) && selected.length > 0).length
+    return Object.values(selectedOptions || {}).filter(selected => Array.isArray(selected) && selected.length > 0)
+      .length
   }
 
   const columns = headerList.map(header => {

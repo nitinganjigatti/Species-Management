@@ -213,7 +213,7 @@ const FilterSheet = ({
             sx={{ color: 'text.primary' }}
             onClick={() => {
               setOpenFilterDrawer(false)
-              handleClearFilter()
+              // handleClearFilter()
             }}
           >
             <Icon icon='mdi:close' fontSize={24} />
