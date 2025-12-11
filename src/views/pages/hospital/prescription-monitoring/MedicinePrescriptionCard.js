@@ -29,6 +29,7 @@ import Utility from 'src/utility'
 import { LoadingButton } from '@mui/lab'
 import DoDisturbIcon from '@mui/icons-material/DoDisturb'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import { useRouter } from 'next/router'
 
 // Custom styled components for drawer content
 const DrawerContent = styled(Box)(({ theme }) => ({
@@ -147,6 +148,8 @@ const MedicinePrescriptionCard = ({
 }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const router = useRouter()
+  const { id, date } = router.query
 
   const [activeTab, setActiveTab] = useState(medicineData?.defaultTab || 1)
   const [stopMedicineModalOpen, setStopMedicineModalOpen] = useState(false)
@@ -310,20 +313,22 @@ const MedicinePrescriptionCard = ({
     // Parse the date string properly (DD/MM/YYYY format)
     const [datePart, timePart] = dateTimeString.split(', ')
     const [day, month, year] = datePart.split('/')
-  
+
     // Create date object in UTC (month is 0-indexed in JavaScript)
     const utcDate = new Date(Date.UTC(year, month - 1, day, ...timePart.split(':')))
-  
+
     // Convert UTC to local time
-    const localDate = new Date(utcDate.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }))
-  
+    const localDate = new Date(
+      utcDate.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone })
+    )
+
     // Format date part: 02 Jan 2025
     const formattedDate = localDate.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
       year: 'numeric'
     })
-  
+
     // Format time part: 12 : 35 PM
     const formattedTime = localDate
       .toLocaleTimeString('en-US', {
@@ -332,7 +337,7 @@ const MedicinePrescriptionCard = ({
         hour12: true
       })
       .replace(':', ' : ')
-  
+
     return `${formattedDate} • ${formattedTime}`
   }
 
@@ -381,7 +386,15 @@ const MedicinePrescriptionCard = ({
   }
 
   const handleRestartMedicine = async () => {
-    console.log('handleRestartMedicine')
+    const today = new Date().toISOString().split('T')[0]
+    router.push({
+      pathname: `/hospital/inpatient/${id}/schedule-prescription`,
+      query: {
+        fromPage: 'prescriptionDetail',
+        date: date ? date : today,
+        prescriptionId: medicineData?.prescription_id
+      }
+    })
   }
 
   const renderDosageEntry = entry => (
@@ -999,31 +1012,30 @@ const MedicinePrescriptionCard = ({
                         Stop Medicine
                       </Button>
                     ) : isStopDatePassed(medicineData?.stop_date) ? (
-                      // <Button
-                      //   variant='text'
-                      //   startIcon={
-                      //     <Box
-                      //       component='img'
-                      //       src='/images/hospital/restart.svg'
-                      //       alt='Restart'
-                      //       sx={{ width: '18px', height: '18px' }}
-                      //     />
-                      //   }
-                      //   onClick={handleRestartMedicine}
-                      //   disabled={isDetailLoading}
-                      //   sx={{
-                      //     color: theme.palette.success.main,
-                      //     fontSize: '16px',
-                      //     fontWeight: 500,
-                      //     justifyContent: 'left',
-                      //     transform: 'none',
-                      //     textTransform: 'none',
-                      //     width: 'auto'
-                      //   }}
-                      // >
-                      //   Restart Medicine
-                      // </Button>
-                      <></>
+                      <Button
+                        variant='text'
+                        startIcon={
+                          <Box
+                            component='img'
+                            src='/images/hospital/stop.svg'
+                            alt='Restart'
+                            sx={{ width: '18px', height: '18px' }}
+                          />
+                        }
+                        onClick={handleRestartMedicine}
+                        disabled={isDetailLoading}
+                        sx={{
+                          color: theme.palette.customColors.OnSurface,
+                          fontSize: '16px',
+                          fontWeight: 500,
+                          justifyContent: 'left',
+                          transform: 'none',
+                          textTransform: 'none',
+                          width: 'auto'
+                        }}
+                      >
+                        Restart Medicine
+                      </Button>
                     ) : (
                       <Box></Box>
                     )}

@@ -35,6 +35,7 @@ export default function ScheduleMedicine({
   getValues,
   reset,
   isOneTimeFrequency = false,
+  stopDate,
   endsOn
 }) {
   const {
@@ -53,7 +54,7 @@ export default function ScheduleMedicine({
   const medicalRecordData = data[STORAGE_KEY] || {}
 
   const animal_admitted_date = medicalRecordData?.animal_admitted_date
-  const { medicine_edit_id } = router.query
+  const { medicine_edit_id, fromPage } = router.query
 
   const editIdStr = medicine_edit_id?.toString()
   const enclosureMedicines = data?.enclosure_medicines || []
@@ -69,32 +70,32 @@ export default function ScheduleMedicine({
     control,
     name: 'prescriptionStartDate'
   })
-  
+
   // NEW: Watch dosage duration value changes
   const dosageDurationValue = useWatch({
     control,
     name: 'dosageDuration.value'
   })
-  
+
   // NEW: Watch dosage duration unit changes
   const dosageDurationUnit = useWatch({
     control,
     name: 'dosageDuration.unit'
   })
-  
+
   // Updated useEffect with all necessary dependencies
   useEffect(() => {
     if (selectedMedicineTo === 'Direct Administer' && prescriptionStartDate) {
       const dosageDuration = getValues('dosageDuration')
-  
+
       if (dosageDuration?.value && dosageDuration?.unit) {
         const endDate = prescriptionStartDate
         const admittedDate = dayjs(medicalRecordData?.animal_admitted_date)
-  
+
         // Calculate start date
         let calculatedStart = dayjs(endDate)
         const durationValue = parseInt(dosageDuration.value)
-  
+
         switch (dosageDuration.unit) {
           case 'days':
             calculatedStart = calculatedStart.subtract(durationValue, 'days')
@@ -109,7 +110,7 @@ export default function ScheduleMedicine({
             calculatedStart = calculatedStart.subtract(durationValue, 'years')
             break
         }
-  
+
         if (calculatedStart.isBefore(admittedDate, 'day')) {
           setStartDateWarning(
             `Warning: Start date (${calculatedStart.format(
@@ -126,14 +127,14 @@ export default function ScheduleMedicine({
       setStartDateWarning('')
     }
   }, [
-    selectedMedicineTo, 
-    prescriptionStartDate, 
-    dosageDurationValue,      // ← Triggers when duration value changes
-    dosageDurationUnit,        // ← Triggers when unit (days/weeks/months/years) changes
-    getValues, 
+    selectedMedicineTo,
+    prescriptionStartDate,
+    dosageDurationValue, // ← Triggers when duration value changes
+    dosageDurationUnit, // ← Triggers when unit (days/weeks/months/years) changes
+    getValues,
     medicalRecordData?.animal_admitted_date
   ])
-  
+
   // Common styles for form fields
   const commonFieldStyles = {
     textAlign: 'left',
@@ -522,7 +523,9 @@ export default function ScheduleMedicine({
                   fullWidth={true}
                   sx={commonFieldStyles}
                   minDate={
-                    selectedMedicineTo === 'Direct Administer'
+                    fromPage === 'prescriptionDetail'
+                      ? dayjs(stopDate)
+                      : selectedMedicineTo === 'Direct Administer'
                       ? dayjs(animal_admitted_date)
                       : dayjs(animal_admitted_date)
                   }

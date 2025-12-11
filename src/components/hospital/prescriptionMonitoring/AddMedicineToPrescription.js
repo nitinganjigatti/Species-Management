@@ -20,20 +20,23 @@ import {
   addPrescription,
   getFrequency,
   getMedicineBatches,
-  getPrescriptions
+  getPrescriptionDetails,
+  getPrescriptions,
+  stopPrescription
 } from 'src/lib/api/hospital/prescription'
 import Utility from 'src/utility'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
 import { useHospital } from 'src/context/HospitalContext'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import dayjs from 'dayjs'
 
 const STORAGE_KEY = 'medical_record_data'
 
 export default function AddMedicineToPrescription() {
   const theme = useTheme()
   const router = useRouter()
-  const { id, medicine_edit_id, discharge_tab } = router.query
+  const { id, medicine_edit_id, discharge_tab, fromPage, date, prescriptionId } = router.query
 
   const { data, updateState } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
@@ -46,7 +49,7 @@ export default function AddMedicineToPrescription() {
     // fallback to id matching
     if (medicine_edit_id) {
       const result = list.find(med => med.id?.toString() === medicine_edit_id?.toString())
-      console.log('result', result)
+
 
       return result
     }
@@ -111,7 +114,7 @@ export default function AddMedicineToPrescription() {
 
               return true
             }),
-            quantity: yup
+          quantity: yup
             .number()
             .typeError('Quantity must be a number')
             .moreThan(0, 'Quantity must be greater than 0')
@@ -328,6 +331,7 @@ export default function AddMedicineToPrescription() {
   const [medicationData, setMedicationData] = useState([])
   const [endsOn, setEndsOn] = useState(null)
   const [cancelOrCloseText, setCancelOrCloseText] = useState('CANCEL')
+  const [medicineDetail, setMedicineDetail] = useState(null)
 
   const { selectedHospital: hospital } = useHospital()
 
@@ -415,6 +419,94 @@ export default function AddMedicineToPrescription() {
     [debouncedBatchSearch]
   )
 
+  function getTimeDayjs(timeStr) {
+    if (!timeStr) return dayjs()
+
+    // If timeStr is already in "11:30 AM" format
+    if (timeStr.includes('AM') || timeStr.includes('PM')) {
+      return dayjs(timeStr, ['hh:mm A', 'h:mm A'])
+    }
+
+    // If timeStr is in "12:28:00" format
+    const [hours, minutes] = timeStr.split(':').map(Number)
+
+    return dayjs()
+      .hour(hours)
+      .minute(minutes || 0)
+      .second(0)
+  }
+
+  const handleSetDefaultValues = data => {
+    const frequency = frequencyData?.find(item => item?.string_id == data.prescription_frequency)
+
+    const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
+      item => item?.string_id == data.delivery_route_string_id
+    )
+
+    reset({
+      frequency: frequency?.id || data.frequency || '',
+      deliveryRoute: deliveryRoute?.value || '',
+
+      prescriptionStartDate: data?.stop_date ? dayjs(data.stop_date) : null,
+
+      dosageDuration: {
+        value: data?.duration_qty || '0',
+        unit: data?.duration?.split(' ')[1] || ''
+      },
+
+      notes: data.notes || '',
+
+      wastageQuantity: '',
+      wastageUOM: '',
+      wastageNotes: '',
+
+      batchNumber: '',
+      batchImage: [],
+
+      schedules:
+        data.medicine_timings?.map(schedule => ({
+          oldTime: getTimeDayjs(schedule.scheduled_time),
+          createdAt: schedule.created_at,
+          time: schedule.scheduled_time ? getTimeDayjs(schedule.scheduled_time) : dayjs(),
+          quantity: schedule.scheduled_quantity || '',
+          unit: schedule.scheduled_unit_name?.toLowerCase() || ''
+        })) || [],
+      selectMedicineType: 'Schedule'
+    })
+  }
+
+  useEffect(() => {
+    if (medicineDetail && medicalMasterData && frequencyData && fromPage === 'prescriptionDetail') {
+      handleSetDefaultValues(medicineDetail)
+      handleMedicineSelect({ id: medicineDetail?.medicine_id, name: medicineDetail?.medicine_name })
+      setApiMedicineList([{ id: medicineDetail?.medicine_id, name: medicineDetail?.medicine_name }])
+    }
+  }, [fromPage, medicalMasterData, medicineDetail])
+
+  const getDetails = async (data = {}) => {
+    try {
+      setMedicineLoading(true)
+
+      const payload = {
+        prescription_id: data?.id,
+        date: date || '',
+        group_prescription_id: data?.id
+      }
+
+      const response = await getPrescriptionDetails(payload)
+
+      if (response?.success) {
+        setMedicineDetail(response?.data)
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {
+      Toaster({ type: 'error', message: error || 'Something went wrong' })
+    } finally {
+      setMedicineLoading(false)
+    }
+  }
+
   const handleMedicineSelect = medicine => {
     if (medicine) {
       setValue('selectedMedicineId', medicine.id, { shouldValidate: true })
@@ -471,7 +563,7 @@ export default function AddMedicineToPrescription() {
         fetchFrequencies()
         setMedicalMasterData({
           ...response?.data,
-          
+
           // prescriptionFrequency: frequencyData || [],
           prescriptionFrequency: [],
           prescriptionDosageMeasurementType:
@@ -621,7 +713,13 @@ export default function AddMedicineToPrescription() {
   // }, [currentPage, medicineSearchQuery, medicineLoading, hasMoreData, fetchMedicines])
 
   useEffect(() => {
-    fetchMedicines('', 1, true)
+    if (fromPage === 'prescriptionDetail') {
+      getDetails({
+        id: prescriptionId
+      })
+    } else {
+      if (discharge_tab !== 'TransferEnclosure') fetchMedicines('', 1, true)
+    }
     fetchMedicalMasterData()
   }, [])
 
@@ -633,7 +731,13 @@ export default function AddMedicineToPrescription() {
           if (res?.success === true) {
             setPatientData(res?.data)
 
-            if (hospital?.id && res.data?.animal_detail?.animal_id && id && res.data?.medical_record_id) {
+            if (
+              hospital?.id &&
+              res.data?.animal_detail?.animal_id &&
+              id &&
+              res.data?.medical_record_id &&
+              fromPage !== 'prescriptionDetail'
+            ) {
               getPrescriptionList(res.data?.animal_detail?.animal_id, res.data?.medical_record_id)
             }
             updateState(STORAGE_KEY, {
@@ -658,7 +762,6 @@ export default function AddMedicineToPrescription() {
   }, [id])
 
   const getPrescriptionList = async (animalId, medicalRecordId) => {
-    console.log('Fetching prescription list with params:', animalId, medicalRecordId)
     try {
       setIsPrescriptionListLoading(true)
 
@@ -771,14 +874,14 @@ export default function AddMedicineToPrescription() {
 
             frequency_key: frequency?.string_id || '',
             frequency_id: frequency?.id || '',
-            frequency: data?.frequency,
+            frequency: frequency?.label || '',
             frequency_string_id: frequency?.translation_string_id || '',
 
             schedule_doses: scheduleDoses,
 
-            interval: interval?.value || '',
-            interval_id: interval?.id || '',
-            interval_string_id: interval?.string_id || '',
+            interval: 'Day' || '',
+            interval_id: 1 || '',
+            interval_string_id: 'antz-prescription-interval.day' || '',
 
             duration_qty: data.dosageDuration?.value?.toString() || '1',
             duration_id: interval?.id || '',
@@ -1024,6 +1127,91 @@ export default function AddMedicineToPrescription() {
     }
   })
 
+  const handleRestartMedicine = async data => {
+    try {
+      setIsSubmitting(true)
+      const interval = medicalMasterData?.prescriptionDuration?.find(item => item?.value === data?.dosageDuration?.unit)
+      const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
+
+      const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
+        item => item?.route_abbr === data.deliveryRoute
+      )
+
+      const scheduleDoses = data.schedules.map((schedule, index) => ({
+        id: 1,
+        time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
+        quantity: schedule.quantity,
+        unit_id: getUnitIdFromName(schedule?.unit, medicalMasterData),
+        old_time: schedule?.oldTime ? convertUTCToLocaltime(schedule.oldTime) : '',
+        unit_name: schedule.unit,
+        string_id: getStringIdFromUnitName(schedule?.unit, medicalMasterData),
+        created_at: schedule?.createdAt
+      }))
+
+      const payload = {
+        medical_record_id: medical_record_id,
+        prescription_id: medicineDetail?.prescription_id,
+        type: 'prescription',
+        status: 'restart',
+        note: data?.notes,
+        medicine_details: {
+          id: medicineDetail?.medicine_id,
+          label: medicineDetail?.medicine_name,
+          name: medicineDetail?.medicine_name,
+
+          frequency_key: frequency?.string_id || '',
+          frequency_id: frequency?.id || '',
+          frequency: data?.frequency,
+          frequency_string_id: frequency?.translation_string_id || '',
+
+          schedule_doses: scheduleDoses,
+
+          interval: 'Day' || '',
+          interval_id: 1 || '',
+          interval_string_id: 'antz-prescription-interval.day' || '',
+
+          duration_qty: data.dosageDuration?.value?.toString() || '1',
+          duration_id: interval?.id || '',
+          duration: data.dosageDuration?.value
+            ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
+            : '1 days',
+          duration_string_id: interval?.string_id || '',
+          duration_type: data.dosageDuration?.unit
+            ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
+            : 'Days',
+
+          notes: data?.notes || '',
+
+          delivery_route_name: data?.deliveryRoute || '',
+          delivery_route_id: deliveryRoute?.id || '',
+          delivery_route_string_id: deliveryRoute?.string_id || '',
+
+          start_date: toISTISOString(data.prescriptionStartDate),
+          end_date: isOneTimeFrequency
+            ? toISTISOString(data.prescriptionStartDate)
+            : calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
+
+          restart_reason: '',
+          stop_reason: '',
+          side_effect: false,
+          group_prescription_id: medicineDetail?.group_prescription_id || medicineDetail?.prescription_id
+        }
+      }
+      const response = await stopPrescription(payload)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message })
+        router.back()
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {
+      console.error('Error in handleRestartMedicine:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   const prescriptionSubmitHandler = handleSubmit(async data => {
     const interval = medicalMasterData?.prescriptionDuration?.find(item => item?.value === data?.dosageDuration?.unit)
     const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
@@ -1064,9 +1252,9 @@ export default function AddMedicineToPrescription() {
 
           schedule_doses: scheduleDoses,
 
-          interval: interval?.value || '',
-          interval_id: interval?.id || '',
-          interval_string_id: interval?.string_id || '',
+          interval: 'Day' || '',
+          interval_id: 1 || '',
+          interval_string_id: 'antz-prescription-interval.day' || '',
 
           duration_qty: data.dosageDuration?.value?.toString(),
           duration_id: interval?.id || '',
@@ -1140,6 +1328,8 @@ export default function AddMedicineToPrescription() {
       // }, 0)
 
       return
+    } else if (fromPage === 'prescriptionDetail') {
+      handleRestartMedicine(data)
     } else {
       submitHandler(data)
     }
@@ -1151,12 +1341,17 @@ export default function AddMedicineToPrescription() {
     handleMedicineSelect(editingMedicine)
   }, [editingMedicine])
 
+  useEffect(() => {
+    if (!fromPage) return
+    if (fromPage === 'prescriptionDetail') handleMedicineSelect(editingMedicine)
+  }, [editingMedicine])
+
   const getUnitIdFromName = (unitName, medicalMasterData) => {
     const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
       item => item.unit_name === unitName || item.uom_abbr === unitName
     )
 
-    return unit?.id || '8' // Default to 8 if not found
+    return unit?.id || ''
   }
 
   const getStringIdFromUnitName = (unitName, medicalMasterData) => {
@@ -1164,7 +1359,7 @@ export default function AddMedicineToPrescription() {
       item => item.unit_name === unitName || item.uom_abbr === unitName
     )
 
-    return unit?.string_id || 'antz-prescription-dosage.t'
+    return unit?.string_id || ''
   }
 
   const calculateEndDate = (startDate, dosageDuration) => {
@@ -1266,7 +1461,7 @@ export default function AddMedicineToPrescription() {
               onClick={() => setValue('selectMedicineType', 'Schedule')}
             />
           </Grid>
-          {!discharge_tab && (
+          {!discharge_tab && !fromPage && (
             <Grid size={{ xs: 12, md: 4, lg: 4 }}>
               <TreatmentTypeRadioButtons
                 label='Direct Administer'
@@ -1314,6 +1509,7 @@ export default function AddMedicineToPrescription() {
               isControlledSubstance={temporarilySelectedMedicine?.controlled_substance === 1}
               isOneTimeFrequency={isOneTimeFrequency}
               endsOn={endsOn}
+              stopDate={medicineDetail?.stop_date}
               reset={reset}
             />
           </Grid>
@@ -1322,7 +1518,13 @@ export default function AddMedicineToPrescription() {
 
       <ActionButtons
         cancelLabel={cancelOrCloseText}
-        addLabel={watch('selectMedicineType') === 'Direct Administer' ? 'Administer' : 'Schedule'}
+        addLabel={
+          fromPage === 'prescriptionDetail'
+            ? 'Restart Medicine'
+            : watch('selectMedicineType') === 'Direct Administer'
+            ? 'Administer'
+            : 'Schedule'
+        }
         onCancel={handleCancel}
         isSubmitLoading={isSubmitting}
         isAddDisabled={temporarilySelectedMedicine?.id ? false : true}
