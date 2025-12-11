@@ -261,7 +261,7 @@ function Anesthesia({
   const showDetailSkeleton = isAnesthesiaDetailFetching || isRecordsLoading || !activeRecordAnesthesiaId
 
   const recordCode = anesthesiaDetail?.code || activeRecord?.code || '--'
-  const lastUpdatedValue = formatTimestamp(
+  const lastUpdatedValue = formatDateTime(
     anesthesiaDetail?.updated_at || anesthesiaDetail?.created_at || activeRecord?.updated_at || activeRecord?.created_at
   )
 
@@ -273,7 +273,7 @@ function Anesthesia({
 
     return {
       location: source?.location || '--',
-      dateAndTimeOfAnesthesia: formatTimestamp(source?.anaesthesia_datetime),
+      dateAndTimeOfAnesthesia: formatDateTime(source?.anaesthesia_datetime),
       estimatedTimeRequired: estimatedTime || '--',
       Veterinarian: formatStaffNames(source?.veterinarians),
       Anesthetists: formatStaffNames(source?.anesthetists)
