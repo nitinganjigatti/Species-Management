@@ -77,7 +77,7 @@ const HospitalDischarged = () => {
         page_no: filters?.page,
         limit: filters?.limit,
         q: filters?.q,
-        hospital_id: 1,
+        hospital_id: selectedHospital?.id,
         visit_type: selectedVisitType,
         patient_category: 'discharge',
         from_date: formatDate(filterDate.startDate),
