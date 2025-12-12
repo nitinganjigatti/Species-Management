@@ -21,12 +21,13 @@ import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePick
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import AddEditSurgeryDrawer from 'src/views/pages/hospital/masters/surgery'
 
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 
-import { addSurgeryRecord, getSurgeryMaster } from 'src/lib/api/hospital/surgeryMaster'
+import { addSurgeryMaster, addSurgeryRecord, getSurgeryMaster } from 'src/lib/api/hospital/surgeryMaster'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const DEFAULT_HOSPITAL_ID = '68'
@@ -307,6 +308,9 @@ const AddSurgeryRecord = () => {
   const [richNote, setRichNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [procedureSearchTerm, setProcedureSearchTerm] = useState('')
+  const [openAddSurgeryDrawer, setOpenAddSurgeryDrawer] = useState(false)
+  const [isSurgerySaving, setIsSurgerySaving] = useState(false)
+  const [localProcedureOptions, setLocalProcedureOptions] = useState([])
   const [surgeonSearchTerm, setSurgeonSearchTerm] = useState('')
   const [formResetKey, setFormResetKey] = useState(0)
   const selectedDate = watch('date')
@@ -369,7 +373,7 @@ const AddSurgeryRecord = () => {
     const surgeries = Array.isArray(rawSurgeries) ? rawSurgeries : []
     const unique = new Map()
 
-    surgeries.forEach(item => {
+    ;[...localProcedureOptions, ...surgeries].forEach(item => {
       const option = mapSurgeryToOption(item)
 
       if (option && !unique.has(option.value)) {
@@ -378,7 +382,7 @@ const AddSurgeryRecord = () => {
     })
 
     return Array.from(unique.values())
-  }, [surgeryMasterResponse])
+  }, [surgeryMasterResponse, localProcedureOptions])
 
   const { data: surgeonsResponse, isFetching: isSurgeonsLoading } = useQuery({
     queryKey: ['surgeon-list', surgeonSearchTerm, userZooId],
@@ -586,6 +590,52 @@ const AddSurgeryRecord = () => {
   const handleProcedureClear = useCallback(() => {
     setProcedureSearchTerm('')
   }, [])
+
+  const handleCreateSurgery = useCallback(
+    async values => {
+      const formData = new FormData()
+      formData.append('surgery_name', values?.surgery_name || '')
+      formData.append('description', values?.description || '')
+      formData.append('status', values?.status ? 'Active' : 'Inactive')
+
+      setIsSurgerySaving(true)
+      try {
+        const response = await addSurgeryMaster(formData)
+        if (response?.success) {
+          const newId = response?.data?.surgery_id || response?.surgery_id || response?.data?.id
+          const option =
+            newId &&
+            mapSurgeryToOption({
+              surgery_id: newId,
+              surgery_name: values?.surgery_name || '',
+              status: 'active'
+            })
+
+          if (option) {
+            setLocalProcedureOptions(prev => {
+              const map = new Map(prev.map(opt => [opt.value, opt]))
+              map.set(option.value, option)
+              return Array.from(map.values())
+            })
+            setValue('procedure', option, { shouldValidate: true, shouldDirty: true, shouldTouch: true })
+            clearErrors?.('procedure')
+          }
+          setProcedureSearchTerm('')
+
+          Toaster({ type: 'success', message: response?.message || 'Surgery has been created successfully.' })
+          setOpenAddSurgeryDrawer(false)
+        } else {
+          Toaster({ type: 'error', message: response?.message || 'Failed to create surgery' })
+        }
+      } catch (error) {
+        console.error('Failed to create surgery:', error)
+        Toaster({ type: 'error', message: error?.message || 'Failed to create surgery' })
+      } finally {
+        setIsSurgerySaving(false)
+      }
+    },
+    [clearErrors, setLocalProcedureOptions, setValue, setProcedureSearchTerm]
+  )
 
   const procedureGetOptionLabel = useCallback(option => option?.label || '', [])
 
@@ -996,6 +1046,16 @@ const AddSurgeryRecord = () => {
                   getOptionLabel={procedureGetOptionLabel}
                   isOptionEqualToValue={procedureIsOptionEqualToValue}
                   onChangeOverride={() => clearErrors?.('procedure')}
+                  endAdornment={() => (
+                    <IconButton
+                      size='small'
+                      onMouseDown={e => e.preventDefault()}
+                      onClick={() => setOpenAddSurgeryDrawer(true)}
+                      sx={{ ml: 1, fontSize: 28 }}
+                    >
+                      <Icon icon='mdi:plus' color={theme.palette.primary.main} />
+                    </IconButton>
+                  )}
                 />
               </Grid>
               <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
@@ -1448,6 +1508,12 @@ const AddSurgeryRecord = () => {
         </Button>
       </Box>
 
+      <AddEditSurgeryDrawer
+        open={openAddSurgeryDrawer}
+        onClose={() => setOpenAddSurgeryDrawer(false)}
+        onSubmit={handleCreateSurgery}
+        loading={isSurgerySaving}
+      />
       <AddAnesthesiaRecordDrawer
         setOpenAddanesthesiaDrawer={setOpenAddanesthesiaDrawer}
         openAddanesthesiaDrawer={openAddanesthesiaDrawer}
