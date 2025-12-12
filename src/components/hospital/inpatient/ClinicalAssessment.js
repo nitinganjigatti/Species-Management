@@ -272,7 +272,7 @@ const ClinicalAssessment = ({ overviewData }) => {
     setPrognosisValue(
       assessment?.additional_info?.prognosis
         ? Utility.capitalizeFirstLetter(assessment.additional_info.prognosis)
-        : 'Good'
+        : 'Favourable'
     )
     setChronicVal(assessment?.additional_info?.isChronic ? 'Yes' : 'No')
     setNotes(assessment?.additional_info?.note || '')

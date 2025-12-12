@@ -329,8 +329,8 @@ const EditClinicalAsmntDrawer = ({
                       }
                     }}
                   >
-                    <MenuItem value='Guarded'>Guarded</MenuItem>
                     <MenuItem value='Favourable'>Favourable</MenuItem>
+                    <MenuItem value='Guarded'>Guarded</MenuItem>
                     <MenuItem value='Doubtful'>Doubtful</MenuItem>
                     <MenuItem value='Poor'>Poor</MenuItem>
                     <MenuItem value='Grave'>Grave</MenuItem>
