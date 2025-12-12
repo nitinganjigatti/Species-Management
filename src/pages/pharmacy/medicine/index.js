@@ -5,34 +5,27 @@ import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
 
 // ** MUI Imports
+import { Box, Tab, Grid, Tooltip, Typography, IconButton } from '@mui/material'
 
-import Typography from '@mui/material/Typography'
-import CardHeader from '@mui/material/CardHeader'
-import Card from '@mui/material/Card'
 import { debounce } from 'lodash'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge, TextField, Tab, Tooltip } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
+
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import Utility from 'src/utility'
-import { AddButton } from 'src/components/Buttons'
-import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
-import Error404 from 'src/pages/404'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
-import RenderUtility from 'src/utility/render'
-import { fontSize, height, width } from '@mui/system'
-import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
+
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const ListOfMedicine = () => {
   const theme = useTheme()
@@ -141,7 +134,6 @@ const ListOfMedicine = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -168,7 +160,6 @@ const ListOfMedicine = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -195,7 +186,6 @@ const ListOfMedicine = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -268,8 +258,7 @@ const ListOfMedicine = () => {
                   ? theme.palette.customColors.Error
                   : theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter'
+              fontWeight: 400
             }}
           >
             {parseInt(params.row.active) === 0 ? 'In-Active' : 'Active'}
@@ -500,6 +489,7 @@ const ListOfMedicine = () => {
               router.push('/pharmacy/medicine/add-product')
             }}
             fullWidth={'fullWidth'}
+            styles={{ margin: 0 }}
           />
         )}
     </div>
@@ -524,7 +514,7 @@ const ListOfMedicine = () => {
     return (
       <>
         {/* Table Section */}
-        <Grid sx={{ mx: { xs: 3, md: 5 } }}>
+        <Grid>
           <CommonTable
             onRowClick={handleRowClick}
             indexedRows={indexedRows}
@@ -556,21 +546,7 @@ const ListOfMedicine = () => {
                 close={closeDialog}
                 show={showDialog}
               />
-              <Card>
-                <CardHeader
-                  title={RenderUtility.pageTitle('Product List')}
-                  action={headerAction}
-                  sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start',
-                    alignItems: 'flex-start',
-                    gap: { xs: 3, sm: 0 },
-                    mx: 0,
-
-                    px: { xs: '12px', sm: '14px', md: '20px' }
-                  }}
-                />
+              <PageCardLayout title={'Product List'} action={headerAction}>
                 {/* <Box
                   display='flex'
                   // justifyContent='space-between'
@@ -647,8 +623,7 @@ const ListOfMedicine = () => {
                   sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center',
-                    px: { xs: '12px', sm: '14px', md: '20px' }
+                    alignItems: 'center'
                   }}
                 >
                   <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
@@ -661,24 +636,6 @@ const ListOfMedicine = () => {
                     </TabContext>
                   </Grid>
                   <Grid item size={{ xs: 12, sm: 4, md: 4 }}>
-                    {/* <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      value={searchValue}
-                      placeholder='Search...'
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      size='small'
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    /> */}
                     <MUISearch
                       onChange={e => handleSearch(e.target.value)}
                       onClear={() => handleSearch('')}
@@ -699,7 +656,7 @@ const ListOfMedicine = () => {
                     {RenderTable()}
                   </TabPanel>
                 </TabContext>
-              </Card>
+              </PageCardLayout>
             </>
           )}
         </>
