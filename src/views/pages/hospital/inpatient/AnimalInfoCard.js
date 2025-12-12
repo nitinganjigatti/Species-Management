@@ -47,11 +47,11 @@ const AnimalInfoCard = ({ backgroundColor, additionalFields, image, name, scient
       }}
     >
       <Grid container rowSpacing={4} columnSpacing={4} sx={{ alignItems: 'center' }}>
-        <Grid size={{ xs: 12, sm: 12, md: 3 }} sx={{ border: '1px solid' }}>
+        <Grid size={{ xs: 12, sm: 12, md: 3, lg: 4 }}>
           <AnimalCardBasic image={image} name={name} scientificName={scientificName} age={age} gender={gender} />
         </Grid>
         {additionalFields?.map(({ label, value }, index) => (
-          <Grid size={{ xs: 6, sm: 3, md: 2.25 }} key={index} sx={{ border: '1px solid' }}>
+          <Grid size={{ xs: 6, sm: 3, md: 2.25, lg: 2 }} key={index}>
             <StatBox label={label} value={value} />
           </Grid>
         ))}
