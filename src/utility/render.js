@@ -2,7 +2,6 @@ import { Typography, Box, Avatar, Tooltip, Skeleton } from '@mui/material'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
-import { format, formatDistanceToNow } from 'date-fns'
 import { useTheme } from '@emotion/react'
 import moment from 'moment'
 import { useState } from 'react'
@@ -48,7 +47,6 @@ export const pageTitle = title => (
   <Box
     sx={{
       fontSize: { xs: '20px', md: '24px' },
-      fontFamily: 'Inter',
       fontWeight: 500,
       ml: 1
     }}
