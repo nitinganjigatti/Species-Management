@@ -9,7 +9,7 @@ const ShipmentDetails = () => {
   const { requestId, orderId, requestedFrom } = router.query
 
   return (
-    <Card sx={{ p: 6 }}>
+    <Card sx={{ p: 5 }}>
       <OrderReceiveForm orderId={orderId} requestId={requestId} requestedFrom={requestedFrom} />
     </Card>
   )

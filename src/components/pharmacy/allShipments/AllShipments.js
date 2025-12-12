@@ -1,19 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { getAllShipments } from 'src/lib/api/pharmacy/allShipments'
-import CardHeader from '@mui/material/CardHeader'
 
 // ** MUI Imports
 
-import Typography from '@mui/material/Typography'
-
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
-import { Box, Card, Grid, TextField } from '@mui/material'
+import { Card, CardHeader, CardContent, Typography, Grid } from '@mui/material'
 
 // import UserSnackbar from 'src/components/utility/snackbar'
 import { debounce } from 'lodash'
 import { useTheme } from '@emotion/react'
-import toast from 'react-hot-toast'
+
 import Router from 'next/router'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -25,10 +20,11 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const AllShipments = () => {
   const theme = useTheme()
-
+  debugger
   const authData = useContext(AuthContext)
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
   const { selectedPharmacy } = usePharmacyContext()
@@ -89,8 +85,7 @@ const AllShipments = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.shipment_id}
@@ -109,9 +104,7 @@ const AllShipments = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params.row.shipment_date)}
@@ -130,8 +123,7 @@ const AllShipments = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.person_shipping || 'NA'}
@@ -150,8 +142,7 @@ const AllShipments = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.vehicle_no || 'NA'}
@@ -170,8 +161,7 @@ const AllShipments = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.shipment_status || 'NA'}
@@ -273,28 +263,33 @@ const AllShipments = () => {
   return (
     <>
       {pharmacyRole ? (
-        <Card>
-          <CardHeader
-            // eslint-disable-next-line lines-around-comment
-            // sx={{
-            //   display: 'flex',
-            //   flexDirection: { xs: 'column', sm: 'row' },
-            //   justifyContent: 'flex-start', // Align content to the left
-            //   alignItems: 'flex-start', // Align items to the top left
-            //   gap: { xs: 3, sm: 0 },
-            //   '& .MuiCardHeader-action': {
-            //     width: { xs: '100% ', sm: 'auto' }
-            //   }
-            // }}
-            title={RenderUtility.pageTitle('All Shipments')}
-          />
+        <PageCardLayout title={'All Shipments'}>
+          {/*
+        // <Card>
+        //   <CardHeader
+        //     // eslint-disable-next-line lines-around-comment
+        //     // sx={{
+        //     //   display: 'flex',
+        //     //   flexDirection: { xs: 'column', sm: 'row' },
+        //     //   justifyContent: 'flex-start', // Align content to the left
+        //     //   alignItems: 'flex-start', // Align items to the top left
+        //     //   gap: { xs: 3, sm: 0 },
+        //     //   '& .MuiCardHeader-action': {
+        //     //     width: { xs: '100% ', sm: 'auto' }
+        //     //   }
+        //     // }}
+        //     title={RenderUtility.pageTitle('All Shipments')}
+        //   />
+        //   <CardContent> */}
+
           <Grid container>
             <Grid
               item
-              sx={{
-                px: 4
-              }}
               size={{ xs: 12, sm: 6 }}
+
+              // sx={{
+              //   px: 4
+              // }}
             >
               <MUISearch
                 sx={{ width: { xs: '100%', sm: '250px' } }}
@@ -305,9 +300,10 @@ const AllShipments = () => {
               />
             </Grid>
             <Grid
-              sx={{
-                px: 4
-              }}
+
+            // sx={{
+            //   px: 4
+            // }}
             >
               <CommonTable
                 onRowClick={onRowClick}
@@ -322,7 +318,9 @@ const AllShipments = () => {
               />
             </Grid>
           </Grid>
-        </Card>
+          {/* </CardContent>
+        </Card> */}
+        </PageCardLayout>
       ) : (
         <Error404></Error404>
       )}
