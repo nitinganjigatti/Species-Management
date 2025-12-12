@@ -27,8 +27,8 @@ const anesthesiaSchema = yup.object().shape({
     veterinarian_id: yup.array().of(yup.string()).min(1, 'Select at least one veterinarian'),
     anesthetist_id: yup.array().of(yup.string()).min(1, 'Select at least one anesthetist'),
     selected: yup.array().of(yup.string()).min(1, 'Select at least one purpose').default([]),
-    custom: yup.array().of(yup.string()).default([]),
-    notes: yup.string().trim().required('Notes are required')
+    custom: yup.array().of(yup.string()).default([])
+    // notes: yup.string().trim().required('Notes are required')
   })
 })
 

@@ -282,8 +282,8 @@ export const anesthesiaSchema = yup.object({
       veterinarian_id: yup.array().of(yup.string()).min(1, 'Select at least one veterinarian'),
       anesthetist_id: yup.array().of(yup.string()).min(1, 'Select at least one anesthetist'),
       selected: yup.array().of(yup.string()).default([]),
-      custom: yup.array().of(yup.string().trim()).default([]),
-      notes: yup.string().trim().required('Notes are required')
+      custom: yup.array().of(yup.string().trim()).default([])
+      // notes: yup.string().trim().required('Notes are required')
     })
     .test('purpose-selected-or-custom', 'Select at least one purpose or add a custom purpose', value => {
       if (!value) return false

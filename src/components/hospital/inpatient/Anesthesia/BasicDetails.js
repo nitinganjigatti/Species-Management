@@ -444,7 +444,7 @@ export default function BasicDetails({
         <ControlledTextArea
           control={control}
           errors={errors}
-          label='Enter Notes*'
+          label='Enter Notes'
           name='basicDetails.notes'
           placeholder='Enter Notes'
           fullWidth
