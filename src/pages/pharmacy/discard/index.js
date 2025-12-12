@@ -1,33 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import { DataGrid } from '@mui/x-data-grid'
+
 import { debounce } from 'lodash'
 import { getDiscardList } from 'src/lib/api/pharmacy/discard'
-import { format, subDays, subMonths } from 'date-fns'
+import { format, subMonths } from 'date-fns'
 
 // ** MUI Imports
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { Card, CardHeader, Typography, Grid, TextField, InputAdornment, Tooltip } from '@mui/material'
+import { Typography, Grid, Box } from '@mui/material'
 
 // ** Icon Imports
-import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
-
 import Router, { useRouter } from 'next/router'
 import Error404 from 'src/pages/404'
-
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
-import RenderUtility from 'src/utility/render'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const ListOfDiscardProducts = () => {
   const theme = useTheme()
@@ -222,7 +216,7 @@ const ListOfDiscardProducts = () => {
   const columns = [
     {
       flex: 0.1,
-      Width: 40,
+      minWidth: 80,
       field: 'id',
       headerName: 'SL.NO',
       renderCell: params => (
@@ -234,7 +228,7 @@ const ListOfDiscardProducts = () => {
 
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'req_no',
       headerName: 'Request Number',
       renderCell: params => (
@@ -243,8 +237,7 @@ const ListOfDiscardProducts = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.req_no}
@@ -253,7 +246,7 @@ const ListOfDiscardProducts = () => {
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'supplier_name',
       headerName: 'Supplier Name',
       renderCell: params => (
@@ -262,8 +255,7 @@ const ListOfDiscardProducts = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.supplier_name}
@@ -273,7 +265,7 @@ const ListOfDiscardProducts = () => {
 
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'total_qty',
       headerName: 'Total Qty',
       type: 'number',
@@ -285,8 +277,7 @@ const ListOfDiscardProducts = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.total_qty}
@@ -296,7 +287,7 @@ const ListOfDiscardProducts = () => {
 
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'discarded_date',
       headerName: 'Discarded Date',
       type: 'number',
@@ -308,8 +299,7 @@ const ListOfDiscardProducts = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params.row.discarded_date) === 'Invalid date'
@@ -320,7 +310,7 @@ const ListOfDiscardProducts = () => {
     },
     {
       flex: 0.2,
-      Width: 20,
+      minWidth: 150,
       field: 'created_at',
       headerName: 'Discarded by ',
       renderCell: params => (
@@ -453,6 +443,7 @@ const ListOfDiscardProducts = () => {
           title='Return to Supplier'
           action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })}
           fullWidth='fullWidth'
+          styles={{ margin: 0 }}
         />
       ) : (
         <></>
@@ -500,23 +491,7 @@ const ListOfDiscardProducts = () => {
           <FallbackSpinner />
         ) : (
           <>
-            <Card>
-              <CardHeader
-                sx={{
-                  display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  justifyContent: 'flex-start', // Align content to the left
-                  alignItems: 'flex-start', // Align items to the top left
-                  gap: { xs: 3, sm: 0 },
-                  '& .MuiCardHeader-action': {
-                    width: { xs: '100% ', sm: 'auto' }
-                  },
-                  mx: { xs: -1, sm: 1 },
-                  mt: 1
-                }}
-                title={RenderUtility.pageTitle('Return to Supplier List')}
-                action={headerAction}
-              />
+            <PageCardLayout title={'Return to Supplier List'} action={headerAction}>
               <Box
                 sx={{
                   display: 'flex',
@@ -583,8 +558,7 @@ const ListOfDiscardProducts = () => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  flexWrap: 'wrap', // Allow wrapping on small screens
-                  mx: { xs: 3, md: 5 }
+                  flexWrap: 'wrap' // Allow wrapping on small screens
                 }}
               >
                 <Grid
@@ -605,30 +579,6 @@ const ListOfDiscardProducts = () => {
                       }}
                     >
                       <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
-                        {/* <TextField
-                          variant='outlined'
-                          size='small'
-                          placeholder='Search...'
-                          value={searchValue}
-                          onChange={e => handleSearch(e.target.value)}
-                          fullWidth
-                          sx={{
-                            borderRadius: '8px'
-                          }}
-                          slotProps={{
-                            input: {
-                              startAdornment: (
-                                <InputAdornment position='start'>
-                                  <Icon
-                                    icon='mi:search'
-                                    fontSize={24}
-                                    color={theme.palette.customColors.neutralSecondary}
-                                  />
-                                </InputAdornment>
-                              )
-                            }
-                          }}
-                        /> */}
                         <MUISearch
                           onChange={e => handleSearch(e.target.value)}
                           onClear={() => handleSearch('')}
@@ -704,11 +654,7 @@ const ListOfDiscardProducts = () => {
                             <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
                           </Grid> */}
               </Box>
-              <Grid
-                sx={{
-                  mx: { xs: 3, md: 5 }
-                }}
-              >
+              <Grid>
                 <CommonTable
                   onRowClick={onRowClick}
                   indexedRows={indexedRows}
@@ -721,7 +667,7 @@ const ListOfDiscardProducts = () => {
                   searchValue={searchValue}
                 />
               </Grid>
-            </Card>
+            </PageCardLayout>
           </>
         )
       ) : (
