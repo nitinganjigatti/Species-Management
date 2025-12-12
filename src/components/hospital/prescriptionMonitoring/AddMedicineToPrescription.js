@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { Box, Grid, Typography, Button } from '@mui/material'
-import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
 import { useTheme } from '@mui/material/styles'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -31,6 +30,7 @@ import Toaster from 'src/components/Toaster'
 import { useHospital } from 'src/context/HospitalContext'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import dayjs from 'dayjs'
+import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -1494,18 +1494,19 @@ export default function AddMedicineToPrescription() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <AnimalDetails
-        image={patientData?.animal_detail?.default_icon}
-        name={patientData?.animal_detail?.common_name}
-        scientificName={patientData?.animal_detail?.complete_name}
-        identifierValue={patientData?.animal_detail?.local_identifier_value}
-        identifierName={patientData?.animal_detail?.local_identifier_name}
-        admittedDays={patientData?.admitted_for_day}
-        location={patientData?.bed_name || 'N/A'}
-        vet={patientData?.attend_by_full_name || 'N/A'}
-        ageGender={`${patientData?.animal_detail?.age || 'N/A'}${
-          patientData?.animal_detail?.sex ? ` . ${patientData?.animal_detail?.sex}` : ''
-        }`}
+      <AnimalInfoCard
+        backgroundColor={theme.palette.customColors.OnPrimary}
+        image={patientData?.animal_detail?.default_icon || '-'}
+        name={patientData?.animal_detail?.common_name || '-'}
+        scientificName={patientData?.animal_detail?.complete_name || '-'}
+        age={`${patientData?.animal_detail?.age || '-'}`}
+        gender={`${patientData?.animal_detail?.sex || '-'}`}
+        additionalFields={[
+          { label: 'AID', value: patientData?.animal_detail?.animal_id || '-' },
+          { label: 'Admitted days', value: patientData?.admitted_for_day || '-' },
+          { label: 'Location', value: patientData?.bed_name || '-' },
+          { label: 'Consulting Veterinarian', value: patientData?.attend_by_full_name || '-' }
+        ]}
         isLoading={patientLoading}
       />
       <Box
@@ -1551,7 +1552,6 @@ export default function AddMedicineToPrescription() {
             <PrescriptionMedicineList
               medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
               temporarilySelectedMedicine={temporarilySelectedMedicine}
-
               // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
               selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
               onSelect={handleMedicineSelect}

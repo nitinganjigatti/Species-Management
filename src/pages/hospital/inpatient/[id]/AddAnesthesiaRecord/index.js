@@ -21,7 +21,6 @@ import BasicDetails from 'src/components/hospital/inpatient/Anesthesia/BasicDeta
 import AttachmentsSection from 'src/components/hospital/inpatient/Anesthesia/AttachmentsSection'
 import AnesthesiaSetUpSection from 'src/components/hospital/inpatient/Anesthesia/AnesthesiaSetUp'
 import VitalMonitoring from 'src/components/hospital/inpatient/Anesthesia/VitalMonitoring'
-import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
 import ActionButtons from 'src/components/hospital/FooterActionbuttons'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -46,6 +45,8 @@ import Toaster from 'src/components/Toaster'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { useQueryClient } from '@tanstack/react-query'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
+import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
+
 dayjs.extend(customParseFormat)
 
 export function serverVitalToFormColumns(serverVital = {}, vitalMeta = []) {
@@ -78,6 +79,7 @@ export function serverVitalToFormColumns(serverVital = {}, vitalMeta = []) {
       if (hasValuesArray) {
         fields.forEach(f => {
           const values = f.values || []
+
           const vObj = values.find(
             v => String(v.monitoring_time_id) === String(slot.id) || v.monitoring_time_id === slot.recorded_time
           )
@@ -147,6 +149,7 @@ const extractFieldValueAndUnit = (fieldMeta, entry) => {
   // 1) prefer unique fieldsById map
   if (entry.fieldsById && entry.fieldsById[String(fieldMeta.field_id)]) {
     const rec = entry.fieldsById[String(fieldMeta.field_id)]
+
     return { value: rec?.value == null ? '' : String(rec.value), unit: rec?.unit ?? null }
   }
 
@@ -160,6 +163,7 @@ const extractFieldValueAndUnit = (fieldMeta, entry) => {
   if (entry[fk] !== undefined) {
     return { value: entry[fk] == null ? '' : String(entry[fk]), unit: entry.unit ?? null }
   }
+
   // also check keyed-by-id fallback key (e.g. `${field_key}_${field_id}`)
   if (entry[`${fk}_${fieldMeta.field_id}`] !== undefined) {
     return {
@@ -232,6 +236,7 @@ const toBackendTime = v => {
 const formatDateTime = value => {
   if (!value) return '--'
   const formatted = Utility.convertUTCToLocalDateTime(value)
+
   return formatted && formatted !== 'Invalid date' ? formatted : String(value)
 }
 
@@ -247,10 +252,12 @@ const fmt = v => {
   if (TIME_ONLY_RE.test(str)) {
     const candidate = `${dayjs().format('YYYY-MM-DD')} ${str}`
     const p = dayjs(candidate, ['YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DD hh:mm A', 'YYYY-MM-DD HH:mm'], true)
+
     return p.isValid() ? p.format('YYYY-MM-DD HH:mm:ss') : ''
   }
 
   const p = dayjs(str, ['YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DDTHH:mm:ss', 'YYYY-MM-DD', 'HH:mm:ss', 'hh:mm A'], true)
+
   return p.isValid()
     ? p.format('YYYY-MM-DD HH:mm:ss')
     : dayjs(str).isValid()
@@ -319,6 +326,7 @@ const sections = [
   { id: 'preAnesthesia', label: 'Pre Anesthesia', component: PreAnesthesia },
   { id: 'vitalMonitoring', label: 'Vital Monitoring', component: VitalMonitoring },
   { id: 'recoveryAndReversal', label: 'Recovery And Reversal', component: RecoveryAndReversal }
+
   //   { id: 'attachments', label: 'Attachments', component: AttachmentsSection }
 ]
 
@@ -484,6 +492,7 @@ export default function AddAnesthesiaRecord() {
     try {
       const params = {
         type: 'vital_monitoring'
+
         // hospital_id:"",
         // page_no:"",
         // limit:"",
@@ -668,6 +677,7 @@ export default function AddAnesthesiaRecord() {
     async (index, medicationData) => {
       const updatedMedications = Array.isArray(medications) ? [...medications] : []
       const existing = updatedMedications[index] || {}
+
       const merged = {
         ...existing,
         ...medicationData
@@ -713,6 +723,7 @@ export default function AddAnesthesiaRecord() {
     async (index, gasData) => {
       const updatedGases = Array.isArray(gases) ? [...gases] : []
       const existing = updatedGases[index] || {}
+
       const merged = {
         ...existing,
         ...gasData
@@ -961,15 +972,18 @@ export default function AddAnesthesiaRecord() {
 
     const combineDateAndTime = (dateStr, timeStr) => {
       if (!timeStr) return null
+
       const datePart =
         (dateStr && dayjs(dateStr).isValid() && dayjs(dateStr).format('YYYY-MM-DD')) || dayjs().format('YYYY-MM-DD')
       const candidate = `${datePart} ${timeStr}`
       const parsed = dayjs(candidate, 'YYYY-MM-DD HH:mm:ss', true)
+
       return parsed.isValid() ? parsed : null
     }
 
     const medicationsFromApi = medicationRecords.map(rec => {
       const createdAt = rec.created_at || null
+
       return {
         id: rec.id || '',
         drug_name: rec.drug_id ? { id: String(rec.drug_id), name: rec.drug_name || '' } : null,
@@ -987,6 +1001,7 @@ export default function AddAnesthesiaRecord() {
 
     const gasFromApi = gasRecords.map(rec => {
       const createdAt = rec.created_at || null
+
       return {
         id: rec.id || '',
         gas_name: rec.drug_id ? { id: String(rec.drug_id), name: rec.drug_name || '' } : null,
@@ -1067,6 +1082,7 @@ export default function AddAnesthesiaRecord() {
 
     const reversalFromApi = reversalRecords.map(rec => {
       const createdAt = rec.created_at || null
+
       return {
         id: rec.id || '',
         drug_id: rec.drug_id ? Number(rec.drug_id) : undefined,
@@ -1117,6 +1133,7 @@ export default function AddAnesthesiaRecord() {
 
     apiAnaesthesiaSetup.forEach(section => {
       const key = section.string_id
+
       const sectionObj = {
         checked: false,
         fields: {},
@@ -1165,6 +1182,7 @@ export default function AddAnesthesiaRecord() {
     if (!timeStr) return ''
     const d = dayjs(timeStr, ['HH:mm:ss', 'HH:mm', 'H:mm'], true)
     if (!d.isValid()) return ''
+
     return d.format('hh:mm A')
   }
 
@@ -1197,6 +1215,7 @@ export default function AddAnesthesiaRecord() {
           const firstErrorField = document.querySelector('[data-field].Mui-error')
           firstErrorField?.scrollIntoView({ behavior: 'smooth', block: 'center' })
         }, 300)
+
         return
       }
     }
@@ -1347,6 +1366,7 @@ export default function AddAnesthesiaRecord() {
         const pre = data.preAnesthesia || {}
 
         const clinPathSelectedObj = pre.clin_path?.selected || {}
+
         const clinPathSelectedIds = Object.entries(clinPathSelectedObj)
           .filter(([, checked]) => !!checked)
           .map(([id]) => Number(id))
@@ -1383,6 +1403,7 @@ export default function AddAnesthesiaRecord() {
           ...block,
           recorded_time: toBackendTime(block.recorded_time)
         }))
+
         // console.log('blocks:', JSON.stringify(blocks, null, 2))
         // ----------- VALIDATE & BUILD ANAESTHESIA SETUP (EDIT-ONLY) -----------
         const invalidSections = []
@@ -1442,6 +1463,7 @@ export default function AddAnesthesiaRecord() {
           })
           scrollToSection('anesthesiaSetUp')
           setIsSubmitting(false)
+
           return
         }
 
@@ -1466,6 +1488,7 @@ export default function AddAnesthesiaRecord() {
               fieldFromFlat !== undefined && fieldFromFlat !== null && String(fieldFromFlat).trim() !== ''
                 ? fieldFromFlat
                 : fieldFromObject ?? ''
+
             const unit =
               (sectionForm.fields && sectionForm.fields[f.field_key] && sectionForm.fields[f.field_key].unit) ??
               f.unit ??
@@ -1541,6 +1564,7 @@ export default function AddAnesthesiaRecord() {
           formData.append('anaesthesia_setup', JSON.stringify(anaesthesiaSetupPayload))
         }
       }
+
       // console.log(' Final payload for API:', {
       //   hospital_case_id: id || '',
       //   medical_record_id: patientData?.medical_record_id || '',
@@ -1565,6 +1589,7 @@ export default function AddAnesthesiaRecord() {
 
       if (response?.status === true) {
         setIsApiSuccess(true)
+
         // setExpanded('medicationsGas')
         if (!hasMedicationsGasData(medsPayload, gasPayload)) {
           handleChange('medicationsGas')
@@ -1679,6 +1704,7 @@ export default function AddAnesthesiaRecord() {
     switch (sectionId) {
       case 'basicDetails': {
         const basic = methods.getValues('basicDetails') || {}
+
         return (
           !!basic.location ||
           !!basic.anaesthesia_datetime ||
@@ -1696,11 +1722,13 @@ export default function AddAnesthesiaRecord() {
 
       case 'anesthesiaSetUp': {
         const setup = anesthesiaSetup || {}
+
         return Object.values(setup).some(sec => sec && sec.checked)
       }
 
       case 'preAnesthesia': {
         const pre = preAnesthesia || {}
+
         return hasPreAnesthesiaData(pre)
       }
 
@@ -1710,6 +1738,7 @@ export default function AddAnesthesiaRecord() {
 
       case 'recoveryAndReversal': {
         const rec = recoveryAndReversal || {}
+
         return (
           !!rec.recovery_type ||
           !!rec.recovery_first_effect ||
@@ -1728,8 +1757,10 @@ export default function AddAnesthesiaRecord() {
   }
 
   const shouldEnableSections = isApiSuccess
+
   const lastUpdatedValue =
     anesthesiaDetail?.updated_at !== undefined ? formatDateTime(anesthesiaDetail.updated_at) : '-'
+  console.log('patientData', patientData)
 
   return (
     <FormProvider {...methods}>
@@ -1811,22 +1842,22 @@ export default function AddAnesthesiaRecord() {
               )}
             </Box>
 
-            <AnimalDetails
-              image={patientData?.animal_detail?.default_icon}
-              name={patientData?.animal_detail?.common_name}
-              scientificName={patientData?.animal_detail?.complete_name}
-              identifierValue={patientData?.animal_detail?.local_identifier_value}
-              identifierName={patientData?.animal_detail?.local_identifier_name}
-              admittedDays={patientData?.admitted_for_day}
-              location={patientData?.bed_name || 'N/A'}
-              vet={patientData?.attend_by_full_name || 'N/A'}
-              ageGender={`${patientData?.animal_detail?.age || 'N/A'}${
-                patientData?.animal_detail?.sex ? ` . ${patientData?.animal_detail?.sex}` : ''
-              }`}
-              isLoading={patientLoading}
-              backgroundColor={theme.palette.customColors.tableHeaderBg}
-              marginSpacing={'18px 24px 15px 24px'}
-            />
+            <Box sx={{ padding: '16px 24px' }}>
+              <AnimalInfoCard
+                image={patientData?.animal_detail?.default_icon || '-'}
+                name={patientData?.animal_detail?.common_name || '-'}
+                scientificName={patientData?.animal_detail?.complete_name || '-'}
+                age={`${patientData?.animal_detail?.age || '-'}`}
+                gender={`${patientData?.animal_detail?.sex || '-'}`}
+                additionalFields={[
+                  { label: 'AID', value: patientData?.animal_detail?.animal_id || '-' },
+                  { label: 'Admitted days', value: patientData?.admitted_for_day || '-' },
+                  { label: 'Holding Location', value: patientData?.bed_name || '-' },
+                  { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name || '-' }
+                ]}
+                isLoading={patientLoading}
+              />
+            </Box>
 
             <Tabs
               value={expanded}
@@ -1844,6 +1875,7 @@ export default function AddAnesthesiaRecord() {
             >
               {sections.map(sec => {
                 const isDisabled = sec.id !== 'basicDetails' && !shouldEnableSections && !anaesthesia_id
+
                 return (
                   <Tab
                     key={sec.id}
@@ -1892,6 +1924,7 @@ export default function AddAnesthesiaRecord() {
             {sections.map(({ id, label, component: SectionComponent }) => {
               const isDisabled = id !== 'basicDetails' && !shouldEnableSections && !anaesthesia_id
               const hasData = !isDisabled && sectionHasData(id)
+
               return (
                 <Accordion
                   key={id}

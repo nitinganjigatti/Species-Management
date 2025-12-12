@@ -371,6 +371,7 @@ const AddSurgeryRecord = () => {
       (Array.isArray(surgeryMasterResponse?.data?.surgeries) && surgeryMasterResponse.data.surgeries) ||
       []
     const surgeries = Array.isArray(rawSurgeries) ? rawSurgeries : []
+
     const unique = new Map()
 
     ;[...localProcedureOptions, ...surgeries].forEach(item => {
@@ -603,6 +604,7 @@ const AddSurgeryRecord = () => {
         const response = await addSurgeryMaster(formData)
         if (response?.success) {
           const newId = response?.data?.surgery_id || response?.surgery_id || response?.data?.id
+
           const option =
             newId &&
             mapSurgeryToOption({
@@ -615,6 +617,7 @@ const AddSurgeryRecord = () => {
             setLocalProcedureOptions(prev => {
               const map = new Map(prev.map(opt => [opt.value, opt]))
               map.set(option.value, option)
+
               return Array.from(map.values())
             })
             setValue('procedure', option, { shouldValidate: true, shouldDirty: true, shouldTouch: true })
@@ -837,44 +840,21 @@ const AddSurgeryRecord = () => {
           </Typography>
         </Box>
 
-        {patientData ? (
-          <AnimalInfoCard data={animalInfoData} />
-        ) : (
-          <Card
-            sx={{
-              p: '24px',
-              borderRadius: '8px',
-              backgroundColor: theme.palette.customColors.displaybgPrimary,
-              boxShadow: 'none'
-            }}
-          >
-            <Grid container spacing={5} sx={{ alignItems: 'center' }}>
-              <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-                <Box sx={{ maxWidth: '100%', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Box
-                    sx={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: '8px',
-                      backgroundColor: theme.palette.customColors.mdAntzNeutral
-                    }}
-                  />
-                  <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, gap: 1 }}>
-                    <Box sx={{ width: '70%', height: '20px', borderRadius: '4px', backgroundColor: '#E0E0E0' }} />
-                    <Box sx={{ width: '60%', height: '18px', borderRadius: '4px', backgroundColor: '#E6E6E6' }} />
-                    <Box sx={{ width: '50%', height: '18px', borderRadius: '4px', backgroundColor: '#E6E6E6' }} />
-                  </Box>
-                </Box>
-              </Grid>
-              {[1, 2, 3, 4].map(idx => (
-                <Grid item size={{ xs: 12, sm: 4, md: 2.25 }} key={`animal-skeleton-${idx}`} sx={{ mt: 2 }}>
-                  <Box sx={{ width: '60%', height: '16px', borderRadius: '4px', backgroundColor: '#E6E6E6', mb: 1 }} />
-                  <Box sx={{ width: '80%', height: '18px', borderRadius: '4px', backgroundColor: '#E0E0E0' }} />
-                </Grid>
-              ))}
-            </Grid>
-          </Card>
-        )}
+        <AnimalInfoCard
+          image={patientData?.animal_detail?.default_icon || '-'}
+          name={patientData?.animal_detail?.common_name || '-'}
+          scientificName={patientData?.animal_detail?.complete_name || '-'}
+          age={`${patientData?.animal_detail?.age || '-'}`}
+          gender={`${patientData?.animal_detail?.sex || '-'}`}
+          additionalFields={[
+            { label: 'AID', value: patientData?.animal_detail?.animal_id || '-' },
+            { label: 'Admitted days', value: patientData?.admitted_for_day || '-' },
+            { label: 'Holding Location', value: patientData?.bed_name || '-' },
+            { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name || '-' }
+          ]}
+          isLoading={!patientData}
+        />
+
         <Box
           sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
           component='form'
