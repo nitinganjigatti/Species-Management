@@ -6,7 +6,7 @@ import { debounce } from 'lodash'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
-import { Card, Typography, CardHeader, Grid, Tooltip, Box, CardContent } from '@mui/material'
+import { Typography, Grid, Tooltip, Box } from '@mui/material'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
@@ -456,25 +456,7 @@ const ExpiringMedicine = () => {
       ) : (
         <>
           <PageCardLayout title={'About To Expire'}>
-            {/* <Card>
-            <CardHeader
-              title={RenderUtility.pageTitle('About To Expire')}
-
-              // sx={{
-              //   display: 'flex',
-              //   px: 4,
-              //   m: 0
-              // }}
-            />
-            <CardContent> */}
-            <Grid
-              container
-              spacing={3}
-
-              // sx={{
-              //   px: 4
-              // }}
-            >
+            <Grid container spacing={3}>
               <Grid item size={{ xs: 12, sm: 12, md: 3 }} sx={{ display: 'flex', alignItems: 'center' }}>
                 <MUISearch
                   onChange={e => handleSearch(e.target.value)}
@@ -583,12 +565,7 @@ const ExpiringMedicine = () => {
               </Grid>
             </Box> */}
 
-            <Grid
-
-            // sx={{
-            //   px: 4
-            // }}
-            >
+            <Grid>
               <CommonTable
                 onRowClick={''}
                 indexedRows={indexedRows}
@@ -666,8 +643,6 @@ const ExpiringMedicine = () => {
 
               // onRowClick={onRowClick}
             /> */}
-            {/* </CardContent>
-          </Card> */}
           </PageCardLayout>
         </>
       )}

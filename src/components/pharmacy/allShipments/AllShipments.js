@@ -3,12 +3,11 @@ import { getAllShipments } from 'src/lib/api/pharmacy/allShipments'
 
 // ** MUI Imports
 
-import { Card, CardHeader, CardContent, Typography, Grid } from '@mui/material'
+import { Typography, Grid } from '@mui/material'
 
 // import UserSnackbar from 'src/components/utility/snackbar'
 import { debounce } from 'lodash'
 import { useTheme } from '@emotion/react'
-
 import Router from 'next/router'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -24,7 +23,6 @@ import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const AllShipments = () => {
   const theme = useTheme()
-  debugger
   const authData = useContext(AuthContext)
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
   const { selectedPharmacy } = usePharmacyContext()
@@ -264,33 +262,8 @@ const AllShipments = () => {
     <>
       {pharmacyRole ? (
         <PageCardLayout title={'All Shipments'}>
-          {/*
-        // <Card>
-        //   <CardHeader
-        //     // eslint-disable-next-line lines-around-comment
-        //     // sx={{
-        //     //   display: 'flex',
-        //     //   flexDirection: { xs: 'column', sm: 'row' },
-        //     //   justifyContent: 'flex-start', // Align content to the left
-        //     //   alignItems: 'flex-start', // Align items to the top left
-        //     //   gap: { xs: 3, sm: 0 },
-        //     //   '& .MuiCardHeader-action': {
-        //     //     width: { xs: '100% ', sm: 'auto' }
-        //     //   }
-        //     // }}
-        //     title={RenderUtility.pageTitle('All Shipments')}
-        //   />
-        //   <CardContent> */}
-
           <Grid container>
-            <Grid
-              item
-              size={{ xs: 12, sm: 6 }}
-
-              // sx={{
-              //   px: 4
-              // }}
-            >
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <MUISearch
                 sx={{ width: { xs: '100%', sm: '250px' } }}
                 onChange={e => handleSearch(e.target.value)}
@@ -299,12 +272,7 @@ const AllShipments = () => {
                 value={searchValue}
               />
             </Grid>
-            <Grid
-
-            // sx={{
-            //   px: 4
-            // }}
-            >
+            <Grid>
               <CommonTable
                 onRowClick={onRowClick}
                 indexedRows={indexedRows}
@@ -318,8 +286,6 @@ const AllShipments = () => {
               />
             </Grid>
           </Grid>
-          {/* </CardContent>
-        </Card> */}
         </PageCardLayout>
       ) : (
         <Error404></Error404>

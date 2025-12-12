@@ -441,7 +441,6 @@ function Escrow({ value }) {
               container
               spacing={3}
               sx={{
-                // px: 4,
                 display: 'flex',
                 justifyContent: 'space-between'
               }}
@@ -470,31 +469,6 @@ function Escrow({ value }) {
                   width: { xs: '100%', sm: '250px' }
                 }}
               >
-                {/* <FormControl
-                  sx={{
-                    width: {
-                      xs: '100%',
-                      sm: '240px'
-                    }
-                  }}
-                >
-                  <InputLabel id='demo-simple-select-label' size='small'>
-                    Filter by stock type
-                  </InputLabel>
-                  <Select
-                    size='small'
-                    value={stockType}
-                    label='Filter by stock type'
-                    onChange={e => {
-                      filterByStockType(e.target.value)
-                      setStockType(e.target.value)
-                    }}
-                  >
-                    <MenuItem value='all'>All</MenuItem>
-                    <MenuItem value='transit'>Transit</MenuItem>
-                    <MenuItem value='dispute'>Dispute</MenuItem>
-                  </Select>
-                </FormControl> */}
                 <MUISelect
                   sx={{
                     width: {
@@ -516,28 +490,8 @@ function Escrow({ value }) {
                 />
               </Grid>
             </Grid>
-            {/* <FormControl size='small' sx={{ ml: 4, my: 2 }}>
-              <InputLabel id='demo-simple-select-label'>Filter by stock type</InputLabel>
-              <Select
-                size='small'
-                value={stockType}
-                label='Filter by stock type'
-                onChange={e => {
-                  filterByStockType(e.target.value)
-                  setStockType(e.target.value)
-                }}
-              >
-                <MenuItem value='all'>All</MenuItem>
-                <MenuItem value='transit'>Transit</MenuItem>
-                <MenuItem value='dispute'>Dispute</MenuItem>
-              </Select>
-            </FormControl> */}
-            <Grid
 
-            // sx={{
-            //   px: 4
-            // }}
-            >
+            <Grid>
               <CommonTable
                 onRowClick={onRowClick}
                 indexedRows={indexedRows}

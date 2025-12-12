@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { Box, CardHeader, Grid, styled, Tab, alpha, Typography, Card, CardContent } from '@mui/material'
+import { Box, Grid, styled, Tab, alpha, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useRouter } from 'next/router'
 import { debounce } from 'lodash'
-import RenderUtility from 'src/utility/render'
 import MuiTabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
@@ -392,19 +391,6 @@ function InComingAndOutGoingShipments({ type }) {
 
   return (
     <PageCardLayout title={type === 'incoming' ? 'Incoming shipments' : 'Outgoing shipments'}>
-      {/* <Grid container>
-      <Card
-
-      //  sx={{ px: 6 }}
-      >
-        <CardHeader
-          title={RenderUtility.pageTitle(type === 'incoming' ? 'Incoming shipments' : 'Outgoing shipments')}
-
-          // sx={{
-          //   px: 0
-          // }}
-        />
-        <CardContent> */}
       <Grid
         container
         spacing={2}
@@ -414,8 +400,6 @@ function InComingAndOutGoingShipments({ type }) {
           justifyContent: { xs: 'center', md: 'space-between' },
           alignItems: 'center',
           gap: { xs: 2, md: 0 }
-
-          // mt: 6
         }}
       >
         <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
@@ -502,9 +486,6 @@ function InComingAndOutGoingShipments({ type }) {
           {pageContent()}
         </TabPanel>
       </TabContext>
-      {/* </CardContent>
-      </Card>
-    </Grid> */}
     </PageCardLayout>
   )
 }
