@@ -348,11 +348,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
         item => item.uom_abbr === data?.wastageUnit
       )
 
-      let time24 = data.time
-        ? dayjs.isDayjs(data.time)
-          ? data.time.format('HH:mm:ss')
-          : dayjs(data.time, 'hh:mm A').format('HH:mm:ss')
-        : dayjs().format('HH:mm:ss')
+      let time24 = new Date().toLocaleTimeString('en-GB', { hour12: false })
 
       // Process the form data based on action type
       const payload = {

@@ -1087,9 +1087,11 @@ export default function AddMedicineToPrescription() {
       ]
 
       const payload = {
-        record_date:
-          toISTISOString(data.prescriptionStartDate)?.replace('T', ' ').slice(0, 19) ||
-          toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
+        record_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
+
+        // record_date:
+        //   toISTISOString(data.prescriptionStartDate)?.replace('T', ' ').slice(0, 19) ||
+        //   toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
         case_type: 1,
         medical_record_type: 'SINGLE',
         animal_id: animal_id ? JSON.stringify([animal_id]) : JSON.stringify([]),
