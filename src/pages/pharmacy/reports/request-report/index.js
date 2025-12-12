@@ -1,17 +1,6 @@
 import { useTheme } from '@emotion/react'
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CircularProgress,
-  Grid,
-  InputAdornment,
-  TextField,
-  Tooltip,
-  Typography
-} from '@mui/material'
-import { Box, display } from '@mui/system'
+import { Grid, Tooltip, Typography } from '@mui/material'
+import { Box } from '@mui/system'
 import { format, subMonths } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
@@ -22,10 +11,10 @@ import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getRequestedItemsReport } from 'src/lib/api/pharmacy/reports'
 import Error404 from 'src/pages/404'
 import Utility from 'src/utility'
-import Icon from 'src/@core/components/icon'
+
 import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
+
 import RequestedItemFilterDrawer from 'src/views/pages/pharmacy/reports/RequestedItemFilterDrawer'
 import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
@@ -33,6 +22,7 @@ import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const RequestReport = () => {
   const router = useRouter()
@@ -269,8 +259,7 @@ const RequestReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.request_ID}
@@ -311,8 +300,7 @@ const RequestReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.requested_quantity ? Utility.formatNumber(params.row.requested_quantity) : 0}
@@ -332,8 +320,7 @@ const RequestReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.pending_quantity ? Utility.formatNumber(params.row.pending_quantity) : 0}
@@ -354,7 +341,6 @@ const RequestReport = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -380,7 +366,6 @@ const RequestReport = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -555,129 +540,89 @@ const RequestReport = () => {
     <>
       {selectedPharmacy.type === 'central' ? (
         <>
-          <Card>
-            <CardHeader
+          <PageCardLayout title={'Pending Request Report'}>
+            <Box
               sx={{
                 display: 'flex',
                 flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'flex-start',
-                alignItems: 'flex-start',
-                gap: { xs: 3, sm: 2 },
-                '& .MuiCardHeader-action': {
-                  width: { xs: '100% ', sm: 'auto' }
-                },
-                mx: { xs: -1, sm: 0 }
+                justifyContent: 'space-between',
+                alignItems: { xs: 'stretch', sm: 'center' },
+                gap: { xs: 2, sm: 0 },
+                width: '100%'
               }}
-              title={RenderUtility.pageTitle('Pending Request Report')}
-            />
-            <CardContent sx={{ paddingTop: '4px' }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  justifyContent: 'space-between',
-                  alignItems: { xs: 'stretch', sm: 'center' },
-                  gap: { xs: 2, sm: 0 },
-                  width: '100%'
-                }}
+            >
+              <Grid
+                container
+                spacing={4}
+                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
               >
-                <Grid
-                  container
-                  spacing={4}
-                  sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                >
-                  <Grid item size={{ xs: 12, sm: 5, md: 5 }}>
-                    <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
-                  </Grid>
+                <Grid item size={{ xs: 12, sm: 5, md: 5 }}>
+                  <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+                </Grid>
 
-                  <Grid item size={{ xs: 12, sm: 7 }}>
+                <Grid item size={{ xs: 12, sm: 7 }}>
+                  <Grid
+                    container
+                    spacing={2}
+                    sx={{
+                      justifyContent: { xs: 'flex-end' }
+                    }}
+                  >
+                    <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
+                      <MUISearch
+                        placeholder='Search...'
+                        value={searchValue}
+                        onChange={e => handleSearch(e.target.value)}
+                        onClear={() => handleSearch('')}
+                      />
+                    </Grid>
+
                     <Grid
-                      container
-                      spacing={2}
+                      item
                       sx={{
-                        justifyContent: { xs: 'flex-end' }
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2,
+                        justifyContent: { sm: 'flex-end', xs: 'flex-end' }
                       }}
                     >
-                      <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
-                        {/* <TextField
-                          variant='outlined'
-                          size='small'
-                          placeholder='Search...'
-                          value={searchValue}
-                          onChange={e => handleSearch(e.target.value)}
-                          fullWidth
-                          sx={{
-                            borderRadius: '8px'
-                          }}
-                          slotProps={{
-                            input: {
-                              startAdornment: (
-                                <InputAdornment position='start'>
-                                  <Icon
-                                    icon='mi:search'
-                                    fontSize={24}
-                                    color={theme.palette.customColors.neutralSecondary}
-                                  />
-                                </InputAdornment>
-                              )
-                            }
-                          }}
-                        /> */}
-                        <MUISearch
-                          placeholder='Search...'
-                          value={searchValue}
-                          onChange={e => handleSearch(e.target.value)}
-                          onClear={() => handleSearch('')}
-                        />
-                      </Grid>
-
-                      <Grid
-                        item
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 2,
-                          justifyContent: { sm: 'flex-end', xs: 'flex-end' }
-                        }}
-                      >
-                        <ExportButton loading={loading || exportLoading} onClick={handleExport} />
-                        <FilterButton
-                          onClick={() => setOpenFilterDrawer(true)}
-                          appliedFiltersCount={appliedFiltersCount}
-                        />
-                      </Grid>
+                      <ExportButton loading={loading || exportLoading} onClick={handleExport} />
+                      <FilterButton
+                        onClick={() => setOpenFilterDrawer(true)}
+                        appliedFiltersCount={appliedFiltersCount}
+                      />
                     </Grid>
                   </Grid>
                 </Grid>
-              </Box>
-              <Grid>
-                <CommonTable
-                  columns={columns}
-                  indexedRows={indexedRows}
-                  total={total}
-                  paginationModel={paginationModel}
-                  loading={loading}
-                  setPaginationModel={setPaginationModel}
-                  searchValue={searchValue}
-                  onPaginationModelChange={model => {
-                    setPaginationModel(model)
-                    router.replace({
-                      pathname: router.pathname,
-                      query: {
-                        ...router.query,
-                        page: model.page + 1,
-                        pageSize: model.pageSize,
-                        searchValue,
-                        sort,
-                        sortColumn
-                      }
-                    })
-                  }}
-                  handleSortModel={handleSortModel}
-                />
               </Grid>
-            </CardContent>
-          </Card>
+            </Box>
+            <Grid>
+              <CommonTable
+                columns={columns}
+                indexedRows={indexedRows}
+                total={total}
+                paginationModel={paginationModel}
+                loading={loading}
+                setPaginationModel={setPaginationModel}
+                searchValue={searchValue}
+                onPaginationModelChange={model => {
+                  setPaginationModel(model)
+                  router.replace({
+                    pathname: router.pathname,
+                    query: {
+                      ...router.query,
+                      page: model.page + 1,
+                      pageSize: model.pageSize,
+                      searchValue,
+                      sort,
+                      sortColumn
+                    }
+                  })
+                }}
+                handleSortModel={handleSortModel}
+              />
+            </Grid>
+          </PageCardLayout>
           {openFilterDrawer && (
             <RequestedItemFilterDrawer
               setOpenFilterDrawer={setOpenFilterDrawer}

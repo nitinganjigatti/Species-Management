@@ -1,16 +1,5 @@
 import { useTheme } from '@emotion/react'
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CircularProgress,
-  Grid,
-  InputAdornment,
-  TextField,
-  Tooltip,
-  Typography
-} from '@mui/material'
+import { Grid, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { format, subMonths } from 'date-fns'
 import { useRouter } from 'next/router'
@@ -18,12 +7,9 @@ import React, { useCallback, useEffect, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { getReturnToSupplier } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
-import RenderUtility from 'src/utility/render'
-import Icon from 'src/@core/components/icon'
 import { debounce } from 'lodash'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import ReturnToSupplierFilter from 'src/views/pages/pharmacy/reports/ReturnToSupplierFilter'
-import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
@@ -33,6 +19,7 @@ import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const ReturnSupplier = () => {
   const router = useRouter()
@@ -254,8 +241,7 @@ const ReturnSupplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.discard_number}
@@ -274,8 +260,7 @@ const ReturnSupplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params.row.discarded_date)}
@@ -315,8 +300,7 @@ const ReturnSupplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.batch_no}
@@ -335,8 +319,7 @@ const ReturnSupplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params.row.expiry_date)}
@@ -357,8 +340,7 @@ const ReturnSupplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatAmountToReadableDigit(params.row.unit_price)}
@@ -379,8 +361,7 @@ const ReturnSupplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatAmountToReadableDigit(params.row.discarded_value)}
@@ -400,8 +381,7 @@ const ReturnSupplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row?.discarded_quantity ? Utility.formatNumber(params.row.discarded_quantity) : 0}
@@ -422,7 +402,6 @@ const ReturnSupplier = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -451,7 +430,6 @@ const ReturnSupplier = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -478,7 +456,6 @@ const ReturnSupplier = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -508,7 +485,6 @@ const ReturnSupplier = () => {
                   color: theme.palette.customColors.customHeadingTextColor,
                   fontSize: '14px',
                   fontWeight: 400,
-                  fontFamily: 'Inter',
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
                   textOverflow: 'ellipsis',
@@ -527,7 +503,6 @@ const ReturnSupplier = () => {
                   width: '100%',
                   fontSize: '14px',
                   color: theme.palette.text.secondary,
-                  fontFamily: 'Inter',
                   fontWeight: 400
                 }}
               >
@@ -729,130 +704,90 @@ const ReturnSupplier = () => {
     <>
       {selectedPharmacy.type === 'central' ? (
         <>
-          <Card>
-            <CardHeader
+          <PageCardLayout title={'Return To Supplier Report'}>
+            <Box
               sx={{
-                width: '100%',
                 display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
                 justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: 2,
-                [theme.breakpoints.down('sm')]: {
-                  flexDirection: 'row',
-                  justifyContent: 'space-between'
-                }
+                alignItems: { xs: 'stretch', sm: 'center' },
+                gap: { xs: 2, sm: 0 },
+                width: '100%'
               }}
-              title={RenderUtility.pageTitle('Return To Supplier Report')}
-            />
-            <CardContent>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  justifyContent: 'space-between',
-                  alignItems: { xs: 'stretch', sm: 'center' },
-                  gap: { xs: 2, sm: 0 },
-                  width: '100%'
-                }}
+            >
+              <Grid
+                container
+                spacing={4}
+                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
               >
-                <Grid
-                  container
-                  spacing={4}
-                  sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                >
-                  <Grid item size={{ xs: 12, sm: 5, md: 5 }}>
-                    <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
-                  </Grid>
+                <Grid item size={{ xs: 12, sm: 5, md: 5 }}>
+                  <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+                </Grid>
 
-                  <Grid item size={{ xs: 12, sm: 7 }}>
+                <Grid item size={{ xs: 12, sm: 7 }}>
+                  <Grid
+                    container
+                    spacing={2}
+                    sx={{
+                      justifyContent: { xs: 'flex-end' }
+                    }}
+                  >
+                    <Grid item size={{ xs: 12, sm: 8 }} sm={8} sx={{ flex: 1 }}>
+                      <MUISearch
+                        placeholder='Search...'
+                        value={searchValue}
+                        onChange={e => handleSearch(e.target.value)}
+                        onClear={() => handleSearch('')}
+                      />
+                    </Grid>
+
                     <Grid
-                      container
-                      spacing={2}
+                      item
                       sx={{
-                        justifyContent: { xs: 'flex-end' }
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2,
+                        justifyContent: { sm: 'flex-end', xs: 'flex-end' }
                       }}
                     >
-                      <Grid item size={{ xs: 12, sm: 8 }} sm={8} sx={{ flex: 1 }}>
-                        {/* <TextField
-                          variant='outlined'
-                          size='small'
-                          placeholder='Search...'
-                          value={searchValue}
-                          onChange={e => handleSearch(e.target.value)}
-                          fullWidth
-                          sx={{
-                            borderRadius: '8px'
-                          }}
-                          slotProps={{
-                            input: {
-                              startAdornment: (
-                                <InputAdornment position='start'>
-                                  <Icon
-                                    icon='mi:search'
-                                    fontSize={24}
-                                    color={theme.palette.customColors.neutralSecondary}
-                                  />
-                                </InputAdornment>
-                              )
-                            }
-                          }}
-                        /> */}
-                        <MUISearch
-                          placeholder='Search...'
-                          value={searchValue}
-                          onChange={e => handleSearch(e.target.value)}
-                          onClear={() => handleSearch('')}
-                        />
-                      </Grid>
-
-                      <Grid
-                        item
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 2,
-                          justifyContent: { sm: 'flex-end', xs: 'flex-end' }
-                        }}
-                      >
-                        <ExportButton loading={loading || exportLoading} onClick={handleExport} />
-                        <FilterButton
-                          onClick={() => setOpenFilterDrawer(true)}
-                          appliedFiltersCount={appliedFiltersCount}
-                        />
-                      </Grid>
+                      <ExportButton loading={loading || exportLoading} onClick={handleExport} />
+                      <FilterButton
+                        onClick={() => setOpenFilterDrawer(true)}
+                        appliedFiltersCount={appliedFiltersCount}
+                      />
                     </Grid>
                   </Grid>
                 </Grid>
-              </Box>
-              <Grid>
-                <CommonTable
-                  columns={columns}
-                  indexedRows={indexedRows}
-                  total={total}
-                  paginationModel={paginationModel}
-                  loading={loading}
-                  setPaginationModel={setPaginationModel}
-                  searchValue={searchValue}
-                  onPaginationModelChange={model => {
-                    setPaginationModel(model)
-                    router.replace({
-                      pathname: router.pathname,
-                      query: {
-                        ...router.query,
-                        page: model.page + 1,
-                        pageSize: model.pageSize,
-                        searchValue,
-                        sort,
-                        sortColumn
-                      }
-                    })
-                  }}
-                  handleSortModel={handleSortModel}
-                />
               </Grid>
-            </CardContent>
-          </Card>
+            </Box>
+            <Grid>
+              <CommonTable
+                columns={columns}
+                indexedRows={indexedRows}
+                total={total}
+                paginationModel={paginationModel}
+                loading={loading}
+                setPaginationModel={setPaginationModel}
+                searchValue={searchValue}
+                onPaginationModelChange={model => {
+                  setPaginationModel(model)
+                  router.replace({
+                    pathname: router.pathname,
+                    query: {
+                      ...router.query,
+                      page: model.page + 1,
+                      pageSize: model.pageSize,
+                      searchValue,
+                      sort,
+                      sortColumn
+                    }
+                  })
+                }}
+                handleSortModel={handleSortModel}
+              />
+            </Grid>
+          </PageCardLayout>
+
           {openFilterDrawer && (
             <ReturnToSupplierFilter
               setOpenFilterDrawer={setOpenFilterDrawer}

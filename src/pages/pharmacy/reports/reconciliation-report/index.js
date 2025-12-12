@@ -1,11 +1,10 @@
 import { useTheme } from '@emotion/react'
-import { Card, CardContent, CardHeader, Grid, Tooltip, Typography } from '@mui/material'
+import { Grid, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import Utility from 'src/utility'
-import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
@@ -14,10 +13,10 @@ import { getReconciliationReport } from 'src/lib/api/pharmacy/reports'
 import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import dayjs from 'dayjs'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
-import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import MUISelect from 'src/views/forms/form-fields/MUISelect'
 import { statusOptions } from 'src/constants/PharmacyConstants'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const ReconciliationReport = () => {
   const router = useRouter()
@@ -763,136 +762,110 @@ const ReconciliationReport = () => {
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader
+    <PageCardLayout title={'Reconciliation Report'}>
+      <Grid container spacing={4}>
+        <Grid item size={{ xs: 12, sm: 3 }}>
+          <MUIDatePicker
+            size='small'
+            format='MMM YYYY'
+            name='year'
+            label='Select Month And Year'
+            views={['year', 'month']}
+            value={monthAndYear}
+            maxDate={dayjs()}
+            onAccept={datePickerHandleChange}
+          />
+        </Grid>
+        <Grid item size={{ xs: 12, sm: 3 }} sx={{ ml: 'auto' }}>
+          <MUISearch
+            size='medium'
+            placeholder='Search...'
+            value={searchValue}
+            onChange={e => handleSearch(e.target.value)}
+            onClear={() => {
+              handleSearch('')
+            }}
+          />
+        </Grid>
+        <Grid item size={{ xs: 12, sm: 2.5, md: 2, lg: 2 }}>
+          <MUISelect
+            value={activeStatus}
+            label='Filter by Status'
+            onChange={e => {
+              setTotal(0)
+              setPaginationModel({ page: 0, pageSize: 50 })
+              setActiveStatus(e.target.value)
+              setSearchValue('')
+            }}
+            options={statusOptions}
+          />
+        </Grid>
+        <Grid
+          item
+          size={{ xs: 6, sm: 2.5, md: 1.6, lg: 1.6 }}
           sx={{
             display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'flex-start',
-            alignItems: 'flex-start',
-            gap: { xs: 3, sm: 2 },
-            '& .MuiCardHeader-action': {
-              width: { xs: '100% ', sm: 'auto' }
-            },
-            mx: { xs: -1, sm: 0 }
+            flexDirection: 'row',
+            alignItems: 'center'
           }}
-          title={RenderUtility.pageTitle('Reconciliation Report')}
-        />
-        <CardContent sx={{ paddingTop: '4px' }}>
-          <Grid
-            container
-            spacing={4}
-            sx={
-              {
-                // display: 'flex',
-                // alignItems: 'center'
-                // justifyContent: 'space-between'
+        >
+          <MUISwitch
+            formControlStyle={{
+              margin: 0
+            }}
+            label='Batch Wise'
+            labelStyle={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400
+            }}
+            labelPlacement='end'
+            value={filterSwitch}
+            defaultChecked={filterSwitch}
+            onChange={e => {
+              console.log('switch checked', e.target.checked)
+              handleSwitchChange(e)
+            }}
+          />
+        </Grid>
+        <Grid
+          size={{ xs: 6, sm: 'auto', md: 'auto', lg: 'auto' }}
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'flex-end'
+          }}
+        >
+          <ExportButton sx={{ height: '35px' }} loading={excelExportLoader} onClick={() => handleExport()} />
+        </Grid>
+      </Grid>
+      <Grid>
+        <CommonTable
+          columns={columns}
+          indexedRows={indexedRows}
+          total={total}
+          paginationModel={paginationModel}
+          loading={loading}
+          setPaginationModel={setPaginationModel}
+          searchValue={searchValue}
+          onPaginationModelChange={model => {
+            setPaginationModel(model)
+            router.replace({
+              pathname: router.pathname,
+              query: {
+                ...router.query,
+                page: model.page + 1,
+                pageSize: model.pageSize,
+                searchValue,
+                sort,
+                sortColumn
               }
-            }
-          >
-            <Grid item size={{ xs: 12, sm: 3 }}>
-              <MUIDatePicker
-                size='small'
-                format='MMM YYYY'
-                name='year'
-                label='Select Month And Year'
-                views={['year', 'month']}
-                value={monthAndYear}
-                maxDate={dayjs()}
-                onAccept={datePickerHandleChange}
-              />
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 3 }} sx={{ ml: 'auto' }}>
-              <MUISearch
-                size='medium'
-                placeholder='Search...'
-                value={searchValue}
-                onChange={e => handleSearch(e.target.value)}
-                onClear={() => {
-                  handleSearch('')
-                }}
-              />
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 2.5, md: 2, lg: 2 }}>
-              <MUISelect
-                value={activeStatus}
-                label='Filter by Status'
-                onChange={e => {
-                  setTotal(0)
-                  setPaginationModel({ page: 0, pageSize: 50 })
-                  setActiveStatus(e.target.value)
-                  setSearchValue('')
-                }}
-                options={statusOptions}
-              />
-            </Grid>
-            <Grid
-              item
-              size={{ xs: 6, sm: 2.5, md: 1.6, lg: 1.6 }}
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center'
-              }}
-            >
-              <MUISwitch
-                label='Batch Wise'
-                labelStyle={{
-                  color: theme.palette.customColors.customHeadingTextColor,
-                  fontSize: '14px',
-                  fontWeight: 400
-                }}
-                labelPlacement='end'
-                formControlStyle={{ m: 0 }}
-                value={filterSwitch}
-                defaultChecked={filterSwitch}
-                onChange={e => {
-                  console.log('switch checked', e.target.checked)
-                  handleSwitchChange(e)
-                }}
-              />
-            </Grid>
-            <Grid
-              size={{ xs: 6, sm: 'auto', md: 'auto', lg: 'auto' }}
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'flex-end'
-              }}
-            >
-              <ExportButton sx={{ height: '35px' }} loading={excelExportLoader} onClick={() => handleExport()} />
-            </Grid>
-          </Grid>
-          <Grid>
-            <CommonTable
-              columns={columns}
-              indexedRows={indexedRows}
-              total={total}
-              paginationModel={paginationModel}
-              loading={loading}
-              setPaginationModel={setPaginationModel}
-              searchValue={searchValue}
-              onPaginationModelChange={model => {
-                setPaginationModel(model)
-                router.replace({
-                  pathname: router.pathname,
-                  query: {
-                    ...router.query,
-                    page: model.page + 1,
-                    pageSize: model.pageSize,
-                    searchValue,
-                    sort,
-                    sortColumn
-                  }
-                })
-              }}
-              handleSortModel={handleSortModel}
-            />
-          </Grid>
-        </CardContent>
-      </Card>
-    </>
+            })
+          }}
+          handleSortModel={handleSortModel}
+        />
+      </Grid>
+    </PageCardLayout>
   )
 }
 
