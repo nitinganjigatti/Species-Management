@@ -120,10 +120,10 @@ const EditTreatmentDrawer = ({
                   fontSize: '24px',
                   color: theme.palette.customColors.OnSurfaceVariant,
                   mb: '4px'
-              }}
-            >
-              {formatTreatmentName(treatment.name)}
-            </Typography>
+                }}
+              >
+                {formatTreatmentName(treatment.name)}
+              </Typography>
               <Typography
                 sx={{
                   color: theme.palette.customColors.OnSurfaceVariant,
@@ -256,9 +256,10 @@ const EditTreatmentDrawer = ({
                       }}
                       sx={{
                         display: 'flex',
-                        flexDirection: 'column',
                         gap: '12px',
                         borderRadius: '8px',
+                        alignItems: activity.note ? 'start' : 'center',
+                        justifyContent: 'space-between',
                         padding: '12px',
                         border: `1px solid ${
                           isSelected ? theme.palette.primary.main : theme.palette.customColors.Notes
@@ -272,41 +273,45 @@ const EditTreatmentDrawer = ({
                       <Box
                         sx={{
                           display: 'flex',
+                          flexDirection: 'column',
                           gap: '8px',
-                          justifyContent: 'space-between',
-                          alignItems: 'flex-start'
+                          justifyContent: 'center',
+                          alignItems: 'flex-center'
                         }}
                       >
+                        {activity.note && (
+                          <Typography
+                            sx={{
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: 400,
+                              fontSize: '14px'
+                            }}
+                          >
+                            {activity.note}
+                          </Typography>
+                        )}
+
                         <Typography
                           sx={{
-                            color: theme.palette.customColors.OnSurfaceVariant,
+                            color: theme.palette.customColors.neutralSecondary,
                             fontWeight: 400,
-                            fontSize: '14px'
+                            fontSize: '12px',
+                            lineHeight: '100%'
                           }}
                         >
-                          {activity.note || activity.description || 'No notes recorded.'}
+                          {activity.author} • {formatTimestamp(activity.timestamp)}
                         </Typography>
-                        <IconButton
-                          size='small'
-                          sx={{ color: theme.palette.customColors.OnSurfaceVariant, p: 1 }}
-                          onClick={event => {
-                            event.stopPropagation()
-                            onActivityPrefill?.(activity)
-                          }}
-                        >
-                          <Icon icon='mdi:pencil-outline' />
-                        </IconButton>
                       </Box>
-                      <Typography
-                        sx={{
-                          color: theme.palette.customColors.neutralSecondary,
-                          fontWeight: 400,
-                          fontSize: '12px',
-                          lineHeight: '100%'
+                      <IconButton
+                        size='small'
+                        sx={{ color: theme.palette.customColors.OnSurfaceVariant, p: 1 }}
+                        onClick={event => {
+                          event.stopPropagation()
+                          onActivityPrefill?.(activity)
                         }}
                       >
-                        {activity.author} • {formatTimestamp(activity.timestamp)}
-                      </Typography>
+                        <Icon icon='mdi:pencil-outline' />
+                      </IconButton>
                     </Box>
                   )
                 }
@@ -367,26 +372,28 @@ const EditTreatmentDrawer = ({
                         {formatShortDate(activity.treatmentStartDate)}
                       </Box>
                     </Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <Typography
-                        sx={{
-                          color: theme.palette.customColors.neutralSecondary,
-                          fontWeight: 400,
-                          fontSize: '12px'
-                        }}
-                      >
-                        Notes
-                      </Typography>
-                      <Typography
-                        sx={{
-                          color: theme.palette.customColors.OnSurfaceVariant,
-                          fontWeight: 400,
-                          fontSize: '14px'
-                        }}
-                      >
-                        {activity.note || 'No notes recorded.'}
-                      </Typography>
-                    </Box>
+                    {activity.note && (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <Typography
+                          sx={{
+                            color: theme.palette.customColors.neutralSecondary,
+                            fontWeight: 400,
+                            fontSize: '12px'
+                          }}
+                        >
+                          Notes
+                        </Typography>
+                        <Typography
+                          sx={{
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            fontWeight: 400,
+                            fontSize: '14px'
+                          }}
+                        >
+                          {activity.note}
+                        </Typography>
+                      </Box>
+                    )}
                   </Box>
                 )
               })

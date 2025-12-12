@@ -89,7 +89,7 @@ const mapTreatmentEntry = (entry, index = 0) => {
     id: entry.id || entry.treatment_master_id || `${entry.medical_record_id || 'treatment'}-${index}`,
     name: entry.treatment_name || '-',
     noteCount: notesCount ?? (noteText ? 1 : 0),
-    noteSummary: noteText || 'No notes added yet.',
+    noteSummary: noteText || '',
     lastUpdated,
     clinician: {
       name: entry.created_by_name || '—',
