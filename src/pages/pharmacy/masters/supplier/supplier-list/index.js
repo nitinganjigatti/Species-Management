@@ -1,22 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getSuppliers, getSuppliersByParams } from 'src/lib/api/pharmacy/getSupplierList'
-import TableWithFilter from '../../../../../components/TableWithFilter'
-import Button from '@mui/material/Button'
+import { getSuppliersByParams } from 'src/lib/api/pharmacy/getSupplierList'
+
 import FallbackSpinner from 'src/@core/components/spinner'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
+
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardHeader, debounce, TextField } from '@mui/material'
+import { Box, debounce } from '@mui/material'
 import Router from 'next/router'
-import { AddButton } from 'src/components/Buttons'
 import Error404 from 'src/pages/404'
 
 import { useContext } from 'react'
@@ -24,8 +21,8 @@ import { AuthContext } from 'src/context/AuthContext'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useTheme } from '@emotion/react'
-import RenderUtility from 'src/utility/render'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const Supplier = () => {
   const theme = useTheme()
@@ -142,8 +139,7 @@ const Supplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.company_name}
@@ -161,8 +157,7 @@ const Supplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.mobile}
@@ -179,8 +174,7 @@ const Supplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.name !== '' ? params.row.name : 'NA'}
@@ -197,8 +191,7 @@ const Supplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.state_name}
@@ -253,6 +246,7 @@ const Supplier = () => {
             title='Add Supplier'
             action={() => Router.push('/pharmacy/masters/supplier/add-supplier')}
             fullWidth='fullWidth'
+            styles={{ margin: 0 }}
           />
         </Grid>
       )}
@@ -266,59 +260,8 @@ const Supplier = () => {
           {loader ? (
             <FallbackSpinner />
           ) : (
-            <Card>
-              <CardHeader
-                sx={{
-                  display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  justifyContent: 'flex-start',
-                  alignItems: 'flex-start',
-                  gap: { xs: 3, sm: 0 },
-                  '& .MuiCardHeader-action': {
-                    width: { xs: '100% ', sm: 'auto' }
-                  }
-                }}
-                title={RenderUtility.pageTitle('Supplier List')}
-                action={headerAction}
-              />{' '}
-              <Grid
-                item
-                sx={{
-                  mx: { xs: 4 },
-                  ml: { md: 4 }
-                }}
-              >
-                {/* <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '8px',
-                    padding: '0 8px',
-                    height: '40px',
-                    width: {
-                      xs: '100%',
-                      sm: '250px'
-                    }
-                  }}
-                >
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search...'
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
-                      }
-                    }}
-                  />
-                </Box> */}
+            <PageCardLayout title={'Supplier List'} action={headerAction}>
+              <Grid item>
                 <MUISearch
                   sx={{
                     width: {
@@ -332,7 +275,7 @@ const Supplier = () => {
                   value={searchValue}
                 />
               </Grid>
-              <Grid sx={{ mx: 4 }}>
+              <Grid>
                 <CommonTable
                   total={total}
                   columns={columns}
@@ -343,9 +286,8 @@ const Supplier = () => {
                   setPaginationModel={setPaginationModel}
                 />
               </Grid>
-            </Card>
 
-            // <TableWithFilter
+              {/* // <TableWithFilter
             //   TableTitle={title}
             //   headerActions={
             //     <div>
@@ -359,7 +301,8 @@ const Supplier = () => {
             //   }
             //   columns={columns}
             //   rows={supplierList}
-            // />
+            // /> */}
+            </PageCardLayout>
           )}
         </>
       ) : (

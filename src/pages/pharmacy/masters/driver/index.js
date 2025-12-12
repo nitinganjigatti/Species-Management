@@ -2,26 +2,19 @@ import React, { useState, useEffect, useCallback } from 'react'
 
 import { getDrivers, addDriver, updateDriver } from 'src/lib/api/pharmacy/driver'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import CardHeader from '@mui/material/CardHeader'
 
 // ** MUI Imports
-
-import Typography from '@mui/material/Typography'
+import { Box, IconButton, Typography, Grid } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Drawer, Grid, TextField } from '@mui/material'
-import Card from '@mui/material/Card'
-import IconButton from '@mui/material/IconButton'
 
 import { debounce } from 'lodash'
 import { useTheme } from '@emotion/react'
 import toast from 'react-hot-toast'
 import AddDriver from 'src/views/pages/pharmacy/medicine/driver/addDriverForm'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
-import { AddButton } from 'src/components/Buttons'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
@@ -29,6 +22,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const Salts = () => {
   const theme = useTheme()
@@ -101,9 +95,7 @@ const Salts = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.driver_name}
@@ -120,9 +112,7 @@ const Salts = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.phone_number}
@@ -139,9 +129,7 @@ const Salts = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.vehicle_number}
@@ -256,7 +244,12 @@ const Salts = () => {
     <div>
       {pharmacyRole && (
         <Grid item>
-          <AddButtonContained title='Add Driver' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+          <AddButtonContained
+            title='Add Driver'
+            styles={{ margin: 0 }}
+            action={() => addEventSidebarOpen()}
+            fullWidth='fullWidth'
+          />
         </Grid>
       )}
     </div>
@@ -310,60 +303,8 @@ const Salts = () => {
             <FallbackSpinner />
           ) : (
             <>
-              <Card>
-                <CardHeader
-                  sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start', // Align content to the left
-                    alignItems: 'flex-start', // Align items to the top left
-                    gap: { xs: 3, sm: 0 },
-                    '& .MuiCardHeader-action': {
-                      width: { xs: '100% ', sm: 'auto' }
-                    }
-                  }}
-                  title={RenderUtility.pageTitle('Drivers')}
-                  action={headerAction}
-                />
-                <Grid
-                  item
-                  sx={{
-                    mx: { xs: 4 },
-                    ml: { md: 4 }
-                  }}
-                >
-                  {/* <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      height: '40px',
-                      width: {
-                        xs: '100%',
-                        sm: '250px'
-                      }
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box> */}
+              <PageCardLayout title={'Drivers'} action={headerAction}>
+                <Grid item>
                   <MUISearch
                     sx={{
                       width: {
@@ -377,11 +318,7 @@ const Salts = () => {
                     value={searchValue}
                   />
                 </Grid>
-                <Grid
-                  sx={{
-                    mx: 4
-                  }}
-                >
+                <Grid>
                   <CommonTable
                     onRowClick={''}
                     indexedRows={indexedRows}
@@ -394,38 +331,7 @@ const Salts = () => {
                     searchValue={searchValue}
                   />
                 </Grid>
-                {/* <DataGrid
-                  columnVisibilityModel={{
-                    id: false
-                  }}
-                  autoHeight
-                  pagination
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbar }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  disableColumnMenu
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-                      onChange: event => handleSearch(event.target.value)
-                    }
-                  }}
-                /> */}
-              </Card>
+              </PageCardLayout>
               <AddDriver
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}

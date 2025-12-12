@@ -1,7 +1,6 @@
-import { Box, Card, CardHeader, debounce, Grid, TextField, Typography } from '@mui/material'
+import { Box, IconButton, debounce, Grid, Typography } from '@mui/material'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
-import IconButton from '@mui/material/IconButton'
 
 import { AddButtonContained } from 'src/components/ButtonContained'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -13,10 +12,10 @@ import toast from 'react-hot-toast'
 
 import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import RenderUtility from 'src/utility/render'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import Utility from 'src/utility'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const VariantList = () => {
   const theme = useTheme()
@@ -75,8 +74,7 @@ const VariantList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.unit_multiplier}
@@ -96,8 +94,7 @@ const VariantList = () => {
               style={{
                 color: theme.palette.customColors.customHeadingTextColor,
                 fontSize: '14px',
-                fontWeight: 500,
-                fontFamily: 'Inter'
+                fontWeight: 500
               }}
             />
           ) : (
@@ -105,8 +102,7 @@ const VariantList = () => {
               sx={{
                 color: theme.palette.customColors.customHeadingTextColor,
                 fontSize: '14px',
-                fontWeight: 500,
-                fontFamily: 'Inter'
+                fontWeight: 500
               }}
             >
               NA
@@ -126,8 +122,7 @@ const VariantList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.active === '1' ? 'Active' : 'Inactive'}
@@ -267,7 +262,12 @@ const VariantList = () => {
     <div>
       {pharmacyRole && (
         <Grid item>
-          <AddButtonContained title='Add Variant' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+          <AddButtonContained
+            title='Add Variant'
+            styles={{ margin: 0 }}
+            action={() => addEventSidebarOpen()}
+            fullWidth='fullWidth'
+          />
         </Grid>
       )}
     </div>
@@ -276,59 +276,8 @@ const VariantList = () => {
   return (
     <>
       {selectedPharmacy.type === 'central' ? (
-        <Card>
-          <CardHeader
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'flex-start',
-              alignItems: 'flex-start',
-              gap: { xs: 3, sm: 0 },
-              '& .MuiCardHeader-action': {
-                width: { xs: '100% ', sm: 'auto' }
-              }
-            }}
-            title={RenderUtility.pageTitle('Variants')}
-            action={headerAction}
-          />
-          <Grid
-            item
-            sx={{
-              mx: { xs: 4 },
-              ml: { md: 4 }
-            }}
-          >
-            {/* <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                borderRadius: '8px',
-                padding: '0 8px',
-                height: '40px',
-                width: {
-                  xs: '100%',
-                  sm: '250px'
-                }
-              }}
-            >
-              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-              <TextField
-                variant='outlined'
-                placeholder='Search...'
-                onChange={e => handleSearch(e.target.value)}
-                fullWidth
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    border: 'none',
-                    padding: '0',
-                    '& fieldset': {
-                      border: 'none'
-                    }
-                  }
-                }}
-              />
-            </Box> */}
+        <PageCardLayout title={'Variants'} action={headerAction}>
+          <Grid item>
             <MUISearch
               sx={{
                 width: {
@@ -342,11 +291,7 @@ const VariantList = () => {
               value={searchValue}
             />
           </Grid>
-          <Grid
-            sx={{
-              mx: 4
-            }}
-          >
+          <Grid>
             <CommonTable
               onRowClick={''}
               indexedRows={indexedRows}
@@ -359,7 +304,7 @@ const VariantList = () => {
               searchValue={searchValue}
             />
           </Grid>
-        </Card>
+        </PageCardLayout>
       ) : (
         <Error404 />
       )}

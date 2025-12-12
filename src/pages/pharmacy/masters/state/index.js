@@ -1,35 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { getStates, addState, updateStates } from 'src/lib/api/pharmacy/getStates'
-import TableWithFilter from 'src/components/TableWithFilter'
-import Button from '@mui/material/Button'
+
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
 import toast from 'react-hot-toast'
 
 // ** MUI Imports
-
-import Typography from '@mui/material/Typography'
+import { Box, Typography, Grid } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Drawer, Grid, TextField } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 
 import { useTheme } from '@emotion/react'
-
-import { AddButton } from 'src/components/Buttons'
 
 import AddStates from 'src/views/pages/pharmacy/medicine/state/addState'
 
 import Error404 from 'src/pages/404'
 
 import { debounce } from 'lodash'
-
-import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
-import Card from '@mui/material/Card'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
@@ -38,6 +28,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const ListOfStates = () => {
   const theme = useTheme()
@@ -154,8 +145,7 @@ const ListOfStates = () => {
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
             fontWeight: 500,
-            textTransform: 'capitalize',
-            fontFamily: 'Inter'
+            textTransform: 'capitalize'
           }}
         >
           {params.row.name}
@@ -176,8 +166,7 @@ const ListOfStates = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.code}
@@ -195,8 +184,7 @@ const ListOfStates = () => {
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
             fontWeight: 500,
-            textTransform: 'uppercase',
-            fontFamily: 'Inter'
+            textTransform: 'uppercase'
           }}
         >
           {params.row.short_code}
@@ -214,9 +202,7 @@ const ListOfStates = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.status
@@ -320,7 +306,12 @@ const ListOfStates = () => {
     <div>
       {pharmacyRole && (
         <Grid item>
-          <AddButtonContained title='Add State' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+          <AddButtonContained
+            title='Add State'
+            styles={{ margin: 0 }}
+            action={() => addEventSidebarOpen()}
+            fullWidth='fullWidth'
+          />
         </Grid>
       )}
     </div>
@@ -351,61 +342,8 @@ const ListOfStates = () => {
                 columns={columns}
                 rows={stateList}
               /> */}
-
-              <Card>
-                <CardHeader
-                  sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start', // Align content to the left
-                    alignItems: 'flex-start', // Align items to the top left
-                    gap: { xs: 3, sm: 0 },
-                    '& .MuiCardHeader-action': {
-                      width: { xs: '100% ', sm: 'auto' }
-                    }
-                  }}
-                  title={RenderUtility.pageTitle('State List')}
-                  action={headerAction}
-                />
-
-                <Grid
-                  item
-                  sx={{
-                    mx: { xs: 4 },
-                    ml: { md: 4 }
-                  }}
-                >
-                  {/* <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      height: '40px',
-                      width: {
-                        xs: '100%',
-                        sm: '250px'
-                      }
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box> */}
+              <PageCardLayout title={'State List'} action={headerAction}>
+                <Grid item>
                   <MUISearch
                     sx={{
                       width: {
@@ -420,7 +358,7 @@ const ListOfStates = () => {
                   />
                 </Grid>
 
-                <Grid sx={{ mx: 4 }}>
+                <Grid>
                   <CommonTable
                     onRowClick={''}
                     indexedRows={indexedRows}
@@ -433,39 +371,7 @@ const ListOfStates = () => {
                     searchValue={searchValue}
                   />
                 </Grid>
-
-                {/* <DataGrid
-                  columnVisibilityModel={{
-                    uid: false
-                  }}
-                  autoHeight
-                  pagination
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbar }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  disableColumnMenu
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-                      onChange: event => handleSearch(event.target.value)
-                    }
-                  }}
-                /> */}
-              </Card>
+              </PageCardLayout>
               <AddStates
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}

@@ -1,35 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { getStorage, updateStorage } from 'src/lib/api/pharmacy/storage'
-import TableWithFilter from 'src/components/TableWithFilter'
-import Button from '@mui/material/Button'
+
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
 
 // ** MUI Imports
 
-import Typography from '@mui/material/Typography'
 import { useTheme } from '@emotion/react'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Drawer, Grid, TextField } from '@mui/material'
-import Card from '@mui/material/Card'
-import IconButton from '@mui/material/IconButton'
+import { Box, Grid, Tooltip, Typography, IconButton } from '@mui/material'
 
 import { debounce } from 'lodash'
 
 import toast from 'react-hot-toast'
 
-import Router from 'next/router'
 import AddStorage from 'src/views/pages/pharmacy/medicine/storage/addStorage'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { addStorage } from 'src/lib/api/pharmacy/storage'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
-import { AddButton } from 'src/components/Buttons'
 
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
@@ -38,6 +29,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const StorageList = () => {
   const theme = useTheme()
@@ -91,7 +83,7 @@ const StorageList = () => {
   const columns = [
     {
       flex: 0.1,
-      Width: 40,
+      minWidth: 80,
       field: 'id',
       headerName: 'SL.NO',
       renderCell: params => (
@@ -102,27 +94,32 @@ const StorageList = () => {
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       field: 'label',
       headerName: 'Storage',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {`${params.row.label}°C`}
-        </Typography>
+        <Tooltip title={`${params.row.label}°C`}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {`${params.row.label}°C`}
+          </Typography>
+        </Tooltip>
       )
     },
 
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
@@ -131,8 +128,9 @@ const StorageList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
+
+            // fontFamily: 'Inter'
           }}
         >
           {params.row.active === '1' ? 'Active' : 'Inactive'}
@@ -141,7 +139,7 @@ const StorageList = () => {
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
@@ -234,7 +232,12 @@ const StorageList = () => {
     <div>
       {pharmacyRole && (
         <Grid item>
-          <AddButtonContained title='Add Storage' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+          <AddButtonContained
+            title='Add Storage'
+            styles={{ margin: 0 }}
+            action={() => addEventSidebarOpen()}
+            fullWidth='fullWidth'
+          />
         </Grid>
       )}
     </div>
@@ -286,59 +289,8 @@ const StorageList = () => {
             <FallbackSpinner />
           ) : (
             <>
-              <Card>
-                <CardHeader
-                  sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start',
-                    alignItems: 'flex-start',
-                    gap: { xs: 3, sm: 0 },
-                    '& .MuiCardHeader-action': {
-                      width: { xs: '100% ', sm: 'auto' }
-                    }
-                  }}
-                  title={RenderUtility.pageTitle('Storage')}
-                  action={headerAction}
-                />
-                <Grid
-                  item
-                  sx={{
-                    mx: { xs: 4 },
-                    ml: { md: 4 }
-                  }}
-                >
-                  {/* <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      height: '40px',
-                      width: {
-                        xs: '100%',
-                        sm: '250px'
-                      }
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box> */}
+              <PageCardLayout title={'Storage'} action={headerAction}>
+                <Grid item>
                   <MUISearch
                     sx={{
                       width: {
@@ -352,11 +304,7 @@ const StorageList = () => {
                     value={searchValue}
                   />
                 </Grid>
-                <Grid
-                  sx={{
-                    mx: 4
-                  }}
-                >
+                <Grid>
                   <CommonTable
                     onRowClick={''}
                     indexedRows={indexedRows}
@@ -369,38 +317,7 @@ const StorageList = () => {
                     searchValue={searchValue}
                   />
                 </Grid>
-                {/* <DataGrid
-                  columnVisibilityModel={{
-                    id: false
-                  }}
-                  autoHeight
-                  pagination
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbar }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  disableColumnMenu
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => (searchValue === '' ? null : handleSearch('')),
-                      onChange: event => handleSearch(event.target.value)
-                    }
-                  }}
-                /> */}
-              </Card>
+              </PageCardLayout>
               <AddStorage
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}
