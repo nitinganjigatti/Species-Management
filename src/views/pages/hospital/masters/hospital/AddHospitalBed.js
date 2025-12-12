@@ -6,11 +6,9 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form'
 
-// Custom Form Components
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledRadioGroup from 'src/views/forms/form-fields/ControlledRadioGroup'
 
-// Default Form Values
 const defaultValues = {
   hospital_id: null,
   room_id: null,
@@ -34,22 +32,17 @@ const AddHospitalBed = props => {
 
   const theme = useTheme()
 
-  // Determine mode and occupancy
-  const isRoomEditMode = Boolean(roomStatus)
-  const isBedMode = !isRoomEditMode
-  const hasOccupants = Number(roomDetails?.no_of_occupied || 0) > 0
-  const canEditStatus = isRoomEditMode && !hasOccupants
-
-  // Conditional rendering flags
-  const showBedNameField = isBedMode
-  const showStatusField = isBedMode || canEditStatus
+  // Determine mode and Conditional rendering flags
+  const isRoomEditMode = roomStatus
+  const hasOccupants = Number(roomDetails?.no_of_occupied) === 0
+  const hasBedOccupants = Number(editParams?.is_occupied ?? 0) === 0 // When adding a new bed, no_of_occupied is undefined, so default to 0
+  const showBedField = !isRoomEditMode
   const hospitalNameDisabled = true
-  const roomNameDisabled = isBedMode || (isRoomEditMode && hasOccupants)
+  const roomNameDisabled = !isRoomEditMode
 
-  // Dynamic Validation Schema
   const schema = useMemo(() => {
     if (isRoomEditMode) {
-      if (canEditStatus) {
+      if (hasOccupants) {
         return yup.object().shape({
           hospital_id: yup.string().trim().required('Hospital Name is required'),
           room_id: yup.string().trim().required('Room Name is required'),
@@ -62,15 +55,21 @@ const AddHospitalBed = props => {
         })
       }
     }
-
-    // Bed create/edit
-    return yup.object().shape({
-      hospital_id: yup.string().trim().required('Hospital Name is required'),
-      room_id: yup.string().trim().required('Room Name is required'),
-      bed_name: yup.string().trim().required('Cage/Stall/Enclosure Name is required'),
-      status: yup.boolean().required('Status is required')
-    })
-  }, [isRoomEditMode, canEditStatus])
+    if (hasBedOccupants) {
+      return yup.object().shape({
+        hospital_id: yup.string().trim().required('Hospital Name is required'),
+        room_id: yup.string().trim().required('Room Name is required'),
+        bed_name: yup.string().trim().required('Cage/Stall/Enclosure Name is required'),
+        status: yup.boolean().required('Status is required')
+      })
+    } else {
+      return yup.object().shape({
+        hospital_id: yup.string().trim().required('Hospital Name is required'),
+        room_id: yup.string().trim().required('Room Name is required'),
+        bed_name: yup.string().trim().required('Cage/Stall/Enclosure Name is required')
+      })
+    }
+  }, [isRoomEditMode, hasOccupants, hasBedOccupants])
 
   const {
     reset,
@@ -85,81 +84,74 @@ const AddHospitalBed = props => {
     reValidateMode: 'onChange'
   })
 
+  const onSubmit = async formData => {
+    try {
+      if (isRoomEditMode) {
+        // update room
+        const payload = {
+          room_name: formData.room_id,
+          floor_name: roomDetails?.floor_name,
+          status: formData.status === true ? '1' : '0'
+        }
+        const success = await handleSubmitData(payload, 'room')
+        if (success) {
+          reset(defaultValues)
+        }
+      } else {
+        // bed add/edit
+        const payload = {
+          hospital_id: hospitalId,
+          room_id: roomId,
+          bed_name: formData.bed_name,
+          status: formData.status === true ? '1' : '0',
+          prefix: hospitalId
+        }
+        const success = await handleSubmitData(payload, 'bed')
+        if (success) {
+          reset(defaultValues)
+        }
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error?.message)
+    }
+  }
+
   // Prefill form based on mode
   useEffect(() => {
+    if (!handleSidebarOpen) return
+
     let prefill = { ...defaultValues }
 
-    //  Room edit mode
     if (isRoomEditMode) {
       prefill = {
-        hospital_id: roomDetails?.hospital_name || '',
-        room_id: roomDetails?.room_name || '',
-        ...(canEditStatus && { status: Boolean(isActive) })
+        hospital_id: roomDetails?.hospital_name,
+        room_id: roomDetails?.room_name,
+        status: Boolean(isActive)
       }
-    }
-
-    //  Bed edit mode
-    else if (editParams?.id) {
-      const statusValue = editParams.active === '1' || editParams.active === 1 || editParams.active === 'active'
-
+    } else if (editParams?.id) {
       prefill = {
-        hospital_id: roomDetails?.hospital_name || '',
-        room_id: roomDetails?.room_name || '',
-        bed_name: editParams?.bed_name || '',
-        status: statusValue
+        hospital_id: roomDetails?.hospital_name,
+        room_id: roomDetails?.room_name,
+        bed_name: editParams?.bed_name,
+        status: editParams.active === '1' || editParams.active === 1 || editParams.active === 'active'
       }
-    }
-
-    // Bed create mode
-    else {
+    } else {
       prefill = {
-        hospital_id: roomDetails?.hospital_name || '',
-        room_id: roomDetails?.room_name || '',
+        hospital_id: roomDetails?.hospital_name,
+        room_id: roomDetails?.room_name,
         bed_name: '',
         status: true
       }
     }
 
     reset(prefill)
-  }, [isRoomEditMode, canEditStatus, roomDetails, editParams, isActive, reset])
+  }, [handleSidebarOpen])
 
-  // Handle form submission to create or update bed  and  update room
-  const onSubmit = useCallback(
-    async formData => {
-      try {
-        if (isRoomEditMode) {
-          // update room payload
-          const payload = {
-            room_name: formData.room_id,
-            floor_name: roomDetails?.floor_name || '',
-            status: canEditStatus ? (formData.status === true ? 1 : 0) : roomDetails?.status
-          }
-          await handleSubmitData(payload, 'room')
-        } else {
-          // Bed add/edit payload
-          const payload = {
-            hospital_id: hospitalId,
-            room_id: roomId,
-            bed_name: formData.bed_name,
-            status: formData.status === true ? '1' : '0',
-            prefix: hospitalId
-          }
-          await handleSubmitData(payload, 'bed')
-        }
-      } catch (error) {
-        console.error('Error submitting form:', error?.message)
-      }
-    },
-    [isRoomEditMode, roomDetails, hospitalId, roomId, handleSubmitData, canEditStatus]
-  )
-
-  // Close handler
   const handleClose = useCallback(() => {
     reset(defaultValues)
     handleSidebarClose()
-  }, [reset, handleSidebarClose])
+  }, [handleSidebarClose])
 
-  // Drawer title
   const drawerTitle = useMemo(() => {
     if (isRoomEditMode) return 'Update Room'
     if (editParams?.id) return 'Edit Bed'
@@ -174,7 +166,6 @@ const AddHospitalBed = props => {
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: ['100%', 562] } }}
     >
-      {/* Drawer Header */}
       <Box
         className='sidebar-header'
         sx={{
@@ -197,7 +188,6 @@ const AddHospitalBed = props => {
         </IconButton>
       </Box>
 
-      {/* Drawer Body */}
       <Box
         className='sidebar-body'
         sx={{
@@ -227,7 +217,7 @@ const AddHospitalBed = props => {
                 fullWidth
                 disabled={roomNameDisabled}
               />
-              {showBedNameField && (
+              {showBedField && (
                 <ControlledTextField
                   control={control}
                   errors={errors}
@@ -237,7 +227,7 @@ const AddHospitalBed = props => {
                   fullWidth
                 />
               )}
-              {showStatusField && (
+              {hasBedOccupants && (
                 <ControlledRadioGroup
                   name='status'
                   control={control}
@@ -258,7 +248,6 @@ const AddHospitalBed = props => {
         </form>
       </Box>
 
-      {/* Footer button */}
       <Box
         sx={{
           p: 4,
