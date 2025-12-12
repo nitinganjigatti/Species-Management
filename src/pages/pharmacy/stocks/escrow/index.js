@@ -1,15 +1,11 @@
-import { Card, CardHeader, Grid, TextField, Tooltip, Typography } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
+import { Avatar, Box, Card, CardContent, CardHeader, Grid, Icon, Tooltip, Typography } from '@mui/material'
+
 import Router from 'next/router'
 import { debounce } from 'lodash'
-import React, { useCallback, useEffect, useState, useRef } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { getScrewList } from 'src/lib/api/pharmacy/escrow'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { Box } from '@mui/system'
-import Icon from 'src/@core/components/icon'
 import { useRouter } from 'next/router'
 
 import { useTheme } from '@emotion/react'
@@ -18,6 +14,7 @@ import RenderUtility from 'src/utility/render'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 import MUISelect from 'src/views/forms/form-fields/MUISelect'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 function Escrow({ value }) {
   const router = useRouter()
@@ -107,8 +104,7 @@ function Escrow({ value }) {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.request_number}
@@ -128,7 +124,7 @@ function Escrow({ value }) {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
+
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -153,8 +149,7 @@ function Escrow({ value }) {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.quantity}
@@ -174,7 +169,7 @@ function Escrow({ value }) {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
+
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -199,7 +194,6 @@ function Escrow({ value }) {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -224,8 +218,7 @@ function Escrow({ value }) {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.batch_no}
@@ -245,8 +238,7 @@ function Escrow({ value }) {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params?.row?.status === 'Dispatched' ? 'Transit' : 'Dispute'}
@@ -266,8 +258,7 @@ function Escrow({ value }) {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.no_of_days_exist === '0'
@@ -320,7 +311,7 @@ function Escrow({ value }) {
       page: paginationModel.page,
       pageSize: paginationModel.pageSize
     })
-  }, [sort, searchValue, sortColumn, stockType, paginationModel.page, paginationModel.pageSize])
+  }, [sort, selectedPharmacy, searchValue, sortColumn, stockType, paginationModel.page, paginationModel.pageSize])
 
   useEffect(() => {
     router.replace({
@@ -445,20 +436,12 @@ function Escrow({ value }) {
         <FallbackSpinner />
       ) : (
         <>
-          <Card>
-            <CardHeader
-              sx={{
-                px: 4,
-                m: 0
-              }}
-              title={RenderUtility.pageTitle('Escrow List')}
-            />
-
+          <PageCardLayout title={'Escrow List'}>
             <Grid
               container
               spacing={3}
               sx={{
-                px: 4,
+                // px: 4,
                 display: 'flex',
                 justifyContent: 'space-between'
               }}
@@ -533,7 +516,6 @@ function Escrow({ value }) {
                 />
               </Grid>
             </Grid>
-
             {/* <FormControl size='small' sx={{ ml: 4, my: 2 }}>
               <InputLabel id='demo-simple-select-label'>Filter by stock type</InputLabel>
               <Select
@@ -550,11 +532,11 @@ function Escrow({ value }) {
                 <MenuItem value='dispute'>Dispute</MenuItem>
               </Select>
             </FormControl> */}
-
             <Grid
-              sx={{
-                px: 4
-              }}
+
+            // sx={{
+            //   px: 4
+            // }}
             >
               <CommonTable
                 onRowClick={onRowClick}
@@ -600,7 +582,7 @@ function Escrow({ value }) {
               }}
               onRowClick={onRowClick}
             /> */}
-          </Card>
+          </PageCardLayout>
         </>
       )}
     </>

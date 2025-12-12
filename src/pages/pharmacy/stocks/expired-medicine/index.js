@@ -7,29 +7,16 @@ import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
-import Icon from 'src/@core/components/icon'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { ExportButton } from 'src/views/utility/render-snippets'
 
-import {
-  Card,
-  CardHeader,
-  Grid,
-  MenuItem,
-  Tooltip,
-  TextField,
-  FormControl,
-  Select,
-  InputLabel,
-  FormHelperText,
-  InputAdornment,
-  Box
-} from '@mui/material'
+import { Grid, Tooltip, Box } from '@mui/material'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const ExpiredMedicine = () => {
   const theme = useTheme()
@@ -201,8 +188,7 @@ const ExpiredMedicine = () => {
               sx={{
                 color: theme.palette.customColors.customHeadingTextColor,
                 fontSize: '14px',
-                fontWeight: 500,
-                fontFamily: 'Inter'
+                fontWeight: 500
               }}
             >
               {params.row.store_name}
@@ -222,8 +208,7 @@ const ExpiredMedicine = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.batch_no}
@@ -254,8 +239,7 @@ const ExpiredMedicine = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params.row.expiry_date)}
@@ -277,8 +261,7 @@ const ExpiredMedicine = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.stock_qty}
@@ -336,16 +319,8 @@ const ExpiredMedicine = () => {
         <FallbackSpinner />
       ) : (
         <>
-          <Card>
-            <CardHeader
-              sx={{
-                px: 4,
-                margin: 0
-              }}
-              title={RenderUtility.pageTitle('Expired Products')}
-            />
-
-            <Grid container spacing={3} alignItems={'center'} justifyContent={'space-between'} sx={{ px: 4 }}>
+          <PageCardLayout title={'Expired Products'}>
+            <Grid container spacing={3} alignItems={'center'} justifyContent={'space-between'}>
               <Grid item size={{ xs: 12, md: 3.5 }}>
                 <MUISearch
                   onChange={e => handleSearch(e.target.value)}
@@ -369,40 +344,6 @@ const ExpiredMedicine = () => {
                 >
                   {selectedPharmacy.type === 'central' && (
                     <Grid item size={{ xs: 'grow', md: 5 }}>
-                      {/* <FormControl sx={{ width: '100%' }}>
-                        <InputLabel id='controlled-select-label'>Stores</InputLabel>
-                        <Select
-                          onChange={e => {
-                            let id = e.target.value
-
-                            // const store = id === 'all' ? '' : id
-
-                            // const type = stores.find(el => el.id === id)?.type || ''
-
-                            // setStockType(type)
-                            setStoreId(id)
-
-                            // let storeId = id === 'all' ? 'all' : id
-                          }}
-                          label='Stores'
-                          value={storeId}
-                          id='controlled-select'
-                          labelId='controlled-select-label'
-                          size='small'
-                        >
-                          <MenuItem value='all'>All</MenuItem>
-                          {stores.length > 0
-                            ? stores.map(el => {
-                                return (
-                                  <MenuItem key={el.id} value={el.id}>
-                                    {el.name}
-                                  </MenuItem>
-                                )
-                              })
-                            : null}
-                        </Select>
-                        <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
-                      </FormControl> */}
                       <MUIAutocomplete
                         value={storeId}
                         label='Stores'
@@ -428,11 +369,7 @@ const ExpiredMedicine = () => {
               </Grid>
             </Grid>
 
-            <Grid
-              sx={{
-                px: 4
-              }}
-            >
+            <Grid>
               <CommonTable
                 onRowClick={''}
                 indexedRows={indexedRows}
@@ -445,51 +382,7 @@ const ExpiredMedicine = () => {
                 searchValue={searchValue}
               />
             </Grid>
-
-            {/* <DataGrid
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
-              // columnVisibilityModel={{
-              //   id: false
-              // }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              total
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              disableColumnMenu
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-
-              // onRowClick={onRowClick}
-            /> */}
-          </Card>
+          </PageCardLayout>
         </>
       )}
     </>

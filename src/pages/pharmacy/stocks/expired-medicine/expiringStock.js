@@ -5,23 +5,8 @@ import FallbackSpinner from 'src/@core/components/spinner'
 import { debounce } from 'lodash'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
-import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
-import {
-  Card,
-  Typography,
-  CardHeader,
-  Grid,
-  MenuItem,
-  Tooltip,
-  TextField,
-  FormControl,
-  Select,
-  InputLabel,
-  FormHelperText,
-  InputAdornment,
-  Box
-} from '@mui/material'
+import { Card, Typography, CardHeader, Grid, Tooltip, Box, CardContent } from '@mui/material'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
@@ -30,6 +15,7 @@ import { ExportButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const ExpiringMedicine = () => {
   const theme = useTheme()
@@ -299,8 +285,7 @@ const ExpiringMedicine = () => {
               sx={{
                 color: theme.palette.customColors.customHeadingTextColor,
                 fontSize: '14px',
-                fontWeight: 500,
-                fontFamily: 'Inter'
+                fontWeight: 500
               }}
             >
               {params.row.store_name}
@@ -320,8 +305,7 @@ const ExpiringMedicine = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.batch_no}
@@ -351,8 +335,7 @@ const ExpiringMedicine = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params.row.expiry_date)}
@@ -374,8 +357,7 @@ const ExpiringMedicine = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.stock_qty}
@@ -473,21 +455,25 @@ const ExpiringMedicine = () => {
         <FallbackSpinner />
       ) : (
         <>
-          <Card>
+          <PageCardLayout title={'About To Expire'}>
+            {/* <Card>
             <CardHeader
-              sx={{
-                display: 'flex',
-                px: 4,
-                m: 0
-              }}
               title={RenderUtility.pageTitle('About To Expire')}
+
+              // sx={{
+              //   display: 'flex',
+              //   px: 4,
+              //   m: 0
+              // }}
             />
+            <CardContent> */}
             <Grid
               container
               spacing={3}
-              sx={{
-                px: 4
-              }}
+
+              // sx={{
+              //   px: 4
+              // }}
             >
               <Grid item size={{ xs: 12, sm: 12, md: 3 }} sx={{ display: 'flex', alignItems: 'center' }}>
                 <MUISearch
@@ -598,9 +584,10 @@ const ExpiringMedicine = () => {
             </Box> */}
 
             <Grid
-              sx={{
-                px: 4
-              }}
+
+            // sx={{
+            //   px: 4
+            // }}
             >
               <CommonTable
                 onRowClick={''}
@@ -679,7 +666,9 @@ const ExpiringMedicine = () => {
 
               // onRowClick={onRowClick}
             /> */}
-          </Card>
+            {/* </CardContent>
+          </Card> */}
+          </PageCardLayout>
         </>
       )}
     </>

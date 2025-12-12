@@ -4,23 +4,18 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { getStockOutItems } from 'src/lib/api/pharmacy/getStocksReportById'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { debounce } from 'lodash'
-import CardHeader from '@mui/material/CardHeader'
-import Card from '@mui/material/Card'
-import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import Grid from '@mui/material/Grid'
 
-import { FormControlLabel, Switch, TextField } from '@mui/material'
+import { CardContent, Grid, Card, CardHeader, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import Utility from 'src/utility'
-import { Tooltip } from '@mui/material'
-import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const StockOut = () => {
   const theme = useTheme()
@@ -177,8 +172,7 @@ const StockOut = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.min_qty}
@@ -212,8 +206,7 @@ const StockOut = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.stock_qty}
@@ -234,8 +227,7 @@ const StockOut = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.id}
@@ -286,8 +278,7 @@ const StockOut = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.stock_qty}
@@ -349,15 +340,8 @@ const StockOut = () => {
       {loader ? (
         <FallbackSpinner />
       ) : (
-        <Card>
-          <CardHeader
-            sx={{
-              px: 4,
-              margin: 0
-            }}
-            title={changeSwitch ? RenderUtility.pageTitle('Out of Stock') : RenderUtility.pageTitle('Low Stock')}
-          />
-          <Grid container spacing={3} justifyContent={'space-between'} sx={{ px: 4 }}>
+        <PageCardLayout title={changeSwitch ? 'Out of Stock' : 'Low Stock'}>
+          <Grid container spacing={3} justifyContent={'space-between'}>
             <Grid
               item
               size={{ xs: 12, sm: 5, md: 3.5 }}
@@ -405,11 +389,7 @@ const StockOut = () => {
             </Grid>
           </Grid>
 
-          <Grid
-            sx={{
-              px: 4
-            }}
-          >
+          <Grid>
             <CommonTable
               onRowClick={''}
               indexedRows={indexedRows}
@@ -422,7 +402,7 @@ const StockOut = () => {
               searchValue={searchValue}
             />
           </Grid>
-        </Card>
+        </PageCardLayout>
       )}
     </>
   )
