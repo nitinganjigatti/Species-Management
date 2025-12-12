@@ -196,7 +196,7 @@ const AddTreatmentDrawer = ({
                 onInputChange={handleTreatmentInputChange}
                 inputBackgroundColor={theme.palette.primary.contrastText}
                 textFieldProps={{
-                  placeholder: 'Select treatment',
+                  placeholder: 'Enter treatment',
                   sx: {
                     ...commonFieldStyles,
                     '& .MuiOutlinedInput-root': {
