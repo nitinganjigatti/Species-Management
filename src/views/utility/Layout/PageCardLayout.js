@@ -72,7 +72,7 @@ const PageCardLayout = ({
                 )}
 
                 {/* Title + Subtitle */}
-                <Grid size={{ xs: 10, sm: 'auto' }} sx={{ ...headerTextContainerStyles }}>
+                <Grid size={{ xs: 12, sm: 'auto' }} sx={{ ...headerTextContainerStyles }}>
                   <Grid size={12} sx={{ fontSize: { xs: '20px', sm: '24px' }, fontWeight: 500, ...titleStyles }}>
                     {title}
                   </Grid>
@@ -80,7 +80,8 @@ const PageCardLayout = ({
                     onClick={() => onClickOfSubtitle && onClickOfSubtitle()}
                     size={12}
                     sx={{
-                      fontSize: { xs: '16px', sm: '18px' },
+                      fontSize: '14px',
+
                       cursor: onClickOfSubtitle ? 'pointer' : 'default',
                       ...subtitleStyles
                     }}
