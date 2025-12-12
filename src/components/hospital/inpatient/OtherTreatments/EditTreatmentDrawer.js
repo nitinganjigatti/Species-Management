@@ -15,11 +15,13 @@ const EditTreatmentDrawer = ({
   treatment,
   formData,
   onChange,
+  onAdd,
   onUpdate,
   onDelete,
   onActivityPrefill,
   activities = [],
   isActivitiesLoading = false,
+  isAdding = false,
   isSubmitting = false,
   formatTimestamp,
   formatShortDate
@@ -181,7 +183,7 @@ const EditTreatmentDrawer = ({
                 label=''
                 control={control}
                 errors={{}}
-                disabled={isSubmitting || !formData?.activeActivityId}
+                disabled={isSubmitting || isAdding}
                 rows={4}
                 placeholder='Add notes'
                 onChangeOverride={event => onChange('notes', event?.target?.value || '')}
@@ -412,44 +414,64 @@ const EditTreatmentDrawer = ({
             backgroundColor: theme.palette.primary.contrastText
           }}
         >
-          <Button
-            variant='outlined'
-            fullWidth
-            onClick={onDelete}
-            disabled={isSubmitting || !formData?.activeActivityId}
-            sx={{
-              height: '56px',
-              borderRadius: '8px',
-              borderColor: theme.palette.customColors.Error,
-              color: theme.palette.customColors.Error,
-              borderWidth: '1px',
-              fontWeight: 600,
-              '&:hover': {
-                borderColor: theme.palette.error.dark,
-                backgroundColor: alpha(theme.palette.customColors.Error, 0.1)
-              }
-            }}
-          >
-            Delete
-          </Button>
-          <Button
-            variant='contained'
-            fullWidth
-            onClick={onUpdate}
-            disabled={isSubmitting || !formData?.activeActivityId}
-            sx={{
-              height: '56px',
-              borderRadius: '8px',
-              fontWeight: 600,
-              backgroundColor: theme.palette.primary.light,
-              boxShadow: `0px 4px 8px -4px ${theme.palette.customColors.shadowColor}`,
-              '&:hover': {
-                backgroundColor: theme.palette.primary.dark
-              }
-            }}
-          >
-            {isSubmitting ? 'Updating...' : 'Update'}
-          </Button>
+          {formData?.activeActivityId ? (
+            <>
+              <Button
+                variant='outlined'
+                fullWidth
+                onClick={onDelete}
+                disabled={isSubmitting}
+                sx={{
+                  height: '56px',
+                  borderRadius: '8px',
+                  borderColor: theme.palette.customColors.Error,
+                  color: theme.palette.customColors.Error,
+                  borderWidth: '1px',
+                  fontWeight: 600,
+                  '&:hover': {
+                    borderColor: theme.palette.error.dark,
+                    backgroundColor: alpha(theme.palette.customColors.Error, 0.1)
+                  }
+                }}
+              >
+                Delete
+              </Button>
+              <Button
+                variant='contained'
+                fullWidth
+                onClick={onUpdate}
+                disabled={isSubmitting}
+                sx={{
+                  height: '56px',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  backgroundColor: theme.palette.primary.light,
+                  boxShadow: `0px 4px 8px -4px ${theme.palette.customColors.shadowColor}`,
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.dark
+                  }
+                }}
+              >
+                {isSubmitting ? 'Updating...' : 'Update'}
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant='contained'
+              fullWidth
+              onClick={onAdd}
+              disabled={isAdding || isSubmitting}
+              sx={{
+                height: '56px',
+                borderRadius: '8px',
+                fontWeight: 600,
+                backgroundColor: theme.palette.primary.light,
+                boxShadow: `0px 4px 8px -4px ${theme.palette.customColors.shadowColor}`
+              }}
+            >
+              {isAdding ? 'Adding...' : 'Add'}
+            </Button>
+          )}
         </Box>
       </Box>
     </Drawer>
