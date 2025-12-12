@@ -43,7 +43,8 @@ export default function ScheduleMedicine({
     prescriptionDosageMeasurementType,
     prescriptionDuration,
     prescriptionFrequency,
-    prescriptionDeliveryRoute
+    prescriptionDeliveryRoute,
+    intervalList
   } = medicalMasterData
   const theme = useTheme()
   const hasSetDefaults = useRef(false)
@@ -71,69 +72,10 @@ export default function ScheduleMedicine({
     name: 'prescriptionStartDate'
   })
 
-  // NEW: Watch dosage duration value changes
-  const dosageDurationValue = useWatch({
+  const prescriptionEndDate = useWatch({
     control,
-    name: 'dosageDuration.value'
+    name: 'prescriptionEndDate'
   })
-
-  // NEW: Watch dosage duration unit changes
-  const dosageDurationUnit = useWatch({
-    control,
-    name: 'dosageDuration.unit'
-  })
-
-  // Updated useEffect with all necessary dependencies
-  useEffect(() => {
-    if (selectedMedicineTo === 'Direct Administer' && prescriptionStartDate) {
-      const dosageDuration = getValues('dosageDuration')
-
-      if (dosageDuration?.value && dosageDuration?.unit) {
-        const endDate = prescriptionStartDate
-        const admittedDate = dayjs(medicalRecordData?.animal_admitted_date)
-
-        // Calculate start date
-        let calculatedStart = dayjs(endDate)
-        const durationValue = parseInt(dosageDuration.value)
-
-        switch (dosageDuration.unit) {
-          case 'days':
-            calculatedStart = calculatedStart.subtract(durationValue, 'days')
-            break
-          case 'weeks':
-            calculatedStart = calculatedStart.subtract(durationValue, 'weeks')
-            break
-          case 'months':
-            calculatedStart = calculatedStart.subtract(durationValue, 'months')
-            break
-          case 'years':
-            calculatedStart = calculatedStart.subtract(durationValue, 'years')
-            break
-        }
-
-        if (calculatedStart.isBefore(admittedDate, 'day')) {
-          setStartDateWarning(
-            `Warning: Start date (${calculatedStart.format(
-              'DD MMM YYYY'
-            )}) is before admission date (${admittedDate.format('DD MMM YYYY')})`
-          )
-        } else {
-          setStartDateWarning('')
-        }
-      } else {
-        setStartDateWarning('')
-      }
-    } else {
-      setStartDateWarning('')
-    }
-  }, [
-    selectedMedicineTo,
-    prescriptionStartDate,
-    dosageDurationValue, // ← Triggers when duration value changes
-    dosageDurationUnit, // ← Triggers when unit (days/weeks/months/years) changes
-    getValues,
-    medicalRecordData?.animal_admitted_date
-  ])
 
   // Common styles for form fields
   const commonFieldStyles = {
@@ -177,14 +119,24 @@ export default function ScheduleMedicine({
     return selectedDate.isSame(today, 'day')
   }, [selectedMedicineTo, isOneTimeFrequency, prescriptionStartDate])
 
+  // Determine if we're in Direct Administer with regular intervals mode
+  const isDirectAdministerRegular = useMemo(() => {
+    return selectedMedicineTo === 'Direct Administer' && !isOneTimeFrequency
+  }, [selectedMedicineTo, isOneTimeFrequency])
+
   // Set default values when medicine is selected
   useEffect(() => {
-    if (isMedicineSelected && medicalMasterData && !hasSetDefaults.current) {
+    if (isMedicineSelected && medicalMasterData && !hasSetDefaults.current && intervalList && prescriptionFrequency) {
       const currentTime = dayjs()
 
       // Set default frequency (first item)
       if (prescriptionFrequency && prescriptionFrequency.length > 0) {
         setValue('frequency', prescriptionFrequency[0].value)
+      }
+
+      // Set default interval (first item)
+      if (intervalList && intervalList?.length > 0) {
+        setValue('interval', intervalList[0].value)
       }
 
       // Set default schedule with current time and EMPTY unit
@@ -215,6 +167,7 @@ export default function ScheduleMedicine({
     prescriptionDosageMeasurementType,
     prescriptionFrequency,
     prescriptionDuration,
+    intervalList,
     setValue
   ])
 
@@ -269,6 +222,7 @@ export default function ScheduleMedicine({
 
       reset({
         frequency: editingMedicineData.frequency_id || editingMedicineData.frequency || '',
+        interval: editingMedicineData.interval_id || '',
         deliveryRoute: editingMedicineData?.delivery_route_name || '',
 
         prescriptionStartDate: editingMedicineData?.start_date ? dayjs(editingMedicineData.start_date) : null,
@@ -378,6 +332,42 @@ export default function ScheduleMedicine({
                 required
               />
             </Box>
+
+            {!isOneTimeFrequency && (
+              <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center' }}>
+                <Box
+                  sx={{
+                    backgroundColor: theme.palette.customColors.OnBackground,
+                    padding: '16px 14px',
+                    borderRadius: '4px'
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      textAlign: 'left',
+                      color: theme.palette.customColors.OnSurface
+                    }}
+                  >
+                    Every
+                  </Typography>
+                </Box>
+                <ControlledSelect
+                  fullWidth={true}
+                  name='interval'
+                  sx={commonFieldStyles}
+                  size='large'
+                  label='Set Interval*'
+                  control={control}
+                  errors={errors}
+                  options={intervalList}
+                  getOptionLabel={option => option.label}
+                  getOptionValue={option => option.value}
+                  required
+                />
+              </Box>
+            )}
 
             {/* <Box sx={{ mb: 3 }}>
               <ControlledSelect
@@ -518,22 +508,20 @@ export default function ScheduleMedicine({
             </Box>
 
             <Box sx={{ mb: 3 }}>
-              <Box sx={{ mb: 3 }}>
+              <Box>
                 <ControlledDatePicker
                   fullWidth={true}
                   sx={commonFieldStyles}
-                  minDate={
-                    fromPage === 'prescriptionDetail'
-                      ? dayjs(stopDate)
-                      : selectedMedicineTo === 'Direct Administer'
-                      ? dayjs(animal_admitted_date)
-                      : dayjs(animal_admitted_date)
-                  }
+                  minDate={fromPage === 'prescriptionDetail' ? dayjs(stopDate) : dayjs(animal_admitted_date)}
                   maxDate={selectedMedicineTo === 'Direct Administer' ? dayjs(now) : undefined}
                   size='large'
                   name='prescriptionStartDate'
                   label={
-                    selectedMedicineTo === 'Direct Administer' ? 'Prescription End Date*' : 'Prescription Start Date*'
+                    isDirectAdministerRegular
+                      ? 'Prescription Start Date*'
+                      : selectedMedicineTo === 'Direct Administer'
+                      ? 'Prescription Start Date*'
+                      : 'Prescription Start Date*'
                   }
                   control={control}
                   errors={errors}
@@ -542,8 +530,26 @@ export default function ScheduleMedicine({
               </Box>
             </Box>
 
-            {/* Conditionally render Dosage Duration */}
-            {!isOneTimeFrequency && (
+            {/* Show End Date field ONLY for Direct Administer with regular intervals */}
+            {isDirectAdministerRegular && (
+              <Box sx={{ mb: 3 }}>
+                <ControlledDatePicker
+                  fullWidth={true}
+                  sx={commonFieldStyles}
+                  minDate={dayjs(animal_admitted_date)}
+                  maxDate={dayjs(now)}
+                  size='large'
+                  name='prescriptionEndDate'
+                  label='Prescription End Date*'
+                  control={control}
+                  errors={errors}
+                  required
+                />
+              </Box>
+            )}
+
+            {/* Show Dosage Duration ONLY for Schedule mode or Direct Administer one-time */}
+            {!isOneTimeFrequency && !isDirectAdministerRegular && (
               <>
                 <Grid container display='flex' justifyContent={'space-between'} spacing={2}>
                   <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
@@ -566,6 +572,7 @@ export default function ScheduleMedicine({
                   <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                     <ControlledSelect
                       name='dosageDuration.unit'
+
                       // label='Dosage Unit*'
                       sx={{
                         textAlign: 'left',
@@ -581,43 +588,10 @@ export default function ScheduleMedicine({
                     />
                   </Grid>
                 </Grid>
-                {endsOn && (
-                  <Typography
-                    sx={{
-                      display: 'flex',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      fontStyle: 'italic',
-                      color: theme.palette.customColors.OnSurface,
-                      mb: 3,
-                      mt: 2
-                    }}
-                  >
-                    Prescription {selectedMedicineTo === 'Direct Administer' ? 'starts' : 'ends'} on {endsOn}
-                  </Typography>
-                )}
-                {startDateWarning && (
-                  <Typography
-                    sx={{
-                      display: 'flex',
-                      fontSize: '13px',
-                      fontWeight: '500',
-                      color: theme.palette.error.main,
-                      mb: 3,
-                      mt: -2,
-                      padding: '8px 12px',
-                      backgroundColor: theme.palette.error.lighter || '#FFEBEE',
-                      borderRadius: '4px',
-                      border: `1px solid ${theme.palette.error.main}`
-                    }}
-                  >
-                    ⚠️ {startDateWarning}
-                  </Typography>
-                )}
               </>
             )}
 
-            {/* {isOneTimeFrequency && endsOn && (
+            {endsOn && selectedMedicineTo !== 'Direct Administer' && (
               <Typography
                 sx={{
                   display: 'flex',
@@ -625,13 +599,13 @@ export default function ScheduleMedicine({
                   fontWeight: '500',
                   fontStyle: 'italic',
                   color: theme.palette.customColors.OnSurface,
-                  mb: 3
+                  mb: 3,
+                  mt: 2
                 }}
               >
-                Prescription {selectedMedicineTo === 'Direct Administer' ? 'starts and ends' : 'starts and ends'} on{' '}
-                {endsOn}
+                {`Prescription ends on ${endsOn}`}
               </Typography>
-            )} */}
+            )}
 
             <Box sx={{ mb: 3 }}>
               <ControlledTextArea

@@ -833,9 +833,11 @@ export const GET_BATCH_LIST = 'vaccination/get-batch-list-by-medicine'
 
 export const GET_PRESCRIPTION_BY_RECORD = 'v1/hospital/list-prescription-by-record'
 
-//Hospital rooms
-
 export const GET_FREQUENCY = 'medical/frequency'
+
+export const GET_INTERVALS = 'medical/master/prescription/interval/list'
+
+//Hospital rooms
 
 //Hospital masters
 

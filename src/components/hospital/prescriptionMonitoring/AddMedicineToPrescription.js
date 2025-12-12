@@ -19,6 +19,7 @@ import {
   addDirectAdministerPrescription,
   addPrescription,
   getFrequency,
+  getIntervalList,
   getMedicineBatches,
   getPrescriptionDetails,
   getPrescriptions,
@@ -50,7 +51,6 @@ export default function AddMedicineToPrescription() {
     if (medicine_edit_id) {
       const result = list.find(med => med.id?.toString() === medicine_edit_id?.toString())
 
-
       return result
     }
 
@@ -69,6 +69,15 @@ export default function AddMedicineToPrescription() {
       .oneOf(['Schedule', 'Direct Administer'], 'Please select medicine type')
       .required('Please select medicine type'),
     frequency: yup.string().required('Please select a frequency'),
+    interval: yup.string().when(['selectMedicineType', 'frequency'], {
+      is: frequency => {
+        const isOneTime = frequency === '2' || frequency === 2
+
+        return !isOneTime
+      },
+      then: schema => schema.required('Please select a interval'),
+      otherwise: schema => schema.nullable().notRequired()
+    }),
 
     schedules: yup
       .array()
@@ -160,40 +169,57 @@ export default function AddMedicineToPrescription() {
       .string()
       .required('Start date is required')
       .test('valid-direct-admin-date', function (value) {
-        const { selectMedicineType, dosageDuration } = this.parent
+        const { selectMedicineType, frequency, prescriptionEndDate } = this.parent
 
-        // Only validate for Direct Administer
-        if (selectMedicineType !== 'Direct Administer') {
+        // Only validate for Direct Administer with regular intervals (not one-time)
+        const isOneTime = frequency === '2' || frequency === 2
+        if (selectMedicineType !== 'Direct Administer' || isOneTime) {
           return true
         }
 
-        if (!value || !dosageDuration?.value || !dosageDuration?.unit) {
+        if (!value || !prescriptionEndDate) {
           return true // Let required validation handle empty values
         }
 
-        const endDate = moment(value)
+        const startDate = moment(value)
+        const endDate = moment(prescriptionEndDate)
         const admittedDate = moment(medicalRecordData?.animal_admitted_date)
 
-        // Calculate start date by going backwards
-        const calculatedStartDate = calculateStartDate(value, dosageDuration)
-        const startDate = moment(calculatedStartDate)
-
-        // Check if calculated start date is before admitted date
+        // Check if start date is before admitted date
         if (startDate.isBefore(admittedDate, 'day')) {
           return this.createError({
-            message: `Start date cannot be before admission date (${admittedDate.format(
-              'DD MMM YYYY'
-            )}). Please reduce duration or select a later end date.`
+            message: `Start date cannot be before admission date (${admittedDate.format('DD MMM YYYY')})`
+          })
+        }
+
+        // Check if start date is after end date
+        if (startDate.isAfter(endDate, 'day')) {
+          return this.createError({
+            message: 'Start date cannot be after end date'
           })
         }
 
         return true
       }),
 
-    dosageDuration: yup.object().when('frequency', {
-      is: frequency => {
-        // Make dosageDuration optional when frequency is "one_time" (id: 2)
-        return frequency !== '2' && frequency !== 2
+    prescriptionEndDate: yup.string().when(['selectMedicineType', 'frequency'], {
+      is: (selectMedicineType, frequency) => {
+        const isOneTime = frequency === '2' || frequency === 2
+
+        return selectMedicineType === 'Direct Administer' && !isOneTime
+      },
+      then: schema => schema.required('End date is required'),
+      otherwise: schema => schema.nullable().notRequired()
+    }),
+
+    dosageDuration: yup.object().when(['frequency', 'selectMedicineType'], {
+      is: (frequency, selectMedicineType) => {
+        const isOneTime = frequency === '2' || frequency === 2
+
+        // Make dosageDuration NOT required for Direct Administer with regular intervals
+        const isDirectAdministerRegular = selectMedicineType === 'Direct Administer' && !isOneTime
+
+        return !isOneTime && !isDirectAdministerRegular
       },
       then: schema =>
         schema
@@ -202,7 +228,7 @@ export default function AddMedicineToPrescription() {
               .number()
               .transform((value, originalValue) => (originalValue === '' ? undefined : value))
               .min(1, 'Duration must be at least 1')
-              .max(365, 'Duration cannot exceed 365')
+              .max(100000, 'Duration cannot exceed 100000')
               .required('Duration value is required'),
             unit: yup.string().required('Please select duration unit')
           })
@@ -264,6 +290,7 @@ export default function AddMedicineToPrescription() {
     selectedMedicine: null,
     selectMedicineType: 'Schedule',
     frequency: '',
+    interval: '',
 
     // doseType: '',
     schedules: [
@@ -275,6 +302,7 @@ export default function AddMedicineToPrescription() {
     ],
     deliveryRoute: '',
     prescriptionStartDate: null,
+    prescriptionEndDate: null,
     dosageDuration: {
       value: 0,
       unit: null
@@ -323,6 +351,7 @@ export default function AddMedicineToPrescription() {
 
   const [medicalMasterData, setMedicalMasterData] = useState([])
   const [frequencyData, setFrequencyData] = useState([])
+  const [intervalList, setIntervalList] = useState([])
   const [batchList, setBatchList] = useState([])
   const [batchSearchQuery, setBatchSearchQuery] = useState('')
   const [batchLoading, setBatchLoading] = useState(false)
@@ -341,44 +370,61 @@ export default function AddMedicineToPrescription() {
 
   // Watch for changes in start date and duration to calculate end date
   const prescriptionStartDate = watch('prescriptionStartDate')
+  const prescriptionEndDate = watch('prescriptionEndDate')
   const dosageDuration = watch('dosageDuration')
+  const intervalItem = watch('interval')
   const selectMedicineType = watch('selectMedicineType')
+
+  // Helper function to calculate duration dynamically
+  function calculateDynamicDuration(startDate, endDate) {
+    if (!startDate || !endDate) {
+      return '1 days' // Default fallback
+    }
+
+    // Convert to dayjs objects ignoring time
+    const start = dayjs(startDate).startOf('day')
+    const end = dayjs(endDate).startOf('day')
+
+    // If dates are the same, return "1 days"
+    if (start.isSame(end, 'day')) {
+      return '1 days'
+    }
+
+    // Calculate difference in days
+    const diffDays = end.diff(start, 'day') + 1 // +1 to include both start and end dates
+
+    // Return formatted duration
+    return `${diffDays} days`
+  }
 
   // Calculate and update endsOn whenever relevant fields change
   useEffect(() => {
-    if (prescriptionStartDate && !isOneTimeFrequency) {
-      // For regular intervals (not one-time)
+    if (prescriptionStartDate && !isOneTimeFrequency && selectMedicineType === 'Schedule') {
+      // For regular intervals (not one-time) in Schedule mode
       if (dosageDuration?.value && dosageDuration?.unit) {
-        if (selectMedicineType === 'Direct Administer') {
-          // Direct Administer: Calculate START date (backward from end date)
-          const calculatedStartDate = calculateStartDate(prescriptionStartDate, dosageDuration)
-          if (calculatedStartDate) {
-            const formattedDate = moment(calculatedStartDate).format('DD MMM YYYY')
-            setEndsOn(formattedDate)
-          } else {
-            setEndsOn(null)
-          }
+        // Schedule: Calculate END date (forward from start date)
+        const calculatedEndDate = calculateEndDate(prescriptionStartDate, dosageDuration, intervalItem)
+        if (calculatedEndDate) {
+          const formattedDate = moment(calculatedEndDate).format('DD MMM YYYY')
+          setEndsOn(formattedDate)
         } else {
-          // Schedule: Calculate END date (forward from start date)
-          const calculatedEndDate = calculateEndDate(prescriptionStartDate, dosageDuration)
-          if (calculatedEndDate) {
-            const formattedDate = moment(calculatedEndDate).format('DD MMM YYYY')
-            setEndsOn(formattedDate)
-          } else {
-            setEndsOn(null)
-          }
+          setEndsOn(null)
         }
       } else {
         setEndsOn(null)
       }
-    } else if (isOneTimeFrequency && prescriptionStartDate) {
-      // For one-time frequency, end date is same as start date
-      const formattedDate = moment(prescriptionStartDate).format('DD MMM YYYY')
-      setEndsOn(formattedDate)
     } else {
       setEndsOn(null)
     }
-  }, [prescriptionStartDate, dosageDuration?.value, dosageDuration?.unit, isOneTimeFrequency, selectMedicineType])
+  }, [
+    prescriptionStartDate,
+    prescriptionEndDate,
+    dosageDuration?.value,
+    dosageDuration?.unit,
+    isOneTimeFrequency,
+    selectMedicineType,
+    intervalItem
+  ])
 
   const debouncedBatchSearch = useCallback(
     debounce(async (medicineId, query = '') => {
@@ -438,6 +484,7 @@ export default function AddMedicineToPrescription() {
 
   const handleSetDefaultValues = data => {
     const frequency = frequencyData?.find(item => item?.string_id == data.prescription_frequency)
+    const interval = intervalList?.find(item => item?.interval_string_id == data.interval_string_id)
 
     const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
       item => item?.string_id == data.delivery_route_string_id
@@ -445,6 +492,7 @@ export default function AddMedicineToPrescription() {
 
     reset({
       frequency: frequency?.id || data.frequency || '',
+      interval: interval?.id || data.interval || '',
       deliveryRoute: deliveryRoute?.value || '',
 
       prescriptionStartDate: data?.stop_date ? dayjs(data.stop_date) : null,
@@ -469,14 +517,15 @@ export default function AddMedicineToPrescription() {
           createdAt: schedule.created_at,
           time: schedule.scheduled_time ? getTimeDayjs(schedule.scheduled_time) : dayjs(),
           quantity: schedule.scheduled_quantity || '',
-          unit: schedule.scheduled_unit_name?.toLowerCase() || ''
+          unit: schedule.scheduled_unit_name?.toLowerCase() || '',
+          scheduled_dose_id: schedule?.scheduled_dose_id
         })) || [],
       selectMedicineType: 'Schedule'
     })
   }
 
   useEffect(() => {
-    if (medicineDetail && medicalMasterData && frequencyData && fromPage === 'prescriptionDetail') {
+    if (medicineDetail && medicalMasterData && frequencyData && fromPage === 'prescriptionDetail' && intervalList) {
       handleSetDefaultValues(medicineDetail)
       handleMedicineSelect({ id: medicineDetail?.medicine_id, name: medicineDetail?.medicine_name })
       setApiMedicineList([{ id: medicineDetail?.medicine_id, name: medicineDetail?.medicine_name }])
@@ -561,10 +610,12 @@ export default function AddMedicineToPrescription() {
       const response = await getMedicalMasterData()
       if (response?.success) {
         fetchFrequencies()
+        fetchIntervals()
         setMedicalMasterData({
           ...response?.data,
 
           // prescriptionFrequency: frequencyData || [],
+          intervalList: [],
           prescriptionFrequency: [],
           prescriptionDosageMeasurementType:
             response?.data?.prescriptionDosageMeasurementType?.map(item => ({
@@ -614,6 +665,31 @@ export default function AddMedicineToPrescription() {
       console.error('Error fetching medical master data:', error.message)
     }
   }, [])
+
+  const fetchIntervals = async () => {
+    try {
+      const response = await getIntervalList()
+      if (response?.success) {
+        setIntervalList(
+          response?.data?.map(item => ({
+            ...item,
+            value: item.id
+          })) || []
+        )
+        setMedicalMasterData(prevData => ({
+          ...prevData,
+          intervalList: response?.data?.map(item => ({
+            ...item,
+            value: item.id
+          }))
+        }))
+      } else {
+        setIntervalList([])
+      }
+    } catch (error) {
+      console.error('Error fetching medical master data:', error.message)
+    }
+  }
 
   const fetchMedicines = useCallback(
     async (query = '', pageNo = 1, append = false) => {
@@ -718,7 +794,7 @@ export default function AddMedicineToPrescription() {
         id: prescriptionId
       })
     } else {
-      if (discharge_tab !== 'TransferEnclosure') fetchMedicines('', 1, true)
+      fetchMedicines('', 1, true)
     }
     fetchMedicalMasterData()
   }, [])
@@ -840,7 +916,7 @@ export default function AddMedicineToPrescription() {
   ) => {
     try {
       setIsSubmitting(true)
-      const interval = medicalMasterData?.prescriptionDuration?.find(item => item?.value === data?.dosageDuration?.unit)
+      const interval = medicalMasterData?.intervalList?.find(item => item?.value === data?.interval)
       const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
 
       const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
@@ -879,9 +955,9 @@ export default function AddMedicineToPrescription() {
 
             schedule_doses: scheduleDoses,
 
-            interval: 'Day' || '',
-            interval_id: 1 || '',
-            interval_string_id: 'antz-prescription-interval.day' || '',
+            interval: interval?.label || '',
+            interval_id: interval?.id || '',
+            interval_string_id: interval?.interval_string_id || '',
 
             duration_qty: data.dosageDuration?.value?.toString() || '1',
             duration_id: interval?.id || '',
@@ -959,12 +1035,16 @@ export default function AddMedicineToPrescription() {
   const handleDirectAdminister = async (data, medicalMasterData, medical_record_id, temporarilySelectedMedicine) => {
     try {
       setIsSubmitting(true)
+
+      // Calculate duration dynamically for Direct Administer with regular intervals
+      let calculatedDuration = calculateDynamicDuration(data.prescriptionStartDate, data.prescriptionEndDate)
+
       const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
 
       const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
         item => item?.route_abbr === data.deliveryRoute
       )
-      const interval = medicalMasterData?.prescriptionDuration?.find(item => item?.value === data?.dosageDuration?.unit)
+      const interval = medicalMasterData?.intervalList?.find(item => item?.value === data?.interval)
 
       // Find the selected batch from batchList
       const selectedBatch = batchList?.find(item => {
@@ -1034,19 +1114,15 @@ export default function AddMedicineToPrescription() {
 
             schedule_doses: scheduleDoses,
 
-            interval: interval?.value || '',
+            interval: interval?.label || '',
             interval_id: interval?.id || '',
-            interval_string_id: interval?.string_id || '',
+            interval_string_id: interval?.interval_string_id || '',
 
-            duration_qty: data.dosageDuration?.value?.toString() || '1',
-            duration_id: interval?.id || '',
-            duration: data.dosageDuration?.value
-              ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
-              : '1 days',
-            duration_string_id: interval?.string_id || '',
-            duration_type: data.dosageDuration?.unit
-              ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
-              : 'Days',
+            duration_qty: calculatedDuration?.toString()?.split(' ')[0] || '1',
+            duration_id: '2',
+            duration: calculatedDuration,
+            duration_string_id: 'antz-prescription.days',
+            duration_type: 'Days',
 
             notes: data.wastageNotes || '',
 
@@ -1054,10 +1130,10 @@ export default function AddMedicineToPrescription() {
             delivery_route_id: deliveryRoute?.id || '',
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
-            start_date: isOneTimeFrequency
+            start_date: toISTISOString(data.prescriptionStartDate),
+            end_date: isOneTimeFrequency
               ? toISTISOString(data.prescriptionStartDate)
-              : calculateStartDate(data.prescriptionStartDate, data.dosageDuration),
-            end_date: toISTISOString(data.prescriptionStartDate),
+              : toISTISOString(data.prescriptionEndDate),
 
             restart_reason: '',
             stop_reason: '',
@@ -1130,7 +1206,7 @@ export default function AddMedicineToPrescription() {
   const handleRestartMedicine = async data => {
     try {
       setIsSubmitting(true)
-      const interval = medicalMasterData?.prescriptionDuration?.find(item => item?.value === data?.dosageDuration?.unit)
+      const interval = medicalMasterData?.intervalList?.find(item => item?.value === data?.interval)
       const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
 
       const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
@@ -1138,7 +1214,7 @@ export default function AddMedicineToPrescription() {
       )
 
       const scheduleDoses = data.schedules.map((schedule, index) => ({
-        id: 1,
+        id: schedule?.scheduled_dose_id,
         time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
         quantity: schedule.quantity,
         unit_id: getUnitIdFromName(schedule?.unit, medicalMasterData),
@@ -1150,7 +1226,7 @@ export default function AddMedicineToPrescription() {
 
       const payload = {
         medical_record_id: medical_record_id,
-        prescription_id: medicineDetail?.prescription_id,
+        prescription_id: medicineDetail?.medicine_id,
         type: 'prescription',
         status: 'restart',
         note: data?.notes,
@@ -1166,9 +1242,9 @@ export default function AddMedicineToPrescription() {
 
           schedule_doses: scheduleDoses,
 
-          interval: 'Day' || '',
-          interval_id: 1 || '',
-          interval_string_id: 'antz-prescription-interval.day' || '',
+          interval: interval?.label || '',
+          interval_id: interval?.id || '',
+          interval_string_id: interval?.interval_string_id || '',
 
           duration_qty: data.dosageDuration?.value?.toString() || '1',
           duration_id: interval?.id || '',
@@ -1213,7 +1289,7 @@ export default function AddMedicineToPrescription() {
   }
 
   const prescriptionSubmitHandler = handleSubmit(async data => {
-    const interval = medicalMasterData?.prescriptionDuration?.find(item => item?.value === data?.dosageDuration?.unit)
+    const interval = medicalMasterData?.intervalList?.find(item => item?.value === data?.interval)
     const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
 
     const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
@@ -1252,9 +1328,9 @@ export default function AddMedicineToPrescription() {
 
           schedule_doses: scheduleDoses,
 
-          interval: 'Day' || '',
-          interval_id: 1 || '',
-          interval_string_id: 'antz-prescription-interval.day' || '',
+          interval: interval?.label || '',
+          interval_id: interval?.id || '',
+          interval_string_id: interval?.interval_string_id || '',
 
           duration_qty: data.dosageDuration?.value?.toString(),
           duration_id: interval?.id || '',
@@ -1282,7 +1358,7 @@ export default function AddMedicineToPrescription() {
           //  end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
           end_date: isOneTimeFrequency
             ? toISTISOString(data.prescriptionStartDate)
-            : calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
+            : calculateEndDate(data.prescriptionStartDate, data.dosageDuration, intervalItem),
 
           restart_reason: '',
           stop_reason: '',
@@ -1320,13 +1396,6 @@ export default function AddMedicineToPrescription() {
       updateState(tempKey, updatedList)
       router.back()
 
-      // setTimeout(() => {
-      //   router.push({
-      //     pathname: `/hospital/inpatient/${id}`,
-      //     query: { ...router.query, discharge_tab, tab: 'discharge' }
-      //   })
-      // }, 0)
-
       return
     } else if (fromPage === 'prescriptionDetail') {
       handleRestartMedicine(data)
@@ -1362,20 +1431,21 @@ export default function AddMedicineToPrescription() {
     return unit?.string_id || ''
   }
 
-  const calculateEndDate = (startDate, dosageDuration) => {
+  const calculateEndDate = (startDate, dosageDuration, interval) => {
     if (!startDate || !dosageDuration?.value) return ''
 
     const start = moment(startDate)
     let endDate = moment(startDate)
 
     const durationValue = parseInt(dosageDuration.value)
+    const intervalValue = parseInt(interval)
 
     switch (dosageDuration.unit) {
       case 'days':
-        endDate = start.add(durationValue, 'days')
+        endDate = start.add(intervalValue * durationValue - 1, 'days')
         break
       case 'weeks':
-        endDate = start.add(durationValue, 'weeks')
+        endDate = start.add(intervalValue * 7 * durationValue - 1, 'days')
         break
       case 'months':
         endDate = start.add(durationValue, 'months')
