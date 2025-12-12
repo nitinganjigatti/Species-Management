@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { Box, Grid, Typography, Button } from '@mui/material'
+import { Box, Grid, Typography, Button, useMediaQuery } from '@mui/material'
+import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
 import { useTheme } from '@mui/material/styles'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -374,6 +375,8 @@ export default function AddMedicineToPrescription() {
   const dosageDuration = watch('dosageDuration')
   const intervalItem = watch('interval')
   const selectMedicineType = watch('selectMedicineType')
+
+  const isSmallerDevices = useMediaQuery(theme.breakpoints.down('md'))
 
   // Helper function to calculate duration dynamically
   function calculateDynamicDuration(startDate, endDate) {
@@ -754,14 +757,29 @@ export default function AddMedicineToPrescription() {
 
   const handleMedicineSearch = e => {
     const value = e.target.value
-    setMedicineSearchQuery(value)
-    debouncedSearch(value)
+    if (fromPage === 'prescriptionDetail' || medicine_edit_id) {
+      return
+    } else {
+      setMedicineSearchQuery(value)
+      debouncedSearch(value)
+    }
   }
 
   const handleClearSearch = () => {
     setMedicineSearchQuery('')
     setPage(1)
-    fetchMedicines('', 1, false)
+    if (isSmallerDevices) {
+      if (fromPage === 'prescriptionDetail' || medicine_edit_id) {
+        return
+      }
+      setSelectedMedicine(null)
+      setTemporarilySelectedMedicine(null)
+    }
+    if (fromPage === 'prescriptionDetail' || medicine_edit_id) {
+      return
+    } else {
+      fetchMedicines('', 1, false)
+    }
   }
 
   const handleScroll = e => {
@@ -1552,10 +1570,15 @@ export default function AddMedicineToPrescription() {
             <PrescriptionMedicineList
               medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
               temporarilySelectedMedicine={temporarilySelectedMedicine}
+
               // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
               selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
               onSelect={handleMedicineSelect}
-              searchQuery={medicineSearchQuery}
+              searchQuery={
+                fromPage === 'prescriptionDetail' || medicine_edit_id
+                  ? temporarilySelectedMedicine?.name
+                  : medicineSearchQuery
+              }
               handleSearchChange={handleMedicineSearch}
               handleClearSearch={handleClearSearch}
               isDirectAdminister={watch('selectMedicineType') === 'Direct Administer'}
@@ -1564,6 +1587,9 @@ export default function AddMedicineToPrescription() {
               searching={searching}
               error={errors.selectedMedicine?.message || errors.selectedMedicineId?.message}
               prescribedMedicines={medicationData}
+              control={control}
+              errors={errors}
+              setValue={setValue}
             />
           </Grid>
           <Grid size={{ xs: 12, md: 5, lg: 5 }}>

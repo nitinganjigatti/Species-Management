@@ -745,7 +745,7 @@ const PrescriptionMonitoringGrid = ({
                 labelStyle={isAllSelected && { color: 'green' }}
                 checked={isAllSelected}
                 indeterminate={isIndeterminate}
-                disabled={displayMetrics?.length === 0}
+                disabled={displayMetrics?.length === 0 || isDischared}
                 onChange={handleSelectAll}
               />
               {selectedMetrics.length > 0 && (

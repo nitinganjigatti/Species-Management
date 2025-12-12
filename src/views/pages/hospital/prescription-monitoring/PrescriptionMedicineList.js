@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React from 'react'
 import {
   Box,
   TextField,
@@ -9,11 +9,13 @@ import {
   CircularProgress,
   IconButton,
   Radio,
-  Tooltip
+  Tooltip,
+  useMediaQuery
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 
 import { keyframes } from '@emotion/react'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
@@ -29,6 +31,14 @@ const shimmerAnimation = keyframes`
   }
 `
 
+const commonFieldStyles = {
+  textAlign: 'left',
+  borderRadius: '4px',
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '4px'
+  }
+}
+
 export default function PrescriptionMedicineList({
   medicineList,
   temporarilySelectedMedicine,
@@ -42,14 +52,22 @@ export default function PrescriptionMedicineList({
   searching,
   error,
   prescribedMedicines = [],
-  isDirectAdminister
+  isDirectAdminister,
+
+  // New props for autocomplete
+  control,
+  errors: formErrors,
+  setValue
 }) {
   const theme = useTheme()
   const router = useRouter()
-  const { medicine_edit_id, tab } = router.query
+  const { fromPage, medicine_edit_id, tab } = router.query
   const editIdStr = medicine_edit_id?.toString()
-  const { data } = useDynamicStateContext() // Dynamic Context Access
+  const { data } = useDynamicStateContext()
   const enclosureMedicines = data.enclosure_medicines || []
+
+  // Check if mobile/tablet view
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   // If editing  show only the selected medicine
   const filteredList = editIdStr ? enclosureMedicines?.filter(med => med.id.toString() == editIdStr) : medicineList
@@ -61,16 +79,126 @@ export default function PrescriptionMedicineList({
         prescription?.schedule?.[0]?.medicine_id === medicineId.toString() && prescription?.status !== 'stopped'
     )
 
-    // if (isPrescribed) {
-    //   console.log(` Medicine ${medicineId} is already prescribed`)
-    // }
+    return isPrescribed
+  }
+
+  // Determine if a medicine should be disabled
+  const isMedicineDisabled = medicine => {
+    if (medicine_edit_id) return false
+
+    const isPrescribed =
+      tab === 'discharge'
+        ? isEnclosureMedicineAdded(medicine.id.toString())
+        : isDirectAdminister
+        ? false
+        : isMedicinePrescribed(medicine?.id)
 
     return isPrescribed
   }
 
+  // For autocomplete, filter out disabled medicines
+  const availableMedicines = filteredList?.filter(medicine => !isMedicineDisabled(medicine))
+
+  // const availableMedicines = medicineList.filter(medicine => !isMedicineDisabled(medicine))
+
+  const autocompleteOptions = availableMedicines?.map(medicine => ({
+    label: medicine?.name,
+    value: medicine?.id,
+    generic_name: medicine?.generic_name,
+    disabled: isMedicineDisabled(medicine),
+    ...medicine
+  }))
+
+  // Render autocomplete for mobile/tablet
+  if (isMobile) {
+    return (
+      <Box sx={{ pt: 1, width: '100%' }}>
+        <ControlledAutocomplete
+          name='selectedMedicine'
+          label='Search Medicine'
+          control={control}
+          errors={formErrors}
+          options={autocompleteOptions}
+          loading={searching || loading}
+          required={true}
+          sx={commonFieldStyles}
+          showIcons={false}
+          onChangeOverride={value => {
+            if (value && !value.disabled) {
+              onSelect(value)
+            }
+          }}
+          onInputChange={value => {
+            handleSearchChange({ target: { value } })
+          }}
+          onItemClear={() => {
+            handleClearSearch()
+            setValue('selectedMedicine', null)
+            setValue('selectedMedicineId', '')
+          }}
+          getOptionDisabled={option => option.disabled}
+          getOptionLabel={option => {
+            if (typeof option === 'string') return option
+
+            return option?.label || option?.name || ''
+          }}
+          isOptionEqualToValue={(option, value) => {
+            if (!option || !value) return false
+
+            return option.id === value.id || option.value === value.value
+          }}
+          renderOption={(props, option) => (
+            <Box
+              key={option.value}
+              component='li'
+              {...props}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start !important',
+                py: 2,
+                opacity: option.disabled ? 0.6 : 1,
+                borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                '&:last-child': {
+                  borderBottom: 'none'
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  fontWeight: 600,
+                  fontSize: '16px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                {option.label || option.name}
+              </Box>
+              <Box
+                sx={{
+                  fontWeight: 500,
+                  fontStyle: 'italic',
+                  fontSize: '14px',
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  mt: 0.5
+                }}
+              >
+                {option.generic_name || 'N/A'}
+              </Box>
+            </Box>
+          )}
+          textFieldProps={{
+            placeholder: 'Search & Select Medicine',
+            helperText: error
+          }}
+        />
+      </Box>
+    )
+  }
+
+  // Render list view for desktop
   return (
-    <Box sx={{ pt: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <TextField
+    <Box sx={{ pt: fromPage === 'prescriptionDetail' || medicine_edit_id ? 0 : 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {fromPage === 'prescriptionDetail' || medicine_edit_id ? null : <TextField
         placeholder='Search'
         fullWidth
         size='small'
@@ -85,7 +213,7 @@ export default function PrescriptionMedicineList({
               </InputAdornment>
             ),
             endAdornment: searchQuery && (
-              <InputAdornment position='end'>
+              <InputAdornment position='end' disabled={fromPage === 'prescriptionDetail' || medicine_edit_id}>
                 <IconButton onClick={handleClearSearch} size='small' sx={{ color: 'gray' }}>
                   <ClearIcon fontSize='small' />
                 </IconButton>
@@ -93,21 +221,7 @@ export default function PrescriptionMedicineList({
             )
           }
         }}
-      />
-
-      {error && (
-        <Typography
-          sx={{
-            color: theme.palette.error.main,
-            fontSize: '0.75rem',
-            mt: 1,
-            mb: 1,
-            ml: 1
-          }}
-        >
-          {error}
-        </Typography>
-      )}
+      />}
       <Box
         sx={{
           color: theme.palette.customColors.deepDark,
@@ -115,7 +229,7 @@ export default function PrescriptionMedicineList({
           fontWeight: 600,
           p: 3.7,
           borderRadius: '4px',
-          mt: 3,
+          mt: fromPage === 'prescriptionDetail' || medicine_edit_id ? 0 : 3,
           background: theme.palette.customColors.mdAntzNeutral,
           display: 'flex',
           alignItems: 'center'
@@ -238,7 +352,7 @@ export default function PrescriptionMedicineList({
   )
 }
 
-// Shimmer Loading Component (alternative version)
+// Shimmer Loading Component
 const MedicineShimmer = ({ count = 8 }) => {
   const theme = useTheme()
 
