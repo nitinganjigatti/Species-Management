@@ -1429,7 +1429,7 @@ const AddSurgeryRecord = () => {
             px: '24px'
           }}
         >
-          CANCEL
+          RESET
         </Button>
         <Button
           type='submit'

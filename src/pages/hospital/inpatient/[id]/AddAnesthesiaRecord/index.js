@@ -621,8 +621,9 @@ export default function AddAnesthesiaRecord() {
   }
 
   const handleCancelNew = async () => {
-    await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
-    router.push(`/hospital/inpatient/${id}/?tab=anesthesia`)
+    // await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
+    // router.push(`/hospital/inpatient/${id}/?tab=anesthesia`)
+    reset()
   }
 
   const {
@@ -1983,7 +1984,7 @@ export default function AddAnesthesiaRecord() {
         </Box>
 
         <ActionButtons
-          cancelLabel='CANCEL'
+          cancelLabel='RESET'
           addLabel={
             <Box display='flex' alignItems='center' gap={1}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
