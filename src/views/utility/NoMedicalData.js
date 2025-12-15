@@ -8,7 +8,7 @@ const NoMedicalData = ({
   btnText,
   btnAction = () => {},
   imgHeight = 200,
-  imgWidth = 200,
+  imgWidth = 'auto',
   isDischarged = false
 }) => {
   const theme = useTheme()
@@ -16,10 +16,10 @@ const NoMedicalData = ({
   return (
     <>
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, width: '100%' }}>
-        <Image alt='No Medical Records Found' src={imgSrc} height={imgHeight} width={imgWidth} objectFit='contain' />
-        <Typography sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}>
+        <img alt='No Medical Records Found' src={imgSrc} height={imgHeight} width={imgWidth} objectFit='contain' />
+        {/* <Typography sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}>
           {text}
-        </Typography>
+        </Typography> */}
         {!isDischarged && (
           <Button variant='contained' onClick={btnAction} sx={{ height: '48px' }}>
             {btnText}

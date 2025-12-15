@@ -102,7 +102,9 @@ const AnimalDrawer = ({
           section_id: filters?.Section || [],
           enclosure_id: filters?.Enclosure || [],
           sort: sortType?.sort,
-          column: sortType?.column
+          column: sortType?.column,
+          in_transit: 2,
+          include_dead_animal: 0
         }
 
         const res = await getNewAnimalListWithFilters(params)
