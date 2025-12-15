@@ -226,8 +226,8 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
             )}
           </Box>
         )}
-        {!loading && recordTypeCount?.all !== '0' && (
-          <Box>
+        {!loading && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 6 }}>
             <MUISwitch
               label='Current Medical Record Only'
               checked={currentRecordOnly}
@@ -288,7 +288,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
           {isFetchingMore && <CircularProgress size={24} />}
         </Box>
 
-        {!loading && !isFetchingMore && records?.length >= 1 && (
+        {!loading && !isFetchingMore && records?.length > 10 && (
           <Typography sx={{ textAlign: 'center', color: theme.palette.text.disabled }}>
             No more symptoms to load
           </Typography>

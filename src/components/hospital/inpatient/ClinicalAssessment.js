@@ -377,7 +377,7 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
   return (
     <Box>
       {/* Header with Tabs and Controls */}
-      {tabCounts?.All !== 0 && (
+      {tabCounts?.All !== 0 ? (
         <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
           <Box
             sx={{
@@ -480,7 +480,21 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
             />
           </Box>
         </Box>
-      )}
+      ) : !isLoading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 6 }}>
+          <MUISwitch
+            label='Current Medical Record Only'
+            checked={currentRecordOnly}
+            onChange={e => {
+              setRecords([])
+              setPage(1)
+              setCurrentRecordOnly(e.target.checked)
+            }}
+            size='small'
+            sx={{ ml: 2.6 }}
+          />
+        </Box>
+      ) : null}
 
       {/* Records List */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -525,7 +539,7 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
         )}
 
         {/* End of List */}
-        {!hasMore && filteredRecords.length > 0 && (
+        {!hasMore && filteredRecords.length > 10 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
             No more assessments to load
           </Typography>

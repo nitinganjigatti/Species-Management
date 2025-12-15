@@ -775,6 +775,17 @@ const PrescriptionMonitoringGrid = ({
             />
           </Grid>
         )}
+        {!isLoading && displayMetrics?.length <= 0 && (
+          <Grid item size={{ xs: 12, sm: 12 }} sx={{ display: 'flex' }}>
+            <MUISwitch
+              checked={isCurrentMedicalRecord}
+              onChange={() => setIsCurrentMedicalRecord(!isCurrentMedicalRecord)}
+              label='Current medical records only'
+              size='small'
+              sx={{ ml: 2.6 }}
+            />
+          </Grid>
+        )}
 
         <Grid item size={{ xs: 12, sm: 12 }}>
           {displayMetrics.length > 0 ? (
