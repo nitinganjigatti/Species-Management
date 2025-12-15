@@ -746,7 +746,11 @@ const ReturnReport = () => {
                     justifyContent: 'flex-end'
                   }}
                 >
-                  <ExportButton loading={loading || exportLoading} onClick={handleExport} />
+                  <ExportButton
+                    loading={loading || exportLoading}
+                    onClick={handleExport}
+                    disabled={total === 0 ? true : false}
+                  />
                   <FilterButton onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={appliedFiltersCount} />
                 </Grid>
               </Grid>

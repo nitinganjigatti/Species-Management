@@ -836,7 +836,12 @@ const ReconciliationReport = () => {
             justifyContent: 'flex-end'
           }}
         >
-          <ExportButton sx={{ height: '35px' }} loading={excelExportLoader} onClick={() => handleExport()} />
+          <ExportButton
+            sx={{ height: '35px' }}
+            loading={excelExportLoader}
+            onClick={() => handleExport()}
+            disabled={total === 0 ? true : false}
+          />
         </Grid>
       </Grid>
       <Grid>
