@@ -76,7 +76,7 @@ const TimeSlotCell = ({ hasSchedule, status, scheduledTime, administeredTime, do
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              maxWidth: '100px', // Consistent width
+              maxWidth: '50px', // Consistent width
               flex: 1
             }}
             variant='caption'

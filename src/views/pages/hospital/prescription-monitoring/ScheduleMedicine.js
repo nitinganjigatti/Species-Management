@@ -151,6 +151,9 @@ export default function ScheduleMedicine({
       // Set default prescription start date to today
       setValue('prescriptionStartDate', dayjs())
 
+      // Set default prescription end date to today
+      if (isDirectAdministerRegular) setValue('prescriptionEndDate', dayjs())
+
       // Set default dosage duration to 1
       setValue('dosageDuration.value', '0')
 

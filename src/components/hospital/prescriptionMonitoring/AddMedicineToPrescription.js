@@ -1223,8 +1223,30 @@ export default function AddMedicineToPrescription() {
     }
   })
 
+  function formatDateWithCurrentTime(date) {
+    // Parse the input date
+    const originalDate = new Date(date) // "Mon, 15 Dec 2025 00:37:06 GMT"
+
+    // Get current date in local timezone
+    const now = new Date()
+
+    // Create new date with original date + current LOCAL time
+    const result = new Date(
+      originalDate.getUTCFullYear(), // Year from original GMT date
+      originalDate.getUTCMonth(), // Month from original GMT date
+      originalDate.getUTCDate(), // Date from original GMT date
+      now.getHours(), // Current LOCAL hours (IST)
+      now.getMinutes(), // Current LOCAL minutes (IST)
+      now.getSeconds(), // Current LOCAL seconds (IST)
+      now.getMilliseconds() // Current LOCAL milliseconds (IST)
+    )
+
+    return result.toISOString()
+  }
+
   const handleRestartMedicine = async data => {
     try {
+      console.log('data?.prescriptionStartDate', data?.prescriptionStartDate)
       setIsSubmitting(true)
       const interval = medicalMasterData?.intervalList?.find(item => item?.value === data?.interval)
       const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
@@ -1282,10 +1304,12 @@ export default function AddMedicineToPrescription() {
           delivery_route_id: deliveryRoute?.id || '',
           delivery_route_string_id: deliveryRoute?.string_id || '',
 
-          start_date: toISTISOString(data.prescriptionStartDate),
+          start_date: formatDateWithCurrentTime(data.prescriptionStartDate),
           end_date: isOneTimeFrequency
             ? toISTISOString(data.prescriptionStartDate)
-            : calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
+            : formatDateWithCurrentTime(
+                calculateEndDate(data.prescriptionStartDate, data.dosageDuration, interval?.value)
+              ),
 
           restart_reason: '',
           stop_reason: '',
