@@ -317,6 +317,19 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
 
   const deleteDisabled = deleteLoading || loading || !activeSurgeryRecordId
 
+  const handleViewAnesthesiaDetails = useCallback(() => {
+    if (!resolvedHospitalCaseId) return
+
+    const query = { tab: 'anesthesia' }
+    if (medicalRecordId) {
+      query.medical_record_id = medicalRecordId
+    }
+
+    router.push({ pathname: `/hospital/inpatient/${resolvedHospitalCaseId}`, query })
+  }, [medicalRecordId, resolvedHospitalCaseId, router])
+
+  const canViewAnesthesia = Boolean(resolvedHospitalCaseId)
+
   const handleDeleteClick = useCallback(() => {
     if (!activeSurgeryRecordId || deleteLoading) return
 
@@ -823,9 +836,11 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                   sx={{
                     fontWeight: 600,
                     fontSize: '16px',
-                    color: theme.palette.primary.OnSurface,
-                    cursor: 'pointer'
+                    color: theme.palette.primary.OnSurface || theme.palette.primary.main,
+                    cursor: canViewAnesthesia ? 'pointer' : 'not-allowed',
+                    opacity: canViewAnesthesia ? 1 : 0.6
                   }}
+                  onClick={canViewAnesthesia ? handleViewAnesthesiaDetails : undefined}
                 >
                   View details
                 </Typography>
