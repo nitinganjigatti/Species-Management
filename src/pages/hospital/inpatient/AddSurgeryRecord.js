@@ -14,7 +14,6 @@ import { useQuery } from '@tanstack/react-query'
 
 dayjs.extend(customParseFormat)
 
-import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 import AddAnesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnesthesiaRecord'
@@ -27,7 +26,7 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 import AddEditSurgeryDrawer from 'src/views/pages/hospital/masters/surgery'
 
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
-import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 
 import {
@@ -38,7 +37,6 @@ import {
 } from 'src/lib/api/hospital/surgeryMaster'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 
-const DEFAULT_HOSPITAL_ID = '68'
 const FORM_ID = 'add-surgery-record-form'
 
 const getSafeString = value => {
@@ -291,8 +289,6 @@ const schema = yup.object().shape({
 const AddSurgeryRecord = () => {
   const router = useRouter()
   const theme = useTheme()
-  const auth = useAuth()
-
   const resolvedHospitalCaseId = useMemo(() => resolveHospitalCaseId(router.query), [router.query])
   const surgeryRecordId = useMemo(() => {
     const possible =
@@ -312,12 +308,15 @@ const AddSurgeryRecord = () => {
     return Array.isArray(possible) ? possible[0] : possible || ''
   }, [router.query])
   const [patientData, setPatientData] = useState(null)
+  const hospitalId = useMemo(
+    () => patientData?.hospital_id || patientData?.hospital?.id || router.query?.hospital_id || '',
+    [patientData?.hospital_id, patientData?.hospital?.id, router.query?.hospital_id]
+  )
 
   const admissionDateTime = useMemo(
     () => (patientData?.admitted_at ? dayjs(patientData.admitted_at) : null),
     [patientData?.admitted_at]
   )
-  const userZooId = useMemo(() => auth?.userData?.user?.zoos?.[0]?.zoo_id, [auth?.userData])
   const defaultNow = useMemo(() => dayjs(), [])
 
   const buildDefaultFormValues = useCallback(
@@ -421,7 +420,14 @@ const AddSurgeryRecord = () => {
       })
       setValue('endTime', endTimeCombined || null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
       setValue('procedure', procedureOption, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
-      setValue('surgeon', detail?.surgeon_name || '', { shouldValidate: false, shouldDirty: false, shouldTouch: false })
+      const surgeonOption =
+        detail?.name_of_surgeon || detail?.surgeon_name
+          ? {
+              label: detail?.name_of_surgeon || detail?.surgeon_name,
+              value: detail?.name_of_surgeon_id || detail?.surgeon_id || ''
+            }
+          : ''
+      setValue('surgeon', surgeonOption, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
       setValue('typeOfSurgery', detail?.type_of_surgery || '', {
         shouldValidate: false,
         shouldDirty: false,
@@ -549,33 +555,31 @@ const AddSurgeryRecord = () => {
   }, [surgeryMasterResponse, localProcedureOptions])
 
   const { data: surgeonsResponse, isFetching: isSurgeonsLoading } = useQuery({
-    queryKey: ['surgeon-list', surgeonSearchTerm, userZooId],
+    queryKey: ['surgeon-list', surgeonSearchTerm, hospitalId],
     queryFn: async () => {
-      const zooId = userZooId
+      if (!hospitalId) return []
 
-      if (!zooId) {
-        return []
-      }
-
-      const params = { zoo_id: zooId, permission: 'medical_records_access' }
+      const params = { hospital_id: hospitalId, page_no: 1, limit: 50 }
       const trimmed = surgeonSearchTerm.trim()
 
       if (trimmed) {
         params.q = trimmed
       }
 
-      const res = await getUserList(params)
+      const res = await getHospitalStaff({ params })
 
       if (res?.success) {
-        return Array.isArray(res?.data) ? res.data : []
+        const list = Array.isArray(res?.data?.records) ? res.data.records : []
+
+        return list
       }
 
-      throw new Error(res?.message || 'Failed to fetch surgeons')
+      throw new Error(res?.message || 'Failed to load hospital staff')
     },
     keepPreviousData: true,
     staleTime: 5 * 60 * 1000,
     retry: false,
-    enabled: Boolean(userZooId),
+    enabled: Boolean(hospitalId),
     onError: error => {
       console.error('Failed to fetch surgeons:', error)
       Toaster({ type: 'error', message: error?.message || 'Failed to load surgeon list' })
@@ -587,7 +591,7 @@ const AddSurgeryRecord = () => {
 
     return surgeonsResponse
       .map(user => ({
-        label: getSafeString(user?.user_name),
+        label: getSafeString(user?.user_full_name),
         value: getSafeString(user?.user_id),
         default_icon: user?.user_profile_pic
       }))
@@ -1296,7 +1300,7 @@ const AddSurgeryRecord = () => {
               label='Enter surgery notes'
               value={richNote}
               onChange={setRichNote}
-              hospitalId={DEFAULT_HOSPITAL_ID}
+              hospitalId={hospitalId || undefined}
               templateType='surgery'
             />
 
