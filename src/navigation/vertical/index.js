@@ -13,6 +13,7 @@ import reportNavigation from 'src/components/navigation/report'
 import medicalNavigation from 'src/components/navigation/medical'
 import housingNavigation from 'src/components/navigation/housing'
 import hospitalNavigation from 'src/components/navigation/hospital'
+import settingsNavigation from 'src/components/navigation/settings'
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -108,6 +109,9 @@ const ComposeNavigation = () => {
     const complianceNav = complianceNavigation()
     navigationArray.push(...complianceNav)
   }
+
+  const settingsNav = settingsNavigation()
+  navigationArray.push(...settingsNav)
 
   return navigationArray
 }
