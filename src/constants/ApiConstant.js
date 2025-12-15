@@ -937,4 +937,4 @@ export const GET_ANESTHESIA_MEDICATION = `v1/hospital/anaesthesia/medication/upd
 
 export const DELETE_ANESTHESIA_MEDICATION = `v1/hospital/anaesthesia/medication/delete`
 
-export const GET_UPCOMING_VACCINATION_RECORDS = 'v1/vaccination/deworming//animal/pending/report'
+export const GET_UPCOMING_VACCINATION_RECORDS = 'v1/vaccination/deworming/animal/pending/report'
