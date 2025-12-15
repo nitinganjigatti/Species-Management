@@ -457,7 +457,15 @@ const AddSurgeryRecord = () => {
         shouldDirty: false,
         shouldTouch: false
       })
-      setValue('attachments', [], { shouldValidate: false, shouldDirty: false, shouldTouch: false })
+      const existingAttachments = Array.isArray(detail?.attachments)
+        ? detail.attachments.map(item => ({
+            id: item?.id,
+            file_path: item?.file || item?.file_path || '',
+            name: item?.file_original_name || item?.name || item?.file || ''
+          }))
+        : []
+
+      setValue('attachments', existingAttachments, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
       setSelectedAnesthesiaRecord(anesthesiaDetail || anesthesiaOption)
       setRichNote(detail?.surgery_notes || '')
       setFormResetKey(prev => prev + 1)
@@ -954,6 +962,9 @@ const AddSurgeryRecord = () => {
       formValues.attachments.forEach(file => {
         if (file instanceof File) {
           payload.append('attachments[]', file)
+        } else if (file && (file.id || file.file_path || file.file)) {
+          const existingRef = file.id || file.file_path || file.file
+          payload.append('existing_attachments[]', getSafeString(existingRef))
         }
       })
     }
