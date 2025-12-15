@@ -26,7 +26,7 @@ import NoMedicalData from 'src/views/utility/NoMedicalData'
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
 
-const ClinicalAssessment = ({ overviewData }) => {
+const ClinicalAssessment = ({ overviewData, patientData }) => {
   const router = useRouter()
   const { data } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
@@ -488,6 +488,7 @@ const ClinicalAssessment = ({ overviewData }) => {
           <ClinicalAssessmentCard
             key={record.id || index}
             record={record}
+            patientData={patientData}
             isDifferential={record.clinical_assessment === 'tentative'}
             isResolved={record.additional_info?.status === 'closed'}
             isDischared={isDischared}

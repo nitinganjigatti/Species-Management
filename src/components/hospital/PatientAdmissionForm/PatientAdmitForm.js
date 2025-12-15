@@ -16,7 +16,7 @@ import {
 } from '@mui/material'
 import { alpha, useTheme } from '@mui/system'
 import { useRouter } from 'next/router'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
@@ -44,6 +44,7 @@ import { write } from 'src/lib/windows/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import AddRoomDrawer from './AddRoomDrawer'
 import AddBedsDrawer from './AddBedsDrawer'
+import { AuthContext } from 'src/context/AuthContext'
 
 const treatmentType = [
   { label: 'OPD (outpatient)', value: 'opd' },
@@ -70,6 +71,8 @@ const schema = yup.object().shape({
 const PatientAdmitForm = () => {
   const theme = useTheme()
   const router = useRouter()
+  const authData = useContext(AuthContext)
+  const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
 
   const { selectedHospital, updateSelectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } =
     useHospital()
@@ -662,18 +665,20 @@ const PatientAdmitForm = () => {
                         fullWidth
                         loading={roomLoading}
                         disabled={submitLoader}
-                        endAdornment={() => (
-                          <Tooltip title='Add Rooms'>
-                            <IconButton
-                              size='small'
-                              onMouseDown={e => e.preventDefault()}
-                              onClick={() => setOpenAddRoomDrawer(true)}
-                              sx={{ ml: 1, fontSize: 28 }}
-                            >
-                              <Icon icon='mdi:plus' color={theme.palette.primary.main} />
-                            </IconButton>
-                          </Tooltip>
-                        )}
+                        endAdornment={() =>
+                          havePermissionToAddHospital && (
+                            <Tooltip title='Add Rooms'>
+                              <IconButton
+                                size='small'
+                                onMouseDown={e => e.preventDefault()}
+                                onClick={() => setOpenAddRoomDrawer(true)}
+                                sx={{ ml: 1, fontSize: 28 }}
+                              >
+                                <Icon icon='mdi:plus' color={theme.palette.primary.main} />
+                              </IconButton>
+                            </Tooltip>
+                          )
+                        }
                       />
                       {rooms.length === 0 && (
                         <Typography
@@ -710,18 +715,20 @@ const PatientAdmitForm = () => {
                         fullWidth
                         loading={bedsLoading}
                         disabled={submitLoader}
-                        endAdornment={() => (
-                          <Tooltip title='Add Beds/Enclosures'>
-                            <IconButton
-                              size='small'
-                              onMouseDown={e => e.preventDefault()}
-                              onClick={() => setOpenAddBedsDrawer(true)}
-                              sx={{ ml: 1, fontSize: 28 }}
-                            >
-                              <Icon icon='mdi:plus' color={theme.palette.primary.main} />
-                            </IconButton>
-                          </Tooltip>
-                        )}
+                        endAdornment={() =>
+                          havePermissionToAddHospital && (
+                            <Tooltip title='Add Beds/Enclosures'>
+                              <IconButton
+                                size='small'
+                                onMouseDown={e => e.preventDefault()}
+                                onClick={() => setOpenAddBedsDrawer(true)}
+                                sx={{ ml: 1, fontSize: 28 }}
+                              >
+                                <Icon icon='mdi:plus' color={theme.palette.primary.main} />
+                              </IconButton>
+                            </Tooltip>
+                          )
+                        }
                       />
                     </Grid>
                   </Grid>

@@ -13,7 +13,7 @@ import {
   Tooltip
 } from '@mui/material'
 import { useRouter } from 'next/router'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import RenderUtility from 'src/utility/render'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
 import Icon from 'src/@core/components/icon'
@@ -43,6 +43,7 @@ import SortBottomSheet from '../inpatient/SortBottomSheet'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 import AddRoomDrawer from '../PatientAdmissionForm/AddRoomDrawer'
 import AddBedsDrawer from '../PatientAdmissionForm/AddBedsDrawer'
+import { AuthContext } from 'src/context/AuthContext'
 
 const defaultValues = {
   treatmentType: 'inpatient',
@@ -95,6 +96,8 @@ const schema = yup.object().shape({
 const AddPatientForm = () => {
   const theme = useTheme()
   const router = useRouter()
+  const authData = useContext(AuthContext)
+  const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
 
   const { selectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } = useHospital()
 
@@ -736,18 +739,20 @@ const AddPatientForm = () => {
                     fullWidth
                     loading={roomsLoading}
                     disabled={submitLoader}
-                    endAdornment={() => (
-                      <Tooltip title='Add Rooms'>
-                        <IconButton
-                          size='small'
-                          onMouseDown={e => e.preventDefault()}
-                          onClick={() => setOpenAddRoomDrawer(true)}
-                          sx={{ ml: 1, fontSize: 28 }}
-                        >
-                          <Icon icon='mdi:plus' color={theme.palette.primary.main} />
-                        </IconButton>
-                      </Tooltip>
-                    )}
+                    endAdornment={() =>
+                      havePermissionToAddHospital && (
+                        <Tooltip title='Add Rooms'>
+                          <IconButton
+                            size='small'
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={() => setOpenAddRoomDrawer(true)}
+                            sx={{ ml: 1, fontSize: 28 }}
+                          >
+                            <Icon icon='mdi:plus' color={theme.palette.primary.main} />
+                          </IconButton>
+                        </Tooltip>
+                      )
+                    }
                   />
                   {rooms.length === 0 && (
                     <Typography
@@ -784,18 +789,20 @@ const AddPatientForm = () => {
                     fullWidth
                     loading={bedsLoading}
                     disabled={submitLoader}
-                    endAdornment={() => (
-                      <Tooltip title='Add Beds/Enclosures'>
-                        <IconButton
-                          size='small'
-                          onMouseDown={e => e.preventDefault()}
-                          onClick={() => setOpenAddBedsDrawer(true)}
-                          sx={{ ml: 1, fontSize: 28 }}
-                        >
-                          <Icon icon='mdi:plus' color={theme.palette.primary.main} />
-                        </IconButton>
-                      </Tooltip>
-                    )}
+                    endAdornment={() =>
+                      havePermissionToAddHospital && (
+                        <Tooltip title='Add Beds/Enclosures'>
+                          <IconButton
+                            size='small'
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={() => setOpenAddBedsDrawer(true)}
+                            sx={{ ml: 1, fontSize: 28 }}
+                          >
+                            <Icon icon='mdi:plus' color={theme.palette.primary.main} />
+                          </IconButton>
+                        </Tooltip>
+                      )
+                    }
                   />
                 </Grid>
               </Grid>

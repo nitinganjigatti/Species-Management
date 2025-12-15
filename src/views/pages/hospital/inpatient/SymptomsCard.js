@@ -193,7 +193,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
           <MedicalIdChip
             leftImage
             medId={record?.medical_record_code || 'N/A'}
-            rightDot
+            rightDot={patientData?.medical_record_code === record?.medical_record_code}
             dotColor={theme.palette.primary.main}
             textColor={theme.palette.customColors.OnSurface}
           />
