@@ -138,3 +138,9 @@ export async function getDailyFoodWastageReport(params) {
 //   const response = await axiosGet({ url: `${ANIMAL_REPORT}`, params })
 //   return response.data
 // }
+
+export async function getUpcomingVaccinationRecords(params) {
+  const response = await axiosGet({ url: `${GET_UPCOMING_VACCINATION_RECORDS}`, params })
+
+  return response.data
+}
