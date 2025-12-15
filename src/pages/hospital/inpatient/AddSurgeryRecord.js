@@ -841,16 +841,16 @@ const AddSurgeryRecord = () => {
         </Box>
 
         <AnimalInfoCard
-          image={patientData?.animal_detail?.default_icon || '-'}
-          name={patientData?.animal_detail?.common_name || '-'}
-          scientificName={patientData?.animal_detail?.complete_name || '-'}
-          age={`${patientData?.animal_detail?.age || '-'}`}
-          gender={`${patientData?.animal_detail?.sex || '-'}`}
+          image={patientData?.animal_detail?.default_icon}
+          name={patientData?.animal_detail?.common_name}
+          scientificName={patientData?.animal_detail?.complete_name}
+          age={`${patientData?.animal_detail?.age}`}
+          gender={`${patientData?.animal_detail?.sex}`}
           additionalFields={[
-            { label: 'AID', value: patientData?.animal_detail?.animal_id || '-' },
-            { label: 'Admitted days', value: patientData?.admitted_for_day || '-' },
-            { label: 'Holding Location', value: patientData?.bed_name || '-' },
-            { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name || '-' }
+            { label: 'AID', value: patientData?.animal_detail?.animal_id },
+            { label: 'Admitted days', value: patientData?.admitted_for_day },
+            { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
+            { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }
           ]}
           isLoading={!patientData}
         />

@@ -290,6 +290,7 @@ export const anesthesiaSchema = yup.object({
       anesthetist_id: yup.array().of(yup.string()).min(1, 'Select at least one anesthetist'),
       selected: yup.array().of(yup.string()).default([]),
       custom: yup.array().of(yup.string().trim()).default([])
+
       // notes: yup.string().trim().required('Notes are required')
     })
     .test('purpose-selected-or-custom', 'Select at least one purpose or add a custom purpose', value => {
@@ -1844,16 +1845,16 @@ export default function AddAnesthesiaRecord() {
 
             <Box sx={{ padding: '16px 24px' }}>
               <AnimalInfoCard
-                image={patientData?.animal_detail?.default_icon || '-'}
-                name={patientData?.animal_detail?.common_name || '-'}
-                scientificName={patientData?.animal_detail?.complete_name || '-'}
-                age={`${patientData?.animal_detail?.age || '-'}`}
-                gender={`${patientData?.animal_detail?.sex || '-'}`}
+                image={patientData?.animal_detail?.default_icon}
+                name={patientData?.animal_detail?.common_name}
+                scientificName={patientData?.animal_detail?.complete_name}
+                age={`${patientData?.animal_detail?.age}`}
+                gender={`${patientData?.animal_detail?.sex}`}
                 additionalFields={[
-                  { label: 'AID', value: patientData?.animal_detail?.animal_id || '-' },
-                  { label: 'Admitted days', value: patientData?.admitted_for_day || '-' },
-                  { label: 'Holding Location', value: patientData?.bed_name || '-' },
-                  { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name || '-' }
+                  { label: 'AID', value: patientData?.animal_detail?.animal_id },
+                  { label: 'Admitted days', value: patientData?.admitted_for_day },
+                  { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
+                  { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }
                 ]}
                 isLoading={patientLoading}
               />

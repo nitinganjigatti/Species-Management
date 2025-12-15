@@ -5,6 +5,7 @@ import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
 const AnimalCardBasic = ({ image, name, scientificName, age, gender }) => {
   const theme = useTheme()
+  const fallBackImage = '/icons/antz.svg'
 
   const capitalize = str => (str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '-')
 
@@ -18,7 +19,7 @@ const AnimalCardBasic = ({ image, name, scientificName, age, gender }) => {
       }}
     >
       <Avatar
-        src={image}
+        src={image || fallBackImage}
         alt={name}
         sx={{
           width: 56,

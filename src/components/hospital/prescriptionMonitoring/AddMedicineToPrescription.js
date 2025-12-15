@@ -1514,16 +1514,16 @@ export default function AddMedicineToPrescription() {
     <Box sx={{ p: 3 }}>
       <AnimalInfoCard
         backgroundColor={theme.palette.customColors.OnPrimary}
-        image={patientData?.animal_detail?.default_icon || '-'}
-        name={patientData?.animal_detail?.common_name || '-'}
-        scientificName={patientData?.animal_detail?.complete_name || '-'}
-        age={`${patientData?.animal_detail?.age || '-'}`}
-        gender={`${patientData?.animal_detail?.sex || '-'}`}
+        image={patientData?.animal_detail?.default_icon}
+        name={patientData?.animal_detail?.common_name}
+        scientificName={patientData?.animal_detail?.complete_name}
+        age={`${patientData?.animal_detail?.age}`}
+        gender={`${patientData?.animal_detail?.sex}`}
         additionalFields={[
-          { label: 'AID', value: patientData?.animal_detail?.animal_id || '-' },
-          { label: 'Admitted days', value: patientData?.admitted_for_day || '-' },
-          { label: 'Location', value: patientData?.bed_name || '-' },
-          { label: 'Consulting Veterinarian', value: patientData?.attend_by_full_name || '-' }
+          { label: 'AID', value: patientData?.animal_detail?.animal_id },
+          { label: 'Admitted days', value: patientData?.admitted_for_day },
+          { label: 'Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
+          { label: 'Consulting Veterinarian', value: patientData?.attend_by_full_name }
         ]}
         isLoading={patientLoading}
       />
@@ -1570,7 +1570,6 @@ export default function AddMedicineToPrescription() {
             <PrescriptionMedicineList
               medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
               temporarilySelectedMedicine={temporarilySelectedMedicine}
-
               // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
               selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
               onSelect={handleMedicineSelect}
