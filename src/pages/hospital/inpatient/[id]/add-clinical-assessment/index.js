@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Box, Breadcrumbs, Grid, Typography } from '@mui/material'
-import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
 import { useTheme } from '@mui/material/styles'
 import ActionButtons from 'src/components/hospital/FooterActionbuttons'
 import ClinicalAssessmentList from 'src/components/hospital/ClinicalAssessment/ClinicalAssessmentList'
@@ -13,6 +12,7 @@ import { useRouter } from 'next/router'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
+import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
@@ -386,21 +386,20 @@ function AddClinicalAssessmentPage() {
   return (
     <Box sx={{ p: 3 }}>
       {breadcrumbs}
-      <AnimalDetails
+      <AnimalInfoCard
         image={patientData?.animal_detail?.default_icon}
-        name={patientData?.animal_detail?.common_name || '-'}
-        scientificName={patientData?.animal_detail?.complete_name || '-'}
-        identifierName={patientData?.animal_detail?.local_identifier_name || ''}
-        identifierValue={patientData?.animal_detail?.local_identifier_value || ''}
-        admittedDays={patientData?.admitted_for_day || ''}
-        location={patientData?.bed_name || '-'}
-        vet={patientData?.attend_by_full_name || '-'}
-        ageGender={
-          patientData?.animal_detail?.age || patientData?.animal_detail?.sex
-            ? `${patientData?.animal_detail?.age || ''} ${patientData?.animal_detail?.sex || ''}`
-            : '-'
-        }
+        name={patientData?.animal_detail?.common_name}
+        scientificName={patientData?.animal_detail?.complete_name}
+        age={`${patientData?.animal_detail?.age}`}
+        gender={`${patientData?.animal_detail?.sex}`}
+        additionalFields={[
+          { label: 'AID', value: patientData?.animal_detail?.animal_id },
+          { label: 'Admitted days', value: patientData?.admitted_for_day },
+          { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
+          { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }
+        ]}
         isLoading={patientLoading}
+        backgroundColor={theme.palette.customColors.OnPrimary}
       />
 
       <Grid
