@@ -125,7 +125,13 @@ function ControlledSelectWithTextField({
   const getLabelSx = (shouldShrink, isBackgroundColor) => ({
     position: 'absolute',
     left: '14px',
-    top: shouldShrink ? '-11px' : '50%',
+
+    // top: shouldShrink ? '-11px' : '50%',
+    top: shouldShrink
+      ? '-11px'
+      : hasError
+      ? { xs: '30%', sm: '35%', md: '35%', lg: '40%' }
+      : { xs: '30%', sm: '45%', md: '45%', lg: '50%' },
     transform: shouldShrink ? 'translateY(0) scale(0.75)' : 'translateY(-50%) scale(1)',
     transformOrigin: 'left center',
     pointerEvents: 'none',
@@ -375,7 +381,7 @@ function ControlledSelectWithTextField({
 
       {/* Display combined error message if any field has error */}
       {hasError && (
-        <FormHelperText error sx={{ marginTop: '3px', marginX: '0.875rem' }}>
+        <FormHelperText error sx={{ marginTop: '1px', marginX: '0.875rem' }}>
           {textError || selectError || secondSelectError}
         </FormHelperText>
       )}
