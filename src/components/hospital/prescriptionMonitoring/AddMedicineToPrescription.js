@@ -376,7 +376,7 @@ export default function AddMedicineToPrescription() {
   const intervalItem = watch('interval')
   const selectMedicineType = watch('selectMedicineType')
 
-  const isSmallerDevices = useMediaQuery(theme.breakpoints.down('md'))
+  const isSmallerDevices = useMediaQuery(theme.breakpoints.down('sm'))
 
   // Helper function to calculate duration dynamically
   function calculateDynamicDuration(startDate, endDate) {
@@ -1590,7 +1590,7 @@ export default function AddMedicineToPrescription() {
           )}
         </Grid>
         <Grid container spacing={5} className='match-height' sx={{ pt: 6 }}>
-          <Grid size={{ xs: 12, md: 7, lg: 7 }}>
+          <Grid size={{ xs: 12, md: 6, lg: 6 }}>
             <PrescriptionMedicineList
               medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
               temporarilySelectedMedicine={temporarilySelectedMedicine}
@@ -1615,7 +1615,7 @@ export default function AddMedicineToPrescription() {
               setValue={setValue}
             />
           </Grid>
-          <Grid size={{ xs: 12, md: 5, lg: 5 }}>
+          <Grid size={{ xs: 12, md: 6, lg: 6 }}>
             <ScheduleMedicine
               medicalMasterData={medicalMasterData}
               control={control}

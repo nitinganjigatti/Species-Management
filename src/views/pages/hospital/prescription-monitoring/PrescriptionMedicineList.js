@@ -245,7 +245,7 @@ export default function PrescriptionMedicineList({
         }}
       >
         <Typography sx={{ flex: 1 }}>MEDICINE NAME </Typography>
-        <Typography sx={{ minWidth: '192px', textAlign: 'left' }}>GENERIC NAME</Typography>
+        {/* <Typography sx={{ minWidth: '192px', textAlign: 'left' }}>GENERIC NAME</Typography> */}
       </Box>
 
       <Box sx={{ maxHeight: 650, overflowY: 'auto', mt: 0 }} onScroll={handleScroll}>
@@ -295,7 +295,7 @@ export default function PrescriptionMedicineList({
                   background:
                     isSelected || isTemporarilySelected ? theme.palette.customColors.OnBackground : 'transparent',
                   borderRadius: '1px',
-                  px: 1,
+                  px: 4,
                   py: 3.7,
                   display: 'flex',
                   alignItems: 'center',
@@ -317,31 +317,47 @@ export default function PrescriptionMedicineList({
                       }}
                     />
                   }
-                  label={medicine?.name}
-                  sx={{
-                    flex: 1,
-                    m: 0,
-                    '& .MuiFormControlLabel-label': {
-                      color: isDisabled ? theme.palette.text.disabled : theme.palette.customColors.OnSurfaceVariant,
-                      fontSize: '16px',
-                      fontWeight: 600
-                    }
-                  }}
+
+                  // label={medicine?.name}
+                  // sx={{
+                  //   flex: 1,
+                  //   m: 0,
+                  //   '& .MuiFormControlLabel-label': {
+                  //     color: isDisabled ? theme.palette.text.disabled : theme.palette.customColors.OnSurfaceVariant,
+                  //     fontSize: '16px',
+                  //     fontWeight: 600
+                  //   }
+                  // }}
                 />
-                <Typography
-                  sx={{
-                    width: '200px',
-                    color: isDisabled ? theme.palette.text.disabled : theme.palette.customColors.OnSurfaceVariant,
-                    fontWeight: 500,
-                    fontStyle: 'italic',
-                    fontSize: '14px',
-                    lineHeight: '100%',
-                    letterSpacing: '0.1px',
-                    verticalAlign: 'middle'
-                  }}
-                >
-                  {medicine?.generic_name || 'N/A'}
-                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <Typography
+                    sx={{
+                      width: '200px',
+                      color: isDisabled ? theme.palette.text.disabled : theme.palette.customColors.OnSurfaceVariant,
+                      fontWeight: 600,
+                      fontSize: '16px',
+                      lineHeight: '100%',
+                      letterSpacing: '0.1px',
+                      verticalAlign: 'middle'
+                    }}
+                  >
+                    {medicine?.name || ''}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      width: '200px',
+                      color: isDisabled ? theme.palette.text.disabled : theme.palette.customColors.OnSurfaceVariant,
+                      fontWeight: 500,
+                      fontStyle: 'italic',
+                      fontSize: '14px',
+                      lineHeight: '100%',
+                      letterSpacing: '0.1px',
+                      verticalAlign: 'middle'
+                    }}
+                  >
+                    {medicine?.generic_name || 'N/A'}
+                  </Typography>
+                </Box>
               </Box>
             )
 
@@ -364,6 +380,7 @@ export default function PrescriptionMedicineList({
 }
 
 // Shimmer Loading Component
+// Shimmer Loading Component
 const MedicineShimmer = ({ count = 8 }) => {
   const theme = useTheme()
 
@@ -375,7 +392,7 @@ const MedicineShimmer = ({ count = 8 }) => {
           sx={{
             background: 'transparent',
             borderRadius: '1px',
-            px: 1,
+            px: 4,
             py: 3.7,
             display: 'flex',
             alignItems: 'center',
@@ -385,53 +402,68 @@ const MedicineShimmer = ({ count = 8 }) => {
           {/* Radio shimmer */}
           <Box
             sx={{
-              width: '20px',
-              height: '20px',
+              width: 28,
+              height: 28,
               borderRadius: '50%',
-              background: `linear-gradient(90deg, ${theme.palette.customColors.OutlineVariant} 25%, ${theme.palette.customColors.mdAntzNeutral} 50%, ${theme.palette.customColors.OutlineVariant} 75%)`,
+              background: `linear-gradient(90deg, 
+                ${theme.palette.customColors.OutlineVariant} 25%, 
+                ${theme.palette.customColors.mdAntzNeutral} 50%, 
+                ${theme.palette.customColors.OutlineVariant} 75%)`,
               backgroundSize: '200% 100%',
               animation: `${shimmerAnimation} 1.5s infinite`,
-              marginRight: '8px'
-            }}
-          />
-
-          {/* Medicine name shimmer */}
-          <Box
-            sx={{
-              flex: 1,
+              marginRight: '8px',
               display: 'flex',
-              alignItems: 'center'
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
           >
             <Box
               sx={{
-                width: `${Math.random() * 40 + 60}%`,
+                width: 14,
+                height: 14,
+                borderRadius: '50%',
+                background: theme.palette.background.paper
+              }}
+            />
+          </Box>
+
+          {/* Medicine name and generic name container */}
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: '4px',
+              ml: 1
+            }}
+          >
+            {/* Medicine name shimmer */}
+            <Box
+              sx={{
+                width: `${Math.random() * 100 + 150}px`,
                 height: '16px',
-                background: `linear-gradient(90deg, ${theme.palette.customColors.OutlineVariant} 25%, ${theme.palette.customColors.mdAntzNeutral} 50%, ${theme.palette.customColors.OutlineVariant} 75%)`,
+                background: `linear-gradient(90deg, 
+                  ${theme.palette.customColors.OutlineVariant} 25%, 
+                  ${theme.palette.customColors.mdAntzNeutral} 50%, 
+                  ${theme.palette.customColors.OutlineVariant} 75%)`,
                 backgroundSize: '200% 100%',
                 animation: `${shimmerAnimation} 1.5s infinite`,
                 borderRadius: '4px'
               }}
             />
-          </Box>
-
-          {/* Generic name shimmer */}
-          <Box
-            sx={{
-              width: '200px',
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
+            
+            {/* Generic name shimmer */}
             <Box
               sx={{
-                width: `${Math.random() * 30 + 50}%`,
+                width: `${Math.random() * 80 + 120}px`,
                 height: '14px',
-                background: `linear-gradient(90deg, ${theme.palette.customColors.OutlineVariant} 25%, ${theme.palette.customColors.mdAntzNeutral} 50%, ${theme.palette.customColors.OutlineVariant} 75%)`,
+                background: `linear-gradient(90deg, 
+                  ${theme.palette.customColors.OutlineVariant} 25%, 
+                  ${theme.palette.customColors.mdAntzNeutral} 50%, 
+                  ${theme.palette.customColors.OutlineVariant} 75%)`,
                 backgroundSize: '200% 100%',
                 animation: `${shimmerAnimation} 1.5s infinite`,
                 borderRadius: '4px',
-                opacity: 0.7
+                opacity: 0.8
               }}
             />
           </Box>
