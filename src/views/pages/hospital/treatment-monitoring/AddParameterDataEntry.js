@@ -231,7 +231,6 @@ const AddParameterDataEntry = ({
         sx={{
           '& .MuiDrawer-paper': {
             width: ['100%', '562px'],
-            height: '100vh',
             display: 'flex',
             flexDirection: 'column'
           }

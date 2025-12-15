@@ -346,9 +346,9 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
             )}
 
           <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.neutralSecondary }}>
-            Last Updated: {Utility.convertUTCToLocaltime(record?.latest_note?.modified_at)}
+            Last Updated: {Utility?.formatDisplayDate(record?.latest_note?.modified_at)}
             <span style={{ margin: '0 8px', color: theme.palette.customColors.neutralSecondary }}>•</span>
-            {Utility?.formatDisplayDate(record?.latest_note?.modified_at)}
+            {Utility.convertUTCToLocaltime(record?.latest_note?.modified_at)}
           </Typography>
         </Box>
 

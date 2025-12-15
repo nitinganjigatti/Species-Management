@@ -1,4 +1,4 @@
-import { Box, Button, CircularProgress, Drawer, Grid, IconButton, Typography, useTheme } from '@mui/material'
+import { Box, Button, CircularProgress, Drawer, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import { debounce } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -21,6 +21,8 @@ import Toaster from 'src/components/Toaster'
 import { useRouter } from 'next/router'
 import Utility from 'src/utility'
 import { editAnimalAdmissionDetails } from 'src/lib/api/hospital/inpatient'
+import AddRoomDrawer from '../PatientAdmissionForm/AddRoomDrawer'
+import AddBedsDrawer from '../PatientAdmissionForm/AddBedsDrawer'
 
 const defaultValues = {
   holdingEnclosure: null,
@@ -42,7 +44,7 @@ const schema = yup.object().shape({
 
 const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) => {
   const theme = useTheme()
-  const { selectedHospital } = useHospital()
+  const { selectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } = useHospital()
   const router = useRouter()
 
   const [doctorDrawerOpen, setDoctorDrawerOpen] = useState(false)
@@ -54,6 +56,8 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
   const [rooms, setRooms] = useState([])
   const [searchRoom, setSearchRoom] = useState('')
   const [searchEnclosure, setSearchEnclosure] = useState('')
+  const [openAddRoomDrawer, setOpenAddRoomDrawer] = useState(false)
+  const [openAddBedsDrawer, setOpenAddBedsDrawer] = useState(false)
 
   const {
     control,
@@ -128,7 +132,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
     }
 
     getHospitalRooms()
-  }, [selectedHospital, searchRoom])
+  }, [selectedHospital, searchRoom, hospitalStats?.available_rooms])
 
   const selectedRoom = watch('room')
 
@@ -160,7 +164,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
     }
 
     getHospitalBeds()
-  }, [selectedRoom, selectedHospital, searchEnclosure])
+  }, [selectedRoom, selectedHospital, searchEnclosure, hospitalStats?.available_rooms])
 
   const debouncedSearch = React.useMemo(() => debounce(val => setSearchRoom(val), 1000), [])
 
@@ -419,6 +423,18 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
                   sx={{ borderRadius: 1, background: theme.palette.customColors.Surface }}
                   fullWidth
                   loading={roomLoading}
+                  endAdornment={() => (
+                    <Tooltip title='Add Rooms'>
+                      <IconButton
+                        size='small'
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => setOpenAddRoomDrawer(true)}
+                        sx={{ ml: 1, fontSize: 28 }}
+                      >
+                        <Icon icon='mdi:plus' color={theme.palette.primary.main} />
+                      </IconButton>
+                    </Tooltip>
+                  )}
                 />
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -441,6 +457,18 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
                   sx={{ borderRadius: 1, background: theme.palette.customColors.Surface }}
                   fullWidth
                   loading={enclosureLoading}
+                  endAdornment={() => (
+                    <Tooltip title='Add Beds/Enclosures'>
+                      <IconButton
+                        size='small'
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => setOpenAddBedsDrawer(true)}
+                        sx={{ ml: 1, fontSize: 28 }}
+                      >
+                        <Icon icon='mdi:plus' color={theme.palette.primary.main} />
+                      </IconButton>
+                    </Tooltip>
+                  )}
                 />
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -511,6 +539,26 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
           setOpen={setDoctorDrawerOpen}
           onSelectDoctor={handleDoctorSelection}
           hospitalId={selectedHospital?.id}
+        />
+      )}
+      {openAddRoomDrawer && (
+        <AddRoomDrawer
+          open={openAddRoomDrawer}
+          setOpen={setOpenAddRoomDrawer}
+          selectedHospital={selectedHospital}
+          hospitalStats={hospitalStats}
+          isHospitalStatsLoading={isHospitalStatsLoading}
+          updateHospitalStats={updateHospitalStats}
+        />
+      )}
+      {openAddBedsDrawer && (
+        <AddBedsDrawer
+          open={openAddBedsDrawer}
+          setOpen={setOpenAddBedsDrawer}
+          selectedHospital={selectedHospital}
+          hospitalStats={hospitalStats}
+          isHospitalStatsLoading={isHospitalStatsLoading}
+          updateHospitalStats={updateHospitalStats}
         />
       )}
     </>

@@ -64,12 +64,12 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday, theme) => {
       tooltipElement = document.createElement('div')
       tooltipElement.style.cssText = `
         position: absolute;
-        bottom: -27px;      
+        bottom: -24px;      
         transform: translateX(-50%);
         background-color: white;
         border: 1px solid ${theme.palette.customColors.Error};
         color: ${theme.palette.customColors.Error};
-        padding: 4px 8px;
+        padding: 2px 6px;
         font-size: 12px;
         font-weight: 600;
         border-radius: 8px;
@@ -84,7 +84,7 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday, theme) => {
         .tooltip-arrow::after {
           content: "";
           position: absolute;
-          top: -25%;
+          top: -28%;
           left: 50%;
           transform: translateX(-50%);
           width: 0;
@@ -659,7 +659,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
             )}
           </Grid>
         </Grid>
-        <Grid size={{ xs: 12 }} sx={{ mt: 4 }}>
+        <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
           {monitoringLoading ? (
             <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4 }}>
               <Box sx={{ width: '180px', display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -768,7 +768,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                 </FixedColumn>
 
                 <ScrollableContainer ref={scrollContainerRef}>
-                  <TimeSlotGrid numColumns={timeSlots.length} sx={{ mb: 8 }}>
+                  <TimeSlotGrid numColumns={timeSlots.length} sx={{ mb: 7 }}>
                     {timeSlots.map(time => (
                       <TimeHeader key={time} data-hour={time} ref={el => (hourRefs.current[time] = el)}>
                         {time}
@@ -910,7 +910,7 @@ const HeaderContainer = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2, 3),
   background: theme.palette.customColors.lightBg,
   borderRadius: '4px',
-  marginBottom: theme.spacing(8),
+  marginBottom: theme.spacing(7),
   width: '100%',
   height: '56px'
 }))

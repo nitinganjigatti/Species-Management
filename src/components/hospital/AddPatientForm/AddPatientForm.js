@@ -9,7 +9,8 @@ import {
   Button,
   alpha,
   IconButton,
-  useTheme
+  useTheme,
+  Tooltip
 } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
@@ -40,6 +41,8 @@ import moment from 'moment'
 import AddPatientFiltersDrawer from '../inpatient/AddPatientFiltersDrawer'
 import SortBottomSheet from '../inpatient/SortBottomSheet'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
+import AddRoomDrawer from '../PatientAdmissionForm/AddRoomDrawer'
+import AddBedsDrawer from '../PatientAdmissionForm/AddBedsDrawer'
 
 const defaultValues = {
   treatmentType: 'inpatient',
@@ -93,7 +96,7 @@ const AddPatientForm = () => {
   const theme = useTheme()
   const router = useRouter()
 
-  const { selectedHospital, updateHospitalStats } = useHospital()
+  const { selectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } = useHospital()
 
   const [medicalId, setMedicalId] = useState([])
   const [holdingEnclosures, setHoldingEnclosures] = useState([])
@@ -112,6 +115,8 @@ const AddPatientForm = () => {
   const [loading, setLoading] = useState(false)
   const [isSortBottomSheetOpen, setIsSortBottomSheetOpen] = useState(false)
   const [searchRoom, setSearchRoom] = useState('')
+  const [openAddRoomDrawer, setOpenAddRoomDrawer] = useState(false)
+  const [openAddBedsDrawer, setOpenAddBedsDrawer] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
     Gender: [],
@@ -186,7 +191,7 @@ const AddPatientForm = () => {
     }
 
     getHospitalRooms()
-  }, [selectedHospital, searchRoom])
+  }, [selectedHospital, searchRoom, hospitalStats?.available_rooms])
 
   const selectedRoom = watch('room')
 
@@ -219,7 +224,7 @@ const AddPatientForm = () => {
     }
 
     getHospitalBeds()
-  }, [selectedRoom, selectedHospital, searchEnclosure])
+  }, [selectedRoom, selectedHospital, searchEnclosure, hospitalStats?.available_rooms])
 
   const debouncedSearch = React.useMemo(() => debounce(val => setSearchRoom(val), 1000), [])
 
@@ -731,6 +736,18 @@ const AddPatientForm = () => {
                     fullWidth
                     loading={roomsLoading}
                     disabled={submitLoader}
+                    endAdornment={() => (
+                      <Tooltip title='Add Rooms'>
+                        <IconButton
+                          size='small'
+                          onMouseDown={e => e.preventDefault()}
+                          onClick={() => setOpenAddRoomDrawer(true)}
+                          sx={{ ml: 1, fontSize: 28 }}
+                        >
+                          <Icon icon='mdi:plus' color={theme.palette.primary.main} />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   />
                   {rooms.length === 0 && (
                     <Typography
@@ -767,6 +784,18 @@ const AddPatientForm = () => {
                     fullWidth
                     loading={bedsLoading}
                     disabled={submitLoader}
+                    endAdornment={() => (
+                      <Tooltip title='Add Beds/Enclosures'>
+                        <IconButton
+                          size='small'
+                          onMouseDown={e => e.preventDefault()}
+                          onClick={() => setOpenAddBedsDrawer(true)}
+                          sx={{ ml: 1, fontSize: 28 }}
+                        >
+                          <Icon icon='mdi:plus' color={theme.palette.primary.main} />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   />
                 </Grid>
               </Grid>
@@ -876,6 +905,26 @@ const AddPatientForm = () => {
         filterCount={filterCount}
         initialSelectedOptions={selectedOptions}
       />
+      {openAddRoomDrawer && (
+        <AddRoomDrawer
+          open={openAddRoomDrawer}
+          setOpen={setOpenAddRoomDrawer}
+          selectedHospital={selectedHospital}
+          hospitalStats={hospitalStats}
+          isHospitalStatsLoading={isHospitalStatsLoading}
+          updateHospitalStats={updateHospitalStats}
+        />
+      )}
+      {openAddBedsDrawer && (
+        <AddBedsDrawer
+          open={openAddBedsDrawer}
+          setOpen={setOpenAddBedsDrawer}
+          selectedHospital={selectedHospital}
+          hospitalStats={hospitalStats}
+          isHospitalStatsLoading={isHospitalStatsLoading}
+          updateHospitalStats={updateHospitalStats}
+        />
+      )}
     </>
   )
 }
