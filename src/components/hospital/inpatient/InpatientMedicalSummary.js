@@ -4,7 +4,6 @@ import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import { getAnimalJournalLogs } from 'src/lib/api/housing'
 import Utility from 'src/utility'
-import Toaster from 'src/components/Toaster'
 import GroupedTimeline from 'src/views/pages/hospital/inpatient/GroupedTimeline'
 import MedicalSummaryFilterDrawer from '../drawer/MedicalSummaryFilterDrawer'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
@@ -196,9 +195,9 @@ const InpatientMedicalSummary = ({ patientData }) => {
     enabled: !!animal_id,
     onError: error => {
       console.error('Error fetching medical summary list:', error?.message || error)
-      Toaster({ type: 'error', message: error?.response?.data?.message || error?.message || 'Failed to fetch data' })
     }
   })
+  const isInitialLoading = !medicalSummaryData?.pages?.length
 
   // Combine all pages of data
   const allMedicalEntries = useMemo(() => {
@@ -228,7 +227,7 @@ const InpatientMedicalSummary = ({ patientData }) => {
     <>
       <GroupedTimeline
         medicalSummaryData={allMedicalEntries}
-        isLoading={isFetching && allMedicalEntries.length === 0}
+        isLoading={isInitialLoading}
         searchQuery={searchValue}
         onSearchChange={handleSearchChange}
         medicalType={filters.module_filter}

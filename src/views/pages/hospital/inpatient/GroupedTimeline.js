@@ -154,33 +154,40 @@ const GroupedTimeline = ({
 }) => {
   const theme = useTheme()
 
+  if (isLoading) {
+    return (
+      <Box sx={{ mt: 2 }}>
+        <TimelineSkeleton />
+      </Box>
+    )
+  }
+
   return (
     <>
       <Box sx={{ width: '100%', mt: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-        <>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: { xs: 'center', sm: 'space-between' },
-              alignItems: { xs: 'stretch', sm: 'center' },
-              gap: 3,
-              mb: '1.5rem'
-            }}
-          >
-            <Search
-              borderRadius={'4px'}
-              width={{ xs: '100%', sm: 222 }}
-              value={searchQuery}
-              onChange={e => onSearchChange(e.target.value)}
-              onClear={onClearSearch}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: { xs: 'center', sm: 'space-between' },
+            alignItems: { xs: 'stretch', sm: 'center' },
+            gap: 3,
+            mb: '1.5rem'
+          }}
+        >
+          <Search
+            borderRadius={'4px'}
+            width={{ xs: '100%', sm: 222 }}
+            value={searchQuery}
+            onChange={e => onSearchChange(e.target.value)}
+            onClear={onClearSearch}
+          />
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <CommonDateRangePickers
+              filterDates={filterDate}
+              onChange={(start, end) => setFilterDate({ startDate: start, endDate: end })}
             />
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <CommonDateRangePickers
-                filterDates={filterDate}
-                onChange={(start, end) => setFilterDate({ startDate: start, endDate: end })}
-              />
-              {/* <FormControl sx={{ minWidth: 120, flex: 1, m: 0 }}>
+            {/* <FormControl sx={{ minWidth: 120, flex: 1, m: 0 }}>
                 <Select
                   value={medicalType}
                   onChange={e => onMedicalTypeChange(e.target.value)}
@@ -200,52 +207,46 @@ const GroupedTimeline = ({
                 </Select>
               </FormControl> */}
 
-              <FilterButtonWithNotification
-                onClick={() => setOpenFilterDrawer(true)}
-                appliedFiltersCount={filterCount}
-              />
-            </Box>
+            <FilterButtonWithNotification onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={filterCount} />
           </Box>
-          {isLoading ? (
-            <TimelineSkeleton />
-          ) : medicalSummaryData?.length > 0 ? (
-            <>
-              {medicalSummaryData?.map((section, index) => {
-                const isLast = index === medicalSummaryData.length - 1
+        </Box>
+        {medicalSummaryData?.length > 0 ? (
+          <>
+            {medicalSummaryData?.map((section, index) => {
+              const isLast = index === medicalSummaryData?.length - 1
 
-                return (
-                  <Box key={`${section?.date}-${index}`} ref={isLast ? lastTimelineRef : null} sx={{ mb: '1rem' }}>
-                    <TimelineSection section={section} />
-                  </Box>
-                )
-              })}
-              {/* Show skeleton only when fetching more pages and we already have data */}
-              {isFetchingNextPage && medicalSummaryData.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <TimelineSkeleton />
+              return (
+                <Box key={`${section?.date}-${index}`} ref={isLast ? lastTimelineRef : null} sx={{ mb: '1rem' }}>
+                  <TimelineSection section={section} />
                 </Box>
-              )}
+              )
+            })}
+            {/* Show skeleton only when fetching more pages and we already have data */}
+            {isFetchingNextPage && medicalSummaryData?.length > 0 && (
+              <Box sx={{ mt: 2 }}>
+                <TimelineSkeleton />
+              </Box>
+            )}
 
-              {/*  Show "No more data" */}
-              {!hasNextPage && medicalSummaryData.length > 0 && (
-                <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.text.disabled }}>
-                  No more medical summary data to load
-                </StyledTypography>
-              )}
-            </>
-          ) : (
-            <Box
-              sx={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}
-            >
-              <NoMedicalData isDischarged={true} />
-            </Box>
-          )}
-        </>
+            {/*  Show "No more data" */}
+            {!hasNextPage && medicalSummaryData?.length > 9 && (
+              <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.text.disabled }}>
+                No more medical summary data to load
+              </StyledTypography>
+            )}
+          </>
+        ) : (
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          >
+            <NoMedicalData isDischarged={true} />
+          </Box>
+        )}
       </Box>
     </>
   )
@@ -253,7 +254,6 @@ const GroupedTimeline = ({
 
 export default GroupedTimeline
 
-// Styled Components
 const StyledTimeline = styled(Timeline)(() => ({
   [`& .${timelineOppositeContentClasses.root}`]: {
     flex: 0,
@@ -311,7 +311,6 @@ const StyledTypography = styled(Typography)(({ theme, fontWeight, fontSize, colo
   color: color || theme.palette.customColors.OnSurfaceVariant
 }))
 
-// skeleton loader
 const TimelineSkeleton = () => {
   return (
     <Timeline
