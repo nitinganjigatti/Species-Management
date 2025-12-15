@@ -7,6 +7,10 @@ import {
   CardHeader,
   Checkbox,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   FormHelperText,
   Popover,
@@ -28,7 +32,8 @@ import {
   getMedicalReport,
   getAnimalAssessment,
   getEnclosureAssessment,
-  getDailyFoodWastageReport
+  getDailyFoodWastageReport,
+  getUpcomingVaccinationRecords
 } from 'src/lib/api/report'
 
 const Animal = () => {
@@ -41,6 +46,9 @@ const Animal = () => {
   const [errors, setErrors] = useState({})
   const [reportData, setReportData] = useState([])
   const [downloadingRowId, setDownloadingRowId] = useState(null)
+  const [upcomingDialogOpen, setUpcomingDialogOpen] = useState(false)
+  const [upcomingEndDate, setUpcomingEndDate] = useState(null)
+  const [upcomingReportType, setUpcomingReportType] = useState(null)
 
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
@@ -105,10 +113,7 @@ const Animal = () => {
             limit: paginationModel.pageSize
           })
           if (Array.isArray(response)) {
-            const modifiedResponse = [
-              ...response,
-              { id: 12, title: 'Food Wastage', key: 'food_wastage', action: 'Download' }
-            ]
+            const modifiedResponse = [...response]
             setReportData(modifiedResponse)
           } else {
             console.error('error >')
@@ -137,13 +142,17 @@ const Animal = () => {
     }
   }
 
-  const getDataToExport = async type => {
+  const getDataToExport = async (type, customStartDate = null, customEndDate = null) => {
     try {
       const params = { type: type, ...apiFilterParams }
-      if (startDate) {
+      if (customStartDate) {
+        params.start_date = customStartDate
+      } else if (startDate) {
         params.start_date = startDate
       }
-      if (endDate) {
+      if (customEndDate) {
+        params.end_date = customEndDate
+      } else if (endDate) {
         params.end_date = endDate
       }
       params.response_type = 'csv'
@@ -158,6 +167,10 @@ const Animal = () => {
         response = await getEnclosureAssessment(params)
       } else if (type === 'food_wastage') {
         response = await getDailyFoodWastageReport(params)
+      } else if (type === 'upcoming_vaccination' || type === 'upcoming_deworming') {
+        params.response_type = 'excel'
+        params.type = type === 'upcoming_vaccination' ? 'vaccination' : 'deworming'
+        response = await getUpcomingVaccinationRecords(params)
       } else {
         response = await getAnimalReport(params)
       }
@@ -238,6 +251,49 @@ const Animal = () => {
     })
   }
 
+  const handleUpcomingEndDateChange = dateString => {
+    const date = new Date(dateString)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const formattedDate = `${year}-${month}-${day}`
+    setUpcomingEndDate(formattedDate)
+  }
+
+  const handleUpcomingDialogClose = () => {
+    setUpcomingDialogOpen(false)
+    setUpcomingEndDate(null)
+    setUpcomingReportType(null)
+  }
+
+  const handleUpcomingDownload = async () => {
+    if (!upcomingEndDate) {
+      Toaster({ type: 'error', message: 'Please select an end date' })
+      return
+    }
+    const today = new Date()
+    const year = today.getFullYear()
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+    const day = String(today.getDate()).padStart(2, '0')
+    const todayFormatted = `${year}-${month}-${day}`
+
+    setUpcomingDialogOpen(false)
+    setDownloadingRowId(upcomingReportType)
+    try {
+      await getDataToExport(upcomingReportType, todayFormatted, upcomingEndDate)
+    } finally {
+      setDownloadingRowId(null)
+      setUpcomingEndDate(null)
+      setUpcomingReportType(null)
+    }
+  }
+
+  const getUpcomingReportTitle = type => {
+    if (!type) return 'Upcoming Report'
+    const reportName = type.replace('upcoming_', '').replace(/_/g, ' ')
+    return `Upcoming ${reportName.charAt(0).toUpperCase() + reportName.slice(1)} Report`
+  }
+
   const reportRows = reportData
   const open = Boolean(anchorEl)
   const id = open ? 'filter-popover' : undefined
@@ -265,16 +321,25 @@ const Animal = () => {
       renderCell: params => {
         const handleExport = params => {
           const { row } = params
+          if (row.date_type === 'future') {
+            setUpcomingReportType(row.key)
+            setUpcomingDialogOpen(true)
+            return
+          }
           setDownloadingRowId(row.id)
           getDataToExport(row.key)
             .then(() => setDownloadingRowId(null))
             .catch(() => setDownloadingRowId(null))
         }
 
+        const isFutureReport = params.row.date_type === 'future'
+        const isDownloading =
+          downloadingRowId === params.row.id || (isFutureReport && downloadingRowId === params.row.key)
+
         return (
           <Button
             variant='contained'
-            disabled={downloadingRowId === params.row.id}
+            disabled={isDownloading}
             onClick={() => handleExport(params)}
             sx={{
               width: '120px',
@@ -284,11 +349,7 @@ const Animal = () => {
               justifyContent: 'center'
             }}
           >
-            {downloadingRowId === params.row.id ? (
-              <CircularProgress size={20} sx={{ color: 'white' }} />
-            ) : (
-              params.row.action
-            )}
+            {isDownloading ? <CircularProgress size={20} sx={{ color: 'white' }} /> : params.row.action}
           </Button>
         )
       }
@@ -488,6 +549,42 @@ const Animal = () => {
               scrollbarSize={10}
             />
           </Box>
+
+          <Dialog open={upcomingDialogOpen} onClose={handleUpcomingDialogClose}>
+            <DialogTitle>{getUpcomingReportTitle(upcomingReportType)}</DialogTitle>
+            <DialogContent>
+              <Typography sx={{ mb: 2 }}>Select till when you need the report. Start date will be today.</Typography>
+              <FormControl fullWidth>
+                <SingleDatePicker
+                  value={upcomingEndDate}
+                  name='EndDate*'
+                  onChange={handleUpcomingEndDateChange}
+                  customInput={
+                    <TextField
+                      label='End Date*'
+                      fullWidth
+                      sx={{
+                        '& .MuiInputBase-input': {
+                          mt: 1,
+                          height: '25px',
+                          padding: '8px'
+                        }
+                      }}
+                    />
+                  }
+                  minDate={new Date()}
+                />
+              </FormControl>
+            </DialogContent>
+            <DialogActions>
+              <Button variant='outlined' onClick={handleUpcomingDialogClose}>
+                Cancel
+              </Button>
+              <Button variant='contained' onClick={handleUpcomingDownload} disabled={!upcomingEndDate}>
+                Download
+              </Button>
+            </DialogActions>
+          </Dialog>
         </Card>
       ) : (
         <>
