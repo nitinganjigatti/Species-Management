@@ -197,31 +197,40 @@ export default function PrescriptionMedicineList({
 
   // Render list view for desktop
   return (
-    <Box sx={{ pt: fromPage === 'prescriptionDetail' || medicine_edit_id ? 0 : 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {fromPage === 'prescriptionDetail' || medicine_edit_id ? null : <TextField
-        placeholder='Search'
-        fullWidth
-        size='small'
-        sx={{ mb: 2, borderRadius: '8px' }}
-        value={searchQuery}
-        onChange={handleSearchChange}
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position='start'>
-                <SearchIcon fontSize='small' sx={{ color: 'gray' }} />
-              </InputAdornment>
-            ),
-            endAdornment: searchQuery && (
-              <InputAdornment position='end' disabled={fromPage === 'prescriptionDetail' || medicine_edit_id}>
-                <IconButton onClick={handleClearSearch} size='small' sx={{ color: 'gray' }}>
-                  <ClearIcon fontSize='small' />
-                </IconButton>
-              </InputAdornment>
-            )
-          }
-        }}
-      />}
+    <Box
+      sx={{
+        pt: fromPage === 'prescriptionDetail' || medicine_edit_id ? 0 : 1,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
+      {fromPage === 'prescriptionDetail' || medicine_edit_id ? null : (
+        <TextField
+          placeholder='Search'
+          fullWidth
+          size='small'
+          sx={{ mb: 2, borderRadius: '8px' }}
+          value={searchQuery}
+          onChange={handleSearchChange}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon fontSize='small' sx={{ color: 'gray' }} />
+                </InputAdornment>
+              ),
+              endAdornment: searchQuery && (
+                <InputAdornment position='end' disabled={fromPage === 'prescriptionDetail' || medicine_edit_id}>
+                  <IconButton onClick={handleClearSearch} size='small' sx={{ color: 'gray' }}>
+                    <ClearIcon fontSize='small' />
+                  </IconButton>
+                </InputAdornment>
+              )
+            }
+          }}
+        />
+      )}
       <Box
         sx={{
           color: theme.palette.customColors.deepDark,
@@ -271,7 +280,9 @@ export default function PrescriptionMedicineList({
 
             const isPrescribed =
               tab == 'discharge'
-                ? isEnclosureMedicineAdded(medicine.id.toString())
+                ? medicine_edit_id
+                  ? isEnclosureMedicineAdded(medicine.id.toString())
+                  : isMedicinePrescribed(medicine?.id) || isEnclosureMedicineAdded(medicine.id.toString())
                 : isDirectAdminister
                 ? false
                 : isMedicinePrescribed(medicine?.id)
