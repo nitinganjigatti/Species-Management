@@ -54,7 +54,7 @@ const AnimalInfoCard = ({ backgroundColor, additionalFields, image, name, scient
           <Grid
             size={{ xs: 6, sm: 3, md: index == 0 ? 2 : 2.125, lg: 2 }}
             key={index}
-            sx={{ display: 'flex', justifyContent: index == 0 && 'center' }}
+            sx={{ display: 'flex', justifyContent: { md: index == 0 && 'center' } }}
           >
             <StatBox label={label} value={value} />
           </Grid>
