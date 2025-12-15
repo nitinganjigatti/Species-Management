@@ -711,6 +711,8 @@ export const LIST_SURGERY_TEMPLATES = 'v1/hospital/list-template'
 
 export const CREATE_SURGERY_TEMPLATE = 'v1/hospital/create-template'
 
+export const DELETE_SURGERY_RECORD = 'v1/hospital/delete-surgery-record'
+
 export const DELETE_TEMPLATE = 'v1/hospital/delete-template'
 
 export const UPDATE_TEMPLATE = 'v1/hospital/update-template'
