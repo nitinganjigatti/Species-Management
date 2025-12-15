@@ -309,7 +309,8 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
 
   const activeSurgeryRecordId = useMemo(() => {
     if (activeRecord?.id !== undefined && activeRecord?.id !== null) return String(activeRecord.id)
-    if (activeRecord?.detail?.id !== undefined && activeRecord?.detail?.id !== null) return String(activeRecord.detail.id)
+    if (activeRecord?.detail?.id !== undefined && activeRecord?.detail?.id !== null)
+      return String(activeRecord.detail.id)
 
     return activeSurgeryId || ''
   }, [activeRecord, activeSurgeryId])
@@ -353,8 +354,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
         Toaster({ type: 'error', message })
       }
     } catch (deleteError) {
-      const message =
-        deleteError?.response?.data?.message || deleteError?.message || 'Failed to delete surgery record.'
+      const message = deleteError?.response?.data?.message || deleteError?.message || 'Failed to delete surgery record.'
       Toaster({ type: 'error', message })
     } finally {
       setDeleteLoading(false)
@@ -421,6 +421,15 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
     () => (Array.isArray(activeDetail?.attachments) ? activeDetail.attachments : []),
     [activeDetail]
   )
+
+  const anesthesiaInfo = useMemo(() => {
+    const detail = activeDetail?.anaesthesia_detail || {}
+
+    return {
+      code: detail?.code || '--',
+      datetime: formatDateValue(detail?.anaesthesia_datetime)
+    }
+  }, [activeDetail])
 
   const renderTabContent = () => {
     if (loading) {
@@ -687,7 +696,16 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                     src='/icons/pencil_outlined.svg'
                     alt='Edit'
                     sx={{ width: 24, height: 24, cursor: 'pointer' }}
-                    // onClick={() => handleEditClick(anesthesiaDetail)}
+                    onClick={() => {
+                      if (!activeSurgeryRecordId) return
+
+                      const query = {}
+                      if (resolvedHospitalCaseId) query.hospital_case_id = resolvedHospitalCaseId
+                      if (medicalRecordId) query.medical_record_id = medicalRecordId
+                      query.id = activeSurgeryRecordId
+
+                      router.push({ pathname: '/hospital/inpatient/AddSurgeryRecord', query })
+                    }}
                   />
                 )}
                 <Box
@@ -745,6 +763,73 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                   </Grid>
                 ))}
               </Grid>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <DetailsHeader text={'Anaesthesia details'} />
+              <Box
+                sx={{
+                  px: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '8px'
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: '14px',
+                    color: theme.palette.customColors.neutralSecondary,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <span>Anaesthesia Id</span>
+                  <Typography
+                    component='span'
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: '16px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    {anesthesiaInfo.code}
+                  </Typography>
+                  <Typography
+                    component='span'
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: '16px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    |
+                  </Typography>
+                  <Typography
+                    component='span'
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: '16px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    {anesthesiaInfo.datetime}
+                  </Typography>
+                </Typography>
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '16px',
+                    color: theme.palette.primary.OnSurface,
+                    cursor: 'pointer'
+                  }}
+                >
+                  View details
+                </Typography>
+              </Box>
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
