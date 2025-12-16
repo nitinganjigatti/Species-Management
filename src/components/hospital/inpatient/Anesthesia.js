@@ -201,6 +201,16 @@ function Anesthesia({
   const [deleteLoading, setDeleteLoading] = useState(false)
   const isDischared = overviewData?.status === 'discharge'
   const previousFirstRecordIdRef = useRef('')
+  const preferredAppliedRef = useRef(false)
+  const preferredAnesthesiaId = useMemo(() => {
+    const possible = router.query?.anaesthesia_id || router.query?.anesthesia_id
+
+    return Array.isArray(possible) ? possible[0] : possible || ''
+  }, [router.query?.anaesthesia_id, router.query?.anesthesia_id])
+
+  useEffect(() => {
+    preferredAppliedRef.current = false
+  }, [preferredAnesthesiaId])
 
   useEffect(() => {
     if (!anesthesiaRecords.length) {
@@ -215,6 +225,15 @@ function Anesthesia({
       .map(id => (id == null ? '' : String(id)))
       .filter(Boolean)
 
+    const preferredId = preferredAnesthesiaId ? String(preferredAnesthesiaId) : ''
+    if (preferredId && !preferredAppliedRef.current && currentIds.includes(preferredId)) {
+      setActiveRecordId(preferredId)
+      preferredAppliedRef.current = true
+      previousFirstRecordIdRef.current = currentIds[0] || ''
+
+      return
+    }
+
     const firstId = currentIds[0] || ''
     const previousFirstId = previousFirstRecordIdRef.current
     previousFirstRecordIdRef.current = firstId
@@ -228,7 +247,7 @@ function Anesthesia({
     if (!currentIds.includes(String(activeRecordId))) {
       setActiveRecordId(firstId)
     }
-  }, [anesthesiaRecords, activeRecordId])
+  }, [anesthesiaRecords, activeRecordId, preferredAnesthesiaId])
 
   const activeRecord = useMemo(() => {
     if (!anesthesiaRecords.length) return null

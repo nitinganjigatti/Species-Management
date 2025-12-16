@@ -317,19 +317,6 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
 
   const deleteDisabled = deleteLoading || loading || !activeSurgeryRecordId
 
-  const handleViewAnesthesiaDetails = useCallback(() => {
-    if (!resolvedHospitalCaseId) return
-
-    const query = { tab: 'anesthesia' }
-    if (medicalRecordId) {
-      query.medical_record_id = medicalRecordId
-    }
-
-    router.push({ pathname: `/hospital/inpatient/${resolvedHospitalCaseId}`, query })
-  }, [medicalRecordId, resolvedHospitalCaseId, router])
-
-  const canViewAnesthesia = Boolean(resolvedHospitalCaseId)
-
   const handleDeleteClick = useCallback(() => {
     if (!activeSurgeryRecordId || deleteLoading) return
 
@@ -378,6 +365,22 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
   const activeDetail = activeRecord?.detail ?? null
 
   const surgeryCode = getRecordCode(activeRecord)
+
+  const handleViewAnesthesiaDetails = useCallback(() => {
+    if (!resolvedHospitalCaseId) return
+
+    const query = { tab: 'anesthesia' }
+    if (medicalRecordId) {
+      query.medical_record_id = medicalRecordId
+    }
+    if (activeDetail?.anaesthesia_id) {
+      query.anaesthesia_id = activeDetail.anaesthesia_id
+    }
+
+    router.push({ pathname: `/hospital/inpatient/${resolvedHospitalCaseId}`, query })
+  }, [activeDetail?.anaesthesia_id, medicalRecordId, resolvedHospitalCaseId, router])
+
+  const canViewAnesthesia = Boolean(resolvedHospitalCaseId)
 
   const basicDetails = useMemo(() => {
     const detail = activeDetail || {}
@@ -722,18 +725,20 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                     }}
                   />
                 )}
-                <Box
-                  component='img'
-                  src='/icons/delete_outlined.svg'
-                  alt='Delete'
-                  sx={{
-                    width: 24,
-                    height: 24,
-                    cursor: deleteDisabled ? 'not-allowed' : 'pointer',
-                    opacity: deleteDisabled ? 0.4 : 1
-                  }}
-                  onClick={deleteDisabled ? undefined : handleDeleteClick}
-                />
+                {!patientDischarged && (
+                  <Box
+                    component='img'
+                    src='/icons/delete_outlined.svg'
+                    alt='Delete'
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      cursor: deleteDisabled ? 'not-allowed' : 'pointer',
+                      opacity: deleteDisabled ? 0.4 : 1
+                    }}
+                    onClick={deleteDisabled ? undefined : handleDeleteClick}
+                  />
+                )}
               </Box>
             </Box>
 
