@@ -22,7 +22,8 @@ const BottomActionBar = ({
   cancelBtnVariant = 'outlined',
   layoutStyle = {},
   submitBtnProps = {},
-  cancelBtnProps = {}
+  cancelBtnProps = {},
+  childrenStyle = {}
 }) => {
   const theme = useTheme()
   const { settings } = useSettings()
@@ -91,10 +92,11 @@ const BottomActionBar = ({
         zIndex: 100,
         borderTopLeftRadius: '8px',
         borderTopRightRadius: '8px',
-        transition: 'left 0.3s ease-in-out'
+        transition: 'left 0.3s ease-in-out',
+        ...layoutStyle
       }}
     >
-      <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', ...layoutStyle }}>
+      <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', ...childrenStyle }}>
         {children}
         {renderButtons()}
       </Box>
