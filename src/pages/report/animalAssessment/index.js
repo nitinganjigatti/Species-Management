@@ -40,7 +40,7 @@ const AnimalAssessment = () => {
   const enable_animal_assessment_report = authData?.userData?.permission?.user_settings?.enable_animal_assessment_report
 
   const [initialLoad, setInitialLoad] = useState(true)
-  const [selectedSpecie, setSelectedSpecie] = useState('')
+  const [selectedSpecies, setSelectedSpecies] = useState([])
   const [openspeciesFilter, setOpenspeciesFilter] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(0)
   const [selectedAssessmentType, setSelectedAssessmentType] = useState('')
@@ -89,6 +89,13 @@ const AnimalAssessment = () => {
   const [showDetailsPopUp, setShowDetailsPopUp] = useState(false)
   const [animalDetailsData, setAnimalDetailsData] = useState({})
 
+  const taxonomyIds =
+    selectedSpecies
+      ?.map(species => species?.tsn_id)
+      .filter(Boolean)
+      .join(',') || ''
+  const selectedSpeciesIcon = selectedSpecies?.[0]?.default_icon || '/branding/antz/Antz_logomark_h_color.svg'
+
   //////////////////////////////////////////////////////////////
   const [searchTerm, setSearchTerm] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -110,7 +117,7 @@ const AnimalAssessment = () => {
     }
 
     const payload = {
-      taxonomy_ids: selectedSpecie?.tsn_id || '',
+      taxonomy_ids: taxonomyIds,
       assessment_type_ids: selectedAssessmentType?.assessment_type_id || '',
       start_date: filterDates.startDate,
       end_date: filterDates.endDate,
@@ -140,7 +147,7 @@ const AnimalAssessment = () => {
     debounce(value => {
       animalAssessmentReport(value)
     }, 500),
-    [selectedSpecie, selectedAssessmentType, filterDates, selectedItems]
+    [selectedSpecies, selectedAssessmentType, filterDates, selectedItems]
   )
 
   const handleSearchChange = e => {
@@ -150,7 +157,7 @@ const AnimalAssessment = () => {
   }
 
   useEffect(() => {
-    if (selectedSpecie && selectedAssessmentType) {
+    if (selectedSpecies?.length && selectedAssessmentType) {
       animalAssessmentReport()
     }
   }, [paginationModel, filterDates, selectedItems])
@@ -199,7 +206,7 @@ const AnimalAssessment = () => {
 
       return {
         ...recordMap,
-        default_icon: selectedSpecie?.default_icon || '/branding/antz/Antz_logomark_h_color.svg',
+        default_icon: selectedSpeciesIcon,
         local_identifier_name: animal.identifier_type,
         local_identifier_value: animal.identifier_value,
         animal_id: animal.animal_id,
@@ -281,7 +288,7 @@ const AnimalAssessment = () => {
             onClick={() => {
               setAnimalDetailsData({
                 ...record,
-                default_icon: selectedSpecie?.default_icon || '/branding/antz/Antz_logomark_h_color.svg',
+                default_icon: selectedSpeciesIcon,
                 local_identifier_name: params?.row?.identifier_type,
                 local_identifier_value: params?.row?.identifier_value,
                 animal_id: params?.row?.animal_id,
@@ -392,13 +399,13 @@ const AnimalAssessment = () => {
   }
 
   const getDataToExport = async type => {
-    if (selectedSpecie && selectedAssessmentType) {
+    if (selectedSpecies?.length && selectedAssessmentType) {
       setIsDownloading(true)
 
       const params = {
         page: paginationModel.page + 1,
         limit: paginationModel.pageSize,
-        taxonomy_ids: selectedSpecie?.tsn_id,
+        taxonomy_ids: taxonomyIds,
         assessment_type_ids: selectedAssessmentType?.assessment_type_id,
         start_date: filterDates.startDate,
         end_date: filterDates.endDate,
@@ -617,7 +624,7 @@ const AnimalAssessment = () => {
                       border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                     }}
                   >
-                    {selectedSpecie?.tsn_id ? (
+                    {selectedSpecies?.length ? (
                       <Typography
                         sx={{
                           fontWeight: 500,
@@ -630,8 +637,9 @@ const AnimalAssessment = () => {
                           whiteSpace: 'nowrap'
                         }}
                       >
-                        {`${selectedSpecie?.common_name} `}
-                        <span style={{ fontStyle: 'italic' }}>{`(${selectedSpecie?.complete_name})`}</span>
+                        {`${selectedSpecies?.[0]?.common_name} `}
+                        <span style={{ fontStyle: 'italic' }}>{`(${selectedSpecies?.[0]?.complete_name})`}</span>
+                        {selectedSpecies.length > 1 ? ` +${selectedSpecies.length - 1}` : ''}
                       </Typography>
                     ) : (
                       <Typography
@@ -728,7 +736,7 @@ const AnimalAssessment = () => {
                 <Box sx={{ minWidth: 120 }}>
                   <Button
                     variant='contained'
-                    disabled={!selectedSpecie || !selectedAssessmentType || isLoading}
+                    disabled={!selectedSpecies.length || !selectedAssessmentType || isLoading}
                     sx={{ width: '127px', height: '56px', borderRadius: '8px' }}
                     fullWidth
                     onClick={() => animalAssessmentReport()}
@@ -963,8 +971,8 @@ const AnimalAssessment = () => {
           )}
           {openspeciesFilter && (
             <AssessmentSpeciesListingDrawer
-              selectedSpecie={selectedSpecie}
-              setSelectedSpecie={setSelectedSpecie}
+              selectedSpecies={selectedSpecies}
+              setSelectedSpecies={setSelectedSpecies}
               openspeciesFilter={openspeciesFilter}
               setOpenspeciesFilter={setOpenspeciesFilter}
             />
