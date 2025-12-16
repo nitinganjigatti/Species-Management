@@ -13,6 +13,7 @@ import reportNavigation from 'src/components/navigation/report'
 import medicalNavigation from 'src/components/navigation/medical'
 import housingNavigation from 'src/components/navigation/housing'
 import hospitalNavigation from 'src/components/navigation/hospital'
+import settingsNavigation from 'src/components/navigation/settings'
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -37,7 +38,8 @@ const ComposeNavigation = () => {
 
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
-  const housingModule = authData?.userData?.roles?.settings?.enable_housing_in_web
+  const housingModuleWeb = authData?.userData?.roles?.settings?.enable_housing_in_web
+  const housingModule = authData?.userData?.roles?.settings?.enable_housing
   const housingModuleCluster = authData?.userData?.roles?.settings?.manage_cluster_permission
 
   const hospitalModule = authData?.userData?.roles?.settings?.add_hospital
@@ -90,7 +92,7 @@ const ComposeNavigation = () => {
     navigationArray.push(...pariveshNav)
   }
 
-  if (housingModule) {
+  if (housingModuleWeb) {
     const housingNav = housingNavigation(housingModuleCluster)
     navigationArray.push(...housingNav)
   }
@@ -107,6 +109,10 @@ const ComposeNavigation = () => {
   if (complianceModule) {
     const complianceNav = complianceNavigation()
     navigationArray.push(...complianceNav)
+  }
+  if (housingModule || housingModuleWeb) {
+    const settingsNav = settingsNavigation()
+    navigationArray.push(...settingsNav)
   }
 
   return navigationArray
