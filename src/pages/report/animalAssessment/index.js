@@ -50,7 +50,7 @@ const AnimalAssessment = () => {
   const defaultEndDate = dayjs().format('YYYY-MM-DD')
   const defaultStartDate = dayjs().subtract(6, 'month').format('YYYY-MM-DD')
 
-  const [filterDates, setFilterDates] = useState({
+  const getDefaultFilterDates = () => ({
     startDate: defaultStartDate,
     endDate: defaultEndDate
   })
@@ -75,7 +75,7 @@ const AnimalAssessment = () => {
   const [selectedSections, setSelectedSections] = useState([])
   const [selectedEnclosures, setSelectedEnclosures] = useState([])
 
-  const [selectedItems, setSelectedItems] = useState({
+  const getDefaultSelectedItems = () => ({
     Site: [],
     Section: [],
     Enclosure: [],
@@ -83,7 +83,10 @@ const AnimalAssessment = () => {
     accession_start: null,
     accession_end: null
   })
-  const [tempSelectedItems, setTempSelectedItems] = useState(selectedItems)
+
+  const [selectedItems, setSelectedItems] = useState(getDefaultSelectedItems())
+  const [tempSelectedItems, setTempSelectedItems] = useState(getDefaultSelectedItems())
+  const [filterDates, setFilterDates] = useState(getDefaultFilterDates())
   const [filterCount, setFilterCount] = useState(0)
 
   const [showDetailsPopUp, setShowDetailsPopUp] = useState(false)
@@ -96,11 +99,22 @@ const AnimalAssessment = () => {
       .join(',') || ''
   const selectedSpeciesIcon = selectedSpecies?.[0]?.default_icon || '/branding/antz/Antz_logomark_h_color.svg'
 
+  const resetDrawerFilters = () => {
+    setSelectedItems(getDefaultSelectedItems())
+    setTempSelectedItems(getDefaultSelectedItems())
+    setSelectedSections([])
+    setSelectedEnclosures([])
+    setFilterCount(0)
+    setSearchTerm('')
+    setSearchQuery('')
+  }
+
   //////////////////////////////////////////////////////////////
   const [searchTerm, setSearchTerm] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
   const searchRef = useRef(null)
+  const skipNextFetchRef = useRef(false)
 
   useEffect(() => {
     if (searchRef.current && document.activeElement !== searchRef.current) {
@@ -108,11 +122,11 @@ const AnimalAssessment = () => {
     }
   }, [assessmentData])
 
-  const animalAssessmentReport = async (searchValue = search || '') => {
+  const animalAssessmentReport = async (searchValue = search || '', pageOverride) => {
     setIsLoading(true)
 
     const params = {
-      page: paginationModel.page + 1,
+      page: (typeof pageOverride === 'number' ? pageOverride : paginationModel.page) + 1,
       limit: paginationModel.pageSize
     }
 
@@ -144,27 +158,40 @@ const AnimalAssessment = () => {
   }
 
   const debouncedSearch = useCallback(
-    debounce(value => {
-      animalAssessmentReport(value)
+    debounce((value, pageOverride) => {
+      animalAssessmentReport(value, pageOverride)
     }, 500),
     [selectedSpecies, selectedAssessmentType, filterDates, selectedItems]
   )
 
   const handleSearchChange = e => {
     const value = e.target.value
+    skipNextFetchRef.current = true
+    resetDrawerFilters()
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
     setSearch(value)
-    debouncedSearch(value)
+    debouncedSearch(value, 0)
   }
 
   const handleGenerate = () => {
+    resetDrawerFilters()
+    setFilterDates(getDefaultFilterDates())
+    setSearch('')
     setPaginationModel(prev => ({ ...prev, page: 0 }))
   }
 
   useEffect(() => {
-    if (selectedSpecies?.length && selectedAssessmentType) {
-      animalAssessmentReport()
+    if (!selectedSpecies?.length || !selectedAssessmentType) return
+    if (skipNextFetchRef.current) {
+      skipNextFetchRef.current = false
+      return
     }
+    animalAssessmentReport()
   }, [paginationModel, filterDates, selectedItems])
+
+  useEffect(() => {
+    setPaginationModel(prev => (prev.page === 0 ? prev : { ...prev, page: 0 }))
+  }, [selectedItems])
 
   useEffect(() => transformAnimalData(), [assessmentData])
 
@@ -365,6 +392,9 @@ const AnimalAssessment = () => {
         endDate: ''
       })
     }
+    resetDrawerFilters()
+    setSearch('')
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
   }
 
   const siteList = async (q = '') => {
