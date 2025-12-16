@@ -230,8 +230,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
           <Box
             sx={{
               display: 'flex',
-              justifyContent: recordTypeCount?.all !== '0' ? 'flex-start' : 'flex-end',
-              my: recordTypeCount?.all !== '0' ? 0 : 6
+              justifyContent: recordTypeCount?.all !== '0' ? 'flex-start' : 'flex-end'
             }}
           >
             <MUISwitch

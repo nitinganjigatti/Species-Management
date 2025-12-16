@@ -335,7 +335,6 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
 
   // Handle administer selected with form data
   const handleAdministerSelected = formData => {
-    console.log('handleAdministerSelected form data:', formData)
     if (onAdministerSelected) {
       const selectedItems = dosageEntries?.filter(item => selectedMedications.includes(item?.administritive_id))
       onAdministerSelected(selectedItems, medicineData, formData)
