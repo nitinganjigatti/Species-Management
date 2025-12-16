@@ -37,6 +37,7 @@ export default function BasicDetails({
   } = useFormContext()
   const theme = useTheme()
   const [newPurpose, setNewPurpose] = useState('')
+  const [newPurposeError, setNewPurposeError] = useState('')
 
   const timeUnits = [
     { label: 'hr', value: 'hr' },
@@ -75,6 +76,35 @@ export default function BasicDetails({
 
   const selectedPurpose = watch('basicDetails.selected') || []
   const selectedOtherPurpose = watch('basicDetails.custom') || []
+
+  useEffect(() => {
+    if (!selectedOtherPurpose.length || !purposeOptions.length) return
+
+    const selected = new Set(selectedPurpose)
+    let updatedCustom = [...selectedOtherPurpose]
+    let updatedSelected = [...selectedPurpose]
+
+    selectedOtherPurpose.forEach(customValue => {
+      const normalizedCustom = normalizePurpose(customValue)
+
+      const matchedOption = purposeOptions.find(opt => normalizePurpose(opt.name || '') === normalizedCustom)
+
+      if (matchedOption) {
+        const idAsString = String(matchedOption.id)
+        if (!selected.has(idAsString)) {
+          updatedSelected.push(idAsString)
+        }
+        updatedCustom = updatedCustom.filter(v => v !== customValue)
+      }
+    })
+
+    if (updatedCustom.length !== selectedOtherPurpose.length || updatedSelected.length !== selectedPurpose.length) {
+      setValue('basicDetails.custom', updatedCustom, { shouldValidate: true })
+      setValue('basicDetails.selected', updatedSelected, { shouldValidate: true })
+    }
+  }, [selectedOtherPurpose, purposeOptions])
+
+  const normalizePurpose = value => value.toLowerCase().replace(/\s+/g, '').trim()
 
   return addLoader ? (
     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
@@ -406,7 +436,10 @@ export default function BasicDetails({
                     fullWidth
                     placeholder='Enter new purpose'
                     value={newPurpose}
-                    onChange={e => setNewPurpose(e.target.value)}
+                    onChange={e => {
+                      setNewPurpose(e.target.value)
+                      if (newPurposeError) setNewPurposeError('')
+                    }}
                     sx={{ ...commonTextFieldSx, background: theme.palette.common.white }}
                   />
                   <Button
@@ -416,10 +449,28 @@ export default function BasicDetails({
                     onClick={() => {
                       const v = newPurpose.trim()
                       if (!v) return
+                      const normalizedNew = normalizePurpose(v)
+                      const selected = watch('basicDetails.selected') || []
+                      const custom = watch('basicDetails.custom') || []
+                      const matchedOption = purposeOptions.find(
+                        option => normalizePurpose(option?.name || '') === normalizedNew
+                      )
+                      if (matchedOption) {
+                        const idAsString = String(matchedOption.id)
 
-                      const current = watch('basicDetails.custom') || []
-                      setValue('basicDetails.custom', [...current, v], { shouldValidate: true })
+                        if (selected.includes(idAsString)) {
+                          setNewPurposeError('Purpose already exists')
+                          return
+                        }
+                      }
+                      const existsInCustom = custom.some(item => normalizePurpose(item) === normalizedNew)
+                      if (existsInCustom) {
+                        setNewPurposeError('Purpose already exists')
+                        return
+                      }
+                      setValue('basicDetails.custom', [...custom, v], { shouldValidate: true })
                       setNewPurpose('')
+                      setNewPurposeError('')
                     }}
                     sx={{
                       minWidth: 120,
@@ -431,6 +482,18 @@ export default function BasicDetails({
                     ADD
                   </Button>
                 </Box>
+                {newPurposeError && (
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      mt: 1,
+                      display: 'block',
+                      color: theme.palette.error.main
+                    }}
+                  >
+                    {newPurposeError}
+                  </Typography>
+                )}
               </Box>
             </>
           )}

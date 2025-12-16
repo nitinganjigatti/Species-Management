@@ -11,6 +11,7 @@ import ActionButtons from 'src/components/hospital/FooterActionbuttons'
 import AddSymptomDrawer from 'src/components/hospital/drawer/AddSymptomDrawer'
 import Toaster from 'src/components/Toaster'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
+import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 
 function AddSymptomsPage() {
   const theme = useTheme()
@@ -180,7 +181,7 @@ function AddSymptomsPage() {
           severity: symptom.severity || 'Mild',
           notes: symptom.notes || '',
           active_at: '',
-          duration: String(symptom.durationValue || 0),
+          duration: String(symptom.durationValue || 1),
           duration_unit: symptom.durationUnit || 'Days',
           status: 'active',
           comment_list: []
@@ -213,21 +214,21 @@ function AddSymptomsPage() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <AnimalDetails
+      <AnimalInfoCard
         image={patientData?.animal_detail?.default_icon}
         name={patientData?.animal_detail?.common_name}
         scientificName={patientData?.animal_detail?.complete_name}
-        identifierValue={patientData?.animal_detail?.local_identifier_value}
-        identifierName={patientData?.animal_detail?.local_identifier_name}
-        admittedDays={patientData?.admitted_for_day}
-        location={patientData?.bed_name || 'N/A'}
-        vet={patientData?.attend_by_full_name || 'N/A'}
-        ageGender={`${patientData?.animal_detail?.age || 'N/A'}${
-          patientData?.animal_detail?.sex ? ` . ${patientData?.animal_detail?.sex}` : ''
-        }`}
+        age={`${patientData?.animal_detail?.age}`}
+        gender={`${patientData?.animal_detail?.sex}`}
+        additionalFields={[
+          { label: 'AID', value: patientData?.animal_detail?.animal_id },
+          { label: 'Admitted days', value: patientData?.admitted_for_day },
+          { label: 'Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
+          { label: 'Consulting Veterinarian', value: patientData?.attend_by_full_name }
+        ]}
         isLoading={patientLoading}
+        backgroundColor={theme.palette.customColors.OnPrimary}
       />
-
       <Grid
         container
         spacing={5}

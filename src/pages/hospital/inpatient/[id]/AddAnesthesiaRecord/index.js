@@ -46,6 +46,7 @@ import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { useQueryClient } from '@tanstack/react-query'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
+import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 
 dayjs.extend(customParseFormat)
 
@@ -331,10 +332,13 @@ const sections = [
   //   { id: 'attachments', label: 'Attachments', component: AttachmentsSection }
 ]
 
+const STORAGE_KEY = 'medical_record_data'
+
 export default function AddAnesthesiaRecord() {
   const router = useRouter()
   const { id, anaesthesia_id } = router.query
   const queryClient = useQueryClient()
+
   const [expanded, setExpanded] = useState('basicDetails')
   const [isBasicDetailsValid, setIsBasicDetailsValid] = useState(false)
   const [isApiSuccess, setIsApiSuccess] = useState(false)
@@ -377,20 +381,20 @@ export default function AddAnesthesiaRecord() {
     })
   }
 
-  const getUserLists = async (query = '') => {
+  const getUserLists = async () => {
     try {
-      const userDetails = await readAsync('userDetails')
-      if (userDetails?.user?.zoos.length > 0) {
-        const zoo_id = userDetails.user.zoos[0].zoo_id
-        const params = { zoo_id }
-        if (query.trim() !== '') {
-          params.q = query
+      if (patientData !== null || patientData !== undefined) {
+        const params = {
+          // page_no: paginationModel.page + 1,
+          // limit: paginationModel.pageSize,
+          // q: debouncedSearch,
+          hospital_id: patientData?.hospital_id
         }
-        const res = await getUserList(params)
-        if (res?.data?.length > 0) {
+        const res = await getHospitalStaff({ params })
+        if (res?.data?.records?.length > 0) {
           setDoctors(
-            res.data.map(item => ({
-              name: item?.user_name,
+            res.data?.records?.map(item => ({
+              name: item?.user_full_name,
               id: item?.user_id,
               default_icon: item?.user_profile_pic,
               role_name: item?.role_name
@@ -510,13 +514,16 @@ export default function AddAnesthesiaRecord() {
   }
 
   useEffect(() => {
-    getUserLists()
     fetchAssessmentList()
     fetchAnesthesiaSetup()
     fetchClinPathList()
     fetchUnitList()
     fetchVitalList()
   }, [])
+
+  useEffect(() => {
+    getUserLists()
+  }, [patientData])
 
   const purposeStageOptions = [
     { label: 'Premedication', value: 'Premedication' },
