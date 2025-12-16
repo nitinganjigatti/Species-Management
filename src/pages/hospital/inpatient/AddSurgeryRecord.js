@@ -955,7 +955,7 @@ const AddSurgeryRecord = () => {
     payload.append('surgery_id', getSafeString(surgeryId))
     payload.append('type_of_surgery', getSafeString(formValues.typeOfSurgery))
     payload.append('surgical_approach', getSafeString(formValues.surgicalApproach))
-    payload.append('name_of_surgeon_id', getSafeString(getAutocompleteLabel(formValues.surgeon)))
+    payload.append('name_of_surgeon_id', getSafeString(formValues.surgeon?.value || ''))
     payload.append('surgery_notes', getSafeString(getRichTextHtml(richNote)))
     payload.append('complications', getSafeString(formValues.complication))
     payload.append('care_diet_instructions', getSafeString(formValues.dietInstructions))

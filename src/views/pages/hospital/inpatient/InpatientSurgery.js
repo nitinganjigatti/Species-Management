@@ -396,7 +396,8 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
     return [
       { label: 'Procedure Name', value: detail.surgery_name || '--' },
       { label: 'Surgical Approach', value: detail.surgical_approach || '--' },
-      { label: 'Type Of Surgery', value: detail.type_of_surgery || '--' }
+      { label: 'Type Of Surgery', value: detail.type_of_surgery || '--' },
+      { label: 'Name Of Surgeon', value: detail.name_of_surgeon || '--' }
     ]
   }, [activeDetail])
 
