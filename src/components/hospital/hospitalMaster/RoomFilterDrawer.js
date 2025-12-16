@@ -2,9 +2,21 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Box, Radio, Typography, FormControlLabel, RadioGroup } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
-import { toast } from 'react-hot-toast'
 
-// Hospital Room Filters Drawer with Radio Buttons
+const MENU_DATA = {
+  Availability: [
+    { label: 'Available', value: 'Available' },
+    { label: 'Occupied', value: 'Occupied' },
+    { label: 'Unavailable', value: 'Unavailable' }
+  ],
+  Status: [
+    { label: 'Active', value: 'active' },
+    { label: 'Inactive', value: 'inactive' }
+  ]
+}
+
+const DEFAULT_OPTIONS = { Availability: [], Status: [] }
+
 const RoomFilterDrawer = ({
   openFilterDrawer,
   onCloseFilterDrawer,
@@ -13,136 +25,91 @@ const RoomFilterDrawer = ({
   setFilterCount,
   initialSelectedOptions
 }) => {
-  const leftMenu = ['Availability', 'Status']
+  const theme = useTheme()
+
   const [selectedMenu, setSelectedMenu] = useState('Availability')
+  const [selectedOptions, setSelectedOptions] = useState(DEFAULT_OPTIONS)
   const [localFilterCount, setLocalFilterCount] = useState(0)
 
-  // Static filter options
-  const [menuData, setMenuData] = useState({
-    Availability: [
-      { label: 'Available', value: 'Available' },
-      { label: 'Occupied', value: 'Occupied' },
-      { label: 'Unavailable', value: 'Unavailable' }
-    ],
-    Status: [
-      { label: 'Active', value: 'active' },
-      { label: 'Inactive', value: 'inactive' }
-    ]
-  })
+  const isFilterEmpty = filters => {
+    if (!filters) return true
 
-  // Selected filters
-  const [selectedOptions, setSelectedOptions] = useState({
-    Availability: [],
-    Status: []
-  })
-
-  // Fetch static data
-  const fetchMenuData = useCallback(menuName => {
-    try {
-      if (menuName === 'Availability') {
-        setMenuData(prev => ({
-          ...prev,
-          Availability: [
-            { label: 'Available', value: 'Available' },
-            { label: 'Occupied', value: 'Occupied' },
-            { label: 'Unavailable', value: 'Unavailable' }
-          ]
-        }))
-      } else if (menuName === 'Status') {
-        setMenuData(prev => ({
-          ...prev,
-          Status: [
-            { label: 'Active', value: 'active' },
-            { label: 'Inactive', value: 'inactive' }
-          ]
-        }))
+    for (const value of Object.values(filters)) {
+      if (Array.isArray(value) && value.length > 0) {
+        return false
       }
-    } catch (error) {
-      console.error(`Error loading ${menuName}:`, error?.message || error)
     }
-  }, [])
 
-  useEffect(() => {
-    if (openFilterDrawer) {
-      setSelectedMenu('Availability')
-      fetchMenuData('Availability')
+    return true
+  }
+
+  const checkFiltersEqual = (a = {}, b = {}) => {
+    const keys = new Set([...Object.keys(a), ...Object.keys(b)])
+
+    for (const key of keys) {
+      const valA = a[key]?.[0] || ''
+      const valB = b[key]?.[0] || ''
+
+      if (valA !== valB) return false
     }
-  }, [openFilterDrawer, fetchMenuData])
 
-  // Clear all filters
-  const handleClearAll = useCallback(() => {
-    setSelectedOptions({
-      Availability: [],
-      Status: []
-    })
-    setLocalFilterCount(0)
-    setFilterCount(0)
-  }, [setFilterCount])
+    return true
+  }
 
-  // Drawer open
-  const handleFilterDrawerOpen = useCallback(() => {
-    fetchMenuData(selectedMenu)
-  }, [selectedMenu, fetchMenuData])
-
-  // Menu click (switch between Availability and Status)
-  const handleMenuClick = useCallback(
-    menuName => {
-      setSelectedMenu(menuName)
-      fetchMenuData(menuName)
-    },
-    [fetchMenuData]
-  )
-
-  // Radio selection (only one option per menu)
-  const handleRadioChange = useCallback((id, menuName) => {
+  const handleRadioChange = useCallback((value, menu) => {
     setSelectedOptions(prev => {
-      const newOptions = {
-        ...prev,
-        [menuName]: [id] // Single selection
-      }
+      const updated = { ...prev, [menu]: [value] }
+      const count = Object.values(updated).reduce((acc, arr) => acc + arr.length, 0)
 
-      const count = Object.values(newOptions).reduce((acc, arr) => acc + arr.length, 0)
       setLocalFilterCount(count)
 
-      return newOptions
+      return updated
     })
   }, [])
 
-  // Apply filters
+  const handleClearAll = useCallback(() => {
+    setSelectedOptions(DEFAULT_OPTIONS)
+    setLocalFilterCount(0)
+  }, [])
+
   const applyFilters = () => {
+    if (isFilterEmpty(selectedOptions) && isFilterEmpty(initialSelectedOptions)) {
+      onCloseFilterDrawer()
+
+      return
+    }
+
+    if (checkFiltersEqual(selectedOptions, initialSelectedOptions)) {
+      onCloseFilterDrawer()
+
+      return
+    }
+
     setFilterCount(localFilterCount)
     onApplyFilters(selectedOptions)
   }
 
+  // Restore applied filters on close (Cancel button and icon close)
   useEffect(() => {
-    if (openFilterDrawer) {
-      handleFilterDrawerOpen()
+    if (!openFilterDrawer) {
+      const restored = initialSelectedOptions || DEFAULT_OPTIONS
+      setSelectedOptions(restored)
+      setLocalFilterCount(Object.values(restored).reduce((acc, arr) => acc + arr.length, 0))
     }
-  }, [openFilterDrawer, handleFilterDrawerOpen])
+  }, [openFilterDrawer, initialSelectedOptions])
 
-  useEffect(() => {
-    if (initialSelectedOptions) {
-      setSelectedOptions(initialSelectedOptions)
-      const count = Object.values(initialSelectedOptions).reduce((acc, arr) => acc + arr.length, 0)
-      setLocalFilterCount(count)
-    }
-  }, [initialSelectedOptions])
-
-  //  FilterContent Component
-  const FilterContent = ({ menuName, selectedOption = [], onOptionChange, items }) => {
-    const theme = useTheme()
-
+  const FilterContent = ({ menu }) => {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <RadioGroup value={selectedOption[0] || ''} onChange={e => onOptionChange(e.target.value, menuName)}>
-          {items?.map(item => (
+        <RadioGroup value={selectedOptions[menu]?.[0] || ''} onChange={e => handleRadioChange(e.target.value, menu)}>
+          {MENU_DATA[menu].map(item => (
             <FormControlLabel
-              key={item?.value}
-              value={item?.value}
+              key={item.value}
+              value={item.value}
               control={<Radio />}
               label={
                 <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors?.Outline }}>
-                  {item?.label}
+                  {item.label}
                 </Typography>
               }
             />
@@ -158,29 +125,13 @@ const RoomFilterDrawer = ({
       onClose={onCloseFilterDrawer}
       onApply={applyFilters}
       onClearAll={handleClearAll}
-      filterLists={leftMenu}
+      filterLists={['Availability', 'Status']}
       selectedOptions={selectedOptions}
       isSubmitting={onSubmitLoading}
       selectedItem={selectedMenu}
-      onSelectItem={handleMenuClick}
+      onSelectItem={setSelectedMenu}
     >
-      {selectedMenu === 'Availability' && (
-        <FilterContent
-          menuName='Availability'
-          selectedOption={selectedOptions['Availability']}
-          onOptionChange={handleRadioChange}
-          items={menuData['Availability']}
-        />
-      )}
-
-      {selectedMenu === 'Status' && (
-        <FilterContent
-          menuName='Status'
-          selectedOption={selectedOptions['Status']}
-          onOptionChange={handleRadioChange}
-          items={menuData['Status']}
-        />
-      )}
+      <FilterContent menu={selectedMenu} />
     </CustomFilterDrawer>
   )
 }

@@ -335,7 +335,6 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
 
   // Handle administer selected with form data
   const handleAdministerSelected = formData => {
-    console.log('handleAdministerSelected form data:', formData)
     if (onAdministerSelected) {
       const selectedItems = dosageEntries?.filter(item => selectedMedications.includes(item?.administritive_id))
       onAdministerSelected(selectedItems, medicineData, formData)
@@ -977,7 +976,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                           label='Batch Image'
                                           maxFiles={5}
                                           maxFileSize={5 * 1024 * 1024}
-                                          acceptedFileTypes='image/jpeg,image/png,image/jpg,application/pdf'
+                                          acceptedFileTypes='image,pdf'
                                         />
                                       </Grid>
                                     </Grid>

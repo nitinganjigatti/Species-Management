@@ -1484,21 +1484,26 @@ export default function AddMedicineToPrescription() {
     const durationValue = parseInt(dosageDuration.value)
     const intervalValue = parseInt(interval)
 
-    switch (dosageDuration.unit) {
-      case 'days':
-        endDate = start.add(intervalValue * durationValue - 1, 'days')
-        break
-      case 'weeks':
-        endDate = start.add(intervalValue * 7 * durationValue - 1, 'days')
-        break
-      case 'months':
-        endDate = start.add(durationValue, 'months')
-        break
-      case 'years':
-        endDate = start.add(durationValue, 'years')
-        break
-      default:
-        endDate = start.add(durationValue, 'days')
+    // Handle special case for duration 0 - it should be same as start date
+    if (durationValue === 0) {
+      endDate = start.clone()
+    } else {
+      switch (dosageDuration.unit) {
+        case 'days':
+          endDate = start.add(intervalValue * durationValue - 1, 'days')
+          break
+        case 'weeks':
+          endDate = start.add(intervalValue * 7 * durationValue - 1, 'days')
+          break
+        case 'months':
+          endDate = start.add(durationValue, 'months')
+          break
+        case 'years':
+          endDate = start.add(durationValue, 'years')
+          break
+        default:
+          endDate = start.add(durationValue, 'days')
+      }
     }
 
     // Return proper ISO 8601 UTC string

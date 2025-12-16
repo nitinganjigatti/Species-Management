@@ -32,7 +32,7 @@ const AnimalCardBasic = ({ image, name, scientificName, age, gender }) => {
       <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <TextEllipsisWithModal
           enableDialog={false}
-          text={capitalize(name) ?? '-'}
+          text={capitalize(name)}
           style={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
@@ -42,7 +42,7 @@ const AnimalCardBasic = ({ image, name, scientificName, age, gender }) => {
         />
         <TextEllipsisWithModal
           enableDialog={false}
-          text={scientificName ?? '-'}
+          text={scientificName}
           style={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
@@ -54,7 +54,7 @@ const AnimalCardBasic = ({ image, name, scientificName, age, gender }) => {
 
         <TextEllipsisWithModal
           enableDialog={false}
-          text={`${age ?? '-'} • ${capitalize(gender) ?? '-'}`}
+          text={`${age} ${age && gender ? '•' : ''} ${capitalize(gender)}`}
           style={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',

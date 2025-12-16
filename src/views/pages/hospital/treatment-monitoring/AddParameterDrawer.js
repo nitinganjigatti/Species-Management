@@ -28,7 +28,6 @@ import {
 } from 'src/lib/api/hospital/treatmentMonitoring'
 import { useHospital } from 'src/context/HospitalContext'
 import Toaster from 'src/components/Toaster'
-import NoDataFound from 'src/views/utility/NoDataFound'
 
 const AddParameterDrawer = ({
   open,
@@ -459,69 +458,69 @@ const AddParameterDrawer = ({
                 )}
               </Box>
             ) : null}
-            <Box sx={{ py: 3, px: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Typography
-                sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '1.25rem', fontWeight: 500 }}
-              >
-                Your Template
-              </Typography>
-              {templateLoading ? (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 4,
-                    py: 2
-                  }}
+            {templateList?.length > 0 ? (
+              <Box sx={{ py: 3, px: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Typography
+                  sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '1.25rem', fontWeight: 500 }}
                 >
-                  {Array.from(new Array(6)).map((_, index) => (
-                    <Box key={index} sx={{ width: '45%' }}>
-                      <Skeleton
-                        variant='rectangular'
-                        height={50}
-                        animation='wave'
-                        sx={{
-                          borderRadius: 1,
-                          bgcolor: theme.palette.action.hover
-                        }}
-                      />
-                    </Box>
-                  ))}
-                </Box>
-              ) : templateList?.length > 0 ? (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                  {templateList?.map((template, index) => {
-                    const isSelected = selectedTemplates.includes(template.value)
-
-                    return (
-                      <Box
-                        key={index}
-                        onClick={() => handleTemplateClick(template.value)}
-                        sx={{
-                          p: 4,
-                          backgroundColor: isSelected
-                            ? theme.palette.customColors.OnBackground
-                            : theme.palette.customColors.OnPrimary,
-                          border: isSelected
-                            ? `1px solid ${theme.palette.customColors.SurfaceVariant}`
-                            : `1px solid ${theme.palette.customColors.SurfaceVariant}`,
-                          borderRadius: 1,
-                          color: theme.palette.customColors.OnSurfaceVariant,
-                          fontSize: '1rem',
-                          fontWeight: 400,
-                          cursor: 'pointer',
-                          transition: 'background-color 0.2s'
-                        }}
-                      >
-                        {template.label}
+                  Your Template
+                </Typography>
+                {templateLoading ? (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 4,
+                      py: 2
+                    }}
+                  >
+                    {Array.from(new Array(6)).map((_, index) => (
+                      <Box key={index} sx={{ width: '45%' }}>
+                        <Skeleton
+                          variant='rectangular'
+                          height={50}
+                          animation='wave'
+                          sx={{
+                            borderRadius: 1,
+                            bgcolor: theme.palette.action.hover
+                          }}
+                        />
                       </Box>
-                    )
-                  })}
-                </Box>
-              ) : (
-                <NoDataFound />
-              )}
-            </Box>
+                    ))}
+                  </Box>
+                ) : (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {templateList?.map((template, index) => {
+                      const isSelected = selectedTemplates.includes(template.value)
+
+                      return (
+                        <Box
+                          key={index}
+                          onClick={() => handleTemplateClick(template.value)}
+                          sx={{
+                            p: 4,
+                            backgroundColor: isSelected
+                              ? theme.palette.customColors.OnBackground
+                              : theme.palette.customColors.OnPrimary,
+                            border: isSelected
+                              ? `1px solid ${theme.palette.customColors.SurfaceVariant}`
+                              : `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                            borderRadius: 1,
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            fontSize: '1rem',
+                            fontWeight: 400,
+                            cursor: 'pointer',
+                            transition: 'background-color 0.2s'
+                          }}
+                        >
+                          {template.label}
+                        </Box>
+                      )
+                    })}
+                  </Box>
+                )}
+              </Box>
+            ) : null}
           </Box>
           <Box
             sx={{

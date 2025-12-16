@@ -200,10 +200,12 @@ export default function ScheduleMedicine({
     // Get the unit from the last schedule (previous index)
     const lastScheduleUnit = currentSchedules[currentSchedules.length - 1]?.unit || ''
 
+    const lastScheduleQuantity = currentSchedules[currentSchedules.length - 1]?.quantity || ''
+
     // Add new schedule with the previous schedule's unit
     append({
       time: dayjs(),
-      quantity: '',
+      quantity: lastScheduleQuantity,
       unit: lastScheduleUnit
     })
   }

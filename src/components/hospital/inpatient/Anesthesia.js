@@ -201,6 +201,16 @@ function Anesthesia({
   const [deleteLoading, setDeleteLoading] = useState(false)
   const isDischared = overviewData?.status === 'discharge'
   const previousFirstRecordIdRef = useRef('')
+  const preferredAppliedRef = useRef(false)
+  const preferredAnesthesiaId = useMemo(() => {
+    const possible = router.query?.anaesthesia_id || router.query?.anesthesia_id
+
+    return Array.isArray(possible) ? possible[0] : possible || ''
+  }, [router.query?.anaesthesia_id, router.query?.anesthesia_id])
+
+  useEffect(() => {
+    preferredAppliedRef.current = false
+  }, [preferredAnesthesiaId])
 
   useEffect(() => {
     if (!anesthesiaRecords.length) {
@@ -215,6 +225,23 @@ function Anesthesia({
       .map(id => (id == null ? '' : String(id)))
       .filter(Boolean)
 
+    const preferredId = preferredAnesthesiaId ? String(preferredAnesthesiaId) : ''
+    if (preferredId && !preferredAppliedRef.current && currentIds.includes(preferredId)) {
+      setActiveRecordId(preferredId)
+      preferredAppliedRef.current = true
+      previousFirstRecordIdRef.current = currentIds[0] || ''
+
+      return
+    }
+
+    if (preferredId && !preferredAppliedRef.current && !currentIds.includes(preferredId)) {
+      if (hasNextPage && !isFetchingNextPage) {
+        fetchNextPage()
+      } else if (!hasNextPage) {
+        preferredAppliedRef.current = true
+      }
+    }
+
     const firstId = currentIds[0] || ''
     const previousFirstId = previousFirstRecordIdRef.current
     previousFirstRecordIdRef.current = firstId
@@ -228,7 +255,18 @@ function Anesthesia({
     if (!currentIds.includes(String(activeRecordId))) {
       setActiveRecordId(firstId)
     }
-  }, [anesthesiaRecords, activeRecordId])
+  }, [anesthesiaRecords, activeRecordId, preferredAnesthesiaId, fetchNextPage, hasNextPage, isFetchingNextPage])
+
+  useEffect(() => {
+    if (!activeRecordId) return
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const el = container.querySelector(`[data-anesthesia-id='${activeRecordId}']`)
+    if (el && typeof el.scrollIntoView === 'function') {
+      el.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' })
+    }
+  }, [activeRecordId])
 
   const activeRecord = useMemo(() => {
     if (!anesthesiaRecords.length) return null
@@ -709,6 +747,7 @@ function Anesthesia({
 
       return (
         <Box
+          data-anesthesia-id={selectionId}
           key={selectionId}
           onClick={() => handleRecordTabClick(selectionId)}
           sx={{

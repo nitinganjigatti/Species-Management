@@ -375,16 +375,15 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
   }
 
   return (
-    <Box>
+    <Box sx={{ mt: 6 }}>
       {/* Header with Tabs and Controls */}
-      {tabCounts?.All !== 0 ? (
+      {tabCounts?.All !== 0 || searchQuery.trim().length > 0 ? (
         <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
           <Box
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              mt: 6,
               flexWrap: 'wrap',
               rowGap: 4
             }}
@@ -481,7 +480,7 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
           </Box>
         </Box>
       ) : !isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 6 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <MUISwitch
             label='Current Medical Record Only'
             checked={currentRecordOnly}

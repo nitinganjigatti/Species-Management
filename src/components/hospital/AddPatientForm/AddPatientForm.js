@@ -44,6 +44,7 @@ import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 import AddRoomDrawer from '../PatientAdmissionForm/AddRoomDrawer'
 import AddBedsDrawer from '../PatientAdmissionForm/AddBedsDrawer'
 import { AuthContext } from 'src/context/AuthContext'
+import BottomActionBar from 'src/views/utility/BottomActionBar'
 
 const defaultValues = {
   treatmentType: 'inpatient',
@@ -642,7 +643,7 @@ const AddPatientForm = () => {
                               : theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                          Select doctor
+                          Select chief Veterinarian
                         </Typography>
                         <Icon
                           icon='mdi:chevron-down'
@@ -810,66 +811,31 @@ const AddPatientForm = () => {
           </CardContent>
         </Card>
       </Box>
-      <Box
-        sx={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          width: '100%',
-          backgroundColor: theme.palette.customColors.OnPrimary,
-          py: 4,
-          px: 6,
-          boxShadow: `0px -2px 8px ${theme.palette.customColors.shadowColor}`,
-          display: 'flex',
-          justifyContent: 'flex-end',
-          zIndex: 100,
-          borderTopLeftRadius: '8px',
-          borderTopRightRadius: '8px'
+      <BottomActionBar
+        onCancel={() => {
+          reset(defaultValues, {
+            keepErrors: false,
+            keepDirty: false,
+            keepTouched: false
+          })
+          setSelectedAnimal(null)
+          setValue('selectedAnimal', null)
+          setMedicalId([])
+          setValue('medicalRecordChoice', 'new')
+          router.back()
         }}
-      >
-        <Box sx={{ display: 'flex', gap: 3 }}>
-          <Button
-            variant='outlined'
-            sx={{
-              borderColor: theme.palette.customColors.Outline,
-              borderRadius: 0.5,
-              minHeight: '56px',
-              minWidth: '160px'
-            }}
-            onClick={() => {
-              reset(defaultValues, {
-                keepErrors: false,
-                keepDirty: false,
-                keepTouched: false
-              })
-              setSelectedAnimal(null)
-              setValue('selectedAnimal', null)
-              setMedicalId([])
-              setValue('medicalRecordChoice', 'new')
-              router.back()
-            }}
-          >
-            CANCEL
-          </Button>
-          <LoadingButton
-            loading={submitLoader}
-            disabled={submitLoader}
-            variant='contained'
-            sx={{ backgroundColor: theme.palette.primary.main, borderRadius: 0.5, minWidth: '160px' }}
-            onClick={handleSubmit(onSubmit, errors => {
-              if (Object.keys(errors).length > 0) {
-                const firstError = Object.keys(errors)[0]
-                const element = document.querySelector(`[name="${firstError}"]`)
-                if (element) {
-                  element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                }
-              }
-            })}
-          >
-            ADMIT
-          </LoadingButton>
-        </Box>
-      </Box>
+        onSubmit={handleSubmit(onSubmit, errors => {
+          if (Object.keys(errors).length > 0) {
+            const firstError = Object.keys(errors)[0]
+            const element = document.querySelector(`[name="${firstError}"]`)
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            }
+          }
+        })}
+        loading={submitLoader}
+        disabled={submitLoader}
+      />
       {openAnimalDrawer && (
         <AnimalDrawer
           open={openAnimalDrawer}
