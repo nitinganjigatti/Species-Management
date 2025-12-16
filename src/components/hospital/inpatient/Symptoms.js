@@ -227,7 +227,13 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
           </Box>
         )}
         {!loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 6 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: recordTypeCount?.all !== '0' ? 'flex-start' : 'flex-end',
+              my: recordTypeCount?.all !== '0' ? 0 : 6
+            }}
+          >
             <MUISwitch
               label='Current Medical Record Only'
               checked={currentRecordOnly}
