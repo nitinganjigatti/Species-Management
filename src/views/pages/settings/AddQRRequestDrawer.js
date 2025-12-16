@@ -1,40 +1,23 @@
 import { useEffect, useState, useContext } from 'react'
-import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import {
   Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Drawer,
-  FormControl,
-  FormControlLabel,
-  FormHelperText,
-  FormLabel,
   IconButton,
   MenuItem,
-  Radio,
-  RadioGroup,
   TextField,
   Typography
 } from '@mui/material'
-import { useForm, Controller } from 'react-hook-form'
-import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import { AuthContext } from 'src/context/AuthContext'
 import { getAllSections } from 'src/lib/api/housing'
-
-const schema = yup.object().shape({
-  request_type: yup.string().required('Please select a request type'),
-  site_id: yup.string().when('request_type', {
-    is: val => val === 'site' || val === 'section',
-    then: schema => schema.required('Please select a site'),
-    otherwise: schema => schema.notRequired()
-  }),
-  section_id: yup.string().when('request_type', {
-    is: 'section',
-    then: schema => schema.required('Please select a section'),
-    otherwise: schema => schema.notRequired()
-  })
-})
 
 const AddQRRequestDrawer = props => {
   const { openDrawer, setOpenDrawer, handleSubmitData, loading } = props
@@ -44,40 +27,20 @@ const AddQRRequestDrawer = props => {
   // Get sites from auth context
   const sites = authData?.userData?.user?.zoos?.[0]?.sites || []
 
+  const [siteId, setSiteId] = useState('')
+  const [sectionId, setSectionId] = useState('')
   const [sections, setSections] = useState([])
   const [loadingSections, setLoadingSections] = useState(false)
-
-  const defaultValues = {
-    request_type: 'all',
-    site_id: '',
-    section_id: ''
-  }
-
-  const {
-    control,
-    handleSubmit,
-    watch,
-    setValue,
-    reset,
-    formState: { errors }
-  } = useForm({
-    defaultValues,
-    resolver: yupResolver(schema),
-    mode: 'onBlur',
-    reValidateMode: 'onChange'
-  })
-
-  const requestType = watch('request_type')
-  const selectedSiteId = watch('site_id')
+  const [confirmDialog, setConfirmDialog] = useState(false)
 
   // Fetch sections when site is selected
   useEffect(() => {
-    if (selectedSiteId && requestType === 'section') {
+    if (siteId) {
       const fetchSections = async () => {
         setLoadingSections(true)
         try {
           const response = await getAllSections({
-            site_id: selectedSiteId,
+            site_id: siteId,
             basic_only: 1
           })
           if (response?.success && response?.data) {
@@ -92,32 +55,57 @@ const AddQRRequestDrawer = props => {
       fetchSections()
     } else {
       setSections([])
+      setSectionId('')
     }
-  }, [selectedSiteId, requestType])
+  }, [siteId])
 
-  // Reset fields when request type changes
-  useEffect(() => {
-    if (requestType === 'all') {
-      setValue('site_id', '')
-      setValue('section_id', '')
-    }
-    if (requestType === 'site') {
-      setValue('section_id', '')
-    }
-  }, [requestType, setValue])
+  const onSubmit = e => {
+    e.preventDefault()
+    setConfirmDialog(true)
+  }
 
-  const onSubmit = async params => {
+  const handleConfirmSubmit = async () => {
+    setConfirmDialog(false)
+
+    let requestType = 'all'
+    if (sectionId) {
+      requestType = 'section'
+    } else if (siteId) {
+      requestType = 'site'
+    }
+
     const payload = {
-      request_type: params.request_type,
-      site_id: params.site_id || null,
-      section_id: params.section_id || null
+      request_type: requestType,
+      site_id: siteId || null,
+      section_id: sectionId || null
     }
     await handleSubmitData(payload)
   }
 
   const handleClose = () => {
-    reset(defaultValues)
+    setSiteId('')
+    setSectionId('')
+    setSections([])
     setOpenDrawer(false)
+  }
+
+  const handleSiteChange = e => {
+    setSiteId(e.target.value)
+    setSectionId('')
+  }
+
+  // Helper text based on current selection
+  const getSelectionInfo = () => {
+    if (sectionId) {
+      const section = sections.find(s => s.section_id === sectionId)
+      const site = sites.find(s => s.site_id === siteId)
+      return `QR codes will be generated for all enclosures in ${section?.section_name || 'selected section'} (${site?.site_name || 'selected site'})`
+    }
+    if (siteId) {
+      const site = sites.find(s => s.site_id === siteId)
+      return `QR codes will be generated for all enclosures in ${site?.site_name || 'selected site'}`
+    }
+    return 'QR codes will be generated for all enclosures in the zoo'
   }
 
   return (
@@ -149,7 +137,7 @@ const AddQRRequestDrawer = props => {
         </Box>
 
         {/* Form */}
-        <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+        <form autoComplete='off' onSubmit={onSubmit}>
           <Box
             sx={{
               mx: 4,
@@ -162,128 +150,69 @@ const AddQRRequestDrawer = props => {
               boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
             }}
           >
-            {/* Request Type */}
-            <FormControl error={Boolean(errors.request_type)}>
-              <FormLabel sx={{ mb: 2, color: theme.palette.text.primary, fontSize: '14px', fontWeight: 500 }}>
-                Generate QR for*
-              </FormLabel>
-              <Controller
-                name='request_type'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <RadioGroup value={value} onChange={onChange}>
-                    <FormControlLabel
-                      value='all'
-                      control={<Radio />}
-                      label={
-                        <Box>
-                          <Typography sx={{ fontWeight: 500 }}>All Enclosures</Typography>
-                          <Typography variant='caption' sx={{ color: theme.palette.text.secondary }}>
-                            Generate QR codes for all enclosures in the zoo
-                          </Typography>
-                        </Box>
-                      }
-                      sx={{ mb: 2, alignItems: 'flex-start', '& .MuiRadio-root': { mt: -1 } }}
-                    />
-                    <FormControlLabel
-                      value='site'
-                      control={<Radio />}
-                      label={
-                        <Box>
-                          <Typography sx={{ fontWeight: 500 }}>Select Site</Typography>
-                          <Typography variant='caption' sx={{ color: theme.palette.text.secondary }}>
-                            Generate QR codes for all enclosures in a specific site
-                          </Typography>
-                        </Box>
-                      }
-                      sx={{ mb: 2, alignItems: 'flex-start', '& .MuiRadio-root': { mt: -1 } }}
-                    />
-                    <FormControlLabel
-                      value='section'
-                      control={<Radio />}
-                      label={
-                        <Box>
-                          <Typography sx={{ fontWeight: 500 }}>Select Section</Typography>
-                          <Typography variant='caption' sx={{ color: theme.palette.text.secondary }}>
-                            Generate QR codes for all enclosures in a specific section
-                          </Typography>
-                        </Box>
-                      }
-                      sx={{ alignItems: 'flex-start', '& .MuiRadio-root': { mt: -1 } }}
-                    />
-                  </RadioGroup>
-                )}
-              />
-              {errors.request_type && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.request_type.message}</FormHelperText>
-              )}
-            </FormControl>
+            <Typography sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.text.primary }}>
+              Generate QR for
+            </Typography>
 
-            {/* Site Dropdown - for 'site' or 'section' type */}
-            {(requestType === 'site' || requestType === 'section') && (
-              <Controller
-                name='site_id'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    select
-                    fullWidth
-                    label='Select Site*'
-                    value={value}
-                    onChange={e => {
-                      onChange(e)
-                      setValue('section_id', '')
-                    }}
-                    error={Boolean(errors.site_id)}
-                    helperText={errors.site_id?.message}
-                  >
-                    {sites.length > 0 ? (
-                      sites.map(site => (
-                        <MenuItem key={site.site_id} value={site.site_id}>
-                          {site.site_name}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled>No sites available</MenuItem>
-                    )}
-                  </TextField>
+            {/* Site Dropdown */}
+            <TextField
+              select
+              fullWidth
+              label='Select Site (Optional)'
+              value={siteId}
+              onChange={handleSiteChange}
+            >
+              <MenuItem value=''>All Sites</MenuItem>
+              {sites.map(site => (
+                <MenuItem key={site.site_id} value={site.site_id}>
+                  {site.site_name}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            {/* Section Dropdown - shows when site is selected */}
+            {siteId && (
+              <TextField
+                select
+                fullWidth
+                label='Select Section (Optional)'
+                value={sectionId}
+                onChange={e => setSectionId(e.target.value)}
+                disabled={loadingSections}
+              >
+                <MenuItem value=''>All Sections</MenuItem>
+                {loadingSections ? (
+                  <MenuItem disabled>Loading...</MenuItem>
+                ) : sections.length > 0 ? (
+                  sections.map(section => (
+                    <MenuItem key={section.section_id} value={section.section_id}>
+                      {section.section_name}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>No sections available</MenuItem>
                 )}
-              />
+              </TextField>
             )}
 
-            {/* Section Dropdown - for 'section' type */}
-            {requestType === 'section' && (
-              <Controller
-                name='section_id'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    select
-                    fullWidth
-                    label='Select Section*'
-                    value={value}
-                    onChange={onChange}
-                    error={Boolean(errors.section_id)}
-                    helperText={errors.section_id?.message}
-                    disabled={loadingSections || !selectedSiteId}
-                  >
-                    {loadingSections ? (
-                      <MenuItem disabled>Loading...</MenuItem>
-                    ) : !selectedSiteId ? (
-                      <MenuItem disabled>Please select a site first</MenuItem>
-                    ) : sections.length > 0 ? (
-                      sections.map(section => (
-                        <MenuItem key={section.section_id} value={section.section_id}>
-                          {section.section_name}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled>No sections available</MenuItem>
-                    )}
-                  </TextField>
-                )}
-              />
-            )}
+            {/* Selection Info */}
+            <Box
+              sx={{
+                p: 3,
+                borderRadius: '8px',
+                backgroundColor: theme.palette.customColors?.primaryLight || '#E3F2FD'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <Icon icon='mdi:information-outline' fontSize={18} color={theme.palette.primary.main} />
+                <Typography sx={{ fontSize: '13px', fontWeight: 500, color: theme.palette.primary.main }}>
+                  Selection Summary
+                </Typography>
+              </Box>
+              <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>
+                {getSelectionInfo()}
+              </Typography>
+            </Box>
           </Box>
 
           {/* Submit Button */}
@@ -304,6 +233,23 @@ const AddQRRequestDrawer = props => {
           </Box>
         </form>
       </Box>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmDialog} onClose={() => setConfirmDialog(false)}>
+        <DialogTitle>Confirm Request</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{getSelectionInfo()}</DialogContentText>
+          <DialogContentText sx={{ mt: 2 }}>Do you want to proceed?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDialog(false)} color='inherit'>
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmSubmit} variant='contained' color='primary'>
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Drawer>
   )
 }
