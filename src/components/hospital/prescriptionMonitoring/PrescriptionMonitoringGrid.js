@@ -887,7 +887,8 @@ const PrescriptionMonitoringGrid = ({
                                 const isFuture = isScheduledFuture(selectedDate, scheduledTime)
                                 if (!isFuture) {
                                   // Open administer/skip modal
-                                  if (timeSlot?.value?.administrative_ids?.length > 1) {
+                                  // if (timeSlot?.value?.administrative_ids?.length > 1) {
+                                  if (timeSlot?.value?.administrative_ids?.length) {
                                     handleAdministerOrSkipOpen(data, 'multiple')
                                   } else {
                                     handleAdministerOrSkipOpen(data, 'single')
