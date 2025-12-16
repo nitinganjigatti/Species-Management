@@ -44,7 +44,7 @@ import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 import AddRoomDrawer from '../PatientAdmissionForm/AddRoomDrawer'
 import AddBedsDrawer from '../PatientAdmissionForm/AddBedsDrawer'
 import { AuthContext } from 'src/context/AuthContext'
-import BottomActionBar from 'src/components/BottomActionBar'
+import BottomActionBar from 'src/views/utility/BottomActionBar'
 
 const defaultValues = {
   treatmentType: 'inpatient',
