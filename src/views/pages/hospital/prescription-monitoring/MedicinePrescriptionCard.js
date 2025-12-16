@@ -552,8 +552,8 @@ const MedicinePrescriptionCard = ({
           </Box>
         </Box>
         {entry?.status?.toLowerCase() != 'stopped' && (
-          <IconButton size='small' onClick={() => handleRefreshEntry(entry.id)}>
-            <Icon icon='mdi:refresh' fontSize='16px' color={theme.palette.customColors.Tertiary} />
+          <IconButton size='small' sx={{ width: '2rem', height: '2rem' }} onClick={() => handleRefreshEntry(entry.id)}>
+            <Icon icon='mdi:refresh' fontSize='20px' color={theme.palette.customColors.Tertiary} />
           </IconButton>
         )}
       </Box>
