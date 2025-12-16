@@ -377,7 +377,7 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
   return (
     <Box>
       {/* Header with Tabs and Controls */}
-      {tabCounts?.All !== 0 ? (
+      {tabCounts?.All !== 0 || searchQuery.trim().length > 0 ? (
         <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
           <Box
             sx={{

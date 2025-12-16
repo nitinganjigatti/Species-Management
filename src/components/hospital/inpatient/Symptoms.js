@@ -146,7 +146,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
   return (
     <Box>
       <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {!loading && recordTypeCount?.all !== '0' && (
+        {!loading && (recordTypeCount?.all !== '0' || searchQuery.trim().length > 0) && (
           <Box
             sx={{
               display: 'flex',
@@ -227,7 +227,13 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
           </Box>
         )}
         {!loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 6 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: recordTypeCount?.all !== '0' ? 'flex-start' : 'flex-end',
+              my: recordTypeCount?.all !== '0' ? 0 : 6
+            }}
+          >
             <MUISwitch
               label='Current Medical Record Only'
               checked={currentRecordOnly}

@@ -977,7 +977,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                           label='Batch Image'
                                           maxFiles={5}
                                           maxFileSize={5 * 1024 * 1024}
-                                          acceptedFileTypes='image/jpeg,image/png,image/jpg,application/pdf'
+                                          acceptedFileTypes='image,pdf'
                                         />
                                       </Grid>
                                     </Grid>

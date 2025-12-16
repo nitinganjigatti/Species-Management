@@ -12,7 +12,7 @@ const AnimalInfoCard = ({ backgroundColor, additionalFields, image, name, scient
     <Box>
       <TextEllipsisWithModal
         enableDialog={false}
-        text={label ?? '-'}
+        text={label || '-'}
         style={{
           fontSize: '14px',
           fontWeight: 400,
@@ -22,7 +22,7 @@ const AnimalInfoCard = ({ backgroundColor, additionalFields, image, name, scient
       />
       <TextEllipsisWithModal
         enableDialog={false}
-        text={value ?? '-'}
+        text={value || '-'}
         style={{
           fontSize: '16px',
           fontWeight: 500,
