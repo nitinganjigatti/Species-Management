@@ -642,7 +642,7 @@ const AddPatientForm = () => {
                               : theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                          Select doctor
+                          Select chief Veterinarian
                         </Typography>
                         <Icon
                           icon='mdi:chevron-down'

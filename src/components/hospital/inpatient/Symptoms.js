@@ -146,7 +146,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
   return (
     <Box>
       <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {!loading && recordTypeCount?.all !== '0' && (
+        {!loading && (recordTypeCount?.all !== '0' || searchQuery.trim().length > 0) && (
           <Box
             sx={{
               display: 'flex',
