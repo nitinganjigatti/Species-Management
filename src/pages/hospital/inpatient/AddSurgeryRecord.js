@@ -309,8 +309,8 @@ const AddSurgeryRecord = () => {
   }, [router.query])
   const [patientData, setPatientData] = useState(null)
   const hospitalId = useMemo(
-    () => patientData?.hospital_id || patientData?.hospital?.id || router.query?.hospital_id || '',
-    [patientData?.hospital_id, patientData?.hospital?.id, router.query?.hospital_id]
+    () => patientData?.hospital_case_id || resolvedHospitalCaseId || '',
+    [patientData?.hospital_case_id, resolvedHospitalCaseId]
   )
 
   const admissionDateTime = useMemo(
@@ -954,7 +954,7 @@ const AddSurgeryRecord = () => {
     payload.append('surgery_id', getSafeString(surgeryId))
     payload.append('type_of_surgery', getSafeString(formValues.typeOfSurgery))
     payload.append('surgical_approach', getSafeString(formValues.surgicalApproach))
-    payload.append('surgeon_name', getSafeString(getAutocompleteLabel(formValues.surgeon)))
+    payload.append('name_of_surgeon_id', getSafeString(getAutocompleteLabel(formValues.surgeon)))
     payload.append('surgery_notes', getSafeString(getRichTextHtml(richNote)))
     payload.append('complications', getSafeString(formValues.complication))
     payload.append('care_diet_instructions', getSafeString(formValues.dietInstructions))
