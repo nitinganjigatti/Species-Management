@@ -14,6 +14,7 @@ import { useQuery } from '@tanstack/react-query'
 
 dayjs.extend(customParseFormat)
 
+import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 import AddAnesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnesthesiaRecord'
@@ -26,7 +27,7 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 import AddEditSurgeryDrawer from 'src/views/pages/hospital/masters/surgery'
 
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
-import { getHospitalStaff } from 'src/lib/api/hospital/staff'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 
 import {
@@ -154,7 +155,7 @@ const combineDateAndTime = (dateValue, timeValue) => {
 }
 
 const resolveHospitalCaseId = query => {
-  const possibleKeys = ['hospital_case_id', 'hospitalCaseId', 'case_id', 'caseId', 'hospitalCaseID', 'id']
+  const possibleKeys = ['hospital_case_id']
 
   for (const key of possibleKeys) {
     if (query?.[key] !== undefined) {
@@ -308,16 +309,14 @@ const AddSurgeryRecord = () => {
     return Array.isArray(possible) ? possible[0] : possible || ''
   }, [router.query])
   const [patientData, setPatientData] = useState(null)
-  const hospitalId = useMemo(
-    () => patientData?.hospital_case_id || resolvedHospitalCaseId || '',
-    [patientData?.hospital_case_id, resolvedHospitalCaseId]
-  )
 
   const admissionDateTime = useMemo(
     () => (patientData?.admitted_at ? dayjs(patientData.admitted_at) : null),
     [patientData?.admitted_at]
   )
   const defaultNow = useMemo(() => dayjs(), [])
+  const auth = useAuth()
+  const userZooId = useMemo(() => auth?.userData?.user?.zoos?.[0]?.zoo_id, [auth?.userData])
 
   const buildDefaultFormValues = useCallback(
     () => ({
@@ -555,31 +554,33 @@ const AddSurgeryRecord = () => {
   }, [surgeryMasterResponse, localProcedureOptions])
 
   const { data: surgeonsResponse, isFetching: isSurgeonsLoading } = useQuery({
-    queryKey: ['surgeon-list', surgeonSearchTerm, hospitalId],
+    queryKey: ['surgeon-list', surgeonSearchTerm, userZooId],
     queryFn: async () => {
-      if (!hospitalId) return []
+      const zooId = userZooId
 
-      const params = { hospital_id: hospitalId, page_no: 1, limit: 50 }
+      if (!zooId) {
+        return []
+      }
+
+      const params = { zoo_id: zooId, permission: 'medical_records_access' }
       const trimmed = surgeonSearchTerm.trim()
 
       if (trimmed) {
         params.q = trimmed
       }
 
-      const res = await getHospitalStaff({ params })
+      const res = await getUserList(params)
 
       if (res?.success) {
-        const list = Array.isArray(res?.data?.records) ? res.data.records : []
-
-        return list
+        return Array.isArray(res?.data) ? res.data : []
       }
 
-      throw new Error(res?.message || 'Failed to load hospital staff')
+      throw new Error(res?.message || 'Failed to fetch surgeons')
     },
     keepPreviousData: true,
     staleTime: 5 * 60 * 1000,
     retry: false,
-    enabled: Boolean(hospitalId),
+    enabled: Boolean(userZooId),
     onError: error => {
       console.error('Failed to fetch surgeons:', error)
       Toaster({ type: 'error', message: error?.message || 'Failed to load surgeon list' })
@@ -591,7 +592,7 @@ const AddSurgeryRecord = () => {
 
     return surgeonsResponse
       .map(user => ({
-        label: getSafeString(user?.user_full_name),
+        label: getSafeString(user?.user_name),
         value: getSafeString(user?.user_id),
         default_icon: user?.user_profile_pic
       }))
@@ -1300,7 +1301,7 @@ const AddSurgeryRecord = () => {
               label='Enter surgery notes'
               value={richNote}
               onChange={setRichNote}
-              hospitalId={hospitalId || undefined}
+              hospitalId={resolvedHospitalCaseId || ''}
               templateType='surgery'
             />
 
