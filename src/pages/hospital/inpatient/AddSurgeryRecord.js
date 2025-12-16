@@ -1400,8 +1400,6 @@ const AddSurgeryRecord = () => {
                 onClick={handleSelectanesthesiaRecord}
                 sx={{
                   backgroundColor: theme.palette.primary.light,
-
-                  // width: 141,
                   cursor: 'pointer',
                   height: 36,
                   borderRadius: '8px',
@@ -1419,12 +1417,12 @@ const AddSurgeryRecord = () => {
                 {selectedAnesthesia?.code || getAnesthesiaIdentifier(selectedAnesthesia) || '--'}
                 <Icon icon='mdi:chevron-right' fontSize={20} />
               </Box>
-              {/* <IconButton
+              <IconButton
                 onClick={handleClearSelectedAnesthesia}
                 sx={{ color: theme.palette.customColors.neutralSecondary }}
               >
                 <Icon icon='mdi:close' fontSize={24} />
-              </IconButton> */}
+              </IconButton>
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
