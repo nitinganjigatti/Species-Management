@@ -1,5 +1,8 @@
 // ** React Import
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
+
+// ** Next Import
+import { useRouter } from 'next/router'
 
 // ** MUI Imports
 import List from '@mui/material/List'
@@ -56,6 +59,10 @@ const Navigation = props => {
 
   // ** Ref
   const shadowRef = useRef(null)
+  const scrollRef = useRef(null)
+
+  // ** Hooks
+  const router = useRouter()
 
   // ** Var
   const { afterVerticalNavMenuContentPosition, beforeVerticalNavMenuContentPosition } = themeConfig
@@ -107,6 +114,60 @@ const Navigation = props => {
       }
     }
   }
+
+  // ** Scroll to active item in the menu
+  const scrollToActive = useCallback(() => {
+    if (!scrollRef.current) return
+
+    let attemptCount = 0
+    let successfulScrolls = 0
+    let intervalId
+    let timeoutId
+
+    // Wait for initial render and animations to complete
+    timeoutId = setTimeout(() => {
+      intervalId = setInterval(() => {
+        if (scrollRef?.current) {
+          const activeItem = scrollRef?.current?.querySelector('.active')
+
+          if (activeItem) {
+            activeItem?.scrollIntoView({
+              behavior: 'auto',
+              block: 'center',
+              inline: 'nearest'
+            })
+
+            successfulScrolls++
+
+            // Stop after 3 successful scrolls to reduce aggressive behavior
+            if (successfulScrolls >= 3) {
+              clearInterval(intervalId)
+            }
+          }
+        }
+
+        attemptCount++
+
+        if (attemptCount >= 10) {
+          clearInterval(intervalId)
+        }
+      }, 100)
+    }, 300)
+
+    return () => {
+      clearTimeout(timeoutId)
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (router?.isReady) {
+      const cleanup = scrollToActive()
+
+      return cleanup
+    }
+  }, [router?.asPath, router?.isReady, scrollToActive])
+
   const ScrollWrapper = hidden ? Box : PerfectScrollbar
 
   return (
@@ -125,12 +186,16 @@ const Navigation = props => {
             {...(hidden
               ? {
                   onScroll: container => scrollMenu(container),
-                  sx: { height: '100%', overflowY: 'auto', overflowX: 'hidden' }
+                  sx: { height: '100%', overflowY: 'auto', overflowX: 'hidden' },
+                  ref: scrollRef
                 }
               : {
                   options: { wheelPropagation: false },
                   onScrollY: container => scrollMenu(container),
-                  containerRef: ref => handleInfiniteScroll(ref)
+                  containerRef: ref => {
+                    handleInfiniteScroll(ref)
+                    scrollRef.current = ref
+                  }
                 })}
           >
             {beforeNavMenuContent && beforeVerticalNavMenuContentPosition === 'static'
