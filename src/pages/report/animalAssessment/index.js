@@ -616,8 +616,8 @@ const AnimalAssessment = () => {
                     sx={{
                       bgcolor: theme.palette.primary.contrastText,
                       display: 'flex',
-                      justifyContent: 'space-between',
                       alignItems: 'center',
+                      gap: 2,
                       padding: '16px',
                       height: '56px',
                       borderRadius: '8px',
@@ -625,25 +625,40 @@ const AnimalAssessment = () => {
                     }}
                   >
                     {selectedSpecies?.length ? (
-                      <Typography
-                        sx={{
-                          fontWeight: 500,
-                          fontSize: '16px',
-                          lineHeight: '100%',
-                          letterSpacing: '0%',
-                          color: theme.palette.primary.light,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {`${selectedSpecies?.[0]?.common_name} `}
-                        <span style={{ fontStyle: 'italic' }}>{`(${selectedSpecies?.[0]?.complete_name})`}</span>
-                        {selectedSpecies.length > 1 ? ` +${selectedSpecies.length - 1}` : ''}
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0 }}>
+                        <Typography
+                          sx={{
+                            flex: 1,
+                            fontWeight: 500,
+                            fontSize: '16px',
+                            lineHeight: '100%',
+                            letterSpacing: '0%',
+                            color: theme.palette.primary.light,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {`${selectedSpecies?.[0]?.common_name} `}
+                          <span style={{ fontStyle: 'italic' }}>{`(${selectedSpecies?.[0]?.complete_name})`}</span>
+                        </Typography>
+                        {selectedSpecies.length > 1 && (
+                          <Typography
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: '14px',
+                              color: theme.palette.primary.main,
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            +{selectedSpecies.length - 1}
+                          </Typography>
+                        )}
+                      </Box>
                     ) : (
                       <Typography
                         sx={{
+                          flex: 1,
                           fontWeight: 400,
                           fontSize: '16px',
                           lineHeight: '100%',
@@ -657,7 +672,7 @@ const AnimalAssessment = () => {
                         Select Species
                       </Typography>
                     )}
-                    <IconButton sx={{ mr: -4, width: '37px' }}>
+                    <IconButton sx={{ mr: -4, width: '37px', flexShrink: 0 }}>
                       <Icon icon='fa:angle-right' fontSize={20} color={theme.palette.primary.light} />
                     </IconButton>
                   </Box>
