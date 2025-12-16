@@ -45,6 +45,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import AddRoomDrawer from './AddRoomDrawer'
 import AddBedsDrawer from './AddBedsDrawer'
 import { AuthContext } from 'src/context/AuthContext'
+import BottomActionBar from 'src/views/utility/BottomActionBar'
 
 const treatmentType = [
   { label: 'OPD (outpatient)', value: 'opd' },
@@ -778,56 +779,31 @@ const PatientAdmitForm = () => {
         )}
       </Box>
       {hasPermission && (
-        <Box
-          sx={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            width: '100%',
-            backgroundColor: theme.palette.customColors.OnPrimary,
-            py: 4,
-            px: 6,
-            boxShadow: `0px -2px 8px ${theme.palette.customColors.shadowColor}`,
-            display: 'flex',
-            justifyContent: 'flex-end',
-            zIndex: 100,
-            borderTopLeftRadius: 1,
-            borderTopRightRadius: 1
+        <BottomActionBar
+          submitLabel='Admit'
+          cancelLabel='Reject'
+          onSubmit={handleSubmit(onSubmit, errors => {
+            if (Object.keys(errors).length > 0) {
+              const firstError = Object.keys(errors)[0]
+              const element = document.querySelector(`[name="${firstError}"]`)
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              }
+            }
+          })}
+          loading={submitLoader}
+          disabled={submitLoader}
+          cancelBtnVariant='contained'
+          cancelBtnStyle={{
+            backgroundColor: theme.palette.customColors.Error,
+            borderRadius: 0.5,
+            minHeight: '56px',
+            minWidth: '160px'
           }}
-        >
-          <Box sx={{ display: 'flex', gap: 3 }}>
-            <Button
-              variant='contained'
-              sx={{
-                backgroundColor: theme.palette.customColors.Error,
-                borderRadius: 0.5,
-                minHeight: '56px',
-                minWidth: '160px'
-              }}
-              onClick={() => setIsRejecting(true)}
-            >
-              REJECT
-            </Button>
-            <LoadingButton
-              variant='contained'
-              sx={{ backgroundColor: theme.palette.primary.main, borderRadius: 0.5, minWidth: '160px' }}
-              onClick={handleSubmit(onSubmit, errors => {
-                if (Object.keys(errors).length > 0) {
-                  const firstError = Object.keys(errors)[0]
-                  const element = document.querySelector(`[name="${firstError}"]`)
-                  if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                  }
-                }
-              })}
-              loading={submitLoader}
-              loadingIndicator={<CircularProgress size={24} sx={{ color: theme.palette.customColors.OnPrimary }} />}
-              disabled={submitLoader}
-            >
-              ADMIT
-            </LoadingButton>
-          </Box>
-        </Box>
+          submitBtnVariant='contained'
+          submitBtnStyle={{ backgroundColor: theme.palette.primary.main, borderRadius: 0.5, minWidth: '160px' }}
+          onCancel={() => setIsRejecting(true)}
+        />
       )}
       {doctorDrawerOpen && (
         <DoctorsDrawer
