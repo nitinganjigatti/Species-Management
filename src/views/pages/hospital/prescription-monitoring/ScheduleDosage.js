@@ -184,6 +184,8 @@ const ScheduleDosageSidesheet = ({
     // Get the unit from the last schedule (previous index) if it exists
     const lastScheduleUnit = currentSchedules[currentSchedules.length - 1]?.dosageUnit || ''
 
+    const lastScheduleQuantity = currentSchedules[currentSchedules.length - 1]?.dosageQuantity || ''
+
     // Get default time - either current time or increment from last schedule
     let defaultTime
     if (currentSchedules[currentSchedules.length - 1]?.time) {
@@ -196,7 +198,7 @@ const ScheduleDosageSidesheet = ({
     // Add new schedule with the previous schedule's unit (could be empty)
     append({
       time: defaultTime,
-      dosageQuantity: '',
+      dosageQuantity: lastScheduleQuantity,
       dosageUnit: lastScheduleUnit, // This will be empty if previous schedule had no unit
       dosageWeights: ''
     })

@@ -370,6 +370,7 @@ const PatientDetails = ({ category }) => {
       overviewData: overviewData,
       patientData: patientData,
       loading: patientLoading,
+      category: category,
       patientDischarged: isPatientDischarged,
       refetchPatient: refetchPatient
     }),
@@ -382,7 +383,8 @@ const PatientDetails = ({ category }) => {
       overviewData,
       patientData,
       patientLoading,
-      isPatientDischarged
+      isPatientDischarged,
+      category
     ]
   )
 
