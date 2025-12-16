@@ -50,7 +50,14 @@ const StyledBoxForShadow = styled(Box)(({ theme }) => ({
 
 const Navigation = props => {
   // ** Props
-  const { hidden, settings, afterNavMenuContent, beforeNavMenuContent, navMenuContent: userNavMenuContent } = props
+  const {
+    hidden,
+    settings,
+    afterNavMenuContent,
+    beforeNavMenuContent,
+    navMenuContent: userNavMenuContent,
+    navVisible
+  } = props
 
   // ** States
   const [navHover, setNavHover] = useState(false)
@@ -167,6 +174,15 @@ const Navigation = props => {
       return cleanup
     }
   }, [router?.asPath, router?.isReady, scrollToActive])
+
+  // ** Mobile/Tablet: Scroll when drawer opens
+  useEffect(() => {
+    if (hidden && navVisible) {
+      const cleanup = scrollToActive()
+
+      return cleanup
+    }
+  }, [hidden, navVisible, scrollToActive])
 
   const ScrollWrapper = hidden ? Box : PerfectScrollbar
 
