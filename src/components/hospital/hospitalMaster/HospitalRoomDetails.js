@@ -307,7 +307,7 @@ const HospitalRoomDetails = () => {
   }
 
   // Filter drawer handlers
-  const handleApplyFilters = selectedOptions => {
+  const handleApplyFilter = selectedOptions => {
     setAppliedFilters(selectedOptions)
 
     const updated = {
@@ -565,7 +565,17 @@ const HospitalRoomDetails = () => {
       headerName: 'Actions',
       sortable: false,
       renderCell: params => (
-        <Box onClick={e => e.stopPropagation()}>
+        <Box
+          onClick={e => e.stopPropagation()}
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            cursor: 'default'
+          }}
+        >
           <MenuWithDots
             options={getMenuOptions(params?.row)}
             showBorder
@@ -631,23 +641,23 @@ const HospitalRoomDetails = () => {
           action={
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
               {/* <FormControlLabel
-                control={
-                  isStatusUpdating ? (
-                    <CircularProgress size={20} sx={{ ml: 4 }} />
-                  ) : (
-                    <Switch size='small' onChange={handleHospitalStatus} checked={isHospitalActive} />
-                  )
-                }
-                label={isStatusUpdating ? 'Loading...' : isHospitalActive ? 'Active' : 'Inactive'}
-                labelPlacement='start'
-                sx={{
-                  margin: 0,
-                  '& .MuiFormControlLabel-label': {
-                    fontSize: '0.875rem',
-                    color: theme.palette.customColors.OnSurfaceVariant
+                  control={
+                    isStatusUpdating ? (
+                      <CircularProgress size={20} sx={{ ml: 4 }} />
+                    ) : (
+                      <Switch size='small' onChange={handleHospitalStatus} checked={isHospitalActive} />
+                    )
                   }
-                }}
-              /> */}
+                  label={isStatusUpdating ? 'Loading...' : isHospitalActive ? 'Active' : 'Inactive'}
+                  labelPlacement='start'
+                  sx={{
+                    margin: 0,
+                    '& .MuiFormControlLabel-label': {
+                      fontSize: '0.875rem',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }
+                  }}
+                /> */}
 
               <Tooltip title='Edit'>
                 <IconButton onClick={openEditHospitalDrawer} size='small'>
@@ -739,7 +749,7 @@ const HospitalRoomDetails = () => {
         openFilterDrawer={openFilterDrawer}
         onCloseFilterDrawer={() => setOpenFilterDrawer(false)}
         onSubmitLoading={isLoadingRooms}
-        onApplyFilters={handleApplyFilters}
+        onApplyFilters={handleApplyFilter}
         setFilterCount={setFilterCount}
         initialSelectedOptions={appliedFilters}
       />
