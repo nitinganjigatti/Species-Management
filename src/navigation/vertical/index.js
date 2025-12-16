@@ -38,7 +38,8 @@ const ComposeNavigation = () => {
 
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
-  const housingModule = authData?.userData?.roles?.settings?.enable_housing_in_web
+  const housingModuleWeb = authData?.userData?.roles?.settings?.enable_housing_in_web
+  const housingModule = authData?.userData?.roles?.settings?.enable_housing
   const housingModuleCluster = authData?.userData?.roles?.settings?.manage_cluster_permission
 
   const hospitalModule = authData?.userData?.roles?.settings?.add_hospital
@@ -91,7 +92,7 @@ const ComposeNavigation = () => {
     navigationArray.push(...pariveshNav)
   }
 
-  if (housingModule) {
+  if (housingModuleWeb) {
     const housingNav = housingNavigation(housingModuleCluster)
     navigationArray.push(...housingNav)
   }
@@ -109,9 +110,10 @@ const ComposeNavigation = () => {
     const complianceNav = complianceNavigation()
     navigationArray.push(...complianceNav)
   }
-
-  const settingsNav = settingsNavigation()
-  navigationArray.push(...settingsNav)
+  if (housingModule || housingModuleWeb) {
+    const settingsNav = settingsNavigation()
+    navigationArray.push(...settingsNav)
+  }
 
   return navigationArray
 }
