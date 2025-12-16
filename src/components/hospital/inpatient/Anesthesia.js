@@ -234,6 +234,14 @@ function Anesthesia({
       return
     }
 
+    if (preferredId && !preferredAppliedRef.current && !currentIds.includes(preferredId)) {
+      if (hasNextPage && !isFetchingNextPage) {
+        fetchNextPage()
+      } else if (!hasNextPage) {
+        preferredAppliedRef.current = true
+      }
+    }
+
     const firstId = currentIds[0] || ''
     const previousFirstId = previousFirstRecordIdRef.current
     previousFirstRecordIdRef.current = firstId
@@ -247,7 +255,18 @@ function Anesthesia({
     if (!currentIds.includes(String(activeRecordId))) {
       setActiveRecordId(firstId)
     }
-  }, [anesthesiaRecords, activeRecordId, preferredAnesthesiaId])
+  }, [anesthesiaRecords, activeRecordId, preferredAnesthesiaId, fetchNextPage, hasNextPage, isFetchingNextPage])
+
+  useEffect(() => {
+    if (!activeRecordId) return
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const el = container.querySelector(`[data-anesthesia-id='${activeRecordId}']`)
+    if (el && typeof el.scrollIntoView === 'function') {
+      el.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' })
+    }
+  }, [activeRecordId])
 
   const activeRecord = useMemo(() => {
     if (!anesthesiaRecords.length) return null
@@ -728,6 +747,7 @@ function Anesthesia({
 
       return (
         <Box
+          data-anesthesia-id={selectionId}
           key={selectionId}
           onClick={() => handleRecordTabClick(selectionId)}
           sx={{
