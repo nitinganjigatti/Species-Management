@@ -156,6 +156,10 @@ const AnimalAssessment = () => {
     debouncedSearch(value)
   }
 
+  const handleGenerate = () => {
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
+  }
+
   useEffect(() => {
     if (selectedSpecies?.length && selectedAssessmentType) {
       animalAssessmentReport()
@@ -754,7 +758,7 @@ const AnimalAssessment = () => {
                     disabled={!selectedSpecies.length || !selectedAssessmentType || isLoading}
                     sx={{ width: '127px', height: '56px', borderRadius: '8px' }}
                     fullWidth
-                    onClick={() => animalAssessmentReport()}
+                    onClick={handleGenerate}
                   >
                     Generate
                   </Button>
