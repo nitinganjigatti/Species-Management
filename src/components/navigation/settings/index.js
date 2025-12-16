@@ -4,7 +4,7 @@ const composeSettingsNavigation = () => {
   }
 
   const requestEnclosureQRCode = {
-    title: 'Request Enclosure QR Code',
+    title: 'Enclosure QR Codes',
     path: '/settings/request-enclosure-qr-code',
     icon: 'mdi:qrcode'
   }
