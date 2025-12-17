@@ -103,7 +103,7 @@ const AnimalDrawer = ({
 
         const params = {
           page_no: pageParam,
-          q: search,
+          filter_aid_local_identifier: search,
           limit: PAGE_SIZE,
           list_type: 'animals',
           type: 'single',
