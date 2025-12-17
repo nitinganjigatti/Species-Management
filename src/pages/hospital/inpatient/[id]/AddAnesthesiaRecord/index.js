@@ -9,8 +9,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   Paper,
-  Breadcrumbs,
-  CircularProgress
+  Breadcrumbs
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { alpha, useTheme } from '@mui/material/styles'
@@ -28,7 +27,7 @@ import MedicationsGasSection from 'src/components/hospital/inpatient/Anesthesia/
 import PreAnesthesia from 'src/components/hospital/inpatient/Anesthesia/PreAnesthesia'
 import RecoveryAndReversal from 'src/components/hospital/inpatient/Anesthesia/RecoveryAndReversal'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
-import { readAsync } from 'src/lib/windows/utils'
+import { useHospital } from 'src/context/HospitalContext'
 import Utility from 'src/utility'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 import {
@@ -332,12 +331,11 @@ const sections = [
   //   { id: 'attachments', label: 'Attachments', component: AttachmentsSection }
 ]
 
-const STORAGE_KEY = 'medical_record_data'
-
 export default function AddAnesthesiaRecord() {
   const router = useRouter()
   const { id, anaesthesia_id } = router.query
   const queryClient = useQueryClient()
+  const { selectedHospital } = useHospital()
 
   const [expanded, setExpanded] = useState('basicDetails')
   const [isBasicDetailsValid, setIsBasicDetailsValid] = useState(false)
@@ -419,7 +417,8 @@ export default function AddAnesthesiaRecord() {
         setassessmentList(
           response?.data?.records.map(item => ({
             name: item?.name,
-            id: item?.id
+            id: item?.id,
+            other: item?.is_other
           }))
         )
       } else {
@@ -1272,7 +1271,7 @@ export default function AddAnesthesiaRecord() {
       const isEdit = !!anaesthesia_id
 
       const purposePayload = {
-        selected: data.basicDetails.selected || [],
+        selected: Array.from(new Set(data.basicDetails.selected || [])),
         custom: data.basicDetails.custom || []
       }
 
@@ -1769,7 +1768,7 @@ export default function AddAnesthesiaRecord() {
   const lastUpdatedValue =
     anesthesiaDetail?.updated_at !== undefined ? formatDateTime(anesthesiaDetail.updated_at) : '-'
   console.log('patientData', patientData)
-
+  console.log(selectedHospital, 'selectedHospital')
   return (
     <FormProvider {...methods}>
       <Box display='flex' flexDirection='column' gap={3} sx={{ p: 3 }}>
@@ -2016,6 +2015,7 @@ export default function AddAnesthesiaRecord() {
                       anesthesiaSetupList={anesthesiaSetupList}
                       clinPathOptions={clinPathList}
                       addLoader={addLoader}
+                      selectedHospital={selectedHospital}
                     />
                   </AccordionDetails>
                 </Accordion>

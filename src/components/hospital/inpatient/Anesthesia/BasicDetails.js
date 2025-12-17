@@ -27,7 +27,8 @@ export default function BasicDetails({
   vetOptions = [],
   anesthetistOptions = [],
   purposeOptions = [],
-  addLoader = false
+  addLoader = false,
+  selectedHospital
 }) {
   const {
     control,
@@ -52,6 +53,7 @@ export default function BasicDetails({
         shouldValidate: true
       })
     }
+    setValue('basicDetails.location', selectedHospital?.name)
   }, [anaesthesiaDateTimeValue, setValue])
 
   const commonTextFieldSx = {
@@ -76,7 +78,8 @@ export default function BasicDetails({
 
   const selectedPurpose = watch('basicDetails.selected') || []
   const selectedOtherPurpose = watch('basicDetails.custom') || []
-
+  console.log(purposeOptions, 'purposeOptions')
+  console.log(selectedOtherPurpose, 'selectedOtherPurpose')
   useEffect(() => {
     if (!selectedOtherPurpose.length || !purposeOptions.length) return
 
@@ -459,9 +462,11 @@ export default function BasicDetails({
                         const idAsString = String(matchedOption.id)
 
                         if (selected.includes(idAsString)) {
-                          setNewPurposeError('Purpose already exists')
-                          return
+                          setNewPurposeError('Purpose already exists and selected ')
+                        } else {
+                          setNewPurposeError('Purpose already exists, please select')
                         }
+                        return
                       }
                       const existsInCustom = custom.some(item => normalizePurpose(item) === normalizedNew)
                       if (existsInCustom) {

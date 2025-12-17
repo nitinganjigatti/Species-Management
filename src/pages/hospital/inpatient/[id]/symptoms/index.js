@@ -12,6 +12,7 @@ import AddSymptomDrawer from 'src/components/hospital/drawer/AddSymptomDrawer'
 import Toaster from 'src/components/Toaster'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
+import BottomActionBar from 'src/views/utility/BottomActionBar'
 
 function AddSymptomsPage() {
   const theme = useTheme()
@@ -258,7 +259,7 @@ function AddSymptomsPage() {
         </Grid>
       </Grid>
 
-      <ActionButtons
+      {/* <ActionButtons
         cancelLabel='CANCEL'
         addLabel={
           <Box display='flex' alignItems='center' gap={1}>
@@ -273,8 +274,15 @@ function AddSymptomsPage() {
         width={200}
         height={50}
         isSubmitLoading={addLoading}
+      /> */}
+      <BottomActionBar
+        onCancel={() => router.push(`/hospital/inpatient/${id}/?tab=symptoms`)}
+        onSubmit={handleAddClick}
+        loading={addLoading}
+        disabled={addLoading}
+        submitLabel='ADD'
+        cancelLabel='CANCEL'
       />
-
       {temporarilySelected && (
         <AddSymptomDrawer
           open={symptomDrawerOpen}

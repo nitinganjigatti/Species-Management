@@ -711,7 +711,7 @@ function Anesthesia({
     if (!shouldFetchRecords) {
       return (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap' }}>
-          Provide hospital case & medical record IDs to view anesthesia records.
+          {/* Provide hospital case & medical record IDs to view anesthesia records. */}
         </Typography>
       )
     }
