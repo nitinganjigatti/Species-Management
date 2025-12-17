@@ -282,6 +282,19 @@ function AddSymptomsPage() {
         disabled={addLoading}
         submitLabel='ADD'
         cancelLabel='CANCEL'
+        cancelBtnStyle={{
+          borderColor: theme.palette.customColors.OnSurfaceVariant,
+          color: theme.palette.customColors.OnSurfaceVariant,
+          borderRadius: 0.5,
+          minHeight: '50px',
+          minWidth: '200px'
+        }}
+        submitBtnStyle={{
+          backgroundColor: theme.palette.primary.main,
+          borderRadius: 0.5,
+          minWidth: '200px',
+          minHeight: '50px'
+        }}
       />
       {temporarilySelected && (
         <AddSymptomDrawer
