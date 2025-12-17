@@ -1,116 +1,62 @@
 import React from 'react'
-import { Card, Grid, Box, Avatar, Typography, Tooltip } from '@mui/material'
+import { Card, Grid, Box } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import AnimalCardBasic from 'src/views/utility/AnimalCardBasic'
+import AnimalDetailsShimmer from 'src/views/pages/hospital/inpatient/shimmer/AnimalDetailsShimmer'
 
-const AnimalInfoCard = ({ data, bgColor = '' }) => {
+const AnimalInfoCard = ({ backgroundColor, additionalFields, image, name, scientificName, age, gender, isLoading }) => {
   const theme = useTheme()
+
+  const StatBox = ({ label, value }) => (
+    <Box>
+      <TextEllipsisWithModal
+        enableDialog={false}
+        text={label || '-'}
+        style={{
+          fontSize: '14px',
+          fontWeight: 400,
+          color: theme.palette.customColors.neutralSecondary,
+          maxWidth: '100%'
+        }}
+      />
+      <TextEllipsisWithModal
+        enableDialog={false}
+        text={value || '-'}
+        style={{
+          fontSize: '16px',
+          fontWeight: 500,
+          color: theme.palette.customColors.OnSurfaceVariant,
+          maxWidth: '100%'
+        }}
+      />
+    </Box>
+  )
+
+  if (isLoading) {
+    return <AnimalDetailsShimmer additionalFields={additionalFields?.length} backgroundColor={backgroundColor} />
+  }
 
   return (
     <Card
       sx={{
-        p: '24px',
+        p: 6,
         borderRadius: '8px',
-        backgroundColor: bgColor || theme.palette.customColors.displaybgPrimary,
+        backgroundColor: backgroundColor || theme.palette.customColors.displaybgPrimary,
         boxShadow: 'none'
       }}
     >
-      {/* Animal Image */}
-      <Grid container spacing={5} sx={{ alignItems: 'center' }}>
-        <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-          <Box sx={{ maxWidth: '100%', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Avatar
-              src={data.animal.image_url}
-              alt={data.animal.common_name}
-              style={{ width: 56, height: 56, borderRadius: '8px', objectFit: 'cover' }}
-            />
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-              <Tooltip title={data.animal.common_name}>
-                <Typography
-                  sx={{
-                    fontWeight: 600,
-                    fontSize: '16px',
-                    letterSpacing: 0,
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    width: '100%'
-                  }}
-                >
-                  {data.animal.common_name}
-                </Typography>
-              </Tooltip>
-              <Tooltip title={data.animal.scientific_name}>
-                <Typography
-                  sx={{
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    fontStyle: 'italic',
-                    letterSpacing: 0,
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    width: '100%'
-                  }}
-                >
-                  {data.animal.scientific_name}
-                </Typography>
-              </Tooltip>
-              <Tooltip title={`${data.animal.age} • ${data.animal.sex}`}>
-                <Typography
-                  sx={{
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    letterSpacing: 0,
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    width: '100%'
-                  }}
-                >
-                  {`${data.animal.age} • ${data.animal.sex}`}
-                </Typography>
-              </Tooltip>
-            </Box>
-          </Box>
+      <Grid container rowSpacing={4} columnSpacing={4} sx={{ alignItems: 'center' }}>
+        <Grid size={{ xs: 12, sm: 12, md: 3.5, lg: 4 }}>
+          <AnimalCardBasic image={image} name={name} scientificName={scientificName} age={age} gender={gender} />
         </Grid>
-
-        {/* Additional Info */}
-        {Object.entries(data.additional_info).map(([key, value]) => (
-          <Grid item size={{ xs: 12, sm: 4, md: 2.25 }} key={key} sx={{ mt: 2 }}>
-            <Tooltip title={value}>
-              <Typography
-                sx={{
-                  fontWeight: 400,
-                  fontSize: '14px',
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.neutralSecondary,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {key}
-              </Typography>
-            </Tooltip>
-            <Tooltip title={value}>
-              <Typography
-                sx={{
-                  fontWeight: 500,
-                  fontSize: '16px',
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {value}
-              </Typography>
-            </Tooltip>
+        {additionalFields?.map(({ label, value }, index) => (
+          <Grid
+            size={{ xs: 6, sm: 3, md: index == 0 ? 2 : 2.125, lg: 2 }}
+            key={index}
+            sx={{ display: 'flex', justifyContent: { md: index == 0 && 'center' } }}
+          >
+            <StatBox label={label} value={value} />
           </Grid>
         ))}
       </Grid>

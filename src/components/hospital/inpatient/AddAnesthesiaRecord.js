@@ -27,8 +27,9 @@ const anesthesiaSchema = yup.object().shape({
     veterinarian_id: yup.array().of(yup.string()).min(1, 'Select at least one veterinarian'),
     anesthetist_id: yup.array().of(yup.string()).min(1, 'Select at least one anesthetist'),
     selected: yup.array().of(yup.string()).min(1, 'Select at least one purpose').default([]),
-    custom: yup.array().of(yup.string()).default([]),
-    notes: yup.string().trim().required('Notes are required')
+    custom: yup.array().of(yup.string()).default([])
+
+    // notes: yup.string().trim().required('Notes are required')
   })
 })
 
@@ -103,8 +104,10 @@ const AddanesthesiaRecordDrawer = ({
 
       if (response?.status === true || response?.success === true) {
         Toaster({ type: 'success', message: response?.message || 'anesthesia added successfully' })
+
         const createdId =
           response?.anaesthesia_id || response?.anesthesia_id || response?.data?.anaesthesia_id || response?.data?.id
+
         const createdCode =
           response?.anaesthesia_code ||
           response?.anesthesia_code ||
@@ -115,6 +118,7 @@ const AddanesthesiaRecordDrawer = ({
         const mapPeople = (ids, options) => {
           if (!Array.isArray(ids)) return []
           const idSet = new Set(ids.map(val => String(val)))
+
           return options
             .filter(opt => idSet.has(String(opt.id)))
             .map(opt => ({ full_name: opt.name || opt.label || '', id: opt.id }))
@@ -130,6 +134,7 @@ const AddanesthesiaRecordDrawer = ({
 
         const selectedPurposes = Array.isArray(data.basicDetails.selected) ? data.basicDetails.selected : []
         const customPurposes = Array.isArray(data.basicDetails.custom) ? data.basicDetails.custom : []
+
         const purposeList = [
           ...selectedPurposes
             .map(id => purposeMap.get(String(id)) || id)
@@ -198,6 +203,7 @@ const AddanesthesiaRecordDrawer = ({
       fetchPurposes()
     }
   }, [openAddanesthesiaDrawer])
+  console.log('patientData', patientData)
 
   return (
     <Drawer
@@ -251,7 +257,21 @@ const AddanesthesiaRecordDrawer = ({
           >
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               {patientData ? (
-                <AnimalInfoCard bgColor={theme.palette.primary.contrastText} data={animalInfoData} />
+                <AnimalInfoCard
+                  image={patientData?.animal_detail?.default_icon}
+                  name={patientData?.animal_detail?.common_name}
+                  scientificName={patientData?.animal_detail?.complete_name}
+                  age={`${patientData?.animal_detail?.age}`}
+                  gender={`${patientData?.animal_detail?.sex}`}
+                  additionalFields={[
+                    { label: 'AID', value: patientData?.animal_detail?.animal_id },
+                    { label: 'Admitted days', value: patientData?.admitted_for_day },
+                    { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
+                    { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }
+                  ]}
+                  backgroundColor={theme.palette.customColors.OnPrimary}
+                  isLoading={!patientData}
+                />
               ) : (
                 <Card
                   sx={{

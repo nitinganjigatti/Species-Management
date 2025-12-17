@@ -8,6 +8,7 @@ import {
   LIST_SURGERY_TEMPLATES,
   CREATE_SURGERY_TEMPLATE,
   GET_PATIENT_SURGERY_LIST,
+  DELETE_SURGERY_RECORD,
   DELETE_TEMPLATE,
   UPDATE_TEMPLATE
 } from 'src/constants/ApiConstant'
@@ -57,6 +58,15 @@ export const getSurgeryTemplates = async params => {
 
 export const getPatientSurgeryList = async ({ params }) => {
   const response = await axiosGet({ url: GET_PATIENT_SURGERY_LIST, params })
+
+  return response?.data
+}
+
+export const deleteSurgeryRecord = async surgeryRecordId => {
+  const payload = new FormData()
+  payload.append('surgery_record_id', surgeryRecordId)
+
+  const response = await axiosFormPost({ url: DELETE_SURGERY_RECORD, body: payload })
 
   return response?.data
 }

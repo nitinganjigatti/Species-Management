@@ -6,13 +6,16 @@ import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import { MedicalIdChip } from '../utility/hospitalSnippets'
 import Utility from 'src/utility'
 
-const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, isDischared }) => {
+const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, isDischared, patientData }) => {
+  console.log(patientData)
+  console.log(record)
   const theme = useTheme()
   const { getSeverityColor, getTypeChipColor, getPrognosisColor } = useHospitalColorUtils()
 
   const mappedRecord = {
     id: record.id,
     title: record.name,
+    medical_record_code: record?.medical_record_code,
     type: record.clinical_assessment === 'diagnosis' ? 'Diagnosis' : 'Tentative',
     status: record.additional_info?.status || 'active',
     severity: record.additional_info?.severity || '',
@@ -72,8 +75,8 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           <MedicalIdChip
             leftImage
-            medId={record?.medical_record_id ? `MID-${record.medical_record_id}` : ''}
-            rightDot
+            medId={record?.medical_record_code}
+            rightDot={record?.medical_record_code === patientData?.medical_record_code}
             dotColor={isActive ? theme.palette.primary.main : theme.palette.success.main}
             textColor={theme.palette.customColors.OnSurface}
           />

@@ -34,7 +34,7 @@ const useHospitalColorUtils = () => {
     switch (type) {
       case 'Diagnosis':
         return theme.palette.customColors.displaybgPrimary
-      case 'Differential':
+      case 'Tentative':
         return theme.palette.customColors.antzNotes
       default:
         return 'default'

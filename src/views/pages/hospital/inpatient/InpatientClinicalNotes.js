@@ -13,7 +13,6 @@ import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const STORAGE_KEY = 'medical_record_data'
 
-// initial form values
 const defaultValues = {
   note: ''
 }
@@ -67,7 +66,7 @@ const InpatientClinicalNotes = props => {
     )
   }
 
-  // // after fetch if no data shows empty state
+  // after fetch if no data shows empty state
   if (!isInitialLoading && clinicalNotesData?.length === 0 && discharge_at !== null) {
     return (
       <Box
@@ -211,7 +210,7 @@ const InpatientClinicalNotes = props => {
           )}
 
           {/*  Show "No more data" */}
-          {!hasNextPage && (
+          {!hasNextPage && clinicalNotesData?.length > 9 && (
             <Typography
               sx={{
                 mt: 4,

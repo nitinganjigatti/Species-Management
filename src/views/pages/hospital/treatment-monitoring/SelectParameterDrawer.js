@@ -154,7 +154,6 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments, setSelected
         sx={{
           '& .MuiDrawer-paper': {
             width: ['100%', '562px'],
-            height: '100vh',
             display: 'flex',
             flexDirection: 'column'
           }
@@ -198,7 +197,7 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments, setSelected
           <Box sx={{ flex: 1, overflow: 'auto' }}>
             <Box sx={{ px: 6, pt: 6, pb: 3 }}>
               <Search
-                placeholder='Search Symptoms'
+                placeholder='Search Parameters'
                 value={localSearch}
                 onChange={handleSearchChange}
                 onClear={handleSearchClear}

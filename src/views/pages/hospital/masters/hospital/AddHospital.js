@@ -3,18 +3,15 @@ import { useTheme, Card, Typography, IconButton, Drawer, Box, Grid, alpha } from
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
 
-// ** Form & Validation Setup
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller, useForm } from 'react-hook-form'
 import { AuthContext } from 'src/context/AuthContext'
 
-// ** Custom Form Components
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import TreatmentTypeRadioButtons from '../../utility/TreatmentTypeRadioButtons'
 
-// Validation Schema
 const schema = yup.object().shape({
   hospital_name: yup
     .string()
@@ -46,7 +43,6 @@ const schema = yup.object().shape({
   // .typeError('Site selection is required')
 })
 
-// Default Form Values
 const defaultValues = {
   hospital_name: '',
   description: '',
@@ -78,7 +74,6 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
     shouldUnregister: false
   })
 
-  // Handle form submission to add hospital details
   const onSubmit = useCallback(
     async formData => {
       const payload = {
@@ -98,7 +93,6 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
     [reset, handleSubmitData]
   )
 
-  // Handle drawer close with form reset
   const handleClose = useCallback(() => {
     reset(defaultValues)
     handleSidebarClose()
@@ -111,7 +105,6 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: ['100%', 562] } }}
     >
-      {/* Sidebar Header */}
       <Box
         className='sidebar-header'
         sx={{
@@ -128,7 +121,6 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
       >
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
           <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Hospital Icon' />
-
           <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
             Add Hospital
           </Typography>
@@ -139,7 +131,6 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
         </IconButton>
       </Box>
 
-      {/* Sidebar Body */}
       <Box
         sx={{
           backgroundColor: theme.palette.background.default,
@@ -218,8 +209,6 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
               </Grid>
             </Grid>
           </Card>
-
-          {/* Footer button */}
         </form>
       </Box>
       <Box

@@ -40,6 +40,7 @@ function RecoveryAndReversal({
   } = useFormContext()
   const reversalDrugs = watch('recoveryAndReversal.reversalDrugs') || []
   const recoveryType = watch('recoveryAndReversal.recovery_type')
+
   const fetchDeliveryList = async () => {
     try {
       const response = await deliveryRouteList()
@@ -56,6 +57,7 @@ function RecoveryAndReversal({
     if (isProductLoading) return
 
     setIsProductLoading(true)
+
     const params = {
       sort: 'asc',
       q: '',
@@ -94,12 +96,14 @@ function RecoveryAndReversal({
 
   const getUnitAbbr = unitId => {
     const unit = unitList?.find(item => String(item.id) === String(unitId))
+
     return unit?.uom_abbr || '-'
   }
 
   const safeFormat = v => {
     if (!v) return '-'
     const d = dayjs(v)
+
     return d.isValid() ? d.format('hh:mm A') : '-'
   }
 
@@ -118,17 +122,20 @@ function RecoveryAndReversal({
           const candidate = dayjs(`${today} ${p.format('HH:mm:ss')}`, 'YYYY-MM-DD HH:mm:ss', true)
           if (candidate.isValid()) return candidate
         }
+
         return p
       }
     }
 
     const loose = dayjs(s)
+
     return loose.isValid() ? loose : null
   }
 
   const asStorageString = d => {
     if (!d) return ''
     const parsed = parseTimeFromDrawer(d)
+
     return parsed && parsed.isValid() ? parsed.format('YYYY-MM-DD HH:mm:ss') : ''
   }
 
@@ -331,6 +338,7 @@ function RecoveryAndReversal({
             indexedRows={reversalDrugsData}
             rowHeight={64}
             total={reversalDrugsData?.length || 0}
+            hideFooterPagination
             externalTableStyle={{
               '& .MuiDataGrid-columnHeaders': {
                 backgroundColor: theme.palette.customColors.neutral05,

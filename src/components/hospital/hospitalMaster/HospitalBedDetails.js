@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react'
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import {
   Box,
   Button,
@@ -23,7 +23,6 @@ import { useRouter } from 'next/router'
 import { debounce } from 'lodash'
 import styled from '@emotion/styled'
 
-// Custom Components
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import Toaster from 'src/components/Toaster'
@@ -34,12 +33,10 @@ import AddHospitalBed from 'src/views/pages/hospital/masters/hospital/AddHospita
 import RoomAnalytics from './RoomAnalytics'
 import AnimalCard from 'src/views/utility/AnimalCard'
 
-// API
 import { addHospitalBed, getHospitalBeds, updateHospitalBed, updateRoomStatus } from 'src/lib/api/hospital/hospitalBeds'
 import { updateHospitalRoom } from 'src/lib/api/hospital/hospitalRooms'
 import Utility from 'src/utility'
-import Link from 'next/link'
-import CommonDialogBox from 'src/components/CommonDialogBox'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 import { useHospital } from 'src/context/HospitalContext'
 
@@ -52,23 +49,23 @@ const statusOptions = [
 const HospitalBedDetails = () => {
   const theme = useTheme()
   const router = useRouter()
-  const { id, roomId } = router.query
   const queryClient = useQueryClient()
+
+  const { page, limit, q, status, id, roomId } = router.query
 
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
-  const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState(q || '')
   const [editParams, setEditParams] = useState(null)
   const [roomStatusEdit, setRoomStatusEdit] = useState(null)
   const [isStatusUpdating, setIsStatusUpdating] = useState(false)
   const [isOccupiedBedWarningOpen, setIsOccupiedBedWarningOpen] = useState(false)
 
   const [filters, setFilters] = useState({
-    page: 1,
-    limit: 50,
-    q: '',
-    hospital_id: id,
-    status: undefined
+    page: page ? Number(page) : 1,
+    limit: limit ? Number(limit) : 50,
+    q: q ?? '',
+    status: status !== undefined && status !== 'all' ? status : undefined
   })
 
   const { updateHospitalStats, selectedHospital } = useHospital()
@@ -80,56 +77,25 @@ const HospitalBedDetails = () => {
 
       Object.entries(updatedFilters).forEach(([key, value]) => {
         if (value !== '' && value !== null && value !== undefined) {
-          params.set(key, String(value))
+          params.set(key, value.toString())
         }
       })
 
       const basePath = `/hospital/masters/hospital/${id}/${roomId}`
-      router.push({ pathname: basePath, query: Object.fromEntries(params) }, undefined, { shallow: true })
+      const queryString = params.toString()
+      const newUrl = queryString ? `${basePath}?${queryString}` : basePath
+      router.replace(newUrl)
     },
     [router, id, roomId]
   )
 
-  // Sync router params on load and change
-  useEffect(() => {
-    if (!router.isReady || !id) return
-
-    const { page = '1', limit = '50', q = '', status } = router.query
-
-    setFilters(prev => {
-      const newFilters = {
-        page: Number(page) || 1,
-        limit: Number(limit) || 50,
-        q: q || '',
-        hospital_id: id,
-        status: status !== undefined && status !== 'all' ? status : undefined
-      }
-
-      if (
-        prev.page !== newFilters.page ||
-        prev.limit !== newFilters.limit ||
-        prev.q !== newFilters.q ||
-        prev.hospital_id !== newFilters.hospital_id ||
-        prev.status !== newFilters.status
-      ) {
-        return newFilters
-      }
-
-      return prev
-    })
-
-    setSearchValue(q || '')
-  }, [router.isReady, router.query, id])
-
   // Fetch bed list
-  const queryKey = useMemo(() => ['bed-list', id, roomId, filters], [id, roomId, filters])
-
   const {
     data: bedData,
     isFetching: isLoadingBeds,
     refetch: refetchBeds
   } = useQuery({
-    queryKey,
+    queryKey: ['bed-list', id, roomId, filters],
     queryFn: () =>
       getHospitalBeds({
         hospital_id: id,
@@ -141,13 +107,14 @@ const HospitalBedDetails = () => {
       }),
 
     enabled: !!id && !!roomId,
-    keepPreviousData: true,
-    staleTime: 60 * 1000
+    onError: error => {
+      console.error('Error fetching bed list:', error?.message)
+    }
   })
 
   const rows = useMemo(() => bedData?.data?.records || [], [bedData?.data?.records])
-
   const total = useMemo(() => bedData?.data?.total || 0, [bedData?.data?.total])
+  const occupied = bedData?.data?.room_detail?.no_of_occupied
 
   // Room details from bed data
   const roomDetails = useMemo(() => {
@@ -165,7 +132,7 @@ const HospitalBedDetails = () => {
   // Toggle room status
   const handleRoomStatus = useCallback(
     async event => {
-      if (Number(roomDetails.no_of_occupied) !== 0) {
+      if (Number(occupied) > 0) {
         setIsOccupiedBedWarningOpen(true)
 
         return
@@ -184,14 +151,14 @@ const HospitalBedDetails = () => {
             message: response?.message || `Room ${checked ? 'activated' : 'deactivated'} successfully`
           })
 
-          setRoomStatusEdit({ room_id: roomId, status: checked ? 1 : 0 })
+          setRoomStatusEdit(true)
           refetchBeds()
         } else {
-          throw new Error(response.message || 'Failed to update room status')
+          console.error('Status update failed:', response.message)
+          Toaster({ type: 'error', message: response?.message || 'Failed to update room status' })
         }
       } catch (error) {
-        console.error('Status update failed:', error)
-        Toaster({ type: 'error', message: error?.message || 'An unexpected error occurred' })
+        console.error('Status update failed:', error?.message || error)
         refetchBeds() // Revert optimistic update on error
       } finally {
         setIsStatusUpdating(false)
@@ -201,86 +168,95 @@ const HospitalBedDetails = () => {
   )
 
   // Pagination
-  const handlePaginationChange = useCallback(
-    model => {
-      const updated = {
-        ...filters,
-        page: model.page + 1,
-        limit: model.pageSize
-      }
+  const handlePaginationChange = model => {
+    const updated = {
+      ...filters,
+      page: model.page + 1,
+      limit: model.pageSize
+    }
 
-      setFilters(updated)
-      updateUrlParams(updated)
-    },
-    [filters, updateUrlParams]
-  )
+    setFilters(updated)
+    updateUrlParams(updated)
+  }
 
-  // Search
-  const debouncedSearch = useMemo(
-    () =>
-      debounce(value => {
-        setFilters(prev => {
-          const updated = { ...prev, q: value, page: 1, hospital_id: id }
-          updateUrlParams(updated)
+  // Debounced search function using useRef to persist across renders
+  const debouncedSearchRef = useRef(null)
 
-          return updated
-        })
-      }, 500),
-    [id, updateUrlParams]
-  )
+  const debouncedSearch = () => {
+    if (!debouncedSearchRef.current) {
+      debouncedSearchRef.current = debounce((value, currentFilters, updateFn) => {
+        const updated = {
+          ...currentFilters,
+          q: value,
+          page: 1
+        }
+
+        setFilters(updated)
+        updateFn(updated)
+      }, 500)
+    }
+  }
 
   // Cleanup debounce on unmount
   useEffect(() => {
-    return () => debouncedSearch.cancel()
-  }, [debouncedSearch])
+    debouncedSearch()
 
-  // Search handler
-  const handleSearch = useCallback(
-    value => {
-      setSearchValue(value)
-      debouncedSearch(value)
-    },
-    [debouncedSearch]
-  )
+    return () => {
+      if (debouncedSearchRef.current) {
+        debouncedSearchRef.current.cancel()
+      }
+    }
+  }, [])
+
+  // Search handler - only updates local state immediately
+  const handleSearch = value => {
+    setSearchValue(value)
+    if (debouncedSearchRef.current) {
+      debouncedSearchRef.current(value, filters, updateUrlParams)
+    }
+  }
 
   // Clear search handler
-  const handleSearchClear = useCallback(() => {
-    debouncedSearch.cancel()
+  const handleSearchClear = () => {
     setSearchValue('')
+    if (debouncedSearchRef.current) {
+      debouncedSearchRef.current.cancel()
+    }
 
-    const updated = { ...filters, q: '', page: 1, hospital_id: id }
+    const updated = {
+      ...filters,
+      q: '',
+      page: 1
+    }
+
     setFilters(updated)
     updateUrlParams(updated)
-  }, [debouncedSearch, filters, id, updateUrlParams])
+  }
 
-  // Sidebar Controls
-  const openAddBedDrawer = useCallback(() => {
+  const openAddBedDrawer = () => {
     setEditParams(null)
-    setRoomStatusEdit(null)
     setOpenDrawer(true)
-  }, [])
+  }
 
-  const openEditBedDrawer = useCallback(row => {
+  const openEditBedDrawer = row => {
     setEditParams(row)
-    setRoomStatusEdit(null)
     setOpenDrawer(true)
-  }, [])
+  }
 
-  const openEditRoomDrawer = useCallback(() => {
-    if (Number(roomDetails.no_of_occupied) !== 0) {
+  const openEditRoomDrawer = () => {
+    if (Number(occupied) > 0) {
       setIsOccupiedBedWarningOpen(true)
     } else {
-      setEditParams(null)
-      setRoomStatusEdit({ room_id: roomId, status: isActive ? 1 : 0 })
+      setRoomStatusEdit(true)
       setOpenDrawer(true)
     }
-  }, [roomId, isActive, roomDetails])
+  }
 
-  const closeDrawer = useCallback(() => {
+  const closeDrawer = () => {
     setOpenDrawer(false)
-    setRoomStatusEdit(null)
+    setRoomStatusEdit(false)
     setEditParams(null)
-  }, [])
+  }
 
   const fetchAndUpdateHospitalStats = async hospitalId => {
     if (!hospitalId) return
@@ -295,71 +271,67 @@ const HospitalBedDetails = () => {
     }
   }
 
-  // Close Warning Dialog
-  const closeOccupiedBedWarningDialog = () => setIsOccupiedBedWarningOpen(false)
-
   // Add / Update bed and Room
-  const handleSubmitData = useCallback(
-    async (payload, type = 'bed') => {
-      setSubmitLoader(true)
+  const handleSubmitData = async (payload, type = 'bed') => {
+    setSubmitLoader(true)
 
-      try {
-        if (type === 'room') {
-          const updatePayload = {
-            hospital_id: id,
-            room_id: roomId,
-            room_name: payload.room_name,
-            floor_name: payload.floor_name,
-            status: payload.status
-          }
-          const response = await updateHospitalRoom(updatePayload)
+    try {
+      if (type === 'room') {
+        const updatePayload = {
+          hospital_id: id,
+          room_id: roomId,
+          room_name: payload.room_name,
+          floor_name: payload.floor_name,
+          status: payload.status
+        }
+        const response = await updateHospitalRoom(updatePayload)
 
-          if (response?.success) {
-            try {
-              queryClient.setQueryData(['bed-list', filters], old => {
-                if (!old?.data) return old
+        if (response?.success) {
+          try {
+            queryClient.setQueryData(['bed-list', id, roomId, filters], old => {
+              if (!old?.data) return old
 
-                return {
-                  ...old,
-                  data: {
-                    ...old.data,
-                    room_detail: { ...(old.data.room_detail || {}), status: payload.status }
-                  }
+              return {
+                ...old,
+                data: {
+                  ...old.data,
+                  room_detail: { ...(old?.data?.room_detail || {}), status: payload.status }
                 }
-              })
-            } catch (err) {
-              console.warn('Failed to update query cache', err)
-            }
+              }
+            })
+          } catch (error) {
+            console.error('Failed to update query cache', error?.message || error)
+          }
 
-            Toaster({ type: 'success', message: response?.message || 'Room updated successfully' })
-            refetchBeds()
-          } else {
-            Toaster({ type: 'error', message: response?.message || 'Failed to update room' })
+          Toaster({ type: 'success', message: response?.message || 'Room updated successfully' })
+          refetchBeds()
+        } else {
+          Toaster({ type: 'error', message: response?.message || 'Failed to update room' })
+        }
+      } else {
+        const updatePayload = { ...payload, bed_id: editParams?.id }
+        const response = editParams?.id ? await updateHospitalBed(updatePayload) : await addHospitalBed(payload)
+
+        if (response?.success) {
+          Toaster({
+            type: 'success',
+            message: response?.message || `Bed ${editParams?.id ? 'updated' : 'added'} successfully`
+          })
+          refetchBeds()
+          if (selectedHospital?.id === id) {
+            fetchAndUpdateHospitalStats(id)
           }
         } else {
-          const updatePayload = { ...payload, bed_id: editParams?.id }
-          const response = editParams?.id ? await updateHospitalBed(updatePayload) : await addHospitalBed(payload)
-
-          if (response?.success) {
-            Toaster({ type: 'success', message: response?.message || 'Bed saved successfully' })
-            refetchBeds()
-            if (selectedHospital?.id === id) {
-              fetchAndUpdateHospitalStats(id)
-            }
-          } else {
-            Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
-          }
+          Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
         }
-      } catch (error) {
-        console.error('Error submitting data:', error)
-        Toaster({ type: 'error', message: error?.message || 'An unexpected error occurred' })
-      } finally {
-        setSubmitLoader(false)
-        setOpenDrawer(false)
       }
-    },
-    [id, roomId, editParams, filters, queryClient, refetchBeds]
-  )
+    } catch (error) {
+      console.error('Error submitting data:', error?.message || error)
+    } finally {
+      setSubmitLoader(false)
+      setOpenDrawer(false)
+    }
+  }
 
   // Edit bed options
   const getMenuOptions = useCallback(
@@ -374,7 +346,7 @@ const HospitalBedDetails = () => {
         action: () => openEditBedDrawer(row)
       }
     ],
-    [openEditBedDrawer, theme.palette.customColors.neutralPrimary]
+    [openEditBedDrawer]
   )
 
   // Add serial numbers to each row
@@ -386,96 +358,94 @@ const HospitalBedDetails = () => {
   }, [rows, filters.page, filters.limit])
 
   // Table columns
-  const columns = useMemo(() => {
-    return [
-      {
-        minWidth: 50,
-        field: 'id',
-        headerName: 'SL.NO',
-        sortable: false,
-        renderCell: params => (
-          <StyledTypography fontSize='0.75rem' sx={{ pl: 3 }}>
-            {params.row.sl_no}
-          </StyledTypography>
-        )
-      },
-      {
-        minWidth: 250,
-        field: 'bed_name',
-        headerName: 'Cage/stall/enclosure',
-        sortable: false,
-        renderCell: params => (
-          <TextEllipsisWithModal
-            enableDialog={false}
-            text={params.row.bed_name}
-            style={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '1rem',
-              fontWeight: 400,
-              pl: 1.4,
-              maxWidth: '230px'
-            }}
-          />
-        )
-      },
-      {
-        minWidth: 280,
-        field: 'occupant',
-        headerName: 'Occupant',
-        sortable: false,
-        renderCell: params => {
-          const animalData = {
-            animal_id: params.row.animal_id ?? '-',
-            common_name: params.row.default_common_name ?? '-',
-            scientific_name: params.row.scientific_name ?? '-',
-            age: params.row.age ?? '-',
-            site_name: params.row.site_name ?? '-',
-            sex: params.row.sex ?? '-',
-            default_icon: params.row.occupant_icon
-          }
-
-          const isOccupied = String(params.row?.is_occupied) === '1'
-          const isActive = String(params.row?.active) === '1'
-
-          return <Box sx={{ pl: 1.4 }}>{!isActive ? '' : isOccupied ? <AnimalCard data={animalData} /> : '--'}</Box>
+  const columns = [
+    {
+      minWidth: 50,
+      field: 'id',
+      headerName: 'SL.NO',
+      sortable: false,
+      renderCell: params => (
+        <StyledTypography fontSize='0.75rem' sx={{ pl: 3 }}>
+          {params?.row?.sl_no}
+        </StyledTypography>
+      )
+    },
+    {
+      minWidth: 250,
+      field: 'bed_name',
+      headerName: 'Cage/stall/enclosure',
+      sortable: false,
+      renderCell: params => (
+        <TextEllipsisWithModal
+          enableDialog={false}
+          text={params?.row?.bed_name}
+          style={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '1rem',
+            fontWeight: 400,
+            pl: 1.4,
+            maxWidth: '230px'
+          }}
+        />
+      )
+    },
+    {
+      minWidth: 280,
+      field: 'occupant',
+      headerName: 'Occupant',
+      sortable: false,
+      renderCell: params => {
+        const animalData = {
+          animal_id: params?.row?.animal_id ?? '-',
+          common_name: params?.row?.default_common_name ?? '-',
+          scientific_name: params?.row?.scientific_name ?? '-',
+          age: params?.row?.age ?? '-',
+          site_name: params?.row?.site_name ?? '-',
+          sex: params?.row?.sex ?? '-',
+          default_icon: params?.row?.occupant_icon
         }
-      },
-      {
-        minWidth: 140,
-        field: 'active',
-        headerName: 'Status',
-        sortable: false,
-        renderCell: params => <StatusChip chipStyles={{ ml: 1.4 }} status={params.row.active} />
-      },
-      {
-        minWidth: 180,
-        field: 'room_date',
-        headerName: 'Room Alloted On',
-        sortable: false,
-        renderCell: params => (
-          <StyledTypography sx={{ pl: 1.4 }}>
-            {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row?.admitted_at))}
-          </StyledTypography>
-        )
-      },
-      {
-        minWidth: 100,
-        field: 'actions',
-        headerName: 'Actions',
-        sortable: false,
-        renderCell: params => (
-          <Box onClick={e => e.stopPropagation()}>
-            <MenuWithDots
-              options={getMenuOptions(params.row)}
-              showBorder
-              menuItemSx={{ padding: '0 20px' }}
-              iconSx={{ padding: 0 }}
-            />
-          </Box>
-        )
+
+        const isOccupied = String(params?.row?.is_occupied) === '1'
+        const isActive = String(params?.row?.active) === '1'
+
+        return <Box sx={{ pl: 1.4 }}>{!isActive ? '' : isOccupied ? <AnimalCard data={animalData} /> : '--'}</Box>
       }
-    ]
-  }, [getMenuOptions, theme.palette.customColors.OnSurfaceVariant])
+    },
+    {
+      minWidth: 140,
+      field: 'active',
+      headerName: 'Status',
+      sortable: false,
+      renderCell: params => <StatusChip chipStyles={{ ml: 1.4 }} status={params?.row?.active} />
+    },
+    {
+      minWidth: 180,
+      field: 'room_date',
+      headerName: 'Room Alloted On',
+      sortable: false,
+      renderCell: params => (
+        <StyledTypography sx={{ pl: 1.4 }}>
+          {Utility.formatDisplayDate(Utility.convertUTCToLocal(params?.row?.admitted_at))}
+        </StyledTypography>
+      )
+    },
+    {
+      minWidth: 100,
+      field: 'actions',
+      headerName: 'Actions',
+      sortable: false,
+      renderCell: params => (
+        <Box onClick={e => e.stopPropagation()}>
+          <MenuWithDots
+            options={getMenuOptions(params?.row)}
+            showBorder
+            menuItemSx={{ padding: '0 20px' }}
+            iconSx={{ padding: 0 }}
+          />
+        </Box>
+      )
+    }
+  ]
 
   // getRowClassName function
   const getRowClassName = params => {
@@ -488,38 +458,32 @@ const HospitalBedDetails = () => {
   }
 
   // Handle Status filter change
-  const handleStatusChange = useCallback(
-    value => {
-      const activeValue = value === 'all' ? undefined : value
+  const handleStatusChange = value => {
+    const activeValue = value === 'all' ? undefined : value
 
-      const updated = {
-        ...filters,
-        page: 1,
-        status: activeValue
-      }
+    const updated = {
+      ...filters,
+      page: 1,
+      status: activeValue
+    }
 
-      setFilters(updated)
-      updateUrlParams(updated)
-    },
-    [filters, updateUrlParams]
-  )
+    setFilters(updated)
+    updateUrlParams(updated)
+  }
 
-  const selectedStatus = useMemo(() => {
-    return filters.status || 'all'
-  }, [filters.status])
+  // refetch on when filters updates
+  useEffect(() => {
+    if (!router.isReady || !id || !roomId) return
+    refetchBeds()
+  }, [filters, id, router.isReady])
 
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Typography color={theme.palette.text.secondary}>Hospital</Typography>
-        <Link
-          href={`/hospital/masters/hospital/${id}`}
-          style={{
-            textDecoration: 'none'
-          }}
-        >
-          <Typography sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}>Room</Typography>
-        </Link>
+        <Typography onClick={() => router.back()} sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}>
+          Room
+        </Typography>
         <Typography color={theme.palette.text.primary}>Bed</Typography>
       </Breadcrumbs>
       <Card sx={{ p: 6 }}>
@@ -574,10 +538,8 @@ const HospitalBedDetails = () => {
           }
         />
 
-        {/* Room stats */}
         <RoomAnalytics isRoomStatsLoading={isLoadingBeds} roomDetails={roomDetails} />
 
-        {/* Search + Filter */}
         <Box
           sx={{
             display: 'flex',
@@ -588,7 +550,6 @@ const HospitalBedDetails = () => {
             mt: 6
           }}
         >
-          {/* Search + Filter */}
           <Search
             borderRadius='4px'
             value={searchValue}
@@ -605,7 +566,7 @@ const HospitalBedDetails = () => {
 
           <Select
             size='small'
-            value={selectedStatus}
+            value={filters.status ?? 'all'}
             displayEmpty
             onChange={e => handleStatusChange(e.target.value)}
             sx={{
@@ -613,15 +574,14 @@ const HospitalBedDetails = () => {
               borderRadius: '4px'
             }}
           >
-            {statusOptions.map((item, index) => (
-              <MenuItem key={index} value={item.value}>
-                {item.label}
+            {statusOptions?.map((item, index) => (
+              <MenuItem key={index} value={item?.value}>
+                {item?.label}
               </MenuItem>
             ))}
           </Select>
         </Box>
 
-        {/* Table */}
         <CommonTable
           columns={columns}
           indexedRows={indexedRows}
@@ -642,7 +602,6 @@ const HospitalBedDetails = () => {
         />
       </Card>
 
-      {/* Bed Drawer */}
       {openDrawer && (
         <AddHospitalBed
           handleSidebarOpen={openDrawer}
@@ -657,14 +616,18 @@ const HospitalBedDetails = () => {
           roomStatus={roomStatusEdit}
         />
       )}
-
-      {/* Beds Occupied Warning Dialog for status update of room */}
-      <CommonDialogBox
-        title='Cannot change the status of a room with occupied beds'
-        dialogBoxStatus={isOccupiedBedWarningOpen}
-        close={closeOccupiedBedWarningDialog}
-        noWidth={true}
-      />
+      {isOccupiedBedWarningOpen && (
+        <ConfirmationDialog
+          dialogBoxStatus={isOccupiedBedWarningOpen}
+          title='The room status cannot be changed because there are patients currently occupying the beds'
+          confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
+          image={'/images/warning-icon.svg'}
+          imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
+          confirmAction={() => setIsOccupiedBedWarningOpen(false)}
+          ConfirmationText={'OK'}
+          allowCancel={false}
+        />
+      )}
     </>
   )
 }

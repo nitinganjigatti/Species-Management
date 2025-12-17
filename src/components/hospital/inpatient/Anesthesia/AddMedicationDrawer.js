@@ -49,8 +49,8 @@ const schema = yup.object().shape({
       const maxEffect = dayjs(value)
 
       return maxEffect.isAfter(delivery) || maxEffect.isSame(delivery)
-    }),
-  notes: yup.string().trim().required('Note is required')
+    })
+  // notes: yup.string().trim().required('Note is required')
 })
 
 const deliveryStatus = [

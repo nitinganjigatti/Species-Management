@@ -9,7 +9,10 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { useQuery } from '@tanstack/react-query'
+
+dayjs.extend(customParseFormat)
 
 import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
@@ -21,15 +24,20 @@ import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePick
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import AddEditSurgeryDrawer from 'src/views/pages/hospital/masters/surgery'
 
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 
-import { addSurgeryRecord, getSurgeryMaster } from 'src/lib/api/hospital/surgeryMaster'
+import {
+  addSurgeryMaster,
+  addSurgeryRecord,
+  getPatientSurgeryList,
+  getSurgeryMaster
+} from 'src/lib/api/hospital/surgeryMaster'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 
-const DEFAULT_HOSPITAL_ID = '68'
 const FORM_ID = 'add-surgery-record-form'
 
 const getSafeString = value => {
@@ -97,21 +105,57 @@ const getAutocompleteLabel = value => {
   return value?.label ?? ''
 }
 
+const getSurgeryRecordIdentifier = record => {
+  if (!record || typeof record !== 'object') return ''
+  if (record.id !== undefined && record.id !== null) return String(record.id)
+  if (record.detail?.id !== undefined && record.detail?.id !== null) return String(record.detail.id)
+
+  return ''
+}
+
 const formatDateValue = value => (value ? dayjs(value).format('YYYY-MM-DD') : '')
 
 const formatTimeValue = value => (value ? dayjs(value).format('HH:mm:ss') : '')
 
 const combineDateAndTime = (dateValue, timeValue) => {
   const date = dayjs(dateValue)
-  const time = dayjs(timeValue)
 
-  if (!date.isValid() || !time.isValid()) return null
+  if (!date.isValid() || !timeValue) return null
+
+  const baseDateString = date.format('YYYY-MM-DD')
+  const parseTime = value => {
+    if (dayjs.isDayjs(value)) return value
+    if (!value) return null
+
+    if (typeof value === 'string' || typeof value === 'number') {
+      const timeStr = String(value)
+      const isoCandidate = dayjs(`${baseDateString}T${timeStr}`)
+      if (isoCandidate.isValid()) return isoCandidate
+
+      const timeFormats = ['HH:mm:ss', 'HH:mm', 'H:mm', 'h:mm A', 'hh:mm A', 'h:mm:ss A', 'hh:mm:ss A']
+      for (const format of timeFormats) {
+        const parsed = dayjs(`${baseDateString} ${timeStr}`, `YYYY-MM-DD ${format}`, true)
+        if (parsed.isValid()) return parsed
+      }
+
+      const fallback = dayjs(timeStr)
+      if (fallback.isValid()) return fallback
+
+      return null
+    }
+
+    return null
+  }
+
+  const time = parseTime(timeValue)
+
+  if (!time || !time.isValid()) return null
 
   return date.hour(time.hour()).minute(time.minute()).second(time.second()).millisecond(0)
 }
 
 const resolveHospitalCaseId = query => {
-  const possibleKeys = ['hospital_case_id', 'hospitalCaseId', 'case_id', 'caseId', 'hospitalCaseID', 'id']
+  const possibleKeys = ['hospital_case_id']
 
   for (const key of possibleKeys) {
     if (query?.[key] !== undefined) {
@@ -246,9 +290,18 @@ const schema = yup.object().shape({
 const AddSurgeryRecord = () => {
   const router = useRouter()
   const theme = useTheme()
-  const auth = useAuth()
-
   const resolvedHospitalCaseId = useMemo(() => resolveHospitalCaseId(router.query), [router.query])
+  const surgeryRecordId = useMemo(() => {
+    const possible =
+      router.query?.surgery_record_id ||
+      router.query?.surgeryRecordId ||
+      router.query?.surgery_recordId ||
+      router.query?.surgeryId ||
+      router.query?.id
+
+    return Array.isArray(possible) ? possible[0] : possible || ''
+  }, [router.query])
+  const isEditMode = Boolean(surgeryRecordId)
 
   const medicalRecordId = useMemo(() => {
     const possible = router.query?.medical_record_id || router.query?.medicalRecordId || router.query?.medical_recordId
@@ -261,8 +314,9 @@ const AddSurgeryRecord = () => {
     () => (patientData?.admitted_at ? dayjs(patientData.admitted_at) : null),
     [patientData?.admitted_at]
   )
-  const userZooId = useMemo(() => auth?.userData?.user?.zoos?.[0]?.zoo_id, [auth?.userData])
   const defaultNow = useMemo(() => dayjs(), [])
+  const auth = useAuth()
+  const userZooId = useMemo(() => auth?.userData?.user?.zoos?.[0]?.zoo_id, [auth?.userData])
 
   const buildDefaultFormValues = useCallback(
     () => ({
@@ -306,7 +360,13 @@ const AddSurgeryRecord = () => {
   const [pendingAnesthesiaRecord, setPendingAnesthesiaRecord] = useState(null)
   const [richNote, setRichNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [prefillLoading, setPrefillLoading] = useState(false)
+  const [prefillError, setPrefillError] = useState('')
+  const [prefillDetail, setPrefillDetail] = useState(null)
   const [procedureSearchTerm, setProcedureSearchTerm] = useState('')
+  const [openAddSurgeryDrawer, setOpenAddSurgeryDrawer] = useState(false)
+  const [isSurgerySaving, setIsSurgerySaving] = useState(false)
+  const [localProcedureOptions, setLocalProcedureOptions] = useState([])
   const [surgeonSearchTerm, setSurgeonSearchTerm] = useState('')
   const [formResetKey, setFormResetKey] = useState(0)
   const selectedDate = watch('date')
@@ -315,7 +375,116 @@ const AddSurgeryRecord = () => {
   const durationValue = watch('duration')
   const selectedAnesthesia = selectedAnesthesiaRecord
 
+  const applyPrefillFromRecord = useCallback(
+    detail => {
+      if (!detail) return
+      setPrefillDetail(detail)
+
+      const dateValue = detail?.surgery_date ? dayjs(detail.surgery_date) : null
+      const startTimeCombined = detail?.start_time
+        ? combineDateAndTime(detail?.surgery_date || detail?.date, detail.start_time)
+        : null
+      const endTimeCombined = detail?.end_time
+        ? combineDateAndTime(detail?.surgery_date || detail?.date, detail.end_time)
+        : null
+
+      const procedureOption =
+        detail?.surgery_id || detail?.surgeryId
+          ? {
+              value: String(detail?.surgery_id ?? detail?.surgeryId),
+              label:
+                detail?.surgery_name ||
+                detail?.surgeryName ||
+                detail?.procedure_name ||
+                detail?.surgery ||
+                detail?.code ||
+                'Surgery'
+            }
+          : null
+
+      const anesthesiaDetail = detail?.anaesthesia_detail || detail?.anesthesia_detail
+      const anesthesiaOption =
+        detail?.anaesthesia_id || detail?.anesthesia_id
+          ? {
+              anaesthesia_id: String(detail?.anaesthesia_id ?? detail?.anesthesia_id),
+              label: detail?.anaesthesia_name || detail?.anesthesia_name || anesthesiaDetail?.code || ''
+            }
+          : null
+
+      setValue('date', dateValue || null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
+      setValue('startTime', startTimeCombined || null, {
+        shouldValidate: false,
+        shouldDirty: false,
+        shouldTouch: false
+      })
+      setValue('endTime', endTimeCombined || null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
+      setValue('procedure', procedureOption, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
+      const surgeonOption =
+        detail?.name_of_surgeon || detail?.surgeon_name
+          ? {
+              label: detail?.name_of_surgeon || detail?.surgeon_name,
+              value: detail?.name_of_surgeon_id || detail?.surgeon_id || ''
+            }
+          : ''
+      setValue('surgeon', surgeonOption, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
+      setValue('typeOfSurgery', detail?.type_of_surgery || '', {
+        shouldValidate: false,
+        shouldDirty: false,
+        shouldTouch: false
+      })
+      setValue('surgicalApproach', detail?.surgical_approach || '', {
+        shouldValidate: false,
+        shouldDirty: false,
+        shouldTouch: false
+      })
+      setValue('duration', detail?.duration ? String(detail.duration) : '', {
+        shouldValidate: false,
+        shouldDirty: false,
+        shouldTouch: false
+      })
+      setValue('complication', detail?.complications || detail?.complication || '', {
+        shouldValidate: false,
+        shouldDirty: false,
+        shouldTouch: false
+      })
+      setValue('dietInstructions', detail?.care_diet_instructions || '', {
+        shouldValidate: false,
+        shouldDirty: false,
+        shouldTouch: false
+      })
+      setValue('restrictions', detail?.care_activity_restrictions || '', {
+        shouldValidate: false,
+        shouldDirty: false,
+        shouldTouch: false
+      })
+      setValue('additionalNotes', detail?.additional_notes || '', {
+        shouldValidate: false,
+        shouldDirty: false,
+        shouldTouch: false
+      })
+      const existingAttachments = Array.isArray(detail?.attachments)
+        ? detail.attachments.map(item => ({
+            id: item?.id,
+            file_path: item?.file || item?.file_path || '',
+            name: item?.file_original_name || item?.name || item?.file || ''
+          }))
+        : []
+
+      setValue('attachments', existingAttachments, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
+      setSelectedAnesthesiaRecord(anesthesiaDetail || anesthesiaOption)
+      setRichNote(detail?.surgery_notes || '')
+      setFormResetKey(prev => prev + 1)
+    },
+    [setPrefillDetail, setValue, setSelectedAnesthesiaRecord, setRichNote, setFormResetKey]
+  )
+
   const resetForm = useCallback(() => {
+    if (isEditMode && prefillDetail) {
+      applyPrefillFromRecord(prefillDetail)
+
+      return
+    }
+
     const defaults = buildDefaultFormValues()
     reset(defaults)
     setValue('surgeon', null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
@@ -327,6 +496,9 @@ const AddSurgeryRecord = () => {
     setSurgeonSearchTerm('')
     setFormResetKey(prev => prev + 1)
   }, [
+    isEditMode,
+    prefillDetail,
+    applyPrefillFromRecord,
     reset,
     buildDefaultFormValues,
     setValue,
@@ -367,9 +539,10 @@ const AddSurgeryRecord = () => {
       (Array.isArray(surgeryMasterResponse?.data?.surgeries) && surgeryMasterResponse.data.surgeries) ||
       []
     const surgeries = Array.isArray(rawSurgeries) ? rawSurgeries : []
+
     const unique = new Map()
 
-    surgeries.forEach(item => {
+    ;[...localProcedureOptions, ...surgeries].forEach(item => {
       const option = mapSurgeryToOption(item)
 
       if (option && !unique.has(option.value)) {
@@ -378,7 +551,7 @@ const AddSurgeryRecord = () => {
     })
 
     return Array.from(unique.values())
-  }, [surgeryMasterResponse])
+  }, [surgeryMasterResponse, localProcedureOptions])
 
   const { data: surgeonsResponse, isFetching: isSurgeonsLoading } = useQuery({
     queryKey: ['surgeon-list', surgeonSearchTerm, userZooId],
@@ -435,6 +608,48 @@ const AddSurgeryRecord = () => {
       })),
     [surgeonOptions]
   )
+
+  useEffect(() => {
+    if (!isEditMode || !resolvedHospitalCaseId || !surgeryRecordId) return
+
+    let isMounted = true
+
+    const fetchSurgeryRecord = async () => {
+      setPrefillLoading(true)
+      setPrefillError('')
+
+      try {
+        const response = await getPatientSurgeryList({ params: { hospital_case_id: resolvedHospitalCaseId } })
+        const records = Array.isArray(response?.data?.surgery_records) ? response.data.surgery_records : []
+        const match = records.find(record => getSurgeryRecordIdentifier(record) === String(surgeryRecordId))
+
+        if (!isMounted) return
+
+        if (match) {
+          applyPrefillFromRecord(match?.detail || match)
+        } else {
+          setPrefillError('Surgery record not found.')
+          Toaster({ type: 'error', message: 'Surgery record not found.' })
+        }
+      } catch (error) {
+        if (!isMounted) return
+        console.error('Failed to load surgery record', error)
+        const message = error?.response?.data?.message || error?.message || 'Failed to load surgery record.'
+        setPrefillError(message)
+        Toaster({ type: 'error', message })
+      } finally {
+        if (isMounted) {
+          setPrefillLoading(false)
+        }
+      }
+    }
+
+    fetchSurgeryRecord()
+
+    return () => {
+      isMounted = false
+    }
+  }, [applyPrefillFromRecord, isEditMode, resolvedHospitalCaseId, surgeryRecordId])
 
   useEffect(() => {
     if (!resolvedHospitalCaseId) {
@@ -587,6 +802,54 @@ const AddSurgeryRecord = () => {
     setProcedureSearchTerm('')
   }, [])
 
+  const handleCreateSurgery = useCallback(
+    async values => {
+      const formData = new FormData()
+      formData.append('surgery_name', values?.surgery_name || '')
+      formData.append('description', values?.description || '')
+      formData.append('status', values?.status ? 'Active' : 'Inactive')
+
+      setIsSurgerySaving(true)
+      try {
+        const response = await addSurgeryMaster(formData)
+        if (response?.success) {
+          const newId = response?.data?.surgery_id || response?.surgery_id || response?.data?.id
+
+          const option =
+            newId &&
+            mapSurgeryToOption({
+              surgery_id: newId,
+              surgery_name: values?.surgery_name || '',
+              status: 'active'
+            })
+
+          if (option) {
+            setLocalProcedureOptions(prev => {
+              const map = new Map(prev.map(opt => [opt.value, opt]))
+              map.set(option.value, option)
+
+              return Array.from(map.values())
+            })
+            setValue('procedure', option, { shouldValidate: true, shouldDirty: true, shouldTouch: true })
+            clearErrors?.('procedure')
+          }
+          setProcedureSearchTerm('')
+
+          Toaster({ type: 'success', message: response?.message || 'Surgery has been created successfully.' })
+          setOpenAddSurgeryDrawer(false)
+        } else {
+          Toaster({ type: 'error', message: response?.message || 'Failed to create surgery' })
+        }
+      } catch (error) {
+        console.error('Failed to create surgery:', error)
+        Toaster({ type: 'error', message: error?.message || 'Failed to create surgery' })
+      } finally {
+        setIsSurgerySaving(false)
+      }
+    },
+    [clearErrors, setLocalProcedureOptions, setValue, setProcedureSearchTerm]
+  )
+
   const procedureGetOptionLabel = useCallback(option => option?.label || '', [])
 
   const procedureIsOptionEqualToValue = useCallback((option, selected) => {
@@ -679,6 +942,9 @@ const AddSurgeryRecord = () => {
     const payload = new FormData()
 
     payload.append('hospital_case_id', getSafeString(resolvedHospitalCaseId))
+    if (isEditMode && surgeryRecordId) {
+      payload.append('id', getSafeString(surgeryRecordId))
+    }
     payload.append('anaesthesia_id', getSafeString(selectedAnesthesiaId))
     payload.append('surgery_date', getSafeString(formatDateValue(formValues.date)))
     payload.append('start_time', getSafeString(formatTimeValue(formValues.startTime)))
@@ -689,7 +955,7 @@ const AddSurgeryRecord = () => {
     payload.append('surgery_id', getSafeString(surgeryId))
     payload.append('type_of_surgery', getSafeString(formValues.typeOfSurgery))
     payload.append('surgical_approach', getSafeString(formValues.surgicalApproach))
-    payload.append('surgeon_name', getSafeString(getAutocompleteLabel(formValues.surgeon)))
+    payload.append('name_of_surgeon_id', getSafeString(formValues.surgeon?.value || ''))
     payload.append('surgery_notes', getSafeString(getRichTextHtml(richNote)))
     payload.append('complications', getSafeString(formValues.complication))
     payload.append('care_diet_instructions', getSafeString(formValues.dietInstructions))
@@ -701,6 +967,9 @@ const AddSurgeryRecord = () => {
       formValues.attachments.forEach(file => {
         if (file instanceof File) {
           payload.append('attachments[]', file)
+        } else if (file && (file.id || file.file_path || file.file)) {
+          const existingRef = file.id || file.file_path || file.file
+          payload.append('existing_attachments[]', getSafeString(existingRef))
         }
       })
     }
@@ -711,14 +980,23 @@ const AddSurgeryRecord = () => {
       const response = await addSurgeryRecord(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Surgery record added successfully' })
+        Toaster({
+          type: 'success',
+          message:
+            response?.message ||
+            (isEditMode ? 'Surgery record updated successfully' : 'Surgery record added successfully')
+        })
         resetForm()
 
         // const redirectUrl = buildReturnUrl()
         // router.push(redirectUrl)
         router.back()
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to add surgery record' })
+        Toaster({
+          type: 'error',
+          message:
+            response?.message || (isEditMode ? 'Failed to update surgery record' : 'Failed to add surgery record')
+        })
       }
     } catch (error) {
       console.error('Add surgery record error:', error)
@@ -749,7 +1027,7 @@ const AddSurgeryRecord = () => {
             cursor: 'pointer'
           }}
         >
-          Add Surgery
+          {isEditMode ? 'Edit Surgery' : 'Add Surgery'}
         </Typography>
       </Breadcrumbs>
 
@@ -783,48 +1061,25 @@ const AddSurgeryRecord = () => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Add Surgery Record
+            {isEditMode ? 'Edit Surgery Record' : 'Add Surgery Record'}
           </Typography>
         </Box>
 
-        {patientData ? (
-          <AnimalInfoCard data={animalInfoData} />
-        ) : (
-          <Card
-            sx={{
-              p: '24px',
-              borderRadius: '8px',
-              backgroundColor: theme.palette.customColors.displaybgPrimary,
-              boxShadow: 'none'
-            }}
-          >
-            <Grid container spacing={5} sx={{ alignItems: 'center' }}>
-              <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-                <Box sx={{ maxWidth: '100%', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Box
-                    sx={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: '8px',
-                      backgroundColor: theme.palette.customColors.mdAntzNeutral
-                    }}
-                  />
-                  <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, gap: 1 }}>
-                    <Box sx={{ width: '70%', height: '20px', borderRadius: '4px', backgroundColor: '#E0E0E0' }} />
-                    <Box sx={{ width: '60%', height: '18px', borderRadius: '4px', backgroundColor: '#E6E6E6' }} />
-                    <Box sx={{ width: '50%', height: '18px', borderRadius: '4px', backgroundColor: '#E6E6E6' }} />
-                  </Box>
-                </Box>
-              </Grid>
-              {[1, 2, 3, 4].map(idx => (
-                <Grid item size={{ xs: 12, sm: 4, md: 2.25 }} key={`animal-skeleton-${idx}`} sx={{ mt: 2 }}>
-                  <Box sx={{ width: '60%', height: '16px', borderRadius: '4px', backgroundColor: '#E6E6E6', mb: 1 }} />
-                  <Box sx={{ width: '80%', height: '18px', borderRadius: '4px', backgroundColor: '#E0E0E0' }} />
-                </Grid>
-              ))}
-            </Grid>
-          </Card>
-        )}
+        <AnimalInfoCard
+          image={patientData?.animal_detail?.default_icon}
+          name={patientData?.animal_detail?.common_name}
+          scientificName={patientData?.animal_detail?.complete_name}
+          age={`${patientData?.animal_detail?.age}`}
+          gender={`${patientData?.animal_detail?.sex}`}
+          additionalFields={[
+            { label: 'AID', value: patientData?.animal_detail?.animal_id },
+            { label: 'Admitted days', value: patientData?.admitted_for_day },
+            { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
+            { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }
+          ]}
+          isLoading={!patientData}
+        />
+
         <Box
           sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
           component='form'
@@ -996,6 +1251,16 @@ const AddSurgeryRecord = () => {
                   getOptionLabel={procedureGetOptionLabel}
                   isOptionEqualToValue={procedureIsOptionEqualToValue}
                   onChangeOverride={() => clearErrors?.('procedure')}
+                  endAdornment={() => (
+                    <IconButton
+                      size='small'
+                      onMouseDown={e => e.preventDefault()}
+                      onClick={() => setOpenAddSurgeryDrawer(true)}
+                      sx={{ ml: 1, fontSize: 28 }}
+                    >
+                      <Icon icon='mdi:plus' color={theme.palette.primary.main} />
+                    </IconButton>
+                  )}
                 />
               </Grid>
               <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
@@ -1036,7 +1301,7 @@ const AddSurgeryRecord = () => {
               label='Enter surgery notes'
               value={richNote}
               onChange={setRichNote}
-              hospitalId={DEFAULT_HOSPITAL_ID}
+              hospitalId={resolvedHospitalCaseId || ''}
               templateType='surgery'
             />
 
@@ -1135,8 +1400,6 @@ const AddSurgeryRecord = () => {
                 onClick={handleSelectanesthesiaRecord}
                 sx={{
                   backgroundColor: theme.palette.primary.light,
-
-                  // width: 141,
                   cursor: 'pointer',
                   height: 36,
                   borderRadius: '8px',
@@ -1429,7 +1692,7 @@ const AddSurgeryRecord = () => {
             px: '24px'
           }}
         >
-          CANCEL
+          RESET
         </Button>
         <Button
           type='submit'
@@ -1444,10 +1707,16 @@ const AddSurgeryRecord = () => {
             px: '24px'
           }}
         >
-          {isSubmitting ? 'Submitting...' : 'SAVE'}
+          {isSubmitting ? (isEditMode ? 'Updating...' : 'Submitting...') : isEditMode ? 'UPDATE' : 'SAVE'}
         </Button>
       </Box>
 
+      <AddEditSurgeryDrawer
+        open={openAddSurgeryDrawer}
+        onClose={() => setOpenAddSurgeryDrawer(false)}
+        onSubmit={handleCreateSurgery}
+        loading={isSurgerySaving}
+      />
       <AddAnesthesiaRecordDrawer
         setOpenAddanesthesiaDrawer={setOpenAddanesthesiaDrawer}
         openAddanesthesiaDrawer={openAddanesthesiaDrawer}

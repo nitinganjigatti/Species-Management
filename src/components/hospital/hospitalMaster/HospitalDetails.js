@@ -16,7 +16,6 @@ import { StatusChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { addHospitalMaster, getHospitalMaster } from 'src/lib/api/hospital/hospitalMaster'
 
-// Constants
 const statusOptions = [
   { label: 'All Status', value: 'all' },
   { label: 'Active', value: 1 },
@@ -32,11 +31,8 @@ const HospitalDetails = () => {
 
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
-
-  // Local state for search input (to prevent flickering)
   const [searchValue, setSearchValue] = useState(q || '')
 
-  // Separate state for actual filter values (used in API calls)
   const [filters, setFilters] = useState({
     page: page ? Number(page) : 1,
     limit: limit ? Number(limit) : 50,
@@ -62,7 +58,6 @@ const HospitalDetails = () => {
     [router]
   )
 
-  // fetch hospital list
   const {
     data: hospitalData,
     isFetching: isLoadingHospitals,
@@ -78,11 +73,6 @@ const HospitalDetails = () => {
           ...(filters.active !== undefined ? { active: filters.active } : {})
         }
       }),
-    keepPreviousData: true,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
-    refetchOnReconnect: false,
-
     onError: error => {
       console.error('Error fetching hospital list:', error?.message)
     }
@@ -91,7 +81,6 @@ const HospitalDetails = () => {
   const rows = useMemo(() => hospitalData?.data?.hospitals || [], [hospitalData?.data?.hospitals])
   const total = useMemo(() => hospitalData?.data?.total || 0, [hospitalData?.data?.total])
 
-  // Pagination
   const handlePaginationChange = useCallback(
     model => {
       const updated = {
@@ -109,21 +98,25 @@ const HospitalDetails = () => {
   // Debounced search function using useRef to persist across renders
   const debouncedSearchRef = useRef(null)
 
-  if (!debouncedSearchRef.current) {
-    debouncedSearchRef.current = debounce((value, currentFilters, updateFn) => {
-      const updated = {
-        ...currentFilters,
-        q: value,
-        page: 1
-      }
+  const debouncedSearch = () => {
+    if (!debouncedSearchRef.current) {
+      debouncedSearchRef.current = debounce((value, currentFilters, updateFn) => {
+        const updated = {
+          ...currentFilters,
+          q: value,
+          page: 1
+        }
 
-      setFilters(updated)
-      updateFn(updated)
-    }, 500)
+        setFilters(updated)
+        updateFn(updated)
+      }, 500)
+    }
   }
 
   // Cleanup debounce on unmount
   useEffect(() => {
+    debouncedSearch()
+
     return () => {
       if (debouncedSearchRef.current) {
         debouncedSearchRef.current.cancel()
@@ -142,7 +135,6 @@ const HospitalDetails = () => {
     [filters, updateUrlParams]
   )
 
-  // Clear search handler
   const handleSearchClear = useCallback(() => {
     setSearchValue('')
     if (debouncedSearchRef.current) {
@@ -159,11 +151,6 @@ const HospitalDetails = () => {
     updateUrlParams(updated)
   }, [filters, updateUrlParams])
 
-  //  Sidebar Controls
-  const addEventSidebarOpen = useCallback(() => setOpenDrawer(true), [])
-  const handleSidebarClose = useCallback(() => setOpenDrawer(false), [])
-
-  //  Add Hospital
   const handleSubmitData = async payload => {
     setSubmitLoader(true)
 
@@ -171,7 +158,6 @@ const HospitalDetails = () => {
       const response = await addHospitalMaster(payload)
 
       if (response?.success) {
-        // refetchHospitals()
         // Invalidate hospital list cache
         queryClient.invalidateQueries(['hospital-list'])
 
@@ -319,28 +305,30 @@ const HospitalDetails = () => {
   }
 
   //  Handle Status filter change
-  const handleStatusChange = useCallback(
-    value => {
-      const activeValue = value === 'all' ? undefined : value
+  const handleStatusChange = value => {
+    const activeValue = value === 'all' ? undefined : value
 
-      const updated = {
-        ...filters,
-        page: 1,
-        active: activeValue
-      }
+    const updated = {
+      ...filters,
+      page: 1,
+      active: activeValue
+    }
 
-      setFilters(updated)
-      updateUrlParams(updated)
-    },
-    [filters, updateUrlParams]
-  )
+    setFilters(updated)
+    updateUrlParams(updated)
+  }
 
-  //  Navigate to hospital detail on Row click
   const handleRowClick = params => {
     router.push({
       pathname: `/hospital/masters/hospital/${params?.row?.id}`
     })
   }
+
+  // refetch on when filters updates
+  useEffect(() => {
+    if (!router.isReady) return
+    refetchHospitals()
+  }, [filters, router.isReady])
 
   return (
     <>
@@ -366,7 +354,7 @@ const HospitalDetails = () => {
               variant='contained'
               startIcon={<AddIcon />}
               sx={{ py: 2, px: 3, borderRadius: '4px' }}
-              onClick={addEventSidebarOpen}
+              onClick={() => setOpenDrawer(true)}
             >
               Add Hospital
             </Button>
@@ -435,7 +423,7 @@ const HospitalDetails = () => {
       {openDrawer && (
         <AddHospital
           handleSidebarOpen={openDrawer}
-          handleSidebarClose={handleSidebarClose}
+          handleSidebarClose={() => setOpenDrawer(false)}
           handleSubmitData={handleSubmitData}
           submitLoader={submitLoader}
         />
@@ -446,7 +434,6 @@ const HospitalDetails = () => {
 
 export default HospitalDetails
 
-// Styled Components
 const StyledTypography = styled(Typography)(({ theme, fontWeight, fontSize, color, sx }) => ({
   fontSize: fontSize || '1rem',
   fontWeight: fontWeight || 400,

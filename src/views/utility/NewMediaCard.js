@@ -34,7 +34,7 @@ const getFileType = (fileName, fileTypeFromApi) => {
   }
 
   if (!fileName) return 'unknown'
-  const ext = fileName.split('.').pop()?.toLowerCase() || ''
+  const ext = fileName?.split('.').pop()?.toLowerCase() || ''
 
   return Object.entries(EXT_ICON_MAP).find(([_, exts]) => exts.includes(ext))?.[0] || 'unknown'
 }
@@ -174,7 +174,7 @@ const FilePreviewCard = ({
         {fileIcon?.image_path ? (
           <Box
             component='img'
-            src={fileIcon.image_path}
+            src={fileIcon?.image_path}
             alt='file icon'
             sx={{ width: showTitle ? 60 : 32, height: showTitle ? 60 : 32, objectFit: 'contain' }}
           />
@@ -195,9 +195,9 @@ const FilePreviewCard = ({
         <FileDialog
           open={!!previewFile}
           onClose={() => setPreviewFile(null)}
-          src={previewFile.src}
-          type={previewFile.type}
-          title={previewFile.name}
+          src={previewFile?.src}
+          type={previewFile?.type}
+          title={previewFile?.name}
         />
       )}
 
@@ -223,7 +223,7 @@ const FilePreviewCard = ({
                 enableDialog={false}
                 text={derivedFileName}
                 style={{
-                  color: theme.palette?.customColors?.OnSurfaceVariant,
+                  color: theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '0.875rem',
                   fontWeight: 400,
                   maxWidth: '220px'
@@ -236,7 +236,7 @@ const FilePreviewCard = ({
                 onClick={e => {
                   onTitleIconClick?.()
                 }}
-                sx={{ padding: 0, color: theme.palette.customColors?.neutralSecondary }}
+                sx={{ padding: 0, color: theme.palette.customColors.neutralSecondary }}
               >
                 <Icon icon='mdi:close-circle' fontSize={22} />
               </IconButton>

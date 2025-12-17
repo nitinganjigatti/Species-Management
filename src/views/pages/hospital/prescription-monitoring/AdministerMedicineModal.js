@@ -64,19 +64,11 @@ const AdministerMedicineSidesheet = ({
     {
       time: yup.string().required('Time is required'),
       quantity: yup
-        .string()
-        .required('Quantity is required')
-        .test('is-valid-number', 'Quantity must be a valid number', value => {
-          if (!value) return false
-          const num = parseFloat(value)
-
-          return !isNaN(num) && num > 0
-        })
-        .test('min-value', 'Quantity must be greater than 0', value => {
-          if (!value) return false
-
-          return parseFloat(value) > 0
-        }),
+        .number()
+        .typeError('Quantity must be a number')
+        .moreThan(0, 'Quantity must be greater than 0')
+        .max(100000, 'Quantity cannot exceed 100000')
+        .required('Quantity is required'),
       quantityUnit: yup.string().required('Quantity unit is required'),
 
       // Fixed wastageQuantity validation

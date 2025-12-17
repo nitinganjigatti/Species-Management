@@ -115,7 +115,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category }) =>
                         ) : (
                           <VisitType title={patientData?.treatment_type} />
                         )}
-                        <VisitType title={patientData?.visit_type} />
+                        {/* <VisitType title={patientData?.visit_type} /> */}
                       </>
                     )}
                   </Box>
