@@ -32,6 +32,7 @@ import { useHospital } from 'src/context/HospitalContext'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import dayjs from 'dayjs'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
+import BottomActionBar from 'src/views/utility/BottomActionBar'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -1642,7 +1643,7 @@ export default function AddMedicineToPrescription() {
         </Grid>
       </Box>
 
-      <ActionButtons
+      {/* <ActionButtons
         cancelLabel={cancelOrCloseText}
         addLabel={
           fromPage === 'prescriptionDetail'
@@ -1657,6 +1658,33 @@ export default function AddMedicineToPrescription() {
         onAdd={prescriptionSubmitHandler}
         width={200}
         height={50}
+      /> */}
+      <BottomActionBar
+        submitLabel={
+          fromPage === 'prescriptionDetail'
+            ? 'Restart Medicine'
+            : watch('selectMedicineType') === 'Direct Administer'
+            ? 'Administer'
+            : 'Schedule'
+        }
+        cancelLabel={cancelOrCloseText}
+        onSubmit={prescriptionSubmitHandler}
+        loading={isSubmitting}
+        disabled={temporarilySelectedMedicine?.id ? false : true}
+        cancelBtnStyle={{
+          borderColor: theme.palette.customColors.OnSurfaceVariant,
+          color: theme.palette.customColors.OnSurfaceVariant,
+          borderRadius: 0.5,
+          minHeight: '50px',
+          minWidth: '200px'
+        }}
+        submitBtnStyle={{
+          backgroundColor: theme.palette.primary.main,
+          borderRadius: 0.5,
+          minWidth: '200px',
+          minHeight: '50px'
+        }}
+        onCancel={handleCancel}
       />
     </Box>
   )
