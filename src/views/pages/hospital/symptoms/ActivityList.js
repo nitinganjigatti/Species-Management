@@ -5,14 +5,7 @@ import { useTheme } from '@mui/material/styles'
 import ActivityListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ActivityListShimmer'
 import Utility from 'src/utility'
 
-const ActivityList = ({
-  activities,
-  onEdit,
-  activityLoader,
-  isFromAssessment = false,
-  durationValue,
-  durationUnit
-}) => {
+const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = false, activityListData }) => {
   const theme = useTheme()
 
   if (activityLoader) {
@@ -164,7 +157,7 @@ const ActivityList = ({
                         </Typography>
                       )}
 
-                      {durationValue && (
+                      {activityListData && (
                         <Typography
                           sx={{
                             mb: 2,
@@ -175,7 +168,8 @@ const ActivityList = ({
                         >
                           Duration:{' '}
                           <strong>
-                            {durationValue} {formatDurationUnit(durationValue, durationUnit)}
+                            {activityListData?.duration}{' '}
+                            {formatDurationUnit(activityListData?.duration, activityListData?.duration_unit)}
                           </strong>
                         </Typography>
                       )}

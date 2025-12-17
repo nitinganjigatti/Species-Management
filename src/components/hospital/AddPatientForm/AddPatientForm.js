@@ -46,6 +46,8 @@ import AddBedsDrawer from '../PatientAdmissionForm/AddBedsDrawer'
 import { AuthContext } from 'src/context/AuthContext'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 
+// import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+
 const defaultValues = {
   treatmentType: 'inpatient',
   purposeOfVisit: '',
@@ -369,14 +371,14 @@ const AddPatientForm = () => {
   return (
     <>
       <Box>
-        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
-          <Typography onClick={() => router.back()} sx={{ cursor: 'pointer', color: 'text.primary' }}>
-            Inpatient
-          </Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Add Patient</Typography>
-        </Breadcrumbs>
+        {/* <DynamicBreadcrumbs
+          pageItems={[
+            { title: 'Hospital' },
+            { title: 'Patients' },
+            { title: 'Inpatient', onClick: () => router.back() },
+            { title: 'Add Patient', active: true }
+          ]}
+        /> */}
         <Card sx={{ mb: 4 }}>
           <CardHeader sx={{ pb: 1, px: 6, pt: 6 }} title={RenderUtility.pageTitle('Add Patient')} />
           <CardContent sx={{ px: 6, pb: 6 }}>
