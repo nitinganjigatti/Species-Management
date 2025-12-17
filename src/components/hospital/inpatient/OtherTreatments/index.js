@@ -360,7 +360,8 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
       hospital_case_id: hospitalCaseId || '',
       start_time: formattedStartTime,
       treatment_master_id: treatmentNameValue,
-      note: formData.notes || ''
+      note: formData.notes || '',
+      is_edit: 0
     }
 
     try {
@@ -521,7 +522,8 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
       hospital_case_id: selectedTreatment.hospitalCaseId || hospitalCaseId || '',
       start_time: formattedStartTime,
       treatment_master_id: treatmentMasterId,
-      note: editFormData.notes || ''
+      note: editFormData.notes || '',
+      is_edit: 1
     }
 
     try {

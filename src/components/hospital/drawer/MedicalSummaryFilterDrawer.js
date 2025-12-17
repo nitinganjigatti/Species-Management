@@ -1,20 +1,22 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Box, Radio, Typography, FormControlLabel, RadioGroup } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
 import { debounce } from 'lodash'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import FilterContent from 'src/components/drawers/FilterContent'
-import Toaster from 'src/components/Toaster'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
 
-const medicalTypeOptions = [
+const LEFT_MENU = ['Medical Type', 'User']
+
+const MEDICAL_TYPE_OPTIONS = [
   { label: 'All Activities', value: '' },
   { label: 'Vaccination', value: 'vaccination' },
   { label: 'Prescription', value: 'prescription' },
   { label: 'Clinical Assessment', value: 'clinical_assessment' },
   { label: 'Symptoms', value: 'symptoms' }
 ]
+
+const DEFAULT_OPTIONS = { 'Medical Type': [], User: [] }
 
 const MedicalSummaryFilterDrawer = ({
   open,
@@ -24,36 +26,41 @@ const MedicalSummaryFilterDrawer = ({
   setFilterCount,
   initialSelectedOptions
 }) => {
-  const leftMenu = ['Medical Type', 'User']
   const [selectedMenu, setSelectedMenu] = useState('Medical Type')
+  const [selectedOptions, setSelectedOptions] = useState(DEFAULT_OPTIONS)
+  const [menuData, setMenuData] = useState({ User: [] })
   const [searchQuery, setSearchQuery] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)
-  const [localFilterCount, setLocalFilterCount] = useState(0)
-  const [menuData, setMenuData] = useState({ User: [] })
+  const [drawerCount, setDrawerCount] = useState(0)
 
-  const [selectedOptions, setSelectedOptions] = useState({
-    'Medical Type': [],
-    User: []
-  })
+  // Count active filters
+  const calculateFilterCount = filters => {
+    const type = filters['Medical Type']?.[0]
+    const hasMedicalType = type && type !== '' // ignore "All Activities"
+    const userCount = filters.User?.length || 0
 
-  // Fetch users for checkbox list
-  const fetchMenuData = useCallback(async (query = '') => {
+    return (hasMedicalType ? 1 : 0) + userCount
+  }
+
+  // Fetch Users
+  const fetchUsers = useCallback(async (query = '') => {
     try {
       setSearchLoading(true)
       const userDetails = await readAsync('userDetails')
-      let data = []
 
-      if (userDetails?.user?.zoos?.length > 0) {
-        const zoo_id = userDetails?.user?.zoos[0]?.zoo_id
+      let data = []
+      if (userDetails?.user?.zoos?.length) {
+        const zoo_id = userDetails.user.zoos[0].zoo_id
         const params = { zoo_id }
-        if (query.trim() !== '') params.q = query
+        if (query.trim()) params.q = query
 
         const res = await getUserList(params)
+
         data = Array.isArray(res?.data)
           ? res.data.map(item => ({
-              label: item?.user_name,
-              value: item?.user_id,
-              image: item?.user_profile_pic
+              label: item.user_name,
+              value: item.user_id,
+              image: item.user_profile_pic
             }))
           : []
       }
@@ -61,124 +68,104 @@ const MedicalSummaryFilterDrawer = ({
       setMenuData({ User: data })
     } catch (error) {
       console.error('Error fetching users:', error?.message || error)
-      Toaster({ type: 'error', message: error?.message || error || 'Failed to load users' })
     } finally {
       setSearchLoading(false)
     }
   }, [])
 
-  // Clear all filters
-  const handleClearAll = useCallback(() => {
-    setSelectedOptions({ 'Medical Type': [], User: [] })
-    setLocalFilterCount(0)
-    setFilterCount(0)
-  }, [setFilterCount])
-
-  // Search debounce for user list
-  const debouncedMenuSearch = useCallback(
-    debounce(async query => {
-      await fetchMenuData(query)
-    }, 500),
-    [fetchMenuData]
+  // Debounced user search
+  const debouncedSearch = useCallback(
+    debounce(q => fetchUsers(q), 500),
+    [fetchUsers]
   )
 
-  const handleSearch = useCallback(
-    query => {
-      setSearchQuery(query)
-      debouncedMenuSearch(query)
-    },
-    [debouncedMenuSearch]
-  )
+  const handleSearch = query => {
+    setSearchQuery(query)
+    debouncedSearch(query)
+  }
 
-  // Checkbox handlers (User)
-  const handleCheckbox = useCallback(id => {
+  // Clear All Filters
+  const handleClearAll = () => {
+    setSelectedOptions(DEFAULT_OPTIONS)
+    setDrawerCount(0) // local reset
+  }
+
+  // User Selection
+  const handleCheckbox = id => {
     setSelectedOptions(prev => {
-      const prevMedicalType = prev?.['Medical Type'] || []
-      const isSelected = prev?.User?.includes(id)
+      const selected = prev.User.includes(id) ? prev.User.filter(item => item !== id) : [...prev.User, id]
 
-      const newSelected = isSelected ? prev?.User?.filter(item => item !== id) : [...prev.User, id]
-      const total = newSelected.length + (prevMedicalType[0] ? 1 : 0)
-      setLocalFilterCount(total)
+      const updated = { ...prev, User: selected }
+      setDrawerCount(calculateFilterCount(updated)) // local only
 
-      return { ...prev, User: newSelected }
+      return updated
     })
-  }, [])
+  }
 
-  const handleSelectAll = useCallback(() => {
+  const handleSelectAll = () => {
     setSelectedOptions(prev => {
-      const prevMedicalType = prev?.['Medical Type'] || []
-      const allIds = menuData?.User?.map(item => item.value) || []
-      const isAllSelected = prev?.User?.length === allIds.length
-      const newSelected = isAllSelected ? [] : allIds
-      const total = newSelected.length + (prevMedicalType[0] ? 1 : 0)
-      setLocalFilterCount(total)
+      const allIds = menuData.User.map(item => item.value)
+      const isAllSelected = prev.User.length === allIds.length
+      const updatedUsers = isAllSelected ? [] : allIds
 
-      return { ...prev, User: newSelected }
+      const updated = { ...prev, User: updatedUsers }
+      setDrawerCount(calculateFilterCount(updated)) // local only
+
+      return updated
     })
-  }, [menuData])
+  }
 
-  // Radio handler (Medical Type)
-  const handleRadioChange = useCallback((value, menuName) => {
-    setSelectedOptions(prev => {
-      const prevUser = prev?.User || []
+  // Medical Type Selection
+  const handleRadioChange = value => {
+    const updated = {
+      ...selectedOptions,
+      'Medical Type': value === '' ? [] : [value] // remove empty value for counting
+    }
 
-      const newOptions = {
-        ...prev,
-        [menuName]: value ? [value] : []
-      }
-      const isMedicalTypeActive = newOptions['Medical Type'][0] && newOptions['Medical Type'][0] !== ''
-      const total = (isMedicalTypeActive ? 1 : 0) + prevUser.length
-      setLocalFilterCount(total)
+    setSelectedOptions(updated)
+    setDrawerCount(calculateFilterCount(updated)) // local only
+  }
 
-      return newOptions
-    })
-  }, [])
-
-  // Apply filters
   const applyFilters = () => {
-    setFilterCount(localFilterCount)
+    if (JSON.stringify(selectedOptions) === JSON.stringify(initialSelectedOptions)) {
+      onClose()
+
+      return
+    }
+    const newCount = calculateFilterCount(selectedOptions)
+    setFilterCount(newCount) // update only when Apply is clicked
     onApplyFilters(selectedOptions)
+    onClose()
   }
 
-  // On open / initial
   useEffect(() => {
-    if (open) {
-      fetchMenuData()
+    if (!open) return
+
+    fetchUsers()
+
+    const restored = initialSelectedOptions || DEFAULT_OPTIONS
+
+    const normalized = {
+      ...restored,
+      'Medical Type': restored['Medical Type']?.[0] ? restored['Medical Type'] : []
     }
-    if (initialSelectedOptions) {
-      setSelectedOptions(initialSelectedOptions)
 
-      const isMedicalTypeActive =
-        initialSelectedOptions['Medical Type']?.[0] && initialSelectedOptions['Medical Type'][0] !== ''
+    setSelectedOptions(normalized)
+    setDrawerCount(calculateFilterCount(normalized)) // local only
+  }, [open, initialSelectedOptions, fetchUsers])
 
-      const total = (isMedicalTypeActive ? 1 : 0) + (initialSelectedOptions?.User?.length || 0)
-      setLocalFilterCount(total)
-    }
-  }, [open, fetchMenuData, initialSelectedOptions])
-
-  // Radio section UI
-  const FilterContentRadio = ({ menuName, selectedOption = [], onOptionChange, items }) => {
-    const theme = useTheme()
-
-    return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <RadioGroup value={selectedOption[0] || ''} onChange={e => onOptionChange(e.target.value, menuName)}>
-          {items?.map(item => (
-            <FormControlLabel
-              key={item?.value}
-              value={item?.value}
-              control={<Radio />}
-              label={
-                <Typography sx={{ fontSize: '16px', color: theme.palette.customColors?.Outline }}>
-                  {item?.label}
-                </Typography>
-              }
-            />
-          ))}
-        </RadioGroup>
-      </Box>
-    )
-  }
+  const MedicalTypeContent = () => (
+    <RadioGroup value={selectedOptions['Medical Type']?.[0] ?? ''} onChange={e => handleRadioChange(e.target.value)}>
+      {MEDICAL_TYPE_OPTIONS.map(item => (
+        <FormControlLabel
+          key={item.value}
+          value={item.value}
+          control={<Radio />}
+          label={<Typography fontSize='16px'>{item.label}</Typography>}
+        />
+      ))}
+    </RadioGroup>
+  )
 
   return (
     <CustomFilterDrawer
@@ -186,31 +173,24 @@ const MedicalSummaryFilterDrawer = ({
       onClose={onClose}
       onApply={applyFilters}
       onClearAll={handleClearAll}
-      filterLists={leftMenu}
+      filterLists={LEFT_MENU}
       selectedOptions={selectedOptions}
       isSubmitting={onSubmitLoading}
       selectedItem={selectedMenu}
       onSelectItem={setSelectedMenu}
     >
-      {selectedMenu === 'Medical Type' && (
-        <FilterContentRadio
-          menuName='Medical Type'
-          selectedOption={selectedOptions['Medical Type']}
-          onOptionChange={handleRadioChange}
-          items={medicalTypeOptions}
-        />
-      )}
+      {selectedMenu === 'Medical Type' && <MedicalTypeContent />}
 
       {selectedMenu === 'User' && (
         <FilterContent
           menuName='User'
           searchQuery={searchQuery}
           onSearch={handleSearch}
-          selectedOptions={selectedOptions?.User}
+          selectedOptions={selectedOptions.User}
           onOptionChange={handleCheckbox}
           selectAllHandler={handleSelectAll}
-          items={menuData?.User}
-          isAllSelected={menuData?.User?.length > 0 && selectedOptions?.User?.length === menuData?.User?.length}
+          items={menuData.User}
+          isAllSelected={menuData.User.length > 0 && selectedOptions.User.length === menuData.User.length}
           searchLoading={searchLoading}
           placeholder='Search User'
         />
