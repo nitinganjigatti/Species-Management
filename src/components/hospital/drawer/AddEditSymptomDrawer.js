@@ -403,8 +403,7 @@ const AddEditSymptomDrawer = ({
                 activities={processedActivities}
                 onEdit={handleEditActivity}
                 activityLoader={activityLoader}
-                durationValue={durationValue}
-                durationUnit={durationUnit}
+                activityListData={activityListData}
               />
             </>
           ) : (

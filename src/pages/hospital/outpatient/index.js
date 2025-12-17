@@ -312,7 +312,7 @@ const HospitalOutPatient = () => {
 
   const headerAction = (
     <>
-      <Button variant='contained' onClick={() => router.push({ pathname: `/hospital/inpatient/add-patient` })}>
+      <Button variant='contained' onClick={() => router.push({ pathname: `/hospital/outpatient/add-outpatient` })}>
         ADD PATIENT
       </Button>
     </>

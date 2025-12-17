@@ -12,7 +12,7 @@ const AddPatient = () => {
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
         <Typography onClick={() => router.back()} sx={{ cursor: 'pointer', color: 'text.primary' }}>
-          Inpatients
+          Outpatients
         </Typography>
         <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Add Patient</Typography>
       </Breadcrumbs>
