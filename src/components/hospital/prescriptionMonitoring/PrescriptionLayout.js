@@ -72,7 +72,6 @@ function PrescriptionLayout({ drawerType, overviewData }) {
   const [isScheduleDosageModelOpen, setIsScheduleDosageModelOpen] = useState(false)
   const [isAddDosageModelOpen, setIsAddDosageModelOpen] = useState(false)
   const [isAdministerDosageModelOpen, setIsAdministerDosageModelOpen] = useState(false)
-  const [inpatientId, setInpatientId] = useState(null)
   const [selectedMedicationsFromDetail, setSelectedMedicationsFromDetail] = useState([])
   const [isStopMedicineLoading, setIsStopMedicineLoading] = useState(false)
   const [isAddNewDosageLoading, setIsAddNewDosageLoading] = useState(false)
@@ -83,26 +82,6 @@ function PrescriptionLayout({ drawerType, overviewData }) {
   const [isAdministerSlotLoading, setIsAdministerSlotLoading] = useState(false)
 
   const { selectedHospital: hospital } = useHospital()
-
-  const handleGetInpatientId = () => {
-    try {
-      const url = window.location.href
-      const parsedUrl = new URL(url)
-      const pathParts = parsedUrl.pathname.split('/').filter(Boolean)
-      const inpatientId = pathParts[2] // e.g. "161"
-
-      return inpatientId
-    } catch (error) {
-      console.error('Invalid URL:', error)
-
-      return null
-    }
-  }
-
-  useEffect(() => {
-    const inpatientId = handleGetInpatientId()
-    setInpatientId(inpatientId)
-  }, [window.location.href])
 
   const updateURLParams = (key, value) => {
     const currentQuery = { ...router.query }
@@ -267,7 +246,9 @@ function PrescriptionLayout({ drawerType, overviewData }) {
         prescription_id: data?.id || medicineDetails?.prescription_id,
         date: data?.customDate || selectedDate || detailSelectedDate,
         group_prescription_id: data?.id || medicineDetails?.prescription_id,
-        administrative_ids: data?.administrative_ids || administrativeIds || ''
+        administrative_ids: data?.administrative_ids || administrativeIds || '',
+        medical_record_id: medical_record_id || medicineDetails?.medical_record_id,
+        medicine_id: data?.medicine_id || medicineDetails?.medicine_id
       }
 
       const response = await getPrescriptionDetails(payload)
@@ -439,6 +420,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
         prescription_id: selectedSlotData?.data?.prescription_id,
         medicine_id: selectedSlotData?.data?.medicine_id,
         medical_record_type: 'SINGLE',
+        hospital_case_id: id,
         case_type: 1,
         1: formData?.attachment?.[0] && formData?.attachment[0]
       }
@@ -492,7 +474,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
     try {
       const payload = {
         animal_id: animal_id,
-        hospital_case_id: inpatientId,
+        hospital_case_id: id,
         prescription_id: selectedSlotData?.data?.prescription_id,
         medical_record_id: medical_record_id,
         medicine_id: selectedSlotData?.data?.medicine_id,

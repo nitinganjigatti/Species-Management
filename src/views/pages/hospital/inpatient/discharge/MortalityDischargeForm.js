@@ -17,6 +17,7 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
+import BottomActionBar from 'src/views/utility/BottomActionBar'
 
 const mortalitySchema = yup.object({
   date_of_death: yup.date().nullable().required('Date of death is required'),
@@ -376,7 +377,7 @@ const MortalityDischargeForm = props => {
           </Box>
         </Box>
 
-        <Box
+        {/* <Box
           sx={{
             position: 'fixed',
             bottom: 0,
@@ -403,7 +404,16 @@ const MortalityDischargeForm = props => {
           >
             Discharge Animal
           </LoadingButton>
-        </Box>
+        </Box> */}
+        <BottomActionBar
+          submitLabel='Discharge Animal'
+          submitBtnVariant='contained'
+          showCancel={false}
+          submitBtnStyle={{ px: 12, py: 3 }}
+          loading={submitLoader}
+          disabled={submitLoader}
+          submitBtnProps={{ type: 'submit' }}
+        />
       </form>
     </>
   )

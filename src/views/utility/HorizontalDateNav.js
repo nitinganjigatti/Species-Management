@@ -72,13 +72,6 @@ const HorizontalDateNav = ({
     // return generatedDates
   }
 
-  useEffect(() => {
-    console.log('dates', dates)
-  }, [dates])
-  useEffect(() => {
-    console.log('selectedDate', selectedDate)
-  }, [selectedDate])
-
   const dateItems = generateDates()
   const displayYear = year || new Date().getFullYear()
 
