@@ -1,3 +1,4 @@
+/* eslint-disable lines-around-comment */
 import React, { useEffect, useState } from 'react'
 import {
   Box,
@@ -784,8 +785,24 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                       const [hours, minutes] = item.scheduled_time.split(':')
                       const scheduledDateTime = new Date(`${datePart}T${hours}:${minutes}:00`)
                       const now = new Date()
+                      const result = scheduledDateTime > now
 
-                      return scheduledDateTime > now
+                      return result
+                    }
+
+                    // added only day validation we can give enable for fast and future time only on present day
+
+                    const isAllowedDate = () => {
+                      if (!selectedDate) return false
+
+                      const today = new Date()
+                      today.setHours(0, 0, 0, 0)
+
+                      const selected = new Date(selectedDate.split(' ')[0])
+                      selected.setHours(0, 0, 0, 0)
+                      const result = selected <= today
+
+                      return result
                     }
 
                     return isPending ? (
@@ -797,7 +814,9 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                         checked={isSelected}
                         onChange={checked => handleMedicationSelect(item?.administritive_id, checked)}
                         isControlledSubstance={isControlledSubstance}
-                        disabled={isFutureTime()}
+                        // disabled={isFutureTime()}
+
+                        disabled={!isAllowedDate()}
                       />
                     ) : (
                       renderDosageEntry({

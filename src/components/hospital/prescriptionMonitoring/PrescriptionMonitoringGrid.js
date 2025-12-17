@@ -646,6 +646,33 @@ const PrescriptionMonitoringGrid = ({
     return scheduledDateTime > now
   }
 
+  // this is for allow schedule for same day for fast time and future time and any fast time
+  const isScheduledAllowed = (scheduledDate, scheduledTime) => {
+    // Parse time (kept only to build date, not for validation)
+    const [hours, modifier] = scheduledTime.split(' ')
+    let hours24 = parseInt(hours, 10)
+
+    if (modifier === 'PM' && hours24 !== 12) hours24 += 12
+    if (modifier === 'AM' && hours24 === 12) hours24 = 0
+
+    const scheduled = new Date(scheduledDate)
+    scheduled.setHours(hours24, 0, 0, 0)
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const scheduledDay = new Date(scheduled)
+    scheduledDay.setHours(0, 0, 0, 0)
+
+    // ❌ Block only future days
+    const result = scheduledDay <= today
+
+    console.log(result, 'result')
+    debugger
+
+    return result
+  }
+
   // Helper: converts "5 AM"/"1 PM" to "HH:mm:ss"
   function convertTo24Hour(time12h) {
     if (!time12h) return '00:00:00'
@@ -884,8 +911,12 @@ const PrescriptionMonitoringGrid = ({
                               }
                               if (!status) handleAddPrescriptionToTimeslot(data)
                               if (status === 'pending') {
-                                const isFuture = isScheduledFuture(selectedDate, scheduledTime)
-                                if (!isFuture) {
+                                // const isFuture = isScheduledFuture(selectedDate, scheduledTime)
+                                // this is for allow schedule for same day for fast time and future time and any fast time
+
+                                const isFuture = isScheduledAllowed(selectedDate, scheduledTime)
+
+                                if (isFuture) {
                                   // Open administer/skip modal
                                   // if (timeSlot?.value?.administrative_ids?.length > 1) {
                                   if (timeSlot?.value?.administrative_ids?.length) {
@@ -905,8 +936,15 @@ const PrescriptionMonitoringGrid = ({
                               status === 'stopped' ||
                               (metric?.status === 'stopped' &&
                                 !status &&
-                                isScheduledFuture(selectedDate, scheduledTime)) ||
-                              (status?.toLowerCase() === 'pending' && isScheduledFuture(selectedDate, scheduledTime))
+                                // isScheduledFuture(selectedDate, scheduledTime)) ||
+                                // this is for allow schedule for same day for fast time and future time and any fast time
+
+                                isScheduledAllowed(selectedDate, scheduledTime)) ||
+                              (status?.toLowerCase() === 'pending' &&
+                                // isScheduledFuture(selectedDate, scheduledTime)
+                                // this is for allow schedule for same day for fast time and future time and any fast time
+
+                                isScheduledAllowed(selectedDate, scheduledTime))
                             }
                           >
                             <TimeSlotCell
