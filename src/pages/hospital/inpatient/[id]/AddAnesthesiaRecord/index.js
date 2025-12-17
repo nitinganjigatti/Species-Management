@@ -379,28 +379,27 @@ export default function AddAnesthesiaRecord() {
     })
   }
 
-  const getUserLists = async () => {
+  const getUserLists = async hospitalId => {
     try {
-      if (patientData !== null || patientData !== undefined) {
-        const params = {
-          // page_no: paginationModel.page + 1,
-          // limit: paginationModel.pageSize,
-          // q: debouncedSearch,
-          hospital_id: patientData?.hospital_id
-        }
-        const res = await getHospitalStaff({ params })
-        if (res?.data?.records?.length > 0) {
-          setDoctors(
-            res.data?.records?.map(item => ({
-              name: item?.user_full_name,
-              id: item?.user_id,
-              default_icon: item?.user_profile_pic,
-              role_name: item?.role_name
-            }))
-          )
-        } else {
-          setDoctors([])
-        }
+      if (!hospitalId) return
+      const params = {
+        // page_no: paginationModel.page + 1,
+        // limit: paginationModel.pageSize,
+        // q: debouncedSearch,
+        hospital_id: patientData?.hospital_id
+      }
+      const res = await getHospitalStaff({ params })
+      if (res?.data?.records?.length > 0) {
+        setDoctors(
+          res.data?.records?.map(item => ({
+            name: item?.user_full_name,
+            id: item?.user_id,
+            default_icon: item?.user_profile_pic,
+            role_name: item?.role_name
+          }))
+        )
+      } else {
+        setDoctors([])
       }
     } catch (error) {
       console.log('user error', error)
@@ -521,8 +520,11 @@ export default function AddAnesthesiaRecord() {
   }, [])
 
   useEffect(() => {
-    getUserLists()
-  }, [patientData])
+    const hospitalId = patientData?.hospital_id
+    if (!hospitalId) return
+
+    getUserLists(hospitalId)
+  }, [patientData?.hospital_id])
 
   const purposeStageOptions = [
     { label: 'Premedication', value: 'Premedication' },
@@ -632,8 +634,9 @@ export default function AddAnesthesiaRecord() {
     reValidateMode: 'onChange'
   })
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     router.push(`/hospital/inpatient/${id}/?tab=anesthesia`)
+    await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
   }
 
   const handleCancelNew = async () => {
@@ -961,7 +964,9 @@ export default function AddAnesthesiaRecord() {
 
     const basicDetailsForm = {
       location: detail?.location || '',
-      anaesthesia_datetime: detail.anaesthesia_datetime || '',
+      anaesthesia_datetime: detail?.anaesthesia_datetime
+        ? dayjs.utc(detail.anaesthesia_datetime).local().format('YYYY-MM-DD HH:mm:ss')
+        : '',
       estimated_time_required: detail.estimated_time_required || '',
       estimated_time_unit: detail.estimated_time_unit || 'hr',
       veterinarian_id: (detail.veterinarians || []).map(v => String(v.user_id)),
@@ -1530,7 +1535,7 @@ export default function AddAnesthesiaRecord() {
       }
 
       const formData = new FormData()
-
+      const anaesthesiaDateTime = data.basicDetails.anaesthesia_datetime
       if (isEdit) {
         formData.append('anaesthesia_id', anaesthesia_id)
       }
@@ -1538,7 +1543,10 @@ export default function AddAnesthesiaRecord() {
       formData.append('hospital_case_id', id || '')
       formData.append('medical_record_id', patientData?.medical_record_id || '')
       formData.append('location', data.basicDetails.location)
-      formData.append('anaesthesia_datetime', data.basicDetails.anaesthesia_datetime)
+      formData.append(
+        'anaesthesia_datetime',
+        anaesthesiaDateTime ? dayjs(anaesthesiaDateTime).format('YYYY-MM-DD HH:mm:ss') : ''
+      )
       formData.append('estimated_time_required', data.basicDetails.estimated_time_required)
       formData.append('estimated_time_unit', data.basicDetails.estimated_time_unit)
       formData.append('veterinarian_id', JSON.stringify(data.basicDetails.veterinarian_id || []))
@@ -1767,8 +1775,7 @@ export default function AddAnesthesiaRecord() {
 
   const lastUpdatedValue =
     anesthesiaDetail?.updated_at !== undefined ? formatDateTime(anesthesiaDetail.updated_at) : '-'
-  console.log('patientData', patientData)
-  console.log(selectedHospital, 'selectedHospital')
+
   return (
     <FormProvider {...methods}>
       <Box display='flex' flexDirection='column' gap={3} sx={{ p: 3 }}>
