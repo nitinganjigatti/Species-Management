@@ -69,8 +69,12 @@ const AnimalDrawer = ({
     return date ? date.toISOString().split('T')[0] : undefined
   }
 
+  const shouldFetchHospitalAnimals = module !== 'hospital' || (module === 'hospital' && search.trim().length > 0)
+
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, remove } = useInfiniteQuery({
-    queryKey: ['animal-List-Observation-Report', search, activeTab, filters, sortType],
+    queryKey: ['animal-List-Observation-Report', module, search, activeTab, filters, sortType],
+    enabled: shouldFetchHospitalAnimals,
+
     queryFn: async ({ pageParam = 1 }) => {
       if (module === 'housing') {
         const params = {
@@ -89,6 +93,14 @@ const AnimalDrawer = ({
         }
       }
       if (module === 'hospital') {
+        if (!search.trim()) {
+          return {
+            animals: [],
+            nextPage: undefined,
+            total_animal_count: 0
+          }
+        }
+
         const params = {
           page_no: pageParam,
           q: search,
@@ -103,8 +115,8 @@ const AnimalDrawer = ({
           enclosure_id: filters?.Enclosure || [],
           sort: sortType?.sort,
           column: sortType?.column,
-          in_transit: 2,
-          include_dead_animal: 0
+          include_dead_animal: 0,
+          ignore_permission: 1
         }
 
         const res = await getNewAnimalListWithFilters(params)
@@ -116,7 +128,10 @@ const AnimalDrawer = ({
         }
       }
     },
-    getNextPageParam: lastPage => lastPage.nextPage
+    getNextPageParam: lastPage => lastPage.nextPage,
+    cacheTime: 0,
+    staleTime: 0,
+    keepPreviousData: false
   })
 
   useEffect(() => {
@@ -188,6 +203,8 @@ const AnimalDrawer = ({
   const handleSearchClear = () => {
     setLocalSearch('')
     debouncedSearch('')
+
+    // remove()
   }
 
   const handleTabClick = tabValue => {
@@ -249,7 +266,7 @@ const AnimalDrawer = ({
           <Grid size={{ xs: 12, sm: showFilterAndSort ? 10 : 12 }}>
             <Search
               width='100%'
-              placeholder='Search by Animal name, AID or Identifier'
+              placeholder='Search animal by AID or identifier'
               value={localSearch}
               onChange={handleSearchChange}
               onClear={handleSearchClear}
@@ -385,6 +402,25 @@ const AnimalDrawer = ({
             <Box display='flex' justifyContent='center' alignItems='center' flex={1}>
               <CircularProgress />
             </Box>
+          ) : module === 'hospital' && search.trim().length === 0 && !isFetching ? (
+            <Box
+              sx={{
+                backgroundColor: theme.palette.customColors.antzNotes,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                px: 4,
+                py: 4,
+                mt: 4,
+                borderRadius: 1
+              }}
+            >
+              <Typography
+                sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
+              >
+                Search animal by AID or animal identifier
+              </Typography>
+            </Box>
           ) : (
             <>
               {list.map(animal => (
@@ -401,16 +437,14 @@ const AnimalDrawer = ({
                   }
                 />
               ))}
-              {list.length === 0 && (
+              {list.length === 0 && !isFetching && (
                 <Box
                   sx={{
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
                     height: 200,
-                    flexDirection: 'column',
-                    p: 4,
-                    mt: 6
+                    flexDirection: 'column'
                   }}
                 >
                   <NoDataFound variant='Meerkat' height={250} width={250} />
