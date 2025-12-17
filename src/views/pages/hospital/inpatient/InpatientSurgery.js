@@ -10,6 +10,7 @@ import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import MediaCard from 'src/views/utility/MediaCard'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
+import NoDataFound from 'src/views/utility/NoDataFound'
 import { deleteSurgeryRecord, getPatientSurgeryList } from 'src/lib/api/hospital/surgeryMaster'
 
 const FieldTooltip = ({ title, placement = 'top-start', children }) => (
@@ -466,18 +467,19 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
       )
     }
 
-    if (!surgeryRecords.length) {
-      return (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.neutralSecondary,
-            whiteSpace: 'nowrap'
-          }}
-        >
-          No surgery records found.
-        </Typography>
-      )
-    }
+    // if (!surgeryRecords.length) {
+    //   return (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.neutralSecondary,
+    //         whiteSpace: 'nowrap'
+    //       }}
+    //     >
+    //       No surgery records found.
+    //     </Typography>
+    //   )
+    // }
+    if (!surgeryRecords.length) null
 
     return surgeryRecords.map((record, index) => {
       const recordId = getRecordIdentifier(record)
@@ -670,13 +672,11 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                 justifyContent: 'center'
               }}
             >
-              <Typography
-                sx={{
-                  color: error ? theme.palette.error.main : theme.palette.customColors.neutralSecondary
-                }}
-              >
-                {error || 'No surgery record selected.'}
-              </Typography>
+              {error ? (
+                <Typography sx={{ color: theme.palette.error.main }}>{error}</Typography>
+              ) : (
+                <NoDataFound variant='Seal' height={300} width={300} />
+              )}
             </Box>
           )
         ) : (
