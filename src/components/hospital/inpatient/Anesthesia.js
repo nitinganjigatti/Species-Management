@@ -201,6 +201,16 @@ function Anesthesia({
   const [deleteLoading, setDeleteLoading] = useState(false)
   const isDischared = overviewData?.status === 'discharge'
   const previousFirstRecordIdRef = useRef('')
+  const preferredAppliedRef = useRef(false)
+  const preferredAnesthesiaId = useMemo(() => {
+    const possible = router.query?.anaesthesia_id || router.query?.anesthesia_id
+
+    return Array.isArray(possible) ? possible[0] : possible || ''
+  }, [router.query?.anaesthesia_id, router.query?.anesthesia_id])
+
+  useEffect(() => {
+    preferredAppliedRef.current = false
+  }, [preferredAnesthesiaId])
 
   useEffect(() => {
     if (!anesthesiaRecords.length) {
@@ -215,6 +225,23 @@ function Anesthesia({
       .map(id => (id == null ? '' : String(id)))
       .filter(Boolean)
 
+    const preferredId = preferredAnesthesiaId ? String(preferredAnesthesiaId) : ''
+    if (preferredId && !preferredAppliedRef.current && currentIds.includes(preferredId)) {
+      setActiveRecordId(preferredId)
+      preferredAppliedRef.current = true
+      previousFirstRecordIdRef.current = currentIds[0] || ''
+
+      return
+    }
+
+    if (preferredId && !preferredAppliedRef.current && !currentIds.includes(preferredId)) {
+      if (hasNextPage && !isFetchingNextPage) {
+        fetchNextPage()
+      } else if (!hasNextPage) {
+        preferredAppliedRef.current = true
+      }
+    }
+
     const firstId = currentIds[0] || ''
     const previousFirstId = previousFirstRecordIdRef.current
     previousFirstRecordIdRef.current = firstId
@@ -228,7 +255,18 @@ function Anesthesia({
     if (!currentIds.includes(String(activeRecordId))) {
       setActiveRecordId(firstId)
     }
-  }, [anesthesiaRecords, activeRecordId])
+  }, [anesthesiaRecords, activeRecordId, preferredAnesthesiaId, fetchNextPage, hasNextPage, isFetchingNextPage])
+
+  useEffect(() => {
+    if (!activeRecordId) return
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const el = container.querySelector(`[data-anesthesia-id='${activeRecordId}']`)
+    if (el && typeof el.scrollIntoView === 'function') {
+      el.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' })
+    }
+  }, [activeRecordId])
 
   const activeRecord = useMemo(() => {
     if (!anesthesiaRecords.length) return null
@@ -261,7 +299,7 @@ function Anesthesia({
   const showDetailSkeleton = isAnesthesiaDetailFetching || isRecordsLoading || !activeRecordAnesthesiaId
 
   const recordCode = anesthesiaDetail?.code || activeRecord?.code || '--'
-  const lastUpdatedValue = formatTimestamp(
+  const lastUpdatedValue = formatDateTime(
     anesthesiaDetail?.updated_at || anesthesiaDetail?.created_at || activeRecord?.updated_at || activeRecord?.created_at
   )
 
@@ -273,7 +311,7 @@ function Anesthesia({
 
     return {
       location: source?.location || '--',
-      dateAndTimeOfAnesthesia: formatTimestamp(source?.anaesthesia_datetime),
+      dateAndTimeOfAnesthesia: formatDateTime(source?.anaesthesia_datetime),
       estimatedTimeRequired: estimatedTime || '--',
       Veterinarian: formatStaffNames(source?.veterinarians),
       Anesthetists: formatStaffNames(source?.anesthetists)
@@ -368,18 +406,38 @@ function Anesthesia({
     if (!preAnesthesiaDetail) return []
 
     return [
-      { label: 'Temperature', value: preAnesthesiaDetail.temperature || '--' },
-      { label: 'Humidity', value: preAnesthesiaDetail.humidity || '--' }
+      { label: 'Temperature', value: preAnesthesiaDetail.temperature || '' },
+      { label: 'Humidity', value: preAnesthesiaDetail.humidity || '' }
     ]
   }, [preAnesthesiaDetail])
 
   const examDetails = useMemo(() => {
     if (!preAnesthesiaDetail) return []
 
-    const weightText = preAnesthesiaDetail.weight
+    const weightNumber = Number(preAnesthesiaDetail.weight)
+    const hasWeight =
+      preAnesthesiaDetail.weight !== undefined &&
+      preAnesthesiaDetail.weight !== null &&
+      preAnesthesiaDetail.weight !== '' &&
+      !Number.isNaN(weightNumber) &&
+      weightNumber !== 0
+
+    const fastingNumber = Number(preAnesthesiaDetail.fasting_time)
+    const hasFastingTime =
+      preAnesthesiaDetail.fasting_time !== undefined &&
+      preAnesthesiaDetail.fasting_time !== null &&
+      preAnesthesiaDetail.fasting_time !== '' &&
+      !Number.isNaN(fastingNumber) &&
+      fastingNumber !== 0
+
+    const weightText = hasWeight
       ? `${preAnesthesiaDetail.weight} ${preAnesthesiaDetail.weight_unit || ''}${
           preAnesthesiaDetail.weight_type ? ` (${preAnesthesiaDetail.weight_type})` : ''
         }`.trim()
+      : '--'
+
+    const fastingTimeText = hasFastingTime
+      ? `${preAnesthesiaDetail.fasting_time} ${preAnesthesiaDetail.fasting_unit || ''}`.trim()
       : '--'
 
     return [
@@ -388,9 +446,7 @@ function Anesthesia({
       { label: 'Activity', value: preAnesthesiaDetail.animal_activity || '--' },
       {
         label: 'Fasting Time',
-        value: preAnesthesiaDetail.fasting_time
-          ? `${preAnesthesiaDetail.fasting_time} ${preAnesthesiaDetail.fasting_unit || ''}`.trim()
-          : '--'
+        value: fastingTimeText
       },
       {
         label: 'Previous Endotracheal Tube Size',
@@ -655,7 +711,7 @@ function Anesthesia({
     if (!shouldFetchRecords) {
       return (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap' }}>
-          Provide hospital case & medical record IDs to view anesthesia records.
+          {/* Provide hospital case & medical record IDs to view anesthesia records. */}
         </Typography>
       )
     }
@@ -691,6 +747,7 @@ function Anesthesia({
 
       return (
         <Box
+          data-anesthesia-id={selectionId}
           key={selectionId}
           onClick={() => handleRecordTabClick(selectionId)}
           sx={{
@@ -1125,48 +1182,54 @@ function Anesthesia({
                   <Grid sx={{ px: '0px' }} container spacing={4}>
                     {
                       environmentalDetails.length
-                        ? environmentalDetails.map(item => (
-                            <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label} sx={{ minWidth: 0 }}>
-                              <Tooltip title={item.label} placement='bottom-start' arrow>
-                                <Typography
-                                  sx={{
-                                    mb: '4px',
-                                    fontWeight: 400,
-                                    fontSize: '14px',
-                                    letterSpacing: 0,
-                                    color: theme.palette.customColors.neutralSecondary,
-                                    textTransform: 'capitalize',
-                                    textOverflow: 'ellipsis',
-                                    overflow: 'hidden',
-                                    whiteSpace: 'nowrap',
-                                    minWidth: 0,
-                                    display: 'block'
-                                  }}
-                                >
-                                  {item.label}
-                                </Typography>
-                              </Tooltip>
+                        ? environmentalDetails.map(item => {
+                            const hasValue = item.value !== undefined && item.value !== null && item.value !== ''
+                            const displayValue = hasValue ? item.value : '--'
+                            const unit = item.label === 'Temperature' ? '°C' : '%'
 
-                              <Tooltip title={item.value} placement='bottom-start' arrow>
-                                <Typography
-                                  sx={{
-                                    fontWeight: 500,
-                                    fontSize: '16px',
-                                    letterSpacing: 0,
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    textOverflow: 'ellipsis',
-                                    overflow: 'hidden',
-                                    whiteSpace: 'nowrap',
-                                    minWidth: 0,
-                                    display: 'block'
-                                  }}
-                                >
-                                  {item.value}
-                                  {item.label === 'Temperature' ? '°C' : '%'}
-                                </Typography>
-                              </Tooltip>
-                            </Grid>
-                          ))
+                            return (
+                              <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label} sx={{ minWidth: 0 }}>
+                                <Tooltip title={item.label} placement='bottom-start' arrow>
+                                  <Typography
+                                    sx={{
+                                      mb: '4px',
+                                      fontWeight: 400,
+                                      fontSize: '14px',
+                                      letterSpacing: 0,
+                                      color: theme.palette.customColors.neutralSecondary,
+                                      textTransform: 'capitalize',
+                                      textOverflow: 'ellipsis',
+                                      overflow: 'hidden',
+                                      whiteSpace: 'nowrap',
+                                      minWidth: 0,
+                                      display: 'block'
+                                    }}
+                                  >
+                                    {item.label}
+                                  </Typography>
+                                </Tooltip>
+
+                                <Tooltip title={displayValue} placement='bottom-start' arrow>
+                                  <Typography
+                                    sx={{
+                                      fontWeight: 500,
+                                      fontSize: '16px',
+                                      letterSpacing: 0,
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      textOverflow: 'ellipsis',
+                                      overflow: 'hidden',
+                                      whiteSpace: 'nowrap',
+                                      minWidth: 0,
+                                      display: 'block'
+                                    }}
+                                  >
+                                    {displayValue}
+                                    {hasValue ? unit : ''}
+                                  </Typography>
+                                </Tooltip>
+                              </Grid>
+                            )
+                          })
                         : ''
                       // <Grid item size={{ xs: 12 }}>
                       //   <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>

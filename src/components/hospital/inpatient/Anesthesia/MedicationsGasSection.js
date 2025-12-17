@@ -52,6 +52,7 @@ function MedicationsGasSection({
     if (isProductLoading) return
 
     setIsProductLoading(true)
+
     const params = {
       sort: 'asc',
       q: '',
@@ -89,12 +90,14 @@ function MedicationsGasSection({
 
   const getUnitAbbr = unitId => {
     const unit = unitList?.find(item => String(item.id) === String(unitId))
+
     return unit?.uom_abbr || '-'
   }
 
   const safeFormat = v => {
     if (!v) return '-'
     const d = dayjs(v)
+
     return d.isValid() ? d.format('hh:mm A') : '-'
   }
 
@@ -360,16 +363,19 @@ function MedicationsGasSection({
           const candidate = dayjs(`${today} ${p.format('HH:mm:ss')}`, 'YYYY-MM-DD HH:mm:ss', true)
           if (candidate.isValid()) return candidate
         }
+
         return p
       }
     }
     const loose = dayjs(s)
+
     return loose.isValid() ? loose : null
   }
 
   const asStorageString = d => {
     if (!d) return ''
     const parsed = parseTimeFromDrawer(d)
+
     return parsed && parsed.isValid() ? parsed.format('YYYY-MM-DD HH:mm:ss') : ''
   }
 
@@ -487,6 +493,7 @@ function MedicationsGasSection({
             columns={medicationColumns}
             indexedRows={medicationsData}
             rowHeight={64}
+            hideFooterPagination
             total={medicationsData?.length || 0}
             externalTableStyle={{
               '& .MuiDataGrid-columnHeaders': {
@@ -520,6 +527,7 @@ function MedicationsGasSection({
           <CommonTable
             columns={gasColumns}
             indexedRows={gasesData}
+            hideFooterPagination
             rowHeight={64}
             total={gasesData?.length || 0}
             externalTableStyle={{

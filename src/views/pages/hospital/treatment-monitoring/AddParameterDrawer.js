@@ -28,8 +28,6 @@ import {
 } from 'src/lib/api/hospital/treatmentMonitoring'
 import { useHospital } from 'src/context/HospitalContext'
 import Toaster from 'src/components/Toaster'
-import NoDataFound from 'src/views/utility/NoDataFound'
-import dayjs from 'dayjs'
 
 const AddParameterDrawer = ({
   open,
@@ -41,7 +39,6 @@ const AddParameterDrawer = ({
 }) => {
   const theme = useTheme()
   const { selectedHospital } = useHospital()
-  const isPastDate = dayjs(selectedDate).isBefore(dayjs(), 'day')
 
   const [selectedTemplates, setSelectedTemplates] = useState([])
   const [openSelectParamDrawer, setOpenSelectParamDrawer] = useState(false)
@@ -215,7 +212,7 @@ const AddParameterDrawer = ({
   }
 
   const onApplyClick = async () => {
-    if (isPastDate && todayOnly === null) {
+    if (todayOnly === null) {
       setTodayOnlyError(true)
 
       return
@@ -262,7 +259,6 @@ const AddParameterDrawer = ({
         sx={{
           '& .MuiDrawer-paper': {
             width: ['100%', '562px'],
-            height: '100vh',
             display: 'flex',
             flexDirection: 'column'
           }
@@ -400,6 +396,7 @@ const AddParameterDrawer = ({
                       sx={{ height: '48px' }}
                       startIcon={<Icon icon={'material-symbols:save-outline-rounded'} />}
                       onClick={handleSaveTemplate}
+                      disabled={templateName.trim() === '' || saveLoading}
                     >
                       {saveLoading ? <CircularProgress size={24} /> : 'SAVE'}
                     </Button>
@@ -461,69 +458,69 @@ const AddParameterDrawer = ({
                 )}
               </Box>
             ) : null}
-            <Box sx={{ py: 3, px: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Typography
-                sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '1.25rem', fontWeight: 500 }}
-              >
-                Your Template
-              </Typography>
-              {templateLoading ? (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 4,
-                    py: 2
-                  }}
+            {templateList?.length > 0 ? (
+              <Box sx={{ py: 3, px: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Typography
+                  sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '1.25rem', fontWeight: 500 }}
                 >
-                  {Array.from(new Array(6)).map((_, index) => (
-                    <Box key={index} sx={{ width: '45%' }}>
-                      <Skeleton
-                        variant='rectangular'
-                        height={50}
-                        animation='wave'
-                        sx={{
-                          borderRadius: 1,
-                          bgcolor: theme.palette.action.hover
-                        }}
-                      />
-                    </Box>
-                  ))}
-                </Box>
-              ) : templateList?.length > 0 ? (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                  {templateList?.map((template, index) => {
-                    const isSelected = selectedTemplates.includes(template.value)
-
-                    return (
-                      <Box
-                        key={index}
-                        onClick={() => handleTemplateClick(template.value)}
-                        sx={{
-                          p: 4,
-                          backgroundColor: isSelected
-                            ? theme.palette.customColors.OnBackground
-                            : theme.palette.customColors.OnPrimary,
-                          border: isSelected
-                            ? `1px solid ${theme.palette.customColors.SurfaceVariant}`
-                            : `1px solid ${theme.palette.customColors.SurfaceVariant}`,
-                          borderRadius: 1,
-                          color: theme.palette.customColors.OnSurfaceVariant,
-                          fontSize: '1rem',
-                          fontWeight: 400,
-                          cursor: 'pointer',
-                          transition: 'background-color 0.2s'
-                        }}
-                      >
-                        {template.label}
+                  Your Template
+                </Typography>
+                {templateLoading ? (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 4,
+                      py: 2
+                    }}
+                  >
+                    {Array.from(new Array(6)).map((_, index) => (
+                      <Box key={index} sx={{ width: '45%' }}>
+                        <Skeleton
+                          variant='rectangular'
+                          height={50}
+                          animation='wave'
+                          sx={{
+                            borderRadius: 1,
+                            bgcolor: theme.palette.action.hover
+                          }}
+                        />
                       </Box>
-                    )
-                  })}
-                </Box>
-              ) : (
-                <NoDataFound />
-              )}
-            </Box>
+                    ))}
+                  </Box>
+                ) : (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {templateList?.map((template, index) => {
+                      const isSelected = selectedTemplates.includes(template.value)
+
+                      return (
+                        <Box
+                          key={index}
+                          onClick={() => handleTemplateClick(template.value)}
+                          sx={{
+                            p: 4,
+                            backgroundColor: isSelected
+                              ? theme.palette.customColors.OnBackground
+                              : theme.palette.customColors.OnPrimary,
+                            border: isSelected
+                              ? `1px solid ${theme.palette.customColors.SurfaceVariant}`
+                              : `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                            borderRadius: 1,
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            fontSize: '1rem',
+                            fontWeight: 400,
+                            cursor: 'pointer',
+                            transition: 'background-color 0.2s'
+                          }}
+                        >
+                          {template.label}
+                        </Box>
+                      )
+                    })}
+                  </Box>
+                )}
+              </Box>
+            ) : null}
           </Box>
           <Box
             sx={{
@@ -536,73 +533,71 @@ const AddParameterDrawer = ({
               boxShadow: '0px -1px 30px 0px rgba(0, 0, 0, 0.1)'
             }}
           >
-            {isPastDate && (
-              <FormControl
-                required
-                component='fieldset'
-                variant='standard'
+            <FormControl
+              required
+              component='fieldset'
+              variant='standard'
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1
+              }}
+            >
+              <FormLabel
+                component='legend'
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 1
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                <FormLabel
-                  component='legend'
+                Select parameter schedule
+              </FormLabel>
+
+              <RadioGroup
+                row
+                value={todayOnly !== null ? String(todayOnly) : ''}
+                onChange={e => {
+                  setTodayOnly(Number(e.target.value))
+                  setTodayOnlyError(false)
+                }}
+              >
+                <FormControlLabel
+                  value='1'
+                  control={<Radio />}
+                  label='Set for today'
                   sx={{
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    color: theme.palette.customColors.OnSurfaceVariant
+                    '& .MuiTypography-root': {
+                      fontSize: '0.95rem',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }
+                  }}
+                />
+                <FormControlLabel
+                  value='0'
+                  control={<Radio />}
+                  label='Set for future days'
+                  sx={{
+                    '& .MuiTypography-root': {
+                      fontSize: '0.95rem',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }
+                  }}
+                />
+              </RadioGroup>
+
+              {todayOnlyError && (
+                <FormHelperText
+                  sx={{
+                    color: theme.palette.error.main,
+                    fontSize: '0.85rem',
+                    marginLeft: 0.5
                   }}
                 >
-                  Select parameter schedule
-                </FormLabel>
-
-                <RadioGroup
-                  row
-                  value={todayOnly !== null ? String(todayOnly) : ''}
-                  onChange={e => {
-                    setTodayOnly(Number(e.target.value))
-                    setTodayOnlyError(false)
-                  }}
-                >
-                  <FormControlLabel
-                    value='1'
-                    control={<Radio />}
-                    label='Set for today'
-                    sx={{
-                      '& .MuiTypography-root': {
-                        fontSize: '0.95rem',
-                        color: theme.palette.customColors.OnSurfaceVariant
-                      }
-                    }}
-                  />
-                  <FormControlLabel
-                    value='0'
-                    control={<Radio />}
-                    label='Set for future days'
-                    sx={{
-                      '& .MuiTypography-root': {
-                        fontSize: '0.95rem',
-                        color: theme.palette.customColors.OnSurfaceVariant
-                      }
-                    }}
-                  />
-                </RadioGroup>
-
-                {todayOnlyError && (
-                  <FormHelperText
-                    sx={{
-                      color: theme.palette.error.main,
-                      fontSize: '0.85rem',
-                      marginLeft: 0.5
-                    }}
-                  >
-                    Please select one option.
-                  </FormHelperText>
-                )}
-              </FormControl>
-            )}
+                  Please select one option.
+                </FormHelperText>
+              )}
+            </FormControl>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Button

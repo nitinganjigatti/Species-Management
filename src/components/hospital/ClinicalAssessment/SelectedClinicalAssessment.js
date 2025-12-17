@@ -95,7 +95,7 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
                   sx={{
                     textAlign: 'left',
                     background:
-                      symptom.clinicalAsmnt === 'Differential'
+                      symptom.clinicalAsmnt === 'Tentative'
                         ? theme.palette.customColors.antzNotes
                         : theme.palette.customColors.tableHeaderBg,
                     color: theme.palette.customColors.OnSecondaryContainer,

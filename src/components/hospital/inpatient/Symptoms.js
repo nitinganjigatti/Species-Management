@@ -146,87 +146,102 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
   return (
     <Box>
       <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mt: 6,
-            flexWrap: 'wrap',
-            rowGap: 4
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box
-              sx={{
-                flex: '1 1 auto',
-                minWidth: 0,
-                overflowX: 'auto',
-                scrollbarColor: 'transparent transparent',
-                columnGap: 4
-              }}
-            >
-              <Box sx={{ display: 'inline-flex', gap: 3, pr: 1, alignItems: 'center' }}>
-                {tabs.map(tab => {
-                  const countKey = tabTypeMap[tab]
-                  const tabCount = recordTypeCount?.[countKey] || 0
+        {!loading && (recordTypeCount?.all !== '0' || searchQuery.trim().length > 0) && (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mt: 6,
+              flexWrap: 'wrap',
+              rowGap: 4
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box
+                sx={{
+                  flex: '1 1 auto',
+                  minWidth: 0,
+                  overflowX: 'auto',
+                  scrollbarColor: 'transparent transparent',
+                  columnGap: 4
+                }}
+              >
+                <Box sx={{ display: 'inline-flex', gap: 3, pr: 1, alignItems: 'center' }}>
+                  {tabs.map(tab => {
+                    const countKey = tabTypeMap[tab]
+                    const tabCount = recordTypeCount?.[countKey] || 0
 
-                  return (
-                    <Box
-                      key={tab}
-                      onClick={() => handleTabChange(tab)}
-                      sx={{
-                        flexShrink: 0,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        px: '16px',
-                        py: '8px',
-                        borderRadius: '8px',
-                        backgroundColor:
-                          currentTab === tab ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <Typography
+                    return (
+                      <Box
+                        key={tab}
+                        onClick={() => handleTabChange(tab)}
                         sx={{
-                          color:
+                          flexShrink: 0,
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          px: '16px',
+                          py: '8px',
+                          borderRadius: '8px',
+                          backgroundColor:
                             currentTab === tab
-                              ? theme.palette.primary.contrastText
-                              : theme.palette.customColors.neutralPrimary,
-                          whiteSpace: 'nowrap'
+                              ? theme.palette.secondary.dark
+                              : theme.palette.customColors.mdAntzNeutral,
+                          cursor: 'pointer'
                         }}
                       >
-                        {tab} - {tabCount}
-                      </Typography>
-                    </Box>
-                  )
-                })}
+                        <Typography
+                          sx={{
+                            color:
+                              currentTab === tab
+                                ? theme.palette.primary.contrastText
+                                : theme.palette.customColors.neutralPrimary,
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {tab} - {tabCount}
+                        </Typography>
+                      </Box>
+                    )
+                  })}
+                </Box>
               </Box>
             </Box>
+            {!isDischared && (
+              <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+                <Search
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  onClear={handleSearchClear}
+                />
+                <Button
+                  variant='contained'
+                  startIcon={<AddIcon />}
+                  onClick={() => router.push(`/hospital/inpatient/${id}/symptoms/`)}
+                >
+                  ADD NEW
+                </Button>
+              </Box>
+            )}
           </Box>
-          {!isDischared && (
-            <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
-              <Search value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onClear={handleSearchClear} />
-              <Button
-                variant='contained'
-                startIcon={<AddIcon />}
-                onClick={() => router.push(`/hospital/inpatient/${id}/symptoms/`)}
-              >
-                ADD NEW
-              </Button>
-            </Box>
-          )}
-        </Box>
-        <Box>
-          <MUISwitch
-            label='Current Medical Record Only'
-            checked={currentRecordOnly}
-            onChange={e => setCurrentRecordOnly(e.target.checked)}
-            size='small'
-            sx={{ ml: 2.6 }}
-          />
-        </Box>
+        )}
+        {!loading && (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: recordTypeCount?.all !== '0' ? 'flex-start' : 'flex-end'
+            }}
+          >
+            <MUISwitch
+              label='Current Medical Record Only'
+              checked={currentRecordOnly}
+              onChange={e => setCurrentRecordOnly(e.target.checked)}
+              size='small'
+              sx={{ ml: 2.6 }}
+            />
+          </Box>
+        )}
       </Box>
 
       {/* Empty State */}
@@ -258,7 +273,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
               key={index}
               record={record}
               setPage={setPage}
-              isDifferential={record.type === 'Differential'}
+              isDifferential={record.type === 'Tentative'}
               isResolved={record.status === 'closed'}
               fetchSymptoms={fetchSymptoms}
               patientData={patientData}
@@ -278,7 +293,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
           {isFetchingMore && <CircularProgress size={24} />}
         </Box>
 
-        {!loading && !isFetchingMore && records?.length >= 1 && (
+        {!loading && !isFetchingMore && records?.length > 10 && (
           <Typography sx={{ textAlign: 'center', color: theme.palette.text.disabled }}>
             No more symptoms to load
           </Typography>

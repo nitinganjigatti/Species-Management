@@ -56,7 +56,7 @@ const AddClinicalAsmntDrawer = ({
   // Set default value to 'Differential' when component mounts
   useEffect(() => {
     if (!clinicalAsmnt) {
-      setClinicalAsmnt('Differential')
+      setClinicalAsmnt('Tentative')
     }
   }, [])
 
@@ -104,7 +104,7 @@ const AddClinicalAsmntDrawer = ({
             </Typography>
 
             <Select
-              value={clinicalAsmnt || 'Differential'}
+              value={clinicalAsmnt || 'Tentative'}
               onChange={e => setClinicalAsmnt(e.target.value)}
               fullWidth
               displayEmpty
@@ -112,9 +112,7 @@ const AddClinicalAsmntDrawer = ({
               error={!clinicalAsmnt}
               sx={{
                 background:
-                  clinicalAsmnt === 'Differential'
-                    ? theme.palette.customColors.antzNotes80
-                    : theme.palette.common.white,
+                  clinicalAsmnt === 'Tentative' ? theme.palette.customColors.antzNotes80 : theme.palette.common.white,
                 color: theme.palette.common.black,
                 mb: 0,
                 borderRadius: '4px',
@@ -124,7 +122,7 @@ const AddClinicalAsmntDrawer = ({
                 }
               }}
             >
-              <MenuItem value='Differential'>Tentative</MenuItem>
+              <MenuItem value='Tentative'>Tentative</MenuItem>
               <MenuItem value='Diagnosis'>Diagnosis</MenuItem>
             </Select>
             {!clinicalAsmnt && (

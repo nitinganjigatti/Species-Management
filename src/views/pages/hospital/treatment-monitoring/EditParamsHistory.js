@@ -302,44 +302,43 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
                   </Grid>
                 </Grid>
               </Box>
-              <Box
-                sx={{
-                  p: 4,
-                  borderTop: `1px solid ${theme.palette.divider}`,
-                  backgroundColor: 'background.paper',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  gap: 2,
-                  boxShadow: '0px -1px 30px 0px rgba(0, 0, 0, 0.1)'
-                }}
-              >
-                <Button
-                  variant='outlined'
-                  fullWidth
-                  onClick={() => setOpenDeleteDialog(true)}
-                  sx={{
-                    borderColor: theme.palette.customColors.Error,
-                    color: theme.palette.customColors.Error,
-                    height: '56px',
-                    fontWeight: 500
-                  }}
-                >
-                  Delete Entry
-                </Button>
-
-                <Button
-                  type='submit'
-                  variant='contained'
-                  fullWidth
-                  sx={{
-                    height: '56px',
-                    backgroundColor: theme.palette.customColors.OnPrimaryContainer
-                  }}
-                >
-                  {updateLoading ? <CircularProgress size={24} /> : 'UPDATE'}
-                </Button>
-              </Box>
             </form>
+          </Box>
+          <Box
+            sx={{
+              p: 4,
+              borderTop: `1px solid ${theme.palette.divider}`,
+              backgroundColor: 'background.paper',
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 2,
+              boxShadow: '0px -1px 30px 0px rgba(0, 0, 0, 0.1)'
+            }}
+          >
+            <Button
+              variant='outlined'
+              fullWidth
+              onClick={() => setOpenDeleteDialog(true)}
+              sx={{
+                borderColor: theme.palette.customColors.Error,
+                color: theme.palette.customColors.Error,
+                height: '56px',
+                fontWeight: 500
+              }}
+            >
+              Delete Entry
+            </Button>
+            <Button
+              type='submit'
+              variant='contained'
+              fullWidth
+              sx={{
+                height: '56px',
+                backgroundColor: theme.palette.customColors.OnPrimaryContainer
+              }}
+            >
+              {updateLoading ? <CircularProgress size={24} /> : 'UPDATE'}
+            </Button>
           </Box>
         </Box>
       </Drawer>

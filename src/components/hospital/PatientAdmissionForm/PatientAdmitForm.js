@@ -11,11 +11,12 @@ import {
   IconButton,
   Skeleton,
   TextField,
+  Tooltip,
   Typography
 } from '@mui/material'
 import { alpha, useTheme } from '@mui/system'
 import { useRouter } from 'next/router'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
@@ -41,6 +42,10 @@ import Utility from 'src/utility'
 import { getHospitalBedStats, getHospitalDetail } from 'src/lib/api/hospital/hospitalAnalytics'
 import { write } from 'src/lib/windows/utils'
 import { useQueryClient } from '@tanstack/react-query'
+import AddRoomDrawer from './AddRoomDrawer'
+import AddBedsDrawer from './AddBedsDrawer'
+import { AuthContext } from 'src/context/AuthContext'
+import BottomActionBar from 'src/views/utility/BottomActionBar'
 
 const treatmentType = [
   { label: 'OPD (outpatient)', value: 'opd' },
@@ -67,8 +72,11 @@ const schema = yup.object().shape({
 const PatientAdmitForm = () => {
   const theme = useTheme()
   const router = useRouter()
+  const authData = useContext(AuthContext)
+  const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
 
-  const { selectedHospital, updateSelectedHospital, updateHospitalStats } = useHospital()
+  const { selectedHospital, updateSelectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } =
+    useHospital()
 
   const { id } = router.query
 
@@ -103,6 +111,8 @@ const PatientAdmitForm = () => {
   const [searchEnclosure, setSearchEnclosure] = useState('')
   const [hasPermission, setHasPermission] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
+  const [openAddRoomDrawer, setOpenAddRoomDrawer] = useState(false)
+  const [openAddBedsDrawer, setOpenAddBedsDrawer] = useState(false)
 
   const queryClient = useQueryClient()
 
@@ -161,7 +171,7 @@ const PatientAdmitForm = () => {
     }
 
     getHospitalRooms()
-  }, [selectedHospital, searchRoom])
+  }, [selectedHospital, searchRoom, hospitalStats?.available_rooms])
 
   const selectedRoom = watch('room')
   const watchTreatmentType = watch('treatmentType')
@@ -195,7 +205,7 @@ const PatientAdmitForm = () => {
     }
 
     getHospitalBeds()
-  }, [selectedRoom, selectedHospital, searchEnclosure])
+  }, [selectedRoom, selectedHospital, searchEnclosure, hospitalStats?.available_rooms])
 
   const fetchAndUpdateHospitalStats = async hospitalId => {
     if (!hospitalId) return
@@ -224,26 +234,25 @@ const PatientAdmitForm = () => {
         room_id: data?.room?.value
       }
 
-      await admitHospitalPatient(params).then(res => {
-        if (res?.success === true) {
-          Toaster({ type: 'success', message: res?.message })
-          if (watchTreatmentType === 'opd') {
-            router.push({
-              pathname: `/hospital/outpatient`
-            })
-          } else {
-            router.push({
-              pathname: `/hospital/inpatient`
-            })
-          }
-          fetchAndUpdateHospitalStats(selectedHospital?.id)
-          setSubmitLoader(false)
+      const res = await admitHospitalPatient(params)
+      if (res?.success === true) {
+        Toaster({ type: 'success', message: res?.message })
+        if (watchTreatmentType === 'opd') {
+          router.push({
+            pathname: `/hospital/outpatient`
+          })
         } else {
-          Toaster({ type: 'error', message: res?.message })
-          setSubmitLoader(false)
+          router.push({
+            pathname: `/hospital/inpatient`
+          })
         }
-      })
+        fetchAndUpdateHospitalStats(selectedHospital?.id)
+        setSubmitLoader(false)
+      } else {
+        throw res
+      }
     } catch (error) {
+      Toaster({ type: 'error', message: error?.message })
       console.error(error, 'Cannot Admit Patient')
       setSubmitLoader(false)
     }
@@ -499,6 +508,7 @@ const PatientAdmitForm = () => {
                               borderColor={theme.palette.customColors.OutlineVariant}
                               selectedBorderColor={theme.palette.primary.main}
                               selectedBackgroundColor={theme.palette.customColors.OnPrimary}
+                              disabled={submitLoader}
                             />
                           ))}
                         </Box>
@@ -521,6 +531,7 @@ const PatientAdmitForm = () => {
                             defaultValue={dayjs()}
                             minDate={minDate}
                             maxDate={maxDate}
+                            disabled={submitLoader}
                           />
                         </Grid>
                         <Grid size={{ sm: 6, xs: 6 }}>
@@ -530,6 +541,7 @@ const PatientAdmitForm = () => {
                             label='Time'
                             minTime={minTime}
                             maxTime={maxTime}
+                            disabled={submitLoader}
                           />
                         </Grid>
                       </Grid>
@@ -567,7 +579,7 @@ const PatientAdmitForm = () => {
                                   : theme.palette.customColors.OnSurfaceVariant
                               }}
                             >
-                              Select doctor
+                              Select chief Veterinarian
                             </Typography>
                             <Icon
                               icon='mdi:chevron-down'
@@ -587,7 +599,9 @@ const PatientAdmitForm = () => {
                                 alignItems: 'center',
                                 justifyContent: 'space-between',
                                 minHeight: '56px',
-                                cursor: 'pointer'
+                                cursor: submitLoader ? 'not-allowed' : 'pointer',
+                                opacity: submitLoader ? 0.6 : 1,
+                                pointerEvents: submitLoader ? 'not-allowed' : 'auto'
                               }}
                             >
                               <Box
@@ -595,7 +609,8 @@ const PatientAdmitForm = () => {
                                   maxWidth: '260px',
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap'
+                                  whiteSpace: 'nowrap',
+                                  opacity: submitLoader ? 0.7 : 1
                                 }}
                               >
                                 <UserAvatarDetails
@@ -604,7 +619,7 @@ const PatientAdmitForm = () => {
                                   role={selectedDoctor?.role_name}
                                 />
                               </Box>
-                              <IconButton onClick={() => setSelectedDoctor(null)}>
+                              <IconButton onClick={() => setSelectedDoctor(null)} disabled={submitLoader}>
                                 <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
                               </IconButton>
                             </Box>
@@ -644,9 +659,27 @@ const PatientAdmitForm = () => {
                         isOptionEqualToValue={(option, value) => option.value === value?.value}
                         required
                         onInputChange={val => debouncedSearch(val)}
-                        sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
+                        sx={{
+                          background: theme.palette.customColors.Surface,
+                          borderRadius: 1
+                        }}
                         fullWidth
                         loading={roomLoading}
+                        disabled={submitLoader}
+                        endAdornment={() =>
+                          havePermissionToAddHospital && (
+                            <Tooltip title='Add Rooms'>
+                              <IconButton
+                                size='small'
+                                onMouseDown={e => e.preventDefault()}
+                                onClick={() => setOpenAddRoomDrawer(true)}
+                                sx={{ ml: 1, fontSize: 28 }}
+                              >
+                                <Icon icon='mdi:plus' color={theme.palette.primary.main} />
+                              </IconButton>
+                            </Tooltip>
+                          )
+                        }
                       />
                       {rooms.length === 0 && (
                         <Typography
@@ -682,6 +715,21 @@ const PatientAdmitForm = () => {
                         sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
                         fullWidth
                         loading={bedsLoading}
+                        disabled={submitLoader}
+                        endAdornment={() =>
+                          havePermissionToAddHospital && (
+                            <Tooltip title='Add Beds/Enclosures'>
+                              <IconButton
+                                size='small'
+                                onMouseDown={e => e.preventDefault()}
+                                onClick={() => setOpenAddBedsDrawer(true)}
+                                sx={{ ml: 1, fontSize: 28 }}
+                              >
+                                <Icon icon='mdi:plus' color={theme.palette.primary.main} />
+                              </IconButton>
+                            </Tooltip>
+                          )
+                        }
                       />
                     </Grid>
                   </Grid>
@@ -731,48 +779,31 @@ const PatientAdmitForm = () => {
         )}
       </Box>
       {hasPermission && (
-        <Box
-          sx={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            width: '100%',
-            backgroundColor: theme.palette.customColors.OnPrimary,
-            py: 4,
-            px: 6,
-            boxShadow: `0px -2px 8px ${theme.palette.customColors.shadowColor}`,
-            display: 'flex',
-            justifyContent: 'flex-end',
-            zIndex: 100,
-            borderTopLeftRadius: 1,
-            borderTopRightRadius: 1
+        <BottomActionBar
+          submitLabel='Admit'
+          cancelLabel='Reject'
+          onSubmit={handleSubmit(onSubmit, errors => {
+            if (Object.keys(errors).length > 0) {
+              const firstError = Object.keys(errors)[0]
+              const element = document.querySelector(`[name="${firstError}"]`)
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              }
+            }
+          })}
+          loading={submitLoader}
+          disabled={submitLoader}
+          cancelBtnVariant='contained'
+          cancelBtnStyle={{
+            backgroundColor: theme.palette.customColors.Error,
+            borderRadius: 0.5,
+            minHeight: '56px',
+            minWidth: '160px'
           }}
-        >
-          <Box sx={{ display: 'flex', gap: 3 }}>
-            <Button
-              variant='contained'
-              sx={{
-                backgroundColor: theme.palette.customColors.Error,
-                borderRadius: 0.5,
-                minHeight: '56px',
-                minWidth: '160px'
-              }}
-              onClick={() => setIsRejecting(true)}
-            >
-              REJECT
-            </Button>
-            <LoadingButton
-              variant='contained'
-              sx={{ backgroundColor: theme.palette.primary.main, borderRadius: 0.5, minWidth: '160px' }}
-              onClick={handleSubmit(onSubmit)}
-              loading={submitLoader}
-              loadingIndicator={<CircularProgress size={24} sx={{ color: theme.palette.customColors.OnPrimary }} />}
-              disabled={submitLoader}
-            >
-              ADMIT
-            </LoadingButton>
-          </Box>
-        </Box>
+          submitBtnVariant='contained'
+          submitBtnStyle={{ backgroundColor: theme.palette.primary.main, borderRadius: 0.5, minWidth: '160px' }}
+          onCancel={() => setIsRejecting(true)}
+        />
       )}
       {doctorDrawerOpen && (
         <DoctorsDrawer
@@ -867,6 +898,26 @@ const PatientAdmitForm = () => {
             </Box>
           }
           allowCancel={false}
+        />
+      )}
+      {openAddRoomDrawer && (
+        <AddRoomDrawer
+          open={openAddRoomDrawer}
+          setOpen={setOpenAddRoomDrawer}
+          selectedHospital={selectedHospital}
+          hospitalStats={hospitalStats}
+          isHospitalStatsLoading={isHospitalStatsLoading}
+          updateHospitalStats={updateHospitalStats}
+        />
+      )}
+      {openAddBedsDrawer && (
+        <AddBedsDrawer
+          open={openAddBedsDrawer}
+          setOpen={setOpenAddBedsDrawer}
+          selectedHospital={selectedHospital}
+          hospitalStats={hospitalStats}
+          isHospitalStatsLoading={isHospitalStatsLoading}
+          updateHospitalStats={updateHospitalStats}
         />
       )}
     </>

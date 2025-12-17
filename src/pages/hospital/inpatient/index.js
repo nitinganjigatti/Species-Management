@@ -268,7 +268,7 @@ const HospitalInpatient = () => {
       renderCell: params => {
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.total_admitted_days} {params?.row?.total_admitted_days > 1 ? 'days' : 'day'}
+            {params?.row?.total_admitted_days}
           </Typography>
         )
       }
