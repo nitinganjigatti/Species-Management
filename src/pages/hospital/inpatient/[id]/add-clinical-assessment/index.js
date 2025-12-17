@@ -13,6 +13,7 @@ import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
+import BottomActionBar from 'src/views/utility/BottomActionBar'
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
@@ -445,7 +446,7 @@ function AddClinicalAssessmentPage() {
         </Grid>
       </Grid>
       <Box>
-        <ActionButtons
+        {/* <ActionButtons
           isSubmitLoading={isSubmitLoading}
           cancelLabel='CANCEL'
           addLabel='ADD'
@@ -453,6 +454,27 @@ function AddClinicalAssessmentPage() {
           onAdd={handleAddAssessment}
           width={200}
           height={50}
+        /> */}
+        <BottomActionBar
+          submitLabel='ADD'
+          cancelLabel='CANCEL'
+          onSubmit={handleAddAssessment}
+          loading={isSubmitLoading}
+          disabled={isSubmitLoading}
+          cancelBtnStyle={{
+            borderColor: theme.palette.customColors.OnSurfaceVariant,
+            color: theme.palette.customColors.OnSurfaceVariant,
+            borderRadius: 0.5,
+            minHeight: '50px',
+            minWidth: '200px'
+          }}
+          submitBtnStyle={{
+            backgroundColor: theme.palette.primary.main,
+            borderRadius: 0.5,
+            minWidth: '200px',
+            minHeight: '50px'
+          }}
+          onCancel={handleAssessmentCancel}
         />
       </Box>
 

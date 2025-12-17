@@ -143,7 +143,6 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
         setDeleteLoading(false)
       }
     } catch (error) {
-      console.error('Error while updating symptom:', error)
       Toaster({ type: 'error', message: 'An error occurred while updating symptom.' })
     } finally {
       setIsDeleteDialogOpen(false)
@@ -159,6 +158,11 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
 
   const hasData = data =>
     (Array.isArray(data) && data?.length > 0) || (data && typeof data === 'object' && Object.keys(data)?.length > 0)
+
+  const formatDurationUnit = (value, unit) => {
+    if (!unit) return ''
+    return Number(value) === 1 ? unit.replace(/s$/i, '') : unit
+  }
 
   return (
     <Box
@@ -248,7 +252,8 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                {record?.additional_info?.duration} {record?.additional_info?.duration_unit}
+                {record?.additional_info?.duration}{' '}
+                {formatDurationUnit(record?.additional_info?.duration, record?.additional_info?.duration_unit)}
               </Box>
             )}
           </Box>
@@ -295,7 +300,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
                     <span style={{ color: theme.palette.customColors.OnSurfaceVariant }}> → </span>
                   )}
                   <strong style={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-                    {record?.latest_note?.notes_dump?.new_data?.severity}
+                    {record?.latest_note?.notes_dump?.new_data?.severity || record?.additional_info?.severity}
                   </strong>
                 </Typography>
               </Box>

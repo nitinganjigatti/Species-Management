@@ -72,13 +72,6 @@ const HorizontalDateNav = ({
     // return generatedDates
   }
 
-  useEffect(() => {
-    console.log('dates', dates)
-  }, [dates])
-  useEffect(() => {
-    console.log('selectedDate', selectedDate)
-  }, [selectedDate])
-
   const dateItems = generateDates()
   const displayYear = year || new Date().getFullYear()
 
@@ -260,7 +253,7 @@ const YearLabel = styled(Typography)(({ theme }) => ({
   // }
 }))
 
-const DateButton = styled(Button, {
+const DateButton = styled(Box, {
   shouldForwardProp: prop => !['isSelected', 'hasIndicator', 'indicatorColor'].includes(prop)
 })(({ theme, isSelected, hasIndicator, indicatorColor }) => {
   const baseStyles = {
@@ -293,7 +286,8 @@ const DateButton = styled(Button, {
     },
     '&:hover': {
       backgroundColor: isSelected ? theme.palette.customColors.OnPrimaryContainer : 'rgba(0, 0, 0, 0.04)',
-      color: isSelected ? theme.palette.customColors.OnSurfaceVariant : theme.palette.customColors.OnSurfaceVariant
+      color: isSelected ? theme.palette.customColors.OnSurfaceVariant : theme.palette.customColors.OnSurfaceVariant,
+      cursor: 'pointer'
     },
     '&:disabled': {
       backgroundColor: 'transparent',

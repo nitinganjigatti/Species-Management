@@ -9,8 +9,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   Paper,
-  Breadcrumbs,
-  CircularProgress
+  Breadcrumbs
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { alpha, useTheme } from '@mui/material/styles'
@@ -28,7 +27,7 @@ import MedicationsGasSection from 'src/components/hospital/inpatient/Anesthesia/
 import PreAnesthesia from 'src/components/hospital/inpatient/Anesthesia/PreAnesthesia'
 import RecoveryAndReversal from 'src/components/hospital/inpatient/Anesthesia/RecoveryAndReversal'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
-import { readAsync } from 'src/lib/windows/utils'
+import { useHospital } from 'src/context/HospitalContext'
 import Utility from 'src/utility'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 import {
@@ -46,6 +45,7 @@ import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { useQueryClient } from '@tanstack/react-query'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
+import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 
 dayjs.extend(customParseFormat)
 
@@ -335,6 +335,8 @@ export default function AddAnesthesiaRecord() {
   const router = useRouter()
   const { id, anaesthesia_id } = router.query
   const queryClient = useQueryClient()
+  const { selectedHospital } = useHospital()
+
   const [expanded, setExpanded] = useState('basicDetails')
   const [isBasicDetailsValid, setIsBasicDetailsValid] = useState(false)
   const [isApiSuccess, setIsApiSuccess] = useState(false)
@@ -377,28 +379,27 @@ export default function AddAnesthesiaRecord() {
     })
   }
 
-  const getUserLists = async (query = '') => {
+  const getUserLists = async hospitalId => {
     try {
-      const userDetails = await readAsync('userDetails')
-      if (userDetails?.user?.zoos.length > 0) {
-        const zoo_id = userDetails.user.zoos[0].zoo_id
-        const params = { zoo_id }
-        if (query.trim() !== '') {
-          params.q = query
-        }
-        const res = await getUserList(params)
-        if (res?.data?.length > 0) {
-          setDoctors(
-            res.data.map(item => ({
-              name: item?.user_name,
-              id: item?.user_id,
-              default_icon: item?.user_profile_pic,
-              role_name: item?.role_name
-            }))
-          )
-        } else {
-          setDoctors([])
-        }
+      if (!hospitalId) return
+      const params = {
+        // page_no: paginationModel.page + 1,
+        // limit: paginationModel.pageSize,
+        // q: debouncedSearch,
+        hospital_id: patientData?.hospital_id
+      }
+      const res = await getHospitalStaff({ params })
+      if (res?.data?.records?.length > 0) {
+        setDoctors(
+          res.data?.records?.map(item => ({
+            name: item?.user_full_name,
+            id: item?.user_id,
+            default_icon: item?.user_profile_pic,
+            role_name: item?.role_name
+          }))
+        )
+      } else {
+        setDoctors([])
       }
     } catch (error) {
       console.log('user error', error)
@@ -415,7 +416,8 @@ export default function AddAnesthesiaRecord() {
         setassessmentList(
           response?.data?.records.map(item => ({
             name: item?.name,
-            id: item?.id
+            id: item?.id,
+            other: item?.is_other
           }))
         )
       } else {
@@ -510,13 +512,19 @@ export default function AddAnesthesiaRecord() {
   }
 
   useEffect(() => {
-    getUserLists()
     fetchAssessmentList()
     fetchAnesthesiaSetup()
     fetchClinPathList()
     fetchUnitList()
     fetchVitalList()
   }, [])
+
+  useEffect(() => {
+    const hospitalId = patientData?.hospital_id
+    if (!hospitalId) return
+
+    getUserLists(hospitalId)
+  }, [patientData?.hospital_id])
 
   const purposeStageOptions = [
     { label: 'Premedication', value: 'Premedication' },
@@ -626,8 +634,9 @@ export default function AddAnesthesiaRecord() {
     reValidateMode: 'onChange'
   })
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     router.push(`/hospital/inpatient/${id}/?tab=anesthesia`)
+    await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
   }
 
   const handleCancelNew = async () => {
@@ -955,7 +964,9 @@ export default function AddAnesthesiaRecord() {
 
     const basicDetailsForm = {
       location: detail?.location || '',
-      anaesthesia_datetime: detail.anaesthesia_datetime || '',
+      anaesthesia_datetime: detail?.anaesthesia_datetime
+        ? dayjs.utc(detail.anaesthesia_datetime).local().format('YYYY-MM-DD HH:mm:ss')
+        : '',
       estimated_time_required: detail.estimated_time_required || '',
       estimated_time_unit: detail.estimated_time_unit || 'hr',
       veterinarian_id: (detail.veterinarians || []).map(v => String(v.user_id)),
@@ -1265,7 +1276,7 @@ export default function AddAnesthesiaRecord() {
       const isEdit = !!anaesthesia_id
 
       const purposePayload = {
-        selected: data.basicDetails.selected || [],
+        selected: Array.from(new Set(data.basicDetails.selected || [])),
         custom: data.basicDetails.custom || []
       }
 
@@ -1524,7 +1535,7 @@ export default function AddAnesthesiaRecord() {
       }
 
       const formData = new FormData()
-
+      const anaesthesiaDateTime = data.basicDetails.anaesthesia_datetime
       if (isEdit) {
         formData.append('anaesthesia_id', anaesthesia_id)
       }
@@ -1532,7 +1543,10 @@ export default function AddAnesthesiaRecord() {
       formData.append('hospital_case_id', id || '')
       formData.append('medical_record_id', patientData?.medical_record_id || '')
       formData.append('location', data.basicDetails.location)
-      formData.append('anaesthesia_datetime', data.basicDetails.anaesthesia_datetime)
+      formData.append(
+        'anaesthesia_datetime',
+        anaesthesiaDateTime ? dayjs(anaesthesiaDateTime).format('YYYY-MM-DD HH:mm:ss') : ''
+      )
       formData.append('estimated_time_required', data.basicDetails.estimated_time_required)
       formData.append('estimated_time_unit', data.basicDetails.estimated_time_unit)
       formData.append('veterinarian_id', JSON.stringify(data.basicDetails.veterinarian_id || []))
@@ -1761,7 +1775,6 @@ export default function AddAnesthesiaRecord() {
 
   const lastUpdatedValue =
     anesthesiaDetail?.updated_at !== undefined ? formatDateTime(anesthesiaDetail.updated_at) : '-'
-  console.log('patientData', patientData)
 
   return (
     <FormProvider {...methods}>
@@ -2009,6 +2022,7 @@ export default function AddAnesthesiaRecord() {
                       anesthesiaSetupList={anesthesiaSetupList}
                       clinPathOptions={clinPathList}
                       addLoader={addLoader}
+                      selectedHospital={selectedHospital}
                     />
                   </AccordionDetails>
                 </Accordion>

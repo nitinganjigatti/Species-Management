@@ -19,6 +19,7 @@ import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePick
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
+import BottomActionBar from 'src/views/utility/BottomActionBar'
 
 const transferEnclosureSchema = yup.object({
   discharge_date: yup.date().nullable().required('Date of discharge is required'),
@@ -580,7 +581,7 @@ const EnclosureDischargeForm = props => {
           </Box>
         </Box>
 
-        <Box
+        {/* <Box
           sx={{
             position: 'fixed',
             bottom: 0,
@@ -607,7 +608,16 @@ const EnclosureDischargeForm = props => {
           >
             Discharge Animal
           </LoadingButton>
-        </Box>
+        </Box> */}
+        <BottomActionBar
+          submitLabel='Discharge Animal'
+          submitBtnVariant='contained'
+          showCancel={false}
+          submitBtnStyle={{ px: 12, py: 3 }}
+          loading={submitLoader}
+          disabled={submitLoader}
+          submitBtnProps={{ type: 'submit' }}
+        />
       </form>
     </>
   )

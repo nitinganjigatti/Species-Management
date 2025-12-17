@@ -5,11 +5,16 @@ import { useTheme } from '@mui/material/styles'
 import ActivityListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ActivityListShimmer'
 import Utility from 'src/utility'
 
-const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = false }) => {
+const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = false, activityListData }) => {
   const theme = useTheme()
 
   if (activityLoader) {
     return <ActivityListShimmer count={3} />
+  }
+
+  const formatDurationUnit = (value, unit) => {
+    if (!unit) return ''
+    return Number(value) === 1 ? unit.replace(/s$/i, '') : unit
   }
 
   return (
@@ -141,7 +146,7 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                       {activity?.status && (
                         <Typography
                           sx={{
-                            mb: 2,
+                            mb: 1,
                             color: theme.palette.customColors.OnSurfaceVariant,
                             fontWeight: 400,
                             fontSize: '12px'
@@ -149,6 +154,23 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                         >
                           Status:{' '}
                           <strong>{activity?.status.charAt(0).toUpperCase() + activity?.status.slice(1)}</strong>
+                        </Typography>
+                      )}
+
+                      {activityListData && (
+                        <Typography
+                          sx={{
+                            mb: 2,
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            fontWeight: 400,
+                            fontSize: '12px'
+                          }}
+                        >
+                          Duration:{' '}
+                          <strong>
+                            {activityListData?.duration}{' '}
+                            {formatDurationUnit(activityListData?.duration, activityListData?.duration_unit)}
+                          </strong>
                         </Typography>
                       )}
 

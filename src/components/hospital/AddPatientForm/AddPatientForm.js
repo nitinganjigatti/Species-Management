@@ -283,6 +283,9 @@ const AddPatientForm = () => {
     try {
       const params = {
         source_id: selectedAnimal?.site_id,
+        source_site_id: selectedAnimal?.site_id ? selectedAnimal?.site_id : null,
+        destination_site_id: selectedHospital?.id ? selectedHospital?.id : null,
+        usecase: 'add-patient',
         source_type: 'site',
         destination_id: selectedHospital?.id,
         destination_type: 'hospital',

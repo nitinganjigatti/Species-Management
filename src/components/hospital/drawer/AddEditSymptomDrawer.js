@@ -237,9 +237,9 @@ const AddEditSymptomDrawer = ({
             >
               {selectedSymptom?.created_by_user_name || selectedSymptom?.additional_info?.resolved_user_name}{' '}
               <span style={{ margin: '0 8px', color: theme.palette.customColors.neutralSecondary }}>•</span>
-              {Utility.convertUTCToLocaltime(selectedSymptom?.created_at)}
+              {Utility?.formatDisplayDate(selectedSymptom?.latest_note?.modified_at || selectedSymptom?.created_at)}
               <span style={{ margin: '0 8px', color: theme.palette.customColors.neutralSecondary }}>•</span>
-              {Utility?.formatDisplayDate(selectedSymptom?.created_at)}
+              {Utility.convertUTCToLocaltime(selectedSymptom?.latest_note?.modified_at || selectedSymptom?.created_at)}
             </Typography>
 
             <Typography
@@ -403,6 +403,7 @@ const AddEditSymptomDrawer = ({
                 activities={processedActivities}
                 onEdit={handleEditActivity}
                 activityLoader={activityLoader}
+                activityListData={activityListData}
               />
             </>
           ) : (

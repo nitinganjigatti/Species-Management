@@ -62,7 +62,12 @@ const AddTreatmentDrawer = ({
     }
   }
 
-  const { control, reset } = useForm({
+  const {
+    control,
+    reset,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
     defaultValues: {
       treatmentName: formData.treatmentName || null,
       notes: formData.notes || ''
@@ -184,7 +189,8 @@ const AddTreatmentDrawer = ({
                 name='treatmentName'
                 label=''
                 control={control}
-                errors={{}}
+                errors={errors}
+                required='Treatment name is required'
                 options={treatmentOptions}
                 loading={optionsLoading}
                 fullWidth
@@ -224,7 +230,8 @@ const AddTreatmentDrawer = ({
               name='notes'
               label=''
               control={control}
-              errors={{}}
+              errors={errors}
+              required='Notes is required'
               rows={4}
               placeholder='Add notes'
               onChangeOverride={event => onChange('notes', event?.target?.value || '')}
@@ -253,7 +260,7 @@ const AddTreatmentDrawer = ({
           <Button
             fullWidth
             variant='contained'
-            onClick={onSubmit}
+            onClick={handleSubmit(() => onSubmit())}
             disabled={isSubmitting}
             sx={{
               borderRadius: '8px',

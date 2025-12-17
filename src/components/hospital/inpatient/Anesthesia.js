@@ -711,7 +711,7 @@ function Anesthesia({
     if (!shouldFetchRecords) {
       return (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap' }}>
-          Provide hospital case & medical record IDs to view anesthesia records.
+          {/* Provide hospital case & medical record IDs to view anesthesia records. */}
         </Typography>
       )
     }
@@ -944,26 +944,29 @@ function Anesthesia({
 
                 <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   {!patientDischarged && (
-                    <Box
-                      component='img'
-                      src='/icons/pencil_outlined.svg'
-                      alt='Edit'
-                      sx={{ width: 24, height: 24, cursor: 'pointer' }}
-                      onClick={() => handleEditClick(anesthesiaDetail)}
-                    />
+                    <>
+                      <Box
+                        component='img'
+                        src='/icons/pencil_outlined.svg'
+                        alt='Edit'
+                        sx={{ width: 24, height: 24, cursor: 'pointer' }}
+                        onClick={() => handleEditClick(anesthesiaDetail)}
+                      />
+
+                      <Box
+                        component='img'
+                        src='/icons/delete_outlined.svg'
+                        alt='Delete'
+                        sx={{
+                          width: 24,
+                          height: 24,
+                          cursor: activeRecordAnesthesiaId ? 'pointer' : 'not-allowed',
+                          opacity: activeRecordAnesthesiaId ? 1 : 0.4
+                        }}
+                        onClick={handleDeleteClick}
+                      />
+                    </>
                   )}
-                  <Box
-                    component='img'
-                    src='/icons/delete_outlined.svg'
-                    alt='Delete'
-                    sx={{
-                      width: 24,
-                      height: 24,
-                      cursor: activeRecordAnesthesiaId ? 'pointer' : 'not-allowed',
-                      opacity: activeRecordAnesthesiaId ? 1 : 0.4
-                    }}
-                    onClick={handleDeleteClick}
-                  />
                 </Box>
               </Box>
             </Box>
