@@ -997,7 +997,7 @@ export default function AddMedicineToPrescription() {
             start_date: toISTISOString(data.prescriptionStartDate),
             end_date: isOneTimeFrequency
               ? toISTISOString(data.prescriptionStartDate)
-              : calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
+              : calculateEndDate(data.prescriptionStartDate, data.dosageDuration, interval?.value),
 
             restart_reason: '',
             stop_reason: '',
@@ -1247,7 +1247,6 @@ export default function AddMedicineToPrescription() {
 
   const handleRestartMedicine = async data => {
     try {
-      console.log('data?.prescriptionStartDate', data?.prescriptionStartDate)
       setIsSubmitting(true)
       const interval = medicalMasterData?.intervalList?.find(item => item?.value === data?.interval)
       const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
@@ -1600,6 +1599,7 @@ export default function AddMedicineToPrescription() {
             <PrescriptionMedicineList
               medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
               temporarilySelectedMedicine={temporarilySelectedMedicine}
+
               // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
               selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
               onSelect={handleMedicineSelect}
