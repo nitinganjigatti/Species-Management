@@ -281,7 +281,8 @@ const PrescriptionMonitoringGrid = ({
   addPrescriptionToTimeslot,
   selectedMetrics,
   setSelectedMetrics,
-  isDischared
+  isDischared,
+  category
 }) => {
   const theme = useTheme()
   const router = useRouter()
@@ -646,6 +647,30 @@ const PrescriptionMonitoringGrid = ({
     return scheduledDateTime > now
   }
 
+  // this is for allow schedule for same day for fast time and future time and any fast time
+  const isScheduledAllowed = (scheduledDate, scheduledTime) => {
+    // Parse time (kept only to build date, not for validation)
+    const [hours, modifier] = scheduledTime.split(' ')
+    let hours24 = parseInt(hours, 10)
+
+    if (modifier === 'PM' && hours24 !== 12) hours24 += 12
+    if (modifier === 'AM' && hours24 === 12) hours24 = 0
+
+    const scheduled = new Date(scheduledDate)
+    scheduled.setHours(hours24, 0, 0, 0)
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const scheduledDay = new Date(scheduled)
+    scheduledDay.setHours(0, 0, 0, 0)
+
+    // ❌ Block only future days
+    const result = scheduledDay <= today
+
+    return result
+  }
+
   // Helper: converts "5 AM"/"1 PM" to "HH:mm:ss"
   function convertTo24Hour(time12h) {
     if (!time12h) return '00:00:00'
@@ -658,6 +683,14 @@ const PrescriptionMonitoringGrid = ({
     return `${hour.toString().padStart(2, '0')}:00:00`
   }
 
+  const handleRouterNavigation = () => {
+    if (category === 'Outpatients') {
+      router.push(`/hospital/outpatient/${id}/schedule-prescription`)
+    } else {
+      router.push(`/hospital/inpatient/${id}/schedule-prescription`)
+    }
+  }
+
   // Show shimmer loading state
   if (isLoading) {
     return (
@@ -667,15 +700,7 @@ const PrescriptionMonitoringGrid = ({
             <ShimmerHorizontalDateNav />
           </Grid>
           <Grid item size={{ xs: 4, sm: 3, lg: 2.5 }}>
-            <Button
-              onClick={() => {
-                router.push({
-                  pathname: `/hospital/inpatient/${id}/schedule-prescription`
-                })
-              }}
-              sx={{ height: '48px', width: '100%' }}
-              variant='contained'
-            >
+            <Button onClick={handleRouterNavigation} sx={{ height: '48px', width: '100%' }} variant='contained'>
               ADD PRESCRIPTION
             </Button>
           </Grid>
@@ -720,15 +745,7 @@ const PrescriptionMonitoringGrid = ({
         </Grid>
         {!isDischared ? (
           <Grid item size={{ xs: 4, sm: 3, lg: 2.5 }}>
-            <Button
-              onClick={() => {
-                router.push({
-                  pathname: `/hospital/inpatient/${id}/schedule-prescription`
-                })
-              }}
-              sx={{ height: '48px', width: '100%' }}
-              variant='contained'
-            >
+            <Button onClick={handleRouterNavigation} sx={{ height: '48px', width: '100%' }} variant='contained'>
               ADD PRESCRIPTION
             </Button>
           </Grid>
@@ -884,8 +901,12 @@ const PrescriptionMonitoringGrid = ({
                               }
                               if (!status) handleAddPrescriptionToTimeslot(data)
                               if (status === 'pending') {
-                                const isFuture = isScheduledFuture(selectedDate, scheduledTime)
-                                if (!isFuture) {
+                                // const isFuture = isScheduledFuture(selectedDate, scheduledTime)
+                                // this is for allow schedule for same day for fast time and future time and any fast time
+
+                                const isFuture = isScheduledAllowed(selectedDate, scheduledTime)
+
+                                if (isFuture) {
                                   // Open administer/skip modal
                                   // if (timeSlot?.value?.administrative_ids?.length > 1) {
                                   if (timeSlot?.value?.administrative_ids?.length) {
@@ -905,8 +926,16 @@ const PrescriptionMonitoringGrid = ({
                               status === 'stopped' ||
                               (metric?.status === 'stopped' &&
                                 !status &&
-                                isScheduledFuture(selectedDate, scheduledTime)) ||
-                              (status?.toLowerCase() === 'pending' && isScheduledFuture(selectedDate, scheduledTime))
+                                // isScheduledFuture(selectedDate, scheduledTime)) ||
+                                // this is for allow schedule for same day for fast time and future time and any fast time
+
+                                isScheduledAllowed(selectedDate, scheduledTime))
+                              // ||
+                              // (status?.toLowerCase() === 'pending' &&
+                              //   // isScheduledFuture(selectedDate, scheduledTime)
+                              //   // this is for allow schedule for same day for fast time and future time and any fast time
+
+                              //   isScheduledAllowed(selectedDate, scheduledTime))
                             }
                           >
                             <TimeSlotCell
@@ -939,11 +968,7 @@ const PrescriptionMonitoringGrid = ({
                 btnText={'ADD PRESCRIPTION'}
                 text={'All Added Prescriptions Will Appear here'}
                 isDischarged={isDischared}
-                btnAction={() => {
-                  router.push({
-                    pathname: `/hospital/inpatient/${id}/schedule-prescription`
-                  })
-                }}
+                btnAction={handleRouterNavigation}
               />
             </Box>
           )}

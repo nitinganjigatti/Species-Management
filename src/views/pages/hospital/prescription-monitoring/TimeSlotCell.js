@@ -58,7 +58,8 @@ const TimeSlotCell = ({ hasSchedule, status, scheduledTime, administeredTime, do
               }}
               variant='caption'
             >
-              {status == 'administered' ? formatToIST(administeredTime) : formatScheduledTime(scheduledTime)}
+              {/* {status == 'administered' ? formatToIST(administeredTime) : formatScheduledTime(scheduledTime)} */}
+              {/* hidden for now */}
             </Typography>
           </Box>
         )}
@@ -93,45 +94,45 @@ const TimeSlotCell = ({ hasSchedule, status, scheduledTime, administeredTime, do
 
 export default React.memo(TimeSlotCell)
 
-const formatToIST = (utcTimeString) => {
+const formatToIST = utcTimeString => {
   if (!utcTimeString) return ''
-  
+
   try {
     // Remove seconds if present
     const timePart = utcTimeString.split(':').slice(0, 2).join(':')
     const [hoursStr, minutesStr] = timePart.split(':')
-    
+
     let hours = parseInt(hoursStr, 10)
     let minutes = parseInt(minutesStr || '00', 10)
-    
+
     // Add 5 hours and 30 minutes
     hours += 5
     minutes += 30
-    
+
     // Handle minute overflow
     if (minutes >= 60) {
       hours += Math.floor(minutes / 60)
       minutes = minutes % 60
     }
-    
+
     // Handle hour overflow (24-hour format)
     if (hours >= 24) {
       hours = hours % 24
     }
-    
+
     // Convert to 12-hour AM/PM format
     const ampm = hours >= 12 ? 'PM' : 'AM'
     let displayHours = hours % 12
     displayHours = displayHours === 0 ? 12 : displayHours
-    
+
     // Format with leading zeros
     const formattedHours = displayHours.toString().padStart(2, '0')
     const formattedMinutes = minutes.toString().padStart(2, '0')
-    
+
     return `${formattedHours}:${formattedMinutes} ${ampm}`
   } catch (error) {
     console.error('Error formatting time:', error)
-    
-return utcTimeString
+
+    return utcTimeString
   }
 }

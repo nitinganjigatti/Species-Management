@@ -1,23 +1,16 @@
+/* eslint-disable lines-around-comment */
 import React, { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   IconButton,
-  Chip,
-  Avatar,
-  Divider,
   Tab,
-  Tabs,
   Button,
   Drawer,
   useTheme,
   useMediaQuery,
-  CircularProgress,
   Skeleton,
-  Checkbox
+  Avatar
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
@@ -30,6 +23,7 @@ import { LoadingButton } from '@mui/lab'
 import DoDisturbIcon from '@mui/icons-material/DoDisturb'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import { useRouter } from 'next/router'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 // Custom styled components for drawer content
 const DrawerContent = styled(Box)(({ theme }) => ({
@@ -446,7 +440,9 @@ const MedicinePrescriptionCard = ({
                   textDecoration: entry.isStrikethrough ? 'line-through' : 'none'
                 }}
               >
-                {formatTimeFromUTC(entry.time)}
+                {/* {formatTimeFromUTC(entry.time)} */}
+                {/* time conveertion issue */}
+                {entry.time}
               </Typography>
               <Typography
                 variant='body2'
@@ -551,6 +547,7 @@ const MedicinePrescriptionCard = ({
             </Typography>
           </Box>
         </Box>
+
         {entry?.status?.toLowerCase() != 'stopped' && (
           <IconButton size='small' sx={{ width: '2rem', height: '2rem' }} onClick={() => handleRefreshEntry(entry.id)}>
             <Icon icon='mdi:refresh' fontSize='20px' color={theme.palette.customColors.Tertiary} />
@@ -817,8 +814,8 @@ const MedicinePrescriptionCard = ({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '12px 16px',
-                backgroundColor: selectedMedications.length > 0 
-                  ? theme.palette.primary.light 
+                backgroundColor: selectedMedications.length > 0
+                  ? theme.palette.primary.light
                   : theme.palette.customColors.OnBackground,
                 borderRadius: '8px',
                 mb: 2,
@@ -853,7 +850,7 @@ const MedicinePrescriptionCard = ({
                     : 'Select medications'}
                 </Typography>
               </Box>
-              
+
               {selectedMedications.length > 0 && (
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <Button
@@ -920,6 +917,20 @@ const MedicinePrescriptionCard = ({
                     return scheduledDateTime > now
                   }
 
+                  // added only day validation we can give enable for fast and future time only on present day
+                  const isAllowedDate = () => {
+                    if (!selectedDate) return false
+
+                    const today = new Date()
+                    today.setHours(0, 0, 0, 0)
+
+                    const selected = new Date(selectedDate.split(' ')[0])
+                    selected.setHours(0, 0, 0, 0)
+                    const result = selected <= today
+
+                    return result
+                  }
+
                   return isPending ? (
                     <MedicationTimeCard
                       key={item?.administritive_id}
@@ -928,12 +939,13 @@ const MedicinePrescriptionCard = ({
                       amount={`${item?.scheduled_quantity} ${item?.scheduled_unit_name}`}
                       checked={isSelected}
                       onChange={checked => handleMedicationSelect(item?.administritive_id, checked)}
-                      disabled={isFutureTime()}
+                      // disabled={isFutureTime()}
+                      disabled={!isAllowedDate()}
                     />
                   ) : (
                     renderDosageEntry({
                       id: item?.administritive_id,
-                      time: formatTime(item?.administritive_time || item?.scheduled_time),
+                      time: formatTime(item?.scheduled_time), /// added sceduled time not adminster time
                       status: item?.status || 'Pending',
                       dosage: `${item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
                       amount:
@@ -1039,23 +1051,25 @@ const MedicinePrescriptionCard = ({
                     ) : (
                       <Box></Box>
                     )}
-                    {handleAddNewDosageTimeCheck(selectedDate) && !isStopDatePassed(medicineData?.stop_date) && (
-                      <Button
-                        variant='text'
-                        startIcon={<Icon icon='mdi:plus' />}
-                        onClick={handleAddNewDosage}
-                        disabled={isDetailLoading}
-                        sx={{
-                          color: theme.palette.customColors.OnSurface,
-                          fontSize: '16px',
-                          fontWeight: 500,
-                          transform: 'none',
-                          textTransform: 'none'
-                        }}
-                      >
-                        Add New Dosage
-                      </Button>
-                    )}
+                    {handleAddNewDosageTimeCheck(selectedDate) &&
+                      !isStopDatePassed(medicineData?.stop_date) &&
+                      medicineData?.prescription_frequency !== 'one_time' && (
+                        <Button
+                          variant='text'
+                          startIcon={<Icon icon='mdi:plus' />}
+                          onClick={handleAddNewDosage}
+                          disabled={isDetailLoading}
+                          sx={{
+                            color: theme.palette.customColors.OnSurface,
+                            fontSize: '16px',
+                            fontWeight: 500,
+                            transform: 'none',
+                            textTransform: 'none'
+                          }}
+                        >
+                          Add New Dosage
+                        </Button>
+                      )}
                   </Box>
                 )}
               </Box>

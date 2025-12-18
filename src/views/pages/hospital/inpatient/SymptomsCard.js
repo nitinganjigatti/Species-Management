@@ -161,6 +161,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
 
   const formatDurationUnit = (value, unit) => {
     if (!unit) return ''
+
     return Number(value) === 1 ? unit.replace(/s$/i, '') : unit
   }
 
@@ -377,7 +378,11 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
               {record?.status === 'active' ? 'Created by' : 'Resolved by'}
             </Typography>
             <UserAvatarDetails
-              profile_image={record?.additional_info?.resolved_user_profile_pic}
+              profile_image={
+                record?.status === 'active'
+                  ? record?.created_user_profile_pic
+                  : record?.additional_info?.resolved_user_profile_pic
+              }
               user_name={record?.additional_info?.resolved_user_name || record?.created_by_user_name}
               date={
                 record?.status === 'active'

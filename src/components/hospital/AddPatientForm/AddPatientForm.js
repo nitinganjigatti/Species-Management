@@ -46,6 +46,8 @@ import AddBedsDrawer from '../PatientAdmissionForm/AddBedsDrawer'
 import { AuthContext } from 'src/context/AuthContext'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 
+// import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+
 const defaultValues = {
   treatmentType: 'inpatient',
   purposeOfVisit: '',
@@ -102,6 +104,7 @@ const AddPatientForm = () => {
 
   const { selectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } = useHospital()
 
+  console.log(selectedHospital, "ffff")
   const [medicalId, setMedicalId] = useState([])
   const [holdingEnclosures, setHoldingEnclosures] = useState([])
   const [openAnimalDrawer, setAnimalDrawer] = useState(false)
@@ -282,7 +285,7 @@ const AddPatientForm = () => {
       const params = {
         source_id: selectedAnimal?.site_id,
         source_site_id: selectedAnimal?.site_id ? selectedAnimal?.site_id : null,
-        destination_site_id: selectedHospital?.id ? selectedHospital?.id : null,
+        destination_site_id: selectedHospital?.site_id ? selectedHospital?.site_id : null,
         usecase: 'add-patient',
         source_type: 'site',
         destination_id: selectedHospital?.id,
@@ -309,6 +312,8 @@ const AddPatientForm = () => {
           admit_time: dayjs(data?.admission_time).format('HH:mm')
         })
       }
+
+      console.log(params, "payload")
 
       const res = await addHospitalPatient(params)
 
@@ -369,14 +374,14 @@ const AddPatientForm = () => {
   return (
     <>
       <Box>
-        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
-          <Typography onClick={() => router.back()} sx={{ cursor: 'pointer', color: 'text.primary' }}>
-            Inpatient
-          </Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Add Patient</Typography>
-        </Breadcrumbs>
+        {/* <DynamicBreadcrumbs
+          pageItems={[
+            { title: 'Hospital' },
+            { title: 'Patients' },
+            { title: 'Inpatient', onClick: () => router.back() },
+            { title: 'Add Patient', active: true }
+          ]}
+        /> */}
         <Card sx={{ mb: 4 }}>
           <CardHeader sx={{ pb: 1, px: 6, pt: 6 }} title={RenderUtility.pageTitle('Add Patient')} />
           <CardContent sx={{ px: 6, pb: 6 }}>

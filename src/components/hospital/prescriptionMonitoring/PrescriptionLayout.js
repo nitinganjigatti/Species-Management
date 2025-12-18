@@ -32,7 +32,7 @@ import dayjs from 'dayjs'
 
 const STORAGE_KEY = 'medical_record_data'
 
-function PrescriptionLayout({ drawerType, overviewData }) {
+function PrescriptionLayout({ drawerType, overviewData, category }) {
   const router = useRouter()
   const { data } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
@@ -301,7 +301,8 @@ function PrescriptionLayout({ drawerType, overviewData }) {
         to_date: selectedDate,
         type: 'all',
         prescription_id: data?.id,
-        group_prescription_id: data?.group_prescription_id || data?.id
+        group_prescription_id: data?.group_prescription_id || data?.id,
+        request_from: 'hospital'
       }
 
       const response = await getDates(payload)
@@ -395,7 +396,9 @@ function PrescriptionLayout({ drawerType, overviewData }) {
       setIsAdministerSlotLoading(true)
 
       const payload = {
-        record_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
+        record_date: date
+          ? `${date} ${toISTISOString(new Date()).replace('T', ' ').slice(11, 19)}`
+          : toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
         animal_id: JSON.stringify([animal_id]),
         created_for: 'DIRECT_ADMINISTER',
         prescription: JSON.stringify([
@@ -512,7 +515,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
 
       const payload = {
         animal_id: animal_id,
-        hospital_case_id: inpatientId,
+        hospital_case_id: id,
         prescription_id: medicineDetails?.prescription_id,
         medical_record_id: medical_record_id,
         medicine_id: medicineDetails?.medicine_id,
@@ -896,7 +899,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
-
+            category={category}
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -975,7 +978,6 @@ function PrescriptionLayout({ drawerType, overviewData }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
-
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {
