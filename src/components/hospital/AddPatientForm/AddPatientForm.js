@@ -104,6 +104,7 @@ const AddPatientForm = () => {
 
   const { selectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } = useHospital()
 
+  console.log(selectedHospital, "ffff")
   const [medicalId, setMedicalId] = useState([])
   const [holdingEnclosures, setHoldingEnclosures] = useState([])
   const [openAnimalDrawer, setAnimalDrawer] = useState(false)
@@ -284,7 +285,7 @@ const AddPatientForm = () => {
       const params = {
         source_id: selectedAnimal?.site_id,
         source_site_id: selectedAnimal?.site_id ? selectedAnimal?.site_id : null,
-        destination_site_id: selectedHospital?.id ? selectedHospital?.id : null,
+        destination_site_id: selectedHospital?.site_id ? selectedHospital?.site_id : null,
         usecase: 'add-patient',
         source_type: 'site',
         destination_id: selectedHospital?.id,
@@ -311,6 +312,8 @@ const AddPatientForm = () => {
           admit_time: dayjs(data?.admission_time).format('HH:mm')
         })
       }
+
+      console.log(params, "payload")
 
       const res = await addHospitalPatient(params)
 
