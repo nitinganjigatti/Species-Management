@@ -396,7 +396,9 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       setIsAdministerSlotLoading(true)
 
       const payload = {
-        record_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
+        record_date: date
+          ? `${date} ${toISTISOString(new Date()).replace('T', ' ').slice(11, 19)}`
+          : toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
         animal_id: JSON.stringify([animal_id]),
         created_for: 'DIRECT_ADMINISTER',
         prescription: JSON.stringify([
