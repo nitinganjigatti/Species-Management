@@ -129,22 +129,30 @@ const AnimalDrawer = ({
       }
     },
     getNextPageParam: lastPage => lastPage.nextPage,
-    cacheTime: 0,
+    gcTime: 0,
     staleTime: 0,
     keepPreviousData: false
   })
+
+  const clearAnimalQuery = () => {
+  queryClient.removeQueries({
+    queryKey: ['animal-List-Observation-Report'],
+    exact: false
+  })
+}
 
   useEffect(() => {
     if (open) {
       setLocalSearch('')
       setSearch('')
+      clearAnimalQuery()
     }
   }, [open])
 
   useEffect(() => {
     if (!open) {
       queryClient.cancelQueries(['animal-List-Observation-Report', search])
-      remove()
+      clearAnimalQuery()
       cooldownRef.current = false
     }
   }, [open, search, queryClient, remove])
@@ -197,6 +205,8 @@ const AnimalDrawer = ({
   const handleSearchChange = e => {
     const value = e.target.value
     setLocalSearch(value)
+
+    clearAnimalQuery()
     debouncedSearch(value)
   }
 
@@ -204,7 +214,7 @@ const AnimalDrawer = ({
     setLocalSearch('')
     debouncedSearch('')
 
-    // remove()
+    clearAnimalQuery()
   }
 
   const handleTabClick = tabValue => {
@@ -246,6 +256,7 @@ const AnimalDrawer = ({
             onClick={() => {
               setInternalSelected(null)
               onClose()
+
             }}
           >
             <Icon icon='mdi:close' />

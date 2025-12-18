@@ -158,6 +158,18 @@ function ControlledSelectWithTextField({
 
   // Blur event handler to reset focus state
   const handleBlur = field => e => {
+    const relatedTarget = e.relatedTarget
+
+    if (
+      relatedTarget &&
+      (relatedTarget.closest('.MuiSelect-root') ||
+        relatedTarget.closest('[role="button"]') ||
+        relatedTarget.tagName === 'INPUT')
+    ) {
+      field.onBlur?.(e)
+
+      return
+    }
     setIsFocused(false)
     field.onBlur?.(e)
   }
