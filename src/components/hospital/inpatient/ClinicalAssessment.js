@@ -26,9 +26,10 @@ import NoMedicalData from 'src/views/utility/NoMedicalData'
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
 
-const ClinicalAssessment = ({ overviewData, patientData }) => {
+const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const router = useRouter()
   const { data } = useDynamicStateContext()
+  const { id } = router.query
   const medicalRecordData = data[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
@@ -58,7 +59,6 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
   const [notes, setNotes] = useState('')
   const [temporarilySelected, setTemporarilySelected] = useState(null)
 
-  const { id } = router.query
   const animal_id = medicalRecordData?.animal_id
   const medical_record_id = medicalRecordData?.medical_record_id
   const isDischared = overviewData?.status === 'discharge'
@@ -374,6 +374,34 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
     }
   }
 
+  const handleRouterNavigation = () => {
+    if (category === 'Outpatients') {
+      router.push({
+        pathname: `/hospital/outpatient/${id}/add-clinical-assessment`
+      })
+    } else {
+      router.push({
+        pathname: `/hospital/inpatient/${id}/add-clinical-assessment`
+      })
+    }
+  }
+
+  const handleRecordOnlyChange = e => {
+    setRecords([])
+    setPage(1)
+    setCurrentRecordOnly(e.target.checked)
+
+    // Update URL query parameter
+    // router.replace(
+    //   {
+    //     pathname: router.pathname,
+    //     query: { ...router.query, isCurrentMedicalRecordOnly: e.target.checked }
+    //   },
+    //   undefined,
+    //   { shallow: true } // Prevents full page refresh
+    // )
+  }
+
   return (
     <Box sx={{ mt: 6 }}>
       {/* Header with Tabs and Controls */}
@@ -455,11 +483,7 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
                 }}
               />
               {!isDischared && (
-                <Button
-                  variant='contained'
-                  startIcon={<AddIcon />}
-                  onClick={() => router.push(`/hospital/inpatient/${id}/add-clinical-assessment`)}
-                >
+                <Button variant='contained' startIcon={<AddIcon />} onClick={handleRouterNavigation}>
                   ADD NEW
                 </Button>
               )}
@@ -469,11 +493,7 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
             <MUISwitch
               label='Current Medical Record Only'
               checked={currentRecordOnly}
-              onChange={e => {
-                setRecords([])
-                setPage(1)
-                setCurrentRecordOnly(e.target.checked)
-              }}
+              onChange={handleRecordOnlyChange}
               size='small'
               sx={{ ml: 2.6 }}
             />
@@ -532,7 +552,7 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
               btnText={'ADD NEW CLINICAL ASSESSMENT'}
               text={'All Added Clinical Assessments Will Appear here'}
               isDischarged={isDischared}
-              btnAction={() => router.push(`/hospital/inpatient/${id}/add-clinical-assessment`)}
+              btnAction={handleRouterNavigation}
             />
           </Box>
         )}

@@ -281,7 +281,8 @@ const PrescriptionMonitoringGrid = ({
   addPrescriptionToTimeslot,
   selectedMetrics,
   setSelectedMetrics,
-  isDischared
+  isDischared,
+  category
 }) => {
   const theme = useTheme()
   const router = useRouter()
@@ -666,7 +667,6 @@ const PrescriptionMonitoringGrid = ({
 
     // ❌ Block only future days
     const result = scheduledDay <= today
-    
 
     return result
   }
@@ -683,6 +683,14 @@ const PrescriptionMonitoringGrid = ({
     return `${hour.toString().padStart(2, '0')}:00:00`
   }
 
+  const handleRouterNavigation = () => {
+    if (category === 'Outpatients') {
+      router.push(`/hospital/outpatient/${id}/schedule-prescription`)
+    } else {
+      router.push(`/hospital/inpatient/${id}/schedule-prescription`)
+    }
+  }
+
   // Show shimmer loading state
   if (isLoading) {
     return (
@@ -692,15 +700,7 @@ const PrescriptionMonitoringGrid = ({
             <ShimmerHorizontalDateNav />
           </Grid>
           <Grid item size={{ xs: 4, sm: 3, lg: 2.5 }}>
-            <Button
-              onClick={() => {
-                router.push({
-                  pathname: `/hospital/inpatient/${id}/schedule-prescription`
-                })
-              }}
-              sx={{ height: '48px', width: '100%' }}
-              variant='contained'
-            >
+            <Button onClick={handleRouterNavigation} sx={{ height: '48px', width: '100%' }} variant='contained'>
               ADD PRESCRIPTION
             </Button>
           </Grid>
@@ -745,15 +745,7 @@ const PrescriptionMonitoringGrid = ({
         </Grid>
         {!isDischared ? (
           <Grid item size={{ xs: 4, sm: 3, lg: 2.5 }}>
-            <Button
-              onClick={() => {
-                router.push({
-                  pathname: `/hospital/inpatient/${id}/schedule-prescription`
-                })
-              }}
-              sx={{ height: '48px', width: '100%' }}
-              variant='contained'
-            >
+            <Button onClick={handleRouterNavigation} sx={{ height: '48px', width: '100%' }} variant='contained'>
               ADD PRESCRIPTION
             </Button>
           </Grid>
@@ -976,11 +968,7 @@ const PrescriptionMonitoringGrid = ({
                 btnText={'ADD PRESCRIPTION'}
                 text={'All Added Prescriptions Will Appear here'}
                 isDischarged={isDischared}
-                btnAction={() => {
-                  router.push({
-                    pathname: `/hospital/inpatient/${id}/schedule-prescription`
-                  })
-                }}
+                btnAction={handleRouterNavigation}
               />
             </Box>
           )}

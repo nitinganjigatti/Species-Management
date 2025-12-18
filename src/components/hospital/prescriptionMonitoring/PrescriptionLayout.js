@@ -32,7 +32,7 @@ import dayjs from 'dayjs'
 
 const STORAGE_KEY = 'medical_record_data'
 
-function PrescriptionLayout({ drawerType, overviewData }) {
+function PrescriptionLayout({ drawerType, overviewData, category }) {
   const router = useRouter()
   const { data } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
@@ -897,7 +897,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
-
+            category={category}
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -976,7 +976,6 @@ function PrescriptionLayout({ drawerType, overviewData }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
-
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {

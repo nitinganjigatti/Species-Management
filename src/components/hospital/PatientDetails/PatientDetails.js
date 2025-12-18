@@ -119,6 +119,7 @@ const PatientDetails = ({ category }) => {
         created_by_profile_pic: patientResponse.data?.created_by_profile_pic,
         reason_for_admission: patientResponse.data?.reason_for_admission,
         status: patientResponse.data?.status,
+        category: category,
         transfer_by_full_name: patientResponse?.data?.transfer_by_full_name,
         transfer_by_profile_pic: patientResponse?.data?.transfer_by_profile_pic,
         transfer_created_at: patientResponse?.data?.transfer_created_at

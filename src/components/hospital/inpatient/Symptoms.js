@@ -13,7 +13,7 @@ import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const STORAGE_KEY = 'medical_record_data'
 
-const Symptoms = ({ selectedTab, patientData, overviewData }) => {
+const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
   const router = useRouter()
   const { data } = useDynamicStateContext()
   const isDischared = overviewData?.status === 'discharge'
@@ -143,6 +143,18 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
     setSearchQuery('')
   }
 
+  const handleRouterNavigation = () => {
+    if (category === 'Outpatients') {
+      router.push({
+        pathname: `/hospital/outpatient/${id}/symptoms`
+      })
+    } else {
+      router.push({
+        pathname: `/hospital/inpatient/${id}/symptoms`
+      })
+    }
+  }
+
   return (
     <Box>
       <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -215,11 +227,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
                   onChange={e => setSearchQuery(e.target.value)}
                   onClear={handleSearchClear}
                 />
-                <Button
-                  variant='contained'
-                  startIcon={<AddIcon />}
-                  onClick={() => router.push(`/hospital/inpatient/${id}/symptoms/`)}
-                >
+                <Button variant='contained' startIcon={<AddIcon />} onClick={handleRouterNavigation}>
                   ADD NEW
                 </Button>
               </Box>
@@ -265,7 +273,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
               btnText={'ADD NEW SYMPTOM'}
               text={'All Added SYMPTOMS Will Appear here'}
               isDischarged={isDischared}
-              btnAction={() => router.push(`/hospital/inpatient/${id}/symptoms`)}
+              btnAction={handleRouterNavigation}
             />
           </Box>
         ) : (
