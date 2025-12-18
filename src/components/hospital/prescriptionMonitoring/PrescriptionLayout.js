@@ -513,7 +513,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
 
       const payload = {
         animal_id: animal_id,
-        hospital_case_id: inpatientId,
+        hospital_case_id: id,
         prescription_id: medicineDetails?.prescription_id,
         medical_record_id: medical_record_id,
         medicine_id: medicineDetails?.medicine_id,

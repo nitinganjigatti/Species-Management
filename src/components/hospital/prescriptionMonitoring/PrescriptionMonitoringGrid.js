@@ -937,12 +937,13 @@ const PrescriptionMonitoringGrid = ({
                                 // isScheduledFuture(selectedDate, scheduledTime)) ||
                                 // this is for allow schedule for same day for fast time and future time and any fast time
 
-                                isScheduledAllowed(selectedDate, scheduledTime)) ||
-                              (status?.toLowerCase() === 'pending' &&
-                                // isScheduledFuture(selectedDate, scheduledTime)
-                                // this is for allow schedule for same day for fast time and future time and any fast time
-
                                 isScheduledAllowed(selectedDate, scheduledTime))
+                              // ||
+                              // (status?.toLowerCase() === 'pending' &&
+                              //   // isScheduledFuture(selectedDate, scheduledTime)
+                              //   // this is for allow schedule for same day for fast time and future time and any fast time
+
+                              //   isScheduledAllowed(selectedDate, scheduledTime))
                             }
                           >
                             <TimeSlotCell
