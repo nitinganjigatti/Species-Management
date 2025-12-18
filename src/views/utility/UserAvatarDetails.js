@@ -42,7 +42,7 @@ function UserAvatarDetails({
   return (
     <>
       {user_name ? (
-        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'default' }}>
+        <Box sx={{ display: 'flex', flex: 1, minWidth: 0, alignItems: 'center', cursor: 'default' }}>
           {profile_image ? (
             <CustomAvatar
               src={profile_image}
@@ -59,7 +59,7 @@ function UserAvatarDetails({
               }}
             ></CustomAvatar>
           )}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ display: 'flex', flex: 1, flexDirection: 'column', minWidth: 0 }}>
             {user_name && (
               <>
                 <Tooltip title={user_name}>
@@ -67,13 +67,13 @@ function UserAvatarDetails({
                     variant='subtitle2'
                     sx={{
                       color: text_color ?? 'text.primary',
-                      width: crby_width ? crby_width : '100px',
+                      width: crby_width ? crby_width : 'auto',
+
                       // fontSize: fontSize,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-
-                      // maxWidth: 100,
+                      maxWidth: '100%',
                       ...(selectedAvatarSize?.user_name || {})
                     }}
 
@@ -115,8 +115,13 @@ function UserAvatarDetails({
                   ) : (
                     <span>{date ? Utility.convertUtcToLocalReadableDate(date) : ''}</span>
                   )}
-                  <span> &bull; </span>
-                  {show_time ? <>{Utility.convertUTCToLocaltime(date)}</> : ''}
+                  {show_time ? (
+                    <>
+                      <span> &bull; </span> {Utility.convertUTCToLocaltime(date)}
+                    </>
+                  ) : (
+                    ''
+                  )}
                 </span>
                 {/* <span>{date ? Utility.convertUtcToLocalReadableDate(date) : ''}</span> */}
               </Typography>

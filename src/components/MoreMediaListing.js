@@ -32,7 +32,7 @@ const MoreMediaListing = ({
   const theme = useTheme()
   const maxVisible = useResponsivePropValue(maxVisibleItems, 2)
 
-  if (mediaItems.length === 0) {
+  if (mediaItems?.length === 0) {
     return (
       <Typography variant='body2' color='text.secondary'>
         No media items to display
@@ -40,8 +40,8 @@ const MoreMediaListing = ({
     )
   }
 
-  const visibleItems = mediaItems.slice(0, maxVisible)
-  const remainingCount = Math.max(0, mediaItems.length - maxVisible)
+  const visibleItems = mediaItems?.slice(0, maxVisible)
+  const remainingCount = Math.max(0, mediaItems?.length - maxVisible)
 
   return (
     <Box
@@ -52,9 +52,9 @@ const MoreMediaListing = ({
         gap: '12px'
       }}
     >
-      {visibleItems.map((item, index) => (
+      {visibleItems?.map((item, index) => (
         <FilePreviewCard
-          key={item.id}
+          key={item?.id}
           fileUrl={item?.file}
           fileType={item?.file_type}
           width={'133px'}
@@ -64,7 +64,7 @@ const MoreMediaListing = ({
       ))}
       {remainingCount > 0 && (
         <Card
-          onClick={() => onMoreClick(mediaItems.slice(maxVisible))}
+          onClick={() => onMoreClick(mediaItems?.slice(maxVisible))}
           sx={{
             width: '66px',
             height: '100px',

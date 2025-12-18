@@ -1,23 +1,16 @@
+/* eslint-disable lines-around-comment */
 import React, { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   IconButton,
-  Chip,
-  Avatar,
-  Divider,
   Tab,
-  Tabs,
   Button,
   Drawer,
   useTheme,
   useMediaQuery,
-  CircularProgress,
   Skeleton,
-  Checkbox
+  Avatar
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
@@ -29,6 +22,8 @@ import Utility from 'src/utility'
 import { LoadingButton } from '@mui/lab'
 import DoDisturbIcon from '@mui/icons-material/DoDisturb'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import { useRouter } from 'next/router'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 // Custom styled components for drawer content
 const DrawerContent = styled(Box)(({ theme }) => ({
@@ -147,6 +142,8 @@ const MedicinePrescriptionCard = ({
 }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const router = useRouter()
+  const { id, date } = router.query
 
   const [activeTab, setActiveTab] = useState(medicineData?.defaultTab || 1)
   const [stopMedicineModalOpen, setStopMedicineModalOpen] = useState(false)
@@ -310,20 +307,22 @@ const MedicinePrescriptionCard = ({
     // Parse the date string properly (DD/MM/YYYY format)
     const [datePart, timePart] = dateTimeString.split(', ')
     const [day, month, year] = datePart.split('/')
-  
+
     // Create date object in UTC (month is 0-indexed in JavaScript)
     const utcDate = new Date(Date.UTC(year, month - 1, day, ...timePart.split(':')))
-  
+
     // Convert UTC to local time
-    const localDate = new Date(utcDate.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }))
-  
+    const localDate = new Date(
+      utcDate.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone })
+    )
+
     // Format date part: 02 Jan 2025
     const formattedDate = localDate.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
       year: 'numeric'
     })
-  
+
     // Format time part: 12 : 35 PM
     const formattedTime = localDate
       .toLocaleTimeString('en-US', {
@@ -332,7 +331,7 @@ const MedicinePrescriptionCard = ({
         hour12: true
       })
       .replace(':', ' : ')
-  
+
     return `${formattedDate} • ${formattedTime}`
   }
 
@@ -377,6 +376,18 @@ const MedicinePrescriptionCard = ({
       hour: 'numeric',
       minute: '2-digit',
       hour12: true
+    })
+  }
+
+  const handleRestartMedicine = async () => {
+    const today = new Date().toISOString().split('T')[0]
+    router.push({
+      pathname: `/hospital/inpatient/${id}/schedule-prescription`,
+      query: {
+        fromPage: 'prescriptionDetail',
+        date: date ? date : today,
+        prescriptionId: medicineData?.prescription_id
+      }
     })
   }
 
@@ -429,7 +440,9 @@ const MedicinePrescriptionCard = ({
                   textDecoration: entry.isStrikethrough ? 'line-through' : 'none'
                 }}
               >
-                {formatTimeFromUTC(entry.time)}
+                {/* {formatTimeFromUTC(entry.time)} */}
+                {/* time conveertion issue */}
+                {entry.time}
               </Typography>
               <Typography
                 variant='body2'
@@ -534,9 +547,10 @@ const MedicinePrescriptionCard = ({
             </Typography>
           </Box>
         </Box>
+
         {entry?.status?.toLowerCase() != 'stopped' && (
-          <IconButton size='small' onClick={() => handleRefreshEntry(entry.id)}>
-            <Icon icon='mdi:refresh' fontSize='16px' color={theme.palette.customColors.Tertiary} />
+          <IconButton size='small' sx={{ width: '2rem', height: '2rem' }} onClick={() => handleRefreshEntry(entry.id)}>
+            <Icon icon='mdi:refresh' fontSize='20px' color={theme.palette.customColors.Tertiary} />
           </IconButton>
         )}
       </Box>
@@ -800,8 +814,8 @@ const MedicinePrescriptionCard = ({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '12px 16px',
-                backgroundColor: selectedMedications.length > 0 
-                  ? theme.palette.primary.light 
+                backgroundColor: selectedMedications.length > 0
+                  ? theme.palette.primary.light
                   : theme.palette.customColors.OnBackground,
                 borderRadius: '8px',
                 mb: 2,
@@ -836,7 +850,7 @@ const MedicinePrescriptionCard = ({
                     : 'Select medications'}
                 </Typography>
               </Box>
-              
+
               {selectedMedications.length > 0 && (
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <Button
@@ -903,6 +917,20 @@ const MedicinePrescriptionCard = ({
                     return scheduledDateTime > now
                   }
 
+                  // added only day validation we can give enable for fast and future time only on present day
+                  const isAllowedDate = () => {
+                    if (!selectedDate) return false
+
+                    const today = new Date()
+                    today.setHours(0, 0, 0, 0)
+
+                    const selected = new Date(selectedDate.split(' ')[0])
+                    selected.setHours(0, 0, 0, 0)
+                    const result = selected <= today
+
+                    return result
+                  }
+
                   return isPending ? (
                     <MedicationTimeCard
                       key={item?.administritive_id}
@@ -911,15 +939,19 @@ const MedicinePrescriptionCard = ({
                       amount={`${item?.scheduled_quantity} ${item?.scheduled_unit_name}`}
                       checked={isSelected}
                       onChange={checked => handleMedicationSelect(item?.administritive_id, checked)}
-                      disabled={isFutureTime()}
+                      // disabled={isFutureTime()}
+                      disabled={!isAllowedDate()}
                     />
                   ) : (
                     renderDosageEntry({
                       id: item?.administritive_id,
-                      time: formatTime(item?.administritive_time || item?.scheduled_time),
+                      time: formatTime(item?.scheduled_time), /// added sceduled time not adminster time
                       status: item?.status || 'Pending',
                       dosage: `${item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
-                      amount: `${item?.quantity_administered || item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
+                      amount:
+                        item?.status?.toLowerCase() === 'administered'
+                          ? `${item?.quantity_administered || item?.scheduled_quantity}`
+                          : `${item?.quantity_administered || item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
                       variant:
                         item?.status?.toLowerCase() === 'administered'
                           ? 'administered'
@@ -962,7 +994,8 @@ const MedicinePrescriptionCard = ({
                       mb: 12
                     }}
                   >
-                    {!isStopDatePassed(medicineData?.stop_date) ? (
+                    {!isStopDatePassed(medicineData?.stop_date) &&
+                    new Date().toISOString().split('T')[0] === selectedDate ? (
                       <Button
                         variant='text'
                         startIcon={
@@ -990,26 +1023,53 @@ const MedicinePrescriptionCard = ({
                       >
                         Stop Medicine
                       </Button>
-                    ) : (
-                      <Box></Box>
-                    )}
-                    {handleAddNewDosageTimeCheck(selectedDate) && (
+                    ) : isStopDatePassed(medicineData?.stop_date) && medicineData?.will_restart !== 1 ? (
                       <Button
                         variant='text'
-                        startIcon={<Icon icon='mdi:plus' />}
-                        onClick={handleAddNewDosage}
+                        startIcon={
+                          <Box
+                            component='img'
+                            src='/images/hospital/stop.svg'
+                            alt='Restart'
+                            sx={{ width: '18px', height: '18px' }}
+                          />
+                        }
+                        onClick={handleRestartMedicine}
                         disabled={isDetailLoading}
                         sx={{
                           color: theme.palette.customColors.OnSurface,
                           fontSize: '16px',
                           fontWeight: 500,
+                          justifyContent: 'left',
                           transform: 'none',
-                          textTransform: 'none'
+                          textTransform: 'none',
+                          width: 'auto'
                         }}
                       >
-                        Add New Dosage
+                        Restart Medicine
                       </Button>
+                    ) : (
+                      <Box></Box>
                     )}
+                    {handleAddNewDosageTimeCheck(selectedDate) &&
+                      !isStopDatePassed(medicineData?.stop_date) &&
+                      medicineData?.prescription_frequency !== 'one_time' && (
+                        <Button
+                          variant='text'
+                          startIcon={<Icon icon='mdi:plus' />}
+                          onClick={handleAddNewDosage}
+                          disabled={isDetailLoading}
+                          sx={{
+                            color: theme.palette.customColors.OnSurface,
+                            fontSize: '16px',
+                            fontWeight: 500,
+                            transform: 'none',
+                            textTransform: 'none'
+                          }}
+                        >
+                          Add New Dosage
+                        </Button>
+                      )}
                   </Box>
                 )}
               </Box>

@@ -89,7 +89,7 @@ const mapTreatmentEntry = (entry, index = 0) => {
     id: entry.id || entry.treatment_master_id || `${entry.medical_record_id || 'treatment'}-${index}`,
     name: entry.treatment_name || '-',
     noteCount: notesCount ?? (noteText ? 1 : 0),
-    noteSummary: noteText || 'No notes added yet.',
+    noteSummary: noteText || '',
     lastUpdated,
     clinician: {
       name: entry.created_by_name || '—',
@@ -182,6 +182,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
   const [treatmentOptionsLoading, setTreatmentOptionsLoading] = useState(false)
   const [treatmentSearchTerm, setTreatmentSearchTerm] = useState('')
   const [isCreatingTreatment, setIsCreatingTreatment] = useState(false)
+  const [isAddingTreatmentNote, setIsAddingTreatmentNote] = useState(false)
   const [isTreatmentsLoading, setTreatmentsLoading] = useState(false)
   const [treatmentInputValue, setTreatmentInputValue] = useState('')
   const [selectedTreatmentActivities, setSelectedTreatmentActivities] = useState([])
@@ -359,7 +360,8 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
       hospital_case_id: hospitalCaseId || '',
       start_time: formattedStartTime,
       treatment_master_id: treatmentNameValue,
-      note: formData.notes || ''
+      note: formData.notes || '',
+      is_edit: 0
     }
 
     try {
@@ -483,6 +485,62 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
       Toaster({ type: 'error', message: error?.message || 'Failed to update treatment.' })
     } finally {
       setIsUpdatingTreatment(false)
+    }
+  }
+
+  const handleAddTreatmentNote = async () => {
+    if (!selectedTreatment) {
+      Toaster({ type: 'error', message: 'Select a treatment to add note.' })
+
+      return
+    }
+
+    const finalAnimalId = selectedTreatment.animalId || animalId
+    const finalMedicalRecordId = selectedTreatment.medicalRecordId || medicalRecordId
+
+    if (!finalAnimalId || !finalMedicalRecordId) {
+      Toaster({ type: 'error', message: 'Missing identifiers to add this treatment note.' })
+
+      return
+    }
+
+    const formattedStartTime = editFormData.startDate
+      ? dayjs(editFormData.startDate).format('DD MMM YYYY HH:mm:ss')
+      : ''
+
+    const treatmentMasterId = selectedTreatment?.name || ''
+
+    if (!treatmentMasterId) {
+      Toaster({ type: 'error', message: 'Unable to determine treatment reference.' })
+
+      return
+    }
+
+    const payload = {
+      animal_id: finalAnimalId,
+      medical_record_id: finalMedicalRecordId,
+      hospital_case_id: selectedTreatment.hospitalCaseId || hospitalCaseId || '',
+      start_time: formattedStartTime,
+      treatment_master_id: treatmentMasterId,
+      note: editFormData.notes || '',
+      is_edit: 1
+    }
+
+    try {
+      setIsAddingTreatmentNote(true)
+      const response = await createTreatmentRecord(payload)
+      Toaster({
+        type: response?.success ? 'success' : 'error',
+        message: response?.message || 'Treatment note creation status unknown.'
+      })
+      if (response?.success) {
+        closeEditDrawer()
+        fetchTreatments()
+      }
+    } catch (error) {
+      Toaster({ type: 'error', message: error?.message || 'Failed to add treatment note.' })
+    } finally {
+      setIsAddingTreatmentNote(false)
     }
   }
 
@@ -842,11 +900,13 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         treatment={selectedTreatment}
         formData={editFormData}
         onChange={handleEditFieldChange}
+        onAdd={handleAddTreatmentNote}
         onDelete={handleDeleteTreatment}
         onUpdate={handleUpdateTreatment}
         onActivityPrefill={handlePrefillFromActivity}
         activities={selectedTreatmentActivities}
         isActivitiesLoading={isTreatmentActivitiesLoading}
+        isAdding={isAddingTreatmentNote}
         isSubmitting={isUpdatingTreatment}
         formatTimestamp={formatTimestamp}
         formatShortDate={formatShortDate}

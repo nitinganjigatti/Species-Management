@@ -55,7 +55,8 @@ export default function RichTextEditor({ value, onChange, label, placeholder = '
             [{ list: 'ordered' }, { list: 'bullet' }],
             [{ size: ['small', false, 'large', 'huge'] }],
             [{ align: [] }],
-            ['link', 'image'],
+
+            // ['link', 'image'],
             ['clean']
           ]
         }

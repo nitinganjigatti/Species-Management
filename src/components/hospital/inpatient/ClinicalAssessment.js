@@ -26,7 +26,7 @@ import NoMedicalData from 'src/views/utility/NoMedicalData'
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
 
-const ClinicalAssessment = ({ overviewData }) => {
+const ClinicalAssessment = ({ overviewData, patientData }) => {
   const router = useRouter()
   const { data } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
@@ -272,7 +272,7 @@ const ClinicalAssessment = ({ overviewData }) => {
     setPrognosisValue(
       assessment?.additional_info?.prognosis
         ? Utility.capitalizeFirstLetter(assessment.additional_info.prognosis)
-        : 'Good'
+        : 'Favourable'
     )
     setChronicVal(assessment?.additional_info?.isChronic ? 'Yes' : 'No')
     setNotes(assessment?.additional_info?.note || '')
@@ -375,97 +375,112 @@ const ClinicalAssessment = ({ overviewData }) => {
   }
 
   return (
-    <Box>
+    <Box sx={{ mt: 6 }}>
       {/* Header with Tabs and Controls */}
-      <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mt: 6,
-            flexWrap: 'wrap',
-            rowGap: 4
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box
-              sx={{
-                flex: '1 1 auto',
-                minWidth: 0,
-                overflowX: 'auto',
-                scrollbarColor: 'transparent transparent',
-                columnGap: 4
-              }}
-            >
-              <Box sx={{ display: 'inline-flex', gap: 3, pr: 1, alignItems: 'center' }}>
-                {tabs.map(tab => (
-                  <Box
-                    key={tab}
-                    onClick={() => handleTabChange(tab)}
-                    sx={{
-                      flexShrink: 0,
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      px: '16px',
-                      py: '8px',
-                      borderRadius: '8px',
-                      backgroundColor:
-                        currentTab === tab ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <Typography
+      {tabCounts?.All !== 0 || searchQuery.trim().length > 0 ? (
+        <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              rowGap: 4
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box
+                sx={{
+                  flex: '1 1 auto',
+                  minWidth: 0,
+                  overflowX: 'auto',
+                  scrollbarColor: 'transparent transparent',
+                  columnGap: 4
+                }}
+              >
+                <Box sx={{ display: 'inline-flex', gap: 3, pr: 1, alignItems: 'center' }}>
+                  {tabs.map(tab => (
+                    <Box
+                      key={tab}
+                      onClick={() => handleTabChange(tab)}
                       sx={{
-                        color:
-                          currentTab === tab
-                            ? theme.palette.primary.contrastText
-                            : theme.palette.customColors.neutralPrimary,
-                        whiteSpace: 'nowrap'
+                        flexShrink: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        px: '16px',
+                        py: '8px',
+                        borderRadius: '8px',
+                        backgroundColor:
+                          currentTab === tab ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
+                        cursor: 'pointer'
                       }}
                     >
-                      {`${tab} ${
-                        tab === 'Active'
-                          ? ` - ${getTabCount('Active')}`
-                          : tab === 'Resolved'
-                          ? ` - ${getTabCount('Resolved')}`
-                          : tab === 'All'
-                          ? ` - ${getTabCount('All')}`
-                          : ''
-                      }`}
-                    </Typography>
-                  </Box>
-                ))}
+                      <Typography
+                        sx={{
+                          color:
+                            currentTab === tab
+                              ? theme.palette.primary.contrastText
+                              : theme.palette.customColors.neutralPrimary,
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {`${tab} ${
+                          tab === 'Active'
+                            ? ` - ${getTabCount('Active')}`
+                            : tab === 'Resolved'
+                            ? ` - ${getTabCount('Resolved')}`
+                            : tab === 'All'
+                            ? ` - ${getTabCount('All')}`
+                            : ''
+                        }`}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
               </Box>
             </Box>
-          </Box>
 
-          <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Search
-              value={localSearch}
+            <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+              <Search
+                value={localSearch}
+                onChange={e => {
+                  const value = e.target.value
+                  setLocalSearch(value)
+                  debouncedSearch(value)
+                }}
+                onClear={() => {
+                  setLocalSearch('')
+                  debouncedSearch('')
+                }}
+              />
+              {!isDischared && (
+                <Button
+                  variant='contained'
+                  startIcon={<AddIcon />}
+                  onClick={() => router.push(`/hospital/inpatient/${id}/add-clinical-assessment`)}
+                >
+                  ADD NEW
+                </Button>
+              )}
+            </Box>
+          </Box>
+          <Box>
+            <MUISwitch
+              label='Current Medical Record Only'
+              checked={currentRecordOnly}
               onChange={e => {
-                const value = e.target.value
-                setLocalSearch(value)
-                debouncedSearch(value)
+                setRecords([])
+                setPage(1)
+                setCurrentRecordOnly(e.target.checked)
               }}
-              onClear={() => {
-                setLocalSearch('')
-                debouncedSearch('')
-              }}
+              size='small'
+              sx={{ ml: 2.6 }}
             />
-            {!isDischared && (
-              <Button
-                variant='contained'
-                startIcon={<AddIcon />}
-                onClick={() => router.push(`/hospital/inpatient/${id}/add-clinical-assessment`)}
-              >
-                ADD NEW
-              </Button>
-            )}
           </Box>
         </Box>
-        <Box>
+      ) : !isLoading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <MUISwitch
             label='Current Medical Record Only'
             checked={currentRecordOnly}
@@ -478,7 +493,7 @@ const ClinicalAssessment = ({ overviewData }) => {
             sx={{ ml: 2.6 }}
           />
         </Box>
-      </Box>
+      ) : null}
 
       {/* Records List */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -488,7 +503,8 @@ const ClinicalAssessment = ({ overviewData }) => {
           <ClinicalAssessmentCard
             key={record.id || index}
             record={record}
-            isDifferential={record.clinical_assessment === 'differential'}
+            patientData={patientData}
+            isDifferential={record.clinical_assessment === 'tentative'}
             isResolved={record.additional_info?.status === 'closed'}
             isDischared={isDischared}
             handleClick={() => (isDischared ? null : handleAssessmentClick(record))}
@@ -522,7 +538,7 @@ const ClinicalAssessment = ({ overviewData }) => {
         )}
 
         {/* End of List */}
-        {!hasMore && filteredRecords.length > 0 && (
+        {!hasMore && filteredRecords.length > 10 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
             No more assessments to load
           </Typography>

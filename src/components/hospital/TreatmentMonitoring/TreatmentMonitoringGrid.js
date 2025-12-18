@@ -64,12 +64,12 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday, theme) => {
       tooltipElement = document.createElement('div')
       tooltipElement.style.cssText = `
         position: absolute;
-        bottom: -27px;      
+        bottom: -24px;      
         transform: translateX(-50%);
         background-color: white;
         border: 1px solid ${theme.palette.customColors.Error};
         color: ${theme.palette.customColors.Error};
-        padding: 4px 8px;
+        padding: 2px 6px;
         font-size: 12px;
         font-weight: 600;
         border-radius: 8px;
@@ -84,7 +84,7 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday, theme) => {
         .tooltip-arrow::after {
           content: "";
           position: absolute;
-          top: -25%;
+          top: -28%;
           left: 50%;
           transform: translateX(-50%);
           width: 0;
@@ -584,11 +584,40 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
     </Box>
   )
 
+  // --- discharge conditions ---
+  const dischargeDate = patientData?.discharge_at
+    ? dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).format('YYYY-MM-DD')
+    : null
+
+  const isAfterDischarge = dischargeDate ? dayjs().isAfter(dayjs(dischargeDate), 'day') : false
+  const isDischargedToday = dischargeDate ? dayjs().isSame(dayjs(), 'day') : false
+
+  let dateNavGrid = 10
+  let scheduleGrid = 2
+
+  if (isPatientDischarged && isAfterDischarge) {
+    dateNavGrid = 12
+    scheduleGrid = 0
+  } else if (isPatientDischarged && isDischargedToday && isToday) {
+    dateNavGrid = 12
+    scheduleGrid = 0
+  } else if ((isPatientDischarged && isToday) || !(monitoringData?.length > 0)) {
+    dateNavGrid = 12
+    scheduleGrid = 0
+  }
+
   return (
     <>
       <Grid container spacing={2} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
         <Grid container spacing={6} rowSpacing={4}>
-          <Grid item size={{ xs: 12, sm: 12, md: isPatientDischarged && isToday ? 12 : 10 }}>
+          <Grid
+            item
+            size={{
+              xs: 12,
+              sm: 12,
+              md: dateNavGrid
+            }}
+          >
             <HorizontalDateNav
               onDateSelect={handleDateChange}
               selectedDate={selectedDate}
@@ -596,38 +625,41 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
               isLoading={monitoringLoading}
             />
           </Grid>
-          <Grid item size={{ xs: 12, sm: 12, md: 2 }}>
+          <Grid item size={{ xs: 12, sm: 12, md: scheduleGrid }}>
             {monitoringLoading ? (
               <Skeleton variant='rectangular' height={48} sx={{ borderRadius: 1 }} animation='wave' />
-            ) : !isPatientDischarged && isToday ? (
+            ) : !monitoringLoading && !isToday && !isAfterDischarge && (!isPatientDischarged || isDischargedToday) ? (
               <Button
-                sx={{ height: '48px', width: '100%', fontSize: '0.8rem' }}
-                variant='contained'
-                onClick={() => setOpenScheduleDrawer(true)}
+                sx={{
+                  height: '48px',
+                  width: '100%',
+                  border: `1px solid ${theme.palette.primary.main}`,
+                  fontSize: '12px',
+                  fontWeight: 600
+                }}
+                variant='outlined'
+                onClick={() => setSelectedDate(dayjs().format('YYYY-MM-DD'))}
+                startIcon={<Icon icon={'uil:calender'} />}
               >
-                {monitoringDataListings?.show_edit_schedule_button == '1' ? 'Edit Schedule' : 'Schedule'}
+                Today
               </Button>
             ) : (
-              !isToday && (
+              !isPatientDischarged &&
+              isToday &&
+              monitoringData?.length > 0 &&
+              !isAfterDischarge && (
                 <Button
-                  sx={{
-                    height: '48px',
-                    width: '100%',
-                    border: `1px solid ${theme.palette.primary.main}`,
-                    fontSize: '12px',
-                    fontWeight: 600
-                  }}
-                  variant='outlined'
-                  onClick={() => setSelectedDate(dayjs().format('YYYY-MM-DD'))}
-                  startIcon={<Icon icon={'uil:calender'} />}
+                  sx={{ height: '48px', width: '100%', fontSize: '0.8rem' }}
+                  variant='contained'
+                  onClick={() => setOpenScheduleDrawer(true)}
                 >
-                  Today
+                  {monitoringDataListings?.show_edit_schedule_button == '1' ? 'Edit Schedule' : 'Schedule'}
                 </Button>
               )
             )}
           </Grid>
         </Grid>
-        <Grid size={{ xs: 12 }} sx={{ mt: 4 }}>
+        <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
           {monitoringLoading ? (
             <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4 }}>
               <Box sx={{ width: '180px', display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -736,7 +768,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                 </FixedColumn>
 
                 <ScrollableContainer ref={scrollContainerRef}>
-                  <TimeSlotGrid numColumns={timeSlots.length} sx={{ mb: 8 }}>
+                  <TimeSlotGrid numColumns={timeSlots.length} sx={{ mb: 7 }}>
                     {timeSlots.map(time => (
                       <TimeHeader key={time} data-hour={time} ref={el => (hourRefs.current[time] = el)}>
                         {time}
@@ -878,7 +910,7 @@ const HeaderContainer = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2, 3),
   background: theme.palette.customColors.lightBg,
   borderRadius: '4px',
-  marginBottom: theme.spacing(8),
+  marginBottom: theme.spacing(7),
   width: '100%',
   height: '56px'
 }))

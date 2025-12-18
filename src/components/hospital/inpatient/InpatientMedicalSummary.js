@@ -1,18 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
-import { useRouter } from 'next/router'
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import { getAnimalJournalLogs } from 'src/lib/api/housing'
 import Utility from 'src/utility'
-import Toaster from 'src/components/Toaster'
 import GroupedTimeline from 'src/views/pages/hospital/inpatient/GroupedTimeline'
 import MedicalSummaryFilterDrawer from '../drawer/MedicalSummaryFilterDrawer'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 
 const STORAGE_KEY = 'medical_record_data'
 
-const InpatientMedicalSummary = ({ patientData }) => {
-  const router = useRouter()
+const InpatientMedicalSummary = () => {
   const { data } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
   const animal_id = medicalRecordData?.animal_id
@@ -30,130 +27,55 @@ const InpatientMedicalSummary = ({ patientData }) => {
   const [selectedOptions, setSelectedOptions] = useState({ User: [] })
   const [filterDate, setFilterDate] = useState({})
 
-  // Update URL based on filter and search changes
-  const updateUrlParams = useCallback(
-    updatedFilters => {
-      const params = new URLSearchParams()
-      Object.entries(updatedFilters).forEach(([key, value]) => {
-        if (value !== '' && value !== undefined && value !== null) {
-          params.set(key, value.toString())
-        }
-      })
-
-      // Keep only non-filter params
-      const nonFilterParams = Object.fromEntries(
-        Object.entries(router.query).filter(([key]) => !['page', 'limit', 'q'].includes(key))
-      )
-
-      router.push(
-        { pathname: router.pathname, query: { ...nonFilterParams, ...Object.fromEntries(params.entries()) } },
-        undefined,
-        {
-          shallow: true
-        }
-      )
-    },
-    [router]
-  )
-
-  // Sync router params on load and change
-  useEffect(() => {
-    if (!router.isReady) return //prevents the code from running too early
-
-    const { page = '1', limit = '10', q = '' } = router.query
-
-    // Only update if something actually changed
-    setFilters(prev => {
-      const newFilters = {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        q
-      }
-
-      const isSame = prev.page === newFilters.page && prev.limit === newFilters.limit && prev.q === newFilters.q
-
-      if (isSame) return prev // Prevent duplicate render and API re-fetch
-
-      return newFilters
-    })
-
-    setSearchValue(q)
-  }, [router.isReady, router.query])
-
-  // search handler
-  const searchMedicalSummaryData = useMemo(
+  const debouncedSearch = useMemo(
     () =>
       debounce(value => {
-        setFilters(prev => {
-          const updated = { ...prev, q: value, page: 1 }
-          updateUrlParams(updated)
-
-          return updated
-        })
+        setFilters(prev => ({ ...prev, q: value }))
       }, 500),
-    [updateUrlParams]
+    []
   )
 
-  // Cleanup debounce on unmount
   useEffect(() => {
     return () => {
-      searchMedicalSummaryData.cancel() // cancel pending debounce when component unmounts
+      debouncedSearch.cancel()
     }
-  }, [searchMedicalSummaryData])
+  }, [debouncedSearch])
 
-  // Search handler
-  const handleSearchChange = useCallback(
-    value => {
-      setSearchValue(value)
-      searchMedicalSummaryData(value)
-    },
-    [searchMedicalSummaryData]
-  )
+  const handleSearchChange = value => {
+    setSearchValue(value)
+    debouncedSearch(value)
+  }
 
   const handleClearSearch = () => {
     setSearchValue('')
-    searchMedicalSummaryData('')
+    debouncedSearch('')
   }
 
   //  Medical type dropdown change handler
-  const handleMedicalTypeChange = useCallback(
-    type => {
-      const updated = { ...filters, module_filter: type, page: 1 }
-      setFilters(updated)
-    },
-    [filters]
-  )
+  const handleMedicalTypeChange = type => {
+    setFilters(prev => ({ ...prev, module_filter: type }))
+  }
 
   // Drawer Apply Filters
   const applyFilters = selectedOptions => {
-    const userIds = selectedOptions?.User ? selectedOptions?.User : []
+    const userIds = selectedOptions?.User || []
     const medicalType = selectedOptions?.['Medical Type']?.[0] || ''
 
     const updatedFilters = {
       ...filters,
       user_ids: JSON.stringify(userIds),
-      module_filter: medicalType,
-      page: 1
+      module_filter: medicalType
     }
-    setSelectedOptions(selectedOptions)
     setFilters(updatedFilters)
+    setSelectedOptions(selectedOptions)
     setOpenFilterDrawer(false)
   }
 
-  useEffect(() => {
-    if (!filterDate.startDate && !filterDate.endDate) return
-
-    setFilters(prev => ({
-      ...prev,
-      page: 1
-    }))
-  }, [filterDate])
-
-  const fetchAnimalJournalLogs = async ({ pageParam = 1, filters, filterDate }) => {
+  const fetchAnimalJournalLogs = async ({ pageParam = 1 }) => {
     const params = {
       ...filters,
       page: pageParam,
-      animal_id: animal_id
+      animal_id
     }
 
     // Add date filters if selected
@@ -169,41 +91,56 @@ const InpatientMedicalSummary = ({ patientData }) => {
     return res?.data
   }
 
-  // Pagination function
-  const getNextPage = (lastPage, pages) => {
+  const getNextPageParam = (lastPage, pages) => {
     const totalCount = Number(lastPage?.total_count) || 0
     const fetchedCount = pages.reduce((sum, p) => sum + (p?.data?.length || 0), 0)
 
     return fetchedCount < totalCount ? pages.length + 1 : undefined
   }
 
-  //  Fetch medical summary data
   const queryKey = useMemo(
-    () => ['animalMedicalSummary', animal_id, filters, filterDate?.startDate, filterDate?.endDate],
+    () => [
+      'animalMedicalSummary',
+      animal_id,
+      filters.q,
+      filters.module_filter,
+      filters.user_ids,
+      filterDate.startDate,
+      filterDate.endDate
+    ],
     [animal_id, filters, filterDate]
   )
 
   const {
-    data: medicalSummaryData = [],
-    isFetching,
+    data: medicalSummaryData,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage
+    isFetchingNextPage,
+    isLoading,
+    isFetching
   } = useInfiniteQuery({
     queryKey,
-    queryFn: ({ pageParam = 1 }) => fetchAnimalJournalLogs({ pageParam, filters, filterDate }),
-    getNextPageParam: getNextPage,
-    enabled: !!animal_id,
-    onError: error => {
-      console.error('Error fetching medical summary list:', error?.message || error)
-      Toaster({ type: 'error', message: error?.response?.data?.message || error?.message || 'Failed to fetch data' })
-    }
+    queryFn: fetchAnimalJournalLogs,
+    getNextPageParam,
+    enabled: !!animal_id
   })
 
   // Combine all pages of data
   const allMedicalEntries = useMemo(() => {
     return medicalSummaryData?.pages?.flatMap(page => page?.data || []) || []
   }, [medicalSummaryData])
+
+  const hasActiveFilters = useMemo(() => {
+    const parsed = Array.isArray(filters.user_ids) ? filters.user_ids : JSON.parse(filters.user_ids)
+
+    return Boolean(
+      searchValue || filters.module_filter || filterDate?.startDate || filterDate?.endDate || parsed.length
+    )
+  }, [searchValue, filters.module_filter, filters.user_ids, filterDate.startDate, filterDate.endDate])
+
+  const isInitialLoading = !medicalSummaryData?.pages?.length // initial load
+  const hasInitialData = medicalSummaryData?.pages?.length > 0
+  const isRefetching = isFetching && hasInitialData && !isFetchingNextPage //  fetch after initial load
 
   // Infinite scroll
   const observer = useRef()
@@ -228,7 +165,8 @@ const InpatientMedicalSummary = ({ patientData }) => {
     <>
       <GroupedTimeline
         medicalSummaryData={allMedicalEntries}
-        isLoading={isFetching && allMedicalEntries.length === 0}
+        isLoading={isInitialLoading}
+        isRefetching={isRefetching}
         searchQuery={searchValue}
         onSearchChange={handleSearchChange}
         medicalType={filters.module_filter}
@@ -241,6 +179,7 @@ const InpatientMedicalSummary = ({ patientData }) => {
         filterCount={filterCount}
         filterDate={filterDate}
         setFilterDate={setFilterDate}
+        hasActiveFilters={hasActiveFilters}
       />
 
       {openFilterDrawer && (

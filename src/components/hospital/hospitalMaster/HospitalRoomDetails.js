@@ -130,10 +130,6 @@ const HospitalRoomDetails = () => {
       return getHospitalRooms({ params: queryParams })
     },
     enabled: router.isReady && !!id,
-    keepPreviousData: true,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
-    refetchOnReconnect: false,
     select: response => {
       if (!response?.success) {
         return {
@@ -160,10 +156,6 @@ const HospitalRoomDetails = () => {
   const total = useMemo(() => roomData?.total || 0, [roomData?.total])
   const hospitalDetails = useMemo(() => roomData?.hospital_detail || [], [roomData?.hospital_detail])
   const occupied = hospitalDetails?.no_of_occupied
-
-  useEffect(() => {
-    setIsHospitalActive(Number(roomData?.hospital_detail?.is_active) || 0)
-  }, [roomData?.hospital_detail?.is_active])
 
   // Toggle hospital status
   // const handleHospitalStatus = useCallback(
@@ -220,28 +212,25 @@ const HospitalRoomDetails = () => {
   //   [hospitalDetails, id, filters, queryClient, refetchRooms]
   // )
 
-  // Pagination handler - ensures proper URL sync and state management
-  const handlePaginationChange = useCallback(
-    model => {
-      const newPage = model?.page + 1
-      const newLimit = model?.pageSize
+  // Pagination handler
+  const handlePaginationChange = model => {
+    const newPage = model?.page + 1
+    const newLimit = model?.pageSize
 
-      const updated = {
-        ...filters,
-        page: newPage,
-        limit: newLimit
-      }
+    const updated = {
+      ...filters,
+      page: newPage,
+      limit: newLimit
+    }
 
-      setFilters(updated)
-      updateUrlParams(updated)
-    },
-    [filters, updateUrlParams]
-  )
+    setFilters(updated)
+    updateUrlParams(updated)
+  }
 
   // Debounced search function using useRef to persist across renders
   const debouncedSearchRef = useRef(null)
 
-  const debouncedSearch = useCallback(() => {
+  const debouncedSearch = () => {
     if (!debouncedSearchRef.current) {
       debouncedSearchRef.current = debounce((value, currentFilters, updateFn) => {
         const updated = {
@@ -254,7 +243,7 @@ const HospitalRoomDetails = () => {
         updateFn(updated)
       }, 500)
     }
-  }, [debouncedSearchRef])
+  }
 
   // Cleanup debounce on unmount
   useEffect(() => {
@@ -268,18 +257,15 @@ const HospitalRoomDetails = () => {
   }, [])
 
   // Search handler - only updates local state immediately
-  const handleSearch = useCallback(
-    value => {
-      setSearchValue(value)
-      if (debouncedSearchRef.current) {
-        debouncedSearchRef.current(value, filters, updateUrlParams)
-      }
-    },
-    [filters, updateUrlParams]
-  )
+  const handleSearch = value => {
+    setSearchValue(value)
+    if (debouncedSearchRef.current) {
+      debouncedSearchRef.current(value, filters, updateUrlParams)
+    }
+  }
 
   // Clear search handler
-  const handleSearchClear = useCallback(() => {
+  const handleSearchClear = () => {
     setSearchValue('')
     if (debouncedSearchRef.current) {
       debouncedSearchRef.current.cancel()
@@ -293,56 +279,50 @@ const HospitalRoomDetails = () => {
 
     setFilters(updated)
     updateUrlParams(updated)
-    refetchRooms()
-  }, [filters, updateUrlParams, refetchRooms])
+  }
 
-  // Sidebar Controls
-  const openAddRoomDrawer = useCallback(() => {
+  const openAddRoomDrawer = () => {
     setEditParams(null)
     setOpenDrawer(true)
-  }, [])
+  }
 
-  const openEditRoomDrawer = useCallback(row => {
+  const openEditRoomDrawer = row => {
     setEditParams(row)
     setOpenDrawer(true)
-  }, [])
+  }
 
-  const openEditHospitalDrawer = useCallback(() => {
-    if (occupied === null || occupied == '0') {
+  const openEditHospitalDrawer = () => {
+    if (Number(occupied) > 0) {
+      setIsOccupiedRoomWarningOpen(true)
+    } else {
       setHospitalStatusEdit(true)
       setOpenDrawer(true)
-    } else {
-      setIsOccupiedRoomWarningOpen(true)
     }
-  }, [occupied])
+  }
 
-  const closeDrawer = useCallback(() => {
+  const closeDrawer = () => {
     setOpenDrawer(false)
     setHospitalStatusEdit(false)
     setEditParams(null)
-  }, [])
+  }
 
-  // Apply filters from drawer
-  const handleApplyFilters = useCallback(
-    selectedOptions => {
-      setAppliedFilters(selectedOptions)
+  // Filter drawer handlers
+  const handleApplyFilter = selectedOptions => {
+    setAppliedFilters(selectedOptions)
 
-      const updated = {
-        ...filters,
-        page: 1,
-        availability: selectedOptions?.Availability ? selectedOptions?.Availability?.join(',') : '',
-        status: selectedOptions?.Status ? selectedOptions?.Status?.join(',') : ''
-      }
+    const updated = {
+      ...filters,
+      page: 1,
+      availability: selectedOptions?.Availability ? selectedOptions?.Availability?.join(',') : '',
+      status: selectedOptions?.Status ? selectedOptions?.Status?.join(',') : ''
+    }
 
-      setFilters(updated)
-      updateUrlParams(updated)
+    setFilters(updated)
+    updateUrlParams(updated)
+    setOpenFilterDrawer(false)
+  }
 
-      refetchRooms()
-      setOpenFilterDrawer(false)
-    },
-    [filters, updateUrlParams, refetchRooms]
-  )
-
+  // Hospital stats
   const fetchAndUpdateHospitalStats = async hospitalId => {
     if (!hospitalId) return
 
@@ -357,43 +337,40 @@ const HospitalRoomDetails = () => {
   }
 
   // Helper function to check if room matches current filters
-  const roomMatchesFilters = useCallback(
-    room => {
-      // Check search query match
-      if (filters.q) {
-        const searchLower = filters.q.toLowerCase()
-        const roomName = (room?.room_name || '').toLowerCase()
-        if (!roomName.includes(searchLower)) {
+  const roomMatchesFilters = room => {
+    // Check search query match
+    if (filters.q) {
+      const searchLower = filters.q.toLowerCase()
+      const roomName = (room?.room_name || '').toLowerCase()
+      if (!roomName.includes(searchLower)) {
+        return false
+      }
+    }
+
+    // Check availability filter match
+    if (filters.availability) {
+      const availabilityFilters = filters.availability.split(',').filter(Boolean)
+      if (availabilityFilters.length > 0) {
+        const roomAvailability = room?.availability || ''
+        if (!availabilityFilters.includes(roomAvailability)) {
           return false
         }
       }
+    }
 
-      // Check availability filter match
-      if (filters.availability) {
-        const availabilityFilters = filters.availability.split(',').filter(Boolean)
-        if (availabilityFilters.length > 0) {
-          const roomAvailability = room?.availability || ''
-          if (!availabilityFilters.includes(roomAvailability)) {
-            return false
-          }
+    // Check status filter match
+    if (filters.status) {
+      const statusFilters = filters.status.split(',').filter(Boolean)
+      if (statusFilters.length > 0) {
+        const roomStatus = String(room?.status || '')
+        if (!statusFilters.includes(roomStatus)) {
+          return false
         }
       }
+    }
 
-      // Check status filter match
-      if (filters.status) {
-        const statusFilters = filters.status.split(',').filter(Boolean)
-        if (statusFilters.length > 0) {
-          const roomStatus = String(room?.status || '')
-          if (!statusFilters.includes(roomStatus)) {
-            return false
-          }
-        }
-      }
-
-      return true
-    },
-    [filters.q, filters.availability, filters.status]
-  )
+    return true
+  }
 
   // Add / Update room and Hospital update
   const handleSubmitData = async (payload, type) => {
@@ -477,12 +454,9 @@ const HospitalRoomDetails = () => {
               message: response?.message || `Room ${editParams?.id ? 'updated' : 'added'} successfully`
             })
           } else {
-            // Room doesn't match filters show message and refetch
             Toaster({
               type: 'success',
-              message:
-                response?.message ||
-                `Room ${editParams?.id ? 'updated' : 'added'} successfully. It doesn't match current filters.`
+              message: response?.message || `Room ${editParams?.id ? 'updated' : 'added'} successfully`
             })
           }
           if (selectedHospital?.id === id) {
@@ -591,7 +565,17 @@ const HospitalRoomDetails = () => {
       headerName: 'Actions',
       sortable: false,
       renderCell: params => (
-        <Box onClick={e => e.stopPropagation()}>
+        <Box
+          onClick={e => e.stopPropagation()}
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            cursor: 'default'
+          }}
+        >
           <MenuWithDots
             options={getMenuOptions(params?.row)}
             showBorder
@@ -621,6 +605,16 @@ const HospitalRoomDetails = () => {
     })
   }
 
+  useEffect(() => {
+    setIsHospitalActive(Number(roomData?.hospital_detail?.is_active) || 0)
+  }, [roomData?.hospital_detail?.is_active])
+
+  // refetch on when filters updates
+  useEffect(() => {
+    if (!router.isReady || !id) return
+    refetchRooms()
+  }, [filters, id, router.isReady])
+
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
@@ -647,23 +641,23 @@ const HospitalRoomDetails = () => {
           action={
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
               {/* <FormControlLabel
-                control={
-                  isStatusUpdating ? (
-                    <CircularProgress size={20} sx={{ ml: 4 }} />
-                  ) : (
-                    <Switch size='small' onChange={handleHospitalStatus} checked={isHospitalActive} />
-                  )
-                }
-                label={isStatusUpdating ? 'Loading...' : isHospitalActive ? 'Active' : 'Inactive'}
-                labelPlacement='start'
-                sx={{
-                  margin: 0,
-                  '& .MuiFormControlLabel-label': {
-                    fontSize: '0.875rem',
-                    color: theme.palette.customColors.OnSurfaceVariant
+                  control={
+                    isStatusUpdating ? (
+                      <CircularProgress size={20} sx={{ ml: 4 }} />
+                    ) : (
+                      <Switch size='small' onChange={handleHospitalStatus} checked={isHospitalActive} />
+                    )
                   }
-                }}
-              /> */}
+                  label={isStatusUpdating ? 'Loading...' : isHospitalActive ? 'Active' : 'Inactive'}
+                  labelPlacement='start'
+                  sx={{
+                    margin: 0,
+                    '& .MuiFormControlLabel-label': {
+                      fontSize: '0.875rem',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }
+                  }}
+                /> */}
 
               <Tooltip title='Edit'>
                 <IconButton onClick={openEditHospitalDrawer} size='small'>
@@ -682,7 +676,6 @@ const HospitalRoomDetails = () => {
           }
         />
 
-        {/* Hospital stats */}
         <HospitalAnalytics isHospitalStatsLoading={isLoadingRooms} hospitalDetails={hospitalDetails} />
 
         <Box
@@ -695,7 +688,6 @@ const HospitalRoomDetails = () => {
             mt: 6
           }}
         >
-          {/* Search + Filter */}
           <Search
             borderRadius={'4px'}
             value={searchValue}
@@ -718,7 +710,6 @@ const HospitalRoomDetails = () => {
           />
         </Box>
 
-        {/* Table */}
         <CommonTable
           columns={columns}
           indexedRows={indexedRows}
@@ -740,7 +731,6 @@ const HospitalRoomDetails = () => {
         />
       </Card>
 
-      {/* Room Drawer */}
       {openDrawer && (
         <AddHospitalRoom
           handleSidebarOpen={openDrawer}
@@ -755,16 +745,14 @@ const HospitalRoomDetails = () => {
         />
       )}
 
-      {/* Filter Drawer */}
       <RoomFilterDrawer
         openFilterDrawer={openFilterDrawer}
         onCloseFilterDrawer={() => setOpenFilterDrawer(false)}
         onSubmitLoading={isLoadingRooms}
-        onApplyFilters={handleApplyFilters}
+        onApplyFilters={handleApplyFilter}
         setFilterCount={setFilterCount}
         initialSelectedOptions={appliedFilters}
       />
-      {/* Room Occupied Warning Dialog for status update of hospital */}
       {isOccupiedRoomWarningOpen && (
         <ConfirmationDialog
           dialogBoxStatus={isOccupiedRoomWarningOpen}

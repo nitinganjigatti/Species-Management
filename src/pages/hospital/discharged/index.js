@@ -77,7 +77,7 @@ const HospitalDischarged = () => {
         page_no: filters?.page,
         limit: filters?.limit,
         q: filters?.q,
-        hospital_id: 1,
+        hospital_id: selectedHospital?.id,
         visit_type: selectedVisitType,
         patient_category: 'discharge',
         from_date: formatDate(filterDate.startDate),
@@ -196,9 +196,16 @@ const HospitalDischarged = () => {
       headerName: 'Discharge Summary',
       renderCell: params => (
         <>
-          <Tooltip title={params.row?.discharge_reason}>
-            <Typography
-              variant='body2'
+          <Tooltip
+            title={
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: params?.row?.notes || 'NA'
+                }}
+              />
+            }
+          >
+            <Box
               sx={{
                 fontSize: '14px',
                 fontWeight: 400,
@@ -212,9 +219,10 @@ const HospitalDischarged = () => {
                 whiteSpace: 'normal',
                 py: 4
               }}
-            >
-              <>{params.row?.discharge_reason || 'NA'}</>
-            </Typography>
+              dangerouslySetInnerHTML={{
+                __html: params?.row?.discharge_reason || 'NA'
+              }}
+            />
           </Tooltip>
         </>
       )
@@ -274,16 +282,15 @@ const HospitalDischarged = () => {
     {
       width: 180,
       minWidth: 20,
-      field: 'duration',
+      field: 'total_admitted_days',
       sortable: false,
       headerName: 'duration',
       align: 'left',
       headerAlign: 'left',
-
       renderCell: params => {
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.total_admitted_days} {params?.row?.total_admitted_days > 1 ? 'Days' : 'Day'}
+            {params?.row?.total_admitted_days}
           </Typography>
         )
       }

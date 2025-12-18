@@ -37,13 +37,20 @@ function PrescriptionLayout({ drawerType, overviewData }) {
   const { data } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
 
+  const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
+  // Get ID from router (with fallback during initial render before router is ready)
+  const { id, date } = router.query
+  const medical_record_id = medicalRecordData?.medical_record_id
+  const animal_id = medicalRecordData?.animal_id
+
   const [openSchedule, setOpenSchedule] = useState(false)
   const [prescriptionCardOpen, setPrescriptionCardOpen] = useState(false)
   const [medicationData, setMedicationData] = useState([])
   const [dates, setDates] = useState(null)
   const [medicineDetails, setMedicineDetails] = useState(null)
   const [detailDates, setDetailDates] = useState(null)
-  const [detailSelectedDate, setDetailSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const [selectedDate, setSelectedDate] = useState(date || today)
+  const [detailSelectedDate, setDetailSelectedDate] = useState(selectedDate || new Date().toISOString().split('T')[0])
   const [isDetailLoading, setIsDetailLoading] = useState(false)
   const [isDatesLoading, setIsDatesLoading] = useState(false)
   const [isAdministerFormOpen, setIsAdministerFormOpen] = useState(true)
@@ -65,7 +72,6 @@ function PrescriptionLayout({ drawerType, overviewData }) {
   const [isScheduleDosageModelOpen, setIsScheduleDosageModelOpen] = useState(false)
   const [isAddDosageModelOpen, setIsAddDosageModelOpen] = useState(false)
   const [isAdministerDosageModelOpen, setIsAdministerDosageModelOpen] = useState(false)
-  const [inpatientId, setInpatientId] = useState(null)
   const [selectedMedicationsFromDetail, setSelectedMedicationsFromDetail] = useState([])
   const [isStopMedicineLoading, setIsStopMedicineLoading] = useState(false)
   const [isAddNewDosageLoading, setIsAddNewDosageLoading] = useState(false)
@@ -75,35 +81,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
   const [administrativeIds, setAdministrativeIds] = useState([])
   const [isAdministerSlotLoading, setIsAdministerSlotLoading] = useState(false)
 
-  const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
-  // Get ID from router (with fallback during initial render before router is ready)
-  const { id, date } = router.query
-  const medical_record_id = medicalRecordData?.medical_record_id
-  const animal_id = medicalRecordData?.animal_id
-
-  const [selectedDate, setSelectedDate] = useState(date || today)
-
   const { selectedHospital: hospital } = useHospital()
-
-  const handleGetInpatientId = () => {
-    try {
-      const url = window.location.href
-      const parsedUrl = new URL(url)
-      const pathParts = parsedUrl.pathname.split('/').filter(Boolean)
-      const inpatientId = pathParts[2] // e.g. "161"
-
-      return inpatientId
-    } catch (error) {
-      console.error('Invalid URL:', error)
-
-      return null
-    }
-  }
-
-  useEffect(() => {
-    const inpatientId = handleGetInpatientId()
-    setInpatientId(inpatientId)
-  }, [window.location.href])
 
   const updateURLParams = (key, value) => {
     const currentQuery = { ...router.query }
@@ -266,9 +244,11 @@ function PrescriptionLayout({ drawerType, overviewData }) {
 
       const payload = {
         prescription_id: data?.id || medicineDetails?.prescription_id,
-        date: data?.customDate || detailSelectedDate,
+        date: data?.customDate || selectedDate || detailSelectedDate,
         group_prescription_id: data?.id || medicineDetails?.prescription_id,
-        administrative_ids: data?.administrative_ids || administrativeIds || ''
+        administrative_ids: data?.administrative_ids || administrativeIds || '',
+        medical_record_id: medical_record_id || medicineDetails?.medical_record_id,
+        medicine_id: data?.medicine_id || medicineDetails?.medicine_id
       }
 
       const response = await getPrescriptionDetails(payload)
@@ -317,11 +297,12 @@ function PrescriptionLayout({ drawerType, overviewData }) {
       setIsDatesLoading(true)
 
       const payload = {
-        from_date: dates?.length && dates[0],
-        to_date: new Date().toISOString().slice(0, 10),
+        from_date: selectedDate,
+        to_date: selectedDate,
         type: 'all',
         prescription_id: data?.id,
-        group_prescription_id: data?.group_prescription_id || data?.id
+        group_prescription_id: data?.group_prescription_id || data?.id,
+        request_from: 'hospital'
       }
 
       const response = await getDates(payload)
@@ -349,11 +330,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
         item => item.uom_abbr === data?.wastageUnit
       )
 
-      let time24 = data.time
-        ? dayjs.isDayjs(data.time)
-          ? data.time.format('HH:mm:ss')
-          : dayjs(data.time, 'hh:mm A').format('HH:mm:ss')
-        : dayjs().format('HH:mm:ss')
+      let time24 = new Date().toLocaleTimeString('en-GB', { hour12: false })
 
       // Process the form data based on action type
       const payload = {
@@ -444,6 +421,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
         prescription_id: selectedSlotData?.data?.prescription_id,
         medicine_id: selectedSlotData?.data?.medicine_id,
         medical_record_type: 'SINGLE',
+        hospital_case_id: id,
         case_type: 1,
         1: formData?.attachment?.[0] && formData?.attachment[0]
       }
@@ -497,7 +475,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
     try {
       const payload = {
         animal_id: animal_id,
-        hospital_case_id: inpatientId,
+        hospital_case_id: id,
         prescription_id: selectedSlotData?.data?.prescription_id,
         medical_record_id: medical_record_id,
         medicine_id: selectedSlotData?.data?.medicine_id,
@@ -535,7 +513,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
 
       const payload = {
         animal_id: animal_id,
-        hospital_case_id: inpatientId,
+        hospital_case_id: id,
         prescription_id: medicineDetails?.prescription_id,
         medical_record_id: medical_record_id,
         medicine_id: medicineDetails?.medicine_id,
@@ -574,7 +552,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
   const handleSelectAllAdministerrOrSkip = async purpose => {
     try {
       const payload = {
-        administer_date: Utility.convertUTCToLocalDate(new Date().toISOString().slice(0, 10)),
+        administer_date: selectedDate,
         type: 'single',
         request_from: 'hospital_module',
         purpose: purpose,
@@ -919,6 +897,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
+
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -997,6 +976,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
+
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {
@@ -1027,16 +1007,19 @@ function PrescriptionLayout({ drawerType, overviewData }) {
           medId: medicineDetails?.medical_record_code || '-',
           startDate: medicineDetails?.start_date || '-',
           endDate: medicineDetails?.end_date || '-',
-          dosage: medicineDetails?.dose_count ? `${medicineDetails?.dose_count} Times` : '-',
+          dosage:
+            medicineDetails?.dose_count !== undefined && medicineDetails?.dose_count !== null
+              ? `${medicineDetails.dose_count} Time${medicineDetails.dose_count > 1 ? 's' : ''}`
+              : '-',
           frequency: medicineDetails?.frequency || '-',
           duration: medicineDetails?.duration || '-',
           deliveryRoute: medicineDetails?.delivery_route_name || '-',
           notes: medicineDetails?.notes || '-',
           lastEdited:
             medicineDetails?.updated_at || medicineDetails?.created_at
-              ? `Last edited on ${Utility.convertUTCToLocaltime(
+              ? `Last edited on ${Utility.formatDisplayDate(
                   medicineDetails?.updated_at || medicineDetails?.created_at
-                )} • ${Utility.formatDisplayDate(medicineDetails?.updated_at || medicineDetails?.created_at)}`
+                )} • ${Utility.convertUTCToLocaltime(medicineDetails?.updated_at || medicineDetails?.created_at)}`
               : '-',
           defaultTab: 2,
           prescription_id: medicineDetails?.prescription_id,
@@ -1051,7 +1034,7 @@ function PrescriptionLayout({ drawerType, overviewData }) {
         onAddNewDosage={handleAddNewDosage}
         onRefreshEntry={handleRefreshEntry}
         handleDateChange={handleDetailDateChange}
-        selectedDate={detailSelectedDate}
+        selectedDate={selectedDate}
         onAdministerSelected={handleAdministerSelectedFromDrawer}
         onSkipSelected={handleSkipSelectedFromDrawer}
         isAdministerLoading={isAdministerLoading}

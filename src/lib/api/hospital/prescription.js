@@ -6,6 +6,7 @@ import {
   DIRECT_ADMINISTER_FOR_PAST_SLOT,
   GET_BATCH_LIST,
   GET_FREQUENCY,
+  GET_INTERVALS,
   GET_PRESCRIPTION_BY_RECORD,
   GET_PRESCRIPTION_DETAILS,
   GET_PRESCRIPTION_DETAILS_DATES,
@@ -74,6 +75,18 @@ export async function getDates(params) {
 export async function getFrequency(params) {
   try {
     const url = `${GET_FREQUENCY}`
+
+    const response = await axiosGet({ url, params })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error fetching medical master data:', error.message)
+  }
+}
+
+export async function getIntervalList(params) {
+  try {
+    const url = `${GET_INTERVALS}`
 
     const response = await axiosGet({ url, params })
 

@@ -115,7 +115,7 @@ const HospitalIncoming = () => {
 
   useEffect(() => {
     refetch()
-  }, [refetch])
+  }, [refetch, selectedHospital?.id, activeTab])
 
   const total = data?.data?.total_count || 0
   const rows = data?.data?.result || []

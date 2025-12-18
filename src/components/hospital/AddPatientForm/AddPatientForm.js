@@ -9,10 +9,11 @@ import {
   Button,
   alpha,
   IconButton,
-  useTheme
+  useTheme,
+  Tooltip
 } from '@mui/material'
 import { useRouter } from 'next/router'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import RenderUtility from 'src/utility/render'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
 import Icon from 'src/@core/components/icon'
@@ -40,6 +41,12 @@ import moment from 'moment'
 import AddPatientFiltersDrawer from '../inpatient/AddPatientFiltersDrawer'
 import SortBottomSheet from '../inpatient/SortBottomSheet'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
+import AddRoomDrawer from '../PatientAdmissionForm/AddRoomDrawer'
+import AddBedsDrawer from '../PatientAdmissionForm/AddBedsDrawer'
+import { AuthContext } from 'src/context/AuthContext'
+import BottomActionBar from 'src/views/utility/BottomActionBar'
+
+// import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const defaultValues = {
   treatmentType: 'inpatient',
@@ -92,9 +99,12 @@ const schema = yup.object().shape({
 const AddPatientForm = () => {
   const theme = useTheme()
   const router = useRouter()
+  const authData = useContext(AuthContext)
+  const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
 
-  const { selectedHospital, updateHospitalStats } = useHospital()
+  const { selectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } = useHospital()
 
+  console.log(selectedHospital, "ffff")
   const [medicalId, setMedicalId] = useState([])
   const [holdingEnclosures, setHoldingEnclosures] = useState([])
   const [openAnimalDrawer, setAnimalDrawer] = useState(false)
@@ -112,6 +122,8 @@ const AddPatientForm = () => {
   const [loading, setLoading] = useState(false)
   const [isSortBottomSheetOpen, setIsSortBottomSheetOpen] = useState(false)
   const [searchRoom, setSearchRoom] = useState('')
+  const [openAddRoomDrawer, setOpenAddRoomDrawer] = useState(false)
+  const [openAddBedsDrawer, setOpenAddBedsDrawer] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
     Gender: [],
@@ -186,7 +198,7 @@ const AddPatientForm = () => {
     }
 
     getHospitalRooms()
-  }, [selectedHospital, searchRoom])
+  }, [selectedHospital, searchRoom, hospitalStats?.available_rooms])
 
   const selectedRoom = watch('room')
 
@@ -219,7 +231,7 @@ const AddPatientForm = () => {
     }
 
     getHospitalBeds()
-  }, [selectedRoom, selectedHospital, searchEnclosure])
+  }, [selectedRoom, selectedHospital, searchEnclosure, hospitalStats?.available_rooms])
 
   const debouncedSearch = React.useMemo(() => debounce(val => setSearchRoom(val), 1000), [])
 
@@ -272,6 +284,9 @@ const AddPatientForm = () => {
     try {
       const params = {
         source_id: selectedAnimal?.site_id,
+        source_site_id: selectedAnimal?.site_id ? selectedAnimal?.site_id : null,
+        destination_site_id: selectedHospital?.site_id ? selectedHospital?.site_id : null,
+        usecase: 'add-patient',
         source_type: 'site',
         destination_id: selectedHospital?.id,
         destination_type: 'hospital',
@@ -298,24 +313,27 @@ const AddPatientForm = () => {
         })
       }
 
-      await addHospitalPatient(params).then(res => {
-        if (res?.success === true) {
-          Toaster({ type: 'success', message: res?.message })
-          if (watchTreatmentType === 'opd') {
-            router.push({
-              pathname: `/hospital/outpatient`
-            })
-          } else if (watchTreatmentType === 'inpatient') {
-            router.back()
-          }
-          fetchAndUpdateHospitalStats(selectedHospital?.id)
-        } else {
-          Toaster({ type: 'error', message: res?.message })
+      console.log(params, "payload")
+
+      const res = await addHospitalPatient(params)
+
+      if (res?.success === true) {
+        Toaster({ type: 'success', message: res?.message })
+        if (watchTreatmentType === 'opd') {
+          router.push({
+            pathname: `/hospital/outpatient`
+          })
+        } else if (watchTreatmentType === 'inpatient') {
+          router.back()
         }
-        setSubmitLoader(false)
-      })
+        fetchAndUpdateHospitalStats(selectedHospital?.id)
+      } else {
+        throw res
+      }
+      setSubmitLoader(false)
     } catch (error) {
-      console.error(error, 'Cannot Add-Patient')
+      Toaster({ type: 'error', message: error?.message })
+      console.error(error?.message, 'Cannot Add-Patient')
       setSubmitLoader(false)
     }
   }
@@ -356,18 +374,28 @@ const AddPatientForm = () => {
   return (
     <>
       <Box>
-        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
-          <Typography onClick={() => router.back()} sx={{ cursor: 'pointer', color: 'text.primary' }}>
-            Inpatient
-          </Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Add Patient</Typography>
-        </Breadcrumbs>
+        {/* <DynamicBreadcrumbs
+          pageItems={[
+            { title: 'Hospital' },
+            { title: 'Patients' },
+            { title: 'Inpatient', onClick: () => router.back() },
+            { title: 'Add Patient', active: true }
+          ]}
+        /> */}
         <Card sx={{ mb: 4 }}>
           <CardHeader sx={{ pb: 1, px: 6, pt: 6 }} title={RenderUtility.pageTitle('Add Patient')} />
           <CardContent sx={{ px: 6, pb: 6 }}>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form
+              onSubmit={handleSubmit(onSubmit, errors => {
+                if (Object.keys(errors).length > 0) {
+                  const firstError = Object.keys(errors)[0]
+                  const element = document.querySelector(`[name="${firstError}"]`)
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                  }
+                }
+              })}
+            >
               <Box
                 sx={{
                   display: 'flex',
@@ -390,7 +418,10 @@ const AddPatientForm = () => {
                         justifyContent: 'space-between',
                         p: 6,
                         background: theme.palette.customColors.displaybgPrimary,
-                        borderRadius: 1
+                        borderRadius: 1,
+                        cursor: submitLoader ? 'not-allowed' : 'pointer',
+                        opacity: submitLoader ? 0.6 : 1,
+                        pointerEvents: submitLoader ? 'not-allowed' : 'auto'
                       }}
                     >
                       <AnimalCard data={selectedAnimal} />
@@ -458,6 +489,7 @@ const AddPatientForm = () => {
                             selectedBorderColor={theme.palette.primary.main}
                             selectedBackgroundColor={theme.palette.customColors.OnPrimary}
                             sx={{ fontSize: '1rem', width: '100%' }}
+                            disabled={submitLoader}
                           />
                         </Grid>
                       ))}
@@ -482,10 +514,16 @@ const AddPatientForm = () => {
                       name={'admission_date'}
                       label='Date'
                       defaultValue={dayjs()}
+                      disabled={submitLoader}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
-                    <ControlledTimePicker control={control} name={'admission_time'} label='Time' />
+                    <ControlledTimePicker
+                      control={control}
+                      name={'admission_time'}
+                      label='Time'
+                      disabled={submitLoader}
+                    />
                   </Grid>
                 </Grid>
                 <Grid size={{ xs: 12 }}>
@@ -525,6 +563,7 @@ const AddPatientForm = () => {
                               selectedBackgroundColor={theme.palette.customColors.OnPrimaryContainer}
                               selectedFontColor={theme.palette.customColors.OnPrimary}
                               selectedBorderColor='none'
+                              disabled={submitLoader}
                             />
                           </Grid>
                         ))}
@@ -554,6 +593,7 @@ const AddPatientForm = () => {
                               getOptionLabel={option => option.label}
                               getOptionValue={option => option.value}
                               sx={{ background: theme.palette.customColors.Surface }}
+                              disabled={!selectedAnimal || submitLoader}
                             />
                           </Grid>
                         )}
@@ -575,6 +615,7 @@ const AddPatientForm = () => {
                     options={visitTypes}
                     getOptionLabel={option => option.label}
                     getOptionValue={option => option.value}
+                    disabled={submitLoader}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -610,7 +651,7 @@ const AddPatientForm = () => {
                               : theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                          Select doctor
+                          Select chief Veterinarian
                         </Typography>
                         <Icon
                           icon='mdi:chevron-down'
@@ -630,7 +671,9 @@ const AddPatientForm = () => {
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             minHeight: '56px',
-                            cursor: 'pointer'
+                            cursor: submitLoader ? 'not-allowed' : 'pointer',
+                            opacity: submitLoader ? 0.6 : 1,
+                            pointerEvents: submitLoader ? 'not-allowed' : 'auto'
                           }}
                         >
                           <Box
@@ -638,7 +681,8 @@ const AddPatientForm = () => {
                               maxWidth: '260px',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
+                              whiteSpace: 'nowrap',
+                              opacity: submitLoader ? 0.7 : 1
                             }}
                           >
                             <UserAvatarDetails
@@ -647,7 +691,7 @@ const AddPatientForm = () => {
                               role={selectedDoctor?.role_name}
                             />
                           </Box>
-                          <IconButton onClick={handleRemoveDoctor}>
+                          <IconButton onClick={handleRemoveDoctor} disabled={submitLoader}>
                             <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
                           </IconButton>
                         </Box>
@@ -680,6 +724,7 @@ const AddPatientForm = () => {
                     errors={errors}
                     sx={{ borderRadius: 1 }}
                     label={'Enter Enter'}
+                    disabled={submitLoader}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -702,6 +747,21 @@ const AddPatientForm = () => {
                     sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
                     fullWidth
                     loading={roomsLoading}
+                    disabled={submitLoader}
+                    endAdornment={() =>
+                      havePermissionToAddHospital && (
+                        <Tooltip title='Add Rooms'>
+                          <IconButton
+                            size='small'
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={() => setOpenAddRoomDrawer(true)}
+                            sx={{ ml: 1, fontSize: 28 }}
+                          >
+                            <Icon icon='mdi:plus' color={theme.palette.primary.main} />
+                          </IconButton>
+                        </Tooltip>
+                      )
+                    }
                   />
                   {rooms.length === 0 && (
                     <Typography
@@ -737,6 +797,21 @@ const AddPatientForm = () => {
                     sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
                     fullWidth
                     loading={bedsLoading}
+                    disabled={submitLoader}
+                    endAdornment={() =>
+                      havePermissionToAddHospital && (
+                        <Tooltip title='Add Beds/Enclosures'>
+                          <IconButton
+                            size='small'
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={() => setOpenAddBedsDrawer(true)}
+                            sx={{ ml: 1, fontSize: 28 }}
+                          >
+                            <Icon icon='mdi:plus' color={theme.palette.primary.main} />
+                          </IconButton>
+                        </Tooltip>
+                      )
+                    }
                   />
                 </Grid>
               </Grid>
@@ -744,58 +819,31 @@ const AddPatientForm = () => {
           </CardContent>
         </Card>
       </Box>
-      <Box
-        sx={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          width: '100%',
-          backgroundColor: theme.palette.customColors.OnPrimary,
-          py: 4,
-          px: 6,
-          boxShadow: `0px -2px 8px ${theme.palette.customColors.shadowColor}`,
-          display: 'flex',
-          justifyContent: 'flex-end',
-          zIndex: 100,
-          borderTopLeftRadius: '8px',
-          borderTopRightRadius: '8px'
+      <BottomActionBar
+        onCancel={() => {
+          reset(defaultValues, {
+            keepErrors: false,
+            keepDirty: false,
+            keepTouched: false
+          })
+          setSelectedAnimal(null)
+          setValue('selectedAnimal', null)
+          setMedicalId([])
+          setValue('medicalRecordChoice', 'new')
+          router.back()
         }}
-      >
-        <Box sx={{ display: 'flex', gap: 3 }}>
-          <Button
-            variant='outlined'
-            sx={{
-              borderColor: theme.palette.customColors.Outline,
-              borderRadius: 0.5,
-              minHeight: '56px',
-              minWidth: '160px'
-            }}
-            onClick={() => {
-              reset(defaultValues, {
-                keepErrors: false,
-                keepDirty: false,
-                keepTouched: false
-              })
-              setSelectedAnimal(null)
-              setValue('selectedAnimal', null)
-              setMedicalId([])
-              setValue('medicalRecordChoice', 'new')
-              router.back()
-            }}
-          >
-            CANCEL
-          </Button>
-          <LoadingButton
-            loading={submitLoader}
-            disabled={submitLoader}
-            variant='contained'
-            sx={{ backgroundColor: theme.palette.primary.main, borderRadius: 0.5, minWidth: '160px' }}
-            onClick={handleSubmit(onSubmit)}
-          >
-            ADMIT
-          </LoadingButton>
-        </Box>
-      </Box>
+        onSubmit={handleSubmit(onSubmit, errors => {
+          if (Object.keys(errors).length > 0) {
+            const firstError = Object.keys(errors)[0]
+            const element = document.querySelector(`[name="${firstError}"]`)
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            }
+          }
+        })}
+        loading={submitLoader}
+        disabled={submitLoader}
+      />
       {openAnimalDrawer && (
         <AnimalDrawer
           open={openAnimalDrawer}
@@ -838,6 +886,26 @@ const AddPatientForm = () => {
         filterCount={filterCount}
         initialSelectedOptions={selectedOptions}
       />
+      {openAddRoomDrawer && (
+        <AddRoomDrawer
+          open={openAddRoomDrawer}
+          setOpen={setOpenAddRoomDrawer}
+          selectedHospital={selectedHospital}
+          hospitalStats={hospitalStats}
+          isHospitalStatsLoading={isHospitalStatsLoading}
+          updateHospitalStats={updateHospitalStats}
+        />
+      )}
+      {openAddBedsDrawer && (
+        <AddBedsDrawer
+          open={openAddBedsDrawer}
+          setOpen={setOpenAddBedsDrawer}
+          selectedHospital={selectedHospital}
+          hospitalStats={hospitalStats}
+          isHospitalStatsLoading={isHospitalStatsLoading}
+          updateHospitalStats={updateHospitalStats}
+        />
+      )}
     </>
   )
 }

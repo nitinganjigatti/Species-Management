@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 
 import { Button, Tooltip, Typography, Skeleton } from '@mui/material'
@@ -6,9 +6,12 @@ import { Box, Grid } from '@mui/system'
 import { alpha, useTheme } from '@mui/material/styles'
 import dayjs from 'dayjs'
 
+import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import MediaCard from 'src/views/utility/MediaCard'
-import { getPatientSurgeryList } from 'src/lib/api/hospital/surgeryMaster'
+import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
+import NoDataFound from 'src/views/utility/NoDataFound'
+import { deleteSurgeryRecord, getPatientSurgeryList } from 'src/lib/api/hospital/surgeryMaster'
 
 const FieldTooltip = ({ title, placement = 'top-start', children }) => (
   <Tooltip
@@ -217,6 +220,8 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
   const [activeSurgeryId, setActiveSurgeryId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   const resolvedHospitalCaseId = hospitalCaseId || ''
 
@@ -303,9 +308,80 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
     return surgeryRecords[0] ?? null
   }, [surgeryRecords, activeSurgeryId])
 
+  const activeSurgeryRecordId = useMemo(() => {
+    if (activeRecord?.id !== undefined && activeRecord?.id !== null) return String(activeRecord.id)
+    if (activeRecord?.detail?.id !== undefined && activeRecord?.detail?.id !== null)
+      return String(activeRecord.detail.id)
+
+    return activeSurgeryId || ''
+  }, [activeRecord, activeSurgeryId])
+
+  const deleteDisabled = deleteLoading || loading || !activeSurgeryRecordId
+
+  const handleDeleteClick = useCallback(() => {
+    if (!activeSurgeryRecordId || deleteLoading) return
+
+    setDeleteDialogOpen(true)
+  }, [activeSurgeryRecordId, deleteLoading])
+
+  const handleDeleteDialogClose = useCallback(() => {
+    if (deleteLoading) return
+
+    setDeleteDialogOpen(false)
+  }, [deleteLoading])
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!activeSurgeryRecordId) return
+
+    try {
+      setDeleteLoading(true)
+      const response = await deleteSurgeryRecord(activeSurgeryRecordId)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Surgery record deleted successfully.' })
+        setSurgeryRecords(prevRecords => {
+          const updatedRecords = prevRecords.filter(record => getRecordIdentifier(record) !== activeSurgeryRecordId)
+          const hasActive = updatedRecords.some(record => getRecordIdentifier(record) === activeSurgeryId)
+          if (!hasActive) {
+            const nextRecord = updatedRecords[0]
+            setActiveSurgeryId(nextRecord ? getRecordIdentifier(nextRecord) : '')
+          }
+
+          return updatedRecords
+        })
+      } else {
+        const message =
+          response?.message || response?.reason || response?.data?.message || 'Unable to delete surgery record.'
+        Toaster({ type: 'error', message })
+      }
+    } catch (deleteError) {
+      const message = deleteError?.response?.data?.message || deleteError?.message || 'Failed to delete surgery record.'
+      Toaster({ type: 'error', message })
+    } finally {
+      setDeleteLoading(false)
+      setDeleteDialogOpen(false)
+    }
+  }, [activeSurgeryId, activeSurgeryRecordId, deleteSurgeryRecord])
+
   const activeDetail = activeRecord?.detail ?? null
 
   const surgeryCode = getRecordCode(activeRecord)
+
+  const handleViewAnesthesiaDetails = useCallback(() => {
+    if (!resolvedHospitalCaseId) return
+
+    const query = { tab: 'anesthesia' }
+    if (medicalRecordId) {
+      query.medical_record_id = medicalRecordId
+    }
+    if (activeDetail?.anaesthesia_id) {
+      query.anaesthesia_id = activeDetail.anaesthesia_id
+    }
+
+    router.push({ pathname: `/hospital/inpatient/${resolvedHospitalCaseId}`, query })
+  }, [activeDetail?.anaesthesia_id, medicalRecordId, resolvedHospitalCaseId, router])
+
+  const canViewAnesthesia = Boolean(resolvedHospitalCaseId)
 
   const basicDetails = useMemo(() => {
     const detail = activeDetail || {}
@@ -324,7 +400,8 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
     return [
       { label: 'Procedure Name', value: detail.surgery_name || '--' },
       { label: 'Surgical Approach', value: detail.surgical_approach || '--' },
-      { label: 'Type Of Surgery', value: detail.type_of_surgery || '--' }
+      { label: 'Type Of Surgery', value: detail.type_of_surgery || '--' },
+      { label: 'Name Of Surgeon', value: detail.name_of_surgeon || '--' }
     ]
   }, [activeDetail])
 
@@ -363,6 +440,15 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
     [activeDetail]
   )
 
+  const anesthesiaInfo = useMemo(() => {
+    const detail = activeDetail?.anaesthesia_detail || {}
+
+    return {
+      code: detail?.code || '--',
+      datetime: formatDateValue(detail?.anaesthesia_datetime)
+    }
+  }, [activeDetail])
+
   const renderTabContent = () => {
     if (loading) {
       return <TabSkeletons />
@@ -381,18 +467,19 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
       )
     }
 
-    if (!surgeryRecords.length) {
-      return (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.neutralSecondary,
-            whiteSpace: 'nowrap'
-          }}
-        >
-          No surgery records found.
-        </Typography>
-      )
-    }
+    // if (!surgeryRecords.length) {
+    //   return (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.neutralSecondary,
+    //         whiteSpace: 'nowrap'
+    //       }}
+    //     >
+    //       No surgery records found.
+    //     </Typography>
+    //   )
+    // }
+    if (!surgeryRecords.length) null
 
     return surgeryRecords.map((record, index) => {
       const recordId = getRecordIdentifier(record)
@@ -541,114 +628,409 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
   const shouldShowDetails = Boolean(activeRecord)
 
   return (
-    <Box sx={{ mt: '32px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          gap: '24px'
-        }}
-      >
+    <>
+      <Box sx={{ mt: '32px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
         <Box
           sx={{
-            flex: '1 1 auto',
-            minWidth: 0,
-            overflowX: 'auto',
-            scrollbarColor: 'transparent transparent'
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: '24px'
           }}
         >
-          <Box sx={{ display: 'inline-flex', gap: '10px', pr: 1, alignItems: 'center', minHeight: '48px' }}>
-            {renderTabContent()}
-          </Box>
-        </Box>
-
-        {!patientDischarged && (
-          <Button
-            onClick={handleAddSurgeryRecord}
-            variant='contained'
-            sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
-          >
-            Add SURGERY RECORD
-          </Button>
-        )}
-      </Box>
-
-      {!shouldShowDetails ? (
-        loading ? (
-          renderSkeletonLayout()
-        ) : (
           <Box
             sx={{
-              py: 6,
-              display: 'flex',
-              justifyContent: 'center'
+              flex: '1 1 auto',
+              minWidth: 0,
+              overflowX: 'auto',
+              scrollbarColor: 'transparent transparent'
             }}
           >
-            <Typography
-              sx={{
-                color: error ? theme.palette.error.main : theme.palette.customColors.neutralSecondary
-              }}
-            >
-              {error || 'No surgery record selected.'}
-            </Typography>
-          </Box>
-        )
-      ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Typography
-              sx={{
-                fontWeight: 500,
-                fontSize: '24px',
-                letterSpacing: 0,
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              Surgery Details
-            </Typography>
-            {surgeryCode && (
-              <Typography
-                sx={{
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.OnPrimaryContainer
-                }}
-              >
-                {surgeryCode}
-              </Typography>
-            )}
-            {/* <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-            <Icon color={theme.palette.primary.dark} icon='mdi:pencil-outline' fontSize={20} />
-            <Typography sx={{ fontWeight: 500, fontSize: '16px', letterSpacing: 0, color: theme.palette.primary.dark }}>
-              Edit
-            </Typography>
-          </Box> */}
+            <Box sx={{ display: 'inline-flex', gap: '10px', pr: 1, alignItems: 'center', minHeight: '48px' }}>
+              {renderTabContent()}
+            </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <DetailsHeader text={'Basic details'} />
-            <Grid sx={{ px: '8px' }} container spacing={4}>
-              {basicDetails.map(detail => (
-                <Grid item size={{ xs: 12, sm: 6, md: 3 }} key={detail.label}>
-                  <FieldTooltip title={detail.label}>
+          {!patientDischarged && (
+            <Button
+              onClick={handleAddSurgeryRecord}
+              variant='contained'
+              sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
+            >
+              Add SURGERY RECORD
+            </Button>
+          )}
+        </Box>
+
+        {!shouldShowDetails ? (
+          loading ? (
+            renderSkeletonLayout()
+          ) : (
+            <Box
+              sx={{
+                py: 6,
+                display: 'flex',
+                justifyContent: 'center'
+              }}
+            >
+              {error ? (
+                <Typography sx={{ color: theme.palette.error.main }}>{error}</Typography>
+              ) : (
+                <NoDataFound variant='Seal' height={300} width={300} />
+              )}
+            </Box>
+          )
+        ) : (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <Typography
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: '24px',
+                    letterSpacing: 0,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  Surgery Details
+                </Typography>
+                {surgeryCode && (
+                  <Typography
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      letterSpacing: 0,
+                      color: theme.palette.customColors.OnPrimaryContainer
+                    }}
+                  >
+                    {surgeryCode}
+                  </Typography>
+                )}
+              </Box>
+              <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {!patientDischarged && (
+                  <Box
+                    component='img'
+                    src='/icons/pencil_outlined.svg'
+                    alt='Edit'
+                    sx={{ width: 24, height: 24, cursor: 'pointer' }}
+                    onClick={() => {
+                      if (!activeSurgeryRecordId) return
+
+                      const query = {}
+                      if (resolvedHospitalCaseId) query.hospital_case_id = resolvedHospitalCaseId
+                      if (medicalRecordId) query.medical_record_id = medicalRecordId
+                      query.id = activeSurgeryRecordId
+
+                      router.push({ pathname: '/hospital/inpatient/AddSurgeryRecord', query })
+                    }}
+                  />
+                )}
+                {!patientDischarged && (
+                  <Box
+                    component='img'
+                    src='/icons/delete_outlined.svg'
+                    alt='Delete'
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      cursor: deleteDisabled ? 'not-allowed' : 'pointer',
+                      opacity: deleteDisabled ? 0.4 : 1
+                    }}
+                    onClick={deleteDisabled ? undefined : handleDeleteClick}
+                  />
+                )}
+              </Box>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <DetailsHeader text={'Basic details'} />
+              <Grid sx={{ px: '8px' }} container spacing={4}>
+                {basicDetails.map(detail => (
+                  <Grid item size={{ xs: 12, sm: 6, md: 3 }} key={detail.label}>
+                    <FieldTooltip title={detail.label}>
+                      <Typography
+                        sx={{
+                          mb: '4px',
+                          fontWeight: 400,
+                          fontSize: '14px',
+                          letterSpacing: 0,
+                          color: theme.palette.customColors.neutralSecondary,
+                          textTransform: 'capitalize',
+                          textOverflow: 'ellipsis',
+                          overflow: 'hidden',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {detail.label}
+                      </Typography>
+                    </FieldTooltip>
+                    <FieldTooltip title={detail.value}>
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '16px',
+                          letterSpacing: 0,
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          textOverflow: 'ellipsis',
+                          overflow: 'hidden',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {detail.value}
+                      </Typography>
+                    </FieldTooltip>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <DetailsHeader text={'Anaesthesia details'} />
+              <Box
+                sx={{
+                  px: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '8px'
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: '14px',
+                    color: theme.palette.customColors.neutralSecondary,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <span>Anaesthesia Id</span>
+                  <Typography
+                    component='span'
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: '16px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    {anesthesiaInfo.code}
+                  </Typography>
+                  <Typography
+                    component='span'
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: '16px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    |
+                  </Typography>
+                  <Typography
+                    component='span'
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: '16px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    {anesthesiaInfo.datetime}
+                  </Typography>
+                </Typography>
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '16px',
+                    color: theme.palette.primary.OnSurface || theme.palette.primary.main,
+                    cursor: canViewAnesthesia ? 'pointer' : 'not-allowed',
+                    opacity: canViewAnesthesia ? 1 : 0.6
+                  }}
+                  onClick={canViewAnesthesia ? handleViewAnesthesiaDetails : undefined}
+                >
+                  View details
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <DetailsHeader text={'Surgery details'} />
+              <Box sx={{ px: '8px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <Grid container spacing={4}>
+                  {surgeryDetailItems.map(item => (
+                    <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label}>
+                      <FieldTooltip title={item.label}>
+                        <Typography
+                          sx={{
+                            mb: '4px',
+                            fontWeight: 400,
+                            fontSize: '14px',
+                            letterSpacing: 0,
+                            color: theme.palette.customColors.neutralSecondary,
+                            textTransform: 'capitalize',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {item.label}
+                        </Typography>
+                      </FieldTooltip>
+                      <FieldTooltip title={item.value}>
+                        <Typography
+                          sx={{
+                            fontWeight: 400,
+                            fontSize: '16px',
+                            letterSpacing: 0,
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {item.value}
+                        </Typography>
+                      </FieldTooltip>
+                    </Grid>
+                  ))}
+                </Grid>
+                <Box sx={{ mt: 2 }}>
+                  <Typography
+                    sx={{
+                      mb: '4px',
+                      fontWeight: 400,
+                      fontSize: '14px',
+                      letterSpacing: 0,
+                      color: theme.palette.customColors.neutralSecondary
+                    }}
+                  >
+                    Surgery notes
+                  </Typography>
+                  {/* <FieldTooltip title={surgeryNotesContent.text}> */}
+                  <FieldTooltip>
+                    <Box
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: '16px',
+                        letterSpacing: 0,
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        mb: 1.5,
+                        lineHeight: 1.5,
+                        '& p': { margin: 0 },
+                        '& ul': { paddingLeft: '1.5rem', margin: '8px 0' },
+                        '& ol': { paddingLeft: '1.5rem', margin: '8px 0' }
+                      }}
+                      dangerouslySetInnerHTML={{
+                        __html: surgeryNotesContent.html || '<span>--</span>'
+                      }}
+                    />
+                  </FieldTooltip>
+
+                  {findingsText && (
+                    <FieldTooltip title={`Findings: ${findingsText}`}>
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '16px',
+                          letterSpacing: 0,
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          mb: 1.5,
+                          display: '-webkit-box',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: 'vertical'
+                        }}
+                      >
+                        <strong>Findings:</strong> {findingsText}
+                      </Typography>
+                    </FieldTooltip>
+                  )}
+
+                  {procedurePerformedList.length > 0 && (
+                    <>
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '16px',
+                          letterSpacing: 0,
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          mb: 1
+                        }}
+                      >
+                        Procedure Performed:
+                      </Typography>
+                      <Box component='ul' sx={{ ml: '-8px', mt: 0, mb: 1 }}>
+                        {procedurePerformedList.map((item, idx) => (
+                          <li key={`${item}-${idx}`}>
+                            <FieldTooltip title={item}>
+                              <Typography
+                                component='span'
+                                sx={{
+                                  fontWeight: 400,
+                                  fontSize: '16px',
+                                  letterSpacing: 0,
+                                  color: theme.palette.customColors.OnSurfaceVariant,
+                                  display: '-webkit-box',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: 'vertical'
+                                }}
+                              >
+                                {item}
+                              </Typography>
+                            </FieldTooltip>
+                          </li>
+                        ))}
+                      </Box>
+                    </>
+                  )}
+
+                  {hemostasisText && (
                     <Typography
                       sx={{
-                        mb: '4px',
                         fontWeight: 400,
-                        fontSize: '14px',
+                        fontSize: '16px',
                         letterSpacing: 0,
-                        color: theme.palette.customColors.neutralSecondary,
-                        textTransform: 'capitalize',
-                        textOverflow: 'ellipsis',
-                        overflow: 'hidden',
-                        whiteSpace: 'nowrap'
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        mb: 0.5
                       }}
                     >
-                      {detail.label}
+                      <strong>Hemostasis:</strong> {hemostasisText}
                     </Typography>
-                  </FieldTooltip>
-                  <FieldTooltip title={detail.value}>
+                  )}
+
+                  {closureText && (
+                    <Typography
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: '16px',
+                        letterSpacing: 0,
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
+                    >
+                      <strong>Closure:</strong> {closureText}
+                    </Typography>
+                  )}
+                </Box>
+                <Box>
+                  <Typography
+                    sx={{
+                      // mb: '4px',
+                      fontWeight: 400,
+                      fontSize: '14px',
+                      letterSpacing: 0,
+                      color: theme.palette.customColors.neutralSecondary,
+                      textTransform: 'capitalize',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Complication
+                  </Typography>
+                  <FieldTooltip title={complicationText}>
                     <Typography
                       sx={{
                         fontWeight: 400,
@@ -660,20 +1042,18 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                         whiteSpace: 'nowrap'
                       }}
                     >
-                      {detail.value}
+                      {complicationText}
                     </Typography>
                   </FieldTooltip>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
+                </Box>
+              </Box>
+            </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <DetailsHeader text={'Surgery details'} />
-            <Box sx={{ px: '8px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <Grid container spacing={4}>
-                {surgeryDetailItems.map(item => (
-                  <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <DetailsHeader text={'Care instructions'} />
+              <Box sx={{ px: '8px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {careInstructionItems.map(item => (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }} key={item.label}>
                     <FieldTooltip title={item.label}>
                       <Typography
                         sx={{
@@ -698,224 +1078,38 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                           fontSize: '16px',
                           letterSpacing: 0,
                           color: theme.palette.customColors.OnSurfaceVariant,
-                          textOverflow: 'ellipsis',
+                          textTransform: 'capitalize',
+                          display: '-webkit-box',
                           overflow: 'hidden',
-                          whiteSpace: 'nowrap'
+                          textOverflow: 'ellipsis',
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: 'vertical'
                         }}
                       >
                         {item.value}
                       </Typography>
                     </FieldTooltip>
-                  </Grid>
+                  </Box>
                 ))}
-              </Grid>
-              <Box sx={{ mt: 2 }}>
-                <Typography
-                  sx={{
-                    mb: '4px',
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    letterSpacing: 0,
-                    color: theme.palette.customColors.neutralSecondary
-                  }}
-                >
-                  Surgery notes
-                </Typography>
-                {/* <FieldTooltip title={surgeryNotesContent.text}> */}
-                <FieldTooltip>
-                  <Box
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '16px',
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      mb: 1.5,
-                      lineHeight: 1.5,
-                      '& p': { margin: 0 },
-                      '& ul': { paddingLeft: '1.5rem', margin: '8px 0' },
-                      '& ol': { paddingLeft: '1.5rem', margin: '8px 0' }
-                    }}
-                    dangerouslySetInnerHTML={{
-                      __html: surgeryNotesContent.html || '<span>--</span>'
-                    }}
-                  />
-                </FieldTooltip>
-
-                {findingsText && (
-                  <FieldTooltip title={`Findings: ${findingsText}`}>
-                    <Typography
-                      sx={{
-                        fontWeight: 400,
-                        fontSize: '16px',
-                        letterSpacing: 0,
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        mb: 1.5,
-                        display: '-webkit-box',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: 'vertical'
-                      }}
-                    >
-                      <strong>Findings:</strong> {findingsText}
-                    </Typography>
-                  </FieldTooltip>
-                )}
-
-                {procedurePerformedList.length > 0 && (
-                  <>
-                    <Typography
-                      sx={{
-                        fontWeight: 400,
-                        fontSize: '16px',
-                        letterSpacing: 0,
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        mb: 1
-                      }}
-                    >
-                      Procedure Performed:
-                    </Typography>
-                    <Box component='ul' sx={{ ml: '-8px', mt: 0, mb: 1 }}>
-                      {procedurePerformedList.map((item, idx) => (
-                        <li key={`${item}-${idx}`}>
-                          <FieldTooltip title={item}>
-                            <Typography
-                              component='span'
-                              sx={{
-                                fontWeight: 400,
-                                fontSize: '16px',
-                                letterSpacing: 0,
-                                color: theme.palette.customColors.OnSurfaceVariant,
-                                display: '-webkit-box',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical'
-                              }}
-                            >
-                              {item}
-                            </Typography>
-                          </FieldTooltip>
-                        </li>
-                      ))}
-                    </Box>
-                  </>
-                )}
-
-                {hemostasisText && (
-                  <Typography
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '16px',
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      mb: 0.5
-                    }}
-                  >
-                    <strong>Hemostasis:</strong> {hemostasisText}
-                  </Typography>
-                )}
-
-                {closureText && (
-                  <Typography
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '16px',
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    <strong>Closure:</strong> {closureText}
-                  </Typography>
-                )}
-              </Box>
-              <Box>
-                <Typography
-                  sx={{
-                    // mb: '4px',
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    letterSpacing: 0,
-                    color: theme.palette.customColors.neutralSecondary,
-                    textTransform: 'capitalize',
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  Complication
-                </Typography>
-                <FieldTooltip title={complicationText}>
-                  <Typography
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '16px',
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {complicationText}
-                  </Typography>
-                </FieldTooltip>
               </Box>
             </Box>
-          </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <DetailsHeader text={'Care instructions'} />
-            <Box sx={{ px: '8px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {careInstructionItems.map(item => (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }} key={item.label}>
-                  <FieldTooltip title={item.label}>
-                    <Typography
-                      sx={{
-                        mb: '4px',
-                        fontWeight: 400,
-                        fontSize: '14px',
-                        letterSpacing: 0,
-                        color: theme.palette.customColors.neutralSecondary,
-                        textTransform: 'capitalize',
-                        textOverflow: 'ellipsis',
-                        overflow: 'hidden',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      {item.label}
-                    </Typography>
-                  </FieldTooltip>
-                  <FieldTooltip title={item.value}>
-                    <Typography
-                      sx={{
-                        fontWeight: 400,
-                        fontSize: '16px',
-                        letterSpacing: 0,
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        textTransform: 'capitalize',
-                        display: '-webkit-box',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: 'vertical'
-                      }}
-                    >
-                      {item.value}
-                    </Typography>
-                  </FieldTooltip>
-                </Box>
-              ))}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <DetailsHeader text={'ATTACHMENTS'} />
+              <MediaScroller items={attachments} />
             </Box>
           </Box>
+        )}
+      </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <DetailsHeader text={'ATTACHMENTS'} />
-            <MediaScroller items={attachments} />
-          </Box>
-        </Box>
-      )}
-    </Box>
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        loading={deleteLoading}
+        handleClose={handleDeleteDialogClose}
+        action={handleDeleteConfirm}
+        message='Are you sure you want to delete this surgery record?'
+      />
+    </>
   )
 }
 

@@ -711,6 +711,8 @@ export const LIST_SURGERY_TEMPLATES = 'v1/hospital/list-template'
 
 export const CREATE_SURGERY_TEMPLATE = 'v1/hospital/create-template'
 
+export const DELETE_SURGERY_RECORD = 'v1/hospital/delete-surgery-record'
+
 export const DELETE_TEMPLATE = 'v1/hospital/delete-template'
 
 export const UPDATE_TEMPLATE = 'v1/hospital/update-template'
@@ -833,9 +835,11 @@ export const GET_BATCH_LIST = 'vaccination/get-batch-list-by-medicine'
 
 export const GET_PRESCRIPTION_BY_RECORD = 'v1/hospital/list-prescription-by-record'
 
-//Hospital rooms
-
 export const GET_FREQUENCY = 'medical/frequency'
+
+export const GET_INTERVALS = 'medical/master/prescription/interval/list'
+
+//Hospital rooms
 
 //Hospital masters
 
@@ -936,3 +940,5 @@ export const GET_TRANSFER_CHECK = `v1/site/transfer/check/authority`
 export const GET_ANESTHESIA_MEDICATION = `v1/hospital/anaesthesia/medication/update`
 
 export const DELETE_ANESTHESIA_MEDICATION = `v1/hospital/anaesthesia/medication/delete`
+
+export const GET_UPCOMING_VACCINATION_RECORDS = 'v1/vaccination/deworming/animal/pending/report'

@@ -1,3 +1,4 @@
+/* eslint-disable lines-around-comment */
 import React, { useEffect, useState } from 'react'
 import {
   Box,
@@ -335,7 +336,6 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
 
   // Handle administer selected with form data
   const handleAdministerSelected = formData => {
-    console.log('handleAdministerSelected form data:', formData)
     if (onAdministerSelected) {
       const selectedItems = dosageEntries?.filter(item => selectedMedications.includes(item?.administritive_id))
       onAdministerSelected(selectedItems, medicineData, formData)
@@ -785,8 +785,24 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                       const [hours, minutes] = item.scheduled_time.split(':')
                       const scheduledDateTime = new Date(`${datePart}T${hours}:${minutes}:00`)
                       const now = new Date()
+                      const result = scheduledDateTime > now
 
-                      return scheduledDateTime > now
+                      return result
+                    }
+
+                    // added only day validation we can give enable for fast and future time only on present day
+
+                    const isAllowedDate = () => {
+                      if (!selectedDate) return false
+
+                      const today = new Date()
+                      today.setHours(0, 0, 0, 0)
+
+                      const selected = new Date(selectedDate.split(' ')[0])
+                      selected.setHours(0, 0, 0, 0)
+                      const result = selected <= today
+
+                      return result
                     }
 
                     return isPending ? (
@@ -798,7 +814,9 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                         checked={isSelected}
                         onChange={checked => handleMedicationSelect(item?.administritive_id, checked)}
                         isControlledSubstance={isControlledSubstance}
-                        disabled={isFutureTime()}
+                        // disabled={isFutureTime()}
+
+                        disabled={!isAllowedDate()}
                       />
                     ) : (
                       renderDosageEntry({
@@ -806,9 +824,10 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                         time: formatTime(item?.administritive_time || item?.scheduled_time),
                         status: item?.status || 'Pending',
                         dosage: `${item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
-                        amount: `${item?.quantity_administered || item?.scheduled_quantity} ${
-                          item?.scheduled_unit_name
-                        }`,
+                        amount:
+                          item?.status?.toLowerCase() === 'administered'
+                            ? `${item?.quantity_administered || item?.scheduled_quantity}`
+                            : `${item?.quantity_administered || item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
                         variant:
                           item?.status?.toLowerCase() === 'administered'
                             ? 'administered'
@@ -976,7 +995,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                           label='Batch Image'
                                           maxFiles={5}
                                           maxFileSize={5 * 1024 * 1024}
-                                          acceptedFileTypes='image/jpeg,image/png,image/jpg,application/pdf'
+                                          acceptedFileTypes='image,pdf'
                                         />
                                       </Grid>
                                     </Grid>

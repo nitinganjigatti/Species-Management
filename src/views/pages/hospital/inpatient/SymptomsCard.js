@@ -143,7 +143,6 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
         setDeleteLoading(false)
       }
     } catch (error) {
-      console.error('Error while updating symptom:', error)
       Toaster({ type: 'error', message: 'An error occurred while updating symptom.' })
     } finally {
       setIsDeleteDialogOpen(false)
@@ -159,6 +158,12 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
 
   const hasData = data =>
     (Array.isArray(data) && data?.length > 0) || (data && typeof data === 'object' && Object.keys(data)?.length > 0)
+
+  const formatDurationUnit = (value, unit) => {
+    if (!unit) return ''
+
+    return Number(value) === 1 ? unit.replace(/s$/i, '') : unit
+  }
 
   return (
     <Box
@@ -193,7 +198,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
           <MedicalIdChip
             leftImage
             medId={record?.medical_record_code || 'N/A'}
-            rightDot
+            rightDot={patientData?.medical_record_code === record?.medical_record_code}
             dotColor={theme.palette.primary.main}
             textColor={theme.palette.customColors.OnSurface}
           />
@@ -248,7 +253,8 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                {record?.additional_info?.duration} {record?.additional_info?.duration_unit}
+                {record?.additional_info?.duration}{' '}
+                {formatDurationUnit(record?.additional_info?.duration, record?.additional_info?.duration_unit)}
               </Box>
             )}
           </Box>
@@ -295,7 +301,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
                     <span style={{ color: theme.palette.customColors.OnSurfaceVariant }}> → </span>
                   )}
                   <strong style={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-                    {record?.latest_note?.notes_dump?.new_data?.severity}
+                    {record?.latest_note?.notes_dump?.new_data?.severity || record?.additional_info?.severity}
                   </strong>
                 </Typography>
               </Box>
@@ -346,9 +352,9 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
             )}
 
           <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.neutralSecondary }}>
-            Last Updated: {Utility.convertUTCToLocaltime(record?.latest_note?.modified_at)}
+            Last Updated: {Utility?.formatDisplayDate(record?.latest_note?.modified_at)}
             <span style={{ margin: '0 8px', color: theme.palette.customColors.neutralSecondary }}>•</span>
-            {Utility?.formatDisplayDate(record?.latest_note?.modified_at)}
+            {Utility.convertUTCToLocaltime(record?.latest_note?.modified_at)}
           </Typography>
         </Box>
 
@@ -372,7 +378,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
               {record?.status === 'active' ? 'Created by' : 'Resolved by'}
             </Typography>
             <UserAvatarDetails
-              profile_image={record?.additional_info?.resolved_user_profile_pic}
+              profile_image={record?.additional_info?.resolved_user_profile_pic || record?.created_user_profile_pic}
               user_name={record?.additional_info?.resolved_user_name || record?.created_by_user_name}
               date={
                 record?.status === 'active'

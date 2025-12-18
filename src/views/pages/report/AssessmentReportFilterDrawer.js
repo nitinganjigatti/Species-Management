@@ -99,28 +99,17 @@ const AssessmentReportFilterDrawer = ({
   //   setFilterCount(count)
   // }
   const calculateFilterCount = () => {
-    let count = 0
+    const hasLocationFilter = ['Site', 'Section', 'Enclosure'].some(
+      key => Array.isArray(tempSelectedItems[key]) && tempSelectedItems[key].length > 0
+    )
 
-    Object.entries(tempSelectedItems).forEach(([key, value]) => {
-      if (key === 'accession_start' || key === 'accession_end') {
-        // skip individual counting here
-        return
-      }
+    const hasAccessionFilter =
+      (typeof tempSelectedItems.accession_start === 'string' && tempSelectedItems.accession_start.trim() !== '') ||
+      (typeof tempSelectedItems.accession_end === 'string' && tempSelectedItems.accession_end.trim() !== '')
 
-      if (Array.isArray(value)) {
-        count += value.length
-      } else if (typeof value === 'string' && value.trim() !== '') {
-        count += 1
-      }
-    })
+    const hasGenderFilter = Array.isArray(tempSelectedItems.gender) && tempSelectedItems.gender.length > 0
 
-    // Accession Date: Count only once if either start or end is selected
-    if (
-      (tempSelectedItems.accession_start && tempSelectedItems.accession_start.trim() !== '') ||
-      (tempSelectedItems.accession_end && tempSelectedItems.accession_end.trim() !== '')
-    ) {
-      count += 1
-    }
+    const count = [hasLocationFilter, hasAccessionFilter, hasGenderFilter].filter(Boolean).length
 
     setFilterCount(count)
   }

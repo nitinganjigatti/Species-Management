@@ -3,18 +3,15 @@ import { useTheme, Card, Typography, IconButton, Drawer, Box, alpha } from '@mui
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
 
-// ** Form & Validation Setup
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form'
 
-// ** Custom Form Components
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledRadioGroup from 'src/views/forms/form-fields/ControlledRadioGroup'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import { AuthContext } from 'src/context/AuthContext'
 
-// Default Form Values
 const defaultValues = {
   hospital_id: null,
   room_name: '',
@@ -39,16 +36,13 @@ const AddHospitalRoom = props => {
   const authData = useContext(AuthContext)
   const getSitesList = useMemo(() => authData?.userData?.user?.zoos?.[0]?.sites ?? [], [authData?.userData?.user?.zoos])
 
-  // Determine mode and occupancy
+  // Determine mode and Conditional rendering flags
   const isHospitalEditMode = hospitalStatus
-  const hasOccupants = Number(hospitalDetails?.no_of_occupied || 0) === 0
-  const hasRoomOccupants = Number(editParams?.no_of_occupied || 0) === 0
-
-  // Conditional rendering flags
+  const hasOccupants = Number(hospitalDetails?.no_of_occupied) === 0
+  const hasRoomOccupants = Number(editParams?.no_of_occupied ?? 0) === 0 // When adding a new room, no_of_occupied is undefined, so default to 0
   const showRoomFields = !isHospitalEditMode
   const hospitalNameDisabled = !isHospitalEditMode
 
-  // Dynamic Validation Schema
   const schema = useMemo(() => {
     if (isHospitalEditMode) {
       if (hasOccupants) {
@@ -91,10 +85,9 @@ const AddHospitalRoom = props => {
     reValidateMode: 'onChange'
   })
 
-  // Handle form submission to add or update room  and  update hospital
   const onSubmit = async formData => {
     if (isHospitalEditMode) {
-      // update hospital payload
+      // update hospital
       const payload = {
         name: formData?.hospital_id,
         description: formData?.description,
@@ -109,7 +102,7 @@ const AddHospitalRoom = props => {
         reset(defaultValues)
       }
     } else {
-      // Room add/edit payload
+      // Room add/edit
       const payload = {
         hospital_id: hospitalId,
         room_name: formData?.room_name,
@@ -130,26 +123,23 @@ const AddHospitalRoom = props => {
     let prefill = { ...defaultValues }
     const matchedSite = getSitesList?.find(site => Number(site?.site_id) === Number(hospitalDetails?.site_id))
 
-    // Hospital edit modes
     if (isHospitalEditMode) {
       prefill = {
-        hospital_id: hospitalDetails?.hospital_name || '',
+        hospital_id: hospitalDetails?.hospital_name,
         site_id: matchedSite || null,
         description: hospitalDetails?.description || '',
         status: Boolean(isActive)
       }
     } else if (editParams?.id) {
-      //  Room edit mode
       prefill = {
-        hospital_id: hospitalDetails?.hospital_name || '',
-        room_name: editParams?.room_name || '',
-        floor_name: editParams?.floor_name || '',
+        hospital_id: hospitalDetails?.hospital_name,
+        room_name: editParams?.room_name,
+        floor_name: editParams?.floor_name,
         status: editParams?.status === '1' || editParams?.status === 1 || editParams?.status === 'active'
       }
     } else {
-      // Room create mode
       prefill = {
-        hospital_id: hospitalDetails?.hospital_name || '',
+        hospital_id: hospitalDetails?.hospital_name,
         room_name: '',
         floor_name: '',
         status: true
@@ -159,13 +149,11 @@ const AddHospitalRoom = props => {
     reset(prefill)
   }, [handleSidebarOpen])
 
-  // Close handler
   const handleClose = useCallback(() => {
     reset(defaultValues)
     handleSidebarClose()
   }, [handleSidebarClose])
 
-  // Drawer title
   const drawerTitle = useMemo(() => {
     if (isHospitalEditMode) return 'Update Hospital'
     if (editParams?.id) return 'Edit Room'
@@ -180,7 +168,6 @@ const AddHospitalRoom = props => {
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: ['100%', 562] } }}
     >
-      {/* Drawer Header */}
       <Box
         className='sidebar-header'
         sx={{
@@ -207,7 +194,6 @@ const AddHospitalRoom = props => {
         </IconButton>
       </Box>
 
-      {/* Drawer Body */}
       <Box
         className='sidebar-body'
         sx={{
@@ -292,8 +278,6 @@ const AddHospitalRoom = props => {
               )}
             </Box>
           </Card>
-
-          {/* Footer button */}
         </form>
       </Box>
       <Box

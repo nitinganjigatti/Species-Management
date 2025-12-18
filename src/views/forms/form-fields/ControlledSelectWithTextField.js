@@ -125,7 +125,13 @@ function ControlledSelectWithTextField({
   const getLabelSx = (shouldShrink, isBackgroundColor) => ({
     position: 'absolute',
     left: '14px',
-    top: shouldShrink ? '-11px' : '50%',
+
+    // top: shouldShrink ? '-11px' : '50%',
+    top: shouldShrink
+      ? '-11px'
+      : hasError
+      ? { xs: '40%', sm: '35%', md: '35%', lg: '40%' }
+      : { xs: '50%', sm: '45%', md: '45%', lg: '50%' },
     transform: shouldShrink ? 'translateY(0) scale(0.75)' : 'translateY(-50%) scale(1)',
     transformOrigin: 'left center',
     pointerEvents: 'none',
@@ -152,6 +158,18 @@ function ControlledSelectWithTextField({
 
   // Blur event handler to reset focus state
   const handleBlur = field => e => {
+    const relatedTarget = e.relatedTarget
+
+    if (
+      relatedTarget &&
+      (relatedTarget.closest('.MuiSelect-root') ||
+        relatedTarget.closest('[role="button"]') ||
+        relatedTarget.tagName === 'INPUT')
+    ) {
+      field.onBlur?.(e)
+
+      return
+    }
     setIsFocused(false)
     field.onBlur?.(e)
   }
@@ -281,16 +299,31 @@ function ControlledSelectWithTextField({
                 fullWidth={fullWidth}
                 size={size}
                 onChange={e => {
-                  const val = e.target.value
-                  if (type === 'number' && val !== '' && Number(val) < 1) {
-                    field.onChange(1)
+                  const newValue = e.target.value
+
+                  // For number type, validate against 2 decimal pattern
+                  if (type === 'number') {
+                    const twoDecimalPattern = /^\d*\.?\d{0,2}$/
+
+                    // Allow empty string, or numbers with up to 2 decimals
+                    if (newValue === '' || twoDecimalPattern.test(newValue)) {
+                      field.onChange(newValue)
+                    }
+
+                    // If user types a third decimal, truncate to 2
+                    else if (/^\d*\.\d{3,}$/.test(newValue)) {
+                      const parts = newValue.split('.')
+                      const truncated = parts[0] + '.' + parts[1].substring(0, 2)
+                      field.onChange(truncated)
+                    }
                   } else {
-                    field.onChange(e)
+                    field.onChange(newValue)
                   }
                 }}
                 inputProps={{
                   readOnly,
                   min: 1,
+                  pattern: type === 'number' ? '^d*(.d{0,2})?$' : undefined, // Regex for max 2 decimals
                   ...inputProps
                 }}
                 onWheel={handleWheel} // Prevent number input from changing value on mouse scroll
@@ -360,7 +393,7 @@ function ControlledSelectWithTextField({
 
       {/* Display combined error message if any field has error */}
       {hasError && (
-        <FormHelperText error sx={{ marginTop: '3px', marginX: '0.875rem' }}>
+        <FormHelperText error sx={{ marginTop: '1px', marginX: '0.875rem' }}>
           {textError || selectError || secondSelectError}
         </FormHelperText>
       )}

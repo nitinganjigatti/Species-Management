@@ -20,6 +20,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
+import BottomActionBar from 'src/views/utility/BottomActionBar'
 
 //schema
 const transferHospitalSchema = yup.object({
@@ -428,7 +429,7 @@ const TransferDischargeForm = props => {
             />
           </Box>
         </Box>
-        <Box
+        {/* <Box
           sx={{
             position: 'fixed',
             bottom: 0,
@@ -455,7 +456,16 @@ const TransferDischargeForm = props => {
           >
             Discharge Animal
           </LoadingButton>
-        </Box>
+        </Box> */}
+        <BottomActionBar
+          submitLabel='Discharge Animal'
+          submitBtnVariant='contained'
+          showCancel={false}
+          submitBtnStyle={{ px: 12, py: 3 }}
+          loading={submitLoader}
+          disabled={submitLoader}
+          submitBtnProps={{ type: 'submit' }}
+        />
       </form>
     </>
   )

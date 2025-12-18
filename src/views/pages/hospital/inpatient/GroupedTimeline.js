@@ -139,6 +139,7 @@ const TimelineSection = ({ section }) => {
 const GroupedTimeline = ({
   medicalSummaryData,
   isLoading,
+  isRefetching,
   searchQuery,
   onSearchChange,
   onMedicalTypeChange,
@@ -150,110 +151,136 @@ const GroupedTimeline = ({
   setOpenFilterDrawer,
   filterCount,
   filterDate,
-  setFilterDate
+  setFilterDate,
+  hasActiveFilters
 }) => {
   const theme = useTheme()
 
-  return (
-    <>
-      <Box sx={{ width: '100%', mt: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-        <>
+  const dataLength = medicalSummaryData?.length || 0
+  const noData = dataLength === 0
+  const filtering = hasActiveFilters
+
+  const Header = (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: { xs: 'center', sm: 'space-between' },
+        alignItems: { xs: 'stretch', sm: 'center' },
+        gap: 3,
+        mb: '1.5rem'
+      }}
+    >
+      <Search
+        borderRadius='4px'
+        width={{ xs: '100%', sm: 222 }}
+        value={searchQuery}
+        onChange={e => onSearchChange(e.target.value)}
+        onClear={onClearSearch}
+      />
+
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <CommonDateRangePickers
+          filterDates={filterDate}
+          onChange={(start, end) => setFilterDate({ startDate: start, endDate: end })}
+        />
+
+        <FilterButtonWithNotification onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={filterCount} />
+      </Box>
+    </Box>
+  )
+
+  if (isLoading && !filtering) {
+    return (
+      <Box sx={{ mt: 2 }}>
+        <TimelineSkeleton />
+      </Box>
+    )
+  }
+
+  if (!isLoading && !filtering && noData) {
+    return (
+      <Box
+        sx={{
+          width: '100%',
+          mt: '2rem',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}
+      >
+        <NoMedicalData isDischarged={true} />
+      </Box>
+    )
+  }
+
+  if (filtering && noData) {
+    return (
+      <Box sx={{ width: '100%', mt: '1.5rem' }}>
+        {Header}
+
+        {/* Show skeleton ONLY while filtering refetch */}
+        {isLoading ? (
+          <TimelineSkeleton />
+        ) : (
           <Box
             sx={{
+              width: '100%',
+              mt: 4,
               display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: { xs: 'center', sm: 'space-between' },
-              alignItems: { xs: 'stretch', sm: 'center' },
-              gap: 3,
-              mb: '1.5rem'
+              justifyContent: 'center',
+              alignItems: 'center'
             }}
           >
-            <Search
-              borderRadius={'4px'}
-              width={{ xs: '100%', sm: 222 }}
-              value={searchQuery}
-              onChange={e => onSearchChange(e.target.value)}
-              onClear={onClearSearch}
-            />
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <CommonDateRangePickers
-                filterDates={filterDate}
-                onChange={(start, end) => setFilterDate({ startDate: start, endDate: end })}
-              />
-              {/* <FormControl sx={{ minWidth: 120, flex: 1, m: 0 }}>
-                <Select
-                  value={medicalType}
-                  onChange={e => onMedicalTypeChange(e.target.value)}
-                  displayEmpty
-                  inputProps={{ 'aria-label': 'Without label' }}
-                  sx={{
-                    height: 40,
-                    width: { xs: '100%', sm: 200 },
-                    borderRadius: '4px'
-                  }}
-                >
-                  {medicalTypeOptions?.map(type => (
-                    <MenuItem key={type.value} value={type.value}>
-                      {type.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl> */}
-
-              <FilterButtonWithNotification
-                onClick={() => setOpenFilterDrawer(true)}
-                appliedFiltersCount={filterCount}
-              />
-            </Box>
+            <NoMedicalData isDischarged={true} />
           </Box>
-          {isLoading ? (
-            <TimelineSkeleton />
-          ) : medicalSummaryData?.length > 0 ? (
-            <>
-              {medicalSummaryData?.map((section, index) => {
-                const isLast = index === medicalSummaryData.length - 1
-
-                return (
-                  <Box key={`${section?.date}-${index}`} ref={isLast ? lastTimelineRef : null} sx={{ mb: '1rem' }}>
-                    <TimelineSection section={section} />
-                  </Box>
-                )
-              })}
-              {/* Show skeleton only when fetching more pages and we already have data */}
-              {isFetchingNextPage && medicalSummaryData.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <TimelineSkeleton />
-                </Box>
-              )}
-
-              {/*  Show "No more data" */}
-              {!hasNextPage && medicalSummaryData.length > 0 && (
-                <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.text.disabled }}>
-                  No more medical summary data to load
-                </StyledTypography>
-              )}
-            </>
-          ) : (
-            <Box
-              sx={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}
-            >
-              <NoMedicalData isDischarged={true} />
-            </Box>
-          )}
-        </>
+        )}
       </Box>
-    </>
+    )
+  }
+
+  return (
+    <Box sx={{ width: '100%', mt: '1.5rem' }}>
+      {Header}
+
+      {/* If filtering and refetching, show skeleton for data section */}
+      {isRefetching && filtering && (
+        <Box sx={{ mt: 2 }}>
+          <TimelineSkeleton />
+        </Box>
+      )}
+
+      {/* Data List */}
+      {!isRefetching &&
+        medicalSummaryData?.map((section, index) => {
+          const isLast = index === dataLength - 1
+
+          return (
+            <Box key={`${section?.date}-${index}`} ref={isLast ? lastTimelineRef : null} sx={{ mb: '1rem' }}>
+              <TimelineSection section={section} />
+            </Box>
+          )
+        })}
+
+      {/* Show skeleton only when fetching more pages */}
+      {isFetchingNextPage && (
+        <Box sx={{ mt: 2 }}>
+          <TimelineSkeleton />
+        </Box>
+      )}
+
+      {/*  Show "No more data" */}
+      {!hasNextPage && dataLength > 9 && (
+        <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.text.disabled }}>
+          No more medical summary data to load
+        </StyledTypography>
+      )}
+    </Box>
   )
 }
 
 export default GroupedTimeline
 
-// Styled Components
 const StyledTimeline = styled(Timeline)(() => ({
   [`& .${timelineOppositeContentClasses.root}`]: {
     flex: 0,
@@ -311,7 +338,6 @@ const StyledTypography = styled(Typography)(({ theme, fontWeight, fontSize, colo
   color: color || theme.palette.customColors.OnSurfaceVariant
 }))
 
-// skeleton loader
 const TimelineSkeleton = () => {
   return (
     <Timeline

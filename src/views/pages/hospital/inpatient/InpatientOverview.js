@@ -21,13 +21,20 @@ import Utility from 'src/utility'
 import { VisitType } from '../utility/hospitalSnippets'
 import { useHospital } from 'src/context/HospitalContext'
 import OverviewMediaListingDrawer from 'src/components/hospital/drawer/OverviewMediaListingDrawer'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+
+const STORAGE_KEY = 'medical_record_data'
 
 const InpatientOverview = ({ overviewData, refetchPatient }) => {
   const router = useRouter()
   const theme = useTheme()
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
+  console.log(overviewData)
 
   const { selectedHospital } = useHospital()
-  const { id, animal_id } = router.query
+  const { id } = router.query
+  const animal_id = medicalRecordData?.animal_id
 
   const [openDrawer, setOpenDrawer] = useState(false)
 
@@ -49,7 +56,7 @@ const InpatientOverview = ({ overviewData, refetchPatient }) => {
     })
   }, [router.query])
 
-  const { data, isFetching } = useQuery({
+  const { data: hospitalVisit, isFetching } = useQuery({
     queryKey: ['animal-total-hospital-visit', filters],
     queryFn: () =>
       getAnimalTotalHospitalVisits({
@@ -57,11 +64,12 @@ const InpatientOverview = ({ overviewData, refetchPatient }) => {
         limit: filters?.limit,
         animal_id: animal_id,
         hospital_id: selectedHospital?.id
-      })
+      }),
+    enabled: !!(animal_id && selectedHospital?.id)
   })
 
-  const total = data?.data?.total_records || 0
-  const rows = data?.data?.data || []
+  const total = hospitalVisit?.data?.total_records || 0
+  const rows = hospitalVisit?.data?.data || []
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -333,9 +341,9 @@ const InpatientOverview = ({ overviewData, refetchPatient }) => {
                   </Tooltip>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
                     <UserAvatarDetails
-                      profile_image={overviewData?.created_by_profile_pic}
-                      user_name={overviewData?.created_by_full_name}
-                      date={overviewData?.created_at}
+                      profile_image={overviewData?.transfer_by_profile_pic}
+                      user_name={overviewData?.transfer_by_full_name}
+                      date={overviewData?.transfer_created_at}
                       show_time={true}
                       size='medium'
                     />
@@ -379,7 +387,7 @@ const InpatientOverview = ({ overviewData, refetchPatient }) => {
                 </Grid>
               )}
               {/* Media Section */}
-              {mediaFiles.length > 0 && (
+              {mediaFiles?.length > 0 && (
                 <Grid
                   size={{ xs: 12, sm: 12, md: 12, lg: 4.3 }}
                   sx={{
@@ -392,7 +400,7 @@ const InpatientOverview = ({ overviewData, refetchPatient }) => {
                 >
                   {isLoadingMedia ? (
                     <CircularProgress size={20} sx={{ ml: 4 }} />
-                  ) : mediaFiles.length > 0 ? (
+                  ) : mediaFiles?.length > 0 ? (
                     <MoreMediaListing
                       mediaItems={mediaFiles}
                       maxVisibleItems={{ xs: 1, sm: 3, md: 4, lg: 2 }}
