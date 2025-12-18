@@ -1051,23 +1051,25 @@ const MedicinePrescriptionCard = ({
                     ) : (
                       <Box></Box>
                     )}
-                    {handleAddNewDosageTimeCheck(selectedDate) && !isStopDatePassed(medicineData?.stop_date) && (
-                      <Button
-                        variant='text'
-                        startIcon={<Icon icon='mdi:plus' />}
-                        onClick={handleAddNewDosage}
-                        disabled={isDetailLoading}
-                        sx={{
-                          color: theme.palette.customColors.OnSurface,
-                          fontSize: '16px',
-                          fontWeight: 500,
-                          transform: 'none',
-                          textTransform: 'none'
-                        }}
-                      >
-                        Add New Dosage
-                      </Button>
-                    )}
+                    {handleAddNewDosageTimeCheck(selectedDate) &&
+                      !isStopDatePassed(medicineData?.stop_date) &&
+                      medicineData?.prescription_frequency !== 'one_time' && (
+                        <Button
+                          variant='text'
+                          startIcon={<Icon icon='mdi:plus' />}
+                          onClick={handleAddNewDosage}
+                          disabled={isDetailLoading}
+                          sx={{
+                            color: theme.palette.customColors.OnSurface,
+                            fontSize: '16px',
+                            fontWeight: 500,
+                            transform: 'none',
+                            textTransform: 'none'
+                          }}
+                        >
+                          Add New Dosage
+                        </Button>
+                      )}
                   </Box>
                 )}
               </Box>
