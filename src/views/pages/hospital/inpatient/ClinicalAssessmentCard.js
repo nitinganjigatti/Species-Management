@@ -33,11 +33,10 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
     lastUpdated: record.latest_note?.modified_at || record.latest_note?.created_at || record.created_at,
     resolvedBy: record.additional_info?.closed_at
       ? {
-          name: record.additional_info?.resolved_user_name || record.created_by_user_name,
-          avatar:
-            record.additional_info?.resolved_user_profile_pic ||
-            record?.created_user_profile_pic ||
-            record.created_by_user_name,
+          name: resolved ? record.additional_info?.resolved_user_name : record.created_by_user_name,
+          avatar: resolved
+            ? record.additional_info?.resolved_user_profile_pic
+            : record?.created_user_profile_pic || record.created_by_user_name,
           date: record?.latest_note?.modified_at || record.additional_info?.closed_at
         }
       : null
