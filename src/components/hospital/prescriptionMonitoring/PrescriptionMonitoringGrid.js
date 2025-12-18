@@ -666,9 +666,7 @@ const PrescriptionMonitoringGrid = ({
 
     // ❌ Block only future days
     const result = scheduledDay <= today
-
-    console.log(result, 'result')
-    debugger
+    
 
     return result
   }

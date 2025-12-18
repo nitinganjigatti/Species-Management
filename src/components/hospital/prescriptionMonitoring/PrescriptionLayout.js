@@ -301,7 +301,8 @@ function PrescriptionLayout({ drawerType, overviewData }) {
         to_date: selectedDate,
         type: 'all',
         prescription_id: data?.id,
-        group_prescription_id: data?.group_prescription_id || data?.id
+        group_prescription_id: data?.group_prescription_id || data?.id,
+        request_from: 'hospital'
       }
 
       const response = await getDates(payload)
