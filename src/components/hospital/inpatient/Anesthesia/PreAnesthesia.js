@@ -32,6 +32,32 @@ function PreAnesthesia({
     setValue
   } = useFormContext()
 
+  const [duplicateError, setDuplicateError] = useState('')
+
+  const normalizeName = name => {
+    if (!name) return ''
+    return name.toLowerCase().replace(/\s+/g, '').trim()
+  }
+
+  const handleAddCustomItem = (newItem, currentItems) => {
+    const trimmed = newItem.trim()
+    if (!trimmed) {
+      setDuplicateError('')
+      return currentItems
+    }
+
+    const normalizedNewItem = normalizeName(trimmed)
+    const isInClinPathOptions = clinPathOptions.some(option => normalizeName(option.name) === normalizedNewItem)
+    const isInCustomItems = currentItems.some(item => normalizeName(item) === normalizedNewItem)
+
+    if (isInClinPathOptions || isInCustomItems) {
+      setDuplicateError('Item already exists')
+      return currentItems
+    }
+    setDuplicateError('')
+    return [...currentItems, trimmed]
+  }
+
   return (
     <Box sx={{ p: '0 0px 24px 0px' }}>
       <Grid container spacing={6}>
@@ -226,14 +252,27 @@ function PreAnesthesia({
             name='preAnesthesia.clin_path.custom'
             control={control}
             defaultValue={[]}
-            render={({ field }) => (
-              <CustomOtherPurposeSection
-                title='Add New other Item'
-                addedLabel='Other Clin Path Items Added'
-                value={field.value || []}
-                onChange={field.onChange}
-              />
-            )}
+            render={({ field }) => {
+              return (
+                <CustomOtherPurposeSection
+                  title='Add New other Item'
+                  addedLabel='Other Clin Path Items Added'
+                  value={field.value || []}
+                  onChange={newValue => {
+                    field.onChange(newValue)
+                  }}
+                  onAddItem={newItem => {
+                    const currentItems = field.value || []
+                    const updatedItems = handleAddCustomItem(newItem, currentItems)
+                    if (updatedItems !== currentItems) {
+                      field.onChange(updatedItems)
+                    }
+                  }}
+                  duplicateError={duplicateError}
+                  clearError={() => setDuplicateError('')}
+                />
+              )
+            }}
           />
         </Grid>
       </Grid>

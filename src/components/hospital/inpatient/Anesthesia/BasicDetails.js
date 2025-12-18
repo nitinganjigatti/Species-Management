@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   Box,
   TextField,
   Typography,
   Grid,
-  MenuItem,
   Button,
   ToggleButtonGroup,
   ToggleButton,
@@ -28,7 +27,9 @@ export default function BasicDetails({
   anesthetistOptions = [],
   purposeOptions = [],
   addLoader = false,
-  selectedHospital
+  selectedHospital,
+  loadMoreDoctors = () => {},
+  loadingDoctors = false
 }) {
   const {
     control,
@@ -39,7 +40,6 @@ export default function BasicDetails({
   const theme = useTheme()
   const [newPurpose, setNewPurpose] = useState('')
   const [newPurposeError, setNewPurposeError] = useState('')
-
   const timeUnits = [
     { label: 'hr', value: 'hr' },
     { label: 'min', value: 'min' }
@@ -76,10 +76,53 @@ export default function BasicDetails({
     }
   }
 
+  // Reusable slotProps for both Autocomplete components
+  const autocompleteSlotProps = useMemo(
+    () => ({
+      tags: options => ({
+        getTagProps: ({ index }) => ({
+          key: options[index]?.id,
+          label: options[index]?.name,
+          size: 'small'
+        })
+      }),
+      listbox: {
+        onScroll: event => {
+          const listboxNode = event.currentTarget
+          if (listboxNode.scrollTop + listboxNode.clientHeight >= listboxNode.scrollHeight - 5) {
+            loadMoreDoctors()
+          }
+        },
+        sx: {
+          position: 'relative',
+          '&::after': loadingDoctors
+            ? {
+                content: '"Loading more..."',
+                position: 'sticky',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                padding: '10px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                color: theme.palette.text.secondary,
+                fontStyle: 'italic',
+                borderTop: `1px solid ${theme.palette.divider}`,
+                backgroundColor: theme.palette.background.paper,
+                zIndex: 1
+              }
+            : {}
+        }
+      }
+    }),
+    [loadingDoctors, theme, loadMoreDoctors]
+  )
+
   const selectedPurpose = watch('basicDetails.selected') || []
   const selectedOtherPurpose = watch('basicDetails.custom') || []
-  console.log(purposeOptions, 'purposeOptions')
-  console.log(selectedOtherPurpose, 'selectedOtherPurpose')
+
   useEffect(() => {
     if (!selectedOtherPurpose.length || !purposeOptions.length) return
 
@@ -208,6 +251,7 @@ export default function BasicDetails({
             selectWidth={80}
           />
         </Grid>
+        {/* Veterinarian Field */}
         <Grid item size={{ xs: 12, md: 4 }}>
           <Controller
             name='basicDetails.veterinarian_id'
@@ -219,6 +263,7 @@ export default function BasicDetails({
                 options={vetOptions}
                 getOptionLabel={option => option?.name || ''}
                 isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                loading={loadingDoctors}
                 value={
                   vetOptions.filter(opt => (Array.isArray(field.value) ? field.value.includes(opt.id) : false)) || []
                 }
@@ -227,14 +272,14 @@ export default function BasicDetails({
                   field.onChange(selectedIds)
                 }}
                 slotProps={{
-                  tags: {
-                    getTagProps: ({ index }) => ({
-                      key: vetOptions[index]?.id,
-                      label: vetOptions[index]?.name,
-                      size: 'small'
-                    })
-                  }
+                  tags: autocompleteSlotProps.tags(vetOptions),
+                  listbox: autocompleteSlotProps.listbox
                 }}
+                renderOption={(props, option) => (
+                  <li {...props} key={option.id}>
+                    {option.name}
+                  </li>
+                )}
                 renderInput={params => (
                   <TextField
                     {...params}
@@ -250,6 +295,7 @@ export default function BasicDetails({
           />
         </Grid>
 
+        {/* Anesthetist Field */}
         <Grid item size={{ xs: 12, md: 4 }}>
           <Controller
             name='basicDetails.anesthetist_id'
@@ -261,6 +307,7 @@ export default function BasicDetails({
                 options={anesthetistOptions}
                 getOptionLabel={option => option?.name || ''}
                 isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                loading={loadingDoctors}
                 value={
                   anesthetistOptions.filter(opt =>
                     Array.isArray(field.value) ? field.value.includes(opt.id) : false
@@ -271,14 +318,14 @@ export default function BasicDetails({
                   field.onChange(selectedIds)
                 }}
                 slotProps={{
-                  tags: {
-                    getTagProps: ({ index }) => ({
-                      key: anesthetistOptions[index]?.id,
-                      label: anesthetistOptions[index]?.name,
-                      size: 'small'
-                    })
-                  }
+                  tags: autocompleteSlotProps.tags(anesthetistOptions),
+                  listbox: autocompleteSlotProps.listbox
                 }}
+                renderOption={(props, option) => (
+                  <li {...props} key={option.id}>
+                    {option.name}
+                  </li>
+                )}
                 renderInput={params => (
                   <TextField
                     {...params}

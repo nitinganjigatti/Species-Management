@@ -345,6 +345,9 @@ export default function AddAnesthesiaRecord() {
   const [anesthesiaSetupList, setanesthesiaSetupList] = useState([])
   const [clinPathList, setClinPathList] = useState([])
   const [doctors, setDoctors] = useState([])
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [patientLoading, setPatientLoading] = useState(false)
   const [patientData, setPatientData] = useState(null)
   const [unitList, setunitList] = useState([])
@@ -379,30 +382,37 @@ export default function AddAnesthesiaRecord() {
     })
   }
 
-  const getUserLists = async hospitalId => {
+  const getUserLists = async (hospitalId, pageNo = 1) => {
+    if (!hospitalId || loading) return
+
     try {
-      if (!hospitalId) return
+      setLoading(true)
       const params = {
-        // page_no: paginationModel.page + 1,
-        // limit: paginationModel.pageSize,
-        // q: debouncedSearch,
-        hospital_id: patientData?.hospital_id
+        hospital_id: hospitalId,
+        page_no: pageNo,
+        limit: 100
       }
       const res = await getHospitalStaff({ params })
-      if (res?.data?.records?.length > 0) {
-        setDoctors(
-          res.data?.records?.map(item => ({
-            name: item?.user_full_name,
-            id: item?.user_id,
-            default_icon: item?.user_profile_pic,
-            role_name: item?.role_name
-          }))
-        )
-      } else {
-        setDoctors([])
+      const data = res?.data
+      if (!data?.records?.length) {
+        setHasMore(false)
+        return
       }
-    } catch (error) {
-      console.log('user error', error)
+
+      const mapped = data.records.map(item => ({
+        id: item.user_id,
+        name: item.user_full_name,
+        default_icon: item.user_profile_pic,
+        role_name: item.role_name
+      }))
+
+      setDoctors(prev => (pageNo === 1 ? mapped : [...prev, ...mapped]))
+      setHasMore(data.current_page < data.total_pages)
+      setPage(data.current_page)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -523,8 +533,17 @@ export default function AddAnesthesiaRecord() {
     const hospitalId = patientData?.hospital_id
     if (!hospitalId) return
 
-    getUserLists(hospitalId)
+    setDoctors([])
+    setPage(1)
+    setHasMore(true)
+
+    getUserLists(hospitalId, 1)
   }, [patientData?.hospital_id])
+
+  const loadMoreDoctors = () => {
+    if (!hasMore || loading) return
+    getUserLists(patientData?.hospital_id, page + 1)
+  }
 
   const purposeStageOptions = [
     { label: 'Premedication', value: 'Premedication' },
@@ -1038,17 +1057,17 @@ export default function AddAnesthesiaRecord() {
       const isSelected = item.is_selected === '1' || item.is_selected === 1 || item.is_selected === true
       if (!isSelected) return
 
-      const isOther = item.is_other === '1' || item.is_other === 1 || item.is_other === true
-
-      if (!isOther) {
-        if (item.id != null) {
-          clinSelectedObj[String(item.id)] = true
-        }
-      } else {
-        if (item.name) {
-          clinCustomArr.push(item.name)
-        }
+      // const isOther = item.is_other === '1' || item.is_other === 1 || item.is_other === true
+      // if (!isOther) {
+      if (item.id != null) {
+        clinSelectedObj[String(item.id)] = true
       }
+      // }
+      // else {
+      //   if (item.name) {
+      //     clinCustomArr.push(item.name)
+      //   }
+      // }
     })
 
     const preAnesthesiaForm = {
@@ -1611,6 +1630,9 @@ export default function AddAnesthesiaRecord() {
         }
         Toaster({ type: 'success', message: response?.message })
         setAnesthesiaDetail(response?.data?.anaesthesia_detail)
+        fetchAnesthesiaSetup()
+        fetchAssessmentList()
+        fetchClinPathList()
         router.push(
           `/hospital/inpatient/${id}/AddAnesthesiaRecord/?tab=anesthesia&anaesthesia_id=${response?.data?.anaesthesia_id}`
         )
@@ -2023,6 +2045,8 @@ export default function AddAnesthesiaRecord() {
                       clinPathOptions={clinPathList}
                       addLoader={addLoader}
                       selectedHospital={selectedHospital}
+                      loadMoreDoctors={loadMoreDoctors}
+                      loadingDoctors={loading}
                     />
                   </AccordionDetails>
                 </Accordion>

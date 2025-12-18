@@ -124,9 +124,6 @@ const AddEditSymptomDrawer = ({
         if (responseNotes?.success === true) {
           setActivityListData(responseNotes?.data || [])
         }
-
-        // onClose()
-        //fetchNotesForSymptom()
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to update notes.' })
       }
@@ -403,7 +400,6 @@ const AddEditSymptomDrawer = ({
                 activities={processedActivities}
                 onEdit={handleEditActivity}
                 activityLoader={activityLoader}
-                activityListData={activityListData}
               />
             </>
           ) : (
