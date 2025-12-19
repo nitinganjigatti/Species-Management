@@ -707,7 +707,8 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       handleOpenPrescriptionCardForMultipleSlots({
         id: data?.data?.id,
         customDate: selectedDate,
-        administrative_ids: administrative_ids
+        administrative_ids: administrative_ids,
+        medicine_id: data?.data?.medicine_id
       })
     } else {
       setIsAdministerOrSkipPopupOpen(true)
@@ -900,6 +901,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
             category={category}
+
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -978,6 +980,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
+
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {

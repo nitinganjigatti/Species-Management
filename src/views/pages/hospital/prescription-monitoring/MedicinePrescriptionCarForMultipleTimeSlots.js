@@ -37,6 +37,7 @@ import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 // Custom styled components for drawer content
 const DrawerContent = styled(Box)(({ theme }) => ({
@@ -576,7 +577,13 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
 
       <Box sx={{ display: 'flex', padding: '0 16px', alignItems: 'center', gap: '10px', mb: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 0 0' }}>
-          <Avatar sx={{ width: '34px', height: '34px' }} src='/images/avatars/1.png' />
+          <UserAvatarDetails
+            user_name={entry.administeredBy}
+            profile_image={entry.administeredBy}
+            date={entry.administeredAt}
+            show_time={true}
+          />
+          {/* <Avatar sx={{ width: '34px', height: '34px' }} src='/images/avatars/1.png' />
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <Typography
               variant='body2'
@@ -587,7 +594,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
             <Typography variant='caption' sx={{ fontSize: '12px', color: theme.palette.customColors.neutralSecondary }}>
               {formatDisplayDateTime(entry.administeredAt)}
             </Typography>
-          </Box>
+          </Box> */}
         </Box>
       </Box>
     </DosageSection>
@@ -844,9 +851,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                         wastageNote: item?.notes || '',
                         batchNumber: item?.batch_details?.[0]?.batch_number || null,
                         administeredBy: item?.user_full_name || 'Unknown',
-                        administeredAt: item?.administritive_date
-                          ? new Date(item.administritive_date).toLocaleString()
-                          : '',
+                        administeredAt: item?.modified_at ? item.modified_at : '',
                         isStrikethrough: item?.status?.toLowerCase() === 'stopped',
                         batch_details: item?.batch_details
                       })
