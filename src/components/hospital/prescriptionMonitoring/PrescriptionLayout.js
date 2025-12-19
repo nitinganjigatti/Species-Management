@@ -104,6 +104,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
   const handleDateChange = date => {
     setSelectedDate(date)
+    setSelectedMetrics([])
     updateURLParams('date', date)
   }
 
