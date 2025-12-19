@@ -534,18 +534,12 @@ const MedicinePrescriptionCard = ({
 
       <Box sx={{ display: 'flex', padding: '0 16px', alignItems: 'center', gap: '10px', mb: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 0 0' }}>
-          <Avatar sx={{ width: '34px', height: '34px' }} src='/images/avatars/1.png' />
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Typography
-              variant='body2'
-              sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-            >
-              {entry.administeredBy}
-            </Typography>
-            <Typography variant='caption' sx={{ fontSize: '12px', color: theme.palette.customColors.neutralSecondary }}>
-              {formatDisplayDateTime(entry.administeredAt)}
-            </Typography>
-          </Box>
+          <UserAvatarDetails
+            user_name={entry.administeredBy}
+            profile_image={entry.administeredBy}
+            date={entry.administeredAt}
+            show_time={true}
+          />
         </Box>
 
         {entry?.status?.toLowerCase() != 'stopped' && (
@@ -968,7 +962,7 @@ const MedicinePrescriptionCard = ({
                       wastageNote: item?.notes || '',
                       batchNumber: item?.batch_details?.[0]?.batch_number || null,
                       administeredBy: item?.user_full_name || 'Unknown',
-                      administeredAt: item?.modified_at ? new Date(item.modified_at).toLocaleString() : '',
+                      administeredAt: item?.modified_at ? item.modified_at : '',
                       isStrikethrough: item?.status?.toLowerCase() === 'stopped',
                       batch_details: item?.batch_details
                     })
