@@ -1304,7 +1304,7 @@ export default function AddMedicineToPrescription() {
           delivery_route_id: deliveryRoute?.id || '',
           delivery_route_string_id: deliveryRoute?.string_id || '',
 
-          start_date: formatDateWithCurrentTime(data.prescriptionStartDate),
+          start_date: toISTISOString(data.prescriptionStartDate),
           end_date: isOneTimeFrequency
             ? toISTISOString(data.prescriptionStartDate)
             : formatDateWithCurrentTime(
@@ -1454,10 +1454,10 @@ export default function AddMedicineToPrescription() {
     handleMedicineSelect(editingMedicine)
   }, [editingMedicine])
 
-  useEffect(() => {
-    if (!fromPage) return
-    if (fromPage === 'prescriptionDetail') handleMedicineSelect(editingMedicine)
-  }, [editingMedicine])
+  // useEffect(() => {
+  //   if (!fromPage) return
+  //   if (fromPage === 'prescriptionDetail') handleMedicineSelect(editingMedicine)
+  // }, [editingMedicine])
 
   const getUnitIdFromName = (unitName, medicalMasterData) => {
     const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
