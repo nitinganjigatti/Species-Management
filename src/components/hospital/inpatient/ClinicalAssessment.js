@@ -29,12 +29,12 @@ const STORAGE_KEY = 'medical_record_data'
 const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const router = useRouter()
   const { data } = useDynamicStateContext()
-  const { id } = router.query
+  const { id, isCurrentMedicalRecordOnly } = router.query
   const medicalRecordData = data[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [localSearch, setLocalSearch] = useState('')
-  const [currentRecordOnly, setCurrentRecordOnly] = useState(false)
+  const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true')
   const [records, setRecords] = useState([])
   const [tabCounts, setTabCounts] = useState({ Active: 0, Resolved: 0, All: 0 })
   const [total, setTotal] = useState(0)
@@ -392,14 +392,14 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
     setCurrentRecordOnly(e.target.checked)
 
     // Update URL query parameter
-    // router.replace(
-    //   {
-    //     pathname: router.pathname,
-    //     query: { ...router.query, isCurrentMedicalRecordOnly: e.target.checked }
-    //   },
-    //   undefined,
-    //   { shallow: true } // Prevents full page refresh
-    // )
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, isCurrentMedicalRecordOnly: e.target.checked }
+      },
+      undefined,
+      { shallow: true } // Prevents full page refresh
+    )
   }
 
   return (
