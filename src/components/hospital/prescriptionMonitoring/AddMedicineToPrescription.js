@@ -1304,11 +1304,9 @@ export default function AddMedicineToPrescription() {
           delivery_route_id: deliveryRoute?.id || '',
           delivery_route_string_id: deliveryRoute?.string_id || '',
 
-          start_date: toISTISOString(data.prescriptionStartDate),
-
-          // start_date: isOneTimeFrequency
-          //   ? toISTISOString(data.prescriptionStartDate)
-          //   : `${toISTISOString(data.prescriptionStartDate).slice(0, 11)}00:00:00.000Z`,
+          start_date: isOneTimeFrequency
+            ? toISTISOString(data.prescriptionStartDate)
+            : toISTISOString(data.prescriptionStartDate).replace('+05:30', 'Z'),
           end_date: isOneTimeFrequency
             ? toISTISOString(data.prescriptionStartDate)
             : formatDateWithCurrentTime(
