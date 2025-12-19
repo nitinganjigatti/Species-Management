@@ -300,6 +300,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       const payload = {
         from_date: selectedDate,
         to_date: selectedDate,
+        hospital_case_id: id,
         type: 'all',
         prescription_id: data?.id,
         group_prescription_id: data?.group_prescription_id || data?.id,
