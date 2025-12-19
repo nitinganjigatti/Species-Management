@@ -17,7 +17,6 @@ import { Router, useRouter } from 'next/router'
 import { useForm, FormProvider } from 'react-hook-form'
 import dayjs from 'dayjs'
 import BasicDetails from 'src/components/hospital/inpatient/Anesthesia/BasicDetails'
-import AttachmentsSection from 'src/components/hospital/inpatient/Anesthesia/AttachmentsSection'
 import AnesthesiaSetUpSection from 'src/components/hospital/inpatient/Anesthesia/AnesthesiaSetUp'
 import VitalMonitoring from 'src/components/hospital/inpatient/Anesthesia/VitalMonitoring'
 import ActionButtons from 'src/components/hospital/FooterActionbuttons'
@@ -313,11 +312,7 @@ export const anesthesiaSchema = yup.object({
         entries: yup.object().default({})
       })
     )
-    .default([]),
-  attachments: yup.object({
-    files: yup.array().of(yup.mixed()).optional(),
-    comments: yup.string().optional()
-  })
+    .default([])
 })
 
 const sections = [
@@ -327,8 +322,6 @@ const sections = [
   { id: 'preAnesthesia', label: 'Pre Anesthesia', component: PreAnesthesia },
   { id: 'vitalMonitoring', label: 'Vital Monitoring', component: VitalMonitoring },
   { id: 'recoveryAndReversal', label: 'Recovery And Reversal', component: RecoveryAndReversal }
-
-  //   { id: 'attachments', label: 'Attachments', component: AttachmentsSection }
 ]
 
 export default function AddAnesthesiaRecord() {
@@ -642,10 +635,6 @@ export default function AddAnesthesiaRecord() {
         recovery: '',
         overall: '',
         reversalDrugs: []
-      },
-      attachments: {
-        files: [],
-        comments: ''
       }
     },
     mode: 'onSubmit',
@@ -658,10 +647,69 @@ export default function AddAnesthesiaRecord() {
     await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
   }
 
+  // const handleCancelNew = async () => {
+  //   // await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
+  //   // router.push(`/hospital/inpatient/${id}/?tab=anesthesia`)
+  //   reset()
+  // }
+
   const handleCancelNew = async () => {
-    // await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
-    // router.push(`/hospital/inpatient/${id}/?tab=anesthesia`)
-    reset()
+    reset({
+      basicDetails: {
+        location: '',
+        anaesthesia_datetime: '',
+        estimated_time_required: '',
+        estimated_time_unit: 'hr',
+        veterinarian_id: [],
+        anesthetist_id: [],
+        selected: [],
+        custom: [],
+        notes: ''
+      },
+      anesthesiaSetup: {},
+      medicationsGas: {
+        medications: [],
+        gases: []
+      },
+      vitalMonitoring: [],
+      preAnesthesia: {
+        temperature: '',
+        humidity: '',
+        physical_health_status: '',
+        body_condition: '',
+        animal_activity: '',
+        fasting_time: '',
+        fasting_unit: 'Hours',
+        previous_endotracheal_tube_size: '',
+        code_status: '',
+        weight: '',
+        weight_unit: 'Kg',
+        mark_weight_as_approximate: false,
+        pre_anesthesia_notes: '',
+        clin_path: {
+          selected: {},
+          custom: []
+        }
+      },
+      recoveryAndReversal: {
+        recovery_type: '',
+        recovery_first_effect: null,
+        recovery_full_effect: null,
+        describe_problem: '',
+        notes: '',
+        induction: '',
+        tolerance: '',
+        recovery: '',
+        overall: '',
+        reversalDrugs: []
+      }
+    })
+    setIsApiSuccess(false)
+    setExpanded('basicDetails')
+    setAnesthesiaDetail(null)
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }
 
   const {
@@ -1142,10 +1190,6 @@ export default function AddAnesthesiaRecord() {
       recoveryAndReversal: {
         ...recoveryForm,
         reversalDrugs: reversalFromApi
-      },
-      attachments: {
-        files: [],
-        comments: ''
       }
     })
   }, [anesthesiaDetail, reset])
@@ -1647,7 +1691,7 @@ export default function AddAnesthesiaRecord() {
   }
 
   const onInvalid = errors => {
-    const firstPath = Object.keys(errors.basicDetails || {})[0] || (errors.attachments ? 'attachments' : 'basicDetails')
+    const firstPath = Object.keys(errors.basicDetails || {})[0]
 
     if (firstPath) {
       setExpanded('basicDetails')
