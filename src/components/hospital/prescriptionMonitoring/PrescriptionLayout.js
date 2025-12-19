@@ -39,7 +39,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
   // Get ID from router (with fallback during initial render before router is ready)
-  const { id, date } = router.query
+  const { id, date, isCurrentMedicalRecordOnly } = router.query
   const medical_record_id = medicalRecordData?.medical_record_id
   const animal_id = medicalRecordData?.animal_id
 
@@ -55,7 +55,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
   const [isDatesLoading, setIsDatesLoading] = useState(false)
   const [isAdministerFormOpen, setIsAdministerFormOpen] = useState(true)
   const [isPrescriptionListLoading, setIsPrescriptionListLoading] = useState(false)
-  const [isCurrentMedicalRecord, setIsCurrentMedicalRecord] = useState(false)
+  const [isCurrentMedicalRecord, setIsCurrentMedicalRecord] = useState(isCurrentMedicalRecordOnly === 'true')
   const [isAdministerOrSkipPopupOpen, setIsAdministerOrSkipPopupOpen] = useState(false)
   const [isAdministerOrSkipPopupLoading, setIsAdministerOrSkipPopupLoading] = useState(false)
   const [selectedMedicine, setSelectedMedicine] = useState(null)

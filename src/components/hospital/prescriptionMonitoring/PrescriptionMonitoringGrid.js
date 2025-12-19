@@ -691,6 +691,23 @@ const PrescriptionMonitoringGrid = ({
     }
   }
 
+  const handleSwitchChange = e => {
+    setIsCurrentMedicalRecord(e.target.checked)
+
+    // Update URL query parameter
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          isCurrentMedicalRecordOnly: e.target.checked
+        }
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
+
   // Show shimmer loading state
   if (isLoading) {
     return (
@@ -787,7 +804,7 @@ const PrescriptionMonitoringGrid = ({
             </Box>
             <MUISwitch
               checked={isCurrentMedicalRecord}
-              onChange={() => setIsCurrentMedicalRecord(!isCurrentMedicalRecord)}
+              onChange={handleSwitchChange}
               label='Current medical records only'
             />
           </Grid>
@@ -796,7 +813,7 @@ const PrescriptionMonitoringGrid = ({
           <Grid item size={{ xs: 12, sm: 12 }} sx={{ display: 'flex' }}>
             <MUISwitch
               checked={isCurrentMedicalRecord}
-              onChange={() => setIsCurrentMedicalRecord(!isCurrentMedicalRecord)}
+              onChange={handleSwitchChange}
               label='Current medical records only'
               size='small'
               sx={{ ml: 2.6 }}

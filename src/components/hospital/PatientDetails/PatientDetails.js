@@ -242,7 +242,10 @@ const PatientDetails = ({ category }) => {
           query: {
             ...router.query,
             tab: newValue,
-            id: router.query.id
+            id: router.query.id,
+            ...(router.query.hasOwnProperty('isCurrentMedicalRecordOnly') && {
+              isCurrentMedicalRecordOnly: 'false'
+            })
           }
         },
         undefined,

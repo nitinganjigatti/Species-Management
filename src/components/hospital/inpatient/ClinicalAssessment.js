@@ -34,7 +34,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [localSearch, setLocalSearch] = useState('')
-  const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true')
+  const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true') 
   const [records, setRecords] = useState([])
   const [tabCounts, setTabCounts] = useState({ Active: 0, Resolved: 0, All: 0 })
   const [total, setTotal] = useState(0)
@@ -504,11 +504,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
           <MUISwitch
             label='Current Medical Record Only'
             checked={currentRecordOnly}
-            onChange={e => {
-              setRecords([])
-              setPage(1)
-              setCurrentRecordOnly(e.target.checked)
-            }}
+            onChange={handleRecordOnlyChange}
             size='small'
             sx={{ ml: 2.6 }}
           />
