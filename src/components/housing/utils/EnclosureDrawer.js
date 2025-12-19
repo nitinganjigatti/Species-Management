@@ -11,10 +11,12 @@ import { getAllEnclosures } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import SectionCard from 'src/views/pages/housing/section/SectionCard'
 import EnclosureCard from 'src/views/pages/housing/enclosures/EnclosureCard'
+import { useRouter } from 'next/router'
 
 const EnclosureDrawer = ({ open, onClose, data }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
+  const router = useRouter()
 
   const [localSearch, setLocalSearch] = useState('')
   const [search, setSearch] = useState('')
@@ -113,6 +115,22 @@ const EnclosureDrawer = ({ open, onClose, data }) => {
     debouncedSearch('')
   }
 
+  const handleEnclosureClick = useCallback(
+    enclosure => {
+      if (!enclosure?.enclosure_id) return
+      const query = { ...router.query }
+      query.tab && delete query.tab
+      router.push({
+        pathname: `/housing/enclosure/${enclosure.enclosure_id}`,
+        query: {
+          ...query,
+          enclosureTab: 'enclosures'
+        }
+      })
+    },
+    [router]
+  )
+
   return (
     <CustomDrawer
       open={open}
@@ -167,7 +185,7 @@ const EnclosureDrawer = ({ open, onClose, data }) => {
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
         {list.map(enclosure => (
           <Box key={enclosure?.enclosure_id}>
-            <EnclosureCard enclosure={enclosure} />
+            <EnclosureCard enclosure={enclosure} onClick={() => handleEnclosureClick(enclosure)} />
           </Box>
         ))}
 

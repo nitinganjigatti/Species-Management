@@ -16,8 +16,9 @@ const Stat = ({ label, value }) => (
   />
 )
 
-const EnclosureCard = ({ enclosure }) => {
+const EnclosureCard = ({ enclosure, onClick }) => {
   const theme = useTheme()
+  const isClickable = Boolean(onClick)
 
   return (
     <Box
@@ -29,8 +30,14 @@ const EnclosureCard = ({ enclosure }) => {
         display: 'flex',
         borderRadius: '8px',
         flexDirection: 'column',
-        gap: 4
+        gap: 4,
+        ...(isClickable && {
+          cursor: 'pointer',
+          transition: 'box-shadow 0.2s ease',
+          '&:hover': { boxShadow: theme.shadows[2] }
+        })
       }}
+      onClick={onClick}
     >
       <CellInfo
         value={enclosure?.user_enclosure_name}
