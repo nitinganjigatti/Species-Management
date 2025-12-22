@@ -3,6 +3,7 @@ import { Avatar, Box, Typography } from '@mui/material'
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import Icon from 'src/@core/components/icon'
 import RenderUtility from 'src/utility/render'
+import ReportProblemIcon from '@mui/icons-material/ReportProblem'
 
 const MetricCard = ({
   metric,
@@ -36,7 +37,13 @@ const MetricCard = ({
         })
       }}
     >
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: metric?.status === 'stopped' && metric.sideEffects == 1 ? '3px' : '4px'
+        }}
+      >
         <Box
           sx={{
             fontWeight: 500,
@@ -50,7 +57,7 @@ const MetricCard = ({
             gap: 1
           }}
         >
-          {(metric?.status === 'stopped' || metric?.status === 'skipped') && (
+          {((metric?.status === 'stopped' && metric?.sideEffects == 0) || metric?.status === 'skipped') && (
             <Box
               component='img'
               src={metric?.status === 'stopped' ? '/images/hospital/stop.svg' : '/images/hospital/skip.svg'}
@@ -75,7 +82,15 @@ const MetricCard = ({
 
           {metric?.name}
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+        {metric?.status === 'stopped' && metric?.sideEffects == 1 && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <ReportProblemIcon sx={{ fontSize: '10px', color: theme.palette.customColors.Tertiary }} />
+            <Typography sx={{ fontSize: '10px', color: theme.palette.customColors.Tertiary, fontWeight: 500 }}>
+              CAUSED ADVERSE SIDE EFFECTS
+            </Typography>
+          </Box>
+        )}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Icon icon='wi:time-9' width='12px' height='12px' />
           <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.secondaryBg }}>
             {metric?.progress?.split('/')[1]

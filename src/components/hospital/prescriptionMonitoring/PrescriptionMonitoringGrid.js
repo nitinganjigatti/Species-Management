@@ -428,6 +428,7 @@ const PrescriptionMonitoringGrid = ({
         timeSlots: medicationTimeSlots,
         controlled_substance: medication.controlled_substance,
         canEdit: medication.canEdit,
+        sideEffects: medication.side_effects,
         schedule:
           medication.schedule && Array.isArray(medication.schedule)
             ? medication.schedule.map(schedule => ({
@@ -520,9 +521,16 @@ const PrescriptionMonitoringGrid = ({
 
   // Count occurrences of each time
   const prescriptionCardColorsConfig = prescriptionDetails => {
-    const { status } = prescriptionDetails
+    const { status, sideEffects } = prescriptionDetails
 
-    if (status === 'stopped') {
+    if (status === 'stopped' && sideEffects == 1) {
+      return {
+        backgroundColor: alpha(theme.palette.customColors.antzNotes80, 0.5)
+        // border: `0.5px solid ${theme.palette.customColors.TertiaryContainer}`
+
+        // textStyle: ''
+      }
+    } else if (status === 'stopped') {
       return {
         backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.2),
         border: `0.5px solid ${theme.palette.customColors.TertiaryContainer}`
