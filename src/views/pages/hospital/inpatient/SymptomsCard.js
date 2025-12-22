@@ -307,27 +307,25 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
               </Box>
             )}
 
-          {record?.additional_info &&
-            (hasData(record?.latest_note?.notes_dump?.new_data) ||
-              hasData(record?.latest_note?.notes_dump?.old_data)) && (
-              <Tooltip title={record?.latest_note?.note} arrow placement='top'>
-                <Typography
-                  sx={{
-                    fontSize: '0.875rem',
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    mb: 1,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 1,
-                    WebkitBoxOrient: 'vertical',
-                    lineHeight: '1.4'
-                  }}
-                >
-                  Notes : {record?.latest_note?.note || 'N/A'}
-                </Typography>
-              </Tooltip>
-            )}
+          {record?.latest_note?.note && (
+            <Tooltip title={record?.latest_note?.note} arrow placement='top'>
+              <Typography
+                sx={{
+                  fontSize: '0.875rem',
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  mb: 1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 1,
+                  WebkitBoxOrient: 'vertical',
+                  lineHeight: '1.4'
+                }}
+              >
+                Notes : {record?.latest_note?.note}
+              </Typography>
+            </Tooltip>
+          )}
 
           {record?.additional_info &&
             !hasData(record?.latest_note?.notes_dump?.new_data) &&
