@@ -514,7 +514,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
       {/* Records List */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {/* Loading State */}
-        {isLoading && filteredRecords?.length === 0 && <ClinicalAssessmentShimmer count={5} />}
+        {isLoading && (filteredRecords?.length === 0 || !hasMore) && <ClinicalAssessmentShimmer count={5} />}
         {filteredRecords?.map((record, index) => (
           <ClinicalAssessmentCard
             key={record.id || index}
