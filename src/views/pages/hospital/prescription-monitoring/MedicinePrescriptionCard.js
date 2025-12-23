@@ -706,7 +706,7 @@ const MedicinePrescriptionCard = ({
                 </InfoItem>
               </InfoGroupContainer>
 
-              <InfoGroupContainer sx={{ borderRadius: '0' }}>
+              <InfoGroupContainer sx={{ borderRadius: !medicine?.notes && '0 0 8px 8px' }}>
                 <InfoItem>
                   <Icon icon='uil:calender' fontSize='32px' color={theme.palette.customColors.OnSurfaceVariant} />
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 0 0' }}>
@@ -747,15 +747,17 @@ const MedicinePrescriptionCard = ({
                 </InfoItem>
               </InfoGroupContainer>
 
-              <NotesContainer>
-                <Icon icon='mdi:note-text' fontSize='24px' color={theme.palette.warning.main} />
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, flex: '1 0 0' }}
-                >
-                  {medicine.notes}
-                </Typography>
-              </NotesContainer>
+              {medicine?.notes && (
+                <NotesContainer>
+                  <Icon icon='mdi:note-text' fontSize='24px' color={theme.palette.warning.main} />
+                  <Typography
+                    variant='body2'
+                    sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, flex: '1 0 0' }}
+                  >
+                    {medicine.notes}
+                  </Typography>
+                </NotesContainer>
+              )}
 
               <Typography
                 variant='caption'

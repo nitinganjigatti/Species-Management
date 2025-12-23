@@ -1020,7 +1020,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
           frequency: medicineDetails?.frequency || '-',
           duration: medicineDetails?.duration || '-',
           deliveryRoute: medicineDetails?.delivery_route_name || '-',
-          notes: medicineDetails?.notes || '-',
+          notes: medicineDetails?.notes,
           lastEdited:
             medicineDetails?.updated_at || medicineDetails?.created_at
               ? `Last edited on ${Utility.formatDisplayDate(
