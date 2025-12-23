@@ -114,7 +114,7 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }) => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <img src='/icons/Activity.svg' alt='Activity' />
               <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
-                Select Attending Doctor
+                Select Chief Veterinarian
               </Typography>
             </Box>
             <IconButton onClick={() => setOpen(false)}>

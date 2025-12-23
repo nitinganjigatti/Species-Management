@@ -105,7 +105,6 @@ const PatientDetails = ({ category }) => {
   const medicalRecordIdParam = medical_record_id || ''
 
   const isPatientDischarged = patientData?.status === 'discharge'
-  console.log(patientResponse)
 
   const overviewData = patientResponse
     ? {
