@@ -586,7 +586,7 @@ const AnimalAssessment = () => {
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {animalDetailsData.time} • {animalDetailsData.date}
+                    {animalDetailsData.date} • {animalDetailsData.time}
                   </Typography>
                 </Box>
               </Box>
