@@ -729,6 +729,8 @@ const AddParameterDataEntry = ({
           data={editHistoryData}
           refetch={refetchHistory}
           resType={resType}
+          measurementType={measurementType}
+          unitsData={unitsData}
         />
       )}
     </>

@@ -34,18 +34,22 @@ export const convertUTCToIST = utcDateTime => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
-const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
+const getSchema = (resType, measurementType) =>
+  yup.object().shape({
+    observation_value: ['numeric_value', 'numeric_scale', 'text', 'list'].includes(resType)
+      ? yup.string().required('Observation Value is required')
+      : yup.mixed().notRequired(),
+    observation_time: yup.string().required('Observation time is required'),
+    value_unit:
+      resType === 'numeric_value' && measurementType.trim() !== ''
+        ? yup.string().required('Unit is required')
+        : yup.mixed().notRequired()
+  })
+
+const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementType, unitsData }) => {
   const theme = useTheme()
 
-  const schema = useMemo(
-    () =>
-      yup.object().shape({
-        observation_value: yup.mixed().required('Observation Value is required'),
-        observation_time: yup.string().required('Observation time is required'),
-        value_unit: resType === 'numeric_value' ? yup.string().required('Unit is required') : yup.mixed().notRequired()
-      }),
-    [resType]
-  )
+  const schema = useMemo(() => getSchema(resType, measurementType), [resType, measurementType])
 
   const {
     control,
@@ -212,7 +216,22 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
                     </Typography>
                   </Grid>
 
-                  {resType === 'numeric_value' && (
+                  {resType === 'numeric_value' && measurementType.trim() === '' && (
+                    <Grid size={{ xs: 12 }}>
+                      <ControlledTextField
+                        control={control}
+                        name='observation_value'
+                        label='Enter Value'
+                        type='number'
+                        errors={errors}
+                        required
+                        inputBackgroundColor={theme.palette.customColors.Surface}
+                        sx={{ borderRadius: 1 }}
+                      />
+                    </Grid>
+                  )}
+
+                  {resType === 'numeric_value' && measurementType.trim() !== '' && (
                     <>
                       <Grid size={{ xs: 12, sm: 8 }}>
                         <ControlledTextField
@@ -220,6 +239,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
                           name='observation_value'
                           label='Enter Value'
                           errors={errors}
+                          type='number'
                           required
                           inputBackgroundColor={theme.palette.customColors.Surface}
                           sx={{ borderRadius: 1 }}
@@ -231,7 +251,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
                           errors={errors}
                           label='Select Unit'
                           name='value_unit'
-                          options={data?.unitsData || []}
+                          options={unitsData}
                           getOptionLabel={option => option.label}
                           getOptionValue={option => option.value}
                           required
@@ -251,7 +271,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
                         errors={errors}
                         label='Select Value'
                         name='observation_value'
-                        options={data?.unitsData || []}
+                        options={unitsData}
                         getOptionLabel={option => option.label}
                         getOptionValue={option => option.value}
                         required
@@ -330,6 +350,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
             </Button>
             <Button
               type='submit'
+              onClick={handleSubmit(onSubmit)}
               variant='contained'
               fullWidth
               sx={{
