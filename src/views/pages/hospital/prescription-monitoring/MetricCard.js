@@ -41,7 +41,7 @@ const MetricCard = ({
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          gap: metric?.status === 'stopped' && metric.sideEffects == 1 ? '3px' : '4px'
+          gap: metric?.status === 'restarted' && metric.sideEffects == 1 ? '3px' : '4px'
         }}
       >
         <Box
@@ -57,7 +57,7 @@ const MetricCard = ({
             gap: 1
           }}
         >
-          {((metric?.status === 'stopped' && metric?.sideEffects == 0) || metric?.status === 'skipped') && (
+          {(metric?.status === 'stopped' || metric?.status === 'skipped') && (
             <Box
               component='img'
               src={metric?.status === 'stopped' ? '/images/hospital/stop.svg' : '/images/hospital/skip.svg'}
@@ -82,7 +82,7 @@ const MetricCard = ({
 
           {metric?.name}
         </Box>
-        {metric?.status === 'stopped' && metric?.sideEffects == 1 && (
+        {metric?.status === 'restarted' && metric?.sideEffects == 1 && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <ReportProblemIcon sx={{ fontSize: '10px', color: theme.palette.customColors.Tertiary }} />
             <Typography sx={{ fontSize: '10px', color: theme.palette.customColors.Tertiary, fontWeight: 500 }}>

@@ -521,9 +521,9 @@ const PrescriptionMonitoringGrid = ({
 
   // Count occurrences of each time
   const prescriptionCardColorsConfig = prescriptionDetails => {
-    const { status, sideEffects } = prescriptionDetails
+    const { status } = prescriptionDetails
 
-    if (status === 'stopped' && sideEffects == 1) {
+    if (status === 'restarted') {
       return {
         backgroundColor: alpha(theme.palette.customColors.antzNotes80, 0.5)
         // border: `0.5px solid ${theme.palette.customColors.TertiaryContainer}`
