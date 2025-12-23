@@ -11,6 +11,8 @@ import Utility from 'src/utility'
 import MediaCard from 'src/views/utility/MediaCard'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
+
 import { deleteSurgeryRecord, getPatientSurgeryList } from 'src/lib/api/hospital/surgeryMaster'
 
 const FieldTooltip = ({ title, placement = 'top-start', children }) => (
@@ -675,7 +677,22 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
               {error ? (
                 <Typography sx={{ color: theme.palette.error.main }}>{error}</Typography>
               ) : (
-                <NoDataFound variant='Seal' height={300} width={300} />
+                <Box
+                  sx={{
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }}
+                >
+                  <NoMedicalData
+                    btnText={'ADD NEW SURGERY RECORD'}
+                    text={'All Added Surgery Records Will Appear here'}
+                    isDischarged={patientDischarged}
+                    btnAction={handleAddSurgeryRecord}
+                  />
+                </Box>
+                // <NoDataFound variant='Seal' height={300} width={300} />
               )}
             </Box>
           )
