@@ -14,7 +14,6 @@ import { useQuery } from '@tanstack/react-query'
 
 dayjs.extend(customParseFormat)
 
-import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 import AddAnesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnesthesiaRecord'
@@ -27,7 +26,7 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 import AddEditSurgeryDrawer from 'src/views/pages/hospital/masters/surgery'
 
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
-import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 
 import {
@@ -314,8 +313,6 @@ const AddSurgeryRecord = () => {
     () => (patientData?.admitted_at ? dayjs(patientData.admitted_at) : null),
     [patientData?.admitted_at]
   )
-  const auth = useAuth()
-  const userZooId = useMemo(() => auth?.userData?.user?.zoos?.[0]?.zoo_id, [auth?.userData])
 
   const buildDefaultFormValues = useCallback(
     () => ({
@@ -552,26 +549,25 @@ const AddSurgeryRecord = () => {
     return Array.from(unique.values())
   }, [surgeryMasterResponse, localProcedureOptions])
 
+  const hospitalId = patientData?.hospital_id
   const { data: surgeonsResponse, isFetching: isSurgeonsLoading } = useQuery({
-    queryKey: ['surgeon-list', surgeonSearchTerm, userZooId],
+    queryKey: ['surgeon-list', surgeonSearchTerm, hospitalId],
     queryFn: async () => {
-      const zooId = userZooId
-
-      if (!zooId) {
+      if (!hospitalId) {
         return []
       }
 
-      const params = { zoo_id: zooId, permission: 'medical_records_access' }
+      const params = { hospital_id: hospitalId }
       const trimmed = surgeonSearchTerm.trim()
 
       if (trimmed) {
         params.q = trimmed
       }
 
-      const res = await getUserList(params)
+      const res = await getHospitalStaff({ params })
 
       if (res?.success) {
-        return Array.isArray(res?.data) ? res.data : []
+        return Array.isArray(res?.data?.records) ? res.data.records : []
       }
 
       throw new Error(res?.message || 'Failed to fetch surgeons')
@@ -579,7 +575,7 @@ const AddSurgeryRecord = () => {
     keepPreviousData: true,
     staleTime: 5 * 60 * 1000,
     retry: false,
-    enabled: Boolean(userZooId),
+    enabled: Boolean(hospitalId),
     onError: error => {
       console.error('Failed to fetch surgeons:', error)
       Toaster({ type: 'error', message: error?.message || 'Failed to load surgeon list' })
@@ -591,7 +587,7 @@ const AddSurgeryRecord = () => {
 
     return surgeonsResponse
       .map(user => ({
-        label: getSafeString(user?.user_name),
+        label: getSafeString(user?.user_full_name),
         value: getSafeString(user?.user_id),
         default_icon: user?.user_profile_pic
       }))
