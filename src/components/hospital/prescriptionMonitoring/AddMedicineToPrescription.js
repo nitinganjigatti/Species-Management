@@ -23,6 +23,7 @@ import {
   getMedicineBatches,
   getPrescriptionDetails,
   getPrescriptions,
+  getSideEffectMedicines,
   stopPrescription
 } from 'src/lib/api/hospital/prescription'
 import Utility from 'src/utility'
@@ -33,6 +34,7 @@ import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import dayjs from 'dayjs'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -363,6 +365,10 @@ export default function AddMedicineToPrescription() {
   const [endsOn, setEndsOn] = useState(null)
   const [cancelOrCloseText, setCancelOrCloseText] = useState('CANCEL')
   const [medicineDetail, setMedicineDetail] = useState(null)
+  const [sideEffectMedicinesLoading, setSideEffectMedicinesLoading] = useState(false)
+  const [showSideEffectWarning, setShowSideEffectWarning] = useState(false)
+  const [warningMedicine, setWarningMedicine] = useState(null)
+  const [sideEffectMedicinesCache, setSideEffectMedicinesCache] = useState(null)
 
   const { selectedHospital: hospital } = useHospital()
 
@@ -560,22 +566,106 @@ export default function AddMedicineToPrescription() {
     }
   }
 
-  const handleMedicineSelect = medicine => {
+  const fetchSideEffectMedicines = async () => {
+    try {
+      setSideEffectMedicinesLoading(true)
+
+      const payload = {
+        animal_id: JSON.stringify([animal_id])
+      }
+
+      const response = await getSideEffectMedicines(payload)
+
+      if (response?.success) {
+        return response?.data
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {
+      Toaster({ type: 'error', message: error || 'Something went wrong' })
+    } finally {
+      setSideEffectMedicinesLoading(false)
+    }
+  }
+
+  // Helper function to check for side effects
+  const checkForSideEffects = (sideEffectMedicines, selectedMedicineId) => {
+    if (!sideEffectMedicines || !sideEffectMedicines.result) return false
+
+    // Extract all medicine_ids from the result array
+    const medicineIdsWithSideEffects = sideEffectMedicines.result
+      .map(item => (item.medicine_id ? item.medicine_id.toString() : null))
+      .filter(id => id !== null)
+
+    // Check if selected medicine ID is in the list
+    return medicineIdsWithSideEffects.includes(selectedMedicineId.toString())
+  }
+
+  const handleMedicineSelect = async medicine => {
     if (medicine) {
-      setValue('selectedMedicineId', medicine.id, { shouldValidate: true })
-      setValue('selectedMedicine', medicine, { shouldValidate: true })
-      setTemporarilySelectedMedicine({ ...medicine })
-      setSelectedMedicine({ ...medicine })
+      if(fromPage === "prescriptionDetail" || editingMedicine) {
+        proceedWithMedicineSelection(medicine)
 
-      // Reset batch number when medicine changes
-      setValue('batchNumber', null)
-      setBatchSearchQuery('')
+        return
+      }
 
-      // Only fetch batches if Direct Administer is selected
-      if (watch('selectMedicineType') === 'Direct Administer') {
-        fetchMedicineBatches(medicine.id, '')
+      let sideEffectMedicines
+      
+      // Use cached data if available, otherwise fetch
+      if (sideEffectMedicinesCache !== null) {
+        sideEffectMedicines = sideEffectMedicinesCache
+      } else {
+        sideEffectMedicines = await fetchSideEffectMedicines()
+        
+        // Cache the data for future use
+        setSideEffectMedicinesCache(sideEffectMedicines)
+      }
+
+      // Check if selected medicine has caused side effects
+      const hasSideEffects = checkForSideEffects(sideEffectMedicines, medicine.id)
+
+      if (hasSideEffects) {
+        // Show warning modal
+        setShowSideEffectWarning(true)
+        setWarningMedicine(medicine)
+
+        return // Don't proceed with selection until user confirms
+      } else {
+        proceedWithMedicineSelection(medicine)
       }
     }
+  }
+
+  // Function to proceed with medicine selection after confirmation
+  const proceedWithMedicineSelection = medicine => {
+    setValue('selectedMedicineId', medicine.id, { shouldValidate: true })
+    setValue('selectedMedicine', medicine, { shouldValidate: true })
+    setTemporarilySelectedMedicine({ ...medicine })
+    setSelectedMedicine({ ...medicine })
+
+    // Reset batch number when medicine changes
+    setValue('batchNumber', null)
+    setBatchSearchQuery('')
+
+    // Only fetch batches if Direct Administer is selected
+    if (watch('selectMedicineType') === 'Direct Administer') {
+      fetchMedicineBatches(medicine.id, '')
+    }
+  }
+
+  // Function to handle user confirmation from modal
+  const handleSideEffectConfirm = () => {
+    if (warningMedicine) {
+      proceedWithMedicineSelection(warningMedicine)
+    }
+    setShowSideEffectWarning(false)
+    setWarningMedicine(null)
+  }
+
+  const handleSideEffectCancel = () => {
+    setShowSideEffectWarning(false)
+    setWarningMedicine(null)
+    router.back()
   }
 
   // Add this after the cleanup useEffect
@@ -1630,7 +1720,7 @@ export default function AddMedicineToPrescription() {
               setValue={setValue}
               getValues={getValues}
               errors={errors}
-              isMedicineSelected={temporarilySelectedMedicine?.id}
+              isMedicineSelected={temporarilySelectedMedicine?.id || sideEffectMedicinesLoading}
               selectedMedicineTo={watch('selectMedicineType')}
               batchList={batchList}
               batchLoading={batchLoading}
@@ -1640,6 +1730,7 @@ export default function AddMedicineToPrescription() {
               endsOn={endsOn}
               stopDate={medicineDetail?.stop_date}
               reset={reset}
+              loadingSideEffects={sideEffectMedicinesLoading}
             />
           </Grid>
         </Grid>
@@ -1688,6 +1779,21 @@ export default function AddMedicineToPrescription() {
         }}
         onCancel={handleCancel}
       />
+      {showSideEffectWarning && warningMedicine && (
+        <ConfirmationDialog
+          dialogBoxStatus={showSideEffectWarning && warningMedicine}
+          onClose={handleSideEffectCancel}
+          title={'Caused adverse side effects, Do you want to add?'}
+          cancelText={'No'}
+          confirmBtnStyle={{ background: theme.palette.primary.main, py: 2 }}
+          image={'/images/warning-icon.svg'}
+          imgStyle={{ background: theme.palette.customColors.mdAntzNeutral, p: 4 }}
+          confirmAction={handleSideEffectConfirm} // Run actual add logic here
+          loading={sideEffectMedicinesLoading}
+          ConfirmationText={'YES'}
+          description={''}
+        />
+      )}
     </Box>
   )
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Typography, Button, Grid, Paper, IconButton } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { Box, Typography, Button, Grid, Paper, IconButton, CircularProgress } from '@mui/material'
+import { alpha, useTheme } from '@mui/material/styles'
 import { useFieldArray, useWatch } from 'react-hook-form'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
@@ -36,7 +36,8 @@ export default function ScheduleMedicine({
   reset,
   isOneTimeFrequency = false,
   stopDate,
-  endsOn
+  endsOn,
+  loadingSideEffects
 }) {
   const {
     caseTypes,
@@ -255,6 +256,38 @@ export default function ScheduleMedicine({
       })
     }
   }, [editingMedicineData, reset, medicalMasterData])
+
+  if (loadingSideEffects)
+    return (
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: alpha(theme?.palette?.customColors?.deepDark, 0.3),
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1299
+        }}
+      >
+        <Paper
+          sx={{
+            p: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2,
+            borderRadius: '8px'
+          }}
+        >
+          <CircularProgress />
+          <Typography>Checking for adverse side effects...</Typography>
+        </Paper>
+      </Box>
+    )
 
   return (
     <Box
