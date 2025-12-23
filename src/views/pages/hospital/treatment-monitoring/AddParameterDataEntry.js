@@ -34,6 +34,18 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import moment from 'moment'
 import NoDataFound from 'src/views/utility/NoDataFound'
 
+const convertTo24HourFormat = interval => {
+  if (!interval) return null
+
+  const [time, meridiem] = interval.trim().split(' ')
+  let hour = parseInt(time.split(':')[0], 10)
+
+  if (meridiem.toLowerCase() === 'pm' && hour !== 12) hour += 12
+  if (meridiem.toLowerCase() === 'am' && hour === 12) hour = 0
+
+  return `${String(hour).padStart(2, '0')}:00:00`
+}
+
 const parseIntervalToTimeRange = interval => {
   if (!interval) return null
 
@@ -123,7 +135,7 @@ const AddParameterDataEntry = ({
     queryKey: ['hospital-assessment-history', data?.parameter?.assessment_type_id, data?.date, hospitalCaseId],
     queryFn: () =>
       getHospitalAssessmentHistory({
-        date: data?.date,
+        date: `${data?.date} ${convertTo24HourFormat(data?.interval)}`,
         hospital_case_id: hospitalCaseId,
         assessment_type_id: data?.parameter?.assessment_type_id
       }),
@@ -731,6 +743,7 @@ const AddParameterDataEntry = ({
           resType={resType}
           measurementType={measurementType}
           unitsData={unitsData}
+          interval={data?.interval}
         />
       )}
     </>

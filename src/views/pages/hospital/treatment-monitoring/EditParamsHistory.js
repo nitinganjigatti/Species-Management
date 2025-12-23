@@ -12,6 +12,20 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { deleteAssessmentHistory, updateHospitalAssessmentHistory } from 'src/lib/api/hospital/treatmentMonitoring'
 import Toaster from 'src/components/Toaster'
 
+const parseIntervalToTimeRange = interval => {
+  if (!interval) return null
+
+  let [time, meridiem] = interval.split(' ')
+  let hour = parseInt(time.split(':')[0]) || parseInt(time)
+  if (meridiem?.toLowerCase() === 'pm' && hour !== 12) hour += 12
+  if (meridiem?.toLowerCase() === 'am' && hour === 12) hour = 0
+
+  const start = dayjs().hour(hour).minute(0).second(0)
+  const end = start.add(59, 'minute')
+
+  return { start, end }
+}
+
 const defaultValues = {
   observation_time: dayjs(),
   observation_value: '',
@@ -46,7 +60,7 @@ const getSchema = (resType, measurementType) =>
         : yup.mixed().notRequired()
   })
 
-const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementType, unitsData }) => {
+const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementType, unitsData, interval }) => {
   const theme = useTheme()
 
   const schema = useMemo(() => getSchema(resType, measurementType), [resType, measurementType])
@@ -130,6 +144,16 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
     }
   }
 
+  useEffect(() => {
+    if (open && interval) {
+      const { start } = parseIntervalToTimeRange(interval)
+      reset({
+        ...defaultValues,
+        observation_time: start // set to start of interval (e.g., 9:00 AM)
+      })
+    }
+  }, [open, interval])
+
   return (
     <>
       <Drawer
@@ -200,7 +224,13 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                   >
                     Observation Time
                   </Typography>
-                  <ControlledTimePicker control={control} name={'observation_time'} label='Time' />
+                  <ControlledTimePicker
+                    control={control}
+                    name={'observation_time'}
+                    label='Time'
+                    minTime={parseIntervalToTimeRange(interval)?.start || null}
+                    maxTime={parseIntervalToTimeRange(interval)?.end || null}
+                  />
                 </Box>
 
                 <Grid container rowSpacing={4} columnSpacing={3}>
