@@ -628,6 +628,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
   )
 
   const shouldShowDetails = Boolean(activeRecord)
+  const shouldShowEmptyState = !shouldShowDetails && !loading && !error
 
   return (
     <>
@@ -652,15 +653,16 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
             </Box>
           </Box>
 
-          {!patientDischarged && (
-            <Button
-              onClick={handleAddSurgeryRecord}
-              variant='contained'
-              sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
-            >
-              Add SURGERY RECORD
-            </Button>
-          )}
+          {loading ||
+            (!patientDischarged && !shouldShowEmptyState && (
+              <Button
+                onClick={handleAddSurgeryRecord}
+                variant='contained'
+                sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
+              >
+                Add SURGERY RECORD
+              </Button>
+            ))}
         </Box>
 
         {!shouldShowDetails ? (
