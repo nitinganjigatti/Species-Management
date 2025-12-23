@@ -314,14 +314,13 @@ const AddSurgeryRecord = () => {
     () => (patientData?.admitted_at ? dayjs(patientData.admitted_at) : null),
     [patientData?.admitted_at]
   )
-  const defaultNow = useMemo(() => dayjs(), [])
   const auth = useAuth()
   const userZooId = useMemo(() => auth?.userData?.user?.zoos?.[0]?.zoo_id, [auth?.userData])
 
   const buildDefaultFormValues = useCallback(
     () => ({
-      date: defaultNow,
-      startTime: null,
+      date: dayjs(),
+      startTime: dayjs(),
       endTime: null,
       procedure: null,
       surgeon: null,
@@ -335,7 +334,7 @@ const AddSurgeryRecord = () => {
       additionalNotes: '',
       attachments: []
     }),
-    [defaultNow]
+    []
   )
   const formResolver = useMemo(() => yupResolver(schema, { context: { admissionDateTime } }), [admissionDateTime])
 
