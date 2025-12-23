@@ -440,9 +440,9 @@ const MedicinePrescriptionCard = ({
                   textDecoration: entry.isStrikethrough ? 'line-through' : 'none'
                 }}
               >
-                {/* {formatTimeFromUTC(entry.time)} */}
+                {formatTimeFromUTC(entry.time)}
                 {/* time conveertion issue */}
-                {entry.time}
+                {/* {entry.time} */}
               </Typography>
               <Typography
                 variant='body2'
@@ -941,7 +941,7 @@ const MedicinePrescriptionCard = ({
                   ) : (
                     renderDosageEntry({
                       id: item?.administritive_id,
-                      time: formatTime(item?.scheduled_time), /// added sceduled time not adminster time
+                      time: formatTime(item?.administritive_time || item?.scheduled_time), /// added sceduled time not adminster time
                       status: item?.status || 'Pending',
                       dosage: `${item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
                       amount:
