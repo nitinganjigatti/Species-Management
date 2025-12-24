@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   Box,
   Button,
@@ -7,10 +7,6 @@ import {
   alpha,
   useTheme,
   CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Typography,
   IconButton,
   Tooltip
@@ -195,19 +191,19 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     {
       field: 'name',
       headerName: 'Medicine Name',
-      minWidth: 180,
+      minWidth: 200,
       flex: 1,
       sortable: false,
       renderCell: params => (
         <TextEllipsisWithModal
           enableDialog={false}
-          text={params?.row?.name ?? ''}
+          text={params?.row?.name || '-'}
           style={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '1rem',
             fontWeight: 600,
             pl: 1.4,
-            maxWidth: '160px'
+            maxWidth: '180px'
           }}
         />
       )
@@ -221,7 +217,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
       renderCell: params => (
         <TextEllipsisWithModal
           enableDialog={false}
-          text={`${params?.row?.dosage_count} / ${params?.row?.frequency}` ?? ''}
+          text={`${params?.row?.dosage_count} / ${params?.row?.frequency}`}
           style={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '1rem',
@@ -355,7 +351,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
         >
           <TextEllipsisWithModal
             enableDialog={false}
-            text={params?.row?.name ?? ''}
+            text={params?.row?.name || '-'}
             style={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '1rem',
@@ -366,7 +362,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
           />
           <TextEllipsisWithModal
             enableDialog={false}
-            text={params?.row?.generic_name ?? ''}
+            text={params?.row?.generic_name}
             style={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '0.875rem',
@@ -381,18 +377,18 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     {
       field: 'frequency_name',
       headerName: 'Dosage Times & Frequency',
-      minWidth: 220,
+      minWidth: 250,
       flex: 1,
       sortable: false,
       renderCell: params => (
         <TextEllipsisWithModal
           enableDialog={false}
-          text={`${params?.row?.schedule_doses?.length} Time / ${params?.row?.frequency_name}` ?? ''}
+          text={`${params?.row?.schedule_doses?.length} Time / ${params?.row?.frequency_name}`}
           style={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '1rem',
             pl: 1.4,
-            maxWidth: '200px',
+            maxWidth: '230px',
             fontWeight: 400
           }}
         />
@@ -434,17 +430,17 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     {
       field: 'delivery_route_name',
       headerName: 'Delivery Route',
-      minWidth: 140,
+      minWidth: 160,
       sortable: false,
       renderCell: params => (
         <TextEllipsisWithModal
           enableDialog={false}
-          text={params?.row?.delivery_route_label ?? ''}
+          text={params?.row?.delivery_route_label}
           style={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '1rem',
             pl: 1.4,
-            maxWidth: '200px',
+            maxWidth: '140px',
             fontWeight: 400
           }}
         />
@@ -702,7 +698,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
             control={control}
             render={({ field }) => (
               <Grid container spacing={6}>
-                {dischargeTypeOptions.map((item, index) => (
+                {dischargeTypeOptions?.map((item, index) => (
                   <Grid key={index} size={{ xs: 12, sm: 6, md: 4 }}>
                     <TreatmentTypeRadioButtons
                       label={item.label}

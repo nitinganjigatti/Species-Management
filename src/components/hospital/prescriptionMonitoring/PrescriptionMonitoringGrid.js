@@ -281,7 +281,8 @@ const PrescriptionMonitoringGrid = ({
   addPrescriptionToTimeslot,
   selectedMetrics,
   setSelectedMetrics,
-  isDischared
+  isDischared,
+  category
 }) => {
   const theme = useTheme()
   const router = useRouter()
@@ -427,6 +428,7 @@ const PrescriptionMonitoringGrid = ({
         timeSlots: medicationTimeSlots,
         controlled_substance: medication.controlled_substance,
         canEdit: medication.canEdit,
+        sideEffects: medication.side_effects,
         schedule:
           medication.schedule && Array.isArray(medication.schedule)
             ? medication.schedule.map(schedule => ({
@@ -521,7 +523,14 @@ const PrescriptionMonitoringGrid = ({
   const prescriptionCardColorsConfig = prescriptionDetails => {
     const { status } = prescriptionDetails
 
-    if (status === 'stopped') {
+    if (status === 'restarted') {
+      return {
+        backgroundColor: alpha(theme.palette.customColors.antzNotes80, 0.5)
+        // border: `0.5px solid ${theme.palette.customColors.TertiaryContainer}`
+
+        // textStyle: ''
+      }
+    } else if (status === 'stopped') {
       return {
         backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.2),
         border: `0.5px solid ${theme.palette.customColors.TertiaryContainer}`
@@ -666,7 +675,6 @@ const PrescriptionMonitoringGrid = ({
 
     // ❌ Block only future days
     const result = scheduledDay <= today
-    
 
     return result
   }
@@ -683,6 +691,31 @@ const PrescriptionMonitoringGrid = ({
     return `${hour.toString().padStart(2, '0')}:00:00`
   }
 
+  const handleRouterNavigation = () => {
+    if (category === 'Outpatients') {
+      router.push(`/hospital/outpatient/${id}/schedule-prescription`)
+    } else {
+      router.push(`/hospital/inpatient/${id}/schedule-prescription`)
+    }
+  }
+
+  const handleSwitchChange = e => {
+    setIsCurrentMedicalRecord(e.target.checked)
+
+    // Update URL query parameter
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          isCurrentMedicalRecordOnly: e.target.checked
+        }
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
+
   // Show shimmer loading state
   if (isLoading) {
     return (
@@ -692,15 +725,7 @@ const PrescriptionMonitoringGrid = ({
             <ShimmerHorizontalDateNav />
           </Grid>
           <Grid item size={{ xs: 4, sm: 3, lg: 2.5 }}>
-            <Button
-              onClick={() => {
-                router.push({
-                  pathname: `/hospital/inpatient/${id}/schedule-prescription`
-                })
-              }}
-              sx={{ height: '48px', width: '100%' }}
-              variant='contained'
-            >
+            <Button onClick={handleRouterNavigation} sx={{ height: '48px', width: '100%' }} variant='contained'>
               ADD PRESCRIPTION
             </Button>
           </Grid>
@@ -745,15 +770,7 @@ const PrescriptionMonitoringGrid = ({
         </Grid>
         {!isDischared ? (
           <Grid item size={{ xs: 4, sm: 3, lg: 2.5 }}>
-            <Button
-              onClick={() => {
-                router.push({
-                  pathname: `/hospital/inpatient/${id}/schedule-prescription`
-                })
-              }}
-              sx={{ height: '48px', width: '100%' }}
-              variant='contained'
-            >
+            <Button onClick={handleRouterNavigation} sx={{ height: '48px', width: '100%' }} variant='contained'>
               ADD PRESCRIPTION
             </Button>
           </Grid>
@@ -795,7 +812,7 @@ const PrescriptionMonitoringGrid = ({
             </Box>
             <MUISwitch
               checked={isCurrentMedicalRecord}
-              onChange={() => setIsCurrentMedicalRecord(!isCurrentMedicalRecord)}
+              onChange={handleSwitchChange}
               label='Current medical records only'
             />
           </Grid>
@@ -804,7 +821,7 @@ const PrescriptionMonitoringGrid = ({
           <Grid item size={{ xs: 12, sm: 12 }} sx={{ display: 'flex' }}>
             <MUISwitch
               checked={isCurrentMedicalRecord}
-              onChange={() => setIsCurrentMedicalRecord(!isCurrentMedicalRecord)}
+              onChange={handleSwitchChange}
               label='Current medical records only'
               size='small'
               sx={{ ml: 2.6 }}
@@ -976,11 +993,7 @@ const PrescriptionMonitoringGrid = ({
                 btnText={'ADD PRESCRIPTION'}
                 text={'All Added Prescriptions Will Appear here'}
                 isDischarged={isDischared}
-                btnAction={() => {
-                  router.push({
-                    pathname: `/hospital/inpatient/${id}/schedule-prescription`
-                  })
-                }}
+                btnAction={handleRouterNavigation}
               />
             </Box>
           )}

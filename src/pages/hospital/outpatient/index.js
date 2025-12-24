@@ -247,12 +247,12 @@ const HospitalOutPatient = () => {
             <Typography
               sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
             >
-              {Utility.convertUtcToLocalReadableDate(params?.row?.created_at)}
+              {Utility.convertUtcToLocalReadableDate(params?.row?.admitted_at)}
             </Typography>
             <Typography
               sx={{ fontSize: '12px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
             >
-              {Utility.convertUTCToLocaltime(params?.row?.created_at)}
+              {Utility.convertUTCToLocaltime(params?.row?.admitted_at)}
             </Typography>
           </Box>
         </>

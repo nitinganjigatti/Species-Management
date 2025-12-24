@@ -1,15 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Typography
-} from '@mui/material'
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material'
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import { useTheme } from '@mui/material/styles'
@@ -127,7 +118,10 @@ export default function VitalFormDialog({
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={(event, reason) => {
+        if (reason === 'backdropClick') return
+        onClose()
+      }}
       maxWidth={maxWidth}
       fullWidth
       PaperProps={{
@@ -169,7 +163,12 @@ export default function VitalFormDialog({
             {cancelLabel}
           </Button>
         ) : null}
-        <Button variant='contained' onClick={onSubmit} disabled={disableSubmit} sx={{ ...defaultSubmitButtonSx, ...submitButtonSx }}>
+        <Button
+          variant='contained'
+          onClick={onSubmit}
+          disabled={disableSubmit}
+          sx={{ ...defaultSubmitButtonSx, ...submitButtonSx }}
+        >
           {submitLabel}
         </Button>
       </DialogActions>

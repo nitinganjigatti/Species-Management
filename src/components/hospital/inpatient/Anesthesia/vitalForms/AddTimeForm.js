@@ -25,7 +25,6 @@ const parseInitialValue = initialValue => {
     }
   }
 
-  // 🔥 fallback to current time
   return dayjs()
 }
 
@@ -98,9 +97,9 @@ export default function AddTimeForm({ open, onClose, onSubmit, initialValue = ''
       open={open}
       onClose={onClose}
       onSubmit={handleSubmit}
-      submitLabel='Add'
+      submitLabel={initialValue ? 'Update Time' : 'Add Time'}
       hideCancel
-      title='Add Time'
+      title={initialValue ? 'Edit Time' : 'Add Time'}
       disableSubmit={disableSubmit}
       headerSx={{
         height: '52px',
@@ -166,11 +165,11 @@ export default function AddTimeForm({ open, onClose, onSubmit, initialValue = ''
             slotProps={{
               textField: {
                 fullWidth: true,
-                placeholder: '01:00 PM',
+                placeholder: 'Select time',
                 sx: timePickerTextFieldStyles,
                 inputRef: timeInputRef,
                 inputProps: {
-                  placeholder: '01:00 PM'
+                  placeholder: 'Select time'
                 }
               },
               openPickerButton: {

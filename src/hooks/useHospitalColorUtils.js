@@ -6,11 +6,11 @@ const useHospitalColorUtils = () => {
 
   const getSeverityColor = severity => {
     switch (severity) {
-      case 'Guarded':
-        return { bgColor: theme.palette.customColors.displaybgPrimary, color: theme.palette.customColors.addPrimary }
       case 'Favourable':
+        return { bgColor: theme.palette.customColors.displaybgPrimary, color: theme.palette.customColors.addPrimary }
+      case 'Guarded':
         return {
-          bgColor: alpha(theme.palette.customColors.moderateSecondary, 0.2),
+          bgColor: alpha(theme.palette.customColors.Notes, 0.7),
           color: theme.palette.customColors.moderateSecondary
         }
       case 'Doubtful':

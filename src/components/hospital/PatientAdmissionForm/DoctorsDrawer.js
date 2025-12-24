@@ -83,7 +83,8 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }) => {
           paper: {
             sx: {
               width: { xs: '100%', sm: '80%', md: 560 },
-              height: '100vh',
+
+              // height: '100vh',
               display: 'flex',
               flexDirection: 'column',
               backgroundColor: 'customColors.Background',
@@ -114,7 +115,7 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }) => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <img src='/icons/Activity.svg' alt='Activity' />
               <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
-                Select Attending Doctor
+                Select Chief Veterinarian
               </Typography>
             </Box>
             <IconButton onClick={() => setOpen(false)}>

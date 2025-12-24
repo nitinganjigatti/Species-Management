@@ -1,6 +1,8 @@
 import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import { Box, Button, CircularProgress, Typography, useMediaQuery } from '@mui/material'
+import { useSettings } from 'src/@core/hooks/useSettings'
+import themeConfig from 'src/configs/themeConfig'
 
 export default function ActionButtonsWithSelection({
   selectedCount = 0,
@@ -14,14 +16,19 @@ export default function ActionButtonsWithSelection({
   isCancelLoading
 }) {
   const theme = useTheme()
-  const isSmallDevice = useMediaQuery(theme.breakpoints.down('lg'))
+  const { settings } = useSettings()
+  const { navCollapsed } = settings
+  const { navigationSize, collapsedNavigationSize } = themeConfig
+  const isMobile = useMediaQuery(theme.breakpoints.down('lg'))
+
+  const leftOffset = isMobile ? 0 : navCollapsed ? collapsedNavigationSize : navigationSize
 
   return (
     <Box
       sx={{
         position: 'fixed',
         bottom: 0,
-        left: isSmallDevice ? '0px' : '295px',
+        left: `${leftOffset}px`,
         right: 0,
         display: 'flex',
         justifyContent: 'space-between',
@@ -30,10 +37,9 @@ export default function ActionButtonsWithSelection({
         p: 6,
         background: theme.palette.common.white,
         borderRadius: '6px 6px 0 0',
-        zIndex: 1200,
+        zIndex: 100,
         mt: 4,
-        boxShadow: '0 -4px 6px rgba(0,0,0,0.1)',
-        width: isSmallDevice ? '100%' : 'auto'
+        boxShadow: '0 -4px 6px rgba(0,0,0,0.1)'
       }}
     >
       {/* Selection Counter */}
