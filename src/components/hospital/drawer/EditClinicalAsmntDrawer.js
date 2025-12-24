@@ -84,9 +84,9 @@ const EditClinicalAsmntDrawer = ({
       oldSeverity: activity?.notes_dump?.old_data?.severity || '',
       newSeverity: activity?.notes_dump?.new_data?.severity || '',
       createdBy: activity?.created_by_user_name || '',
-      formattedTime: `${Utility.convertUTCToLocaltime(
+      formattedTime: `${Utility.convertUtcToLocalReadableDate(activity?.modified_at || activity.created_at)} • ${Utility.convertUTCToLocaltime(
         activity?.modified_at || activity?.created_at
-      )} • ${Utility.convertUtcToLocalReadableDate(activity?.modified_at || activity.created_at)}`,
+      )}`,
       note: activity.note || '',
       clinicalAssessment: activity.clinical_assessment === 'diagnosis' ? 'Diagnosis' : 'Tentative',
       oldRecord: activity?.notes_dump?.old_data?.clinical_assessment,

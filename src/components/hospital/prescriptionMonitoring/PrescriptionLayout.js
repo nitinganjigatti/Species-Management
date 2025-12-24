@@ -1114,9 +1114,9 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
           notes: medicineDetails?.notes || '-',
           lastEdited:
             medicineDetails?.updated_at || medicineDetails?.created_at
-              ? `Last edited on ${Utility.convertUTCToLocaltime(
+              ? `Last edited on ${Utility.formatDisplayDate(
                   medicineDetails?.updated_at || medicineDetails?.created_at
-                )} • ${Utility.formatDisplayDate(medicineDetails?.updated_at || medicineDetails?.created_at)}`
+                )} • ${Utility.convertUTCToLocaltime(medicineDetails?.updated_at || medicineDetails?.created_at)}`
               : '-',
           defaultTab: 2,
           prescription_id: medicineDetails?.prescription_id,

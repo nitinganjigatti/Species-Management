@@ -76,7 +76,7 @@ const AddEditSymptomDrawer = ({
       oldSeverity: activity?.notes_dump?.old_data?.severity || '',
       newSeverity: activity?.notes_dump?.new_data?.severity || '',
       createdBy: activity?.created_by_user_name || '',
-      formattedTime: `${Utility.convertUTCToLocaltime(activity?.created_at)} • ${Utility.formatDisplayDate(
+      formattedTime: `${Utility.formatDisplayDate(activity?.created_at)} • ${Utility.convertUTCToLocaltime(
         activity?.created_at
       )}`,
       note: activity.note || 'N/A'
