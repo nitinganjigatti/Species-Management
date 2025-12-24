@@ -58,7 +58,7 @@ const TimeSlotCell = ({ hasSchedule, status, scheduledTime, administeredTime, do
               }}
               variant='caption'
             >
-              {/* {status == 'administered' ? formatToIST(administeredTime) : formatScheduledTime(scheduledTime)} */}
+              {status == 'administered' ? formatToIST(administeredTime) : formatScheduledTime(scheduledTime)}
               {/* hidden for now */}
             </Typography>
           </Box>

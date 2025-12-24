@@ -428,6 +428,7 @@ const PrescriptionMonitoringGrid = ({
         timeSlots: medicationTimeSlots,
         controlled_substance: medication.controlled_substance,
         canEdit: medication.canEdit,
+        sideEffects: medication.side_effects,
         schedule:
           medication.schedule && Array.isArray(medication.schedule)
             ? medication.schedule.map(schedule => ({
@@ -522,7 +523,14 @@ const PrescriptionMonitoringGrid = ({
   const prescriptionCardColorsConfig = prescriptionDetails => {
     const { status } = prescriptionDetails
 
-    if (status === 'stopped') {
+    if (status === 'restarted') {
+      return {
+        backgroundColor: alpha(theme.palette.customColors.antzNotes80, 0.5)
+        // border: `0.5px solid ${theme.palette.customColors.TertiaryContainer}`
+
+        // textStyle: ''
+      }
+    } else if (status === 'stopped') {
       return {
         backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.2),
         border: `0.5px solid ${theme.palette.customColors.TertiaryContainer}`
@@ -691,6 +699,23 @@ const PrescriptionMonitoringGrid = ({
     }
   }
 
+  const handleSwitchChange = e => {
+    setIsCurrentMedicalRecord(e.target.checked)
+
+    // Update URL query parameter
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          isCurrentMedicalRecordOnly: e.target.checked
+        }
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
+
   // Show shimmer loading state
   if (isLoading) {
     return (
@@ -787,7 +812,7 @@ const PrescriptionMonitoringGrid = ({
             </Box>
             <MUISwitch
               checked={isCurrentMedicalRecord}
-              onChange={() => setIsCurrentMedicalRecord(!isCurrentMedicalRecord)}
+              onChange={handleSwitchChange}
               label='Current medical records only'
             />
           </Grid>
@@ -796,7 +821,7 @@ const PrescriptionMonitoringGrid = ({
           <Grid item size={{ xs: 12, sm: 12 }} sx={{ display: 'flex' }}>
             <MUISwitch
               checked={isCurrentMedicalRecord}
-              onChange={() => setIsCurrentMedicalRecord(!isCurrentMedicalRecord)}
+              onChange={handleSwitchChange}
               label='Current medical records only'
               size='small'
               sx={{ ml: 2.6 }}

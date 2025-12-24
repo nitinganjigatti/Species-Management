@@ -16,11 +16,13 @@ const STORAGE_KEY = 'medical_record_data'
 const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
   const router = useRouter()
   const { data } = useDynamicStateContext()
+  const { id, isCurrentMedicalRecordOnly } = router.query
+
   const isDischared = overviewData?.status === 'discharge'
   const medicalRecordData = data[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
-  const [currentRecordOnly, setCurrentRecordOnly] = useState(false)
+  const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true')
   const [records, setRecords] = useState([])
   const [recordTypeCount, setRecordTypeCount] = useState({})
   const [totalCount, setTotalCount] = useState(0)
@@ -28,7 +30,6 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
   const [page, setPage] = useState(1)
   const [isFetchingMore, setIsFetchingMore] = useState(false)
 
-  const { id } = router.query
   const animalId = medicalRecordData?.animal_id
   const medicalRecordId = medicalRecordData?.medical_record_id
   const theme = useTheme()
@@ -155,6 +156,25 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
     }
   }
 
+  const handleSwitchChange = e => {
+    setPage(1)
+    setRecords([])
+    setCurrentRecordOnly(e.target.checked)
+
+    // Update URL query parameter
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          isCurrentMedicalRecordOnly: e.target.checked
+        }
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
+
   return (
     <Box>
       <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -245,7 +265,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
             <MUISwitch
               label='Current Medical Record Only'
               checked={currentRecordOnly}
-              onChange={e => setCurrentRecordOnly(e.target.checked)}
+              onChange={handleSwitchChange}
               size='small'
               sx={{ ml: 2.6 }}
             />

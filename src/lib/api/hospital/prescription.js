@@ -12,6 +12,7 @@ import {
   GET_PRESCRIPTION_DETAILS_DATES,
   GET_PRESCRIPTION_LIST,
   GET_TRANSFER_CHECK,
+  MEDICINE_SIDE_EFFECT,
   SCHEDULE_PRESCRIPTION,
   SKIP_PRESCRIPTION,
   STOP_PRESCRIPTION,
@@ -58,6 +59,16 @@ export async function getPrescriptionDetails(params) {
     return response?.data
   } catch (error) {
     console.error('Error fetching clinical notes:', error.message)
+  }
+}
+
+export async function getSideEffectMedicines(payLoad) {
+  try {
+    const response = await axiosFormPost({ url: `${MEDICINE_SIDE_EFFECT}`, body: payLoad })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error adding prescription:', error.message)
   }
 }
 

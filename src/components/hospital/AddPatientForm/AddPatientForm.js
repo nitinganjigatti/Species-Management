@@ -103,8 +103,6 @@ const AddPatientForm = () => {
   const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
 
   const { selectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } = useHospital()
-
-  console.log(selectedHospital, "ffff")
   const [medicalId, setMedicalId] = useState([])
   const [holdingEnclosures, setHoldingEnclosures] = useState([])
   const [openAnimalDrawer, setAnimalDrawer] = useState(false)
@@ -312,8 +310,6 @@ const AddPatientForm = () => {
           admit_time: dayjs(data?.admission_time).format('HH:mm')
         })
       }
-
-      console.log(params, "payload")
 
       const res = await addHospitalPatient(params)
 

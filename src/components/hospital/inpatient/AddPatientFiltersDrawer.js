@@ -84,7 +84,8 @@ const AddPatientFiltersDrawer = ({
             data = speciesRes.success
               ? speciesRes?.data?.taxonomy_list?.map(item => ({
                   label: item?.complete_name || item?.default_common_name || '',
-                  image: item?.default_icon || '/images/default_specie_icon.png',
+
+                  // image: item?.default_icon || '/images/default_specie_icon.png',
                   value: Number(item?.tsn) || ''
                 }))
               : []

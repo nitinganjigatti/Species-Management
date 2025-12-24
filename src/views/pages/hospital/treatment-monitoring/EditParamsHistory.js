@@ -12,6 +12,20 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { deleteAssessmentHistory, updateHospitalAssessmentHistory } from 'src/lib/api/hospital/treatmentMonitoring'
 import Toaster from 'src/components/Toaster'
 
+const parseIntervalToTimeRange = interval => {
+  if (!interval) return null
+
+  let [time, meridiem] = interval.split(' ')
+  let hour = parseInt(time.split(':')[0]) || parseInt(time)
+  if (meridiem?.toLowerCase() === 'pm' && hour !== 12) hour += 12
+  if (meridiem?.toLowerCase() === 'am' && hour === 12) hour = 0
+
+  const start = dayjs().hour(hour).minute(0).second(0)
+  const end = start.add(59, 'minute')
+
+  return { start, end }
+}
+
 const defaultValues = {
   observation_time: dayjs(),
   observation_value: '',
@@ -34,18 +48,22 @@ export const convertUTCToIST = utcDateTime => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
-const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
+const getSchema = (resType, measurementType) =>
+  yup.object().shape({
+    observation_value: ['numeric_value', 'numeric_scale', 'text', 'list'].includes(resType)
+      ? yup.string().required('Observation Value is required')
+      : yup.mixed().notRequired(),
+    observation_time: yup.string().required('Observation time is required'),
+    value_unit:
+      resType === 'numeric_value' && measurementType.trim() !== ''
+        ? yup.string().required('Unit is required')
+        : yup.mixed().notRequired()
+  })
+
+const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementType, unitsData, interval }) => {
   const theme = useTheme()
 
-  const schema = useMemo(
-    () =>
-      yup.object().shape({
-        observation_value: yup.mixed().required('Observation Value is required'),
-        observation_time: yup.string().required('Observation time is required'),
-        value_unit: resType === 'numeric_value' ? yup.string().required('Unit is required') : yup.mixed().notRequired()
-      }),
-    [resType]
-  )
+  const schema = useMemo(() => getSchema(resType, measurementType), [resType, measurementType])
 
   const {
     control,
@@ -126,6 +144,16 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
     }
   }
 
+  // useEffect(() => {
+  //   if (open && interval) {
+  //     const { start } = parseIntervalToTimeRange(interval)
+  //     reset({
+  //       ...defaultValues,
+  //       observation_time: start // set to start of interval (e.g., 9:00 AM)
+  //     })
+  //   }
+  // }, [open, interval])
+
   return (
     <>
       <Drawer
@@ -196,7 +224,13 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
                   >
                     Observation Time
                   </Typography>
-                  <ControlledTimePicker control={control} name={'observation_time'} label='Time' />
+                  <ControlledTimePicker
+                    control={control}
+                    name={'observation_time'}
+                    label='Time'
+                    minTime={parseIntervalToTimeRange(interval)?.start || null}
+                    maxTime={parseIntervalToTimeRange(interval)?.end || null}
+                  />
                 </Box>
 
                 <Grid container rowSpacing={4} columnSpacing={3}>
@@ -212,7 +246,22 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
                     </Typography>
                   </Grid>
 
-                  {resType === 'numeric_value' && (
+                  {resType === 'numeric_value' && measurementType.trim() === '' && (
+                    <Grid size={{ xs: 12 }}>
+                      <ControlledTextField
+                        control={control}
+                        name='observation_value'
+                        label='Enter Value'
+                        type='number'
+                        errors={errors}
+                        required
+                        inputBackgroundColor={theme.palette.customColors.Surface}
+                        sx={{ borderRadius: 1 }}
+                      />
+                    </Grid>
+                  )}
+
+                  {resType === 'numeric_value' && measurementType.trim() !== '' && (
                     <>
                       <Grid size={{ xs: 12, sm: 8 }}>
                         <ControlledTextField
@@ -220,6 +269,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
                           name='observation_value'
                           label='Enter Value'
                           errors={errors}
+                          type='number'
                           required
                           inputBackgroundColor={theme.palette.customColors.Surface}
                           sx={{ borderRadius: 1 }}
@@ -330,6 +380,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType }) => {
             </Button>
             <Button
               type='submit'
+              onClick={handleSubmit(onSubmit)}
               variant='contained'
               fullWidth
               sx={{

@@ -39,7 +39,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
   // Get ID from router (with fallback during initial render before router is ready)
-  const { id, date } = router.query
+  const { id, date, isCurrentMedicalRecordOnly } = router.query
   const medical_record_id = medicalRecordData?.medical_record_id
   const animal_id = medicalRecordData?.animal_id
 
@@ -55,7 +55,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
   const [isDatesLoading, setIsDatesLoading] = useState(false)
   const [isAdministerFormOpen, setIsAdministerFormOpen] = useState(true)
   const [isPrescriptionListLoading, setIsPrescriptionListLoading] = useState(false)
-  const [isCurrentMedicalRecord, setIsCurrentMedicalRecord] = useState(false)
+  const [isCurrentMedicalRecord, setIsCurrentMedicalRecord] = useState(isCurrentMedicalRecordOnly === 'true')
   const [isAdministerOrSkipPopupOpen, setIsAdministerOrSkipPopupOpen] = useState(false)
   const [isAdministerOrSkipPopupLoading, setIsAdministerOrSkipPopupLoading] = useState(false)
   const [selectedMedicine, setSelectedMedicine] = useState(null)
@@ -104,6 +104,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
   const handleDateChange = date => {
     setSelectedDate(date)
+    setSelectedMetrics([])
     updateURLParams('date', date)
   }
 
@@ -299,6 +300,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       const payload = {
         from_date: selectedDate,
         to_date: selectedDate,
+        hospital_case_id: id,
         type: 'all',
         prescription_id: data?.id,
         group_prescription_id: data?.group_prescription_id || data?.id,
@@ -343,17 +345,18 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         request_from: 'hospital_module',
 
         batch_details:
-          data?.batchNumber?.batch_no &&
-          JSON.stringify([
-            {
-              id: data?.batchNumber?.id || '1', // As per backend request default value is added
-              batch_no: data?.batchNumber?.batch_no,
-              animal_id: [animal_id],
-              wastage_quantity: data?.wastageQuantity,
-              reason: data?.skipReason,
-              wastage_unit_id: wastageUnit?.id || ''
-            }
-          ]),
+          data?.batchNumber?.batch_no || data?.skipReason
+            ? JSON.stringify([
+                {
+                  id: data?.batchNumber?.id || '1', // As per backend request default value is added
+                  batch_no: data?.batchNumber?.batch_no,
+                  animal_id: [animal_id],
+                  wastage_quantity: data?.wastageQuantity,
+                  reason: data?.skipReason,
+                  wastage_unit_id: wastageUnit?.id || ''
+                }
+              ])
+            : JSON.stringify([]),
         administritive_time: time24,
         group_prescription_id: data?.group_prescription_id || data?.id,
         1: data?.attachment?.[0] && data?.attachment[0]
@@ -362,6 +365,12 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message })
         setIsAdministerOrSkipPopupOpen(false)
+
+        if (isAdministerOrSkipForMultipleSlotsOpen) {
+          setIsAdministerOrSkipForMultipleSlotsOpen(false)
+          setSelectedMedicationsFromDetail([])
+        }
+        setAdministrativeIds([])
         getPrescriptionList()
       } else {
         Toaster({ type: 'error', message: response?.message })
@@ -414,7 +423,25 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
                 unit_name: fetchUnit(formData?.quantityUnit)?.unit_name,
                 string_id: fetchUnit(formData?.quantityUnit)?.string_id
               }
-            ]
+            ],
+            batch_list: formData?.batchNumber?.batch_no ? [{
+              id: formData?.batchNumber?.batch_no,
+              label: '',
+              selectedAnimal: [
+                {
+                  animal_id: animal_id,
+                  selectType: 'animal'
+                }
+              ],
+              batchNumber: typeof formData.batchNumber === 'object' ? formData.batchNumber?.batch_no : formData.batchNumber || '',
+              wastage: formData.wastageQuantity || '',
+              wastageUnit: formData.wastageUnit || '',
+              notes: formData.wastageNotes || '',
+    
+              totalAnimal: []
+            }] : [],
+            files: formData.batchImage ? [formData.batchImage] : [],
+            1: formData?.attachment?.[0] && formData?.attachment[0]
           }
         ]),
         request_from: 'hospital_module',
@@ -765,15 +792,15 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
   }
 
   const handleAdministerSelectedFromDrawerForMultipleSlots = async (selectedItems, medicineData, formData) => {
-    if (selectedItems?.length === 1 && medicineDetails?.controlled_substance == 1) {
+    if (selectedItems?.length === 1) {
       handleAdministerOrSubmit(formData)
     } else {
-      handleAdministerSelectedFromDrawer(selectedItems, medicineData)
+      handleAdministerSelectedFromDrawer(selectedItems)
     }
   }
 
   const handleSkipSelectedFromDrawerForMultipleSlots = async (selectedItems, medicineData, formData) => {
-    if (selectedItems?.length === 1 && medicineDetails?.controlled_substance == 1) {
+    if (selectedItems?.length === 1) {
       handleAdministerOrSubmit(formData)
     } else {
       handleSkipSelectedFromDrawer(selectedItems, medicineData)
@@ -1018,7 +1045,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
           frequency: medicineDetails?.frequency || '-',
           duration: medicineDetails?.duration || '-',
           deliveryRoute: medicineDetails?.delivery_route_name || '-',
-          notes: medicineDetails?.notes || '-',
+          notes: medicineDetails?.notes,
           lastEdited:
             medicineDetails?.updated_at || medicineDetails?.created_at
               ? `Last edited on ${Utility.formatDisplayDate(
@@ -1087,9 +1114,9 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
           notes: medicineDetails?.notes || '-',
           lastEdited:
             medicineDetails?.updated_at || medicineDetails?.created_at
-              ? `Last edited on ${Utility.convertUTCToLocaltime(
+              ? `Last edited on ${Utility.formatDisplayDate(
                   medicineDetails?.updated_at || medicineDetails?.created_at
-                )} • ${Utility.formatDisplayDate(medicineDetails?.updated_at || medicineDetails?.created_at)}`
+                )} • ${Utility.convertUTCToLocaltime(medicineDetails?.updated_at || medicineDetails?.created_at)}`
               : '-',
           defaultTab: 2,
           prescription_id: medicineDetails?.prescription_id,

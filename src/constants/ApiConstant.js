@@ -829,6 +829,8 @@ export const GET_PRESCRIPTION_LIST = 'v1/hospital/list-prescription'
 
 export const GET_PRESCRIPTION_DETAILS = 'administer/details'
 
+export const MEDICINE_SIDE_EFFECT = 'medical/medicine-side-effect'
+
 export const GET_PRESCRIPTION_DETAILS_DATES = 'administer/stats'
 
 export const GET_BATCH_LIST = 'vaccination/get-batch-list-by-medicine'

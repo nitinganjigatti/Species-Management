@@ -34,7 +34,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [localSearch, setLocalSearch] = useState('')
-  const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true')
+  const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true') 
   const [records, setRecords] = useState([])
   const [tabCounts, setTabCounts] = useState({ Active: 0, Resolved: 0, All: 0 })
   const [total, setTotal] = useState(0)
@@ -322,7 +322,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
     // Base payload with required fields
     const payload = {
       main_id: selectedAssessment?.main_diagnosis_id || '',
-      med_id: medical_record_id || '',
+      med_id: selectedAssessment?.medical_record_id || '',
       type: 'DIAGNOSIS',
       is_system_generated: isSystemGenerated,
       animal_id: animal_id || ''
@@ -504,11 +504,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
           <MUISwitch
             label='Current Medical Record Only'
             checked={currentRecordOnly}
-            onChange={e => {
-              setRecords([])
-              setPage(1)
-              setCurrentRecordOnly(e.target.checked)
-            }}
+            onChange={handleRecordOnlyChange}
             size='small'
             sx={{ ml: 2.6 }}
           />
@@ -518,7 +514,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
       {/* Records List */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {/* Loading State */}
-        {isLoading && filteredRecords?.length === 0 && <ClinicalAssessmentShimmer count={5} />}
+        {isLoading && (filteredRecords?.length === 0 || !hasMore) && <ClinicalAssessmentShimmer count={5} />}
         {filteredRecords?.map((record, index) => (
           <ClinicalAssessmentCard
             key={record.id || index}

@@ -956,7 +956,7 @@ const TimeSlot = styled(Box)(({ theme }) => ({
   height: '72px',
   [theme.breakpoints.down('md')]: {
     fontSize: '11px',
-    minWidth: '120px'
+    minWidth: '160px'
   }
 }))
 
@@ -974,6 +974,6 @@ const TimeHeader = styled(Box)(({ theme }) => ({
   minWidth: '160px',
   height: '56px',
   [theme.breakpoints.down('md')]: {
-    minWidth: '120px'
+    minWidth: '160px'
   }
 }))

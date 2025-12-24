@@ -91,9 +91,9 @@ const HospitalInpatient = () => {
   const total = data?.data?.total || 0
   const rows = data?.data?.records || []
 
-  useEffect(() => {
-    refetch()
-  }, [refetch])
+  // useEffect(() => {
+  //   refetch()
+  // }, [refetch, selectedHospital?.id])
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()

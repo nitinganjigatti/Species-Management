@@ -105,7 +105,6 @@ const PatientDetails = ({ category }) => {
   const medicalRecordIdParam = medical_record_id || ''
 
   const isPatientDischarged = patientData?.status === 'discharge'
-  console.log(patientResponse)
 
   const overviewData = patientResponse
     ? {
@@ -197,7 +196,7 @@ const PatientDetails = ({ category }) => {
               ...query,
               id: router.query.id,
               tab: 'discharge',
-              discharge_tab: discharge_tab || 'Mortality' // default
+              discharge_tab: discharge_tab || 'TransferEnclosure' // default
             }
           },
           undefined,
@@ -242,7 +241,10 @@ const PatientDetails = ({ category }) => {
           query: {
             ...router.query,
             tab: newValue,
-            id: router.query.id
+            id: router.query.id,
+            ...(router.query.hasOwnProperty('isCurrentMedicalRecordOnly') && {
+              isCurrentMedicalRecordOnly: 'false'
+            })
           }
         },
         undefined,
@@ -269,7 +271,7 @@ const PatientDetails = ({ category }) => {
               ...query,
               id: router.query.id,
               tab: 'discharge',
-              discharge_tab: discharge_tab || 'Mortality' // default
+              discharge_tab: discharge_tab || 'TransferEnclosure' // default
             }
           },
           undefined,
