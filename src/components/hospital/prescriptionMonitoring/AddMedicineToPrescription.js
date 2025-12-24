@@ -1068,12 +1068,13 @@ export default function AddMedicineToPrescription() {
             interval_id: interval?.id || '',
             interval_string_id: interval?.interval_string_id || '',
 
-            duration_qty: data.dosageDuration?.value?.toString() || '1',
-            duration_id: interval?.id || '',
+            duration_qty: frequency?.string_id === 'at_regular_intervals' ? data.dosageDuration?.value?.toString() : 0,
+            duration_id: frequency?.string_id === 'at_regular_intervals' ? interval?.id : '2',
             duration: data.dosageDuration?.value
               ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
-              : '1 days',
-            duration_string_id: interval?.string_id || '',
+              : '0 days',
+            duration_string_id:
+              frequency?.string_id === 'at_regular_intervals' ? interval?.string_id : 'antz-prescription.days',
             duration_type: data.dosageDuration?.unit
               ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
               : 'Days',
@@ -1173,27 +1174,30 @@ export default function AddMedicineToPrescription() {
       }))
 
       // Construct batch list for payload
-      const batchListPayload = [
-        {
-          id: selectedBatch?.id,
-          label: '',
-          selectedAnimal: [
-            {
-              animal_id: animal_id,
-              selectType: 'animal'
-            }
-          ],
-          expiryDate: selectedBatch?.expiry_date || '',
-          batchNumber: typeof data.batchNumber === 'object' ? data.batchNumber?.batch_no : data.batchNumber || '',
-          wastage: data.wastageQuantity || '',
-          wastageUnit: data.wastageUOM || '',
-          notes: data.wastageNotes || '',
-          frequencyValue: data.frequency || '',
-          frequencyId: frequency?.id || '',
+      const batchListPayload =
+        data.batchNumber?.batch_no || data.batchNumber
+          ? [
+              {
+                id: selectedBatch?.id,
+                label: '',
+                selectedAnimal: [
+                  {
+                    animal_id: animal_id,
+                    selectType: 'animal'
+                  }
+                ],
+                expiryDate: selectedBatch?.expiry_date,
+                batchNumber: typeof data.batchNumber === 'object' ? data.batchNumber?.batch_no : data.batchNumber,
+                wastage: data.wastageQuantity,
+                wastageUnit: data.wastageUOM,
+                notes: data.wastageNotes,
+                frequencyValue: data.frequency,
+                frequencyId: frequency?.id,
 
-          totalAnimal: []
-        }
-      ]
+                totalAnimal: []
+              }
+            ]
+          : []
 
       const payload = {
         record_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
@@ -1235,7 +1239,7 @@ export default function AddMedicineToPrescription() {
             duration_string_id: 'antz-prescription.days',
             duration_type: 'Days',
 
-            notes: data.wastageNotes || '',
+            notes: data.notes || '',
 
             delivery_route_name: data?.deliveryRoute || '',
             delivery_route_id: deliveryRoute?.id || '',
