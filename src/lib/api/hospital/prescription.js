@@ -64,7 +64,7 @@ export async function getPrescriptionDetails(params) {
 
 export async function getSideEffectMedicines(payLoad) {
   try {
-    const response = await axiosPost({ url: `${MEDICINE_SIDE_EFFECT}`, body: payLoad })
+    const response = await axiosFormPost({ url: `${MEDICINE_SIDE_EFFECT}`, body: payLoad })
 
     return response?.data
   } catch (error) {

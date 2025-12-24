@@ -576,13 +576,12 @@ export default function AddMedicineToPrescription() {
 
       const response = await getSideEffectMedicines(payload)
 
-      if (response?.success) {
+      if (response?.data) {
         return response?.data
-      } else {
-        Toaster({ type: 'error', message: response?.message })
-      }
+      } 
     } catch (error) {
       Toaster({ type: 'error', message: error || 'Something went wrong' })
+      router.back()
     } finally {
       setSideEffectMedicinesLoading(false)
     }
