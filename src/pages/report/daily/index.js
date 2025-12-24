@@ -393,6 +393,7 @@ const Animal = () => {
                     <TextField
                       label='Start Date*'
                       error={Boolean(errors.startDate)}
+                      inputProps={{ readOnly: true, inputMode: 'none' }}
                       sx={{
                         '& .MuiInputBase-input': {
                           mt: 1,
@@ -419,6 +420,7 @@ const Animal = () => {
                     <TextField
                       label='End Date*'
                       error={Boolean(errors.endDate)}
+                      inputProps={{ readOnly: true, inputMode: 'none' }}
                       sx={{
                         '& .MuiInputBase-input': {
                           mt: 1,
@@ -563,6 +565,7 @@ const Animal = () => {
                     <TextField
                       label='End Date*'
                       fullWidth
+                      inputProps={{ readOnly: true, inputMode: 'none' }}
                       sx={{
                         '& .MuiInputBase-input': {
                           mt: 1,
