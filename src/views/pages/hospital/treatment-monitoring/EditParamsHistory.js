@@ -144,15 +144,15 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
     }
   }
 
-  useEffect(() => {
-    if (open && interval) {
-      const { start } = parseIntervalToTimeRange(interval)
-      reset({
-        ...defaultValues,
-        observation_time: start // set to start of interval (e.g., 9:00 AM)
-      })
-    }
-  }, [open, interval])
+  // useEffect(() => {
+  //   if (open && interval) {
+  //     const { start } = parseIntervalToTimeRange(interval)
+  //     reset({
+  //       ...defaultValues,
+  //       observation_time: start // set to start of interval (e.g., 9:00 AM)
+  //     })
+  //   }
+  // }, [open, interval])
 
   return (
     <>
@@ -281,7 +281,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                           errors={errors}
                           label='Select Unit'
                           name='value_unit'
-                          options={unitsData}
+                          options={data?.unitsData || []}
                           getOptionLabel={option => option.label}
                           getOptionValue={option => option.value}
                           required
@@ -301,7 +301,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                         errors={errors}
                         label='Select Value'
                         name='observation_value'
-                        options={unitsData}
+                        options={data?.unitsData || []}
                         getOptionLabel={option => option.label}
                         getOptionValue={option => option.value}
                         required
