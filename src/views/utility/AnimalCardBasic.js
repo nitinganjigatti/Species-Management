@@ -1,13 +1,39 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Avatar } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
+const FALLBACK_IMAGE = '/icons/antz.svg'
+
 const AnimalCardBasic = ({ image, name, scientificName, age, gender }) => {
   const theme = useTheme()
-  const fallBackImage = '/icons/antz.svg'
+  const [imgSrc, setImgSrc] = useState(FALLBACK_IMAGE)
 
   const capitalize = str => (str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '-')
+
+  useEffect(() => {
+    if (!image || typeof image !== 'string') {
+      setImgSrc(FALLBACK_IMAGE)
+
+      return
+    }
+
+    const img = new Image()
+    img.src = image
+
+    img.onload = () => {
+      setImgSrc(image)
+    }
+
+    img.onerror = () => {
+      setImgSrc(FALLBACK_IMAGE)
+    }
+
+    return () => {
+      img.onload = null
+      img.onerror = null
+    }
+  }, [image])
 
   return (
     <Box
@@ -19,7 +45,7 @@ const AnimalCardBasic = ({ image, name, scientificName, age, gender }) => {
       }}
     >
       <Avatar
-        src={image || fallBackImage}
+        src={imgSrc}
         alt={name}
         sx={{
           width: 56,
@@ -27,6 +53,7 @@ const AnimalCardBasic = ({ image, name, scientificName, age, gender }) => {
           borderRadius: '8px',
           objectFit: 'cover'
         }}
+        onError={() => setImgSrc(FALLBACK_IMAGE)}
       />
 
       <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -42,7 +69,7 @@ const AnimalCardBasic = ({ image, name, scientificName, age, gender }) => {
         />
         <TextEllipsisWithModal
           enableDialog={false}
-          text={scientificName}
+          text={capitalize(scientificName)}
           style={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
