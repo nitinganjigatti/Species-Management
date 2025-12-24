@@ -440,9 +440,9 @@ const MedicinePrescriptionCard = ({
                   textDecoration: entry.isStrikethrough ? 'line-through' : 'none'
                 }}
               >
-                {/* {formatTimeFromUTC(entry.time)} */}
+                {formatTimeFromUTC(entry.time)}
                 {/* time conveertion issue */}
-                {entry.time}
+                {/* {entry.time} */}
               </Typography>
               <Typography
                 variant='body2'
@@ -534,18 +534,12 @@ const MedicinePrescriptionCard = ({
 
       <Box sx={{ display: 'flex', padding: '0 16px', alignItems: 'center', gap: '10px', mb: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 0 0' }}>
-          <Avatar sx={{ width: '34px', height: '34px' }} src='/images/avatars/1.png' />
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Typography
-              variant='body2'
-              sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-            >
-              {entry.administeredBy}
-            </Typography>
-            <Typography variant='caption' sx={{ fontSize: '12px', color: theme.palette.customColors.neutralSecondary }}>
-              {formatDisplayDateTime(entry.administeredAt)}
-            </Typography>
-          </Box>
+          <UserAvatarDetails
+            user_name={entry.administeredBy}
+            profile_image={entry.administeredBy}
+            date={entry.administeredAt}
+            show_time={true}
+          />
         </Box>
 
         {entry?.status?.toLowerCase() != 'stopped' && (
@@ -712,7 +706,7 @@ const MedicinePrescriptionCard = ({
                 </InfoItem>
               </InfoGroupContainer>
 
-              <InfoGroupContainer sx={{ borderRadius: '0' }}>
+              <InfoGroupContainer sx={{ borderRadius: !medicine?.notes && '0 0 8px 8px' }}>
                 <InfoItem>
                   <Icon icon='uil:calender' fontSize='32px' color={theme.palette.customColors.OnSurfaceVariant} />
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 0 0' }}>
@@ -753,15 +747,17 @@ const MedicinePrescriptionCard = ({
                 </InfoItem>
               </InfoGroupContainer>
 
-              <NotesContainer>
-                <Icon icon='mdi:note-text' fontSize='24px' color={theme.palette.warning.main} />
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, flex: '1 0 0' }}
-                >
-                  {medicine.notes}
-                </Typography>
-              </NotesContainer>
+              {medicine?.notes && (
+                <NotesContainer>
+                  <Icon icon='mdi:note-text' fontSize='24px' color={theme.palette.warning.main} />
+                  <Typography
+                    variant='body2'
+                    sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, flex: '1 0 0' }}
+                  >
+                    {medicine.notes}
+                  </Typography>
+                </NotesContainer>
+              )}
 
               <Typography
                 variant='caption'
@@ -945,7 +941,7 @@ const MedicinePrescriptionCard = ({
                   ) : (
                     renderDosageEntry({
                       id: item?.administritive_id,
-                      time: formatTime(item?.scheduled_time), /// added sceduled time not adminster time
+                      time: formatTime(item?.administritive_time || item?.scheduled_time), /// added sceduled time not adminster time
                       status: item?.status || 'Pending',
                       dosage: `${item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
                       amount:
@@ -968,7 +964,7 @@ const MedicinePrescriptionCard = ({
                       wastageNote: item?.notes || '',
                       batchNumber: item?.batch_details?.[0]?.batch_number || null,
                       administeredBy: item?.user_full_name || 'Unknown',
-                      administeredAt: item?.modified_at ? new Date(item.modified_at).toLocaleString() : '',
+                      administeredAt: item?.modified_at ? item.modified_at : '',
                       isStrikethrough: item?.status?.toLowerCase() === 'stopped',
                       batch_details: item?.batch_details
                     })

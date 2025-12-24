@@ -1,13 +1,13 @@
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect } from 'react'
 import { Box, Divider, Grid, Typography, useTheme } from '@mui/material'
 import { alpha, styled } from '@mui/system'
-import { LoadingButton } from '@mui/lab'
 
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
+import moment from 'moment'
 
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
@@ -40,7 +40,6 @@ const mortalitySchema = yup.object({
       label: yup.string().required()
     })
     .required('Carcass disposition is required'),
-
   reason: yup.string().optional(),
   necropsy_requested: yup.boolean().optional(),
   necropsy_reason: yup
@@ -88,7 +87,7 @@ const MortalityDischargeForm = props => {
     carcass_condition: null,
     carcass_disposition: null,
     reason: '',
-    necropsy_requested: false,
+    necropsy_requested: true,
     priority: 'high',
     necropsy_reason: '',
     attachments: []
@@ -173,8 +172,8 @@ const MortalityDischargeForm = props => {
       hospital_case_id: id,
       animal_id: patientData?.animal_detail?.animal_id,
       discharge_type: watchDischargeType,
-      date_of_death: formData.date_of_death,
-      time_of_death: formData.time_of_death,
+      date_of_death: moment(formData.date_of_death).format('YYYY-MM-DD'),
+      time_of_death: dayjs(formData.time_of_death).set('second', 0).format('HH:mm:ss'),
       manner_of_death: formData.manner_of_death.value,
       reason_for_death: formData.manner_of_death.value, // for backend compatibility
       carcass_condition: formData.carcass_condition.value,
@@ -376,35 +375,6 @@ const MortalityDischargeForm = props => {
             />
           </Box>
         </Box>
-
-        {/* <Box
-          sx={{
-            position: 'fixed',
-            bottom: 0,
-            left: {
-              xs: 0,
-              lg: '270px'
-            },
-            right: 0,
-            width: 'auto',
-            backgroundColor: theme.palette.customColors.OnPrimary,
-            p: 6,
-            boxShadow: `0px -2px 8px ${theme.palette.customColors.shadowColor}`,
-            display: 'flex',
-            justifyContent: 'flex-end',
-            zIndex: 1200
-          }}
-        >
-          <LoadingButton
-            variant='contained'
-            type='submit'
-            loading={submitLoader}
-            disabled={submitLoader}
-            sx={{ px: 12, py: 3 }}
-          >
-            Discharge Animal
-          </LoadingButton>
-        </Box> */}
         <BottomActionBar
           submitLabel='Discharge Animal'
           submitBtnVariant='contained'

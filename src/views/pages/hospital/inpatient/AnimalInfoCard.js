@@ -9,7 +9,7 @@ const AnimalInfoCard = ({ backgroundColor, additionalFields, image, name, scient
   const theme = useTheme()
 
   const StatBox = ({ label, value }) => (
-    <Box>
+    <Box sx={{ minWidth: 0 }}>
       <TextEllipsisWithModal
         enableDialog={false}
         text={label || '-'}
@@ -46,16 +46,12 @@ const AnimalInfoCard = ({ backgroundColor, additionalFields, image, name, scient
         boxShadow: 'none'
       }}
     >
-      <Grid container rowSpacing={4} columnSpacing={4} sx={{ alignItems: 'center' }}>
-        <Grid size={{ xs: 12, sm: 12, md: 3.5, lg: 4 }}>
+      <Grid container rowSpacing={4} columnSpacing={4} alignItems='center'>
+        <Grid size={{ xs: 12, sm: 12, md: 3.5, lg: 3 }}>
           <AnimalCardBasic image={image} name={name} scientificName={scientificName} age={age} gender={gender} />
         </Grid>
         {additionalFields?.map(({ label, value }, index) => (
-          <Grid
-            size={{ xs: 6, sm: 3, md: index == 0 ? 2 : 2.125, lg: 2 }}
-            key={index}
-            sx={{ display: 'flex', justifyContent: { md: index == 0 && 'center' } }}
-          >
+          <Grid key={index} size={{ xs: 6, sm: 3, md: 2.125, lg: index == 0 ? 2.1 : 2.3 }}>
             <StatBox label={label} value={value} />
           </Grid>
         ))}

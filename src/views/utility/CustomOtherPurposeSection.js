@@ -1,4 +1,3 @@
-// src/components/CustomOtherPurposeSection.jsx
 import React, { useState } from 'react'
 import { Box, TextField, Button, Typography, IconButton, useTheme } from '@mui/material'
 import { alpha } from '@mui/material/styles'
@@ -9,6 +8,9 @@ export default function CustomOtherPurposeSection({
   addedLabel = 'Other Purposes Added',
   value = [],
   onChange,
+  onAddItem,
+  duplicateError = '',
+  clearError,
   placeholder = 'Enter new purpose',
   sx = {},
   commonTextFieldSx = {}
@@ -16,24 +18,54 @@ export default function CustomOtherPurposeSection({
   const theme = useTheme()
   const [newItem, setNewItem] = useState('')
 
-  // Add item
   const handleAdd = () => {
     const trimmed = newItem.trim()
     if (!trimmed) return
-    onChange([...value, trimmed])
+
+    if (onAddItem) {
+      onAddItem(trimmed)
+    } else {
+      onChange([...value, trimmed])
+    }
     setNewItem('')
   }
 
-  // Remove item
   const handleRemove = item => {
-    onChange(value.filter(v => v !== item))
+    if (!Array.isArray(value)) {
+      return
+    }
+
+    const updatedItems = value.filter(v => v !== item)
+    onChange([...updatedItems])
+
+    if (clearError) {
+      clearError()
+    }
   }
 
-  // TextField style
+  const handleInputChange = e => {
+    const val = e.target.value
+    setNewItem(val)
+    if (duplicateError && clearError) {
+      clearError()
+    }
+  }
+
+  const handleKeyPress = e => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleAdd()
+    }
+  }
+
   const textFieldSx = {
     '& .MuiOutlinedInput-root': {
       borderRadius: '4px',
-      color: theme.palette.customColors.OnSurfaceVariant
+      color: theme.palette.customColors.OnSurfaceVariant,
+
+      '&.Mui-error': {
+        borderColor: theme.palette.error.main
+      }
     },
     '& .MuiInputBase-input': {
       color: theme.palette.customColors.OnSurfaceVariant
@@ -45,7 +77,6 @@ export default function CustomOtherPurposeSection({
 
   return (
     <>
-      {/* Render existing custom items if any */}
       {value.length > 0 && (
         <Box>
           <Typography
@@ -85,7 +116,6 @@ export default function CustomOtherPurposeSection({
         </Box>
       )}
 
-      {/* Add new item section */}
       <Box
         mt={5}
         sx={{
@@ -94,6 +124,9 @@ export default function CustomOtherPurposeSection({
           padding: '16px',
           border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
           width: { xs: '100%', sm: '60%' },
+          height: duplicateError ? '160px' : '140px',
+
+          transition: 'height 0.2s ease',
           ...sx
         }}
       >
@@ -105,18 +138,42 @@ export default function CustomOtherPurposeSection({
           {title}
         </Typography>
 
-        <Box display='flex' gap={2}>
-          <TextField
-            fullWidth
-            placeholder={placeholder}
-            value={newItem}
-            onChange={e => setNewItem(e.target.value)}
-            sx={{
-              background: theme.palette.common.white,
-              ...textFieldSx,
-              ...commonTextFieldSx
-            }}
-          />
+        <Box display='flex' flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
+          <Box sx={{ flex: 1 }}>
+            <TextField
+              fullWidth
+              placeholder={placeholder}
+              value={newItem}
+              onChange={handleInputChange}
+              onKeyPress={handleKeyPress}
+              error={!!duplicateError}
+              sx={{
+                background: theme.palette.common.white,
+
+                ...textFieldSx,
+
+                ...commonTextFieldSx
+              }}
+            />
+
+            {duplicateError && (
+              <Typography
+                sx={{
+                  mt: 1,
+
+                  fontSize: '12px',
+
+                  color: theme.palette.error.main,
+
+                  fontFamily: 'Inter',
+
+                  fontWeight: 400
+                }}
+              >
+                {duplicateError}
+              </Typography>
+            )}
+          </Box>
           <Button
             variant='contained'
             color='secondary'
@@ -126,7 +183,8 @@ export default function CustomOtherPurposeSection({
               minWidth: 120,
               background: theme.palette.primary.main,
               boxShadow: 'none',
-              borderRadius: '4px'
+              borderRadius: '4px',
+              height: '56px'
             }}
           >
             ADD

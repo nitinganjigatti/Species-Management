@@ -105,7 +105,6 @@ const PatientDetails = ({ category }) => {
   const medicalRecordIdParam = medical_record_id || ''
 
   const isPatientDischarged = patientData?.status === 'discharge'
-  console.log(patientResponse)
 
   const overviewData = patientResponse
     ? {
@@ -119,6 +118,7 @@ const PatientDetails = ({ category }) => {
         created_by_profile_pic: patientResponse.data?.created_by_profile_pic,
         reason_for_admission: patientResponse.data?.reason_for_admission,
         status: patientResponse.data?.status,
+        category: category,
         transfer_by_full_name: patientResponse?.data?.transfer_by_full_name,
         transfer_by_profile_pic: patientResponse?.data?.transfer_by_profile_pic,
         transfer_created_at: patientResponse?.data?.transfer_created_at
@@ -196,7 +196,7 @@ const PatientDetails = ({ category }) => {
               ...query,
               id: router.query.id,
               tab: 'discharge',
-              discharge_tab: discharge_tab || 'Mortality' // default
+              discharge_tab: discharge_tab || 'TransferEnclosure' // default
             }
           },
           undefined,
@@ -241,7 +241,10 @@ const PatientDetails = ({ category }) => {
           query: {
             ...router.query,
             tab: newValue,
-            id: router.query.id
+            id: router.query.id,
+            ...(router.query.hasOwnProperty('isCurrentMedicalRecordOnly') && {
+              isCurrentMedicalRecordOnly: 'false'
+            })
           }
         },
         undefined,
@@ -268,7 +271,7 @@ const PatientDetails = ({ category }) => {
               ...query,
               id: router.query.id,
               tab: 'discharge',
-              discharge_tab: discharge_tab || 'Mortality' // default
+              discharge_tab: discharge_tab || 'TransferEnclosure' // default
             }
           },
           undefined,

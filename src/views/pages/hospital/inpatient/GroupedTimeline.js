@@ -219,8 +219,8 @@ const GroupedTimeline = ({
       <Box sx={{ width: '100%', mt: '1.5rem' }}>
         {Header}
 
-        {/* Show skeleton ONLY while filtering refetch */}
-        {isLoading ? (
+        {/* Show skeleton while filtering refetch or initial load */}
+        {isLoading || isRefetching ? (
           <TimelineSkeleton />
         ) : (
           <Box

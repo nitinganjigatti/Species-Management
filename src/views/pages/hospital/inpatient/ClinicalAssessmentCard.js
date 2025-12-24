@@ -31,16 +31,17 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
       record.additional_info?.latest_note || record.additional_info?.start_note || record.additional_info?.stop_note,
     description: record.latest_note?.note || record.additional_info?.latest_note,
     lastUpdated: record.latest_note?.modified_at || record.latest_note?.created_at || record.created_at,
-    resolvedBy: record.additional_info?.closed_at
-      ? {
-          name: record.additional_info?.resolved_user_name || record.created_by_user_name,
-          avatar:
-            record.additional_info?.resolved_user_profile_pic ||
-            record?.created_user_profile_pic ||
-            record.created_by_user_name,
-          date: record?.latest_note?.modified_at || record.additional_info?.closed_at
-        }
-      : null
+    resolvedBy: {
+      name:
+        record.additional_info?.status === 'active'
+          ? record.created_by_user_name
+          : record.additional_info?.resolved_user_name,
+      avatar:
+        record.additional_info?.status === 'active'
+          ? record?.created_user_profile_pic
+          : record.additional_info?.resolved_user_profile_pic || record.created_by_user_name,
+      date: record?.latest_note?.modified_at || record.additional_info?.closed_at
+    }
   }
 
   // Determine if resolved based on API data
@@ -296,9 +297,9 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
             {mappedRecord.resolvedBy ? 'Resolved by' : 'Created by'}
           </Typography>
           <UserAvatarDetails
-            profile_image={mappedRecord.resolvedBy ? mappedRecord.resolvedBy.avatar : record.created_by_user_name}
-            user_name={mappedRecord.resolvedBy ? mappedRecord.resolvedBy.name : record.created_by_user_name}
-            date={mappedRecord.resolvedBy ? mappedRecord.resolvedBy.date : record.created_at}
+            profile_image={mappedRecord.resolvedBy.avatar}
+            user_name={mappedRecord.resolvedBy.name}
+            date={mappedRecord.resolvedBy.date}
             show_time
             compact={true}
           />
