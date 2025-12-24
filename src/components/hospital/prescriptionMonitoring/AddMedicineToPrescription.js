@@ -1586,10 +1586,10 @@ export default function AddMedicineToPrescription() {
     } else {
       switch (dosageDuration.unit) {
         case 'days':
-          endDate = start.add(intervalValue * durationValue - 1, 'days')
+          endDate = start.add(1 * durationValue - 1, 'days')
           break
         case 'weeks':
-          endDate = start.add(intervalValue * 7 * durationValue - 1, 'days')
+          endDate = start.add(1 * 7 * durationValue - 1, 'days')
           break
         case 'months':
           endDate = start.add(durationValue, 'months')

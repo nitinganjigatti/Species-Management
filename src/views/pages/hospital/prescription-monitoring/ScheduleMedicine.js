@@ -203,9 +203,14 @@ export default function ScheduleMedicine({
 
     const lastScheduleQuantity = currentSchedules[currentSchedules.length - 1]?.quantity || ''
 
+    const lastScheduledTime = currentSchedules[currentSchedules.length - 1]?.time || ''
+
+    // Calculate new time: last time + 2 hours
+    const newTime = dayjs(lastScheduledTime).add(2, 'hour')
+
     // Add new schedule with the previous schedule's unit
     append({
-      time: dayjs(),
+      time: newTime,
       quantity: lastScheduleQuantity,
       unit: lastScheduleUnit
     })
