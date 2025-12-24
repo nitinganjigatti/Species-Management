@@ -135,9 +135,11 @@ const HospitalDropdown = ({ disabled = false }) => {
 
   const handleHospitalSelect = async hospital => {
     if (disabled) return
-
     updateSelectedHospital(hospital)
     setAnchorEl(null)
+    if (hospital?.has_permission) {
+      setIsHospitalAccessChecked(true)
+    }
 
     // Fetch stats for the selected hospital
     await fetchAndUpdateHospitalStats(hospital.id)
@@ -258,7 +260,6 @@ const HospitalDropdown = ({ disabled = false }) => {
     }
   }, [hospitalList, selectedHospital, isFetching, isCheckingHospitalAccess, hasCheckedLocalStorage, disabled])
 
-
   const handleDropdownClick = e => {
     if (disabled) return
     setAnchorEl(e.currentTarget)
@@ -310,7 +311,6 @@ const HospitalDropdown = ({ disabled = false }) => {
       >
         <Box sx={{ maxWidth: 200, display: 'flex', alignItems: 'center' }}>
           {isCheckingHospitalAccess ? (
-
             // Shimmer for checking hospital access state
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
               <ShimmerBox width='160px' height='24px' mb={0} />
@@ -352,7 +352,6 @@ const HospitalDropdown = ({ disabled = false }) => {
               )}
             </Box>
           ) : (
-
             // Shimmer for initial loading state when no stored hospital
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
               <ShimmerBox width='160px' height='24px' mb={0} />
@@ -403,7 +402,6 @@ const HospitalDropdown = ({ disabled = false }) => {
             }}
           >
             {isLoading ? (
-
               // Shimmer for initial loading of hospital list
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {Array.from({ length: 5 }).map((_, index) => (
