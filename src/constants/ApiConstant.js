@@ -751,3 +751,5 @@ export const UPDATE_CLINICAL_ASSESSMENT = 'medical/v2/update-diagnosis-prescript
 export const HOSPITAL_LISTING = 'v1/hospital/listing'
 
 export const HOSPITAL_BED_STATS = 'v1/hospital/hospital-bed-stat/'
+
+export const GET_UPCOMING_VACCINATION_RECORDS = 'v1/vaccination/deworming/animal/pending/report'
