@@ -27,6 +27,7 @@ import AddEditSurgeryDrawer from 'src/views/pages/hospital/masters/surgery'
 
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
+import Utility from 'src/utility'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 
 import {
@@ -221,29 +222,10 @@ const schema = yup.object().shape({
 
       return !dayjs(value).startOf('day').isAfter(dayjs().startOf('day'))
     }),
-  startTime: yup
-    .mixed()
-    .test('start-required', 'Start time is required', value => Boolean(value) && dayjs(value).isValid())
-    .test('start-after-admission', 'Start time cannot be before admission time', function (value) {
-      const admissionDateTime = this?.options?.context?.admissionDateTime
-      const selectedDate = this?.parent?.date
-      if (!value || !admissionDateTime || !selectedDate) return true
-
-      const startDateTime = combineDateAndTime(selectedDate, value)
-
-      return startDateTime && !startDateTime.isBefore(dayjs(admissionDateTime))
-    })
-    .test('start-not-in-future', 'Start time cannot be in the future', function (value) {
-      const selectedDate = this?.parent?.date
-      if (!value || !selectedDate) return true
-
-      const startDateTime = combineDateAndTime(selectedDate, value)
-
-      return startDateTime && !startDateTime.isAfter(dayjs())
-    }),
+  startTime: yup.mixed().test('start-required', 'Start time is required', value => Boolean(value)),
   endTime: yup
     .mixed()
-    .test('end-required', 'End time is required', value => Boolean(value) && dayjs(value).isValid())
+    .test('end-required', 'End time is required', value => Boolean(value))
     .test('end-after-start', 'End time must be after start time', function (value) {
       const { startTime, date } = this?.parent || {}
       if (!value || !startTime || !date) return true
@@ -254,23 +236,6 @@ const schema = yup.object().shape({
       if (!startDateTime || !endDateTime) return true
 
       return endDateTime.isAfter(startDateTime)
-    })
-    .test('end-after-admission', 'End time cannot be before admission time', function (value) {
-      const admissionDateTime = this?.options?.context?.admissionDateTime
-      const selectedDate = this?.parent?.date
-      if (!value || !admissionDateTime || !selectedDate) return true
-
-      const endDateTime = combineDateAndTime(selectedDate, value)
-
-      return endDateTime && !endDateTime.isBefore(dayjs(admissionDateTime))
-    })
-    .test('end-not-in-future', 'End time cannot be in the future', function (value) {
-      const selectedDate = this?.parent?.date
-      if (!value || !selectedDate) return true
-
-      const endDateTime = combineDateAndTime(selectedDate, value)
-
-      return endDateTime && !endDateTime.isAfter(dayjs())
     }),
   procedure: yup
     .mixed()
@@ -370,18 +335,37 @@ const AddSurgeryRecord = () => {
   const endTimeValue = watch('endTime')
   const durationValue = watch('duration')
   const selectedAnesthesia = selectedAnesthesiaRecord
+  const parseUtcDateToLocalDayjs = useCallback(value => {
+    if (!value) return null
+
+    const localDate = Utility.convertUTCToLocalDate(value)
+
+    return dayjs(localDate && localDate !== 'Invalid date' ? localDate : value)
+  }, [])
+
+  const convertUtcTimeToLocalString = useCallback((dateValue, timeValue) => {
+    if (!timeValue) return null
+
+    const baseDate = dateValue || dayjs().format('YYYY-MM-DD')
+    const source = `${baseDate} ${timeValue}`
+    const converted = Utility.convertUTCToLocaltime(source)
+
+    return converted && converted !== 'Invalid date' ? converted : timeValue
+  }, [])
 
   const applyPrefillFromRecord = useCallback(
     detail => {
       if (!detail) return
       setPrefillDetail(detail)
 
-      const dateValue = detail?.surgery_date ? dayjs(detail.surgery_date) : null
+      const rawDateValue = detail?.surgery_date || detail?.date || null
+      const parsedDate = parseUtcDateToLocalDayjs(rawDateValue)
+      const localDateString = parsedDate?.isValid() ? parsedDate.format('YYYY-MM-DD') : rawDateValue || null
       const startTimeCombined = detail?.start_time
-        ? combineDateAndTime(detail?.surgery_date || detail?.date, detail.start_time)
+        ? combineDateAndTime(localDateString, convertUtcTimeToLocalString(rawDateValue, detail.start_time))
         : null
       const endTimeCombined = detail?.end_time
-        ? combineDateAndTime(detail?.surgery_date || detail?.date, detail.end_time)
+        ? combineDateAndTime(localDateString, convertUtcTimeToLocalString(rawDateValue, detail.end_time))
         : null
 
       const procedureOption =
@@ -407,7 +391,11 @@ const AddSurgeryRecord = () => {
             }
           : null
 
-      setValue('date', dateValue || null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
+      setValue('date', parsedDate && parsedDate.isValid() ? parsedDate : null, {
+        shouldValidate: false,
+        shouldDirty: false,
+        shouldTouch: false
+      })
       setValue('startTime', startTimeCombined || null, {
         shouldValidate: false,
         shouldDirty: false,
@@ -471,7 +459,15 @@ const AddSurgeryRecord = () => {
       setRichNote(detail?.surgery_notes || '')
       setFormResetKey(prev => prev + 1)
     },
-    [setPrefillDetail, setValue, setSelectedAnesthesiaRecord, setRichNote, setFormResetKey]
+    [
+      setPrefillDetail,
+      setValue,
+      setSelectedAnesthesiaRecord,
+      setRichNote,
+      setFormResetKey,
+      parseUtcDateToLocalDayjs,
+      convertUtcTimeToLocalString
+    ]
   )
 
   const resetForm = useCallback(() => {
@@ -686,13 +682,6 @@ const AddSurgeryRecord = () => {
   const animalInfoData = useMemo(() => buildAnimalInfoData(patientData), [patientData])
   const minDate = useMemo(() => (admissionDateTime ? admissionDateTime.startOf('day') : null), [admissionDateTime])
   const maxDate = dayjs()
-
-  const maxTimeForSelectedDate = useMemo(() => {
-    if (!selectedDate) return null
-    const now = dayjs()
-
-    return dayjs(selectedDate).startOf('day').isSame(now.startOf('day')) ? now : null
-  }, [selectedDate])
 
   // const buildReturnUrl = useCallback(() => {
   //   const getFirst = value => (Array.isArray(value) ? value[0] : value || '')
@@ -1133,7 +1122,6 @@ const AddSurgeryRecord = () => {
                 label='Start Time'
                 name={'startTime'}
                 control={control}
-                maxTime={maxTimeForSelectedDate}
                 renderInput={params => (
                   <ControlledTextField
                     {...params}
@@ -1157,7 +1145,6 @@ const AddSurgeryRecord = () => {
                 control={control}
                 label='End Time'
                 minTime={startTimeValue || null}
-                maxTime={maxTimeForSelectedDate}
                 renderInput={params => (
                   <ControlledTextField
                     {...params}
