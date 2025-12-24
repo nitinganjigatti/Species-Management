@@ -7,6 +7,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
+import moment from 'moment'
 
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
@@ -171,8 +172,8 @@ const MortalityDischargeForm = props => {
       hospital_case_id: id,
       animal_id: patientData?.animal_detail?.animal_id,
       discharge_type: watchDischargeType,
-      date_of_death: formData.date_of_death,
-      time_of_death: formData.time_of_death,
+      date_of_death: moment(formData.date_of_death).format('YYYY-MM-DD'),
+      time_of_death: dayjs(formData.time_of_death).set('second', 0).format('HH:mm:ss'),
       manner_of_death: formData.manner_of_death.value,
       reason_for_death: formData.manner_of_death.value, // for backend compatibility
       carcass_condition: formData.carcass_condition.value,

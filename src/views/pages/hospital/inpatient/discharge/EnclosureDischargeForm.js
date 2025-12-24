@@ -8,6 +8,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller, useForm } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
+import moment from 'moment'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
@@ -234,14 +235,14 @@ const EnclosureDischargeForm = props => {
       hospital_case_id: id,
       animal_id: patientDetails?.animal_id,
       discharge_type: watchDischargeType,
-      discharge_date: formData.discharge_date,
-      discharge_time: formData.discharge_time,
+      discharge_date: moment(formData.discharge_date).format('YYYY-MM-DD'),
+      discharge_time: dayjs(formData.discharge_time).set('second', 0).format('HH:mm:ss'),
       reason: formData.reason,
       care_diet_instruction: formData.care_diet_instruction,
       care_restriction: formData.care_restriction,
       care_notes: formData.care_notes,
       follow_up_required: formData.follow_up_required ? '1' : '0',
-      follow_up_date: formData.follow_up_date,
+      follow_up_date: moment(formData.follow_up_date).format('YYYY-MM-DD'),
       attachments: formData.attachments.length > 0 ? formData.attachments : undefined,
       medications: JSON.stringify(medicationData),
       transfer_back_to_original_location: 1,
