@@ -12,6 +12,7 @@ import MediaCard from 'src/views/utility/MediaCard'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
+import FilePreviewCard from 'src/views/utility/NewMediaCard'
 
 import { deleteSurgeryRecord, getPatientSurgeryList } from 'src/lib/api/hospital/surgeryMaster'
 
@@ -188,8 +189,8 @@ const MediaScroller = ({ items = [] }) => {
     >
       <Box
         sx={{
-          display: 'inline-flex',
-          gap: 2,
+          display: 'flex',
+          gap: 4,
           px: 2
         }}
       >
@@ -200,11 +201,20 @@ const MediaScroller = ({ items = [] }) => {
             <Box
               key={key}
               sx={{
-                width: 240,
-                flexShrink: 0
+                width: 240
+                // flexShrink: 0
               }}
             >
-              <MediaCard media={item} isBorderedCard />
+              <FilePreviewCard
+                fileUrl={item?.file}
+                fileName={item?.file_original_name}
+                fileType={item?.file_type}
+                width={'250px'}
+                height={'220px'}
+                user={item}
+                showTitle={true}
+              />
+              {/* <MediaCard media={item} isBorderedCard /> */}
             </Box>
           )
         })}
