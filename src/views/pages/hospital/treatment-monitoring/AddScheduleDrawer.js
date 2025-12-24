@@ -58,6 +58,20 @@ const AddScheduleDrawer = ({
     // defaultValues
   })
 
+  const watchedValues = watch()
+
+  useEffect(() => {
+    if (!monitoring?.length) return
+
+    const intervals = monitoring.map(m => watchedValues[m.id]).filter(Boolean)
+
+    if (!intervals.length) return
+
+    const allSame = intervals.every(v => v === intervals[0])
+
+    setSelectedInterval(allSame ? intervals[0] : null)
+  }, [watchedValues, monitoring])
+
   useEffect(() => {
     if (!monitoring?.length) return
 

@@ -3,7 +3,7 @@ import AddMedicineToPrescription from 'src/components/hospital/prescriptionMonit
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 function AddPrescription() {
-  return <AddMedicineToPrescription from='inPatient' />
+  return <AddMedicineToPrescription from='outPatient' />
 }
 
 export default enforceModuleAccess(AddPrescription, 'add_hospital')

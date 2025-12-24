@@ -197,38 +197,29 @@ const HospitalMortality = () => {
     {
       width: 250,
       minWidth: 20,
-      field: 'reason',
+      field: 'manner_of_death',
       sortable: false,
       headerName: 'Reason',
       renderCell: params => (
         <>
-          <Tooltip
-            title={
-              <span
-                dangerouslySetInnerHTML={{
-                  __html: params?.row?.reason || 'NA'
+          <Tooltip title={params.row.manner_of_death}>
+            <Typography
+                variant='body2'
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  fontFamily: 'Inter',
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 5,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'normal'
                 }}
-              />
-            }
-          >
-            <Box
-              sx={{
-                fontSize: '14px',
-                fontWeight: 400,
-                fontFamily: 'Inter',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                display: '-webkit-box',
-                WebkitLineClamp: 4,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'normal',
-                py: 4
-              }}
-              dangerouslySetInnerHTML={{
-                __html: params?.row?.reason || 'NA'
-              }}
-            />
+              >
+                {params.row.manner_of_death || ''}
+              </Typography>
           </Tooltip>
         </>
       )

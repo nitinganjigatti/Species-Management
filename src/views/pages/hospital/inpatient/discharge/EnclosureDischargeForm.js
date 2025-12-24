@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { Box, Button, Divider, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import { alpha, styled } from '@mui/system'
-import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
 
 import * as yup from 'yup'
@@ -9,6 +8,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller, useForm } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
+import moment from 'moment'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
@@ -70,7 +70,7 @@ const EnclosureDischargeForm = props => {
   // Index medicines
   const indexedMedicines = useMemo(
     () =>
-      medicationData.map((data, i) => ({
+      medicationData?.map((data, i) => ({
         ...data,
         sl_no: i + 1
       })),
@@ -195,7 +195,7 @@ const EnclosureDischargeForm = props => {
   // Delete a medicine update context state
   const handleDeleteMedicine = useCallback(
     medId => {
-      const updated = medicationData.filter(med => med.id !== medId)
+      const updated = medicationData?.filter(med => med.id !== medId)
       updateState('enclosure_medicines', updated)
       onDirtyChange?.(true)
     },
@@ -230,20 +230,19 @@ const EnclosureDischargeForm = props => {
     [medicationsColumns, handleEditMedicine, handleDeleteMedicine]
   )
 
-  // Handle form submission
   const onSubmit = async formData => {
     const payload = {
       hospital_case_id: id,
       animal_id: patientDetails?.animal_id,
       discharge_type: watchDischargeType,
-      discharge_date: formData.discharge_date,
-      discharge_time: formData.discharge_time,
+      discharge_date: moment(formData.discharge_date).format('YYYY-MM-DD'),
+      discharge_time: dayjs(formData.discharge_time).set('second', 0).format('HH:mm:ss'),
       reason: formData.reason,
       care_diet_instruction: formData.care_diet_instruction,
       care_restriction: formData.care_restriction,
       care_notes: formData.care_notes,
       follow_up_required: formData.follow_up_required ? '1' : '0',
-      follow_up_date: formData.follow_up_date,
+      follow_up_date: moment(formData.follow_up_date).format('YYYY-MM-DD'),
       attachments: formData.attachments.length > 0 ? formData.attachments : undefined,
       medications: JSON.stringify(medicationData),
       transfer_back_to_original_location: 1,
@@ -429,58 +428,60 @@ const EnclosureDischargeForm = props => {
             )}
           </Grid>
 
-          <Divider />
           {/* Prescription table*/}
           {prescriptionData?.length > 0 && (
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: {
-                    xs: 'flex-start',
-                    md: 'center'
-                  },
-                  flexDirection: {
-                    xs: 'column',
-                    sm: 'row'
-                  },
-                  justifyContent: {
-                    xs: 'flex-start',
-                    sm: 'space-between'
-                  },
-                  gap: {
-                    xs: 3,
-                    md: 0
-                  }
-                }}
-              >
-                <Box>
-                  <StyledTypography fontSize='1.25rem'>
-                    Active Prescriptions - {prescriptionData?.length}
-                  </StyledTypography>
+            <>
+              <Divider />
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: {
+                      xs: 'flex-start',
+                      md: 'center'
+                    },
+                    flexDirection: {
+                      xs: 'column',
+                      sm: 'row'
+                    },
+                    justifyContent: {
+                      xs: 'flex-start',
+                      sm: 'space-between'
+                    },
+                    gap: {
+                      xs: 3,
+                      md: 0
+                    }
+                  }}
+                >
+                  <Box>
+                    <StyledTypography fontSize='1.25rem'>
+                      Active Prescriptions - {prescriptionData?.length}
+                    </StyledTypography>
 
-                  <StyledTypography fontSize='0.875rem'>
-                    You can stop the below prescriptions if its not needed after discharge
-                  </StyledTypography>
+                    <StyledTypography fontSize='0.875rem'>
+                      You can stop the below prescriptions if its not needed after discharge
+                    </StyledTypography>
+                  </Box>
                 </Box>
+                <CommonTable
+                  columns={prescriptionsColumns}
+                  loading={isPrescriptionLoading}
+                  indexedRows={prescriptionData || []}
+                  rowHeight={64}
+                  externalTableStyle={{
+                    // '--unstable_DataGrid-headWeight': 600,
+                    '& .MuiDataGrid-columnHeaders': {
+                      backgroundColor: theme.palette.customColors.neutral05,
+                      fontSize: '0.75rem',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }
+                  }}
+                  hideFooterPagination={true}
+                  hideFooter={true}
+                />
               </Box>
-              <CommonTable
-                columns={prescriptionsColumns}
-                loading={isPrescriptionLoading}
-                indexedRows={prescriptionData || []}
-                rowHeight={64}
-                externalTableStyle={{
-                  // '--unstable_DataGrid-headWeight': 600,
-                  '& .MuiDataGrid-columnHeaders': {
-                    backgroundColor: theme.palette.customColors.neutral05,
-                    fontSize: '0.75rem',
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }
-                }}
-                hideFooterPagination={true}
-                hideFooter={true}
-              />
-            </Box>
+            </>
           )}
           <Divider />
           <Box sx={{ display: 'flex', flexDirection: 'column' }} id='medications-section'>
@@ -535,7 +536,6 @@ const EnclosureDischargeForm = props => {
                 rowHeight={64}
                 hideFooterPagination
                 externalTableStyle={{
-                  // '--unstable_DataGrid-headWeight': 600,
                   '& .MuiDataGrid-columnHeaders': {
                     backgroundColor: theme.palette.customColors.neutral05,
                     fontSize: '0.75rem',
@@ -580,35 +580,6 @@ const EnclosureDischargeForm = props => {
             <ControlledMultiFileUpload name='attachments' control={control} errors={errors} label='Upload attachment' />
           </Box>
         </Box>
-
-        {/* <Box
-          sx={{
-            position: 'fixed',
-            bottom: 0,
-            left: {
-              xs: 0,
-              lg: '270px'
-            },
-            right: 0,
-            width: 'auto',
-            backgroundColor: theme.palette.customColors.OnPrimary,
-            p: 6,
-            boxShadow: `0px -2px 8px ${theme.palette.customColors.shadowColor}`,
-            display: 'flex',
-            justifyContent: 'flex-end',
-            zIndex: 1200
-          }}
-        >
-          <LoadingButton
-            variant='contained'
-            sx={{ px: 12, py: 3 }}
-            disabled={submitLoader}
-            loading={submitLoader}
-            type='submit'
-          >
-            Discharge Animal
-          </LoadingButton>
-        </Box> */}
         <BottomActionBar
           submitLabel='Discharge Animal'
           submitBtnVariant='contained'

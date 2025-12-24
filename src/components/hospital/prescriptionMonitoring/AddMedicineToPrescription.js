@@ -23,6 +23,7 @@ import {
   getMedicineBatches,
   getPrescriptionDetails,
   getPrescriptions,
+  getSideEffectMedicines,
   stopPrescription
 } from 'src/lib/api/hospital/prescription'
 import Utility from 'src/utility'
@@ -33,6 +34,7 @@ import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import dayjs from 'dayjs'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -363,6 +365,10 @@ export default function AddMedicineToPrescription() {
   const [endsOn, setEndsOn] = useState(null)
   const [cancelOrCloseText, setCancelOrCloseText] = useState('CANCEL')
   const [medicineDetail, setMedicineDetail] = useState(null)
+  const [sideEffectMedicinesLoading, setSideEffectMedicinesLoading] = useState(false)
+  const [showSideEffectWarning, setShowSideEffectWarning] = useState(false)
+  const [warningMedicine, setWarningMedicine] = useState(null)
+  const [sideEffectMedicinesCache, setSideEffectMedicinesCache] = useState(null)
 
   const { selectedHospital: hospital } = useHospital()
 
@@ -560,22 +566,105 @@ export default function AddMedicineToPrescription() {
     }
   }
 
-  const handleMedicineSelect = medicine => {
+  const fetchSideEffectMedicines = async () => {
+    try {
+      setSideEffectMedicinesLoading(true)
+
+      const payload = {
+        animal_id: JSON.stringify([animal_id])
+      }
+
+      const response = await getSideEffectMedicines(payload)
+
+      if (response?.data) {
+        return response?.data
+      } 
+    } catch (error) {
+      Toaster({ type: 'error', message: error || 'Something went wrong' })
+      router.back()
+    } finally {
+      setSideEffectMedicinesLoading(false)
+    }
+  }
+
+  // Helper function to check for side effects
+  const checkForSideEffects = (sideEffectMedicines, selectedMedicineId) => {
+    if (!sideEffectMedicines || !sideEffectMedicines.result) return false
+
+    // Extract all medicine_ids from the result array
+    const medicineIdsWithSideEffects = sideEffectMedicines.result
+      .map(item => (item.medicine_id ? item.medicine_id.toString() : null))
+      .filter(id => id !== null)
+
+    // Check if selected medicine ID is in the list
+    return medicineIdsWithSideEffects.includes(selectedMedicineId.toString())
+  }
+
+  const handleMedicineSelect = async medicine => {
     if (medicine) {
-      setValue('selectedMedicineId', medicine.id, { shouldValidate: true })
-      setValue('selectedMedicine', medicine, { shouldValidate: true })
-      setTemporarilySelectedMedicine({ ...medicine })
-      setSelectedMedicine({ ...medicine })
+      if(fromPage === "prescriptionDetail" || editingMedicine) {
+        proceedWithMedicineSelection(medicine)
 
-      // Reset batch number when medicine changes
-      setValue('batchNumber', null)
-      setBatchSearchQuery('')
+        return
+      }
 
-      // Only fetch batches if Direct Administer is selected
-      if (watch('selectMedicineType') === 'Direct Administer') {
-        fetchMedicineBatches(medicine.id, '')
+      let sideEffectMedicines
+      
+      // Use cached data if available, otherwise fetch
+      if (sideEffectMedicinesCache !== null) {
+        sideEffectMedicines = sideEffectMedicinesCache
+      } else {
+        sideEffectMedicines = await fetchSideEffectMedicines()
+        
+        // Cache the data for future use
+        setSideEffectMedicinesCache(sideEffectMedicines)
+      }
+
+      // Check if selected medicine has caused side effects
+      const hasSideEffects = checkForSideEffects(sideEffectMedicines, medicine.id)
+
+      if (hasSideEffects) {
+        // Show warning modal
+        setShowSideEffectWarning(true)
+        setWarningMedicine(medicine)
+
+        return // Don't proceed with selection until user confirms
+      } else {
+        proceedWithMedicineSelection(medicine)
       }
     }
+  }
+
+  // Function to proceed with medicine selection after confirmation
+  const proceedWithMedicineSelection = medicine => {
+    setValue('selectedMedicineId', medicine.id, { shouldValidate: true })
+    setValue('selectedMedicine', medicine, { shouldValidate: true })
+    setTemporarilySelectedMedicine({ ...medicine })
+    setSelectedMedicine({ ...medicine })
+
+    // Reset batch number when medicine changes
+    setValue('batchNumber', null)
+    setBatchSearchQuery('')
+
+    // Only fetch batches if Direct Administer is selected
+    if (watch('selectMedicineType') === 'Direct Administer') {
+      fetchMedicineBatches(medicine.id, '')
+    }
+  }
+
+  // Function to handle user confirmation from modal
+  const handleSideEffectConfirm = () => {
+    if (warningMedicine) {
+      proceedWithMedicineSelection(warningMedicine)
+    }
+    setShowSideEffectWarning(false)
+    setWarningMedicine(null)
+  }
+
+  const handleSideEffectCancel = () => {
+    setShowSideEffectWarning(false)
+    setWarningMedicine(null)
+    router.back()
   }
 
   // Add this after the cleanup useEffect
@@ -978,12 +1067,13 @@ export default function AddMedicineToPrescription() {
             interval_id: interval?.id || '',
             interval_string_id: interval?.interval_string_id || '',
 
-            duration_qty: data.dosageDuration?.value?.toString() || '1',
-            duration_id: interval?.id || '',
+            duration_qty: frequency?.string_id === 'at_regular_intervals' ? data.dosageDuration?.value?.toString() : 0,
+            duration_id: frequency?.string_id === 'at_regular_intervals' ? interval?.id : '2',
             duration: data.dosageDuration?.value
               ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
-              : '1 days',
-            duration_string_id: interval?.string_id || '',
+              : '0 days',
+            duration_string_id:
+              frequency?.string_id === 'at_regular_intervals' ? interval?.string_id : 'antz-prescription.days',
             duration_type: data.dosageDuration?.unit
               ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
               : 'Days',
@@ -1083,27 +1173,30 @@ export default function AddMedicineToPrescription() {
       }))
 
       // Construct batch list for payload
-      const batchListPayload = [
-        {
-          id: selectedBatch?.id,
-          label: '',
-          selectedAnimal: [
-            {
-              animal_id: animal_id,
-              selectType: 'animal'
-            }
-          ],
-          expiryDate: selectedBatch?.expiry_date || '',
-          batchNumber: typeof data.batchNumber === 'object' ? data.batchNumber?.batch_no : data.batchNumber || '',
-          wastage: data.wastageQuantity || '',
-          wastageUnit: data.wastageUOM || '',
-          notes: data.wastageNotes || '',
-          frequencyValue: data.frequency || '',
-          frequencyId: frequency?.id || '',
+      const batchListPayload =
+        data.batchNumber?.batch_no || data.batchNumber
+          ? [
+              {
+                id: selectedBatch?.id,
+                label: '',
+                selectedAnimal: [
+                  {
+                    animal_id: animal_id,
+                    selectType: 'animal'
+                  }
+                ],
+                expiryDate: selectedBatch?.expiry_date,
+                batchNumber: typeof data.batchNumber === 'object' ? data.batchNumber?.batch_no : data.batchNumber,
+                wastage: data.wastageQuantity,
+                wastageUnit: data.wastageUOM,
+                notes: data.wastageNotes,
+                frequencyValue: data.frequency,
+                frequencyId: frequency?.id,
 
-          totalAnimal: []
-        }
-      ]
+                totalAnimal: []
+              }
+            ]
+          : []
 
       const payload = {
         record_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
@@ -1145,7 +1238,7 @@ export default function AddMedicineToPrescription() {
             duration_string_id: 'antz-prescription.days',
             duration_type: 'Days',
 
-            notes: data.wastageNotes || '',
+            notes: data.notes || '',
 
             delivery_route_name: data?.deliveryRoute || '',
             delivery_route_id: deliveryRoute?.id || '',
@@ -1304,7 +1397,9 @@ export default function AddMedicineToPrescription() {
           delivery_route_id: deliveryRoute?.id || '',
           delivery_route_string_id: deliveryRoute?.string_id || '',
 
-          start_date: formatDateWithCurrentTime(data.prescriptionStartDate),
+          start_date: isOneTimeFrequency
+            ? toISTISOString(data.prescriptionStartDate)
+            : toISTISOString(data.prescriptionStartDate).replace('+05:30', 'Z'),
           end_date: isOneTimeFrequency
             ? toISTISOString(data.prescriptionStartDate)
             : formatDateWithCurrentTime(
@@ -1454,10 +1549,10 @@ export default function AddMedicineToPrescription() {
     handleMedicineSelect(editingMedicine)
   }, [editingMedicine])
 
-  useEffect(() => {
-    if (!fromPage) return
-    if (fromPage === 'prescriptionDetail') handleMedicineSelect(editingMedicine)
-  }, [editingMedicine])
+  // useEffect(() => {
+  //   if (!fromPage) return
+  //   if (fromPage === 'prescriptionDetail') handleMedicineSelect(editingMedicine)
+  // }, [editingMedicine])
 
   const getUnitIdFromName = (unitName, medicalMasterData) => {
     const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
@@ -1490,10 +1585,10 @@ export default function AddMedicineToPrescription() {
     } else {
       switch (dosageDuration.unit) {
         case 'days':
-          endDate = start.add(intervalValue * durationValue - 1, 'days')
+          endDate = start.add(1 * durationValue - 1, 'days')
           break
         case 'weeks':
-          endDate = start.add(intervalValue * 7 * durationValue - 1, 'days')
+          endDate = start.add(1 * 7 * durationValue - 1, 'days')
           break
         case 'months':
           endDate = start.add(durationValue, 'months')
@@ -1628,7 +1723,7 @@ export default function AddMedicineToPrescription() {
               setValue={setValue}
               getValues={getValues}
               errors={errors}
-              isMedicineSelected={temporarilySelectedMedicine?.id}
+              isMedicineSelected={temporarilySelectedMedicine?.id || sideEffectMedicinesLoading}
               selectedMedicineTo={watch('selectMedicineType')}
               batchList={batchList}
               batchLoading={batchLoading}
@@ -1638,6 +1733,7 @@ export default function AddMedicineToPrescription() {
               endsOn={endsOn}
               stopDate={medicineDetail?.stop_date}
               reset={reset}
+              loadingSideEffects={sideEffectMedicinesLoading}
             />
           </Grid>
         </Grid>
@@ -1686,6 +1782,21 @@ export default function AddMedicineToPrescription() {
         }}
         onCancel={handleCancel}
       />
+      {showSideEffectWarning && warningMedicine && (
+        <ConfirmationDialog
+          dialogBoxStatus={showSideEffectWarning && warningMedicine}
+          onClose={handleSideEffectCancel}
+          title={'Caused adverse side effects, Do you want to add?'}
+          cancelText={'No'}
+          confirmBtnStyle={{ background: theme.palette.primary.main, py: 2 }}
+          image={'/images/warning-icon.svg'}
+          imgStyle={{ background: theme.palette.customColors.mdAntzNeutral, p: 4 }}
+          confirmAction={handleSideEffectConfirm} // Run actual add logic here
+          loading={sideEffectMedicinesLoading}
+          ConfirmationText={'YES'}
+          description={''}
+        />
+      )}
     </Box>
   )
 }

@@ -197,12 +197,18 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
   const primaryDark = theme.palette.primary.dark || theme.palette.primary.main
 
   const [newMonitoringItem, setNewMonitoringItem] = useState('')
+  const [duplicateError, setDuplicateError] = useState('')
 
   const rows = (anesthesiaSetupList || []).map(section => ({
     key: section.string_id,
     label: section.section_name,
     meta: section
   }))
+
+  const normalizeItemName = name => {
+    if (!name) return ''
+    return name.toLowerCase().replace(/\s+/g, '').trim()
+  }
 
   const toggleRowChecked = key => {
     const current = watch(`anesthesiaSetup.${key}.checked`)
@@ -212,41 +218,42 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
     if (newVal) {
       const meta = (anesthesiaSetupList || []).find(s => s.string_id === key)
       if (!meta) return
+      const currentSectionData = watch(`anesthesiaSetup.${key}`) || {}
+      if (!currentSectionData.checked) {
+        const initialFlat = {}
+        const initialFieldsObject = {}
 
-      const initialFlat = {}
-      const initialFieldsObject = {}
+        if (Array.isArray(meta.fields)) {
+          meta.fields.forEach(f => {
+            const uiKey = uiKeyForField(meta.string_id, f.field_key)
+            const fieldValue = f.field_value ?? ''
+            const unit = f.unit ?? ''
+            initialFlat[uiKey] = fieldValue
+            initialFieldsObject[f.field_key] = { field_value: fieldValue, unit }
+          })
+        }
 
-      if (Array.isArray(meta.fields)) {
-        meta.fields.forEach(f => {
-          const uiKey = uiKeyForField(meta.string_id, f.field_key)
-          const fieldValue = f.field_value ?? ''
-          const unit = f.unit ?? ''
-          initialFlat[uiKey] = fieldValue
-          initialFieldsObject[f.field_key] = { field_value: fieldValue, unit }
-        })
+        let monitoringData = currentSectionData.monitoring || { selected: [], otherItems: [] }
+        if (!currentSectionData.monitoring && meta.monitoring_items) {
+          const selectedArr = meta.monitoring_items
+            .filter(mi => mi.is_selected === '1' || mi.is_selected === 1)
+            .map(mi => Number(mi.id))
+          const customArr = meta.monitoring_items
+            .filter(mi => !(mi.is_selected === '1' || mi.is_selected === 1))
+            .map(mi => mi.name)
+
+          monitoringData = { selected: selectedArr, otherItems: customArr }
+        }
 
         setValue(
           `anesthesiaSetup.${key}`,
           {
-            ...(watch(`anesthesiaSetup.${key}`) || {}),
+            ...currentSectionData,
             ...initialFlat,
             fields: initialFieldsObject,
+            monitoring: monitoringData,
             checked: true
           },
-          { shouldDirty: true }
-        )
-      }
-
-      if (meta.monitoring_items) {
-        const selectedArr = meta.monitoring_items
-          .filter(mi => mi.is_selected === '1' || mi.is_selected === 1)
-          .map(mi => Number(mi.id))
-        const customArr = meta.monitoring_items
-          .filter(mi => !(mi.is_selected === '1' || mi.is_selected === 1))
-          .map(mi => mi.name)
-        setValue(
-          `anesthesiaSetup.${key}.monitoring`,
-          { selected: selectedArr, otherItems: customArr },
           { shouldDirty: true }
         )
       }
@@ -258,14 +265,41 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
     setValue(`anesthesiaSetup.${key}.checked`, event.target.checked, { shouldDirty: true })
   }
 
-  const handleAddOtherItem = section => {
+  const handleAddOtherItem = (section, meta) => {
     const v = newMonitoringItem.trim()
-    if (!v) return
-    const list = watch(`anesthesiaSetup.${section}.monitoring.otherItems`) || []
+    if (!v) {
+      setDuplicateError('')
+      return
+    }
+    setDuplicateError('')
+    const monitoringState = watch(`anesthesiaSetup.${section}.monitoring`) || { selected: [], otherItems: [] }
+    const normalizedNewItem = normalizeItemName(v)
+    const predefinedItems = meta.monitoring_items || []
+    const isInPredefined = predefinedItems.some(item => normalizeItemName(item.name) === normalizedNewItem)
+    const isInCustomItems = (monitoringState.otherItems || []).some(
+      item => normalizeItemName(item) === normalizedNewItem
+    )
+    const selectedItemNames = (monitoringState.selected || [])
+      .map(selectedId => {
+        const item = predefinedItems.find(i => Number(i.id) === selectedId)
+
+        return item ? normalizeItemName(item.name) : ''
+      })
+      .filter(Boolean)
+
+    const isInSelected = selectedItemNames.includes(normalizedNewItem)
+
+    if (isInPredefined || isInCustomItems || isInSelected) {
+      setDuplicateError('Item already exists')
+
+      return
+    }
+    const list = monitoringState.otherItems || []
     if (!list.includes(v)) {
       setValue(`anesthesiaSetup.${section}.monitoring.otherItems`, [...list, v], { shouldDirty: true })
     }
     setNewMonitoringItem('')
+    setDuplicateError('')
   }
 
   const handleRemoveOtherItem = (section, itemToRemove) => {
@@ -277,10 +311,17 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
     )
   }
 
-  const handleNewItemKeyDown = (e, section) => {
+  const handleNewItemKeyDown = (e, section, meta) => {
     if (e.key === 'Enter') {
       e.preventDefault()
-      handleAddOtherItem(section)
+      handleAddOtherItem(section, meta)
+    }
+  }
+
+  const handleInputChange = value => {
+    setNewMonitoringItem(value)
+    if (duplicateError) {
+      setDuplicateError('')
     }
   }
 
@@ -471,7 +512,7 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
           <Box
             sx={{
               width: '430px',
-              height: '115px',
+              height: duplicateError ? '140px' : '115px',
               gap: '10px',
               borderRadius: '8px',
               padding: '16px',
@@ -479,7 +520,8 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
               backgroundColor: displayBgSecondary,
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              transition: 'height 0.2s ease'
             }}
           >
             <Typography sx={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '14px', color: onSurface }}>
@@ -488,15 +530,24 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
             <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <TextField
                 fullWidth
-                placeholder='New Monitoring'
+                placeholder='Enter New Item'
                 value={newMonitoringItem}
-                onChange={e => setNewMonitoringItem(e.target.value)}
-                onKeyDown={e => handleNewItemKeyDown(e, key)}
-                sx={{ ...textFieldStyles, '& .MuiInputBase-input': { color: onSurface } }}
+                onChange={e => handleInputChange(e.target.value)}
+                onKeyDown={e => handleNewItemKeyDown(e, key, sectionMeta)}
+                sx={{
+                  ...textFieldStyles,
+                  '& .MuiInputBase-input': {
+                    color: onSurface,
+                    '&::placeholder': {
+                      color: '#9E9E9E!important',
+                      opacity: 1
+                    }
+                  }
+                }}
               />
               <Button
                 variant='contained'
-                onClick={() => handleAddOtherItem(key)}
+                onClick={() => handleAddOtherItem(key, sectionMeta)}
                 disabled={!newMonitoringItem.trim()}
                 sx={{
                   width: '108px',
@@ -510,11 +561,23 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
                 ADD
               </Button>
             </Box>
+            {duplicateError && (
+              <Typography
+                sx={{
+                  mt: 0.5,
+                  fontSize: '12px',
+                  color: theme.palette.error.main,
+                  fontFamily: 'Inter',
+                  fontWeight: 400
+                }}
+              >
+                {duplicateError}
+              </Typography>
+            )}
           </Box>
         </Box>
       )
     }
-
     return null
   }
 
@@ -553,6 +616,7 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
                   flexBasis: { md: '240px' },
                   flexShrink: 0,
                   cursor: 'pointer'
+                  //pointerEvents: 'none'
                 }}
                 role='button'
                 tabIndex={0}
@@ -570,6 +634,7 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
                   onChange={handleCheckboxToggle(key)}
                   onClick={event => event.stopPropagation()}
                   sx={{
+                    // pointerEvents: 'auto',
                     p: 0,
                     width: '24px',
                     height: '24px',

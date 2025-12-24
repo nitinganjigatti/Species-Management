@@ -11,6 +11,9 @@ import Utility from 'src/utility'
 import MediaCard from 'src/views/utility/MediaCard'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
+import FilePreviewCard from 'src/views/utility/NewMediaCard'
+
 import { deleteSurgeryRecord, getPatientSurgeryList } from 'src/lib/api/hospital/surgeryMaster'
 
 const FieldTooltip = ({ title, placement = 'top-start', children }) => (
@@ -186,8 +189,8 @@ const MediaScroller = ({ items = [] }) => {
     >
       <Box
         sx={{
-          display: 'inline-flex',
-          gap: 2,
+          display: 'flex',
+          gap: 4,
           px: 2
         }}
       >
@@ -198,11 +201,20 @@ const MediaScroller = ({ items = [] }) => {
             <Box
               key={key}
               sx={{
-                width: 240,
-                flexShrink: 0
+                width: 240
+                // flexShrink: 0
               }}
             >
-              <MediaCard media={item} isBorderedCard />
+              <FilePreviewCard
+                fileUrl={item?.file}
+                fileName={item?.file_original_name}
+                fileType={item?.file_type}
+                width={'250px'}
+                height={'220px'}
+                user={item}
+                showTitle={true}
+              />
+              {/* <MediaCard media={item} isBorderedCard /> */}
             </Box>
           )
         })}
@@ -626,6 +638,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
   )
 
   const shouldShowDetails = Boolean(activeRecord)
+  const shouldShowEmptyState = !shouldShowDetails && !loading && !error
 
   return (
     <>
@@ -650,15 +663,16 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
             </Box>
           </Box>
 
-          {!patientDischarged && (
-            <Button
-              onClick={handleAddSurgeryRecord}
-              variant='contained'
-              sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
-            >
-              Add SURGERY RECORD
-            </Button>
-          )}
+          {loading ||
+            (!patientDischarged && !shouldShowEmptyState && (
+              <Button
+                onClick={handleAddSurgeryRecord}
+                variant='contained'
+                sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
+              >
+                Add SURGERY RECORD
+              </Button>
+            ))}
         </Box>
 
         {!shouldShowDetails ? (
@@ -675,7 +689,22 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
               {error ? (
                 <Typography sx={{ color: theme.palette.error.main }}>{error}</Typography>
               ) : (
-                <NoDataFound variant='Seal' height={300} width={300} />
+                <Box
+                  sx={{
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }}
+                >
+                  <NoMedicalData
+                    btnText={'ADD NEW SURGERY RECORD'}
+                    text={'All Added Surgery Records Will Appear here'}
+                    isDischarged={patientDischarged}
+                    btnAction={handleAddSurgeryRecord}
+                  />
+                </Box>
+                // <NoDataFound variant='Seal' height={300} width={300} />
               )}
             </Box>
           )

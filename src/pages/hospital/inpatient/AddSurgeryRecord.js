@@ -14,7 +14,6 @@ import { useQuery } from '@tanstack/react-query'
 
 dayjs.extend(customParseFormat)
 
-import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 import AddAnesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnesthesiaRecord'
@@ -27,7 +26,8 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 import AddEditSurgeryDrawer from 'src/views/pages/hospital/masters/surgery'
 
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
-import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { getHospitalStaff } from 'src/lib/api/hospital/staff'
+import Utility from 'src/utility'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 
 import {
@@ -222,29 +222,10 @@ const schema = yup.object().shape({
 
       return !dayjs(value).startOf('day').isAfter(dayjs().startOf('day'))
     }),
-  startTime: yup
-    .mixed()
-    .test('start-required', 'Start time is required', value => Boolean(value) && dayjs(value).isValid())
-    .test('start-after-admission', 'Start time cannot be before admission time', function (value) {
-      const admissionDateTime = this?.options?.context?.admissionDateTime
-      const selectedDate = this?.parent?.date
-      if (!value || !admissionDateTime || !selectedDate) return true
-
-      const startDateTime = combineDateAndTime(selectedDate, value)
-
-      return startDateTime && !startDateTime.isBefore(dayjs(admissionDateTime))
-    })
-    .test('start-not-in-future', 'Start time cannot be in the future', function (value) {
-      const selectedDate = this?.parent?.date
-      if (!value || !selectedDate) return true
-
-      const startDateTime = combineDateAndTime(selectedDate, value)
-
-      return startDateTime && !startDateTime.isAfter(dayjs())
-    }),
+  startTime: yup.mixed().test('start-required', 'Start time is required', value => Boolean(value)),
   endTime: yup
     .mixed()
-    .test('end-required', 'End time is required', value => Boolean(value) && dayjs(value).isValid())
+    .test('end-required', 'End time is required', value => Boolean(value))
     .test('end-after-start', 'End time must be after start time', function (value) {
       const { startTime, date } = this?.parent || {}
       if (!value || !startTime || !date) return true
@@ -255,23 +236,6 @@ const schema = yup.object().shape({
       if (!startDateTime || !endDateTime) return true
 
       return endDateTime.isAfter(startDateTime)
-    })
-    .test('end-after-admission', 'End time cannot be before admission time', function (value) {
-      const admissionDateTime = this?.options?.context?.admissionDateTime
-      const selectedDate = this?.parent?.date
-      if (!value || !admissionDateTime || !selectedDate) return true
-
-      const endDateTime = combineDateAndTime(selectedDate, value)
-
-      return endDateTime && !endDateTime.isBefore(dayjs(admissionDateTime))
-    })
-    .test('end-not-in-future', 'End time cannot be in the future', function (value) {
-      const selectedDate = this?.parent?.date
-      if (!value || !selectedDate) return true
-
-      const endDateTime = combineDateAndTime(selectedDate, value)
-
-      return endDateTime && !endDateTime.isAfter(dayjs())
     }),
   procedure: yup
     .mixed()
@@ -314,14 +278,11 @@ const AddSurgeryRecord = () => {
     () => (patientData?.admitted_at ? dayjs(patientData.admitted_at) : null),
     [patientData?.admitted_at]
   )
-  const defaultNow = useMemo(() => dayjs(), [])
-  const auth = useAuth()
-  const userZooId = useMemo(() => auth?.userData?.user?.zoos?.[0]?.zoo_id, [auth?.userData])
 
   const buildDefaultFormValues = useCallback(
     () => ({
-      date: defaultNow,
-      startTime: null,
+      date: dayjs(),
+      startTime: dayjs(),
       endTime: null,
       procedure: null,
       surgeon: null,
@@ -335,7 +296,7 @@ const AddSurgeryRecord = () => {
       additionalNotes: '',
       attachments: []
     }),
-    [defaultNow]
+    []
   )
   const formResolver = useMemo(() => yupResolver(schema, { context: { admissionDateTime } }), [admissionDateTime])
 
@@ -374,18 +335,37 @@ const AddSurgeryRecord = () => {
   const endTimeValue = watch('endTime')
   const durationValue = watch('duration')
   const selectedAnesthesia = selectedAnesthesiaRecord
+  const parseUtcDateToLocalDayjs = useCallback(value => {
+    if (!value) return null
+
+    const localDate = Utility.convertUTCToLocalDate(value)
+
+    return dayjs(localDate && localDate !== 'Invalid date' ? localDate : value)
+  }, [])
+
+  const convertUtcTimeToLocalString = useCallback((dateValue, timeValue) => {
+    if (!timeValue) return null
+
+    const baseDate = dateValue || dayjs().format('YYYY-MM-DD')
+    const source = `${baseDate} ${timeValue}`
+    const converted = Utility.convertUTCToLocaltime(source)
+
+    return converted && converted !== 'Invalid date' ? converted : timeValue
+  }, [])
 
   const applyPrefillFromRecord = useCallback(
     detail => {
       if (!detail) return
       setPrefillDetail(detail)
 
-      const dateValue = detail?.surgery_date ? dayjs(detail.surgery_date) : null
+      const rawDateValue = detail?.surgery_date || detail?.date || null
+      const parsedDate = parseUtcDateToLocalDayjs(rawDateValue)
+      const localDateString = parsedDate?.isValid() ? parsedDate.format('YYYY-MM-DD') : rawDateValue || null
       const startTimeCombined = detail?.start_time
-        ? combineDateAndTime(detail?.surgery_date || detail?.date, detail.start_time)
+        ? combineDateAndTime(localDateString, convertUtcTimeToLocalString(rawDateValue, detail.start_time))
         : null
       const endTimeCombined = detail?.end_time
-        ? combineDateAndTime(detail?.surgery_date || detail?.date, detail.end_time)
+        ? combineDateAndTime(localDateString, convertUtcTimeToLocalString(rawDateValue, detail.end_time))
         : null
 
       const procedureOption =
@@ -411,7 +391,11 @@ const AddSurgeryRecord = () => {
             }
           : null
 
-      setValue('date', dateValue || null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
+      setValue('date', parsedDate && parsedDate.isValid() ? parsedDate : null, {
+        shouldValidate: false,
+        shouldDirty: false,
+        shouldTouch: false
+      })
       setValue('startTime', startTimeCombined || null, {
         shouldValidate: false,
         shouldDirty: false,
@@ -475,7 +459,15 @@ const AddSurgeryRecord = () => {
       setRichNote(detail?.surgery_notes || '')
       setFormResetKey(prev => prev + 1)
     },
-    [setPrefillDetail, setValue, setSelectedAnesthesiaRecord, setRichNote, setFormResetKey]
+    [
+      setPrefillDetail,
+      setValue,
+      setSelectedAnesthesiaRecord,
+      setRichNote,
+      setFormResetKey,
+      parseUtcDateToLocalDayjs,
+      convertUtcTimeToLocalString
+    ]
   )
 
   const resetForm = useCallback(() => {
@@ -553,26 +545,25 @@ const AddSurgeryRecord = () => {
     return Array.from(unique.values())
   }, [surgeryMasterResponse, localProcedureOptions])
 
+  const hospitalId = patientData?.hospital_id
   const { data: surgeonsResponse, isFetching: isSurgeonsLoading } = useQuery({
-    queryKey: ['surgeon-list', surgeonSearchTerm, userZooId],
+    queryKey: ['surgeon-list', surgeonSearchTerm, hospitalId],
     queryFn: async () => {
-      const zooId = userZooId
-
-      if (!zooId) {
+      if (!hospitalId) {
         return []
       }
 
-      const params = { zoo_id: zooId, permission: 'medical_records_access' }
+      const params = { hospital_id: hospitalId }
       const trimmed = surgeonSearchTerm.trim()
 
       if (trimmed) {
         params.q = trimmed
       }
 
-      const res = await getUserList(params)
+      const res = await getHospitalStaff({ params })
 
       if (res?.success) {
-        return Array.isArray(res?.data) ? res.data : []
+        return Array.isArray(res?.data?.records) ? res.data.records : []
       }
 
       throw new Error(res?.message || 'Failed to fetch surgeons')
@@ -580,7 +571,7 @@ const AddSurgeryRecord = () => {
     keepPreviousData: true,
     staleTime: 5 * 60 * 1000,
     retry: false,
-    enabled: Boolean(userZooId),
+    enabled: Boolean(hospitalId),
     onError: error => {
       console.error('Failed to fetch surgeons:', error)
       Toaster({ type: 'error', message: error?.message || 'Failed to load surgeon list' })
@@ -592,7 +583,7 @@ const AddSurgeryRecord = () => {
 
     return surgeonsResponse
       .map(user => ({
-        label: getSafeString(user?.user_name),
+        label: getSafeString(user?.user_full_name),
         value: getSafeString(user?.user_id),
         default_icon: user?.user_profile_pic
       }))
@@ -691,13 +682,6 @@ const AddSurgeryRecord = () => {
   const animalInfoData = useMemo(() => buildAnimalInfoData(patientData), [patientData])
   const minDate = useMemo(() => (admissionDateTime ? admissionDateTime.startOf('day') : null), [admissionDateTime])
   const maxDate = dayjs()
-
-  const maxTimeForSelectedDate = useMemo(() => {
-    if (!selectedDate) return null
-    const now = dayjs()
-
-    return dayjs(selectedDate).startOf('day').isSame(now.startOf('day')) ? now : null
-  }, [selectedDate])
 
   // const buildReturnUrl = useCallback(() => {
   //   const getFirst = value => (Array.isArray(value) ? value[0] : value || '')
@@ -1138,7 +1122,6 @@ const AddSurgeryRecord = () => {
                 label='Start Time'
                 name={'startTime'}
                 control={control}
-                maxTime={maxTimeForSelectedDate}
                 renderInput={params => (
                   <ControlledTextField
                     {...params}
@@ -1162,7 +1145,6 @@ const AddSurgeryRecord = () => {
                 control={control}
                 label='End Time'
                 minTime={startTimeValue || null}
-                maxTime={maxTimeForSelectedDate}
                 renderInput={params => (
                   <ControlledTextField
                     {...params}

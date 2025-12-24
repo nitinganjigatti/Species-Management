@@ -112,10 +112,11 @@ const AddRoomDrawer = ({
         if (selectedHospital?.id) {
           fetchAndUpdateHospitalStats(selectedHospital?.id)
         }
-        reset({
-          floor: '',
-          room: ''
-        })
+
+        // reset({
+        //   floor: '',
+        //   room: ''
+        // })
       } else {
         throw res
       }

@@ -18,7 +18,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
   const [symptomDrawerNewOpen, setSymptomDrawerNewOpen] = useState(false)
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [severity, setSeverity] = useState('Mild')
-  const [durationValue, setDurationValue] = useState(1)
+  const [durationValue, setDurationValue] = useState(0)
   const [durationUnit, setDurationUnit] = useState('Days')
   const [notes, setNotes] = useState('')
   const [noteId, setNoteId] = useState('')
@@ -162,7 +162,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
   const formatDurationUnit = (value, unit) => {
     if (!unit) return ''
 
-    return Number(value) === 1 ? unit.replace(/s$/i, '') : unit
+    return Number(value) === 1 || Number(value) === 0 ? unit.replace(/s$/i, '') : unit
   }
 
   return (
@@ -307,27 +307,25 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
               </Box>
             )}
 
-          {record?.additional_info &&
-            (hasData(record?.latest_note?.notes_dump?.new_data) ||
-              hasData(record?.latest_note?.notes_dump?.old_data)) && (
-              <Tooltip title={record?.latest_note?.note} arrow placement='top'>
-                <Typography
-                  sx={{
-                    fontSize: '0.875rem',
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    mb: 1,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 1,
-                    WebkitBoxOrient: 'vertical',
-                    lineHeight: '1.4'
-                  }}
-                >
-                  Notes : {record?.latest_note?.note || 'N/A'}
-                </Typography>
-              </Tooltip>
-            )}
+          {record?.latest_note?.note && (
+            <Tooltip title={record?.latest_note?.note} arrow placement='top'>
+              <Typography
+                sx={{
+                  fontSize: '0.875rem',
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  mb: 1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 1,
+                  WebkitBoxOrient: 'vertical',
+                  lineHeight: '1.4'
+                }}
+              >
+                Notes : {record?.latest_note?.note}
+              </Typography>
+            </Tooltip>
+          )}
 
           {record?.additional_info &&
             !hasData(record?.latest_note?.notes_dump?.new_data) &&
@@ -378,7 +376,11 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
               {record?.status === 'active' ? 'Created by' : 'Resolved by'}
             </Typography>
             <UserAvatarDetails
-              profile_image={record?.additional_info?.resolved_user_profile_pic || record?.created_user_profile_pic}
+              profile_image={
+                record?.status === 'active'
+                  ? record?.created_user_profile_pic
+                  : record?.additional_info?.resolved_user_profile_pic
+              }
               user_name={record?.additional_info?.resolved_user_name || record?.created_by_user_name}
               date={
                 record?.status === 'active'

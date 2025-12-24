@@ -12,6 +12,7 @@ import Utility from 'src/utility'
 import AddTreatmentDrawer from './AddTreatmentDrawer'
 import EditTreatmentDrawer from './EditTreatmentDrawer'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 import {
   createTreatmentRecord,
@@ -632,7 +633,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         >
           Treatments {totalTreatments > 0 ? ` - ${totalTreatments}` : ''}
         </Typography>
-        {!patientDischarged && (
+        {!patientDischarged && !isTreatmentsLoading && treatmentGroups.length > 0 && (
           <Button
             variant='contained'
             startIcon={<AddIcon />}
@@ -669,7 +670,22 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         )}
 
         {!isTreatmentsLoading && treatmentGroups.length === 0 && (
-          <NoDataFound variant='Seal' height={300} width={300} />
+          // <NoDataFound variant='Seal' height={300} width={300} />
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          >
+            <NoMedicalData
+              btnText={'ADD NEW TREATMENT'}
+              text={'All Added Treatments Will Appear here'}
+              isDischarged={patientDischarged}
+              btnAction={handleOpenAddDrawer}
+            />
+          </Box>
         )}
 
         {!isTreatmentsLoading && treatmentGroups.length > 0 && (

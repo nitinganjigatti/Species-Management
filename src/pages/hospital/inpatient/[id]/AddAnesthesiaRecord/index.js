@@ -17,7 +17,6 @@ import { Router, useRouter } from 'next/router'
 import { useForm, FormProvider } from 'react-hook-form'
 import dayjs from 'dayjs'
 import BasicDetails from 'src/components/hospital/inpatient/Anesthesia/BasicDetails'
-import AttachmentsSection from 'src/components/hospital/inpatient/Anesthesia/AttachmentsSection'
 import AnesthesiaSetUpSection from 'src/components/hospital/inpatient/Anesthesia/AnesthesiaSetUp'
 import VitalMonitoring from 'src/components/hospital/inpatient/Anesthesia/VitalMonitoring'
 import ActionButtons from 'src/components/hospital/FooterActionbuttons'
@@ -180,6 +179,7 @@ export function formColumnsToVitalMonitoringBlocks(columns = [], vitalList = [])
 
   for (const col of columns || []) {
     const block = {
+      record_time_id: col?.id,
       recorded_time: col.timeLabel || '',
       sections: []
     }
@@ -313,11 +313,7 @@ export const anesthesiaSchema = yup.object({
         entries: yup.object().default({})
       })
     )
-    .default([]),
-  attachments: yup.object({
-    files: yup.array().of(yup.mixed()).optional(),
-    comments: yup.string().optional()
-  })
+    .default([])
 })
 
 const sections = [
@@ -327,8 +323,6 @@ const sections = [
   { id: 'preAnesthesia', label: 'Pre Anesthesia', component: PreAnesthesia },
   { id: 'vitalMonitoring', label: 'Vital Monitoring', component: VitalMonitoring },
   { id: 'recoveryAndReversal', label: 'Recovery And Reversal', component: RecoveryAndReversal }
-
-  //   { id: 'attachments', label: 'Attachments', component: AttachmentsSection }
 ]
 
 export default function AddAnesthesiaRecord() {
@@ -345,6 +339,9 @@ export default function AddAnesthesiaRecord() {
   const [anesthesiaSetupList, setanesthesiaSetupList] = useState([])
   const [clinPathList, setClinPathList] = useState([])
   const [doctors, setDoctors] = useState([])
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [patientLoading, setPatientLoading] = useState(false)
   const [patientData, setPatientData] = useState(null)
   const [unitList, setunitList] = useState([])
@@ -379,30 +376,37 @@ export default function AddAnesthesiaRecord() {
     })
   }
 
-  const getUserLists = async hospitalId => {
+  const getUserLists = async (hospitalId, pageNo = 1) => {
+    if (!hospitalId || loading) return
+
     try {
-      if (!hospitalId) return
+      setLoading(true)
       const params = {
-        // page_no: paginationModel.page + 1,
-        // limit: paginationModel.pageSize,
-        // q: debouncedSearch,
-        hospital_id: patientData?.hospital_id
+        hospital_id: hospitalId,
+        page_no: pageNo,
+        limit: 100
       }
       const res = await getHospitalStaff({ params })
-      if (res?.data?.records?.length > 0) {
-        setDoctors(
-          res.data?.records?.map(item => ({
-            name: item?.user_full_name,
-            id: item?.user_id,
-            default_icon: item?.user_profile_pic,
-            role_name: item?.role_name
-          }))
-        )
-      } else {
-        setDoctors([])
+      const data = res?.data
+      if (!data?.records?.length) {
+        setHasMore(false)
+        return
       }
-    } catch (error) {
-      console.log('user error', error)
+
+      const mapped = data.records.map(item => ({
+        id: item.user_id,
+        name: item.user_full_name,
+        default_icon: item.user_profile_pic,
+        role_name: item.role_name
+      }))
+
+      setDoctors(prev => (pageNo === 1 ? mapped : [...prev, ...mapped]))
+      setHasMore(data.current_page < data.total_pages)
+      setPage(data.current_page)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -523,8 +527,17 @@ export default function AddAnesthesiaRecord() {
     const hospitalId = patientData?.hospital_id
     if (!hospitalId) return
 
-    getUserLists(hospitalId)
+    setDoctors([])
+    setPage(1)
+    setHasMore(true)
+
+    getUserLists(hospitalId, 1)
   }, [patientData?.hospital_id])
+
+  const loadMoreDoctors = () => {
+    if (!hasMore || loading) return
+    getUserLists(patientData?.hospital_id, page + 1)
+  }
 
   const purposeStageOptions = [
     { label: 'Premedication', value: 'Premedication' },
@@ -623,10 +636,6 @@ export default function AddAnesthesiaRecord() {
         recovery: '',
         overall: '',
         reversalDrugs: []
-      },
-      attachments: {
-        files: [],
-        comments: ''
       }
     },
     mode: 'onSubmit',
@@ -639,10 +648,69 @@ export default function AddAnesthesiaRecord() {
     await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
   }
 
+  // const handleCancelNew = async () => {
+  //   // await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
+  //   // router.push(`/hospital/inpatient/${id}/?tab=anesthesia`)
+  //   reset()
+  // }
+
   const handleCancelNew = async () => {
-    // await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
-    // router.push(`/hospital/inpatient/${id}/?tab=anesthesia`)
-    reset()
+    reset({
+      basicDetails: {
+        location: '',
+        anaesthesia_datetime: '',
+        estimated_time_required: '',
+        estimated_time_unit: 'hr',
+        veterinarian_id: [],
+        anesthetist_id: [],
+        selected: [],
+        custom: [],
+        notes: ''
+      },
+      anesthesiaSetup: {},
+      medicationsGas: {
+        medications: [],
+        gases: []
+      },
+      vitalMonitoring: [],
+      preAnesthesia: {
+        temperature: '',
+        humidity: '',
+        physical_health_status: '',
+        body_condition: '',
+        animal_activity: '',
+        fasting_time: '',
+        fasting_unit: 'Hours',
+        previous_endotracheal_tube_size: '',
+        code_status: '',
+        weight: '',
+        weight_unit: 'Kg',
+        mark_weight_as_approximate: false,
+        pre_anesthesia_notes: '',
+        clin_path: {
+          selected: {},
+          custom: []
+        }
+      },
+      recoveryAndReversal: {
+        recovery_type: '',
+        recovery_first_effect: null,
+        recovery_full_effect: null,
+        describe_problem: '',
+        notes: '',
+        induction: '',
+        tolerance: '',
+        recovery: '',
+        overall: '',
+        reversalDrugs: []
+      }
+    })
+    setIsApiSuccess(false)
+    setExpanded('basicDetails')
+    setAnesthesiaDetail(null)
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }
 
   const {
@@ -1038,17 +1106,17 @@ export default function AddAnesthesiaRecord() {
       const isSelected = item.is_selected === '1' || item.is_selected === 1 || item.is_selected === true
       if (!isSelected) return
 
-      const isOther = item.is_other === '1' || item.is_other === 1 || item.is_other === true
-
-      if (!isOther) {
-        if (item.id != null) {
-          clinSelectedObj[String(item.id)] = true
-        }
-      } else {
-        if (item.name) {
-          clinCustomArr.push(item.name)
-        }
+      // const isOther = item.is_other === '1' || item.is_other === 1 || item.is_other === true
+      // if (!isOther) {
+      if (item.id != null) {
+        clinSelectedObj[String(item.id)] = true
       }
+      // }
+      // else {
+      //   if (item.name) {
+      //     clinCustomArr.push(item.name)
+      //   }
+      // }
     })
 
     const preAnesthesiaForm = {
@@ -1123,10 +1191,6 @@ export default function AddAnesthesiaRecord() {
       recoveryAndReversal: {
         ...recoveryForm,
         reversalDrugs: reversalFromApi
-      },
-      attachments: {
-        files: [],
-        comments: ''
       }
     })
   }, [anesthesiaDetail, reset])
@@ -1411,8 +1475,10 @@ export default function AddAnesthesiaRecord() {
         // console.log('vitalMetaForBlocks (from vitalMonitorList):', JSON.stringify(vitalMetaForBlocks, null, 2))
 
         blocks = formColumnsToVitalMonitoringBlocks(columns, vitalMetaForBlocks)
+        console.log(blocks, 'blocks')
         blocks = (blocks || []).map(block => ({
           ...block,
+          record_time_id: block?.record_time_id,
           recorded_time: toBackendTime(block.recorded_time)
         }))
 
@@ -1611,6 +1677,9 @@ export default function AddAnesthesiaRecord() {
         }
         Toaster({ type: 'success', message: response?.message })
         setAnesthesiaDetail(response?.data?.anaesthesia_detail)
+        fetchAnesthesiaSetup()
+        fetchAssessmentList()
+        fetchClinPathList()
         router.push(
           `/hospital/inpatient/${id}/AddAnesthesiaRecord/?tab=anesthesia&anaesthesia_id=${response?.data?.anaesthesia_id}`
         )
@@ -1625,7 +1694,7 @@ export default function AddAnesthesiaRecord() {
   }
 
   const onInvalid = errors => {
-    const firstPath = Object.keys(errors.basicDetails || {})[0] || (errors.attachments ? 'attachments' : 'basicDetails')
+    const firstPath = Object.keys(errors.basicDetails || {})[0]
 
     if (firstPath) {
       setExpanded('basicDetails')
@@ -1888,7 +1957,9 @@ export default function AddAnesthesiaRecord() {
               }}
             >
               {sections.map(sec => {
-                const isDisabled = sec.id !== 'basicDetails' && !shouldEnableSections && !anaesthesia_id
+                const isDisabled =
+                  (sec.id !== 'basicDetails' && !shouldEnableSections && !anaesthesia_id) ||
+                  (sec.id !== 'basicDetails' && !isBasicDetailsValid)
 
                 return (
                   <Tab
@@ -2023,6 +2094,8 @@ export default function AddAnesthesiaRecord() {
                       clinPathOptions={clinPathList}
                       addLoader={addLoader}
                       selectedHospital={selectedHospital}
+                      loadMoreDoctors={loadMoreDoctors}
+                      loadingDoctors={loading}
                     />
                   </AccordionDetails>
                 </Accordion>

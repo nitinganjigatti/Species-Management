@@ -76,7 +76,7 @@ const AddEditSymptomDrawer = ({
       oldSeverity: activity?.notes_dump?.old_data?.severity || '',
       newSeverity: activity?.notes_dump?.new_data?.severity || '',
       createdBy: activity?.created_by_user_name || '',
-      formattedTime: `${Utility.convertUTCToLocaltime(activity?.created_at)} • ${Utility.formatDisplayDate(
+      formattedTime: `${Utility.formatDisplayDate(activity?.created_at)} • ${Utility.convertUTCToLocaltime(
         activity?.created_at
       )}`,
       note: activity.note || 'N/A'
@@ -124,9 +124,6 @@ const AddEditSymptomDrawer = ({
         if (responseNotes?.success === true) {
           setActivityListData(responseNotes?.data || [])
         }
-
-        // onClose()
-        //fetchNotesForSymptom()
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to update notes.' })
       }
@@ -339,7 +336,7 @@ const AddEditSymptomDrawer = ({
                   value={durationValue}
                   onChange={e => {
                     const val = e.target.value
-                    if (val === '' || Number(val) >= 1) {
+                    if (val === '' || Number(val) >= 0) {
                       setDurationValue(val)
                     }
                   }}
@@ -403,7 +400,6 @@ const AddEditSymptomDrawer = ({
                 activities={processedActivities}
                 onEdit={handleEditActivity}
                 activityLoader={activityLoader}
-                activityListData={activityListData}
               />
             </>
           ) : (

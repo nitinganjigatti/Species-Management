@@ -5,9 +5,12 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import { v4 as uuidv4 } from 'uuid'
 import { alpha, useTheme } from '@mui/material/styles'
 import { useFormContext, useWatch } from 'react-hook-form'
-
+import Toaster from 'src/components/Toaster'
 import AddTimeForm from './vitalForms/AddTimeForm'
 import GenericMeasurementDialog from './vitalForms/GenericMeasurementDialog'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
+import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
+import { deleteVitalMonitoring } from 'src/lib/api/hospital/anesthesia'
 
 const HEADER_CELL_HEIGHT = '48px'
 const DATA_CELL_HEIGHT = '72px'
@@ -49,9 +52,21 @@ const createStyles = theme => {
       padding: '8px 12px',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'space-between',
       backgroundColor: bodyBg,
-      border: `0.5px solid ${surfaceVariant}`
+      border: `0.5px solid ${surfaceVariant}`,
+      position: 'relative',
+      '&:hover': {
+        '& .delete-icon': {
+          opacity: 1
+        }
+      }
+    },
+    timeTextContainer: {
+      flex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
     },
     timeText: {
       fontFamily: 'Inter',
@@ -59,6 +74,24 @@ const createStyles = theme => {
       fontSize: '16px',
       letterSpacing: 0,
       color: neutralPrimary
+    },
+    deleteIconButton: {
+      width: '24px',
+      height: '24px',
+      minWidth: '24px',
+      padding: '4px',
+      borderRadius: '4px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      cursor: 'pointer',
+      opacity: 0.7,
+      transition: 'all 0.2s ease',
+      color: onSurfaceVariant,
+      '&:hover': {
+        backgroundColor: alpha(theme.palette.error.main, 0.1),
+        color: theme.palette.error.main
+      }
     },
     dataCell: {
       width: BASE_CELL_WIDTH,
@@ -210,10 +243,8 @@ function getCellDisplay(rowKey, entry, timeLabel) {
 
     if (vals.length > 0) {
       const u = entry.unit ? ` ${entry.unit}` : ''
-      //const primary = vals.map(v => `${v}${u}`).join(' / ')
       const primary = vals.length === 1 ? `${vals[0]}${u}` : `${vals.join(' / ')}${u}`
       return { primary, secondary }
-      //return vals.length === 1 ? { primary: `${vals[0]}${u}`, secondary } : { primary: vals.join(' / '), secondary }
     }
   }
 
@@ -229,8 +260,16 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
   const [activeCell, setActiveCell] = useState(null)
   const [hasOverflow, setHasOverflow] = useState(false)
   const [isScrolledToEnd, setIsScrolledToEnd] = useState(true)
-
+  const [editingColumnId, setEditingColumnId] = useState(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [columnToDelete, setColumnToDelete] = useState(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const scrollContainerRef = useRef(null)
+
+  const handleEditTime = columnId => {
+    setEditingColumnId(columnId)
+    setIsTimeFormOpen(true)
+  }
 
   const ROWS = useMemo(() => {
     return [
@@ -250,9 +289,37 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
   const handleAddColumn = ({ timeLabel }) => {
     const normalizedTime = timeLabel.trim().toUpperCase()
 
+    if (editingColumnId) {
+      const timeExists = columns.some(
+        column => column.id !== editingColumnId && column.timeLabel && column.timeLabel.toUpperCase() === normalizedTime
+      )
+
+      if (timeExists) {
+        Toaster({ type: 'error', message: `Time ${timeLabel} already exists! Please choose a different time.` })
+
+        return
+      }
+
+      const updatedColumns = columns.map(column => {
+        if (column.id === editingColumnId) {
+          return {
+            ...column,
+            timeLabel: normalizedTime
+          }
+        }
+        return column
+      })
+
+      updateColumns(updatedColumns)
+      setEditingColumnId(null)
+      setIsTimeFormOpen(false)
+      return
+    }
+
     const exists = columns.some(column => column.timeLabel && column.timeLabel.toUpperCase() === normalizedTime)
     if (exists) {
-      setIsTimeFormOpen(false)
+      Toaster({ type: 'error', message: `Time ${timeLabel} already exists! Please choose a different time.` })
+
       return
     }
 
@@ -389,6 +456,11 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
     }
   }, [columns])
 
+  const handleDeleteCancel = () => {
+    setColumnToDelete(null)
+    setDeleteDialogOpen(false)
+  }
+
   return (
     <>
       <Box
@@ -422,8 +494,24 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
                 {ROWS.map((row, index) => {
                   if (index === 0) {
                     return (
-                      <Box key={row.key} sx={{ ...styles.timeCell, height: HEADER_CELL_HEIGHT }}>
-                        <Typography sx={styles.timeText}>{column.timeLabel}</Typography>
+                      <Box
+                        key={row.key}
+                        sx={{ ...styles.timeCell, height: HEADER_CELL_HEIGHT, cursor: 'pointer' }}
+                        //onClick={() => handleEditTime(column.id)}
+                      >
+                        <Box sx={styles.timeTextContainer} onClick={() => handleEditTime(column.id)}>
+                          <Typography sx={styles.timeText}>{column.timeLabel}</Typography>
+                        </Box>
+                        {/* <Box
+                          className='delete-icon'
+                          sx={styles.deleteIconButton}
+                          onClick={e => {
+                            e.stopPropagation()
+                            handleDeleteColumn(column.id)
+                          }}
+                        >
+                          <CloseRoundedIcon sx={{ fontSize: '16px' }} />
+                        </Box> */}
                       </Box>
                     )
                   }
@@ -431,7 +519,7 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
                   const entry = column.entries?.[row.key]
                   const display = getCellDisplay(row.key, entry, column.timeLabel)
                   const isActive = activeCell?.columnId === column.id && activeCell?.rowKey === row.key
-                  console.log(display, 'display')
+
                   if (display) {
                     return (
                       <Box
@@ -476,7 +564,10 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
                         ...styles.addTimeBox,
                         height: HEADER_CELL_HEIGHT
                       }}
-                      onClick={() => setIsTimeFormOpen(true)}
+                      onClick={() => {
+                        setEditingColumnId(null)
+                        setIsTimeFormOpen(true)
+                      }}
                     >
                       <AddRoundedIcon sx={styles.addIcon} />
                     </Box>
@@ -505,6 +596,7 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
             <Box
               sx={styles.stickyButton}
               onClick={() => {
+                setEditingColumnId(null)
                 setIsTimeFormOpen(true)
               }}
               onMouseDown={event => event.preventDefault()}
@@ -515,7 +607,15 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
         ) : null}
       </Box>
 
-      <AddTimeForm open={isTimeFormOpen} onClose={() => setIsTimeFormOpen(false)} onSubmit={handleAddColumn} />
+      <AddTimeForm
+        open={isTimeFormOpen}
+        onClose={() => {
+          setIsTimeFormOpen(false)
+          setEditingColumnId(null)
+        }}
+        onSubmit={handleAddColumn}
+        initialValue={editingColumnId ? columns.find(c => c.id === editingColumnId)?.timeLabel : ''}
+      />
 
       <GenericMeasurementDialog
         open={!!activeCell}
@@ -525,6 +625,14 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
         initialData={activeInitialData}
         timeLabel={activeCell ? columns.find(c => c.id === activeCell.columnId)?.timeLabel : ''}
       />
+      {/* <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        handleClose={handleDeleteCancel}
+        action={handleDeleteConfirm}
+        loading={isDeleting}
+        title='Delete Time Column'
+        message={`Are you sure you want to delete the time column for ${columnToDelete?.timeLabel}? `}
+      /> */}
     </>
   )
 }

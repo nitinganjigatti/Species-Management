@@ -26,14 +26,15 @@ import NoMedicalData from 'src/views/utility/NoMedicalData'
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
 
-const ClinicalAssessment = ({ overviewData, patientData }) => {
+const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const router = useRouter()
   const { data } = useDynamicStateContext()
+  const { id, isCurrentMedicalRecordOnly } = router.query
   const medicalRecordData = data[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [localSearch, setLocalSearch] = useState('')
-  const [currentRecordOnly, setCurrentRecordOnly] = useState(false)
+  const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true') 
   const [records, setRecords] = useState([])
   const [tabCounts, setTabCounts] = useState({ Active: 0, Resolved: 0, All: 0 })
   const [total, setTotal] = useState(0)
@@ -58,7 +59,6 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
   const [notes, setNotes] = useState('')
   const [temporarilySelected, setTemporarilySelected] = useState(null)
 
-  const { id } = router.query
   const animal_id = medicalRecordData?.animal_id
   const medical_record_id = medicalRecordData?.medical_record_id
   const isDischared = overviewData?.status === 'discharge'
@@ -322,7 +322,7 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
     // Base payload with required fields
     const payload = {
       main_id: selectedAssessment?.main_diagnosis_id || '',
-      med_id: medical_record_id || '',
+      med_id: selectedAssessment?.medical_record_id || '',
       type: 'DIAGNOSIS',
       is_system_generated: isSystemGenerated,
       animal_id: animal_id || ''
@@ -372,6 +372,34 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
     } finally {
       setIsSubmitLoading(false)
     }
+  }
+
+  const handleRouterNavigation = () => {
+    if (category === 'Outpatients') {
+      router.push({
+        pathname: `/hospital/outpatient/${id}/add-clinical-assessment`
+      })
+    } else {
+      router.push({
+        pathname: `/hospital/inpatient/${id}/add-clinical-assessment`
+      })
+    }
+  }
+
+  const handleRecordOnlyChange = e => {
+    setRecords([])
+    setPage(1)
+    setCurrentRecordOnly(e.target.checked)
+
+    // Update URL query parameter
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, isCurrentMedicalRecordOnly: e.target.checked }
+      },
+      undefined,
+      { shallow: true } // Prevents full page refresh
+    )
   }
 
   return (
@@ -455,11 +483,7 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
                 }}
               />
               {!isDischared && (
-                <Button
-                  variant='contained'
-                  startIcon={<AddIcon />}
-                  onClick={() => router.push(`/hospital/inpatient/${id}/add-clinical-assessment`)}
-                >
+                <Button variant='contained' startIcon={<AddIcon />} onClick={handleRouterNavigation}>
                   ADD NEW
                 </Button>
               )}
@@ -469,11 +493,7 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
             <MUISwitch
               label='Current Medical Record Only'
               checked={currentRecordOnly}
-              onChange={e => {
-                setRecords([])
-                setPage(1)
-                setCurrentRecordOnly(e.target.checked)
-              }}
+              onChange={handleRecordOnlyChange}
               size='small'
               sx={{ ml: 2.6 }}
             />
@@ -484,11 +504,7 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
           <MUISwitch
             label='Current Medical Record Only'
             checked={currentRecordOnly}
-            onChange={e => {
-              setRecords([])
-              setPage(1)
-              setCurrentRecordOnly(e.target.checked)
-            }}
+            onChange={handleRecordOnlyChange}
             size='small'
             sx={{ ml: 2.6 }}
           />
@@ -498,7 +514,7 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
       {/* Records List */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {/* Loading State */}
-        {isLoading && filteredRecords?.length === 0 && <ClinicalAssessmentShimmer count={5} />}
+        {isLoading && (filteredRecords?.length === 0 || !hasMore) && <ClinicalAssessmentShimmer count={5} />}
         {filteredRecords?.map((record, index) => (
           <ClinicalAssessmentCard
             key={record.id || index}
@@ -532,7 +548,7 @@ const ClinicalAssessment = ({ overviewData, patientData }) => {
               btnText={'ADD NEW CLINICAL ASSESSMENT'}
               text={'All Added Clinical Assessments Will Appear here'}
               isDischarged={isDischared}
-              btnAction={() => router.push(`/hospital/inpatient/${id}/add-clinical-assessment`)}
+              btnAction={handleRouterNavigation}
             />
           </Box>
         )}

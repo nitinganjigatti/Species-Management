@@ -13,14 +13,16 @@ import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const STORAGE_KEY = 'medical_record_data'
 
-const Symptoms = ({ selectedTab, patientData, overviewData }) => {
+const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
   const router = useRouter()
   const { data } = useDynamicStateContext()
+  const { id, isCurrentMedicalRecordOnly } = router.query
+
   const isDischared = overviewData?.status === 'discharge'
   const medicalRecordData = data[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
-  const [currentRecordOnly, setCurrentRecordOnly] = useState(false)
+  const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true')
   const [records, setRecords] = useState([])
   const [recordTypeCount, setRecordTypeCount] = useState({})
   const [totalCount, setTotalCount] = useState(0)
@@ -28,7 +30,6 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
   const [page, setPage] = useState(1)
   const [isFetchingMore, setIsFetchingMore] = useState(false)
 
-  const { id } = router.query
   const animalId = medicalRecordData?.animal_id
   const medicalRecordId = medicalRecordData?.medical_record_id
   const theme = useTheme()
@@ -143,6 +144,37 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
     setSearchQuery('')
   }
 
+  const handleRouterNavigation = () => {
+    if (category === 'Outpatients') {
+      router.push({
+        pathname: `/hospital/outpatient/${id}/symptoms`
+      })
+    } else {
+      router.push({
+        pathname: `/hospital/inpatient/${id}/symptoms`
+      })
+    }
+  }
+
+  const handleSwitchChange = e => {
+    setPage(1)
+    setRecords([])
+    setCurrentRecordOnly(e.target.checked)
+
+    // Update URL query parameter
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          isCurrentMedicalRecordOnly: e.target.checked
+        }
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
+
   return (
     <Box>
       <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -215,11 +247,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
                   onChange={e => setSearchQuery(e.target.value)}
                   onClear={handleSearchClear}
                 />
-                <Button
-                  variant='contained'
-                  startIcon={<AddIcon />}
-                  onClick={() => router.push(`/hospital/inpatient/${id}/symptoms/`)}
-                >
+                <Button variant='contained' startIcon={<AddIcon />} onClick={handleRouterNavigation}>
                   ADD NEW
                 </Button>
               </Box>
@@ -230,13 +258,14 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
           <Box
             sx={{
               display: 'flex',
-              justifyContent: recordTypeCount?.all !== '0' ? 'flex-start' : 'flex-end'
+              justifyContent: recordTypeCount?.all !== '0' ? 'flex-start' : 'flex-end',
+              my: recordTypeCount?.all !== '0' ? 0 : 6
             }}
           >
             <MUISwitch
               label='Current Medical Record Only'
               checked={currentRecordOnly}
-              onChange={e => setCurrentRecordOnly(e.target.checked)}
+              onChange={handleSwitchChange}
               size='small'
               sx={{ ml: 2.6 }}
             />
@@ -264,7 +293,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData }) => {
               btnText={'ADD NEW SYMPTOM'}
               text={'All Added SYMPTOMS Will Appear here'}
               isDischarged={isDischared}
-              btnAction={() => router.push(`/hospital/inpatient/${id}/symptoms`)}
+              btnAction={handleRouterNavigation}
             />
           </Box>
         ) : (
