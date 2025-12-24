@@ -69,27 +69,29 @@ const AddReOrderDialog = ({
   const handleSave = async minQty => {
     setSubmitLoader(true)
     try {
-      const stockId = stockDetails?.stock_item_id
+      const stockId = stockDetails?.stock_item_id || stockDetails?.id
 
       const payload = {
         min_qty: minQty.reorder_level
       }
-      const result = await addMedicineMinQuantity(payload, stockId)
-      if (result.success == true) {
-        console.log('result', result)
 
-        toast.success(result.data)
+      const result = await addMedicineMinQuantity(payload, stockId)
+      if (result?.success == true) {
+        toast.success(result?.data)
         reset(defaultValues)
         close()
         setOpenDrawer(false)
         setStockDetails(null)
         setDialogCheck(!dialogCheck)
       } else {
-        toast.error(result.data.config)
+        // toast.error(result.data.config)
+        setSubmitLoader(false)
       }
-      setSubmitLoader(false)
+
+      // setSubmitLoader(false)
     } catch (error) {
       console.error('Error saving reorder level:', error)
+      setSubmitLoader(false)
     }
   }
 
@@ -171,7 +173,7 @@ const AddReOrderDialog = ({
           }}
         >
           <PharmacyProductCard
-            title={stockDetails?.stock_name || stockDetails?.stock_items_name || 'NA'}
+            title={stockDetails?.stock_name || stockDetails?.stock_items_name || stockDetails?.name || 'NA'}
             subTitle={stockDetails?.generic_name ? stockDetails?.generic_name : 'NA'}
             icon={stockDetails?.image}
           />
