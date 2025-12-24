@@ -179,6 +179,7 @@ export function formColumnsToVitalMonitoringBlocks(columns = [], vitalList = [])
 
   for (const col of columns || []) {
     const block = {
+      record_time_id: col?.id,
       recorded_time: col.timeLabel || '',
       sections: []
     }
@@ -1474,8 +1475,10 @@ export default function AddAnesthesiaRecord() {
         // console.log('vitalMetaForBlocks (from vitalMonitorList):', JSON.stringify(vitalMetaForBlocks, null, 2))
 
         blocks = formColumnsToVitalMonitoringBlocks(columns, vitalMetaForBlocks)
+        console.log(blocks, 'blocks')
         blocks = (blocks || []).map(block => ({
           ...block,
+          record_time_id: block?.record_time_id,
           recorded_time: toBackendTime(block.recorded_time)
         }))
 
@@ -1954,7 +1957,9 @@ export default function AddAnesthesiaRecord() {
               }}
             >
               {sections.map(sec => {
-                const isDisabled = sec.id !== 'basicDetails' && !shouldEnableSections && !anaesthesia_id
+                const isDisabled =
+                  (sec.id !== 'basicDetails' && !shouldEnableSections && !anaesthesia_id) ||
+                  (sec.id !== 'basicDetails' && !isBasicDetailsValid)
 
                 return (
                   <Tab

@@ -19,7 +19,7 @@ function AddSymptoms() {
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [symptomDrawerOpen, setSymptomDrawerOpen] = useState(false)
   const [severity, setSeverity] = useState('Mild')
-  const [durationValue, setDurationValue] = useState(1)
+  const [durationValue, setDurationValue] = useState(0)
   const [durationUnit, setDurationUnit] = useState('Days')
   const [notes, setNotes] = useState('')
   const [status, setStatus] = useState('')
@@ -210,7 +210,7 @@ function AddSymptoms() {
   }
 
   const handleRouterNavigation = () => {
-   router.back()
+    router.back()
   }
 
   return (

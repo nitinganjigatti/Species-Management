@@ -18,7 +18,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
   const [symptomDrawerNewOpen, setSymptomDrawerNewOpen] = useState(false)
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [severity, setSeverity] = useState('Mild')
-  const [durationValue, setDurationValue] = useState(1)
+  const [durationValue, setDurationValue] = useState(0)
   const [durationUnit, setDurationUnit] = useState('Days')
   const [notes, setNotes] = useState('')
   const [noteId, setNoteId] = useState('')
@@ -162,7 +162,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
   const formatDurationUnit = (value, unit) => {
     if (!unit) return ''
 
-    return Number(value) === 1 ? unit.replace(/s$/i, '') : unit
+    return Number(value) === 1 || Number(value) === 0 ? unit.replace(/s$/i, '') : unit
   }
 
   return (

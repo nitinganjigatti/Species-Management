@@ -14,7 +14,7 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
 
   const formatDurationUnit = (value, unit) => {
     if (!unit) return ''
-    return Number(value) === 1 ? unit.replace(/s$/i, '') : unit
+    return Number(value) === 1 || Number(value) === 0 ? unit.replace(/s$/i, '') : unit
   }
 
   return (

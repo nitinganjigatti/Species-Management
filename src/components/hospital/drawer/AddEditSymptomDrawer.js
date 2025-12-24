@@ -336,7 +336,7 @@ const AddEditSymptomDrawer = ({
                   value={durationValue}
                   onChange={e => {
                     const val = e.target.value
-                    if (val === '' || Number(val) >= 1) {
+                    if (val === '' || Number(val) >= 0) {
                       setDurationValue(val)
                     }
                   }}
