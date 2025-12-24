@@ -196,7 +196,7 @@ const PatientDetails = ({ category }) => {
               ...query,
               id: router.query.id,
               tab: 'discharge',
-              discharge_tab: discharge_tab || 'Mortality' // default
+              discharge_tab: discharge_tab || 'TransferEnclosure' // default
             }
           },
           undefined,
@@ -271,7 +271,7 @@ const PatientDetails = ({ category }) => {
               ...query,
               id: router.query.id,
               tab: 'discharge',
-              discharge_tab: discharge_tab || 'Mortality' // default
+              discharge_tab: discharge_tab || 'TransferEnclosure' // default
             }
           },
           undefined,
