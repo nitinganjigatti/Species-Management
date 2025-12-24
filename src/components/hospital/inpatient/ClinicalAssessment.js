@@ -322,7 +322,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
     // Base payload with required fields
     const payload = {
       main_id: selectedAssessment?.main_diagnosis_id || '',
-      med_id: medical_record_id || '',
+      med_id: selectedAssessment?.medical_record_id || '',
       type: 'DIAGNOSIS',
       is_system_generated: isSystemGenerated,
       animal_id: animal_id || ''
