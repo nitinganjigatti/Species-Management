@@ -133,14 +133,11 @@ const InpatientMedicalSummary = () => {
   const hasActiveFilters = useMemo(() => {
     const parsed = Array.isArray(filters.user_ids) ? filters.user_ids : JSON.parse(filters.user_ids)
 
-    return Boolean(
-      searchValue || filters.module_filter || filterDate?.startDate || filterDate?.endDate || parsed.length
-    )
-  }, [searchValue, filters.module_filter, filters.user_ids, filterDate.startDate, filterDate.endDate])
+    return Boolean(filters.q || filters.module_filter || filterDate?.startDate || filterDate?.endDate || parsed.length)
+  }, [filters.q, filters.module_filter, filters.user_ids, filterDate.startDate, filterDate.endDate])
 
   const isInitialLoading = !medicalSummaryData?.pages?.length // initial load
-  const hasInitialData = medicalSummaryData?.pages?.length > 0
-  const isRefetching = isFetching && hasInitialData && !isFetchingNextPage //  fetch after initial load
+  const isRefetching = isFetching && medicalSummaryData?.pages?.length > 0 && !isFetchingNextPage //  fetch after initial load
 
   // Infinite scroll
   const observer = useRef()
