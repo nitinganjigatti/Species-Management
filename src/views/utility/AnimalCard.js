@@ -2,12 +2,29 @@ import { Avatar, Skeleton, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import React, { useEffect, useState } from 'react'
+import ImageComponent from 'src/components/ImageWrapper'
 
 const AnimalCard = ({ data, size, edit }) => {
   const theme = useTheme()
   const [imageLoading, setImageLoading] = useState(true)
 
   const fallBackImage = '/images/branding/Antz_logomark_h_color.svg'
+
+  const getImageType = url => {
+    if (!url || typeof url !== 'string') return 'img'
+
+    try {
+      const parsedUrl = new URL(url)
+      const encodedPath = parsedUrl.searchParams.get('path')
+      if (!encodedPath) return 'img'
+
+      const decodedPath = decodeURIComponent(encodedPath)
+
+      return decodedPath.toLowerCase().endsWith('.svg') ? 'svg' : 'img'
+    } catch {
+      return 'img'
+    }
+  }
 
   useEffect(() => {
     const img = new Image()
@@ -28,10 +45,9 @@ const AnimalCard = ({ data, size, edit }) => {
     <Avatar
       sx={{
         '& > img': {
-          objectFit:
-            data?.default_icon?.includes('class_images') && data?.default_icon?.endsWith('.svg') ? 'contain' : 'cover'
+          objectFit: getImageType(data?.default_icon) === 'svg' ? 'contain' : 'cover'
         },
-        padding: data?.default_icon?.includes('class_images') && data?.default_icon?.endsWith('.svg') ? 0.4 : 0,
+        padding: getImageType(data?.default_icon) === 'svg' ? 0.4 : 0,
         width: 44,
         height: 44
 
@@ -42,6 +58,8 @@ const AnimalCard = ({ data, size, edit }) => {
 
       //   onLoad={handleImageLoad}
     />
+
+    // <ImageComponent icon={data?.default_icon} />
   )
 
   return (
