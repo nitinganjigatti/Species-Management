@@ -421,6 +421,7 @@ const PrescriptionMonitoringGrid = ({
         id: medication.prescription_id,
         prescription_id: medication.prescription_id,
         medicine_id: medication?.schedule?.[0]?.medicine_id,
+        medical_record_id: medication?.id,
         name: medication.name,
         frequency: medication.frequency,
         progress: medication.progress,

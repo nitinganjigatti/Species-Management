@@ -7,8 +7,6 @@ import { MedicalIdChip } from '../utility/hospitalSnippets'
 import Utility from 'src/utility'
 
 const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, isDischared, patientData }) => {
-  console.log(patientData)
-  console.log(record)
   const theme = useTheme()
   const { getSeverityColor, getTypeChipColor, getPrognosisColor } = useHospitalColorUtils()
 
@@ -25,7 +23,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
 
     oldRecord: record?.latest_note?.notes_dump?.old_data?.clinical_assessment,
     newRecord: record?.latest_note?.notes_dump?.new_data?.clinical_assessment,
-    chronic: record.additional_info?.isChronic ? 'Yes' : 'No',
+    chronic: record.latest_note?.notes_dump?.new_data?.is_cronical ? (record.latest_note?.notes_dump?.new_data?.is_cronical ? 'Yes' : 'No') : null,
     prognosis: Utility.capitalizeFirstLetter(record?.prognosis),
     notes:
       record.additional_info?.latest_note || record.additional_info?.start_note || record.additional_info?.stop_note,
