@@ -204,22 +204,22 @@ const HospitalMortality = () => {
         <>
           <Tooltip title={params.row.manner_of_death}>
             <Typography
-                variant='body2'
-                sx={{
-                  fontSize: '14px',
-                  fontWeight: 400,
-                  fontFamily: 'Inter',
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 5,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'normal'
-                }}
-              >
-                {params.row.manner_of_death || ''}
-              </Typography>
+              variant='body2'
+              sx={{
+                fontSize: '14px',
+                fontWeight: 400,
+                fontFamily: 'Inter',
+                color: theme.palette.customColors.OnSurfaceVariant,
+                display: '-webkit-box',
+                WebkitLineClamp: 5,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'normal'
+              }}
+            >
+              {params.row.manner_of_death || ''}
+            </Typography>
           </Tooltip>
         </>
       )
@@ -276,18 +276,26 @@ const HospitalMortality = () => {
 
       renderCell: params => (
         <>
-          <Box>
+          {params?.row?.date_of_death ? (
+            <Box>
+              <Typography
+                sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
+              >
+                {Utility.convertUtcToLocalReadableDate(params?.row?.date_of_death)}
+              </Typography>
+              <Typography
+                sx={{ fontSize: '12px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
+              >
+                {Utility.convertUTCToLocaltime(params?.row?.date_of_death)}
+              </Typography>
+            </Box>
+          ) : (
             <Typography
               sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
             >
-              {Utility.convertUtcToLocalReadableDate(params?.row?.date_of_death)}
+              -
             </Typography>
-            <Typography
-              sx={{ fontSize: '12px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
-            >
-              {Utility.convertUTCToLocaltime(params?.row?.date_of_death)}
-            </Typography>
-          </Box>
+          )}
         </>
       )
     },

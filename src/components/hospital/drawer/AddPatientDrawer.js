@@ -487,7 +487,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
                 <ControlledTextArea
                   control={control}
                   errors={errors}
-                  label={'Enter Reason for Admission'}
+                  placeholder={'Enter Reason for Admission'}
                   name={'reason'}
                   rows={4}
                   sx={{ borderRadius: 1, background: theme.palette.customColors.Surface }}

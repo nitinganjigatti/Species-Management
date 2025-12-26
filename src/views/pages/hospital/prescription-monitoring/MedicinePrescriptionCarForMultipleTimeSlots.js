@@ -942,7 +942,6 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
 
                                       <Grid size={{ xs: 12 }}>
                                         <ControlledTextArea
-                                          label='Notes'
                                           name='notes'
                                           control={control}
                                           errors={errors}
@@ -1013,7 +1012,6 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                               {/* Reason for Skip Section */}
                               <Grid size={{ xs: 12 }}>
                                 <ControlledTextArea
-                                  label='Reason For Skip'
                                   name='skipReason'
                                   control={control}
                                   errors={errors}
