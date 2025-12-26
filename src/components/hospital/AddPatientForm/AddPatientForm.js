@@ -306,7 +306,7 @@ const AddPatientForm = () => {
           doctor_id: String(selectedDoctor?.id),
           holding_enclosure_id: String(data?.holdingEnclosure?.value),
           room_id: String(data?.room?.value),
-          admit_date: moment(data?.admission_date).format('YYYY-MM-DD'),
+          admit_date: dayjs(data?.admission_date).format('YYYY-MM-DD'),
           admit_time: dayjs(data?.admission_time).format('HH:mm')
         })
       }
