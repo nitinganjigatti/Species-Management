@@ -55,7 +55,11 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
       })
 
       setSeverity(mappedSeverity)
-      setDurationValue(recordData?.additional_info?.duration)
+      setDurationValue(
+        recordData?.additional_info?.duration === 'null' || recordData?.additional_info?.duration == null
+          ? 0
+          : recordData?.additional_info?.duration
+      )
       setDurationUnit(recordData?.additional_info?.duration_unit)
       setStatus(recordData?.status)
       setTemporarilySelected(recordData)
@@ -122,7 +126,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
         type: 'COMPLAINT',
         is_system_generated: isSystemGenerated ? 1 : 0,
         severity: pendingDetails?.severity,
-        duration: pendingDetails?.durationValue,
+        duration: pendingDetails?.durationValue || 0,
         duration_unit: pendingDetails?.durationUnit,
         status: pendingDetails?.status,
         note: pendingDetails?.notes
@@ -242,21 +246,23 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
               }}
             />
 
-            {record?.additional_info?.duration && (
-              <Box
-                component='span'
-                sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  fontSize: '0.9rem',
-                  fontWeight: 500,
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                {record?.additional_info?.duration}{' '}
-                {formatDurationUnit(record?.additional_info?.duration, record?.additional_info?.duration_unit)}
-              </Box>
-            )}
+            {record?.additional_info?.duration &&
+              record?.additional_info?.duration !== '0' &&
+              record?.additional_info?.duration !== 'null' && (
+                <Box
+                  component='span'
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    fontSize: '0.9rem',
+                    fontWeight: 500,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  {record?.additional_info?.duration}{' '}
+                  {formatDurationUnit(record?.additional_info?.duration, record?.additional_info?.duration_unit)}
+                </Box>
+              )}
           </Box>
         </Box>
 

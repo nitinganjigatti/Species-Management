@@ -47,7 +47,7 @@ function AddSymptoms() {
   const handleSymptomSelect = symptom => {
     setTemporarilySelected({ id: symptom.id, name: symptom.name })
     setSymptomDrawerOpen(true)
-    setDurationValue(1)
+    setDurationValue(0)
     setNotes('')
     setDurationUnit('Days')
     setSeverity('Mild')
@@ -178,7 +178,7 @@ function AddSymptoms() {
           severity: symptom.severity || 'Mild',
           notes: symptom.notes || '',
           active_at: '',
-          duration: String(symptom.durationValue || 1),
+          duration: String(symptom.durationValue || 0),
           duration_unit: symptom.durationUnit || 'Days',
           status: 'active',
           comment_list: []

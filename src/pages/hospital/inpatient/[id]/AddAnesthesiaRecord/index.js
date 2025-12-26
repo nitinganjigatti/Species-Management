@@ -648,12 +648,6 @@ export default function AddAnesthesiaRecord() {
     await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
   }
 
-  // const handleCancelNew = async () => {
-  //   // await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
-  //   // router.push(`/hospital/inpatient/${id}/?tab=anesthesia`)
-  //   reset()
-  // }
-
   const handleCancelNew = async () => {
     reset({
       basicDetails: {
