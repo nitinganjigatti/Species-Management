@@ -14,6 +14,8 @@ const AnimalCard = ({ data, size, edit }) => {
 
   const fallBackImage = '/images/branding/Antz_logomark_h_color.svg'
 
+  const isFallback = src === fallBackImage
+
   const getImageType = url => {
     if (!url || typeof url !== 'string') return 'img'
 
@@ -54,7 +56,8 @@ const AnimalCard = ({ data, size, edit }) => {
         width: 44,
         height: 44,
         '& img': {
-          objectFit: getImageType(src) === 'svg' ? 'contain' : 'cover'
+          objectFit: getImageType(src) === 'svg' ? 'contain' : 'cover',
+          padding: isFallback ? '4px' : 0
         }
       }}
       imgProps={{
