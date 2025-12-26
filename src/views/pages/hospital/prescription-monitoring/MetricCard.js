@@ -1,5 +1,5 @@
 import React from 'react'
-import { Avatar, Box, Typography } from '@mui/material'
+import { Avatar, Box, Tooltip, Typography } from '@mui/material'
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import Icon from 'src/@core/components/icon'
 import RenderUtility from 'src/utility/render'
@@ -54,7 +54,8 @@ const MetricCard = ({
             fontStyle: 'normal',
             width: '210px',
             display: 'flex',
-            gap: 1
+            gap: 1,
+            alignItems: 'center' // Added for better vertical alignment
           }}
         >
           {(metric?.status === 'stopped' || metric?.status === 'skipped') && (
@@ -64,7 +65,8 @@ const MetricCard = ({
               alt={metric?.status === 'stopped' ? 'Stopped' : 'Skipped'}
               sx={{
                 width: '16px',
-                height: '16px'
+                height: '16px',
+                flexShrink: 0 // Prevent icon from shrinking
               }}
             />
           )}
@@ -74,13 +76,29 @@ const MetricCard = ({
               color={theme.palette.customColors.OnSurface}
               width='16px'
               height='16px'
+              style={{ flexShrink: 0 }} // Prevent icon from shrinking
             />
           )}
           {metric?.controlled_substance == 1 && (
-            <Box sx={{ ml: '4px' }}>{RenderUtility?.renderControlLabel(metric?.controlled_substance == 1, 'CS')}</Box>
+            <Box sx={{ ml: '4px', flexShrink: 0 }}>
+              {RenderUtility?.renderControlLabel(metric?.controlled_substance == 1, 'CS')}
+            </Box>
           )}
 
-          {metric?.name}
+          {/* Wrap the name in a Tooltip with truncated text */}
+          <Tooltip title={metric?.name || ''} arrow placement='top'>
+            <Box
+              sx={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                minWidth: 0,
+                flex: 1
+              }}
+            >
+              {metric?.name}
+            </Box>
+          </Tooltip>
         </Box>
         {metric?.status === 'restarted' && metric?.sideEffects == 1 && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
