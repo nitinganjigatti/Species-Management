@@ -662,7 +662,7 @@ export default function ScheduleMedicine({
                   }
                 }}
                 name='notes'
-                label='Enter Notes'
+                placeholder='Enter Notes'
                 control={control}
                 errors={errors}
                 rows={4}
@@ -737,7 +737,7 @@ export default function ScheduleMedicine({
                       }
                     }}
                     name='wastageNotes'
-                    label='Enter Notes'
+                    placeholder='Enter Notes'
                     control={control}
                     errors={errors}
                     rows={2}

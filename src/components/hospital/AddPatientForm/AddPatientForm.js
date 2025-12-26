@@ -719,7 +719,7 @@ const AddPatientForm = () => {
                     name={'purposeOfVisit'}
                     errors={errors}
                     sx={{ borderRadius: 1 }}
-                    label={'Enter Enter'}
+                    placeholder={'Enter Reason'}
                     disabled={submitLoader}
                   />
                 </Grid>

@@ -397,8 +397,7 @@ function RecoveryAndReversal({
               <ControlledTextArea
                 name='recoveryAndReversal.describe_problem'
                 control={control}
-                label='Describe the Problem'
-                placeholder='Enter'
+                placeholder='Describe the Problem'
                 fullWidth={true}
                 rows={1}
               />
@@ -408,7 +407,6 @@ function RecoveryAndReversal({
             <ControlledTextArea
               name='recoveryAndReversal.notes'
               control={control}
-              label='Notes'
               placeholder='Enter notes'
               fullWidth={true}
               rows={2}

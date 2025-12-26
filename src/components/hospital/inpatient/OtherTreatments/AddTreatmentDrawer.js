@@ -228,7 +228,6 @@ const AddTreatmentDrawer = ({
 
             <ControlledTextArea
               name='notes'
-              label=''
               control={control}
               errors={errors}
               required='Notes is required'

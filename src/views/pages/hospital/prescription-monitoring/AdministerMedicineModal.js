@@ -261,7 +261,6 @@ const AdministerMedicineSidesheet = ({
       time: data.time ? dayjs(data.time).format('hh:mm A') : ''
     }
     onSubmit(formattedData)
-
   }
 
   const handleSkip = () => {
@@ -521,7 +520,6 @@ const AdministerMedicineSidesheet = ({
 
                           <Grid size={{ xs: 12 }}>
                             <ControlledTextArea
-                              label='Notes'
                               name='notes'
                               control={control}
                               errors={errors}

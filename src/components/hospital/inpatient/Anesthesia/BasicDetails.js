@@ -244,7 +244,7 @@ export default function BasicDetails({
             control={control}
             errors={errors}
             options={timeUnits}
-            label='Estimated Time Required*'
+            label='Estimated Time*'
             placeholder='Enter'
             type='number'
             getOptionLabel={option => option.label}
@@ -567,7 +567,6 @@ export default function BasicDetails({
         <ControlledTextArea
           control={control}
           errors={errors}
-          label='Enter Notes'
           name='basicDetails.notes'
           placeholder='Enter Notes'
           fullWidth
@@ -575,9 +574,9 @@ export default function BasicDetails({
           sx={{
             '& .MuiInputLabel-root': {
               color: theme.palette.customColors.OnSurfaceVariant
-            },
-            backgroundColor: alpha(theme.palette.customColors.antzNotes, 0.6)
+            }
           }}
+          inputBackgroundColor={alpha(theme.palette.customColors.antzNotes, 0.6)}
         />
       </Box>
     </Box>
