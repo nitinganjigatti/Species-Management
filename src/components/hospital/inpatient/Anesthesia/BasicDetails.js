@@ -20,6 +20,7 @@ import dayjs from 'dayjs'
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import utc from 'dayjs/plugin/utc'
+
 dayjs.extend(utc)
 
 export default function BasicDetails({
@@ -40,6 +41,7 @@ export default function BasicDetails({
   const theme = useTheme()
   const [newPurpose, setNewPurpose] = useState('')
   const [newPurposeError, setNewPurposeError] = useState('')
+
   const timeUnits = [
     { label: 'hr', value: 'hr' },
     { label: 'min', value: 'min' }
@@ -187,6 +189,7 @@ export default function BasicDetails({
               const handleDateChange = newValue => {
                 if (!newValue) {
                   field.onChange('')
+
                   return
                 }
                 const formatted = dayjs(newValue).format('YYYY-MM-DD HH:mm:ss')
@@ -249,6 +252,7 @@ export default function BasicDetails({
             showEmptyMenuItem={false}
             showEmptyMenuItemLabel={false}
             selectWidth={80}
+            sx={commonTextFieldSx}
           />
         </Grid>
         {/* Veterinarian Field */}
@@ -374,6 +378,7 @@ export default function BasicDetails({
                   gap: 3,
                   mt: 1,
                   display: 'flex',
+
                   // border: errors.basicDetails?.purpose ? `1px solid ${theme.palette.error.main}` : 'none',
                   borderRadius: '8px',
                   p: errors.basicDetails?.purpose ? 1 : 0,
@@ -502,6 +507,7 @@ export default function BasicDetails({
                       const normalizedNew = normalizePurpose(v)
                       const selected = watch('basicDetails.selected') || []
                       const custom = watch('basicDetails.custom') || []
+
                       const matchedOption = purposeOptions.find(
                         option => normalizePurpose(option?.name || '') === normalizedNew
                       )
@@ -513,11 +519,13 @@ export default function BasicDetails({
                         } else {
                           setNewPurposeError('Purpose already exists, please select')
                         }
+
                         return
                       }
                       const existsInCustom = custom.some(item => normalizePurpose(item) === normalizedNew)
                       if (existsInCustom) {
                         setNewPurposeError('Purpose already exists')
+
                         return
                       }
                       setValue('basicDetails.custom', [...custom, v], { shouldValidate: true })

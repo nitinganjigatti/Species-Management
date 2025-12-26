@@ -481,6 +481,7 @@ export default function ScheduleMedicine({
                     sx={commonFieldStyles}
                     size='large'
                     required
+                    maxDecimals={2}
                   />
                 </Grid>
 
@@ -615,7 +616,6 @@ export default function ScheduleMedicine({
                   <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                     <ControlledSelect
                       name='dosageDuration.unit'
-
                       // label='Dosage Unit*'
                       sx={{
                         textAlign: 'left',

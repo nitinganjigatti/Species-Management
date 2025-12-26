@@ -409,6 +409,7 @@ const AdministerMedicineSidesheet = ({
                           showEmptyMenuItem={{ xs: false, md: true }}
                           showEmptyMenuItemLabel={{ xs: false, md: true }}
                           loading={mastersDataLoading}
+                          sx={commonFieldStyles}
                         />
                       </Grid>
                     </>
