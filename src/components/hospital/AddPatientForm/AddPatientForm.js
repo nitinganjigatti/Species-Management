@@ -238,7 +238,7 @@ const AddPatientForm = () => {
   useEffect(() => {
     const getAnimalIds = async () => {
       try {
-        await getAnimalMedicalIds(selectedAnimal?.animal_id).then(res => {
+        await getAnimalMedicalIds(selectedAnimal?.animal_id, { for_hospital: 1 }).then(res => {
           if (res?.success === true) {
             setMedicalId(
               res?.data?.result?.map(item => ({
