@@ -1,3 +1,4 @@
+/* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useRef, useContext } from 'react'
 
 // ** MUI Imports
@@ -72,6 +73,7 @@ import GenericNamesList from '../../masters/generic'
 import AddGenericName from 'src/views/pages/pharmacy/medicine/generic/addGenericName'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
+import ControlledCheckBox from 'src/views/forms/form-fields/ControlledCheckBox'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -100,7 +102,8 @@ const defaultValues = {
   safety_advice: '',
   image: '',
   active: '1',
-  url: ''
+  url: '',
+  priority: null
 }
 
 const schema = yup.object().shape({
@@ -214,7 +217,6 @@ const AddMedicine = () => {
 
   const [packageQuantity, setPackageQuantity] = useState('')
 
-
   const [defaultManufacturer, setDefaultManufacturer] = useState(null)
   const [defaultGenericName, setDefaultGenericName] = useState(null)
   const [defaultPackage, setDefaultPackage] = useState(null)
@@ -229,7 +231,6 @@ const AddMedicine = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [severity, setSeverity] = useState('success')
-
 
   const [openManufacturer, setOpenManufacturer] = useState(false)
   const [openSalt, setOpenSalt] = useState(false)
@@ -473,7 +474,8 @@ const AddMedicine = () => {
                     salt_id: ''
                   }
                 ],
-          status: response?.data?.active
+          status: response?.data?.active,
+          priority: response?.data?.priority
         })
       }
       setLoader(false)
@@ -654,7 +656,8 @@ const AddMedicine = () => {
       uses,
       safety_advice,
       active,
-      url
+      url,
+      priority
     } = {
       ...params
     }
@@ -683,7 +686,8 @@ const AddMedicine = () => {
       uses,
       safety_advice,
       status: active,
-      url
+      url,
+      priority
     }
     if (files.length > 0) {
       payload.image = files[0]
@@ -738,7 +742,6 @@ const AddMedicine = () => {
         reset(defaultValues)
 
         Router.replace(`/pharmacy/medicine/${id}`)
-
       } else {
         setSubmitLoader(false)
 
@@ -747,8 +750,6 @@ const AddMedicine = () => {
     } catch (e) {
       setSubmitLoader(false)
       toast.error('error')
-
-
     }
   }
 
@@ -789,7 +790,6 @@ const AddMedicine = () => {
     } catch (e) {
       setSubmitLoader(false)
 
-     
       toast.error('error')
 
       shouldClearFieldsRef.current = false
@@ -830,7 +830,6 @@ const AddMedicine = () => {
 
   const removeSaltButton = index => {
     return (
-
       // <Button
       //   variant='outlined'
       //   color='error'
@@ -1014,7 +1013,6 @@ const AddMedicine = () => {
                         <Icon
                           style={{ cursor: 'pointer' }}
                           onClick={() => {
-                            
                             Router.back()
                           }}
                           icon='ep:back'
@@ -1022,7 +1020,7 @@ const AddMedicine = () => {
                       }
                       title={id ? 'Edit Product' : 'Add New Product'}
                     />
-                  
+
                     <CardContent>
                       <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
                         <Grid container spacing={5}>
@@ -1088,7 +1086,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                         
+
                           <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
@@ -1185,7 +1183,6 @@ const AddMedicine = () => {
                             </Grid>
                           )}
 
-                       
                           <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
@@ -1201,7 +1198,6 @@ const AddMedicine = () => {
                                     getOptionLabel={option => option.label}
                                     isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                     onChange={(e, val) => {
-
                                       if (val === null) {
                                         setDefaultManufacturer(val)
                                         manufacturerSearch('')
@@ -1215,7 +1211,6 @@ const AddMedicine = () => {
                                     }}
                                     onKeyUp={e => {
                                       manufacturerSearch(e.target.value)
-
                                     }}
                                     renderInput={params => (
                                       <TextField
@@ -1254,7 +1249,7 @@ const AddMedicine = () => {
                               </Box>
                             </Grid>
                           )}
-                        
+
                           <Grid item size={{ xs: 12, sm: 12 }}>
                             <div>Package {getPackageString()}</div>
                           </Grid>
@@ -1425,7 +1420,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                 
+
                           {medicineType !== 'non_medical' && (
                             <Grid item size={{ xs: 12, sm: 12 }}>
                               <FormGroup>
@@ -1563,7 +1558,7 @@ const AddMedicine = () => {
                               </FormGroup>
                             </Grid>
                           )}
-                     
+
                           <Grid item size={{ xs: 12, sm: 12 }}>
                             <div>Others</div>
                           </Grid>
@@ -1886,6 +1881,21 @@ const AddMedicine = () => {
                                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.url?.message}</FormHelperText>
                               )}
                             </FormControl>
+                            <ControlledCheckBox
+                              name='priority'
+                              label='Critical'
+                              control={control}
+                              errors={errors}
+                              sx={{ my: 4 }}
+                              labelStyle={{ fontWeight: 400 }}
+                              onChangeOverride={checked => {
+                                if (checked) {
+                                  setValue('priority', 'critical')
+                                } else {
+                                  setValue('priority', '')
+                                }
+                              }}
+                            />
                           </Grid>
                           {/* <Grid item size={{xs: 12, sm: 6}}>
                             {id !== undefined ? (
