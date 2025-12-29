@@ -53,10 +53,11 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
         durationUnit: recordData?.additional_info?.duration_unit,
         status: recordData?.status
       })
-
       setSeverity(mappedSeverity)
       setDurationValue(
-        recordData?.additional_info?.duration === 'null' || recordData?.additional_info?.duration == null
+        recordData?.additional_info?.duration === 'null' ||
+          recordData?.additional_info?.duration == null ||
+          recordData?.additional_info?.duration === ''
           ? 0
           : recordData?.additional_info?.duration
       )

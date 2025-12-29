@@ -155,21 +155,24 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                         </Typography>
                       )}
 
-                      {activity?.duration != 'null' && activity?.duration !== 0 && activity?.duration !== '0' && (
-                        <Typography
-                          sx={{
-                            mb: 2,
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            fontWeight: 400,
-                            fontSize: '12px'
-                          }}
-                        >
-                          Duration:{' '}
-                          <strong>
-                            {activity.duration} {formatDurationUnit(activity.duration, activity.duration_unit)}
-                          </strong>
-                        </Typography>
-                      )}
+                      {activity?.duration !== '' &&
+                        activity?.duration != 'null' &&
+                        activity?.duration !== 0 &&
+                        activity?.duration !== '0' && (
+                          <Typography
+                            sx={{
+                              mb: 2,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: 400,
+                              fontSize: '12px'
+                            }}
+                          >
+                            Duration:{' '}
+                            <strong>
+                              {activity.duration} {formatDurationUnit(activity.duration, activity.duration_unit)}
+                            </strong>
+                          </Typography>
+                        )}
 
                       {activity?.note && (
                         <>
