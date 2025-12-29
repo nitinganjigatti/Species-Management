@@ -151,44 +151,6 @@ export default function VitalMonitoringDetail({ data }) {
           </Box>
         </Box>
       </Box>
-
-      <Box
-        sx={{
-          mt: 2,
-          gap: '3px',
-          background: '#FCF4AE',
-          width: '100%',
-          px: 4,
-          display: 'none',
-          py: 2,
-          borderRadius: '8px'
-        }}
-      >
-        <Typography
-          sx={{
-            mb: '4px',
-            fontWeight: 400,
-            fontSize: '14px',
-            letterSpacing: 0,
-            color: theme.palette.customColors.neutralSecondary,
-            textTransform: 'capitalize'
-          }}
-        >
-          Notes
-        </Typography>
-        <Typography
-          sx={{
-            fontWeight: 500,
-            fontSize: '16px',
-            letterSpacing: 0,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          Sample Fluid - 10 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-          labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat.
-        </Typography>
-      </Box>
     </Box>
   )
 }

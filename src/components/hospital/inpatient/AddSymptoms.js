@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Box, Grid, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useRouter } from 'next/router'
@@ -8,13 +8,44 @@ import SymptomsList from 'src/components/hospital/Symptoms/SymptomsList'
 import SelectedSymptoms from 'src/components/hospital/Symptoms/SelectedSymptoms'
 import AddSymptomDrawer from 'src/components/hospital/drawer/AddSymptomDrawer'
 import Toaster from 'src/components/Toaster'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { getDiagnosisList } from 'src/lib/api/hospital/clinicalAssessment'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
+
+const STORAGE_KEY = 'medical_record_data'
+
+const useDebounce = (callback, delay) => {
+  const timeoutRef = useRef(null)
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
+
+  return useCallback(
+    (...args) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        callback(...args)
+      }, delay)
+    },
+    [callback, delay]
+  )
+}
 
 function AddSymptoms() {
   const theme = useTheme()
   const router = useRouter()
-  const { id, animal_id, medical_record_id } = router.query
+  const { data, updateState } = useDynamicStateContext()
+  const { id } = router.query
+  const medicalRecordData = data[STORAGE_KEY] || {}
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [symptomDrawerOpen, setSymptomDrawerOpen] = useState(false)
@@ -34,15 +65,17 @@ function AddSymptoms() {
   const [addLoading, setAddLoading] = useState(false)
   const [patientData, setPatientData] = useState(null)
   const [patientLoading, setPatientLoading] = useState(false)
+  const [isTabsLoading, setIsTabsLoading] = useState(false)
+  const [tabOptions, setTabOptions] = useState([])
+  const [currentTab, setCurrentTab] = useState('')
+  const [currentTabId, setCurrentTabId] = useState('')
+  const medicalRecordId = medicalRecordData?.medical_record_id
 
-  const debounce = (func, delay) => {
-    let timer
+  const initialLoadRef = useRef(false)
 
-    return (...args) => {
-      clearTimeout(timer)
-      timer = setTimeout(() => func(...args), delay)
-    }
-  }
+  const loadedItemsRef = useRef({})
+
+  const isFetchingRef = useRef(false)
 
   const handleSymptomSelect = symptom => {
     setTemporarilySelected({ id: symptom.id, name: symptom.name })
@@ -70,91 +103,136 @@ function AddSymptoms() {
 
   const availableSymptoms = symptomsList.filter(symptom => !selectedSymptoms.some(s => s.id === symptom.id))
 
-  const fetchSymptoms = useCallback(async (query = '', pageNo = 1, append = false) => {
-    try {
-      if (pageNo === 1) {
-        setSearching(true)
-      } else {
-        setLoading(true)
+  const fetchSymptoms = useCallback(
+    async (query = '', pageNo = 1, append = false, categoryId = '') => {
+      if (isFetchingRef.current) return
+
+      try {
+        isFetchingRef.current = true
+
+        if (pageNo === 1) {
+          setSearching(true)
+        } else {
+          setLoading(true)
+        }
+
+        const params = {
+          page_no: pageNo,
+          type: 'complaints',
+          q: query,
+          category_id: categoryId || '',
+          request_from: 'hospital_module',
+          medical_record_id: patientData?.medical_record_id || '',
+          limit: 20
+        }
+
+        const response = await getSymptomsListForAdding(params)
+
+        if (response.success) {
+          const newResults = response?.data?.result || []
+          const totalRecords = response?.data?.totalRecords || 0
+          const currentPage = response?.data?.currentPage || pageNo
+          const totalPages = response?.data?.totalPages || Math.ceil(totalRecords / 20)
+
+          const key = `${categoryId || 'all'}_${query || 'noquery'}`
+          const currentLoadedCount = (loadedItemsRef.current[key] || 0) + newResults.length
+          loadedItemsRef.current[key] = currentLoadedCount
+
+          setSymptomsList(prev => {
+            if (!append) return newResults
+
+            const combined = [...prev, ...newResults]
+
+            const unique = combined.reduce((acc, current) => {
+              const x = acc.find(item => item.id === current.id)
+              if (!x) {
+                return acc.concat([current])
+              }
+              return acc
+            }, [])
+            return unique
+          })
+
+          setSymptomCount(totalRecords)
+
+          const hasMoreData = currentPage < totalPages && newResults.length > 0
+          setHasMore(hasMoreData)
+
+          if (newResults.length > 0) {
+            setPage(currentPage)
+          }
+        }
+      } catch (error) {
+        setHasMore(false)
+      } finally {
+        setLoading(false)
+        setSearching(false)
+        setResetPagination(false)
+        isFetchingRef.current = false
       }
-
-      const params = {
-        page_no: pageNo,
-        type: 'complaints',
-        q: query,
-        medical_record_id: patientData?.medical_record_id
-      }
-
-      const response = await getSymptomsListForAdding(params)
-
-      if (response.success) {
-        const newResults = response?.data?.result || []
-        const totalRecords = response?.data?.totalRecords || 0
-
-        setSymptomsList(prev => (append ? [...prev, ...newResults] : newResults))
-        setSymptomCount(totalRecords)
-        setHasMore(pageNo * 20 < totalRecords)
-      }
-    } catch (error) {
-      console.error('Error fetching symptoms:', error)
-    } finally {
-      setLoading(false)
-      setSearching(false)
-      setResetPagination(false)
-    }
-  }, [])
-
-  const debouncedSearch = useCallback(
-    debounce(query => {
-      setResetPagination(true)
-      setPage(1)
-      fetchSymptoms(query, 1, false)
-    }, 500),
-    []
+    },
+    [patientData?.medical_record_id]
   )
+
+  const debouncedSearch = useDebounce((query, categoryId) => {
+    setResetPagination(true)
+    setPage(1)
+    setSearchQuery(query)
+
+    const key = `${categoryId || 'all'}_${query || 'noquery'}`
+    loadedItemsRef.current[key] = 0
+    fetchSymptoms(query, 1, false, categoryId || currentTabId)
+  }, 500)
 
   const handleSearchChange = e => {
     const value = e.target.value
+
     setSearchQuery(value)
-    debouncedSearch(value)
+
+    debouncedSearch(value, currentTabId)
   }
 
   const handleClearSearch = () => {
     setSearchQuery('')
     setPage(1)
-    fetchSymptoms('', 1, false)
+
+    const key = `${currentTabId || 'all'}_noquery`
+    loadedItemsRef.current[key] = 0
+    fetchSymptoms('', 1, false, currentTabId)
   }
 
   const handleScroll = e => {
-    if (resetPagination || loading || !hasMore) return
-    const bottom = e.target.scrollHeight - e.target.scrollTop <= e.target.clientHeight + 50
+    if (resetPagination || loading || !hasMore || isFetchingRef.current) return
+
+    const bottom = e.target.scrollHeight - e.target.scrollTop <= e.target.clientHeight + 100
 
     if (bottom) {
       const nextPage = page + 1
-      setPage(nextPage)
-      fetchSymptoms(searchQuery, nextPage, true)
+      fetchSymptoms(searchQuery, nextPage, true, currentTabId)
     }
   }
 
   useEffect(() => {
-    fetchSymptoms('', 1, false)
-  }, [fetchSymptoms])
-
-  useEffect(() => {
     const getPatientInfo = async () => {
+      if (!id || initialLoadRef.current) return
+
       setPatientLoading(true)
       try {
-        await getPatientDetails(id).then(res => {
-          if (res?.success === true) {
-            setPatientData(res?.data)
-            setPatientLoading(false)
-          } else {
-            setPatientData(null)
-            setPatientLoading(false)
-          }
-        })
+        const res = await getPatientDetails(id)
+        if (res?.success === true) {
+          updateState(STORAGE_KEY, {
+            ...medicalRecordData,
+            animal_id: res.data?.animal_detail?.animal_id,
+            medical_record_id: res.data?.medical_record_id,
+            animal_admitted_date: res.data?.admitted_at
+          })
+          setPatientData(res?.data)
+        } else {
+          setPatientData(null)
+        }
       } catch (error) {
         console.error('Cannot Fetch Patient Details', error)
+      } finally {
         setPatientLoading(false)
       }
     }
@@ -162,11 +240,63 @@ function AddSymptoms() {
     getPatientInfo()
   }, [id])
 
+  useEffect(() => {
+    const fetchDiagnosisTypes = async () => {
+      if (!patientData?.medical_record_id || initialLoadRef.current) return
+
+      try {
+        setIsTabsLoading(true)
+        const params = {
+          include_all: 1,
+          type: 'complaints',
+          request_from: 'web_hospital',
+          medical_record_id: patientData.medical_record_id
+        }
+
+        const res = await getDiagnosisList(params)
+        if (res?.success) {
+          const categories = res.data?.result || []
+          setTabOptions(categories)
+
+          if (categories.length > 0) {
+            const firstCategory = categories[0]
+            setCurrentTab(firstCategory?.category || '')
+            setCurrentTabId(firstCategory?.id || '')
+
+            const key = `${firstCategory?.id || 'all'}_noquery`
+            loadedItemsRef.current[key] = 0
+
+            fetchSymptoms('', 1, false, firstCategory?.id || '')
+            initialLoadRef.current = true
+          }
+        }
+      } catch (error) {
+        setTabOptions([])
+      } finally {
+        setIsTabsLoading(false)
+      }
+    }
+
+    fetchDiagnosisTypes()
+  }, [patientData?.medical_record_id, fetchSymptoms])
+
+  const handleTabChange = (tabValue, tabId) => {
+    setCurrentTab(tabValue)
+    setCurrentTabId(tabId)
+    setPage(1)
+    setSymptomsList([])
+    setHasMore(true)
+
+    const key = `${tabId || 'all'}_${searchQuery || 'noquery'}`
+    loadedItemsRef.current[key] = 0
+
+    fetchSymptoms(searchQuery, 1, false, tabId)
+  }
+
   const handleAddClick = async () => {
     try {
       if (selectedSymptoms.length === 0) {
         Toaster({ type: 'error', message: 'Please select at least one Symptom' })
-
         return
       }
       setAddLoading(true)
@@ -195,15 +325,12 @@ function AddSymptoms() {
       if (response.success) {
         Toaster({ type: 'success', message: response?.message })
         setSelectedSymptoms([])
-
         handleRouterNavigation()
-        setAddLoading(false)
       } else {
         Toaster({ type: 'error', message: response?.message })
-        setAddLoading(false)
       }
     } catch (error) {
-      console.error('Error while adding symptoms:', error)
+      Toaster({ type: 'error', message: 'Something went wrong. Please try again.' })
     } finally {
       setAddLoading(false)
     }
@@ -252,6 +379,12 @@ function AddSymptoms() {
             handleScroll={handleScroll}
             loading={loading}
             searching={searching}
+            isTabsLoading={isTabsLoading}
+            tabOptions={tabOptions}
+            currentTab={currentTab}
+            handleTabChange={handleTabChange}
+            symptomsCount={symptomsCount}
+            hasMore={hasMore}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
@@ -259,22 +392,6 @@ function AddSymptoms() {
         </Grid>
       </Grid>
 
-      {/* <ActionButtons
-        cancelLabel='CANCEL'
-        addLabel={
-          <Box display='flex' alignItems='center' gap={1}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-              ADD
-              {addLoading && <CircularProgress size={20} sx={{ color: '#ccc' }} />}
-            </span>
-          </Box>
-        }
-        onCancel={() => router.push(`/hospital/inpatient/${id}/?tab=symptoms`)}
-        onAdd={handleAddClick}
-        width={200}
-        height={50}
-        isSubmitLoading={addLoading}
-      /> */}
       <BottomActionBar
         onCancel={handleRouterNavigation}
         onSubmit={handleAddClick}

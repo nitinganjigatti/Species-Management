@@ -324,7 +324,7 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
     }
 
     const newColumn = {
-      id: uuidv4(),
+      id: `temp_${uuidv4()}`,
       timeLabel: normalizedTime,
       entries: {}
     }

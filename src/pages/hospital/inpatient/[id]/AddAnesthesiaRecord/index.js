@@ -62,7 +62,7 @@ export function serverVitalToFormColumns(serverVital = {}, vitalMeta = []) {
 
   const columns = (timeSlots || []).map(slot => {
     const col = {
-      id: slot.id ? String(slot.id) : `t_${Math.random().toString(36).slice(2, 9)}`,
+      id: slot.id ? String(slot.id) : `temp_${uuidv4()}`,
       timeLabel: slot.recorded_time || '',
       entries: {}
     }
@@ -179,7 +179,8 @@ export function formColumnsToVitalMonitoringBlocks(columns = [], vitalList = [])
 
   for (const col of columns || []) {
     const block = {
-      record_time_id: col?.id,
+      // Only include record_time_id if it's a real ID (not a temp ID)
+      ...(col?.id && !col.id.startsWith('temp_') && { record_time_id: col.id }),
       recorded_time: col.timeLabel || '',
       sections: []
     }
@@ -1472,7 +1473,6 @@ export default function AddAnesthesiaRecord() {
         console.log(blocks, 'blocks')
         blocks = (blocks || []).map(block => ({
           ...block,
-          record_time_id: block?.record_time_id,
           recorded_time: toBackendTime(block.recorded_time)
         }))
 
