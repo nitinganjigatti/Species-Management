@@ -1,33 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { addProductForm, getProductFormList, updateProductForm } from 'src/lib/api/pharmacy/productForms'
-import TableWithFilter from 'src/components/TableWithFilter'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
-import Typography from '@mui/material/Typography'
+import { Box, Grid, Typography, IconButton,} from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Grid, TextField } from '@mui/material'
 import { debounce } from 'lodash'
 import { useTheme } from '@emotion/react'
 
-import Router from 'next/router'
 import toast from 'react-hot-toast'
 
 import AddProductForm from 'src/views/pages/pharmacy/medicine/dosageForm/addProductForm'
 
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
-import { AddButton } from 'src/components/Buttons'
 
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
@@ -35,6 +24,9 @@ import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const ListOfDosageForms = () => {
   const theme = useTheme()
@@ -108,7 +100,6 @@ const ListOfDosageForms = () => {
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
             fontWeight: 500,
-            fontFamily: 'Inter'
           }}
         >
           {params.row.label}
@@ -127,7 +118,6 @@ const ListOfDosageForms = () => {
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
             fontWeight: 500,
-            fontFamily: 'Inter'
           }}
         >
           {params.row.status}
@@ -141,7 +131,6 @@ const ListOfDosageForms = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-        
           {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -228,11 +217,16 @@ const ListOfDosageForms = () => {
 
   const headerAction = (
     <div>
-   
-
       {pharmacyRole && (
         <Grid item>
-          <AddButtonContained title='Add Product Form' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+          <AddButtonContained 
+            title='Add Product Form' 
+            action={() => addEventSidebarOpen()} 
+            fullWidth='fullWidth' 
+            styles = {{
+              margin: 0
+            }}
+            />
         </Grid>
       )}
     </div>
@@ -263,7 +257,6 @@ const ListOfDosageForms = () => {
         } else {
           toast.error(response.message)
         }
-
       }
     } catch (e) {
       setSubmitLoader(false)
@@ -287,79 +280,40 @@ const ListOfDosageForms = () => {
             <FallbackSpinner />
           ) : (
             <>
-              <Card>
-                <CardHeader
-                  sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start', // Align content to the left
-                    alignItems: 'flex-start', // Align items to the top left
-                    gap: { xs: 3, sm: 0 },
-                    '& .MuiCardHeader-action': {
-                      width: { xs: '100% ', sm: 'auto' }
-                    }
-                  }}
-                  title={RenderUtility.pageTitle('Product Form List')}
-                  action={headerAction}
-                />
-
-                <Grid
-                  item
-                  sx={{
-                    mx: { xs: 4 },
-                    ml: { md: 4 }
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      height: '40px',
+                <PageCardLayout
+                  title = 
+                  "Product Form List"
+                  action = {headerAction}>
+                  <Grid container>
+                    <Grid size={{ xs: 12, sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                      <MUISearch
+                         sx={{
                       width: {
                         xs: '100%',
                         sm: '250px'
                       }
                     }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
+                        placeholder='Search...'
+                        value={searchValue}
+                        onChange={e => handleSearch(e.target.value)}
+                        onClear={() => handleSearch('')}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Grid>
+                    <CommonTable
+                      onRowClick={''}
+                      indexedRows={indexedRows}
+                      total={total}
+                      columns={columns}
+                      paginationModel={paginationModel}
+                      handleSortModel={handleSortModel}
+                      setPaginationModel={setPaginationModel}
+                      loading={loading}
+                      searchValue={searchValue}
                     />
-                  </Box>
-                </Grid>
-                <Grid
-                  sx={{
-                    mx: { xs: 4 }
-                  }}
-                >
-                  <CommonTable
-                    onRowClick={''}
-                    indexedRows={indexedRows}
-                    total={total}
-                    columns={columns}
-                    paginationModel={paginationModel}
-                    handleSortModel={handleSortModel}
-                    setPaginationModel={setPaginationModel}
-                    loading={loading}
-                    searchValue={searchValue}
-                  />
-                </Grid>
-              </Card>
+                  </Grid>
+                  </PageCardLayout>
               <AddProductForm
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}

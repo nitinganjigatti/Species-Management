@@ -1,30 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { getManufacturers, addManufacturer, updateManufacturer } from 'src/lib/api/pharmacy/manufacturer'
-import TableWithFilter from 'src/components/TableWithFilter'
-import TableServerSide from 'src/views/table/data-grid/TableServerSide'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
+
+
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
-import Typography from '@mui/material/Typography'
+import { Box, Grid, Tooltip, Typography, IconButton } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Grid, TextField } from '@mui/material'
 import { debounce } from 'lodash'
 
 import toast from 'react-hot-toast'
 
 import AddManufacturer from 'src/views/pages/pharmacy/medicine/manufacturers/addManufacturer'
 
-
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
-import { AddButton } from 'src/components/Buttons'
 import { useTheme } from '@emotion/react'
 
 import { useContext } from 'react'
@@ -33,7 +25,8 @@ import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
-
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 const ManufacturerList = () => {
   const theme = useTheme()
   const [manufacturers, setManufacturers] = useState({})
@@ -86,7 +79,7 @@ const ManufacturerList = () => {
   const columns = [
     {
       flex: 0.05,
-      Width: 40,
+      minWidth: 80,
       field: 'id',
       headerName: 'SL.NO',
       renderCell: params => (
@@ -97,27 +90,32 @@ const ManufacturerList = () => {
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'label',
       headerName: 'Manufacturer',
       renderCell: params => (
+        <Tooltip title =  {params.row.label}>
         <Typography
           variant='body2'
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
             fontWeight: 500,
-            fontFamily: 'Inter'
+            // fontFamily: 'Inter',
+             overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
           }}
         >
           {params.row.label}
         </Typography>
+        </Tooltip>
       )
     },
 
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
@@ -127,7 +125,7 @@ const ManufacturerList = () => {
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
             fontWeight: 500,
-            fontFamily: 'Inter'
+            // fontFamily: 'Inter'
           }}
         >
           {params.row.active === '1' ? 'Active' : 'Inactive'}
@@ -136,12 +134,11 @@ const ManufacturerList = () => {
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 100,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
         <>
-         
           {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -159,7 +156,6 @@ const ManufacturerList = () => {
       )
     }
   ]
-
 
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
@@ -207,7 +203,6 @@ const ManufacturerList = () => {
       setSortColumn(newModel[0].field)
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
-     
     }
   }
 
@@ -232,7 +227,14 @@ const ManufacturerList = () => {
     <div>
       {pharmacyRole && (
         <Grid item>
-          <AddButtonContained title='Add Manufacturer' action={() => addEventSidebarOpen()} fullWidth={'fullWidth'} />
+          <AddButtonContained 
+            title='Add Manufacturer' 
+            action={() => addEventSidebarOpen()} 
+            fullWidth={'fullWidth'} 
+            styles = {{
+              margin: 0
+            }}
+            />
         </Grid>
       )}
     </div>
@@ -289,109 +291,40 @@ const ManufacturerList = () => {
             <FallbackSpinner />
           ) : (
             <>
-              <Card>
-                <CardHeader
-                  sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start', 
-                    alignItems: 'flex-start', 
-                    gap: { xs: 3, sm: 0 },
-                    '& .MuiCardHeader-action': {
-                      width: { xs: '100% ', sm: 'auto' }
-                    }
-                  }}
-                  title={RenderUtility.pageTitle('Manufacturers')}
-                  action={headerAction}
-                />
-                <Grid
-                  item
-                  sx={{
-                    mx: { xs: 4 },
-                    ml: { md: 4 }
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      height: '40px',
-                      width: {
-                        xs: '100%',
-                        sm: '250px'
-                      }
-                    }}
+                <PageCardLayout 
+                title = 'Manufacturer'
+                action = {headerAction}
                   >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
+                  <Grid container>
+                    <Grid size={{ xs: 12, sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                      <MUISearch
+                           sx={{
+                        width: {
+                          xs: '100%',
+                          sm: '250px'
                         }
                       }}
+                        placeholder='Search...'
+                        value={searchValue}
+                        onChange={e => handleSearch(e.target.value)}
+                        onClear={() => handleSearch('')}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Grid>
+                    <CommonTable
+                      onRowClick={''}
+                      indexedRows={indexedRows}
+                      total={total}
+                      columns={columns}
+                      paginationModel={paginationModel}
+                      handleSortModel={handleSortModel}
+                      setPaginationModel={setPaginationModel}
+                      loading={loading}
+                      searchValue={searchValue}
                     />
-                  </Box>
-                </Grid>
-                <Grid
-                  sx={{
-                    mx: 4
-                  }}
-                >
-                  <CommonTable
-                    onRowClick={''}
-                    indexedRows={indexedRows}
-                    total={total}
-                    columns={columns}
-                    paginationModel={paginationModel}
-                    handleSortModel={handleSortModel}
-                    setPaginationModel={setPaginationModel}
-                    loading={loading}
-                    searchValue={searchValue}
-                  />
-                </Grid>
-                {/* <DataGrid
-                  columnVisibilityModel={{
-                    id: false
-                  }}
-                  autoHeight
-                  pagination
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbar }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  disableColumnMenu
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-                      onChange: event => handleSearch(event.target.value)
-                    }
-                  }}
-                /> */}
-              </Card>
+                  </Grid>
+                  </PageCardLayout>
               <AddManufacturer
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}

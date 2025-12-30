@@ -6,33 +6,22 @@ import {
   addGenericName,
   updateGenericName
 } from 'src/lib/api/pharmacy/genericNames'
-import TableWithFilter from 'src/components/TableWithFilter'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@emotion/react'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
-import Typography from '@mui/material/Typography'
+import { Box, Grid, Tooltip, IconButton, Typography } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Grid, TextField } from '@mui/material'
 
-import Router from 'next/router'
 import { debounce } from 'lodash'
 import toast from 'react-hot-toast'
 
 import AddGenericName from 'src/views/pages/pharmacy/medicine/generic/addGenericName'
 
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
-import { AddButton } from 'src/components/Buttons'
 
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
@@ -40,7 +29,8 @@ import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
-
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 const GenericNamesList = () => {
   const theme = useTheme()
   const [genericNames, setGenericNames] = useState([])
@@ -106,17 +96,21 @@ const GenericNamesList = () => {
       field: 'name',
       headerName: 'NAME',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.name}
-        </Typography>
+        <Tooltip title={params.row.name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {params.row.name}
+          </Typography>
+        </Tooltip>
       )
     },
 
@@ -131,8 +125,7 @@ const GenericNamesList = () => {
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
             fontWeight: 500,
-            textTransform: 'capitalize',
-            fontFamily: 'Inter'
+            textTransform: 'capitalize'
           }}
         >
           {params.row.status}
@@ -145,7 +138,6 @@ const GenericNamesList = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-         
           {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -231,11 +223,16 @@ const GenericNamesList = () => {
 
   const headerAction = (
     <div>
-    
-
       {pharmacyRole && (
         <Grid item>
-          <AddButtonContained title='Add Generic Name' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+          <AddButtonContained 
+            title='Add Generic Name' 
+            action={() => addEventSidebarOpen()} 
+            fullWidth='fullWidth' 
+            styles = {{
+              margin: 0
+            }}
+            />
         </Grid>
       )}
     </div>
@@ -252,7 +249,6 @@ const GenericNamesList = () => {
       }
 
       if (response?.success) {
-
         toast.success(response?.message)
 
         setSubmitLoader(false)
@@ -292,65 +288,28 @@ const GenericNamesList = () => {
             <FallbackSpinner />
           ) : (
             <>
-              <Card>
-                <CardHeader
-                  sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start', // Align content to the left
-                    alignItems: 'flex-start', // Align items to the top
-                    gap: { xs: 3, sm: 0 },
-                    '& .MuiCardHeader-action': {
-                      width: { xs: '100% ', sm: 'auto' }
-                    }
-                  }}
-                  title={RenderUtility.pageTitle('Generic Names')}
-                  action={headerAction}
-                />
-                <Grid
-                  item
-                  sx={{
-                    mx: { xs: 4 },
-                    ml: { md: 4 }
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      height: '40px',
-                      width: {
-                        xs: '100%',
-                        sm: '250px'
-                      }
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
+              <PageCardLayout
+                title='Generic Names'
+                action={headerAction}
+              >
+                <Grid container>
+                  <Grid size={{ xs: 12, sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                    <MUISearch
                       sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
+                        width: {
+                          xs: '100%',
+                          sm: '250px'
                         }
                       }}
+                      placeholder='Search...'
+                      value={searchValue}
+                      onChange={e => handleSearch(e.target.value)}
+                      onClear={() => handleSearch('')}
                     />
-                  </Box>
+                  </Grid>
                 </Grid>
-                <Grid
-                  sx={{
-                    mx: { xs: 4 }
-                  }}
-                >
+
+                <Grid>
                   <CommonTable
                     onRowClick={''}
                     indexedRows={indexedRows}
@@ -363,38 +322,7 @@ const GenericNamesList = () => {
                     searchValue={searchValue}
                   />
                 </Grid>
-                {/* <DataGrid
-                  columnVisibilityModel={{
-                    id: false
-                  }}
-                  autoHeight
-                  pagination
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbar }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  disableColumnMenu
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-                      onChange: event => handleSearch(event.target.value)
-                    }
-                  }}
-                /> */}
-              </Card>
+              </PageCardLayout>
               <AddGenericName
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}
