@@ -1,17 +1,15 @@
-import { Avatar, Card, CardContent, CardHeader, Grid, Typography } from '@mui/material'
+import { Avatar, Card, CardHeader, Grid, Typography, Box, Stack } from '@mui/material'
 import Router, { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
 import React, { useEffect, useState } from 'react'
-import { Box, Stack } from '@mui/system'
 import { getDispenseById } from 'src/lib/api/pharmacy/dispenseProduct'
-import moment from 'moment'
-import { DataGrid } from '@mui/x-data-grid'
 import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import AnimalLabelCard from 'src/views/utility/AnimalLabelCard'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const IndividualDispense = () => {
   const [dispenseData, setDispenseData] = useState({})
@@ -168,32 +166,27 @@ const IndividualDispense = () => {
     <>
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
       selectedPharmacy.permission.dispense_medicine ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3,  }}>
           <Grid
             container
             sx={{
-              gap: 3,
               justifyContent: 'space-between',
-              alignItems: 'stretch'
+              alignItems: 'center',
+              
             }}
           >
-            <Grid item size={{ xs: 12, md: 6.4 }}>
-              <Card>
-                <CardHeader
-                  title='Dispense Detail'
-                  avatar={
-                    <Icon
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        Router.back()
-                      }}
-                      icon='ep:back'
-                    />
-                  }
-                />
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly' }}>
-                    <Box>
+            <Grid item size={{ xs: 12, md: 6.4 }} sx = {{mb: {xs: 'auto', sm: 2.8, lg: 0}}}>
+                <PageCardLayout
+                  title= 'Dispense Detail'
+                  showIcon = {true}
+                  onIconClick={() => {
+                    Router.back()
+                  }}
+                  titleStyles={{
+                    fontSize: '20px'
+                    }}>
+                  <Grid item size = {{xs: 'auto', sm: 'auto'}} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly', gap: {xs: 3, sm: 'auto'} }}>
+                    {/* <Box> */}
                       <Avatar
                         sx={{
                           '& > img': {
@@ -207,7 +200,7 @@ const IndividualDispense = () => {
                         alt={dispenseData?.created_profile_pic}
                         src={dispenseData?.created_profile_pic}
                       />
-                    </Box>
+                    {/* </Box> */}
 
                     <Box sx={{ my: 2 }}>
                       <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
@@ -236,16 +229,19 @@ const IndividualDispense = () => {
                         <Typography>&nbsp;{dispenseData?.from_store}</Typography>
                       </Box>
                     </Box>
-                  </Box>
-                </CardContent>
-              </Card>
+                  </Grid>
+                  </PageCardLayout>
             </Grid>
             <Grid item size={{ xs: 12, md: 5.4 }}>
-              <Card>
-                <CardHeader title='Dispense To' avatar={<Icon style={{ cursor: 'pointer' }} icon='ep:user' />} />
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly' }}>
-                    <Box>
+              <PageCardLayout
+                title = "Dispense To"
+                showIcon = {true}
+                icon = 'ep:user'
+                titleStyles = {{
+                  fontSize: "20px"
+                }}>
+                  <Grid item size = {{xs: 'auto', sm: 10.5}} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly', gap: {xs: 3, sm: 'auto'}}}>
+                    {/* <Box> */}
                       <Avatar
                         sx={{
                           '& > img': {
@@ -253,13 +249,13 @@ const IndividualDispense = () => {
                           },
                           width: 100,
                           height: 100,
-                          my: 6.4
+                          my: 6
                         }}
                         variant='rounded'
                         alt={dispenseData?.profile_pic}
                         src={dispenseData?.profile_pic}
                       />
-                    </Box>
+                    {/* </Box> */}
                     <Box>
                       <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
                         {dispenseData?.user_first_name} {dispenseData?.user_last_name}
@@ -271,9 +267,8 @@ const IndividualDispense = () => {
                         </Typography>
                       </Box>
                     </Box>
-                  </Box>
-                </CardContent>
-              </Card>
+                  </Grid>
+              </PageCardLayout>
             </Grid>
           </Grid>
           <Card>

@@ -7,30 +7,43 @@ import {
   getShippedItemsByRequestId,
   deleteFulfillItem
 } from 'src/lib/api/pharmacy/getRequestItemsList'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
-import Dialog from '@mui/material/Dialog'
 import CustomChip from 'src/@core/components/mui/chip'
 import { getDisputeItemList, getDispenseItemList } from 'src/lib/api/pharmacy/getShipmentList'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
-import Fade from '@mui/material/Fade'
-import Alert from '@mui/material/Alert'
-import AlertTitle from '@mui/material/AlertTitle'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
 import toast from 'react-hot-toast'
+
+import {
+  Grid,
+  Card,
+  Typography,
+  Fade,
+  Alert,
+  AlertTitle,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  IconButton,
+  Box,
+  CardContent,
+  CardHeader,
+  Divider,
+  Tooltip,
+  Paper,
+  Drawer,
+  Avatar,
+  Chip,
+  styled,
+  Tab
+} from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardContent, CardHeader, Divider, Tooltip, Paper, Drawer, Avatar } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -49,19 +62,14 @@ import Utility from 'src/utility'
 import MenuWithDots from 'src/components/MenuWithDots'
 import AlternativeMedicine from 'src/components/pharmacy/request/AlternativeMedicine'
 import RejectRequestItem from 'src/components/pharmacy/request/RejectRequestItem'
-import Tab from '@mui/material/Tab'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
-import TabList from '@mui/lab/TabList'
-import Chip from '@mui/material/Chip'
-import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
-
+import { TabPanel, TabContext, TabList } from '@mui/lab'
 import DetailsTable from 'src/components/pharmacy/request/DetailsTable'
 import CloseIcon from '@mui/icons-material/Close'
 import RenderUtility from 'src/utility/render'
 import { useTheme } from '@emotion/react'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -1484,231 +1492,228 @@ const IndividualRequest = () => {
                 close={closeOrderFormDialog}
                 show={showOrderFormDialog}
               />
-              <Card sx={{ mb: 6, boxShadow: 'none !important' }}>
-                <CardHeader
-                  avatar={
-                    <Icon
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        if (
-                          selectedPharmacy?.type === 'local' &&
-                          requestItems?.status === 'request' &&
-                          requestItems?.is_modified !== '1'
-                        ) {
-                          Router.push('/pharmacy/request')
-                        } else {
-                          Router.back()
-                        }
-                      }}
-                      icon='ep:back'
-                    />
-                  }
-                  title={`Request - ${requestItems?.request_number}`}
-                  action={
+              <PageCardLayout
+                cardStyles={{
+                  boxShadow: 'none'
+                }}
+                title={`Request - ${requestItems?.request_number}`}
+                showIcon={true}
+                titleStyles={{
+                  fontSize: '20px'
+                }}
+                onIconClick={() => {
+                  if (
                     selectedPharmacy?.type === 'local' &&
                     requestItems?.status === 'request' &&
-                    requestItems?.is_modified !== '1' &&
-                    Number(requestItems?.shipped_product_count) === 0 && (
-                      <Button
-                        size='big'
-                        variant='contained'
-                        onClick={() => {
-                          handleRequestEdit()
-                        }}
-                        disabled={selectedPharmacy?.permission?.key === 'VIEW'}
-                      >
-                        Edit
-                      </Button>
-                    )
+                    requestItems?.is_modified !== '1'
+                  ) {
+                    Router.push('/pharmacy/request')
+                  } else {
+                    Router.back()
                   }
-                />
+                }}
+                action={
+                  selectedPharmacy?.type === 'local' &&
+                  requestItems?.status === 'request' &&
+                  requestItems?.is_modified !== '1' &&
+                  Number(requestItems?.shipped_product_count) === 0 && (
+                    <Button
+                      size='big'
+                      variant='contained'
+                      onClick={() => {
+                        handleRequestEdit()
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  )
+                }
+              >
+                <Card
+                  sx={{
+                    backgroundColor: 'customColors.lightBg',
+                    boxShadow: 'none !important',
+                    minHeight: '84px',
+                    display: 'flex',
+                    padding: '16px',
+                    borderRadius: '8px',
+                    alignItems: 'center',
 
-                <CardContent>
-                  <Card
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <Grid
+                    container
                     sx={{
-                      backgroundColor: 'customColors.lightBg',
-                      boxShadow: 'none !important',
-                      minHeight: '84px',
+                      width: '100%',
+                      height: '100%',
                       display: 'flex',
-                      padding: '16px',
-                      borderRadius: '8px',
                       alignItems: 'center',
 
                       justifyContent: 'space-between'
                     }}
                   >
                     <Grid
-                      container
+                      item
+                      size={{
+                        xs: 12,
+                        sm: 'auto'
+                      }}
                       sx={{
-                        width: '100%',
-                        height: '100%',
                         display: 'flex',
-                        alignItems: 'center',
-
-                        justifyContent: 'space-between'
+                        flexDirection: 'column',
+                        gap: '4px',
+                        height: '46px',
+                        gap: '10px',
+                        mb: {
+                          xs: 5,
+                          sm: 5,
+                          md: 5,
+                          lg: 0
+                        }
                       }}
                     >
-                      <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={6}
-                        lg={3}
+                      <Typography
                         sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '4px',
-                          height: '46px',
-                          gap: '10px',
-                          mb: {
-                            xs: 5,
-                            sm: 5,
-                            md: 5,
-                            lg: 0
-                          }
+                          fontSize: '14px',
+                          fontWeight: '400',
+                          lineHeight: '16.94px',
+                          gpa: '4px',
+                          color: 'customColors.neutralSecondary'
                         }}
                       >
-                        <Typography
-                          sx={{
-                            fontSize: '14px',
-                            fontWeight: '400',
-                            lineHeight: '16.94px',
-                            gpa: '4px',
-                            color: 'customColors.neutralSecondary'
-                          }}
-                        >
-                          Requested By :
-                          <Box
-                            component='span'
-                            sx={{
-                              fontWeight: '500',
-                              fontSize: '16px',
-                              color: 'customColors.OnSurfaceVariant',
-                              lineHeight: '19.36px',
-                              mx: 2,
-                              [theme.breakpoints.up('lg')]: {
-                                ...RenderUtility?.getEllipsisStyleForText('140')
-                              }
-                            }}
-                          >
-                            {RenderUtility?.getToolTipForText(requestItems?.to_store)}
-                          </Box>
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: '14px',
-                            fontWeight: '400',
-                            lineHeight: '16.94px',
-                            color: 'customColors.neutralSecondary'
-                          }}
-                        >
-                          Request ID:
-                          <Box
-                            component='span'
-                            sx={{
-                              fontWeight: '500',
-                              fontSize: '16px',
-                              color: 'customColors.OnSurfaceVariant',
-                              lineHeight: '19.36px',
-                              mx: 2,
-                              [theme.breakpoints.up('lg')]: {
-                                ...RenderUtility?.getEllipsisStyleForText('140')
-                              }
-                            }}
-                          >
-                            {RenderUtility?.getToolTipForText(requestItems?.request_number)}
-                          </Box>
-                        </Typography>
-                      </Grid>
-
-                      <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={6}
-                        lg={3}
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          height: '46px',
-                          gap: '10px',
-
-                          textAlign: {
-                            xs: 'left',
-                            sm: 'left',
-                            md: 'left',
-                            lg: 'left'
-                          },
-                          mb: {
-                            xs: 5,
-                            sm: 5,
-                            md: 5,
-                            lg: 0
-                          }
-                        }}
-                      >
-                        {requestItems?.product_count && (
-                          <Typography
-                            sx={{
-                              fontSize: '14px',
-                              fontWeight: '400',
-                              lineHeight: '16.94px',
-                              color: 'customColors.neutralSecondary'
-                            }}
-                          >
-                            Requested Items:
-                            <Box
-                              component='span'
-                              sx={{
-                                fontWeight: '500',
-                                fontSize: '16px',
-                                color: 'customColors.OnSurfaceVariant',
-                                lineHeight: '19.36px',
-                                mx: 2
-                              }}
-                            >
-                              {requestItems?.product_count}
-                            </Box>
-                          </Typography>
-                        )}
+                        Requested By :
                         <Box
+                          component='span'
                           sx={{
-                            display: 'flex',
-                            alignItems: 'center'
+                            fontWeight: '500',
+                            fontSize: '16px',
+                            color: 'customColors.OnSurfaceVariant',
+                            lineHeight: '19.36px',
+                            mx: 2,
+                            [theme.breakpoints.up('lg')]: {
+                              ...RenderUtility?.getEllipsisStyleForText('140')
+                            }
                           }}
                         >
-                          <Typography
+                          {RenderUtility?.getToolTipForText(requestItems?.to_store)}
+                        </Box>
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: '14px',
+                          fontWeight: '400',
+                          lineHeight: '16.94px',
+                          color: 'customColors.neutralSecondary'
+                        }}
+                      >
+                        Request ID:
+                        <Box
+                          component='span'
+                          sx={{
+                            fontWeight: '500',
+                            fontSize: '16px',
+                            color: 'customColors.OnSurfaceVariant',
+                            lineHeight: '19.36px',
+                            mx: 2,
+                            [theme.breakpoints.up('lg')]: {
+                              ...RenderUtility?.getEllipsisStyleForText('140')
+                            }
+                          }}
+                        >
+                          {RenderUtility?.getToolTipForText(requestItems?.request_number)}
+                        </Box>
+                      </Typography>
+                    </Grid>
+
+                    <Grid
+                      item
+                      size={{
+                        xs: 12,
+                        sm: 'auto'
+                      }}
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: '46px',
+                        gap: '10px',
+
+                        textAlign: {
+                          xs: 'left',
+                          sm: 'left',
+                          md: 'left',
+                          lg: 'left'
+                        },
+                        mb: {
+                          xs: 5,
+                          sm: 5,
+                          md: 5,
+                          lg: 0
+                        }
+                      }}
+                    >
+                      {requestItems?.product_count && (
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'customColors.neutralSecondary'
+                          }}
+                        >
+                          Requested Items:
+                          <Box
                             component='span'
                             sx={{
-                              fontSize: '14px',
-                              fontWeight: '400',
-                              lineHeight: '16.94px',
-                              color: 'customColors.neutralSecondary',
-                              whiteSpace: 'nowrap'
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'customColors.OnSurfaceVariant',
+                              lineHeight: '19.36px',
+                              mx: 2
                             }}
                           >
-                            Total Requested Value:
-                          </Typography>
+                            {requestItems?.product_count}
+                          </Box>
+                        </Typography>
+                      )}
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <Typography
+                          component='span'
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'customColors.neutralSecondary',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          Total Requested Value:
+                        </Typography>
 
-                          <Tooltip title={Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}>
-                            <Box
-                              component='span'
-                              sx={{
-                                fontWeight: '500',
-                                fontSize: '16px',
-                                color: 'primary.light',
-                                lineHeight: '19.36px',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                              }}
-                            >
-                              {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
-                            </Box>
-                          </Tooltip>
-                        </Box>
+                        <Tooltip title={Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}>
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'primary.light',
+                              lineHeight: '19.36px',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}
+                          >
+                            {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
+                          </Box>
+                        </Tooltip>
+                      </Box>
 
-                        {/* <Typography
+                      {/* <Typography
                           sx={{
                             fontSize: '14px',
                             fontWeight: '400',
@@ -1730,30 +1735,30 @@ const IndividualRequest = () => {
                             {requestItems?.shipped_qty}
                           </Box>
                         </Typography> */}
-                      </Grid>
+                    </Grid>
 
-                      <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={6}
-                        lg={3}
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '4px',
-                          height: '46px',
-                          gap: '10px',
+                    <Grid
+                      item
+                      xs={12}
+                      sm={6}
+                      md={6}
+                      lg={3}
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
+                        height: '46px',
+                        gap: '10px',
 
-                          mb: {
-                            xs: 5,
-                            sm: 0,
-                            md: 0,
-                            lg: 0
-                          }
-                        }}
-                      >
-                        {/* <Typography
+                        mb: {
+                          xs: 5,
+                          sm: 0,
+                          md: 0,
+                          lg: 0
+                        }
+                      }}
+                    >
+                      {/* <Typography
                           sx={{
                             fontSize: '14px',
                             fontWeight: '400',
@@ -1776,111 +1781,110 @@ const IndividualRequest = () => {
                           </Box>
                         </Typography> */}
 
-                        <Typography
-                          onClick={() => setShipmentDetailsDialog(true)}
-                          sx={{
-                            fontSize: '14px',
-                            fontWeight: '400',
-                            lineHeight: '16.94px',
-                            color: 'primary.OnSurface',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Shipped Value:
-                          <Tooltip title={`₹${Utility.formatNumberToDisplay(requestItems?.shipped_amount)}`}>
-                            <Box
-                              component='span'
-                              sx={{
-                                fontWeight: '500',
-                                fontSize: '16px',
-                                color: 'primary.main',
-                                lineHeight: '19.36px',
-                                mx: 2
-                              }}
-                            >
-                              ₹{Utility.formatNumberToDisplay(requestItems?.shipped_amount)}
-                            </Box>
-                          </Tooltip>
-                        </Typography>
-                      </Grid>
+                      <Typography
+                        onClick={() => setShipmentDetailsDialog(true)}
+                        sx={{
+                          fontSize: '14px',
+                          fontWeight: '400',
+                          lineHeight: '16.94px',
+                          color: 'primary.OnSurface',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Shipped Value:
+                        <Tooltip title={`₹${Utility.formatNumberToDisplay(requestItems?.shipped_amount)}`}>
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'primary.main',
+                              lineHeight: '19.36px',
+                              mx: 2
+                            }}
+                          >
+                            ₹{Utility.formatNumberToDisplay(requestItems?.shipped_amount)}
+                          </Box>
+                        </Tooltip>
+                      </Typography>
+                    </Grid>
 
-                      <Grid item xs={12} sm={6} md={6} lg={3}>
+                    <Grid item xs={12} sm={6} md={6} lg={3}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          height: '46px',
+
+                          justifyContent: {
+                            xs: 'start',
+                            sm: 'flex-end',
+                            md: 'flex-end',
+                            lg: 'start'
+                          }
+                        }}
+                      >
+                        <Box sx={{ width: '56px' }}>
+                          <CustomAvatar
+                            src={requestItems?.user_created_profile_pic}
+                            sx={{ radius: '64px', width: '40px', height: '40px' }}
+                          />
+                        </Box>
                         <Box
                           sx={{
                             display: 'flex',
-                            height: '46px',
+                            flexDirection: 'column',
 
-                            justifyContent: {
-                              xs: 'start',
-                              sm: 'flex-end',
-                              md: 'flex-end',
-                              lg: 'start'
-                            }
+                            gap: '10px'
                           }}
                         >
-                          <Box sx={{ width: '56px' }}>
-                            <CustomAvatar
-                              src={requestItems?.user_created_profile_pic}
-                              sx={{ radius: '64px', width: '40px', height: '40px' }}
-                            />
-                          </Box>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              flexDirection: 'column',
-
-                              gap: '10px'
-                            }}
+                          <Tooltip
+                            title={requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                            placement='top'
+                            arrow
                           >
-                            <Tooltip
-                              title={requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
-                              placement='top'
-                              arrow
-                            >
-                              <Typography
-                                sx={{
-                                  fontSize: '14px',
-                                  fontWeight: '500',
-                                  lineHeight: '16.94px',
-                                  color: 'customColors.OnSurfaceVariant',
-
-                                  ...RenderUtility?.getEllipsisStyleForText(200)
-                                }}
-                              >
-                                {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
-                              </Typography>
-                            </Tooltip>
-
                             <Typography
                               sx={{
-                                fontSize: '12px',
-                                fontWeight: '400',
-                                lineHeight: '14.52px',
-                                color: 'customColors.OnSurfaceVariant'
+                                fontSize: '14px',
+                                fontWeight: '500',
+                                lineHeight: '16.94px',
+                                color: 'customColors.OnSurfaceVariant',
+
+                                ...RenderUtility?.getEllipsisStyleForText(200)
                               }}
                             >
-                              {Utility.formatDisplayDate(requestItems?.created_at)}
+                              {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
                             </Typography>
-                          </Box>
+                          </Tooltip>
+
+                          <Typography
+                            sx={{
+                              fontSize: '12px',
+                              fontWeight: '400',
+                              lineHeight: '14.52px',
+                              color: 'customColors.OnSurfaceVariant'
+                            }}
+                          >
+                            {Utility.formatDisplayDate(requestItems?.created_at)}
+                          </Typography>
                         </Box>
-                      </Grid>
+                      </Box>
                     </Grid>
-                  </Card>
-                  {/* Medicine Listing */}
-                </CardContent>
+                  </Grid>
+                </Card>
+                {/* Medicine Listing */}
+
                 <Grid
                   spacing={2}
                   sx={{
-                    px: 6,
+                    mt: 5,
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'center',
-                    mb: 4
+                    justifyContent: 'center'
                   }}
                 >
                   <TabContext value={detailsTab}>
                     <TabList
-                      sx={{ borderBottom: `1px solid ${theme.palette.customColors.neutral05} !important` }}
+                      sx={{ mt: 4, borderBottom: `1px solid ${theme.palette.customColors.neutral05} !important` }}
                       onChange={(event, newValue) => {
                         setDetailsTab(newValue)
                         updateUrlParams({
@@ -1935,10 +1939,10 @@ const IndividualRequest = () => {
                             padding: '0 !important'
                           }}
                         >
-                          <Box sx={{ my: 5 }}>
+                          <Box>
                             {shippedItems?.length > 0 && (
                               <>
-                                <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
+                                <Card sx={{ mb: 6, minWidth: '100%', boxShadow: 'none !important' }}>
                                   <TableBasic
                                     columns={shippedColumns}
                                     rows={shippedItems}
@@ -2090,21 +2094,28 @@ const IndividualRequest = () => {
                               <TabPanel
                                 value='Ready To Ship'
                                 sx={{
-                                  padding: '0px !important'
+                                  padding: '0px !important',
+                                  
                                 }}
                               >
                                 {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' && (
-                                  <Card sx={{ minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
+                                  <Card sx={{ minWidth: '100%',  boxShadow: 'none !important' }}>
                                     <CardHeader
                                       title={``}
+                                      sx = {{
+                                        px: 0
+                                      }}
                                       action={
                                         (selectedPharmacy.permission.key === 'ADD' ||
                                           selectedPharmacy.permission.key === 'allow_full_access') &&
                                         requestItems.status !== 'Cancelled' && (
+                                          <Grid container sx = {{
+                                            display: 'flex', justifyContent: {sm: 'flex-end'}
+                                          }}>
                                           <Grid
                                             item
-                                            size={{ xs: 6 }}
-                                            style={{ display: 'flex', justifyContent: 'right' }}
+                                            size={{ xs: 12, sm: 'auto' }}
+                                            
                                           >
                                             <Button
                                               size='big'
@@ -2118,9 +2129,11 @@ const IndividualRequest = () => {
                                                   }
                                                 })
                                               }}
+                                            
                                             >
                                               Ship All Items
                                             </Button>
+                                          </Grid>
                                           </Grid>
                                         )
                                       }
@@ -2140,7 +2153,7 @@ const IndividualRequest = () => {
                               >
                                 {shippedItems?.length > 0 && (
                                   <>
-                                    <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
+                                    <Card sx={{ mb: 6, minWidth: '100%', boxShadow: 'none !important' }}>
                                       <TableBasic
                                         columns={shippedColumns}
                                         rows={shippedItems}
@@ -2225,7 +2238,7 @@ const IndividualRequest = () => {
                     show={openProductNotAvailableDialog}
                   />
                 </Grid>
-              </Card>
+              </PageCardLayout>
               {/* Dispatch list */}
               {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' && (
                 <>

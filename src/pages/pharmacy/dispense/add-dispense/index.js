@@ -1,10 +1,7 @@
 import {
   Autocomplete,
-  Avatar,
   Button,
   Card,
-  CardContent,
-  CardHeader,
   FormControl,
   FormHelperText,
   Grid,
@@ -17,14 +14,14 @@ import {
   Typography,
   TableRow,
   TextField,
-  Box,
   Dialog,
   CircularProgress,
-  Divider
+  Divider,
+  Stack,
+  CardContent,
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import React, { useEffect, useState } from 'react'
-import { AddButton } from 'src/components/Buttons'
 import { getUserList, submitDispense } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
 import * as Yup from 'yup'
@@ -37,12 +34,12 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import UserSnackbar from 'src/components/utility/snackbar'
 import Utility from 'src/utility'
-import { th } from 'date-fns/locale'
 import { useTheme } from '@emotion/react'
-import { Stack } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import AnimalLabelCard from 'src/views/utility/AnimalLabelCard'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 function AddDispense() {
   const theme = useTheme()
@@ -234,7 +231,16 @@ function AddDispense() {
     <>
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
       selectedPharmacy.permission.dispense_medicine ? (
-        <Card>
+        <PageCardLayout
+          title='Add Dispense'
+          showIcon={true}
+          onIconClick={() => {
+            Router.back()
+          }}
+          titleStyles={{
+            fontSize: '20px',
+          }}
+        >
           <Dialog
             fullWidth
             open={showProductFormDialog}
@@ -243,133 +249,109 @@ function AddDispense() {
             scroll='body'
             onClose={() => closeDialog()}
           >
-            <Card>
-              <CardHeader
-                sx={{ mx: 1.4 }}
-                title={editMode ? 'Edit Dispense Item' : 'Add Dispense Item'}
-                action={
-                  <IconButton size='small' onClick={() => closeDialog()} sx={{ mx: 4 }}>
-                    <Icon icon='mdi:close' />
-                  </IconButton>
-                }
+            <PageCardLayout
+              title={editMode ? 'Edit Dispense Item' : 'Add Dispense Item'}
+              action={
+                <IconButton size='small' onClick={() => closeDialog()}>
+                  <Icon icon='mdi:close' />
+                </IconButton>
+              }
+              titleStyles={{
+                fontSize: '20px'
+              }}
+            >
+              <ProductForm
+                closeDialog={closeDialog}
+                productArray={productArray}
+                setProductArray={setProductArray}
+                productArrayUi={productArrayUi}
+                setProductArrayUi={setProductArrayUi}
+                editMode={editMode}
+                setEditMode={setEditMode}
+                dataForEditRow={dataForEditRow}
+                setDataForEditRow={setDataForEditRow}
+                selectedIndex={selectedIndex}
+                setSelectedIndex={setSelectedIndex}
+                addedProcuctQty={addedProcuctQty}
+                setAddedProductQty={setAddedProductQty}
+                setDispensesPayload={setDispensesPayload}
               />
-              <CardContent sx={{ pt: 0 }}>
-                <ProductForm
-                  closeDialog={closeDialog}
-                  productArray={productArray}
-                  setProductArray={setProductArray}
-                  productArrayUi={productArrayUi}
-                  setProductArrayUi={setProductArrayUi}
-                  editMode={editMode}
-                  setEditMode={setEditMode}
-                  dataForEditRow={dataForEditRow}
-                  setDataForEditRow={setDataForEditRow}
-                  selectedIndex={selectedIndex}
-                  setSelectedIndex={setSelectedIndex}
-                  addedProcuctQty={addedProcuctQty}
-                  setAddedProductQty={setAddedProductQty}
-                  setDispensesPayload={setDispensesPayload}
-                />
-              </CardContent>
-            </Card>
+            </PageCardLayout>
           </Dialog>
-          <Grid
-            container
-            size={{ xs: 12, sm: 12 }}
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}
-          >
-            <Grid item>
-              <CardHeader
-                title='Add Dispense'
-                avatar={
-                  <Icon
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => {
-                      Router.back()
-                    }}
-                    icon='ep:back'
-                  />
-                }
-              />
-            </Grid>
-          </Grid>
           <form onSubmit={handleSubmit(submitForm, onError)}>
-            <CardContent>
-              <Grid container spacing={5}>
-                <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='user_id'
-                      control={control}
-                      render={({ field }) => (
-                        <>
-                          <Autocomplete
-                            forcePopupIcon={false}
-                            disablePortal
-                            value={field?.value}
-                            options={users}
-                            noOptionsText='Type to search'
-                            getOptionLabel={option => option?.label || ''}
-                            isOptionEqualToValue={(option, value) => option.value === value.value}
-                            renderOption={(props, option) => (
-                              <li {...props} key={option.value}>
-                                {option.label}
-                              </li>
-                            )}
-                            renderInput={params => (
-                              <TextField
-                                {...params}
-                                slotProps={{
-                                  ...params.inputProps,
-                                  tabIndex: 6
-                                }}
-                                label='Dispense To*'
-                                placeholder='Search & Select'
-                                error={Boolean(errors.user_id)}
-                              />
-                            )}
-                            onChange={(event, newValue) => {
-                              field.onChange(newValue)
-                            }}
-                          />
-                          {errors.user_id && (
-                            <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                              {errors.user_id?.message === 'user_id cannot be null'
-                                ? 'Select the user'
-                                : errors.user_id?.message || 'Select the user'}
-                            </FormHelperText>
+            <CardContent sx = {{px: 0, py: 4}}> 
+            <Grid container spacing={5}>
+              <Grid item size={{ xs: 12, sm: 12, md: 6 }} >
+                <FormControl fullWidth>
+                  <Controller
+                    name='user_id'
+                    control={control}
+                    render={({ field }) => (
+                      <>
+                        <Autocomplete
+                          forcePopupIcon={false}
+                          disablePortal
+                          value={field?.value}
+                          options={users}
+                          noOptionsText='Type to search'
+                          getOptionLabel={option => option?.label || ''}
+                          isOptionEqualToValue={(option, value) => option.value === value.value}
+                          renderOption={(props, option) => (
+                            <li {...props} key={option.value}>
+                              {option.label}
+                            </li>
                           )}
-                        </>
-                      )}
-                    />
-                  </FormControl>
-                </Grid>
+                          renderInput={params => (
+                            <TextField
+                              {...params}
+                              slotProps={{
+                                ...params.inputProps,
+                                tabIndex: 6
+                              }}
+                              label='Dispense To*'
+                              placeholder='Search & Select'
+                              error={Boolean(errors.user_id)}
+                            />
+                          )}
+                          onChange={(event, newValue) => {
+                            field.onChange(newValue)
+                          }}
+                        />
+                        {errors.user_id && (
+                          <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                            {errors.user_id?.message === 'user_id cannot be null'
+                              ? 'Select the user'
+                              : errors.user_id?.message || 'Select the user'}
+                          </FormHelperText>
+                        )}
+                      </>
+                    )}
+                  />
+                </FormControl>
               </Grid>
+              
+            </Grid>
             </CardContent>
-            <Box
+            {/* <Box
               sx={{
                 width: '100%',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                px: 5,
+                // px: 5,
                 py: 5
               }}
             >
-              <Box>
+              <Box> 
                 <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
                   Add Dispense Item
                 </Typography>
 
                 <Stack
                   direction='row'
-                  spacing={2}
-                  divider={<Divider orientation='vertical' flexItem />}
-                  sx={{ textAlign: 'center' }}
+                  spacing={4}
+                  divider={<Divider orientation='vertical' flexItem sx = {{display: {xs: 'none', sm: 'block'}}}/>}
+                  sx={{ textAlign: {xs: 'left', md: 'center'}, flexWrap: {xs: 'wrap', sm: 'nowrap'} }}
                 >
                   <Typography
                     variant='body2'
@@ -391,15 +373,74 @@ function AddDispense() {
                   </Typography>
                 </Stack>
               </Box>
-
-              <AddButtonContained
+               <Box >
+                 <AddButtonContained
                 disabled={watch('user_id')?.value === '' || errors.user_id}
                 title='Add Dispense Item'
                 action={() => {
                   handleOpenAddDispense()
                 }}
               />
+              </Box>
             </Box>
+              */}
+
+            <Grid
+              container
+              spacing={3}
+              alignItems='center'
+              sx={{
+                py: 5
+              }}
+            >
+              <Grid item size={{ lg: 8 }}>
+                <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
+                  Add Dispense Item
+                </Typography>
+                <Stack
+                  direction='row'
+                  spacing={{xs: 2, sm: 6}}
+                  divider={<Divider orientation='vertical' flexItem />}
+                  sx={{ textAlign: 'center' }}
+                >
+                  <Grid item>
+                    <Typography
+                      variant='body2'
+                      sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                    >
+                      Total Dispense Quantity:{' '}
+                      <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                        {totalQty ? totalQty : '0'}
+                      </Typography>
+                    </Typography>
+                  </Grid>
+
+                  <Grid item>
+                    <Typography
+                      variant='body2'
+                      sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                    >
+                      Total Value:{' '}
+                      <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                        {Utility.formatAmountToReadableDigit(totalUnitPrice)}
+                      </Typography>
+                    </Typography>
+                  </Grid>
+                </Stack>
+              </Grid>
+              <Grid item sx={{ marginLeft: 'auto' }}>
+                <AddButtonContained
+                  disabled={watch('user_id')?.value === '' || errors.user_id}
+                  title='Add Dispense Item'
+                  action={() => {
+                    handleOpenAddDispense()
+                  }}
+                  styles={{
+                    margin: 0
+                  }}
+                />
+              </Grid>
+            </Grid>
             {/* <Box
               sx={{
                 display: 'flex',
@@ -419,7 +460,11 @@ function AddDispense() {
               />
             </Box> */}
             <Card
-              sx={{ mx: 5, boxShadow: 'none', border: '1px solid', borderColor: 'customColors.customTableBorderBg' }}
+              sx={{
+                boxShadow: 'none',
+                border: '1px solid',
+                borderColor: 'customColors.customTableBorderBg'
+              }}
             >
               <TableContainer>
                 <Table>
@@ -500,32 +545,39 @@ function AddDispense() {
               </TableContainer>
             </Card>
 
-            <Box
+            <Grid
+              container
+              spacing={2}
+              alignItems='center'
               sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                px: 5,
                 py: 5
               }}
             >
-              <Typography variant='h6'>Add Animals</Typography>
+              <Grid item>
+                <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Add Animals</Typography>
+              </Grid>
 
-              <AddButtonContained
-                title='Add Animals'
-                disabled={productArray.length < 1 || errors.user_id}
-                action={() => setOpenDrawer(true)}
-              />
-
-              {/* <AddButton
+              <Grid item sx={{ marginLeft: 'auto' }}>
+                <AddButtonContained
+                  title='Add Animals'
+                  disabled={productArray.length < 1 || errors.user_id}
+                  action={() => setOpenDrawer(true)}
+                />
+              </Grid>
+            </Grid>
+            {/* <AddButton
                 title='Add Animals'
                 disabled={productArray.length < 1 || errors.user_id}
                 action={() => setOpenDrawer(true)}
               /> */}
-            </Box>
+            {/* </Box> */}
 
             <Card
-              sx={{ mx: 5, boxShadow: 'none', border: '1px solid', borderColor: 'customColors.customTableBorderBg' }}
+              sx={{
+                boxShadow: 'none',
+                border: '1px solid',
+                borderColor: 'customColors.customTableBorderBg'
+              }}
             >
               <TableContainer>
                 <Table>
@@ -581,27 +633,26 @@ function AddDispense() {
                 </Table>
               </TableContainer>
             </Card>
-            <CardContent>
-              <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
-                <Grid
-                  container
-                  sx={{
-                    alignItems: 'flex-end',
-                    justifyContent: 'flex-end',
-                    height: '100%'
-                  }}
+            <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
+              <Grid
+                container
+                sx={{
+                  alignItems: 'flex-end',
+                  justifyContent: 'flex-end',
+                  height: '100%',
+                  py: 5
+                }}
+              >
+                <Button
+                  sx={{ width: '100px', height: '40px' }}
+                  disabled={productArrayUi?.length === 0 || errors.user_id || submitLoading}
+                  type='submit'
+                  variant='contained'
                 >
-                  <Button
-                    sx={{ width: '100px', height: '40px' }}
-                    disabled={productArrayUi?.length === 0 || errors.user_id || submitLoading}
-                    type='submit'
-                    variant='contained'
-                  >
-                    {submitLoading ? <CircularProgress size={'16px'} /> : 'Submit'}
-                  </Button>
-                </Grid>
+                  {submitLoading ? <CircularProgress size={'16px'} /> : 'Submit'}
+                </Button>
               </Grid>
-            </CardContent>
+            </Grid>
             {openSnackbar.open ? (
               <UserSnackbar
                 handleClose={() =>
@@ -624,7 +675,7 @@ function AddDispense() {
             animals_s={animals_s}
             setAnimals_s={setAnimals_s}
           />
-        </Card>
+        </PageCardLayout>
       ) : (
         <>
           <Error404></Error404>

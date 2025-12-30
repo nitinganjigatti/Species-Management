@@ -1,25 +1,29 @@
 // ** MUI Imports
-import Grid from '@mui/material/Grid'
-import Card from '@mui/material/Card'
-import Table from '@mui/material/Table'
-import Divider from '@mui/material/Divider'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
-import CardContent from '@mui/material/CardContent'
-import { styled } from '@mui/material/styles'
-import TableContainer from '@mui/material/TableContainer'
-import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader, CircularProgress, Drawer, Tooltip } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
-import FormHelperText from '@mui/material/FormHelperText'
-import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
+import { 
+  Button, 
+  Drawer, 
+  Grid, 
+  Card, 
+  Table, 
+  Divider, 
+  TableRow, 
+  TableHead,
+  TableBody, 
+  Typography, 
+  Box, 
+  TableContainer, 
+  TableCell, 
+  IconButton, 
+  FormHelperText,
+  TextField, 
+  FormControl,
+  InputLabel, 
+  Select, 
+  MenuItem,
+  styled
+
+} 
+from '@mui/material'
 import { useTheme } from '@emotion/react'
 
 import Router from 'next/router'
@@ -49,6 +53,7 @@ import SingleDatePicker from 'src/components/SingleDatePicker'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -607,32 +612,15 @@ const AddDiscardProducts = () => {
     <>
       {selectedPharmacy.type === 'central' &&
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
-        <Card>
-          <Grid
-            container
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <CardHeader
-              sx={{
-                width: '100%', // Ensures full width
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                padding: '16px'
-              }}
-              avatar={<Icon style={{ cursor: 'pointer' }} onClick={() => Router.back()} icon='ep:back' />}
-              title={
-                <Box>
-                  {' '}
-                  Return To Supplier
-                </Box>
-              }
-              action={
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <PageCardLayout
+          title = "Return To Supplier"
+          titleStyles = {{
+            fontSize: '20px'
+          }}
+          showIcon = {true}
+          onIconClick = {() => Router.back()}
+          action={
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                   {id && action && <ExportButton loading={excelLoader} onClick={getAddDiscardData} disabled={''} />}
                   {/* <ExcelExportButton
                     action={() => getAddDiscardData()}
@@ -640,10 +628,8 @@ const AddDiscardProducts = () => {
                     loader={excelLoader}
                     sx={{ minWidth: 120 }} // Consistent button size
                   /> */}
-                </Box>
-              }
-            />
-          </Grid>
+                </Box>}
+          >
 
           <Grid container>
             <CommonDialogBox
@@ -672,7 +658,6 @@ const AddDiscardProducts = () => {
             />
           </Grid>
 
-          <CardContent>
             <form>
               <Grid container spacing={5}>
                 <Grid item size={{ xs: 12, sm: 12 }}>
@@ -683,7 +668,6 @@ const AddDiscardProducts = () => {
                     Supplier Name:
                   </Typography>
                 </Grid>
-                <Grid item size={{ xs: 12, sm: 12 }} sx={{ display: 'flex', gap: 2 }}>
                   <Grid size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
                     <FormControl fullWidth>
                       <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
@@ -740,10 +724,8 @@ const AddDiscardProducts = () => {
                       )}
                     </FormControl>
                   </Grid>
-                </Grid>
               </Grid>
             </form>
-          </CardContent>
           {/* <Grid
             container
             spacing={6}
@@ -764,17 +746,17 @@ const AddDiscardProducts = () => {
             />
           </Grid> */}
 
-          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 6 }}>
-            <Box>
+            <Grid container spacing={3} alignItems='center' sx={{ py: 5 }}>
+            <Grid item size={{ xs: 12, sm: 'auto', md: 6.5, lg: 8 }}>
               <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
                 Return Products List
               </Typography>
 
               <Stack
-                direction='row'
-                spacing={6}
-                divider={<Divider orientation='vertical' flexItem />}
-                sx={{ textAlign: 'center' }}
+                direction={{xs: 'column',sm: 'row'}}
+                spacing= {{xs: 0, sm: 6}}
+                divider={<Divider orientation='vertical' flexItem sx={{ display: { xs: 'none', sm: 'block' } }}/>}
+              
               >
                 <Typography
                   variant='body2'
@@ -795,21 +777,25 @@ const AddDiscardProducts = () => {
                   </Typography>
                 </Typography>
               </Stack>
-            </Box>
+              </Grid>
+       
 
             {id ? null : (
+               <Box sx = {{display: 'flex', marginLeft: 'auto'}}>
               <AddButtonContained
                 title='Add Return Items'
                 action={() => {
                   handleSubmit()
                 }}
               />
+              </Box>
             )}
-          </Box>
+
+          </Grid>
 
           <Card
             sx={{
-              m: 6,
+              my: 5,
               border: '1px solid',
               borderColor: 'customColors.customTableBorderBg',
               boxShadow: 'none'
@@ -1071,7 +1057,7 @@ const AddDiscardProducts = () => {
               )}
             </Box>
           </Grid>
-        </Card>
+        </PageCardLayout>
       ) : (
         <>
           <Error404></Error404>

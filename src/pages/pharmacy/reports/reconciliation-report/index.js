@@ -749,7 +749,6 @@ const ReconciliationReport = () => {
         response_type: 'csv'
       }
       await getReconciliationReport({ params: params }).then(res => {
-        debugger
         if (res?.success && res?.data) {
           Utility.downloadFileFromURL(res.data)
           setExcelExportLoader(false)

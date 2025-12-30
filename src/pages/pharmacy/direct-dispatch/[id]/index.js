@@ -8,7 +8,6 @@ import {
   markItemNotAvailable,
   markItemAvailable
 } from 'src/lib/api/pharmacy/getRequestItemsList'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 import Dialog from '@mui/material/Dialog'
@@ -16,18 +15,11 @@ import { getDisputeItemList, getDispenseItemList } from 'src/lib/api/pharmacy/ge
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
-import Fade from '@mui/material/Fade'
-import Tab from '@mui/material/Tab'
-import TabList from '@mui/lab/TabList'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
+import { Grid, Typography, Fade, Tab, Box, CardHeader, Tooltip, Chip, Button  } from '@mui/material'
+import {TabList, TabPanel, TabContext} from '@mui/lab'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardHeader, Tooltip, Chip } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -50,7 +42,7 @@ import MuiTabList from '@mui/lab/TabList'
 import RenderUtility from 'src/utility/render'
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import { minWidth, width } from '@mui/system'
-
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
@@ -1104,40 +1096,40 @@ const IndividualRequest = () => {
                 show={showOrderFormDialog}
               />
 
-              <Card sx={{ p: 2 }}>
-                <CardHeader
-                  title={`Direct Dispatch - ${requestItems?.request_number}`}
-                  avatar={
-                    <Icon
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        Router.back()
-                      }}
-                      icon='ep:back'
-                    />
-                  }
-                />
+              <PageCardLayout
+                title = {`Direct Dispatch - ${requestItems?.request_number}`}
+                showIcon = {true}
+                onIconClick={() => {
+                  Router.back()
+                }}
+                titleStyles = {{
+                  fontSize: '20px'
+                }}>
 
-                <Box sx={{ backgroundColor: 'customColors.Background', p: 4, m: 4, borderRadius: '8px' }}>
+                <Box sx={{ 
+                  backgroundColor: 'customColors.Background',
+                  p: 4, 
+                  my: 4,
+                  borderRadius: '8px' }}>
                   {/* Request Basic Info */}
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
+                    <Grid item size={{ xs: 6, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched To</h5>
                       <p style={{ marginBottom: '0' }}>{requestItems?.to_store}</p>
                     </Grid>
-                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
+                    <Grid item size={{ xs: 6, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched From</h5>
                       <p style={{ marginBottom: '0' }}>{requestItems?.from_store}</p>
                     </Grid>
-                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
+                    <Grid item size={{ xs: 6, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched Date</h5>
                       <p style={{ marginBottom: '0' }}>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
                     </Grid>
-                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
+                    <Grid item size={{ xs: 6, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched ID</h5>
                       <p style={{ marginBottom: '0' }}>{requestItems?.request_number}</p>
                     </Grid>
-                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
+                    <Grid item size={{ xs: 6, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched By</h5>
                       <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
                         {Utility.renderUserAvatar(requestItems?.user_created_profile_pic)}
@@ -1153,7 +1145,7 @@ const IndividualRequest = () => {
                       </Box>
                     </Grid>
                     <>
-                      <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
+                      <Grid item size={{ xs: 6, sm: 12 / 5, lg: 12 / 5 }}>
                         <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested Amount</h5>
                         <p style={{ marginBottom: '0' }}>
                           {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
@@ -1161,13 +1153,13 @@ const IndividualRequest = () => {
                       </Grid>
                       {shippedItems.length > 0 && (
                         <>
-                          <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
+                          <Grid item size={{ xs: 6, sm: 12 / 5, lg: 12 / 5 }}>
                             <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Amount</h5>
                             <p style={{ marginBottom: '0' }}>
                               {Utility.formatAmountToReadableDigit(requestItems?.shipped_amount)}
                             </p>
                           </Grid>
-                          <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
+                          <Grid item size={{ xs: 6, sm: 12 / 5, lg: 12 / 5 }}>
                             <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Qty</h5>
                             <p style={{ marginBottom: '0' }}>{requestItems?.shipped_qty}</p>
                           </Grid>
@@ -1182,7 +1174,6 @@ const IndividualRequest = () => {
                       <TabList
                         onChange={handleChange}
                         sx={{
-                          p: 4,
                           '& .MuiTabs-flexContainer': {
                             borderBottom: '1px solid',
                             borderColor: 'customColors.neutral05'
@@ -1192,11 +1183,10 @@ const IndividualRequest = () => {
                         <Tab value='dispatch' label='Dispatch items' />
                         <Tab value='shipment' label='Shipment' />
                       </TabList>
-                      <TabPanel value='dispatch'>
+                      <TabPanel value='dispatch' sx = {{p: 0}}>
                         <CardHeader
                           sx={{
-                            p: 0,
-                            mb: 6,
+                            px: 0,
                             color: 'customColors.customTextColorGray2',
                             fontSize: '16px',
                             fontWeight: 500
@@ -1232,7 +1222,7 @@ const IndividualRequest = () => {
                           <EmptyStateBox imageSrc='/images/out-of-stock.png' text='No shipped items' />
                         )}
                       </TabPanel>
-                      <TabPanel value='shipment'>
+                      <TabPanel value='shipment' sx = {{p: 0}}>
                         <Grid
                           sx={{
                             width: '100%',
@@ -1334,7 +1324,7 @@ const IndividualRequest = () => {
                     </Box>
                   </TabContext>
                 </Box>
-              </Card>
+              </PageCardLayout>
 
               <Dialog
                 fullWidth

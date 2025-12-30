@@ -7,28 +7,20 @@ import {
   styled,
   Button,
   Card,
-  Radio,
   Select,
   MenuItem,
-  Checkbox,
   TextField,
-  FormLabel,
   CardHeader,
   InputLabel,
-  RadioGroup,
   CardContent,
   FormControl,
-  OutlinedInput,
   FormHelperText,
-  InputAdornment,
-  FormControlLabel,
-  CircularProgress,
+  Autocomplete,
+  FormGroup,
+  IconButton,
+  Icon,   
   Box
 } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
-import FormGroup from '@mui/material/FormGroup'
-import Autocomplete from '@mui/material/Autocomplete'
-import Icon from 'src/@core/components/icon'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 import { useSettings } from 'src/@core/hooks/useSettings'
@@ -71,8 +63,8 @@ import GenericNamesList from '../../masters/generic'
 import AddGenericName from 'src/views/pages/pharmacy/medicine/generic/addGenericName'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
-import ControlledCheckBox from 'src/views/forms/form-fields/ControlledCheckbox'
-
+import ControlledCheckBox from 'src/views/forms/form-fields/ControlledCheckBox'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 const defaultValues = {
   medicine_type: 'allopathy',
   medicine_name: '',
@@ -990,21 +982,17 @@ const AddMedicine = () => {
             <>
               <Grid container spacing={6} className='match-height'>
                 <Grid item size={{ xs: 12 }}>
-                  <Card>
-                    <CardHeader
-                      avatar={
-                        <Icon
-                          style={{ cursor: 'pointer' }}
-                          onClick={() => {
-                            Router.back()
-                          }}
-                          icon='ep:back'
-                        />
-                      }
-                      title={id ? 'Edit Product' : 'Add New Product'}
-                    />
-
-                    <CardContent>
+                  <PageCardLayout
+                    title = {id ? 'Edit Product' : 'Add New Product'}
+                    showIcon = {true}
+                    onIconClick= {() => {
+                      Router.back()
+                    }}
+                    titleStyles={{
+                      fontSize: '20px'
+                    }}
+                    >
+            
                       <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
                         <Grid container spacing={5}>
                           {/* <Grid item size={{xs: 12}}> */}
@@ -1417,10 +1405,11 @@ const AddMedicine = () => {
                                     alignItems: 'center'
                                   }}
                                 >
-                                  <Grid item size={{ xs: 6 }}>
-                                    <span style={{ marginRight: '10px' }}>Salt Composition</span>
+                                  <Grid item size={{ xs: 12 , sm: 6}} sx = {{display: 'flex', alignItems: 'center'}}>
+                                      Salt Composition
+                                   
                                     {pharmacyRole && (
-                                      <span>
+                               
                                         <IconButton
                                           aria-label='capture screenshot'
                                           color='primary'
@@ -1428,13 +1417,13 @@ const AddMedicine = () => {
                                         >
                                           <Icon icon='mdi:plus' />
                                         </IconButton>
-                                      </span>
+                                     
                                     )}
                                   </Grid>
                                 </Grid>
                                 {fields.map((field, index) => (
                                   <Grid container spacing={5} key={field.id} sx={{ my: 2 }}>
-                                    <Grid item size={{ xs: 4 }}>
+                                    <Grid item size={{ xs: 10 , sm: 4}}>
                                       <FormControl fullWidth>
                                         <Controller
                                           name={`salts[${index}].salt_id`}
@@ -1499,7 +1488,7 @@ const AddMedicine = () => {
                                         )}
                                       </FormControl>
                                     </Grid>
-                                    <Grid item size={{ xs: 4 }}>
+                                    <Grid item size={{ xs: 10, sm: 4 }}>
                                       <FormControl fullWidth>
                                         <Controller
                                           name={`salts[${index}].salt_qty`}
@@ -1984,8 +1973,7 @@ const AddMedicine = () => {
                           </Grid>
                         </Grid>
                       </form>
-                    </CardContent>
-                  </Card>
+                  </PageCardLayout>
                 </Grid>
               </Grid>
               <AddManufacturer
