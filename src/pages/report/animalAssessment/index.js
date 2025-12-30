@@ -237,7 +237,8 @@ const AnimalAssessment = () => {
 
       return {
         ...recordMap,
-        default_icon: selectedSpeciesIcon,
+        // default_icon: selectedSpeciesIcon,
+        default_icon: animal.default_icon,
         local_identifier_name: animal.identifier_type,
         local_identifier_value: animal.identifier_value,
         animal_id: animal.animal_id,
@@ -319,7 +320,8 @@ const AnimalAssessment = () => {
             onClick={() => {
               setAnimalDetailsData({
                 ...record,
-                default_icon: selectedSpeciesIcon,
+                // default_icon: selectedSpeciesIcon,
+                default_icon: params?.row?.default_icon,
                 local_identifier_name: params?.row?.identifier_type,
                 local_identifier_value: params?.row?.identifier_value,
                 animal_id: params?.row?.animal_id,
