@@ -259,7 +259,7 @@ const AnimalAssessment = () => {
 
     const headers = [
       { key: 'default_icon', label: 'ANIMAL DETAILS' },
-      ...Array.from({ length: maxAssessmentCount }, (_, i) => ({
+      ...Array.from({ length: maxAssessmentCount || (transformed.length > 0 ? 1 : 0) }, (_, i) => ({
         key: `record_${i}`,
         label:
           i === 0 ? (
