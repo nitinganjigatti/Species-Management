@@ -1879,7 +1879,7 @@ const IndividualRequest = () => {
                     mt: 5,
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
                   }}
                 >
                   <TabContext value={detailsTab}>
@@ -1942,7 +1942,7 @@ const IndividualRequest = () => {
                           <Box>
                             {shippedItems?.length > 0 && (
                               <>
-                                <Card sx={{ mb: 6, minWidth: '100%', boxShadow: 'none !important' }}>
+                                <Card sx={{ mb: 6, minWidth: '100%', boxShadow: 'none !important', mt: 5  }}>
                                   <TableBasic
                                     columns={shippedColumns}
                                     rows={shippedItems}
@@ -1953,6 +1953,7 @@ const IndividualRequest = () => {
                                         query: { orderId: e.id, requestId: id }
                                       })
                                     }}
+                                 
                                   />
                                 </Card>
                               </>
