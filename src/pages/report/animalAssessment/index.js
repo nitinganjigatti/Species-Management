@@ -227,7 +227,7 @@ const AnimalAssessment = () => {
             Utility.convertUTCToLocalDate(
               assessment.assessment_recorded_date + ' ' + assessment.assessment_recorded_time
             )
-          ).format('DD MMMM YYYY'),
+          ).format('DD MMM YYYY'),
           time: Utility.extractHoursAndMinutes(
             Utility?.convertUTCToLocal(assessment.assessment_recorded_date + ' ' + assessment.assessment_recorded_time)
           ),
