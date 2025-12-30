@@ -34,7 +34,7 @@ import { getPharmacyTransactionConstants } from 'src/constants/PharmacyConstants
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { readAsync } from 'src/lib/windows/utils'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor, user_profile_pic }) => {
   return (
     <Box
@@ -73,8 +73,8 @@ const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor, user_pr
             src={user_profile_pic}
           />
         </Box>
-        <Box>
-          <Typography component='span' sx={{ color: 'primary.light', fontSize: '16px', fontWeight: 500 }}>
+        <Box sx = {{width: 'auto'}}>
+          <Typography component='span' sx={{ color: 'primary.light', fontSize: {xs: '12px',sm: '16px'}, fontWeight: 500, }}>
             {name || 'NA'}
           </Typography>
           {/* <Typography
@@ -927,92 +927,82 @@ function Ledger({ tabValue, updateUrlParams }) {
           flexWrap: 'wrap'
         }}
       >
-        <Grid item size={{ xs: 12, sm: 12, md: 3, lg: 3 }} md={3} lg={3}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              borderRadius: '8px',
-              padding: '0 8px',
-              height: '40px',
-              width: '100%'
-            }}
-          >
-            <Icon icon='mi:search' fontSize={24} color={theme => theme.palette.customColors.neutralSecondary} />
-            <TextField
-              variant='outlined'
-              value={searchValue}
-              placeholder='Search...'
-              onChange={e => handleSearch(e.target.value)}
-              fullWidth
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  border: 'none',
-                  padding: '0',
-                  '& fieldset': {
-                    border: 'none'
-                  }
-                }
-              }}
-            />
-          </Box>
+        <Grid item size={{ xs: 12, sm: 12, md: 3, lg: 3 }}>
+             <MUISearch
+                   
+                    width={'100%'}
+                    placeholder='Search...'
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    onClear={() => handleSearch('')}
+                  />
         </Grid>
       </Grid>
       <Box sx={{ mt: 5 }}>
         {/* Tabs */}
         <Grid
           container
-          spacing={4}
+          spacing={3}
           sx={{
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: { xs: 'wrap', md: 'nowrap' }
+            display: 'flex',
+            justifyContent: 'space-between'
           }}
         >
           {/* Tabs Section */}
-          <Grid item size={{ xs: 12, md: 'auto' }}>
-            <Box
+          {/* <Grid item size={{ xs: 12, md: 'auto' }}> */}
+          {/* <Box
               sx={{
                 display: 'flex',
                 flexWrap: 'wrap',
                 gap: 2
               }}
+            > */}
+          <Grid 
+            item
+            size = {{
+              xs: 12, sm: 10,
+            }}
+            sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px',}}
             >
-              {tabs.map(tab => (
-                <Button
-                  key={tab}
-                  variant={selectedTabs.includes(tab) ? 'contained' : 'outlined'}
-                  onClick={() => handleTabClick(tab)}
-                  sx={{
+            {tabs.map(tab => (
+              <Button
+                key={tab}
+                variant={selectedTabs.includes(tab) ? 'contained' : 'outlined'}
+                onClick={() => handleTabClick(tab)}
+                sx={{
+                  backgroundColor: selectedTabs.includes(tab)
+                    ? 'customColors.OnSecondaryContainer'
+                    : 'customColors.neutral05',
+                  color: selectedTabs.includes(tab) ? 'white' : 'customColors.OnSurfaceVariant',
+                  boxShadow: 'none',
+                  border: 'none',
+                  '&:hover': {
                     backgroundColor: selectedTabs.includes(tab)
                       ? 'customColors.OnSecondaryContainer'
                       : 'customColors.neutral05',
-                    color: selectedTabs.includes(tab) ? 'white' : 'customColors.OnSurfaceVariant',
-                    boxShadow: 'none',
-                    border: 'none',
-                    '&:hover': {
-                      backgroundColor: selectedTabs.includes(tab)
-                        ? 'customColors.OnSecondaryContainer'
-                        : 'customColors.neutral05',
-                      border: 'none'
-                    },
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    textTransform: 'none',
-                    borderRadius: '24px'
-                  }}
-                >
-                  {/* {tab} {selectedTabs.includes(tab) && '✖'} */}
-                  {tab.charAt(0).toUpperCase() + tab.slice(1).toLowerCase()}
-                  {selectedTabs.includes(tab) && <ClearIcon sx={{ marginLeft: '8px', fontSize: '16px' }} />}
-                </Button>
-              ))}
-            </Box>
+                    border: 'none'
+                  },
+                  fontWeight: 400,
+                  fontSize: '14px',
+                  textTransform: 'none',
+                  borderRadius: '24px'
+                }}
+              >
+                {/* {tab} {selectedTabs.includes(tab) && '✖'}  */}
+                {tab.charAt(0).toUpperCase() + tab.slice(1).toLowerCase()}
+                {selectedTabs.includes(tab) && <ClearIcon sx={{ marginLeft: '8px', fontSize: '16px' }} />}
+              </Button>
+            ))}
           </Grid>
-
+          {/* </Box>
+          </Grid> */}
           {/* Filter Button */}
-          <Grid item xs={12} md='auto'>
+            <Grid 
+            item 
+            size = {{xs: 'auto', sm: 2, md: 'auto'}} 
+          
+            >
             <Button
               variant='outlined'
               startIcon={<FilterListIcon />}
@@ -1023,7 +1013,6 @@ function Ledger({ tabValue, updateUrlParams }) {
                 border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 borderRadius: '8px',
                 height: '40px',
-
                 // textTransform: 'none',
                 width: { xs: '100%', md: 'auto' },
                 color: 'customColors.OnSurfaceVariant'
@@ -1032,9 +1021,9 @@ function Ledger({ tabValue, updateUrlParams }) {
             >
               Filter
             </Button>
-          </Grid>
+            </Grid>
+          {/* </Grid> */}
         </Grid>
-
         {/* Stats Card */}
         <Box
           sx={{
@@ -1213,6 +1202,7 @@ function Ledger({ tabValue, updateUrlParams }) {
         <Box sx={{ px: 5 }}>
           {selectedItem === 'Batch Details' && (
             <>
+
               <Box
                 sx={{
                   position: 'sticky',
@@ -1220,7 +1210,8 @@ function Ledger({ tabValue, updateUrlParams }) {
                   backgroundColor: 'white',
                   zIndex: 1,
                   paddingTop: 3,
-                  paddingBottom: 2
+                  paddingBottom: 2,
+                  
                 }}
               >
                 <TextField
@@ -1317,7 +1308,8 @@ function Ledger({ tabValue, updateUrlParams }) {
           {selectedItem === 'Created By' && (
             <Box
               sx={{
-                display: 'grid',
+                display: 'flex',
+                flexDirection: 'column',
                 gap: 2,
                 pt: 2,
                 pt: 3
