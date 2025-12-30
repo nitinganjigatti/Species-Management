@@ -11,7 +11,7 @@ import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 
 // ** MUI Imports
-import { Box, Card, Grid, Typography, Chip } from '@mui/material'
+import { Box, Grid, Typography, Chip,} from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -21,14 +21,17 @@ import Utility from 'src/utility'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
-import CommonTable from 'src/views/table/data-grid/CommonTable'
+
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
+import MUISelect from 'src/views/forms/form-fields/MUISelect'
 import { dateRangeOptions } from 'src/constants/PharmacyConstants'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const RequestList = () => {
   const theme = useTheme()
@@ -272,6 +275,9 @@ const RequestList = () => {
                   pathname: '/pharmacy/request/add-request/'
                 })
               }
+              styles = {{
+                margin: 0
+              }}
             />
           </>
         )}
@@ -657,26 +663,19 @@ const RequestList = () => {
         {loader ? (
           <FallbackSpinner />
         ) : (
-          <Card>
-            <CardHeader
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                px: 3
-              }}
-              title={RenderUtility.pageTitle('Request List')}
-              action={headerAction}
-            />
-
+            <PageCardLayout
+              title = 'Request List'
+              action = {headerAction}>
             <Grid
               container
               spacing={4}
               sx={{
-                px: 4
+                display: 'flex',
+                alignItems: 'center'
+ 
               }}
             >
-              <Grid size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+              <Grid size={{ xs: 12, sm: 12, md: 2.9, xl: 2.5}}>
                 <MUISearch
                   width={'100%'}
                   placeholder='Search...'
@@ -691,11 +690,13 @@ const RequestList = () => {
                 <Grid
                   size={{
                     xs: 12,
-                    sm: 3,
-                    md: 3
+                    sm: 12,
+                    md: 3.5,
+                    lg: 2.9,
+                    xl: 2.5
                   }}
                   sx={{
-                    marginLeft: 'auto'
+                    marginLeft: 'auto',
                   }}
                 >
                   <MUIAutocomplete
@@ -722,8 +723,8 @@ const RequestList = () => {
               <Grid
                 size={{
                   xs: 12,
-                  sm: 2.5,
-                  md: 2.5
+                  sm: 12,
+                  md: 'auto'
                 }}
                 sx={{
                   ...(selectedPharmacy.type === 'local' && {
@@ -731,38 +732,42 @@ const RequestList = () => {
                   })
                 }}
               >
-                <MUIAutocomplete
-                  valueType='id'
+               <MUISelect
                   value={selectDays}
                   label='Filter by days'
-                  onChange={newValue => {
-                    if (newValue === null) {
+                  options={[
+                    { id: 'all', name: 'All' },
+                    { id: '3', name: '3 Days' },
+                    { id: '7', name: '3 to 7 Days' },
+                    { id: '15', name: '7 to 15 Days' },
+                    { id: '16', name: '15 Days' }
+                  ]}
+                  onChange={e=> {
+                    const value = e.target.value
+                    if (value=== null) {
                       setSelectDays('all')
                       filterByDays('all')
                     } else {
-                      filterByDays(newValue)
-                      setSelectDays(newValue)
-                    }
-                  }}
-                  options={dateRangeOptions}
-                />
+                      filterByDays(value)
+                      setSelectDays(value)
+                   }
+                 }
+              }/>
+                            
               </Grid>
 
               {/* Completed Switch */}
               {(status === 'all' || status === 'completed') && (
-                <Grid
-                  size={{ xs: 12, sm: 2.5, md: 2 }}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}
-                >
+                <Grid item >
                   <MUISwitch
                     label='Completed'
                     labelStyle={{
                       color: theme.palette.customColors.customHeadingTextColor,
                       fontSize: '14px',
                       fontWeight: 400
+                    }}
+                    formControlStyle = {{
+                      margin: 0
                     }}
                     labelPlacement='end'
                     defaultChecked={filterSwitch}
@@ -773,12 +778,8 @@ const RequestList = () => {
                 </Grid>
               )}
             </Grid>
-
-            <Grid
-              sx={{
-                px: 4
-              }}
-            >
+            
+            <Grid>
               <CommonTable
                 onRowClick={onRowClick}
                 indexedRows={indexedRows}
@@ -791,7 +792,8 @@ const RequestList = () => {
                 searchValue={searchValue}
               />
             </Grid>
-          </Card>
+            </PageCardLayout>
+            
         )}
       </>
     )
@@ -799,11 +801,10 @@ const RequestList = () => {
 
   return (
     <>
-      <Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange} variant='scrollable' allowScrollButtonsMobile>
             <Tab
-              sx={{ ml: 3 }}
+              // sx={{ ml: 3 }}
               value='pending'
               label={<TabBadge label='Pending ' totalCount={status === 'pending' ? total : null} />}
             />
@@ -831,6 +832,7 @@ const RequestList = () => {
               label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
             />
           </TabList>
+           <Box sx={{ '& .MuiTabPanel-root': {p: 0, mt: 3}}}>
           <TabPanel value='pending'>{tableData()}</TabPanel>
           {/* <TabPanel value='completed'>{tableData()}</TabPanel> */}
           <TabPanel value='shipped'>{tableData()}</TabPanel>
@@ -842,8 +844,8 @@ const RequestList = () => {
           ) : (
             <TabPanel value='completed'>{tableData()}</TabPanel>
           )}
+          </Box>
         </TabContext>
-      </Grid>
     </>
   )
 }

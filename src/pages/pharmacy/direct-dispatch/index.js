@@ -1,38 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { getDirectDispatchItemsList } from 'src/lib/api/pharmacy/directDispatch'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
-import Tab from '@mui/material/Tab'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
 
-import TabList from '@mui/lab/TabList'
+import {TabList, TabContext, TabPanel} from "@mui/lab"
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { AddButton } from 'src/components/Buttons'
-import Chip from '@mui/material/Chip'
-import Grid from '@mui/material/Grid'
 
 // ** MUI Imports
-import Card from '@mui/material/Card'
-import Typography from '@mui/material/Typography'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
-import {
-  Switch,
-  FormControlLabel,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  TextField,
-  InputAdornment
-} from '@mui/material'
+import { Box, Typography, Tab, Chip, Grid } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
 import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
 import { useMediaQuery } from '@mui/material'
@@ -42,7 +22,9 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-
+import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 const DirectDispatchList = () => {
   const theme = useTheme()
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm')) // Check for small screens
@@ -259,9 +241,8 @@ const DirectDispatchList = () => {
                 pathname: '/pharmacy/direct-dispatch/add-direct-dispatch/'
               })
             }
-            sx={{
-              mt: { xs: 2, sm: 0 },
-              alignSelf: { xs: 'flex-start', sm: 'center' }
+            styles = {{
+              mr: 0
             }}
             fullWidth='fullWidth'
           />
@@ -461,114 +442,67 @@ const DirectDispatchList = () => {
           <FallbackSpinner />
         ) : (
           <>
-            <Card>
-              <CardHeader
-                sx={{
-                  display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  alignItems: { xs: 'flex-start', sm: 'center' },
-                  gap: { xs: 2, sm: 0 },
-                  mx: { xs: 2, sm: 0 }
-
-                  // '& .MuiCardHeader-action': {
-                  //   width: { xs: '100% ', sm: 'auto' }
-                  // },
-                  // mx: { xs: -2, sm: 1 }
-                }}
-                title={RenderUtility.pageTitle('Direct Dispatch List')}
-                action={headerAction}
-              />
-
-              {/* <Box
-                sx={{
-                  mx: { xs: 2, sm: 4, md: 5 }
-                }}
-              > */}
-              <Grid
-                container
-                spacing={4}
-                sx={{
-                  padding: '18px 22px 0 22px',
-                  display: 'flex',
-                  justifyContent: 'space-between'
-                }}
-              >
-                <Grid size={{ xs: 12, sm: 5, md: 3 }}>
-                  {/* <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                        borderRadius: '8px',
-                        padding: '0 8px',
-                        height: '40px',
-                        width: { xs: '100%', sm: '270px' }
-                      }}
-                    >
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search...'
-                    value={searchValue}
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    size='small'
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '8px',
-                        padding: '0 8px',
-                        display: 'flex',
-                        alignItems: 'center'
-                      }
-                    }}
-                    slotProps={{
-                      input: {
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                          </InputAdornment>
-                        )
-                      }
-                    }}
-                  />
-                </Grid>
-
-                {/* Switch Button */}
-                {(status === 'all' || status === 'completed') && (
-                  <Grid
-                    size={{ xs: 12, sm: 'auto' }}
-
-                    // sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
-                  >
-                    <FormControlLabel
-                      control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
-                      label='Completed'
-                      labelPlacement='end'
-                      sx={{ margin: 0 }}
+            <PageCardLayout 
+              title = "Direct Dispatch List"
+              action = {headerAction}>
+                <Grid
+                  container
+                  spacing={4}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <Grid size={{ xs: 12, sm: 4, md: 3, xl: 2.5 }} >
+                    <MUISearch
+                      width={'100%'}
+                      placeholder='Search...'
+                      value={searchValue}
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      onClear={() => handleSearch('')}
                     />
                   </Grid>
-                )}
-              </Grid>
-              {/* </Box> */}
 
-              <Grid
-                sx={{
-                  margin: '0px 1.375rem 0px 1.375rem'
-                }}
-              >
-                <CommonTable
-                  onRowClick={onRowClick}
-                  indexedRows={indexedRows}
-                  total={total}
-                  columns={columns}
-                  paginationModel={paginationModel}
-                  handleSortModel={handleSortModel}
-                  setPaginationModel={setPaginationModel}
-                  loading={loading}
-                  searchValue={searchValue}
-                />
-              </Grid>
-            </Card>
+                  {/* Switch Button */}
+                  {(status === 'all' || status === 'completed') && (
+                    <Grid size={{ xs: 'auto' }}>
+                      <MUISwitch
+                        label='Completed'
+                        formControlStyle={{
+                          margin: 0
+                        }}
+                        labelStyle={{
+                          color: theme.palette.customColors.customHeadingTextColor,
+                          fontSize: '14px',
+                          fontWeight: 400
+                        }}
+                        labelPlacement='end'
+                        defaultChecked={filterSwitch}
+                        onChange={e => {
+                          handleSwitchChange(e)
+                        }}
+                      />
+                    </Grid>
+                  )}
+                </Grid>
+         
+
+                <Grid>
+                  <CommonTable
+                    onRowClick={onRowClick}
+                    indexedRows={indexedRows}
+                    total={total}
+                    columns={columns}
+                    paginationModel={paginationModel}
+                    handleSortModel={handleSortModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={searchValue}
+                  />
+                </Grid>
+             </PageCardLayout>
           </>
         )}
       </>
@@ -581,13 +515,13 @@ const DirectDispatchList = () => {
         <TabList onChange={handleChange} variant='scrollable' allowScrollButtonsMobile aria-label='simple tabs example'>
           {selectedPharmacy?.type === 'central' && (
             <Tab
-              sx={{ ml: 3 }}
+              // sx={{ ml: 3 }}
               value='pending'
               label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
             />
           )}
           <Tab
-            sx={{ ml: 3 }}
+            // sx={{ ml: selectedPharmacy?.type === 'central' ? 0: 3 }} 
             value='shipped'
             label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
           />
@@ -601,7 +535,7 @@ const DirectDispatchList = () => {
             label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
           />
         </TabList>
-
+        <Box sx={{ '& .MuiTabPanel-root': {p: 0, mt: 3}}}>
         <TabPanel value='pending'>{tableData()}</TabPanel>
         <TabPanel value='shipped'>{tableData()}</TabPanel>
         <TabPanel value='disputed'>{tableData()}</TabPanel>
@@ -611,6 +545,7 @@ const DirectDispatchList = () => {
         ) : (
           <TabPanel value='completed'>{tableData()}</TabPanel>
         )}
+        </Box>
       </TabContext>
     </Grid>
   )
