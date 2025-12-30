@@ -6,19 +6,7 @@ import { debounce } from 'lodash'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import {
-  Grid,
-  Typography,
-  CardHeader,
-  Card,
-  TextField,
-  InputAdornment,
-  IconButton,
-  Drawer,
-  Tab,
-  Box,
-  Button
-} from '@mui/material'
+import { Grid, Typography, TextField, InputAdornment, IconButton, Drawer, Tab, Box, Button } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -34,9 +22,8 @@ import RequestDetailsScreen from './RequestDetailsScreen'
 import RequestByProduct from 'src/pages/pharmacy/requests-by-product'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
-import { height } from '@mui/system'
 import { all } from 'axios'
-
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 const AllStoresRequestList = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -585,76 +572,69 @@ const AllStoresRequestList = () => {
   return (
     <>
       {selectedPharmacy?.type === 'central' ? (
-        <Card>
-          <CardHeader
-            title={
-              <>
-                {RenderUtility.pageTitle('Requests By Store')}
-                <Typography
-                  sx={{
-                    color: theme.palette.primary.main,
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    mt: 1,
-                    ml: 1,
-                    borderBottom: `1px solid ${theme.palette.primary.main}`,
-                    display: 'inline-block',
-                    cursor: 'pointer'
-                  }}
-                  onClick={handleButtonClick}
-                >
-                  {`Unique Pending Items - ${uniquePendingItems ? uniquePendingItems : 0}`}
-                </Typography>
-              </>
-            }
-            action={
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'flex-start',
-                  alignItems: 'flex-start',
-                  gap: { xs: 3, sm: 2 }
-                }}
-              >
-                <MUISearch
-                  value={searchValue}
-                  onChange={e => handleSearch(e.target.value)}
-                  placeholder='Search...'
-                  onClear={() => handleSearch('')}
-                />
-                <ExportButton sx={{ height: '35px' }} loading={exportStoresListLoader} onClick={() => handleExport()} />
-              </Box>
-            }
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'flex-start',
-              alignItems: 'flex-start',
-              gap: { xs: 3, sm: 0 },
-              '& .MuiCardHeader-action': {
-                width: { xs: '100% ', sm: 'auto' }
-              },
-              mx: { xs: -1, sm: 1 },
-              mt: 1,
-              pb: 0
-            }}
+        <PageCardLayout
+          title='Requests By Store'
+          headerStyles={{
+            paddingBottom: '0px'
+          }}
+          headerLayoutStyles={{
+            display: 'flex',
+            alignItems: 'flex-start'
+          }}
+          subtitle={`Unique Pending Items - ${uniquePendingItems ? uniquePendingItems : 0}`}
+          onClickOfSubtitle={handleButtonClick}
+          subtitleStyles={{
+            display: 'inline',
+            color: theme.palette.primary.main,
+            fontSize: '14px',
+            fontWeight: 400,
+            borderBottom: `1px solid ${theme.palette.primary.main}`
+          }}
+          action={
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: { xs: 3, sm: 2 }
+              }}
+            >
+              <MUISearch
+                value={searchValue}
+                onChange={e => handleSearch(e.target.value)}
+                placeholder='Search...'
+                onClear={() => handleSearch('')}
+              />
+              <ExportButton
+                sx={{ height: '35px', display: 'flex', alignItems: 'center' }}
+                loading={exportStoresListLoader}
+                onClick={() => handleExport()}
+              />
+            </Box>
+          }
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            gap: { xs: 3, sm: 0 },
+            '& .MuiCardHeader-action': {
+              width: { xs: '100% ', sm: 'auto' }
+            },
+            pb: 0
+          }}
+        >
+          <CommonTable
+            onRowClick={handleRowClick}
+            indexedRows={indexedRows || []}
+            total={total}
+            columns={columns || []}
+            paginationModel={paginationModel}
+            handleSortModel={handleSortModel}
+            setPaginationModel={setPaginationModel}
+            loading={loading}
+            searchValue={searchValue}
+            maxHeight='60vh'
           />
-
-          <Grid sx={{ mx: { xs: 3, md: 5 } }}>
-            <CommonTable
-              onRowClick={handleRowClick}
-              indexedRows={indexedRows || []}
-              total={total}
-              columns={columns || []}
-              paginationModel={paginationModel}
-              handleSortModel={handleSortModel}
-              setPaginationModel={setPaginationModel}
-              loading={loading}
-              searchValue={searchValue}
-              maxHeight='60vh'
-            />
-          </Grid>
 
           <Drawer
             anchor='right'
@@ -733,6 +713,7 @@ const AllStoresRequestList = () => {
                     '& .MuiTabs-flexContainer': {
                       borderBottom: '1px solid',
                       borderColor: '#e0e0e0',
+                      // borderColor: 'customColors.grey',
 
                       // borderBottom: `1px solid ${theme.palette.customColors.neutralSecondary}`,
                       display: 'flex',
@@ -814,7 +795,7 @@ const AllStoresRequestList = () => {
               </TabContext>
             </Box>
           </Drawer>
-        </Card>
+        </PageCardLayout>
       ) : (
         <Error404></Error404>
       )}

@@ -1,34 +1,38 @@
 /* eslint-disable lines-around-comment */
 // ** MUI Imports
-import Grid from '@mui/material/Grid'
-import Card from '@mui/material/Card'
-import Table from '@mui/material/Table'
-import Divider from '@mui/material/Divider'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
-import CardContent from '@mui/material/CardContent'
-import { styled } from '@mui/material/styles'
-import TableContainer from '@mui/material/TableContainer'
-import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
-import FormHelperText from '@mui/material/FormHelperText'
-import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-import Autocomplete from '@mui/material/Autocomplete'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
+import {
+  Grid,
+  Card,
+  Table,
+  Divider,
+  TableRow,
+  TableHead,
+  TableBody,
+  Typography,
+  Box,
+  CardContent,
+  TableContainer,
+  TableCell,
+  Button,
+  CardHeader,
+  IconButton,
+  FormHelperText,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Autocomplete,
+  DialogContent,
+  DialogContentText,
+  Stack,
+  Chip
+} from '@mui/material'
+
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
-import Chip from '@mui/material/Chip'
 import Image from 'next/image'
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback, useRef } from 'react'
@@ -57,6 +61,8 @@ import { RequestCancelButton } from 'src/components/Buttons'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const editParamsInitialState = {
   from_store_type: '',
@@ -110,8 +116,8 @@ const AddRequestForm = () => {
   const [tabStatus, setTabStatus] = useState('By product')
 
   const [showWarning, setShowWarning] = useState({})
-
   const router = useRouter()
+
   const { selectedPharmacy } = usePharmacyContext()
   const { id, action } = router.query
 
@@ -762,7 +768,8 @@ const AddRequestForm = () => {
       // <CardContent>
 
       // </CardContent>
-      <form style={{ width: '650px' }}>
+      // <form style={{ width: '650px' }}>
+      <Box>
         <Divider sx={{ mt: -6 }} />
         <Grid sx={{ my: 6 }} size={{ xs: 12 }}>
           <Grid
@@ -1234,8 +1241,8 @@ const AddRequestForm = () => {
             <Grid
               sx={{
                 display: 'flex',
-                width: '602px',
-                height: '46px',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: 'center',
                 gap: 5,
                 mt: 2
               }}
@@ -1243,7 +1250,7 @@ const AddRequestForm = () => {
               <Button
                 // variant='contained'
                 sx={{
-                  width: '192px',
+                  width: { xs: '100%', sm: '192px' },
                   height: '46px',
                   borderRadius: '8px',
                   boxShadow: 'none',
@@ -1289,7 +1296,7 @@ const AddRequestForm = () => {
               <Button
                 // variant='contained'
                 sx={{
-                  width: '192px',
+                  width: { xs: '100%', sm: '192px' },
                   height: '46px',
                   borderRadius: '8px',
                   boxShadow: 'none',
@@ -1337,7 +1344,8 @@ const AddRequestForm = () => {
               <Button
                 // variant='contained'
                 sx={{
-                  width: '192px',
+                  // width: '192px',
+                  width: { xs: '100%', sm: '192px' },
                   height: '46px',
                   borderRadius: '8px',
                   boxShadow: 'none',
@@ -1931,101 +1939,84 @@ const AddRequestForm = () => {
             </Box>
           </Grid>
         </Grid>
-      </form>
+      </Box>
     )
   }
 
   return (
-    <Card>
-      <Grid
-        item
-        container
-        size={{ xs: 12, sm: 12 }}
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
-      >
-        <CardHeader
-          avatar={
-            <Icon
-              style={{ cursor: 'pointer' }}
-              onClick={() => {
-                Router.push('/pharmacy/request/')
-              }}
-              icon='ep:back'
-            />
-          }
-          title={id ? 'Edit Request' : 'Add Request'}
+    <PageCardLayout
+      title={id ? 'Edit Request' : 'Add Request'}
+      showIcon={true}
+      onIconClick={() => {
+        Router.push('/pharmacy/request/')
+      }}
+      titleStyles={{
+        fontSize: '20px'
+      }}
+    >
+      <Grid container>
+        <CommonDialogBox
+          title={'Add Request Item '}
+          dialogBoxStatus={show}
+          formComponent={createForm()}
+          close={closeDialog}
+          show={showDialog}
+          noWidth={true}
         />
       </Grid>
-      <CardContent>
-        <Grid container>
-          <CommonDialogBox
-            title={'Add Request Item '}
-            dialogBoxStatus={show}
-            formComponent={createForm()}
-            close={closeDialog}
-            show={showDialog}
-            noWidth={true}
-          />
-        </Grid>
-      </CardContent>
-      <CardContent>
-        <form>
-          <Grid container spacing={5}>
-            <Grid item size={{ xs: 12, sm: 6 }}>
-              <Grid item size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
-                <Grid item size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
-                  <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                    Requested to :
-                  </Typography>
-                </Grid>
-                <FormControl fullWidth>
-                  <InputLabel id='state_id' error={Boolean(errors.from_store_id)}>
-                    Store*
-                  </InputLabel>
+      <form>
+        <Grid container spacing={5}>
+          <Grid item size={{ xs: 12 }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary', letterSpacing: '.1px', fontSize: '16px' }}>
+              Requested to :
+            </Typography>
+          </Grid>
+          <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
+            <FormControl fullWidth>
+              <InputLabel id='state_id' error={Boolean(errors.from_store_id)}>
+                Store*
+              </InputLabel>
 
-                  <Select
-                    error={Boolean(errors.from_store_id)}
-                    value={editParams.from_store_id}
-                    label='Store*'
-                    disabled={id ? true : false}
-                    onChange={e => {
-                      setEditParams({
-                        ...editParams,
-                        from_store_id: e.target.value,
-                        from_store_type: storesType[filteredStoreType(e.target.value)]
-                      })
-                      setErrors({})
-                    }}
-                    // error={Boolean(errors?.state_id)}
-                    // labelId='state_id'
-                  >
-                    {toStocks?.map((item, index) => (
-                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                        {item?.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
+              <Select
+                error={Boolean(errors.from_store_id)}
+                value={editParams.from_store_id}
+                label='Store*'
+                disabled={id ? true : false}
+                onChange={e => {
+                  setEditParams({
+                    ...editParams,
+                    from_store_id: e.target.value,
+                    from_store_type: storesType[filteredStoreType(e.target.value)]
+                  })
+                  setErrors({})
+                }}
+                // error={Boolean(errors?.state_id)}
+                // labelId='state_id'
+              >
+                {toStocks?.map((item, index) => (
+                  <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                    {item?.name}
+                  </MenuItem>
+                ))}
+              </Select>
 
-                  {errors.from_store_id && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 6 }}>
+              {errors.from_store_id && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  This field is required
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+
+          {/* </Grid> */}
+          {/* <Grid item size={{ xs: 12, sm: 6 }}>
               <Grid item size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
                 <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                   &nbsp;
                 </Typography>
-              </Grid>
+              </Grid> */}
 
-              {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
+          {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <InputLabel error={Boolean(errors.to_store_id)}>Store*</InputLabel>
                   <Select
@@ -2059,7 +2050,7 @@ const AddRequestForm = () => {
                   )}
                 </FormControl>
               </Grid> */}
-              {/* <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+          {/* <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <SingleDatePicker
                     disabled={true}
@@ -2083,10 +2074,11 @@ const AddRequestForm = () => {
                   )}
                 </FormControl>
               </Grid> */}
-            </Grid>
-          </Grid>
-        </form>
-        {/* <Grid
+          {/* </Grid> */}
+        </Grid>
+      </form>
+      {/* </CardContent> */}
+      {/* <Grid
           container
           item
           sm={12}
@@ -2114,94 +2106,78 @@ const AddRequestForm = () => {
             }}
           />
         </Grid> */}
-        <Grid
-          container
-          spacing={2}
-          sx={{
-            py: 2,
-            alignItems: 'center'
-          }}
-        >
-          {/* Left side content */}
-          <Grid item size={{ xs: 12, sm: 8 }}>
-            <Typography
-              variant='body1'
-              sx={{
-                fontSize: '1rem',
-                fontWeight: 500,
-                color: 'customColors.customTextColorGray2',
-                mb: 0.5
-              }}
-            >
-              Request Items
-            </Typography>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                gap: { xs: 1, sm: 3 }
-              }}
-            >
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Typography
-                  sx={{
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    color: 'customColors.neutralSecondary'
-                  }}
-                >
-                  Total Request Quantity:
-                </Typography>
-                <Typography sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '14px', fontWeight: 400 }}>
-                  {totalQty}
-                </Typography>
-              </Box>
-              <Divider
-                orientation='vertical'
-                flexItem
-                sx={{
-                  display: { xs: 'none', sm: 'block' },
-                  mx: 2,
-                  height: '20px',
-                  alignSelf: 'center'
-                }}
-              />
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Typography
-                  sx={{
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    color: 'customColors.neutralSecondary'
-                  }}
-                >
-                  Total Value:
-                </Typography>
-                <Typography sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '14px', fontWeight: 400 }}>
-                  {Utility?.formatAmountToReadableDigit(totalValue)}
-                </Typography>
-              </Box>
-            </Box>
-          </Grid>
-
-          {/* Right side button */}
-          <Grid
-            item
-            size={{ xs: 12, sm: 4 }}
+      {/* Left side content */}
+      <Grid container spacing={3} sx = {{py: 5}} >
+        <Grid item size={{ xs: 'auto', sm: 'auto', lg: 8 }}>
+          <Typography
+            variant='body1'
             sx={{
-              display: 'flex',
-              justifyContent: { xs: 'flex-start', sm: 'flex-end' }
+              fontSize: '1rem',
+              fontWeight: 500,
+              color: 'customColors.customTextColorGray2',
+              fontSize: '16px'
+              // mb: 0.5
             }}
           >
-            <AddButtonContained
-              title='Add Request Item'
-              action={() => {
-                handleSubmit()
-              }}
-            />
-          </Grid>
-        </Grid>
-      </CardContent>
-      <Card sx={{ mx: 6, boxShadow: 'none', border: '1px solid', borderColor: 'customColors.customTableBorderBg' }}>
+            Request Items
+          </Typography>
+          <Stack
+            direction='row'
+            spacing = {{xs: 3, sm: 6}}
+            divider={<Divider orientation='vertical' flexItem/>}
+          
+          >
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  color: 'customColors.neutralSecondary'
+                }}
+              >
+                Total Request Quantity:{' '}
+                <Typography
+                  component='span'
+                  sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '14px', fontWeight: 400 }}
+                >
+                  {totalQty}
+                </Typography>
+              </Typography>
+     
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  color: 'customColors.neutralSecondary'
+                }}
+              >
+                Total Value:{' '}
+                <Typography
+                  component='span'
+                  sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '14px', fontWeight: 400 }}
+                >
+                  {Utility?.formatAmountToReadableDigit(totalValue)}
+                </Typography>
+              </Typography>
+          </Stack>
+
+        {/* Right side button */}
+      
+            </Grid>
+            <Box sx = {{display: 'flex', marginLeft: 'auto'}}>
+          <AddButtonContained
+            title='Add Request Item'
+            action={() => {
+              handleSubmit()
+            }}
+            styles={{
+              mr: 0
+            }}
+          />
+          </Box>
+     
+      </Grid>
+
+      <Card sx={{ my: 5, boxShadow: 'none', border: '1px solid', borderColor: 'customColors.customTableBorderBg' }}>
         <TableContainer>
           <Table>
             <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
@@ -2304,35 +2280,7 @@ const AddRequestForm = () => {
                                 fontWeight: 400
                               }}
                             />
-                          ) : // <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          //   <Box
-                          //     sx={{ color: '#00000066', display: 'flex', alignItems: 'center' }} // Apply color and flex styles
-                          //   >
-                          //     <Icon icon='material-symbols:description-outline' width='1em' height='1em' />
-                          //   </Box>
-                          //   <Tooltip title={el?.notes}>
-                          //     <Typography
-                          //       variant='body2'
-                          //       sx={{
-                          //         color: '#00000066',
-                          //         minWidth: 30,
-                          //         maxWidth: 80,
-                          //         cursor: 'pointer',
-                          //         WebkitBoxOrient: 'vertical',
-                          //         overflow: 'hidden',
-                          //         textOverflow: 'ellipsis',
-                          //         WebkitLineClamp: 6,
-                          //         whiteSpace: 'nowrap',
-                          //         fontStyle: 'italic',
-                          //         fontSize: '14px',
-                          //         fontWeight: 400
-                          //       }}
-                          //     >
-                          //       {el?.notes ? el?.notes : 'NA'}
-                          //     </Typography>
-                          //   </Tooltip>
-                          // </Box>
-                          null}
+                          ) : null}
                           {/* {el?.prescription_required_file ? (
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                               <Box
@@ -2471,6 +2419,10 @@ const AddRequestForm = () => {
           </Table>
         </TableContainer>
       </Card>
+
+      {/* <Card sx = {{m: 5, boxShadow: 'none', border: '1px solid', borderColor: 'customColors.customTableBorderBg'}} > */}
+     
+      {/* </Card> */}
       {/* <CardContent sx={{ pt: 8 }}>
         {totalQty ? (
           <Grid container>
@@ -2501,7 +2453,13 @@ const AddRequestForm = () => {
         ) : null}
       </CardContent> */}
       <Grid item size={{ xs: 12 }}>
-        <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            my: 4
+          }}
+        >
           {id && editParams?.request_item_details?.length > 0 ? (
             <>
               <RequestCancelButton
@@ -2635,7 +2593,7 @@ const AddRequestForm = () => {
           </>
         }
       />
-    </Card>
+    </PageCardLayout>
   )
 }
 
