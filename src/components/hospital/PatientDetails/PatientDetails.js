@@ -14,6 +14,8 @@ import CloseIcon from '@mui/icons-material/Close'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { useQuery } from '@tanstack/react-query'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useHospital } from 'src/context/HospitalContext'
+import { getAnimalTotalHospitalVisits } from 'src/lib/api/hospital/inpatient'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -57,6 +59,7 @@ const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'
 const PatientDetails = ({ category }) => {
   const router = useRouter()
   const theme = useTheme()
+  const { selectedHospital } = useHospital()
   const { data, updateState, resetState } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
   const medical_record_id = medicalRecordData?.medical_record_id
@@ -69,6 +72,20 @@ const PatientDetails = ({ category }) => {
   const [anchorEl, setAnchorEl] = useState(null)
 
   const openMenu = Boolean(anchorEl)
+
+  const [filters, setFilters] = useState({
+    page: 1,
+    limit: 10
+  })
+
+  useEffect(() => {
+    const { page = '1', limit = '10' } = router.query
+
+    setFilters({
+      page: parseInt(page),
+      limit: parseInt(limit)
+    })
+  }, [router.query])
 
   const {
     data: patientResponse,
@@ -132,6 +149,28 @@ const PatientDetails = ({ category }) => {
   const handleMenuClose = () => {
     setAnchorEl(null)
   }
+
+  const resolvedAnimalId = patientResponse?.data?.animal_detail?.animal_id
+
+  const { data: hospitalVisit, isFetching: patientVisitFetching } = useQuery({
+    queryKey: ['animal-total-hospital-visit', resolvedAnimalId, selectedHospital?.id, id, filters],
+    queryFn: () =>
+      getAnimalTotalHospitalVisits({
+        page_no: filters.page,
+        limit: filters.limit,
+        animal_id: resolvedAnimalId,
+        hospital_id: selectedHospital?.id,
+        hospital_case_id: id
+      }),
+
+    enabled: Boolean(resolvedAnimalId && selectedHospital?.id && id),
+    staleTime: 0,
+    cacheTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
+  })
+
+  const totalVisitCount = hospitalVisit?.data?.total_records || 0
 
   // Lazy load all components
 
@@ -375,7 +414,11 @@ const PatientDetails = ({ category }) => {
       loading: patientLoading,
       category: category,
       patientDischarged: isPatientDischarged,
-      refetchPatient: refetchPatient
+      refetchPatient: refetchPatient,
+      hospitalVisit: hospitalVisit,
+      patientVisitFetching: patientVisitFetching,
+      visitFilters: filters,
+      setVisitFilters: setFilters
     }),
     [
       selectedTab,
@@ -401,6 +444,7 @@ const PatientDetails = ({ category }) => {
           loading={patientLoading}
           refetch={refetchPatient}
           category={category}
+          totalVisitCount={totalVisitCount}
         />
         <Card sx={{ mt: 6, p: { xs: 3, md: 6 }, mb: selectedTab === 'discharge' ? 4 : 0 }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>

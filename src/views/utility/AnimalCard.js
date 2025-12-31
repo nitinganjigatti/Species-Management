@@ -6,8 +6,31 @@ import React, { useEffect, useState } from 'react'
 const AnimalCard = ({ data, size, edit }) => {
   const theme = useTheme()
   const [imageLoading, setImageLoading] = useState(true)
+  const [src, setSrc] = useState(data?.default_icon)
+
+  useEffect(() => {
+    setSrc(data?.default_icon)
+  }, [data?.default_icon])
 
   const fallBackImage = '/images/branding/Antz_logomark_h_color.svg'
+
+  const isFallback = src === fallBackImage
+
+  const getImageType = url => {
+    if (!url || typeof url !== 'string') return 'img'
+
+    try {
+      const parsedUrl = new URL(url)
+      const encodedPath = parsedUrl.searchParams.get('path')
+      if (!encodedPath) return 'img'
+
+      const decodedPath = decodeURIComponent(encodedPath)
+
+      return decodedPath.toLowerCase().endsWith('.svg') ? 'svg' : 'img'
+    } catch {
+      return 'img'
+    }
+  }
 
   useEffect(() => {
     const img = new Image()
@@ -26,22 +49,23 @@ const AnimalCard = ({ data, size, edit }) => {
     <Skeleton variant='circular' width={44} height={44} />
   ) : (
     <Avatar
+      key={src}
+      src={src || fallBackImage}
+      alt=''
       sx={{
-        '& > img': {
-          objectFit:
-            data?.default_icon?.includes('class_images') && data?.default_icon?.endsWith('.svg') ? 'contain' : 'cover'
-        },
-        padding: data?.default_icon?.includes('class_images') && data?.default_icon?.endsWith('.svg') ? 0.4 : 0,
         width: 44,
-        height: 44
-
-        // border: '1px solid #C3CEC7'
+        height: 44,
+        '& img': {
+          objectFit: getImageType(src) === 'svg' ? 'contain' : 'cover',
+          padding: isFallback ? '4px' : 0
+        }
       }}
-      alt={data?.default_icon}
-      src={data?.default_icon}
-
-      //   onLoad={handleImageLoad}
-    />
+      imgProps={{
+        onError: () => {
+          setSrc(fallBackImage)
+        }
+      }}
+    ></Avatar>
   )
 
   return (

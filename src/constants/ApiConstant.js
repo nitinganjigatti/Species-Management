@@ -841,6 +841,10 @@ export const GET_FREQUENCY = 'medical/frequency'
 
 export const GET_INTERVALS = 'medical/master/prescription/interval/list'
 
+export const GET_PATIENT_DISCHARGE_SUMMARY = `v1/hospital/report/hospital-discharge-report`
+
+export const GET_PATIENT_VISIT_SUMMARY = `v1/hospital/report/hospital-visit-report`
+
 //Hospital rooms
 
 //Hospital masters

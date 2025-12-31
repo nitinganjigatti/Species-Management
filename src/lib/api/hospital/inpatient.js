@@ -6,6 +6,8 @@ import {
   GET_MORTALITY_PATIENTS_LISTS,
   GET_NEW_ANIMAL_LIST_WITH_FILTERS,
   GET_OVERVIEW_MEDIA_FILES,
+  GET_PATIENT_DISCHARGE_SUMMARY,
+  GET_PATIENT_VISIT_SUMMARY,
   GET_SPECIES_FOR_HOSPITAL
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
@@ -54,6 +56,18 @@ export async function getPatientsMortalityListings(params) {
 
 export async function getFollowUpPatientsListings(params) {
   const response = await axiosGet({ url: `${GET_FOLLOWUP_PATIENTS_LISTS}`, params })
+
+  return response?.data
+}
+
+export async function getPatientDischargeSummary(params) {
+  const response = await axiosGet({ url: `${GET_PATIENT_DISCHARGE_SUMMARY}`, params })
+
+  return response?.data
+}
+
+export async function getPatientVisitSummary(params) {
+  const response = await axiosGet({ url: `${GET_PATIENT_VISIT_SUMMARY}`, params })
 
   return response?.data
 }

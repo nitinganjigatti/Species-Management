@@ -13,6 +13,7 @@ import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePick
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
+
 dayjs.extend(customParseFormat)
 
 const schema = yup.object().shape({
@@ -50,6 +51,7 @@ const schema = yup.object().shape({
 
       return maxEffect.isAfter(delivery) || maxEffect.isSame(delivery)
     })
+
   // notes: yup.string().trim().required('Note is required')
 })
 
@@ -107,6 +109,7 @@ function AddMedicationDrawer({
   const filteredDrugOptions = useMemo(() => {
     if (!Array.isArray(drugOptions) || !drugOptions.length) return []
     const existing = Array.isArray(existingMedications) ? existingMedications : []
+
     const excludedIds = new Set(
       existing
         .map(m => m?.drug_name?.id ?? m?.drug_id ?? null)
@@ -116,11 +119,13 @@ function AddMedicationDrawer({
 
     const editingId = editData?.drug_name?.id ?? editData?.drug_id ?? null
     const editingIdStr = editingId ? String(editingId) : null
+
     return drugOptions.filter(opt => {
       const optId = opt?.id ?? opt?.drug_id ?? null
       if (!optId) return true
       const idStr = String(optId)
       if (editingIdStr && idStr === editingIdStr) return true
+
       return !excludedIds.has(idStr)
     })
   }, [drugOptions, existingMedications, editData])
@@ -139,11 +144,14 @@ function AddMedicationDrawer({
           if (parsed.isValid()) {
             if (format.includes('hh:mm') || format === 'HH:mm:ss') {
               const today = dayjs().format('YYYY-MM-DD')
+
               return dayjs(`${today} ${parsed.format('HH:mm:ss')}`, 'YYYY-MM-DD HH:mm:ss', true)
             }
+
             return parsed
           }
         }
+
         return null
       }
 
@@ -394,7 +402,6 @@ function AddMedicationDrawer({
                 <ControlledTextArea
                   control={control}
                   errors={errors}
-                  label='Enter Notes'
                   name='notes'
                   placeholder='Enter Notes'
                   fullWidth

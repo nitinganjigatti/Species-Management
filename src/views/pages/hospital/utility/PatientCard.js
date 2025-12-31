@@ -1,4 +1,15 @@
-import { Card, Typography, Box, styled, CardContent, alpha, Skeleton, Button, Tooltip } from '@mui/material'
+import {
+  Card,
+  Typography,
+  Box,
+  styled,
+  CardContent,
+  alpha,
+  Skeleton,
+  Button,
+  Tooltip,
+  CircularProgress
+} from '@mui/material'
 import { Grid } from '@mui/material'
 import React, { useState } from 'react'
 import { useTheme } from '@emotion/react'
@@ -8,14 +19,21 @@ import AdmissionStatusCard from '../inpatient/AdmissionStatusCard'
 import MenuWithDots from 'src/components/MenuWithDots'
 import EditPatientDrawer from 'src/components/hospital/drawer/EditPatientDrawer'
 import AddPatientDrawer from 'src/components/hospital/drawer/AddPatientDrawer'
+import { getPatientDischargeSummary } from 'src/lib/api/hospital/inpatient'
+import Utility, { downloadPDF } from 'src/utility'
+import Toaster from 'src/components/Toaster'
+import Icon from 'src/@core/components/icon'
+import PatientVisitSummaryFilterDrawer from 'src/components/hospital/drawer/PatientVisitSummaryFilterDrawer'
 
-const PatientCard = ({ patientData, animalData, loading, refetch, category }) => {
+const PatientCard = ({ patientData, animalData, loading, refetch, category, totalVisitCount }) => {
   const theme = useTheme()
 
   const isPatientDischarged = patientData?.status === 'discharge' ? true : false
 
   const [openEditPatientDrawer, setOpenEditPatientDrawer] = useState(null)
   const [openAddAnimalDrawer, setOpenAddAnimalDrawer] = useState(false)
+  const [dischargeSummaryLoading, setDischargeSummaryLoading] = useState(false)
+  const [openVisitSummaryFilterDrawer, setOpenVisitSummaryFilterDrawer] = useState(false)
 
   const admissionData = [
     { type: 'admitted_on', value: patientData?.admitted_at },
@@ -30,24 +48,75 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category }) =>
     )
   }
 
+  const getDischargeSummary = async () => {
+    setDischargeSummaryLoading(true)
+    try {
+      // const response = await getPatientDischargeSummary({ hospital_case_id: patientData?.hospital_case_id })
+      // if (response?.success) {
+      //   console.log(response?.data?.download_url, 'Discharge Summary')
+
+      //   Utility.downloadFileFromURL(response?.data?.download_url)
+      //   Toaster({ type: 'success', message: response?.message })
+      //   setDischargeSummaryLoading(false)
+      // }
+
+      const params = {
+        hospital_case_id: patientData?.hospital_case_id
+      }
+
+      await downloadPDF({
+        apiCall: getPatientDischargeSummary,
+        params,
+        fileName: `Discharge_Summary${Date.now()}.pdf`
+      })
+    } catch (error) {
+      console.error('Error fetching discharge summary:', error)
+      setDischargeSummaryLoading(false)
+    }
+  }
+
   const getMenuOptions = () => {
     const options = []
 
+    if (true) {
+      options.push({
+        label: (
+          <Tooltip title='Hospital Visit Summary'>
+            <Typography>Hospital Visit Summary</Typography>
+          </Tooltip>
+        ),
+        icon: <Icon icon='hugeicons:download-square-02' />,
+        action: () => {
+          setOpenVisitSummaryFilterDrawer(true)
+        }
+      })
+    }
+
+    if (isPatientDischarged) {
+      options.push({
+        label: (
+          <Tooltip title='Discharge Summary'>
+            <Typography>Discharge Summary</Typography>
+          </Tooltip>
+        ),
+        icon: dischargeSummaryLoading ? <CircularProgress size={18} /> : <Icon icon='hugeicons:download-square-02' />,
+        action: () => getDischargeSummary()
+      })
+    }
+
     if (!isPatientDischarged) {
       options.push({
-        label: 'Edit Details',
+        label: (
+          <Tooltip title='Edit Details'>
+            <Typography>Edit Patient</Typography>
+          </Tooltip>
+        ),
+        icon: <Icon icon='mynaui:edit-one' />,
         action: () => {
           setOpenEditPatientDrawer(true)
         }
       })
     }
-
-    // options.push({
-    //   label: 'Print',
-    //   action: () => {
-    //     console.log('Print action triggered')
-    //   }
-    // })
 
     return options
   }
@@ -295,6 +364,14 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category }) =>
           patientData={patientData}
           animalData={animalData}
           refetch={refetch}
+        />
+      )}
+      {openVisitSummaryFilterDrawer && (
+        <PatientVisitSummaryFilterDrawer
+          open={openVisitSummaryFilterDrawer}
+          onClose={() => setOpenVisitSummaryFilterDrawer(false)}
+          patientData={patientData}
+          animalData={animalData}
         />
       )}
     </>

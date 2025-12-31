@@ -242,9 +242,8 @@ const TransferDischargeForm = props => {
                 <ControlledTextArea
                   control={control}
                   errors={errors}
-                  label='Reason for Transferring'
                   name='reason_for_transfer'
-                  placeholder='Enter Reason'
+                  placeholder='Enter Reason or Transferring'
                   fullWidth
                   rows={2}
                 />

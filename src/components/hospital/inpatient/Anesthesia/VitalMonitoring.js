@@ -324,7 +324,7 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
     }
 
     const newColumn = {
-      id: uuidv4(),
+      id: `temp_${uuidv4()}`,
       timeLabel: normalizedTime,
       entries: {}
     }
@@ -456,6 +456,50 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
     }
   }, [columns])
 
+  const handleDeleteColumn = columnId => {
+    const columnToDelete = columns.find(c => c.id === columnId)
+    setColumnToDelete({
+      id: columnId,
+      timeLabel: columnToDelete?.timeLabel || 'this time'
+    })
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!columnToDelete) return
+
+    setIsDeleting(true)
+    try {
+      const response = await deleteVitalMonitoring({
+        record_time_id: columnToDelete.id
+      })
+
+      if (response.success) {
+        const updatedColumns = columns.filter(column => column.id !== columnToDelete.id)
+        updateColumns(updatedColumns)
+
+        Toaster({
+          type: 'success',
+          message: response?.message || 'Time column deleted successfully'
+        })
+      } else {
+        Toaster({
+          type: 'error',
+          message: response.message || 'Failed to delete time column'
+        })
+      }
+    } catch (error) {
+      Toaster({
+        type: 'error',
+        message: 'An error occurred while deleting the time column'
+      })
+    } finally {
+      setIsDeleting(false)
+      setColumnToDelete(null)
+      setDeleteDialogOpen(false)
+    }
+  }
+
   const handleDeleteCancel = () => {
     setColumnToDelete(null)
     setDeleteDialogOpen(false)
@@ -502,7 +546,7 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
                         <Box sx={styles.timeTextContainer} onClick={() => handleEditTime(column.id)}>
                           <Typography sx={styles.timeText}>{column.timeLabel}</Typography>
                         </Box>
-                        {/* <Box
+                        <Box
                           className='delete-icon'
                           sx={styles.deleteIconButton}
                           onClick={e => {
@@ -511,7 +555,7 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
                           }}
                         >
                           <CloseRoundedIcon sx={{ fontSize: '16px' }} />
-                        </Box> */}
+                        </Box>
                       </Box>
                     )
                   }
@@ -625,14 +669,14 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
         initialData={activeInitialData}
         timeLabel={activeCell ? columns.find(c => c.id === activeCell.columnId)?.timeLabel : ''}
       />
-      {/* <DeleteConfirmationDialog
+      <DeleteConfirmationDialog
         open={deleteDialogOpen}
         handleClose={handleDeleteCancel}
         action={handleDeleteConfirm}
         loading={isDeleting}
         title='Delete Time Column'
         message={`Are you sure you want to delete the time column for ${columnToDelete?.timeLabel}? `}
-      /> */}
+      />
     </>
   )
 }

@@ -393,6 +393,7 @@ const ScheduleDosageSidesheet = ({
                           required
                           selectWidth={100}
                           disabled={submitLoader}
+                          sx={commonFieldStyles}
                         />
                       </Grid>
                       {fields.length > 1 && (

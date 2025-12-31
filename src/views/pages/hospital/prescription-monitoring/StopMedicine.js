@@ -131,7 +131,6 @@ const StopMedicine = ({ open, onClose, onConfirm, medicineData, isLoading }) => 
 
           <ControlledTextArea
             name='reason'
-            label='Reason'
             control={control}
             errors={errors}
             required='Reason is required'

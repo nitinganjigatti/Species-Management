@@ -14,6 +14,7 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
 
   const formatDurationUnit = (value, unit) => {
     if (!unit) return ''
+
     return Number(value) === 1 || Number(value) === 0 ? unit.replace(/s$/i, '') : unit
   }
 
@@ -65,7 +66,6 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                       >
                         {activity?.createdBy} • {activity?.formattedTime}
                       </Typography>
-
                       {(activity?.oldSeverity || activity?.newSeverity) && (
                         <Typography
                           sx={{
@@ -105,6 +105,36 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                               }}
                             >
                               {activity?.oldRecord && '→'} {Utility.capitalizeFirstLetter(activity.newRecord)}
+                            </Typography>
+                          )}
+                        </Box>
+                      )}
+
+                      {activity?.isSystemGenerated && (activity?.oldPrognosis || activity?.newPrognosis) && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
+                          <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
+                            Prognosis :{' '}
+                          </Typography>
+                          {activity?.oldPrognosis && (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: theme.palette.customColors.neutralSecondary,
+                                fontWeight: 600
+                              }}
+                            >
+                              {Utility.capitalizeFirstLetter(activity?.oldPrognosis)}
+                            </Typography>
+                          )}
+                          {activity?.newPrognosis && (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: theme.palette.customColors.OnSurfaceVarient,
+                                fontWeight: 600
+                              }}
+                            >
+                              {activity?.oldPrognosis && '→'} {Utility.capitalizeFirstLetter(activity.newPrognosis)}
                             </Typography>
                           )}
                         </Box>
@@ -156,21 +186,24 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                         </Typography>
                       )}
 
-                      {activity?.duration && (
-                        <Typography
-                          sx={{
-                            mb: 2,
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            fontWeight: 400,
-                            fontSize: '12px'
-                          }}
-                        >
-                          Duration:{' '}
-                          <strong>
-                            {activity?.duration} {formatDurationUnit(activity?.duration, activity?.duration_unit)}
-                          </strong>
-                        </Typography>
-                      )}
+                      {activity?.duration !== '' &&
+                        activity?.duration != 'null' &&
+                        activity?.duration !== 0 &&
+                        activity?.duration !== '0' && (
+                          <Typography
+                            sx={{
+                              mb: 2,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: 400,
+                              fontSize: '12px'
+                            }}
+                          >
+                            Duration:{' '}
+                            <strong>
+                              {activity.duration} {formatDurationUnit(activity.duration, activity.duration_unit)}
+                            </strong>
+                          </Typography>
+                        )}
 
                       {activity?.note && (
                         <>
