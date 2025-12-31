@@ -20,7 +20,7 @@ import MenuWithDots from 'src/components/MenuWithDots'
 import EditPatientDrawer from 'src/components/hospital/drawer/EditPatientDrawer'
 import AddPatientDrawer from 'src/components/hospital/drawer/AddPatientDrawer'
 import { getPatientDischargeSummary } from 'src/lib/api/hospital/inpatient'
-import Utility from 'src/utility'
+import Utility, { downloadPDF } from 'src/utility'
 import Toaster from 'src/components/Toaster'
 import Icon from 'src/@core/components/icon'
 import PatientVisitSummaryFilterDrawer from 'src/components/hospital/drawer/PatientVisitSummaryFilterDrawer'
@@ -51,14 +51,24 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
   const getDischargeSummary = async () => {
     setDischargeSummaryLoading(true)
     try {
-      const response = await getPatientDischargeSummary({ hospital_case_id: patientData?.hospital_case_id })
-      if (response?.success) {
-        console.log(response?.data?.download_url, 'Discharge Summary')
+      // const response = await getPatientDischargeSummary({ hospital_case_id: patientData?.hospital_case_id })
+      // if (response?.success) {
+      //   console.log(response?.data?.download_url, 'Discharge Summary')
 
-        Utility.downloadFileFromURL(response?.data?.download_url)
-        Toaster({ type: 'success', message: response?.message })
-        setDischargeSummaryLoading(false)
+      //   Utility.downloadFileFromURL(response?.data?.download_url)
+      //   Toaster({ type: 'success', message: response?.message })
+      //   setDischargeSummaryLoading(false)
+      // }
+
+      const params = {
+        hospital_case_id: patientData?.hospital_case_id
       }
+
+      await downloadPDF({
+        apiCall: getPatientDischargeSummary,
+        params,
+        fileName: `Discharge_Summary${Date.now()}.pdf`
+      })
     } catch (error) {
       console.error('Error fetching discharge summary:', error)
       setDischargeSummaryLoading(false)

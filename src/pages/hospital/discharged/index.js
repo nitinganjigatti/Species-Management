@@ -23,7 +23,7 @@ import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { visitTypeOptions } from 'src/constants/Constants'
 import { useHospital } from 'src/context/HospitalContext'
 import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
-import Utility from 'src/utility'
+import Utility, { downloadPDF } from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
 import { VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
@@ -46,7 +46,7 @@ const HospitalDischarged = () => {
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
   const [filterDate, setFilterDate] = useState({})
-  const [downloadLoading, setDownloadLoading] = useState(false)
+  const [downloadingRowId, setDownloadingRowId] = useState(null)
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -159,20 +159,25 @@ const HospitalDischarged = () => {
   }
 
   const handleDownloadDischargeSummary = async row => {
-    console.log('Download Discharge Summary for row:', row)
-    setDownloadLoading(true)
-    try {
-      const response = await getPatientDischargeSummary({ hospital_case_id: row?.id })
-      if (response?.success) {
-        console.log(response?.data?.download_url, 'Discharge Summary')
+    const rowId = row?.id
+    if (!rowId) return
 
-        Utility.downloadFileFromURL(response?.data?.download_url)
-        Toaster({ type: 'success', message: response?.message })
-        setDownloadLoading(false)
+    setDownloadingRowId(rowId)
+
+    try {
+      const params = {
+        hospital_case_id: rowId
       }
+
+      await downloadPDF({
+        apiCall: getPatientDischargeSummary,
+        params,
+        fileName: `Discharge_Summary${Date.now()}.pdf`
+      })
     } catch (error) {
-      console.log('Error downloading discharge summary:', error)
-      setDownloadLoading(false)
+      console.error('Error downloading discharge summary:', error)
+    } finally {
+      setDownloadingRowId(null)
     }
   }
 
@@ -354,22 +359,26 @@ const HospitalDischarged = () => {
           </Typography>
         </>
       )
-    }
+    },
 
-    // {
-    //   width: 100,
-    //   miWidth: 20,
-    //   field: 'Action',
-    //   sortable: false,
-    //   headerName: 'Action',
-    //   renderCell: params => (
-    //     <Tooltip title='Download Discharge Summary'>
-    //       <IconButton onClick={() => handleDownloadDischargeSummary(params?.row)} disabled={downloadLoading}>
-    //         {downloadLoading ? <CircularProgress size={24} /> : <Icon icon='hugeicons:download-square-02' />}
-    //       </IconButton>
-    //     </Tooltip>
-    //   )
-    // }
+    {
+      width: 100,
+      miWidth: 20,
+      field: 'action',
+      sortable: false,
+      headerName: 'Action',
+      renderCell: params => {
+        const isRowLoading = downloadingRowId === params.row.id
+
+        return (
+          <Tooltip title='Download Discharge Summary'>
+            <IconButton onClick={() => handleDownloadDischargeSummary(params.row)} disabled={isRowLoading}>
+              {isRowLoading ? <CircularProgress size={22} /> : <Icon icon='hugeicons:download-square-02' />}
+            </IconButton>
+          </Tooltip>
+        )
+      }
+    }
   ]
 
   const handleRowClick = params => {
@@ -454,7 +463,7 @@ const HospitalDischarged = () => {
                 setPaginationModel={handlePaginationModelChange}
                 searchValue=''
                 getRowHeight={() => 'auto'}
-                onRowClick={handleRowClick}
+                onCellClick={handleRowClick}
                 externalTableStyle={{
                   '& .MuiDataGrid-cell': {
                     padding: 4
