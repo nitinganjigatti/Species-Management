@@ -229,7 +229,7 @@ const ObservationReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatDisplayDate(Utility.convertUTCToLocalDateTime(params.row.date_time))}
+          {Utility.formatDisplayDate(Utility.convertUTCToLocalDate(params.row.date_time))}
         </Typography>
       )
     },
