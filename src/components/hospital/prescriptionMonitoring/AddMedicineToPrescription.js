@@ -1360,7 +1360,7 @@ export default function AddMedicineToPrescription() {
       }))
 
       const payload = {
-        medical_record_id: medical_record_id,
+        medical_record_id: medicineDetail?.medical_record_id,
         prescription_id: medicineDetail?.medicine_id,
         type: 'prescription',
         status: 'restart',

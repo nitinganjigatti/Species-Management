@@ -6,6 +6,7 @@ import dayjs from 'dayjs'
 import { alpha, useTheme } from '@mui/material/styles'
 
 import { getAnesthesiaList } from 'src/lib/api/hospital/anesthesia'
+import Utility from 'src/utility'
 
 const SelectAnesthesiaRecordDrawer = ({
   open,
@@ -158,12 +159,15 @@ const SelectAnesthesiaRecordDrawer = ({
           items.map(record => {
             const recordId = getRecordId(record)
             const isSelected = recordId === selectedId
-            const createdAt = record?.created_at ? dayjs(record.created_at) : null
+            const createdAt = record?.anaesthesia_datetime ? dayjs(record.anaesthesia_datetime) : null
             const purposeNames = Array.isArray(record?.purpose)
               ? record.purpose.map(item => item?.name).filter(Boolean)
               : record?.procedures || []
             const createdOn = createdAt?.isValid() ? createdAt.format('DD MMM YYYY') : record?.createdOn || '--'
-            const createdTime = createdAt?.isValid() ? createdAt.format('hh:mm A') : record?.time || '--'
+            //const createdTime = createdAt?.isValid() ? createdAt.format('hh:mm A') : record?.time || '--'
+            const createdTime = record?.anaesthesia_datetime
+              ? Utility.convertUTCToLocaltime(record.anaesthesia_datetime)
+              : Utility.convertUTCToLocaltime(record?.created_at)
 
             return (
               <Box
@@ -239,7 +243,7 @@ const SelectAnesthesiaRecordDrawer = ({
                       }}
                       component='span'
                     >
-                      Created by: {record?.created_by_name || record?.createdBy || '--'}
+                      Anesthetists: {record?.created_by_name || record?.createdBy || '--'}
                     </Typography>
                     <Typography
                       sx={{

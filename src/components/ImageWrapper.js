@@ -1,31 +1,41 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { Box, useTheme } from '@mui/material'
 
+const FALLBACK_IMAGE = '/images/branding/Antz_logomark_h_color.svg'
+
 const ImageComponent = ({ icon }) => {
   const theme = useTheme()
-  const [imageType, setImageType] = useState(null)
 
-  console.log(icon)
+  const [imgSrc, setImgSrc] = useState(icon || FALLBACK_IMAGE)
 
-  useEffect(() => {
-    if (!icon) return
+  const getImageType = url => {
+    if (!url || typeof url !== 'string') return 'img'
 
-    const cleanUrl = icon.split('?')[0].split('#')[0]
-    const fileExtension = cleanUrl.split('.').pop().toLowerCase()
+    try {
+      const parsedUrl = new URL(url)
+      const encodedPath = parsedUrl.searchParams.get('path')
+      if (!encodedPath) return 'img'
 
-    if (fileExtension === 'svg') {
-      setImageType('svg')
-    } else {
-      setImageType(null)
+      const decodedPath = decodeURIComponent(encodedPath)
+
+      return decodedPath.toLowerCase().endsWith('.svg') ? 'svg' : 'img'
+    } catch {
+      return 'img'
     }
-  }, [icon])
+  }
 
-  console.log(imageType, 'imageType')
+  const imageType = useMemo(() => getImageType(imgSrc), [imgSrc])
+
+  const handleError = () => {
+    if (imgSrc !== FALLBACK_IMAGE) {
+      setImgSrc(FALLBACK_IMAGE)
+    }
+  }
 
   return (
     <>
-      {imageType === 'svg' ? (
+      {getImageType(icon) === 'svg' ? (
         <Box
           sx={{
             width: 44,
@@ -36,7 +46,14 @@ const ImageComponent = ({ icon }) => {
             justifyContent: 'center'
           }}
         >
-          <img width={44} height={44} style={{ objectFit: 'contain' }} src={icon} alt='' />
+          <img
+            width={44}
+            height={44}
+            onError={handleError}
+            style={{ objectFit: 'contain', transform: 'scale(1.0)', transition: 'transform 0.2s ease' }}
+            src={icon}
+            alt='antz_icon'
+          />
         </Box>
       ) : (
         <Box
@@ -51,14 +68,16 @@ const ImageComponent = ({ icon }) => {
         >
           <img
             width={44}
+            onError={handleError}
             height={44}
             style={{
               borderRadius: 50,
               backgroundColor: theme.palette.customColors.neutral10,
-              objectFit: 'cover'
+              objectFit: 'cover',
+              transition: 'transform 0.2s ease'
             }}
             src={icon}
-            alt=''
+            alt='antz_icon'
           />
         </Box>
       )}

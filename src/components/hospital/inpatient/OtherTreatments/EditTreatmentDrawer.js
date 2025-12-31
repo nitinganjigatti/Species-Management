@@ -180,7 +180,6 @@ const EditTreatmentDrawer = ({
 
               <ControlledTextArea
                 name='editNotes'
-                label=''
                 control={control}
                 errors={{}}
                 disabled={isSubmitting || isAdding}

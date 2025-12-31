@@ -32,9 +32,9 @@ export async function updateHospitalMaster(id, payload) {
   return response?.data
 }
 
-export const getAnimalMedicalIds = async animalId => {
+export const getAnimalMedicalIds = async (animalId, payload) => {
   const url = `${ANIMAL_MEDICAL_ID_LIST}${animalId}/basic-data-list`
-  const response = await axiosGet({ url: url })
+  const response = await axiosGet({ url: url, params: payload })
 
   return response?.data
 }

@@ -70,6 +70,7 @@ const MenuWithDots = ({ options, disabled = false, showBorder = false, borderCol
                     handleClose()
                   }}
                 >
+                  {option.icon && <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>{option.icon}</Box>}
                   {option.label}
                 </MenuItem>
               </Box>

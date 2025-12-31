@@ -178,82 +178,76 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
   return (
     <Box>
       <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {!loading && (recordTypeCount?.all !== '0' || searchQuery.trim().length > 0) && (
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mt: 6,
-              flexWrap: 'wrap',
-              rowGap: 4
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box
-                sx={{
-                  flex: '1 1 auto',
-                  minWidth: 0,
-                  overflowX: 'auto',
-                  scrollbarColor: 'transparent transparent',
-                  columnGap: 4
-                }}
-              >
-                <Box sx={{ display: 'inline-flex', gap: 3, pr: 1, alignItems: 'center' }}>
-                  {tabs.map(tab => {
-                    const countKey = tabTypeMap[tab]
-                    const tabCount = recordTypeCount?.[countKey] || 0
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mt: 6,
+            flexWrap: 'wrap',
+            rowGap: 4
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box
+              sx={{
+                flex: '1 1 auto',
+                minWidth: 0,
+                overflowX: 'auto',
+                scrollbarColor: 'transparent transparent',
+                columnGap: 4
+              }}
+            >
+              <Box sx={{ display: 'inline-flex', gap: 3, pr: 1, alignItems: 'center' }}>
+                {tabs.map(tab => {
+                  const countKey = tabTypeMap[tab]
+                  const tabCount = recordTypeCount?.[countKey] || 0
 
-                    return (
-                      <Box
-                        key={tab}
-                        onClick={() => handleTabChange(tab)}
+                  return (
+                    <Box
+                      key={tab}
+                      onClick={() => handleTabChange(tab)}
+                      sx={{
+                        flexShrink: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        px: '16px',
+                        py: '8px',
+                        borderRadius: '8px',
+                        backgroundColor:
+                          currentTab === tab ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <Typography
                         sx={{
-                          flexShrink: 0,
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          px: '16px',
-                          py: '8px',
-                          borderRadius: '8px',
-                          backgroundColor:
+                          color:
                             currentTab === tab
-                              ? theme.palette.secondary.dark
-                              : theme.palette.customColors.mdAntzNeutral,
-                          cursor: 'pointer'
+                              ? theme.palette.primary.contrastText
+                              : theme.palette.customColors.neutralPrimary,
+                          whiteSpace: 'nowrap'
                         }}
                       >
-                        <Typography
-                          sx={{
-                            color:
-                              currentTab === tab
-                                ? theme.palette.primary.contrastText
-                                : theme.palette.customColors.neutralPrimary,
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          {tab} - {tabCount}
-                        </Typography>
-                      </Box>
-                    )
-                  })}
-                </Box>
+                        {tab} - {tabCount}
+                      </Typography>
+                    </Box>
+                  )
+                })}
               </Box>
             </Box>
-            {!isDischared && (
-              <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
-                <Search
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  onClear={handleSearchClear}
-                />
-                <Button variant='contained' startIcon={<AddIcon />} onClick={handleRouterNavigation}>
-                  ADD NEW
-                </Button>
-              </Box>
-            )}
           </Box>
-        )}
+
+          {!isDischared && (
+            <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+              <Search value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onClear={handleSearchClear} />
+              <Button variant='contained' startIcon={<AddIcon />} onClick={handleRouterNavigation}>
+                ADD NEW
+              </Button>
+            </Box>
+          )}
+        </Box>
+
         {!loading && (
           <Box
             sx={{

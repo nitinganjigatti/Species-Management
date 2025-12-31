@@ -53,9 +53,14 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
         durationUnit: recordData?.additional_info?.duration_unit,
         status: recordData?.status
       })
-
       setSeverity(mappedSeverity)
-      setDurationValue(recordData?.additional_info?.duration)
+      setDurationValue(
+        recordData?.additional_info?.duration === 'null' ||
+          recordData?.additional_info?.duration == null ||
+          recordData?.additional_info?.duration === ''
+          ? 0
+          : recordData?.additional_info?.duration
+      )
       setDurationUnit(recordData?.additional_info?.duration_unit)
       setStatus(recordData?.status)
       setTemporarilySelected(recordData)
@@ -122,7 +127,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
         type: 'COMPLAINT',
         is_system_generated: isSystemGenerated ? 1 : 0,
         severity: pendingDetails?.severity,
-        duration: pendingDetails?.durationValue,
+        duration: pendingDetails?.durationValue || 0,
         duration_unit: pendingDetails?.durationUnit,
         status: pendingDetails?.status,
         note: pendingDetails?.notes
@@ -242,21 +247,23 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
               }}
             />
 
-            {record?.additional_info?.duration && (
-              <Box
-                component='span'
-                sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  fontSize: '0.9rem',
-                  fontWeight: 500,
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                {record?.additional_info?.duration}{' '}
-                {formatDurationUnit(record?.additional_info?.duration, record?.additional_info?.duration_unit)}
-              </Box>
-            )}
+            {record?.additional_info?.duration &&
+              record?.additional_info?.duration !== '0' &&
+              record?.additional_info?.duration !== 'null' && (
+                <Box
+                  component='span'
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    fontSize: '0.9rem',
+                    fontWeight: 500,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  {record?.additional_info?.duration}{' '}
+                  {formatDurationUnit(record?.additional_info?.duration, record?.additional_info?.duration_unit)}
+                </Box>
+              )}
           </Box>
         </Box>
 
@@ -350,9 +357,14 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
             )}
 
           <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.neutralSecondary }}>
-            Last Updated: {Utility?.formatDisplayDate(record?.latest_note?.modified_at)}
+            Last Updated:{' '}
+            {Utility?.formatDisplayDate(
+              record?.latest_note?.modified_at || record?.created_at || record?.latest_note?.created_at
+            )}
             <span style={{ margin: '0 8px', color: theme.palette.customColors.neutralSecondary }}>•</span>
-            {Utility.convertUTCToLocaltime(record?.latest_note?.modified_at)}
+            {Utility.convertUTCToLocaltime(
+              record?.latest_note?.modified_at || record?.created_at || record?.latest_note?.created_at
+            )}
           </Typography>
         </Box>
 

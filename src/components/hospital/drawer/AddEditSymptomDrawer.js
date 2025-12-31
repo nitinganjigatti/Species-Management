@@ -319,7 +319,7 @@ const AddEditSymptomDrawer = ({
                   <MenuItem value='Extreme'>Extreme</MenuItem>
                 </Select>
               </Box>
-
+              {console.log(durationValue, 'durationValue')}
               <Box>
                 <Typography
                   sx={{
