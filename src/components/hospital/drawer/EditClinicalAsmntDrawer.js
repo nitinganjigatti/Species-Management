@@ -53,7 +53,7 @@ const EditClinicalAsmntDrawer = ({
   const router = useRouter()
   const { medical_record_id } = router.query
 
-  const isResolved = status === 'Inactive'
+  const isResolved = status === 'Closed' || status === 'Inactive'
 
   const commonFieldStyles = {
     textAlign: 'left',

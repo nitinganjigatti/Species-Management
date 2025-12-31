@@ -63,9 +63,13 @@ const InpatientOverview = ({ overviewData, refetchPatient }) => {
         page_no: filters?.page,
         limit: filters?.limit,
         animal_id: animal_id,
-        hospital_id: selectedHospital?.id
+        hospital_id: selectedHospital?.id,
+        hospital_case_id: id
       }),
-    enabled: !!(animal_id && selectedHospital?.id)
+    enabled: !!(animal_id && selectedHospital?.id),
+    staleTime: 0,
+    cacheTime: 0,
+    refetchOnMount: true
   })
 
   const total = hospitalVisit?.data?.total_records || 0
