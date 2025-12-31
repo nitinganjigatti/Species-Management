@@ -68,7 +68,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
   const getMenuOptions = () => {
     const options = []
 
-    if (totalVisitCount > 0) {
+    if (true) {
       options.push({
         label: (
           <Tooltip title='Hospital Visit Summary'>
