@@ -34,6 +34,8 @@ const ExportCard = ({
     })
   }
 
+  const isInteractive = species !== '0'
+
   return (
     <>
       <Card
@@ -46,8 +48,23 @@ const ExportCard = ({
           borderRadius: '8px',
           backgroundColor: theme.palette.common.white,
           boxShadow: 'none',
-          minHeight: '121px'
+          minHeight: '121px',
+          cursor: isInteractive ? 'pointer' : 'not-allowed'
         }}
+        onClick={isInteractive ? handleSelect : undefined}
+        onKeyDown={
+          isInteractive
+            ? event => {
+                if (event.target !== event.currentTarget) return
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  handleSelect()
+                }
+              }
+            : undefined
+        }
+        tabIndex={isInteractive ? 0 : undefined}
+        role={isInteractive ? 'button' : undefined}
       >
         {/* Left Section */}
         <CardContent sx={{ flex: 1, px: 4, py: 4 }}>
@@ -119,14 +136,21 @@ const ExportCard = ({
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: '4px', // Optional: better visual
-            cursor: species !== '0' ? 'pointer' : 'not-allowed',
+            cursor: isInteractive ? 'pointer' : 'not-allowed',
             flexShrink: 0
           }}
-          onClick={species !== '0' ? handleSelect : undefined}
+          onClick={isInteractive ? handleSelect : undefined}
         >
           <Checkbox
             checked={isSelected}
             disabled={species === '0'}
+            onClick={event => {
+              event.stopPropagation()
+            }}
+            onChange={event => {
+              event.stopPropagation()
+              if (isInteractive) handleSelect()
+            }}
             sx={{
               color: theme.palette.customColors.Outline,
               '&.Mui-checked': {
