@@ -135,11 +135,11 @@ const AnimalDrawer = ({
   })
 
   const clearAnimalQuery = () => {
-  queryClient.removeQueries({
-    queryKey: ['animal-List-Observation-Report'],
-    exact: false
-  })
-}
+    queryClient.removeQueries({
+      queryKey: ['animal-List-Observation-Report'],
+      exact: false
+    })
+  }
 
   useEffect(() => {
     if (open) {
@@ -175,7 +175,7 @@ const AnimalDrawer = ({
           local_identifier_value: animal?.local_identifier_value,
           site_id: animal?.site_id,
           enclosure_id: animal?.enclosure_id,
-          ...(module === 'hospital' && { in_transit: animal?.in_transit })
+          ...(module === 'hospital' && { in_transit: animal?.in_transit, is_hospitalized: animal?.is_hospitalized })
         }))
       ) || [],
     [data]
@@ -256,7 +256,6 @@ const AnimalDrawer = ({
             onClick={() => {
               setInternalSelected(null)
               onClose()
-
             }}
           >
             <Icon icon='mdi:close' />
@@ -439,7 +438,7 @@ const AnimalDrawer = ({
                   key={animal.animal_id}
                   data={animal}
                   radio={
-                    module === 'hospital' && animal?.in_transit === '1'
+                    module === 'hospital' && (animal?.in_transit === '1' || animal?.is_hospitalized === '1')
                       ? false
                       : {
                           checked: internalSelected?.animal_id === animal.animal_id,

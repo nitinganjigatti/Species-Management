@@ -238,7 +238,7 @@ const AddPatientForm = () => {
   useEffect(() => {
     const getAnimalIds = async () => {
       try {
-        await getAnimalMedicalIds(selectedAnimal?.animal_id).then(res => {
+        await getAnimalMedicalIds(selectedAnimal?.animal_id, { for_hospital: 1 }).then(res => {
           if (res?.success === true) {
             setMedicalId(
               res?.data?.result?.map(item => ({
@@ -306,7 +306,7 @@ const AddPatientForm = () => {
           doctor_id: String(selectedDoctor?.id),
           holding_enclosure_id: String(data?.holdingEnclosure?.value),
           room_id: String(data?.room?.value),
-          admit_date: moment(data?.admission_date).format('YYYY-MM-DD'),
+          admit_date: dayjs(data?.admission_date).format('YYYY-MM-DD'),
           admit_time: dayjs(data?.admission_time).format('HH:mm')
         })
       }
@@ -719,7 +719,7 @@ const AddPatientForm = () => {
                     name={'purposeOfVisit'}
                     errors={errors}
                     sx={{ borderRadius: 1 }}
-                    label={'Enter Enter'}
+                    placeholder={'Enter Reason'}
                     disabled={submitLoader}
                   />
                 </Grid>

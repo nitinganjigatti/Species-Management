@@ -138,7 +138,8 @@ const MedicinePrescriptionCard = ({
   isSkipLoading = false,
   selectedMedications,
   isStopMedicineLoading,
-  setSelectedMedications
+  setSelectedMedications,
+  onRestartMedicine
 }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -380,15 +381,7 @@ const MedicinePrescriptionCard = ({
   }
 
   const handleRestartMedicine = async () => {
-    const today = new Date().toISOString().split('T')[0]
-    router.push({
-      pathname: `/hospital/inpatient/${id}/schedule-prescription`,
-      query: {
-        fromPage: 'prescriptionDetail',
-        date: date ? date : today,
-        prescriptionId: medicineData?.prescription_id
-      }
-    })
+    onRestartMedicine()
   }
 
   const renderDosageEntry = entry => (

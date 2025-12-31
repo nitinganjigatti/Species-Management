@@ -35,9 +35,9 @@ const HospitalAnalytics = ({ disabled = false }) => {
         }}
       >
         <CardContent sx={{ p: 4, mr: { md: '80px' } }}>
-          <Grid container spacing={4} alignItems='center' justifyContent='space-between'>
+          <Grid container spacing={2} alignItems='center' justifyContent='space-between'>
             {/* Hospital Info Section */}
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={6}>
               <Box
                 sx={{
                   display: 'flex',

@@ -49,7 +49,23 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelet
 
           {data?.in_transit === '1' ? (
             <Box>
-              <MedicalIdChip medId='In Transit' backgroundColor={theme.palette.customColors.mdAntzNeutral} />
+              <MedicalIdChip
+                medId='In Transit'
+                backgroundColor={theme.palette.customColors.TertiaryContainer}
+                fontWeight={400}
+                textColor={theme.palette.customColors.OnSurfaceVariant}
+              />
+            </Box>
+          ) : null}
+
+          {data?.is_hospitalized === '1' ? (
+            <Box>
+              <MedicalIdChip
+                medId='Hospitalized'
+                backgroundColor={theme.palette.customColors.addPrimary}
+                fontWeight={400}
+                textColor={theme.palette.customColors.OnPrimary}
+              />
             </Box>
           ) : null}
 

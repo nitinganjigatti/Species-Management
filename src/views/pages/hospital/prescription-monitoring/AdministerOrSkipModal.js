@@ -451,7 +451,6 @@ const AdministerOrSkipSidesheet = ({
                       format='hh:mm A'
                       sx={{ backgroundColor: theme.palette.customColors.Surface, ...commonFieldStyles }}
                       error={errors.time}
-
                       // disabled={disableTimeField}
                       minTime={slotStart}
                       maxTime={slotEnd}
@@ -554,7 +553,6 @@ const AdministerOrSkipSidesheet = ({
 
                               <Grid size={{ xs: 12 }}>
                                 <ControlledTextArea
-                                  label='Notes'
                                   name='notes'
                                   control={control}
                                   errors={errors}
@@ -629,7 +627,6 @@ const AdministerOrSkipSidesheet = ({
                       {/* Reason for Skip Section */}
                       <Grid size={{ xs: 12 }}>
                         <ControlledTextArea
-                          label='Reason For Skip'
                           name='skipReason'
                           control={control}
                           errors={errors}

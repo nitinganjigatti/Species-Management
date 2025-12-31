@@ -7,11 +7,13 @@ import {
   InputAdornment,
   Typography,
   CircularProgress,
-  IconButton
+  IconButton,
+  Skeleton
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
+import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentListShimmer'
 
 export default function SymptomsList({
   symptoms,
@@ -23,7 +25,13 @@ export default function SymptomsList({
   handleClearSearch,
   handleScroll,
   loading,
-  searching
+  searching,
+  isTabsLoading,
+  tabOptions,
+  currentTab,
+  handleTabChange,
+  symptomsCount,
+  hasMore
 }) {
   const theme = useTheme()
 
@@ -33,7 +41,7 @@ export default function SymptomsList({
         placeholder='Search'
         fullWidth
         size='small'
-        sx={{ mb: 2, borderRadius: '8px' }}
+        sx={{ mb: 3, borderRadius: '8px' }}
         value={searchQuery}
         onChange={handleSearchChange}
         slotProps={{
@@ -54,7 +62,64 @@ export default function SymptomsList({
         }}
       />
 
-      <Typography
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box
+          sx={{
+            flex: '1 1 auto',
+            minWidth: 0,
+            overflowX: 'auto',
+            scrollbarColor: 'transparent transparent',
+            columnGap: 4
+          }}
+        >
+          <Box sx={{ display: 'inline-flex', gap: 3, pr: 1, alignItems: 'center' }}>
+            {isTabsLoading
+              ? Array.from(new Array(4)).map((_, index) => (
+                  <Skeleton
+                    key={index}
+                    variant='rounded'
+                    width={120}
+                    height={40}
+                    sx={{ flexShrink: 0, borderRadius: '8px' }}
+                  />
+                ))
+              : tabOptions?.map(tab => (
+                  <Box
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab?.category, tab?.id)}
+                    sx={{
+                      flexShrink: 0,
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      px: '16px',
+                      py: '8px',
+                      borderRadius: '8px',
+                      backgroundColor:
+                        currentTab === tab?.category
+                          ? theme.palette.secondary.dark
+                          : theme.palette.customColors.mdAntzNeutral,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color:
+                          currentTab === tab?.category
+                            ? theme.palette.primary.contrastText
+                            : theme.palette.customColors.neutralPrimary,
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {`${tab?.category} - ${tab?.child_count}`}
+                    </Typography>
+                  </Box>
+                ))}
+          </Box>
+        </Box>
+      </Box>
+
+      <Box
         sx={{
           color: theme.palette.customColors.deepDark,
           fontSize: '12px',
@@ -62,17 +127,18 @@ export default function SymptomsList({
           p: 3.7,
           borderRadius: '4px',
           mt: 3,
-          background: theme.palette.customColors.mdAntzNeutral
+          background: theme.palette.customColors.mdAntzNeutral,
+          display: 'flex',
+          alignItems: 'center'
         }}
       >
-        SYMPTOMS
-      </Typography>
+        <Box sx={{ flex: 1 }}>SYMPTOMS</Box>
+        <Box sx={{ minWidth: '177px', textAlign: 'left' }}>TYPE</Box>
+      </Box>
 
       <Box sx={{ maxHeight: 500, overflowY: 'auto', mt: 0 }} onScroll={handleScroll}>
         {searching ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-            <CircularProgress />
-          </Box>
+          <ClinicalAssessmentListShimmer rows={8} />
         ) : symptoms.length === 0 && !loading ? (
           <Box
             sx={{
@@ -131,6 +197,18 @@ export default function SymptomsList({
                     }
                   }}
                 />
+                <Typography
+                  sx={{
+                    width: '200px',
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    pl: 4,
+                    pr: 2
+                  }}
+                >
+                  {symptom.category_name}
+                </Typography>
               </Box>
             )
           })
@@ -139,6 +217,14 @@ export default function SymptomsList({
         {loading && !searching && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
             <CircularProgress size={24} />
+          </Box>
+        )}
+
+        {!hasMore && !loading && symptoms?.length > 0 && (
+          <Box sx={{ textAlign: 'center', py: 2 }}>
+            <Typography variant='body2' color='textSecondary'>
+              All symptoms loaded ({symptoms?.length} of {symptomsCount})
+            </Typography>
           </Box>
         )}
       </Box>
