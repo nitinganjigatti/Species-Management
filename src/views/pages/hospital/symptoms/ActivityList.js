@@ -14,6 +14,7 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
 
   const formatDurationUnit = (value, unit) => {
     if (!unit) return ''
+
     return Number(value) === 1 || Number(value) === 0 ? unit.replace(/s$/i, '') : unit
   }
 
@@ -104,6 +105,36 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                               }}
                             >
                               {activity?.oldRecord && '→'} {Utility.capitalizeFirstLetter(activity.newRecord)}
+                            </Typography>
+                          )}
+                        </Box>
+                      )}
+
+                      {activity?.isSystemGenerated && (activity?.oldPrognosis || activity?.newPrognosis) && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
+                          <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
+                            Prognosis :{' '}
+                          </Typography>
+                          {activity?.oldPrognosis && (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: theme.palette.customColors.neutralSecondary,
+                                fontWeight: 600
+                              }}
+                            >
+                              {Utility.capitalizeFirstLetter(activity?.oldPrognosis)}
+                            </Typography>
+                          )}
+                          {activity?.newPrognosis && (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: theme.palette.customColors.OnSurfaceVarient,
+                                fontWeight: 600
+                              }}
+                            >
+                              {activity?.oldPrognosis && '→'} {Utility.capitalizeFirstLetter(activity.newPrognosis)}
                             </Typography>
                           )}
                         </Box>
