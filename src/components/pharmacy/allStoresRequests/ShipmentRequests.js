@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Box, Tooltip, Grid, Card, Button, Typography, FormControl, MenuItem, Select, InputLabel } from '@mui/material'
+import { Box, Tooltip, Grid, Card, Button, Typography} from '@mui/material'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
@@ -22,7 +22,7 @@ import { deleteFulfillItem } from 'src/lib/api/pharmacy/getRequestItemsList'
 import toast from 'react-hot-toast'
 import { LoadingButton } from '@mui/lab'
 import MUISelect from 'src/views/forms/form-fields/MUISelect'
-import { justifyContent } from '@mui/system'
+
 
 export default function ShipmentRequests({ updateUrlParams }) {
   const { selectedPharmacy } = usePharmacyContext()
@@ -449,12 +449,12 @@ export default function ShipmentRequests({ updateUrlParams }) {
         container
         spacing={3}
         sx={{
-          mt: 6
+          mt: 4
         }}
       >
-        <Grid item xs={12} sm={6} md={6}>
+        <Grid item size = {{xs: 12, sm: 'auto'}}>
           <TabLists
-            variant='scrollable'
+            // variant='scrollable'
             allowScrollButtonsMobile
             onChange={(event, newValue) => {
               setShipmentTab(newValue)
@@ -462,13 +462,10 @@ export default function ShipmentRequests({ updateUrlParams }) {
                 subTab: newValue
               })
             }}
-            sx={{
-              height: 'auto',
+            sx={{    
               display: 'flex',
-              flexDirection: { xs: 'column', md: 'row', sm: 'row' },
-              alignItems: 'center',
-
-              justifyContent: { xs: 'flex-start', md: 'flex-start', lg: 'space-between' }
+              flexDirection: 'row',
+              alignItems: 'center',           
             }}
           >
             {selectedPharmacy.type === 'local' ? null : (
@@ -479,9 +476,9 @@ export default function ShipmentRequests({ updateUrlParams }) {
         </Grid>
         <Grid
           item
-          xs={12}
-          sm={6}
-          md={6}
+          size = {{
+            xs: 12, sm: 12
+          }}
           sx={{
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row', md: 'row' },
@@ -494,21 +491,6 @@ export default function ShipmentRequests({ updateUrlParams }) {
         >
           {shipmentTab === 'Ready To Ship' && (
             <Grid item size={{ xs: 12, sm: 6 }}>
-              {/* <FormControl sx={{ width: { xs: '100%', sm: '250px' } }} size='small'>
-                <InputLabel sx={{ py: '2px' }}>Priority</InputLabel>
-                <Select
-                  value={priority}
-                  label='Priority'
-                  onChange={e => {
-                    setPriority(e.target.value)
-                    setPaginationModel({ page: 0, pageSize: 50 })
-                  }}
-                >
-                  <MenuItem value='all'>All</MenuItem>
-                  <MenuItem value='high'>High</MenuItem>
-                  <MenuItem value='emergency'>Emergency</MenuItem>
-                </Select>
-              </FormControl> */}
               <MUISelect
                 sx={{ width: { xs: '100%', sm: '250px' } }}
                 value={priority}
@@ -648,7 +630,14 @@ export default function ShipmentRequests({ updateUrlParams }) {
           padding: '0px !important'
         }}
       >
-        <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
+        <Card
+          sx={{
+            mb: 6,
+            minWidth: '100%',
+  
+            boxShadow: 'none !important'
+          }}
+        >
           <ShippedItems updateUrlParams={updateUrlParams} setTotalShippedCounts={setTotalShippedCounts} />
         </Card>
       </TabPanel>
