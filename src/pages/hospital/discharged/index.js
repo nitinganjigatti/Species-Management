@@ -1,8 +1,20 @@
 import { useTheme } from '@emotion/react'
-import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Select, Tooltip, MenuItem } from '@mui/material'
+import {
+  Breadcrumbs,
+  Box,
+  Typography,
+  Card,
+  CardHeader,
+  Grid,
+  Select,
+  Tooltip,
+  MenuItem,
+  IconButton,
+  CircularProgress
+} from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { differenceInDays } from 'date-fns'
-import { debounce } from 'lodash'
+import { debounce, set } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
@@ -19,6 +31,9 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
+import Icon from 'src/@core/components/icon'
+import { getPatientDischargeSummary } from 'src/lib/api/hospital/inpatient'
+import Toaster from 'src/components/Toaster'
 
 const HospitalDischarged = () => {
   const theme = useTheme()
@@ -31,6 +46,7 @@ const HospitalDischarged = () => {
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
   const [filterDate, setFilterDate] = useState({})
+  const [downloadLoading, setDownloadLoading] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -140,6 +156,24 @@ const HospitalDischarged = () => {
   const handleSearchClear = () => {
     setSearchValue('')
     debouncedSearch('')
+  }
+
+  const handleDownloadDischargeSummary = async row => {
+    console.log('Download Discharge Summary for row:', row)
+    setDownloadLoading(true)
+    try {
+      const response = await getPatientDischargeSummary({ hospital_case_id: row?.id })
+      if (response?.success) {
+        console.log(response?.data?.download_url, 'Discharge Summary')
+
+        Utility.downloadFileFromURL(response?.data?.download_url)
+        Toaster({ type: 'success', message: response?.message })
+        setDownloadLoading(false)
+      }
+    } catch (error) {
+      console.log('Error downloading discharge summary:', error)
+      setDownloadLoading(false)
+    }
   }
 
   const getSlNo = index => (filters.page - 1) * filters.limit + index + 1
@@ -321,13 +355,31 @@ const HospitalDischarged = () => {
         </>
       )
     }
+
+    // {
+    //   width: 100,
+    //   miWidth: 20,
+    //   field: 'Action',
+    //   sortable: false,
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <Tooltip title='Download Discharge Summary'>
+    //       <IconButton onClick={() => handleDownloadDischargeSummary(params?.row)} disabled={downloadLoading}>
+    //         {downloadLoading ? <CircularProgress size={24} /> : <Icon icon='hugeicons:download-square-02' />}
+    //       </IconButton>
+    //     </Tooltip>
+    //   )
+    // }
   ]
 
-  const handleRowClick = params =>
-    router.push({
-      pathname: `/hospital/discharged/${params.row.id}`,
-      query: { animal_id: params.row.animal_id, medical_record_id: params.row.medical_record_id }
-    })
+  const handleRowClick = params => {
+    if (params?.field !== 'action') {
+      router.push({
+        pathname: `/hospital/discharged/${params.row.id}`,
+        query: { animal_id: params.row.animal_id, medical_record_id: params.row.medical_record_id }
+      })
+    }
+  }
 
   return (
     <>

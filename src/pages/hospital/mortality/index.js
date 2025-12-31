@@ -1,5 +1,17 @@
 import { useTheme } from '@emotion/react'
-import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem } from '@mui/material'
+import {
+  Breadcrumbs,
+  Box,
+  Typography,
+  Card,
+  CardHeader,
+  Grid,
+  Button,
+  Select,
+  Tooltip,
+  MenuItem,
+  IconButton
+} from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
@@ -18,6 +30,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
+import Icon from 'src/@core/components/icon'
 
 const HospitalMortality = () => {
   const theme = useTheme()
@@ -368,6 +381,21 @@ const HospitalMortality = () => {
         </>
       )
     }
+
+    // {
+    //   width: 100,
+    //   miWidth: 20,
+    //   field: 'Action',
+    //   sortable: false,
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <Tooltip title='Download Discharge Summary'>
+    //       <IconButton>
+    //         <Icon icon='hugeicons:download-square-02' />
+    //       </IconButton>
+    //     </Tooltip>
+    //   )
+    // }
   ]
 
   const handleRowClick = params =>

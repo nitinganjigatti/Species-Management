@@ -16,6 +16,8 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
+import Icon from 'src/@core/components/icon'
+import IconButton from 'src/views/pages/pharmacy/dispatch/IconButton'
 
 const HospitalFollowUp = () => {
   const theme = useTheme()
@@ -273,6 +275,21 @@ const HospitalFollowUp = () => {
         </>
       )
     }
+
+    // {
+    //   width: 100,
+    //   miWidth: 20,
+    //   field: 'Action',
+    //   sortable: false,
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <Tooltip title='Download Discharge Summary'>
+    //       <IconButton>
+    //         <Icon icon='hugeicons:download-square-02' />
+    //       </IconButton>
+    //     </Tooltip>
+    //   )
+    // }
   ]
 
   const handleRowClick = params =>

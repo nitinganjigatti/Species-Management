@@ -1,13 +1,4 @@
-import {
-  Button,
-  Divider,
-  Tooltip,
-  Typography,
-  useTheme,
-  useMediaQuery,
-  CircularProgress,
-  Skeleton
-} from '@mui/material'
+import { Tooltip, Typography, useTheme, CircularProgress, Skeleton } from '@mui/material'
 import { Box, Grid } from '@mui/system'
 import React, { useEffect, useState } from 'react'
 import MoreMediaListing from 'src/components/MoreMediaListing'
@@ -25,7 +16,14 @@ import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 
 const STORAGE_KEY = 'medical_record_data'
 
-const InpatientOverview = ({ overviewData, refetchPatient }) => {
+const InpatientOverview = ({
+  overviewData,
+  refetchPatient,
+  hospitalVisit,
+  patientVisitFetching,
+  visitFilters,
+  setVisitFilters
+}) => {
   const router = useRouter()
   const theme = useTheme()
   const { data } = useDynamicStateContext()
@@ -38,41 +36,41 @@ const InpatientOverview = ({ overviewData, refetchPatient }) => {
 
   const [openDrawer, setOpenDrawer] = useState(false)
 
-  const [filters, setFilters] = useState({
-    page: 1,
-    limit: 10
-  })
+  // const [filters, setFilters] = useState({
+  //   page: 1,
+  //   limit: 10
+  // })
 
   useEffect(() => {
     refetchPatient()
   }, [refetchPatient])
 
-  useEffect(() => {
-    const { page = '1', limit = '10' } = router.query
+  // useEffect(() => {
+  //   const { page = '1', limit = '10' } = router.query
 
-    setFilters({
-      page: parseInt(page),
-      limit: parseInt(limit)
-    })
-  }, [router.query])
+  //   setFilters({
+  //     page: parseInt(page),
+  //     limit: parseInt(limit)
+  //   })
+  // }, [router.query])
 
-  const { data: hospitalVisit, isFetching } = useQuery({
-    queryKey: ['animal-total-hospital-visit', filters],
-    queryFn: () =>
-      getAnimalTotalHospitalVisits({
-        page_no: filters?.page,
-        limit: filters?.limit,
-        animal_id: animal_id,
-        hospital_id: selectedHospital?.id,
-        hospital_case_id: id
-      }),
-    enabled: !!(animal_id && selectedHospital?.id),
-    staleTime: 0,
-    cacheTime: 0,
-    refetchOnMount: true
-  })
+  // const { data: hospitalVisit, isFetching } = useQuery({
+  //   queryKey: ['animal-total-hospital-visit', filters],
+  //   queryFn: () =>
+  //     getAnimalTotalHospitalVisits({
+  //       page_no: filters?.page,
+  //       limit: filters?.limit,
+  //       animal_id: animal_id,
+  //       hospital_id: selectedHospital?.id,
+  //       hospital_case_id: id
+  //     }),
+  //   enabled: !!(animal_id && selectedHospital?.id),
+  //   staleTime: 0,
+  //   cacheTime: 0,
+  //   refetchOnMount: true
+  // })
 
-  const total = hospitalVisit?.data?.total_records || 0
+  const visitTotal = hospitalVisit?.data?.total_records || 0
   const rows = hospitalVisit?.data?.data || []
 
   const updateUrlParams = updatedFilters => {
@@ -99,15 +97,15 @@ const InpatientOverview = ({ overviewData, refetchPatient }) => {
 
   const handlePaginationModelChange = model => {
     const updated = {
-      ...filters,
+      ...visitFilters,
       page: model.page + 1,
       limit: model.pageSize
     }
-    setFilters(updated)
+    setVisitFilters(updated)
     updateUrlParams(updated)
   }
 
-  const getSlNo = index => (filters.page - 1) * filters.limit + index + 1
+  const getSlNo = index => (visitFilters.page - 1) * visitFilters.limit + index + 1
 
   const indexedRows = rows.map((row, index) => ({
     ...row,
@@ -430,9 +428,9 @@ const InpatientOverview = ({ overviewData, refetchPatient }) => {
               <CommonTable
                 columns={columns}
                 indexedRows={indexedRows}
-                total={total}
-                loading={isFetching}
-                paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
+                total={visitTotal}
+                loading={patientVisitFetching}
+                paginationModel={{ page: visitFilters.page - 1, pageSize: visitFilters.limit }}
                 setPaginationModel={handlePaginationModelChange}
                 getRowHeight={() => 'auto'}
                 externalTableStyle={{
