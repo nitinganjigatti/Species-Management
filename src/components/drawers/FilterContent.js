@@ -49,18 +49,45 @@ const FilterContent = ({
             </>
           )}
           <Box sx={{ display: 'flex', gap: 3, flexDirection: 'column' }}>
-            {items?.map(item => (
-              <Box key={item.value} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Checkbox
-                  checked={selectedOptions?.includes(item.value)}
-                  onChange={() => onOptionChange(item.value, menuName)}
-                />
-                {item.image && <ImageWithShimmer src={item.image} alt={item.label} />}
-                <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.Outline }}>
-                  {item.label}
-                </Typography>
-              </Box>
-            ))}
+            {items?.map(item => {
+              const isSelected = selectedOptions?.includes(item.value)
+              const handleToggle = () => onOptionChange(item.value, menuName)
+
+              return (
+                <Box
+                  key={item.value}
+                  onClick={handleToggle}
+                  onKeyDown={event => {
+                    if (event.target !== event.currentTarget) return
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      handleToggle()
+                    }
+                  }}
+                  tabIndex={0}
+                  role='button'
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Checkbox
+                    checked={isSelected}
+                    onClick={event => {
+                      event.stopPropagation()
+                    }}
+                    onChange={() => handleToggle()}
+                    inputProps={{ 'aria-label': `${menuName} option` }}
+                  />
+                  {item.image && <ImageWithShimmer src={item.image} alt={item.label} />}
+                  <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.Outline }}>
+                    {item.label}
+                  </Typography>
+                </Box>
+              )
+            })}
           </Box>
         </Box>
       )}

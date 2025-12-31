@@ -7,6 +7,17 @@ import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets
 
 const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelete, radio = false, sx }) => {
   const theme = useTheme()
+  const interactive = Boolean(radio)
+  const handleSelect = () => {
+    radio?.onChange?.()
+  }
+  const handleKeyDown = event => {
+    if (event.target !== event.currentTarget) return
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      handleSelect()
+    }
+  }
 
   return (
     <>
@@ -23,8 +34,13 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelet
             alignItems: 'center',
             gap: '10px',
             border: radio?.checked ? `1px solid #37BD69` : 'none',
+            cursor: interactive ? 'pointer' : 'default',
             ...sx
           }}
+          onClick={interactive ? handleSelect : undefined}
+          onKeyDown={interactive ? handleKeyDown : undefined}
+          tabIndex={interactive ? 0 : undefined}
+          role={interactive ? 'button' : undefined}
         >
           {/* Animal Card Content */}
           <AnimalCard data={data} size={size} animal={animal} />
@@ -41,7 +57,13 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelet
             <Box>
               <Radio
                 checked={radio?.checked}
-                onChange={radio?.onChange}
+                onChange={event => {
+                  event.stopPropagation()
+                  radio?.onChange?.()
+                }}
+                onClick={event => {
+                  event.stopPropagation()
+                }}
                 sx={{
                   width: 24,
                   height: 24,
