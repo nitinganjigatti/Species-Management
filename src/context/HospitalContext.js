@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
+import { read, write } from 'src/lib/windows/utils'
 
 const HospitalContext = createContext()
 
@@ -7,10 +8,22 @@ export const HospitalProvider = ({ children }) => {
   const [hospitals, setHospitals] = useState([])
   const [hospitalStats, setHospitalStats] = useState(null)
   const [isHospitalStatsLoading, setHospitalStatsLoading] = useState(false)
+  const [hasFetchedStatsForCurrentHospital, setHasFetchedStatsForCurrentHospital] = useState(false)
+  const [isHospitalAccessChecked, setIsHospitalAccessChecked] = useState(false)
 
-  const updateSelectedHospital = (hospital) => {
+  const updateSelectedHospital = hospital => {
     setSelectedHospital(hospital)
+    write('selectedHospital', hospital)
+
+    // Reset the fetched stats flag when hospital changes
+    setHasFetchedStatsForCurrentHospital(false)
   }
+
+  useEffect(() => {
+    if (!selectedHospital && read('selectedHospital')) {
+      setSelectedHospital(read('selectedHospital'))
+    }
+  }, [])
 
   const updateHospitals = (newHospitals, append = false) => {
     if (append) {
@@ -20,14 +33,19 @@ export const HospitalProvider = ({ children }) => {
     }
   }
 
-  const updateHospitalStats = (stats) => {
+  const updateHospitalStats = stats => {
     setHospitalStats(stats)
+  }
+
+  const markStatsAsFetched = () => {
+    setHasFetchedStatsForCurrentHospital(true)
   }
 
   const clearHospitalData = () => {
     setSelectedHospital(null)
     setHospitals([])
     setHospitalStats(null)
+    setHasFetchedStatsForCurrentHospital(false)
   }
 
   const value = {
@@ -37,9 +55,13 @@ export const HospitalProvider = ({ children }) => {
     updateSelectedHospital,
     updateHospitals,
     updateHospitalStats,
+    markStatsAsFetched,
     clearHospitalData,
     isHospitalStatsLoading,
-    setHospitalStatsLoading
+    setHospitalStatsLoading,
+    hasFetchedStatsForCurrentHospital,
+    isHospitalAccessChecked,
+    setIsHospitalAccessChecked
   }
 
   return <HospitalContext.Provider value={value}>{children}</HospitalContext.Provider>
@@ -50,7 +72,7 @@ export const useHospital = () => {
   if (!context) {
     throw new Error('useHospital must be used within a HospitalProvider')
   }
-  
+
   return context
 }
 

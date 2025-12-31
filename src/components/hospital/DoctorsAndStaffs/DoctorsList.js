@@ -8,14 +8,12 @@ import {
   CardHeader,
   Grid,
   IconButton,
-  MenuItem,
-  Select,
   styled,
   Typography,
   useMediaQuery,
   useTheme
 } from '@mui/material'
-import React, { useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Add as AddIcon } from '@mui/icons-material'
 import Search from 'src/views/utility/Search'
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
@@ -23,105 +21,93 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import Icon from 'src/@core/components/icon'
 import AddStaffsDrawer from './AddStaffsDrawer'
-
-const doctorsData = [
-  {
-    id: 1,
-    doctor_id: 'A001',
-    name: 'Dr. Aarav Sharma',
-    designation: 'Chief Veterinarian',
-    specialty: 'Small Mammals',
-    assigned_patients: 3,
-    phone: '+91-9876543210'
-  },
-  {
-    id: 2,
-    doctor_id: 'A002',
-    name: 'Dr. Priya Singh',
-    designation: 'Chief Veterinarian',
-    specialty: 'Rodents and Rabbits',
-    assigned_patients: 1,
-    phone: '+91-9123456780'
-  },
-  {
-    id: 3,
-    doctor_id: 'A003',
-    name: 'Dr. Neha Gupta',
-    designation: 'Veterinarian',
-    specialty: 'Furry Companions',
-    assigned_patients: 3,
-    phone: '+91-9988776655'
-  },
-  {
-    id: 4,
-    doctor_id: 'A004',
-    name: 'Dr. Rohan Mehta',
-    designation: 'Veterinarian',
-    specialty: 'Tiny Creatures',
-    assigned_patients: 2,
-    phone: '+91-9012345678'
-  },
-  {
-    id: 5,
-    doctor_id: 'A005',
-    name: 'Dr. Kavya Iyer',
-    designation: 'Veterinarian',
-    specialty: 'Little Mammals',
-    assigned_patients: 3,
-    phone: '+91-9098765432'
-  },
-  {
-    id: 6,
-    doctor_id: 'A006',
-    name: 'Dr. Vikram Joshi',
-    designation: 'Anaesthetist',
-    specialty: 'Pocket Pets',
-    assigned_patients: 2,
-    phone: '+91-9345678901'
-  },
-  {
-    id: 7,
-    doctor_id: 'A007',
-    name: 'Dr. Ananya Nair',
-    designation: 'Veterinarian',
-    specialty: 'Compact Mammals',
-    assigned_patients: 1,
-    phone: '+91-9456789012'
-  },
-  {
-    id: 8,
-    doctor_id: 'A008',
-    name: 'Dr. Arjun Rao',
-    designation: 'Para Veterinarian',
-    specialty: 'Miniature Mammals',
-    assigned_patients: 4,
-    phone: '+91-9567890123'
-  },
-  {
-    id: 9,
-    doctor_id: 'A009',
-    name: 'Dr. Sneha Desai',
-    designation: 'Para Veterinarian',
-    specialty: 'Small Animal Species',
-    assigned_patients: 1,
-    phone: '+91-9678901234'
-  }
-]
+import Toaster from 'src/components/Toaster'
+import { getHospitalStaff } from 'src/lib/api/hospital/staff'
+import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
+import { useHospital } from 'src/context/HospitalContext'
 
 const DoctorsList = () => {
   const theme = useTheme()
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
+  const { selectedHospital } = useHospital()
 
   const [searchValue, setSearchValue] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [openDrawer, setOpenDrawer] = useState(false)
-  const [rows, setRows] = useState(doctorsData)
+  const [rows, setRows] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(false)
+
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10
+  })
+
+  // debounce search to avoid excessive API calls
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchValue)
+      setPaginationModel(prev => (prev.page === 0 ? prev : { ...prev, page: 0 }))
+    }, 500)
+
+    return () => clearTimeout(handler)
+  }, [searchValue])
+
+  const fetchHospitalStaff = useCallback(async () => {
+    setLoading(true)
+
+    try {
+      const response = await getHospitalStaff({
+        params: {
+          page_no: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          q: debouncedSearch,
+          hospital_id: selectedHospital?.id
+        }
+      })
+
+      if (response?.success) {
+        setRows(response?.data?.records || [])
+        setTotal(response?.data?.total || 0)
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to load hospital staff' })
+        setRows([])
+        setTotal(0)
+      }
+    } catch (error) {
+      console.error('Error fetching hospital staff:', error?.message)
+      Toaster({
+        type: 'error',
+        message: error?.response?.data?.message || error?.message || 'Failed to load hospital staff'
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [paginationModel.page, paginationModel.pageSize, debouncedSearch, selectedHospital?.id])
+
+  useEffect(() => {
+    fetchHospitalStaff()
+  }, [fetchHospitalStaff])
+
+  const indexedRows = useMemo(() => {
+    return rows.map((row, index) => {
+      const phone = row?.user_mobile_number ? `${row?.user_country_code || ''}${row?.user_mobile_number}` : ''
+
+      return {
+        ...row,
+        id: row?.user_id || `${index}`,
+        sl_no: paginationModel.page * paginationModel.pageSize + index + 1,
+        phone
+      }
+    })
+  }, [rows, paginationModel.page, paginationModel.pageSize])
 
   const columns = [
     {
       width: 80,
       minWidth: 20,
-      field: 'id',
+      field: 'sl_no',
       sortable: false,
       headerName: 'SL.NO',
       align: 'left',
@@ -129,48 +115,49 @@ const DoctorsList = () => {
 
       renderCell: params => (
         <Box>
-          <StyledTypography paddingLeft={1}>{params.row.id + '.'}</StyledTypography>
+          <StyledTypography paddingLeft={1}>{params.row.sl_no ? `${params.row.sl_no}.` : '-'}</StyledTypography>
         </Box>
       )
     },
     {
-      minWidth: 200,
-      field: 'name',
+      minWidth: 250,
+      field: 'user_full_name',
       sortable: false,
       headerName: 'Doctors Name',
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
         <UserAvatarDetails
-          user_name={params.row.name}
-          role={params.row.doctor_id}
-          profile_image={params.row.default_icon}
+          user_name={params.row.user_full_name}
+          role={params.row.role_name}
+          profile_image={params.row.user_profile_pic}
           size='medium'
         />
       )
     },
     {
-      minWidth: 200,
+      minWidth: 250,
       field: 'designation',
       sortable: false,
       headerName: 'Designation',
       align: 'left',
       headerAlign: 'left',
-      renderCell: params => <StyledTypography paddingLeft={1}>{params.row?.designation}</StyledTypography>
+      renderCell: params => <StyledTypography paddingLeft={1}>{params.row?.designation || '-'}</StyledTypography>
     },
-    {
-      minWidth: 200,
-      field: 'specialty',
-      sortable: false,
-      headerName: 'Specialty',
-      align: 'left',
-      headerAlign: 'left',
-      renderCell: params => (
-        <StyledTypography paddingLeft={1} fontSize={'14px'}>
-          {params.row.specialty}
-        </StyledTypography>
-      )
-    },
+
+    // {
+    //   minWidth: 250,
+    //   field: 'specialty',
+    //   sortable: false,
+    //   headerName: 'Specialty',
+    //   align: 'left',
+    //   headerAlign: 'left',
+    //   renderCell: params => (
+    //     <StyledTypography paddingLeft={1} fontSize={'14px'}>
+    //       {params.row.specialty || '-'}
+    //     </StyledTypography>
+    //   )
+    // },
     {
       minWidth: 180,
       field: 'assigned_patients',
@@ -178,7 +165,7 @@ const DoctorsList = () => {
       headerName: 'Assigned Patients',
       align: 'left',
       headerAlign: 'left',
-      renderCell: params => <StyledTypography paddingLeft={1}>{params.row.assigned_patients}</StyledTypography>
+      renderCell: params => <StyledTypography paddingLeft={1}>{params.row.assigned_patients ?? '-'}</StyledTypography>
     },
     {
       minWidth: 180,
@@ -239,20 +226,21 @@ const DoctorsList = () => {
           <Typography sx={{ fontSize: '14px', fontWeight: 500, cursor: 'default' }}>{phoneNumber || '-'}</Typography>
         )
       }
-    },
-    {
-      minWidth: 100,
-      field: 'actions',
-      sortable: false,
-      headerName: '',
-      align: 'right',
-      headerAlign: 'right',
-      renderCell: params => (
-        <IconButton>
-          <Icon icon={'tabler:dots-vertical'} />
-        </IconButton>
-      )
     }
+
+    // {
+    //   minWidth: 100,
+    //   field: 'actions',
+    //   sortable: false,
+    //   headerName: '',
+    //   align: 'right',
+    //   headerAlign: 'right',
+    //   renderCell: params => (
+    //     <IconButton>
+    //       <Icon icon={'tabler:dots-vertical'} />
+    //     </IconButton>
+    //   )
+    // }
   ]
 
   const headerTitle = (
@@ -274,10 +262,14 @@ const DoctorsList = () => {
           <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
           <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Doctors And Staffs</Typography>
         </Breadcrumbs>
-        <Box></Box>
+        <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>
-            <CardHeader title={headerTitle} action={actionHeader} />
+            <CardHeader
+              title={headerTitle}
+
+              // action={actionHeader}
+            />
             <CardContent>
               <Box
                 sx={{
@@ -288,8 +280,14 @@ const DoctorsList = () => {
                   gap: 3
                 }}
               >
-                <Search sx={{ width: '100%' }} />
-                <Box
+                <Search
+                  sx={{ width: '100%' }}
+                  value={searchValue}
+                  onChange={event => setSearchValue(event.target.value)}
+                  onClear={() => setSearchValue('')}
+                  placeholder='Search staff'
+                />
+                {/* <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
@@ -298,31 +296,6 @@ const DoctorsList = () => {
                     width: '100%'
                   }}
                 >
-                  <Select
-                    size='small'
-                    value={''}
-                    displayEmpty
-                    sx={{
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.customColors.Outline
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.customColors.Outline
-                      }
-                    }}
-                    MenuProps={{
-                      PaperProps: {
-                        style: {
-                          maxHeight: 300
-                        }
-                      }
-                    }}
-                  >
-                    <MenuItem value='' disabled>
-                      All case type
-                    </MenuItem>
-                  </Select>
-
                   <Button
                     variant='outlined'
                     sx={{
@@ -341,10 +314,17 @@ const DoctorsList = () => {
                   >
                     Filter
                   </Button>
-                </Box>
+                </Box> */}
               </Box>
               <Grid>
-                <CommonTable columns={columns} indexedRows={rows} />
+                <CommonTable
+                  columns={columns}
+                  indexedRows={indexedRows}
+                  total={total}
+                  paginationModel={paginationModel}
+                  setPaginationModel={setPaginationModel}
+                  loading={loading}
+                />
               </Grid>
             </CardContent>
           </Card>

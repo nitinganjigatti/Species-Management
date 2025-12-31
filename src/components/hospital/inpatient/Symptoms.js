@@ -8,13 +8,21 @@ import { useTheme } from '@mui/material/styles'
 import { getSymptomsList } from 'src/lib/api/hospital/symptoms'
 import SymptomsCard from 'src/views/pages/hospital/inpatient/SymptomsCard'
 import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
 
-const Symptoms = ({ selectedTab, patientData }) => {
+const STORAGE_KEY = 'medical_record_data'
+
+const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
   const router = useRouter()
-  const { id, animal_id } = router.query
+  const { data } = useDynamicStateContext()
+  const { id, isCurrentMedicalRecordOnly } = router.query
+
+  const isDischared = overviewData?.status === 'discharge'
+  const medicalRecordData = data[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
-  const [currentRecordOnly, setCurrentRecordOnly] = useState(false)
+  const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true')
   const [records, setRecords] = useState([])
   const [recordTypeCount, setRecordTypeCount] = useState({})
   const [totalCount, setTotalCount] = useState(0)
@@ -22,6 +30,8 @@ const Symptoms = ({ selectedTab, patientData }) => {
   const [page, setPage] = useState(1)
   const [isFetchingMore, setIsFetchingMore] = useState(false)
 
+  const animalId = medicalRecordData?.animal_id
+  const medicalRecordId = medicalRecordData?.medical_record_id
   const theme = useTheme()
   const observerRef = useRef(null)
 
@@ -39,30 +49,35 @@ const Symptoms = ({ selectedTab, patientData }) => {
 
   const fetchSymptoms = async (query = '', newPage = 1, append = false) => {
     try {
-      if (newPage === 1) setLoading(true)
-      else setIsFetchingMore(true)
+      if (animalId !== undefined) {
+        if (newPage === 1) setLoading(true)
+        else setIsFetchingMore(true)
 
-      const params = {
-        type: tabTypeMap[currentTab],
-        page_no: newPage,
-        limit: 20,
-        medical_type: 'complaint',
-        q: query
-      }
-
-      if (currentRecordOnly && patientData?.medical_record_id) {
-        params.medical_record_id = patientData?.medical_record_id
-      }
-
-      const response = await getSymptomsList(animal_id, params)
-
-      if (response.success === true) {
-        if (newPage > 1 && response?.data?.result?.length === 0) {
-          return
+        const params = {
+          type: tabTypeMap[currentTab],
+          page_no: newPage,
+          limit: 20,
+          medical_type: 'complaint',
+          q: query,
+          hospital_case_id: id
         }
-        setRecords(prevRecords => (append ? [...prevRecords, ...response?.data?.result] : response?.data?.result || []))
-        setRecordTypeCount(response?.data)
-        setTotalCount(response?.data?.total_count || 0)
+
+        if (currentRecordOnly && medicalRecordId) {
+          params.medical_record_id = medicalRecordId
+        }
+
+        const response = await getSymptomsList(animalId, params)
+
+        if (response.success === true) {
+          if (newPage > 1 && response?.data?.result?.length === 0) {
+            return
+          }
+          setRecords(prevRecords =>
+            append ? [...prevRecords, ...response?.data?.result] : response?.data?.result || []
+          )
+          setRecordTypeCount(response?.data)
+          setTotalCount(response?.data?.total_count || 0)
+        }
       }
     } catch (error) {
       console.error('Error fetching symptoms:', error)
@@ -77,7 +92,7 @@ const Symptoms = ({ selectedTab, patientData }) => {
       setPage(1)
       fetchSymptoms(query, 1, false)
     }, 500),
-    [currentTab, patientData, animal_id, currentRecordOnly]
+    [currentTab, patientData, animalId, currentRecordOnly]
   )
 
   const handleTabChange = newValue => {
@@ -96,7 +111,7 @@ const Symptoms = ({ selectedTab, patientData }) => {
         fetchSymptoms('', 1, false)
       }
     }
-  }, [selectedTab, currentTab, searchQuery, currentRecordOnly])
+  }, [selectedTab, currentTab, searchQuery, currentRecordOnly, patientData, animalId])
 
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect()
@@ -127,6 +142,37 @@ const Symptoms = ({ selectedTab, patientData }) => {
 
   const handleSearchClear = () => {
     setSearchQuery('')
+  }
+
+  const handleRouterNavigation = () => {
+    if (category === 'Outpatients') {
+      router.push({
+        pathname: `/hospital/outpatient/${id}/symptoms`
+      })
+    } else {
+      router.push({
+        pathname: `/hospital/inpatient/${id}/symptoms`
+      })
+    }
+  }
+
+  const handleSwitchChange = e => {
+    setPage(1)
+    setRecords([])
+    setCurrentRecordOnly(e.target.checked)
+
+    // Update URL query parameter
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          isCurrentMedicalRecordOnly: e.target.checked
+        }
+      },
+      undefined,
+      { shallow: true }
+    )
   }
 
   return (
@@ -192,48 +238,57 @@ const Symptoms = ({ selectedTab, patientData }) => {
             </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Search value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onClear={handleSearchClear} />
-            <Button
-              variant='contained'
-              startIcon={<AddIcon />}
-              onClick={() =>
-                router.push(
-                  `/hospital/inpatient/${id}/symptoms/?animal_id=${animal_id}&medical_record_id=${patientData?.medical_record_id}`
-                )
-              }
-            >
-              ADD NEW
-            </Button>
-          </Box>
+          {!isDischared && (
+            <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+              <Search value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onClear={handleSearchClear} />
+              <Button variant='contained' startIcon={<AddIcon />} onClick={handleRouterNavigation}>
+                ADD NEW
+              </Button>
+            </Box>
+          )}
         </Box>
 
-        <MUISwitch
-          label='Current Medical Record Only'
-          checked={currentRecordOnly}
-          onChange={e => setCurrentRecordOnly(e.target.checked)}
-          size='small'
-          sx={{ ml: 2.6 }}
-        />
-      </Box>
-
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {loading ? (
-          <Box sx={{ display: 'flex', py: 2 }}>
-            <ClinicalAssessmentShimmer rows={8} />
-          </Box>
-        ) : records?.length === 0 ? (
+        {!loading && (
           <Box
             sx={{
               display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              height: '70%',
-              textAlign: 'center'
+              justifyContent: recordTypeCount?.all !== '0' ? 'flex-start' : 'flex-end',
+              my: recordTypeCount?.all !== '0' ? 0 : 6
             }}
           >
-            <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+            <MUISwitch
+              label='Current Medical Record Only'
+              checked={currentRecordOnly}
+              onChange={handleSwitchChange}
+              size='small'
+              sx={{ ml: 2.6 }}
+            />
+          </Box>
+        )}
+      </Box>
+
+      {/* Empty State */}
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {loading ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', py: 2 }}>
+            <ClinicalAssessmentShimmer count={5} />
+          </Box>
+        ) : !loading && records.length === 0 ? (
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          >
+            <NoMedicalData
+              btnText={'ADD NEW SYMPTOM'}
+              text={'All Added SYMPTOMS Will Appear here'}
+              isDischarged={isDischared}
+              btnAction={handleRouterNavigation}
+            />
           </Box>
         ) : (
           records.map((record, index) => (
@@ -241,9 +296,11 @@ const Symptoms = ({ selectedTab, patientData }) => {
               key={index}
               record={record}
               setPage={setPage}
-              isDifferential={record.type === 'Differential'}
+              isDifferential={record.type === 'Tentative'}
               isResolved={record.status === 'closed'}
               fetchSymptoms={fetchSymptoms}
+              patientData={patientData}
+              isDischared={isDischared}
             />
           ))
         )}
@@ -259,7 +316,7 @@ const Symptoms = ({ selectedTab, patientData }) => {
           {isFetchingMore && <CircularProgress size={24} />}
         </Box>
 
-        {!loading && !isFetchingMore && records?.length >= 1 && (
+        {!loading && !isFetchingMore && records?.length > 10 && (
           <Typography sx={{ textAlign: 'center', color: theme.palette.text.disabled }}>
             No more symptoms to load
           </Typography>

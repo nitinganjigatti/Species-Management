@@ -3,12 +3,31 @@ import { Box, Card, CardContent, Typography, Avatar, Grid, useTheme, CircularPro
 import { useHospital } from 'src/context/HospitalContext'
 import HospitalDropdown from 'src/components/hospital/inpatient/HospitalDropdown'
 
-const HospitalAnalytics = () => {
+// Reusable ShimmerBox Component
+const ShimmerBox = ({ width = '100%', height = '20px', mb = 0, borderRadius = '4px' }) => (
+  <Box
+    sx={{
+      width,
+      height,
+      mb,
+      backgroundColor: theme => theme.palette.grey[300],
+      borderRadius,
+      animation: 'pulse 1.5s ease-in-out infinite',
+      '@keyframes pulse': {
+        '0%': { opacity: 0.6 },
+        '50%': { opacity: 0.8 },
+        '100%': { opacity: 0.6 }
+      }
+    }}
+  />
+)
+
+const HospitalAnalytics = ({ disabled = false }) => {
   const theme = useTheme()
   const { selectedHospital, hospitalStats, isHospitalStatsLoading } = useHospital()
 
   return (
-    <Box sx={{ maxWidth: 1200, margin: '0 auto' }}>
+    <Box sx={{ margin: '0 auto' }}>
       <Card
         sx={{
           borderRadius: '10px',
@@ -16,14 +35,14 @@ const HospitalAnalytics = () => {
         }}
       >
         <CardContent sx={{ p: 4, mr: { md: '80px' } }}>
-          <Grid container spacing={4} alignItems='center' justifyContent='space-between'>
+          <Grid container spacing={2} alignItems='center' justifyContent='space-between'>
             {/* Hospital Info Section */}
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={6}>
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 3
+                  gap: 1
                 }}
               >
                 <Avatar
@@ -33,7 +52,7 @@ const HospitalAnalytics = () => {
                     width: 56,
                     height: 56,
                     backgroundColor: theme.palette.customColors.antzNotes80,
-                    borderRadius: '7px',
+                    borderRadius: '8px',
                     p: '8px'
                   }}
                   slotProps={{
@@ -42,20 +61,12 @@ const HospitalAnalytics = () => {
                     }
                   }}
                 />
-                <Box sx={{ textAlign: { md: 'left' } }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <HospitalDropdown />
-                  </Box>
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      color: theme.palette.customColors.neutralSecondary,
-                      fontSize: '14px',
-                      pl: 1
-                    }}
-                  >
-                    {selectedHospital ? selectedHospital.location : '-'}
-                  </Typography>
+                <Box
+                  sx={{
+                    textAlign: { md: 'left' }
+                  }}
+                >
+                  <HospitalDropdown disabled={disabled} />
                 </Box>
               </Box>
             </Grid>
@@ -65,7 +76,7 @@ const HospitalAnalytics = () => {
             <Grid item xs={4} md={2}>
               <Box>
                 {isHospitalStatsLoading ? (
-                  <CircularProgress size={20} />
+                  <ShimmerBox width='60px' height='24px' mb={1} />
                 ) : (
                   <Typography
                     sx={{
@@ -93,7 +104,7 @@ const HospitalAnalytics = () => {
             <Grid item xs={4} md={2}>
               <Box>
                 {isHospitalStatsLoading ? (
-                  <CircularProgress size={20} />
+                  <ShimmerBox width='60px' height='24px' mb={1} />
                 ) : (
                   <Typography
                     sx={{
@@ -122,7 +133,7 @@ const HospitalAnalytics = () => {
             <Grid item xs={4} md={2}>
               <Box>
                 {isHospitalStatsLoading ? (
-                  <CircularProgress size={20} />
+                  <ShimmerBox width='60px' height='24px' mb={1} />
                 ) : (
                   <Typography
                     sx={{
@@ -148,10 +159,10 @@ const HospitalAnalytics = () => {
             </Grid>
 
             {/* Site Information */}
-            <Grid item xs={12} md={3}>
+            {/* <Grid item xs={12} md={3}>
               <Box>
                 {isHospitalStatsLoading ? (
-                  <CircularProgress size={20} />
+                  <ShimmerBox width='100px' height='24px' mb={1} />
                 ) : (
                   <Typography
                     sx={{
@@ -161,7 +172,7 @@ const HospitalAnalytics = () => {
                       fontSize: '16px'
                     }}
                   >
-                    {selectedHospital?.site_id || '-'}
+                    {selectedHospital?.site_name || '-'}
                   </Typography>
                 )}
                 <Typography
@@ -174,7 +185,7 @@ const HospitalAnalytics = () => {
                   Site
                 </Typography>
               </Box>
-            </Grid>
+            </Grid> */}
           </Grid>
         </CardContent>
       </Card>

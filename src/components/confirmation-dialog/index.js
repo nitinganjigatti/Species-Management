@@ -12,14 +12,17 @@ const ConfirmationDialog = ({
   loading = false,
   description,
   dialogBoxStatus,
-  onClose,
+  onClose = () => {},
   formComponent,
   ConfirmationText,
   confirmAction,
   cancelText,
   confirmBtnStyle,
   cancelBtnStyle,
-  imgStyle
+  imgStyle,
+  imgHeight = '70px',
+  imgWidth = '70px',
+  allowCancel = true
 }) => {
   const theme = useTheme()
 
@@ -32,7 +35,7 @@ const ConfirmationDialog = ({
       disableEscapeKeyDown
       aria-labelledby='alert-dialog-title'
       aria-describedby='alert-dialog-description'
-      onClose={() => onClose()}
+      onClose={onClose}
       sx={{
         '& .MuiDialog-paper': {
           backgroundColor: '#fff',
@@ -59,7 +62,7 @@ const ConfirmationDialog = ({
               backgroundColor: theme.palette.customColors.mdAntzNeutral
             }}
           >
-            <Icon width='70px' height='70px' color={iconColor ? iconColor : null} icon={icon} />
+            <Icon width={imgWidth} height={imgHeight} color={iconColor ? iconColor : null} icon={icon} />
           </Box>
         ) : null}
         {image ? (
@@ -76,8 +79,8 @@ const ConfirmationDialog = ({
                 '& > img': {
                   objectFit: 'contain'
                 },
-                width: '70px',
-                height: '70px'
+                width: imgWidth,
+                height: imgHeight
               }}
               variant='rounded'
               alt={image}
@@ -86,27 +89,27 @@ const ConfirmationDialog = ({
           </Box>
         ) : null}
         <Box>
-          <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
-            {title ? title : null}
-          </Typography>
+          <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center' }}>{title ? title : null}</Typography>
           <Typography sx={{ fontWeight: 400, fontSize: 14, textAlign: 'center' }}>
             {description ? description : null}
           </Typography>
         </Box>
-        {formComponent ? <Box>{formComponent} </Box> : null}
-        <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
-          <Button
-            disabled={loading}
-            onClick={() => onClose()}
-            variant='outlined'
-            sx={{
-              color: 'gray',
-              width: '45%',
-              ...cancelBtnStyle
-            }}
-          >
-            {cancelText ? cancelText : 'Cancel'}
-          </Button>
+        {formComponent ? <Box sx={{ width: '100%' }}>{formComponent} </Box> : null}
+        <Box sx={{ display: 'flex', justifyContent: allowCancel ? 'space-between' : 'center', width: '100%', gap: 5 }}>
+          {allowCancel && (
+            <Button
+              disabled={loading}
+              onClick={() => onClose()}
+              variant='outlined'
+              sx={{
+                color: 'gray',
+                width: '45%',
+                ...cancelBtnStyle
+              }}
+            >
+              {cancelText ? cancelText : 'Cancel'}
+            </Button>
+          )}
           <Button
             sx={{
               width: '45%',

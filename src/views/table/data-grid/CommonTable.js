@@ -25,15 +25,20 @@ const CommonTable = ({
   externalTableStyle,
   getRowHeight,
   handleSearch,
-  getRowClassName // New prop for conditional row styling
+  getRowClassName, // New prop for conditional row styling
+  hideFooter = false
 }) => {
   const theme = useTheme()
 
   return (
     <DataGrid
       sx={{
+        '--DataGrid-cellFocusOutline': 'none',
         mt: 5,
         '.MuiDataGrid-cell:focus': {
+          outline: 'none'
+        },
+        '.MuiDataGrid-cell:focus-within': {
           outline: 'none'
         },
 
@@ -120,6 +125,7 @@ const CommonTable = ({
       rowSelectionModel={selectedRows ? selectedRows : []}
       getRowHeight={getRowHeight ? getRowHeight : null}
       getRowClassName={getRowClassName ? getRowClassName : undefined}
+      hideFooter={hideFooter}
     />
   )
 }

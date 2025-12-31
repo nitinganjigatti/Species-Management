@@ -11,47 +11,61 @@ import { updateSymptoms, getNotesListForSymptom } from 'src/lib/api/hospital/sym
 import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 
-const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
+const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData, isDischared }) => {
   const theme = useTheme()
   const router = useRouter()
   const { id, animal_id } = router.query
   const [symptomDrawerNewOpen, setSymptomDrawerNewOpen] = useState(false)
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
-  const [severity, setSeverity] = useState('Low')
-  const [durationValue, setDurationValue] = useState(1)
+  const [severity, setSeverity] = useState('Mild')
+  const [durationValue, setDurationValue] = useState(0)
   const [durationUnit, setDurationUnit] = useState('Days')
   const [notes, setNotes] = useState('')
   const [noteId, setNoteId] = useState('')
   const [status, setStatus] = useState('')
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [pendingDetails, setPendingDetails] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [activityLoader, setactivityLoader] = useState(false)
   const [activityListData, setActivityListData] = useState()
   const [symptomNoteModal, setSymptomNoteModal] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [pendingDetails, setPendingDetails] = useState(null)
+  const [previousDetails, setPreviousDetails] = useState(null)
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
 
   const handleClickDetail = async recordData => {
     try {
       setactivityLoader(true)
       setSymptomDrawerNewOpen(true)
-      setSeverity(
+
+      const mappedSeverity =
         recordData?.additional_info?.severity === 'Mild'
-          ? 'Low'
+          ? 'Mild'
           : recordData?.additional_info?.severity === 'Moderate'
-          ? 'Medium'
+          ? 'Moderate'
           : recordData?.additional_info?.severity
+
+      setPreviousDetails({
+        severity: mappedSeverity,
+        durationValue: recordData?.additional_info?.duration,
+        durationUnit: recordData?.additional_info?.duration_unit,
+        status: recordData?.status
+      })
+      setSeverity(mappedSeverity)
+      setDurationValue(
+        recordData?.additional_info?.duration === 'null' ||
+          recordData?.additional_info?.duration == null ||
+          recordData?.additional_info?.duration === ''
+          ? 0
+          : recordData?.additional_info?.duration
       )
-      setDurationValue(recordData?.additional_info?.duration)
       setDurationUnit(recordData?.additional_info?.duration_unit)
       setStatus(recordData?.status)
       setTemporarilySelected(recordData)
 
       const response = await fetchNotesForSymptom(recordData)
-
       if (response?.success) {
         setActivityListData(response?.data || [])
       } else {
@@ -90,20 +104,30 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
     setIsDeleteDialogOpen(true)
   }
 
+  const isChanged =
+    previousDetails?.severity !== severity ||
+    previousDetails?.durationValue !== durationValue ||
+    previousDetails?.durationUnit !== durationUnit ||
+    previousDetails?.status !== status
+
+  const canEnableButton = isChanged || notes?.trim()?.length > 0
+
   const handleConfirmAddSymptom = async () => {
     if (!pendingDetails) return
 
     try {
       setDeleteLoading(true)
 
+      const isSystemGenerated = isChanged ? true : false
+
       const payload = {
         main_id: temporarilySelected?.complaint_id,
         med_id: temporarilySelected?.medical_record_id,
-        animal_id: animal_id,
+        animal_id: patientData?.animal_detail?.animal_id,
         type: 'COMPLAINT',
-        is_system_generated: false,
+        is_system_generated: isSystemGenerated ? 1 : 0,
         severity: pendingDetails?.severity,
-        duration: pendingDetails?.durationValue,
+        duration: pendingDetails?.durationValue || 0,
         duration_unit: pendingDetails?.durationUnit,
         status: pendingDetails?.status,
         note: pendingDetails?.notes
@@ -124,7 +148,6 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
         setDeleteLoading(false)
       }
     } catch (error) {
-      console.error('Error while updating symptom:', error)
       Toaster({ type: 'error', message: 'An error occurred while updating symptom.' })
     } finally {
       setIsDeleteDialogOpen(false)
@@ -141,6 +164,12 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
   const hasData = data =>
     (Array.isArray(data) && data?.length > 0) || (data && typeof data === 'object' && Object.keys(data)?.length > 0)
 
+  const formatDurationUnit = (value, unit) => {
+    if (!unit) return ''
+
+    return Number(value) === 1 || Number(value) === 0 ? unit.replace(/s$/i, '') : unit
+  }
+
   return (
     <Box
       sx={{
@@ -150,9 +179,9 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
           ? alpha(theme.palette.customColors.neutralSecondary, 0.05)
           : getSymptomsSeverityColor(
               record?.additional_info?.severity === 'Mild'
-                ? 'Low'
+                ? 'Mild'
                 : record?.additional_info?.severity === 'Moderate'
-                ? 'Medium'
+                ? 'Moderate'
                 : record?.additional_info?.severity
             ).bgColor
       }}
@@ -168,13 +197,13 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
           gap: { xs: 1.5, sm: 2 },
           alignItems: { xs: 'flex-start', sm: 'center' }
         }}
-        onClick={() => handleClickDetail(record)}
+        onClick={() => (isDischared ? null : handleClickDetail(record))}
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           <MedicalIdChip
             leftImage
             medId={record?.medical_record_code || 'N/A'}
-            rightDot
+            rightDot={patientData?.medical_record_code === record?.medical_record_code}
             dotColor={theme.palette.primary.main}
             textColor={theme.palette.customColors.OnSurface}
           />
@@ -183,12 +212,12 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
               textDecoration: isResolved ? 'line-through' : 'none',
               fontSize: { xs: '1.1rem', sm: '1.25rem' },
               color: isResolved
-                ? theme.palette.customColors.OnSurfaceVarient
+                ? theme.palette.customColors.OnSurfaceVariant
                 : getSymptomsSeverityColor(
                     record?.additional_info?.severity === 'Mild'
-                      ? 'Low'
+                      ? 'Mild'
                       : record?.additional_info?.severity === 'Moderate'
-                      ? 'Medium'
+                      ? 'Moderate'
                       : record?.additional_info?.severity
                   ).color,
               fontWeight: 500
@@ -207,9 +236,9 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
                   ? theme.palette.customColors.neutralSecondary
                   : getSymptomsSeverityColor(
                       record?.additional_info?.severity === 'Mild'
-                        ? 'Low'
+                        ? 'Mild'
                         : record?.additional_info?.severity === 'Moderate'
-                        ? 'Medium'
+                        ? 'Moderate'
                         : record?.additional_info?.severity
                     ).color,
                 borderRadius: '4px',
@@ -218,71 +247,92 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
               }}
             />
 
-            {record?.additional_info?.duration && (
-              <Box
-                component='span'
-                sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  fontSize: '0.9rem',
-                  fontWeight: 500,
-                  color: theme.palette.customColors.OnSurfaceVarient
-                }}
-              >
-                {record?.additional_info?.duration} {record?.additional_info?.duration_unit}
-              </Box>
-            )}
+            {record?.additional_info?.duration &&
+              record?.additional_info?.duration !== '0' &&
+              record?.additional_info?.duration !== 'null' && (
+                <Box
+                  component='span'
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    fontSize: '0.9rem',
+                    fontWeight: 500,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  {record?.additional_info?.duration}{' '}
+                  {formatDurationUnit(record?.additional_info?.duration, record?.additional_info?.duration_unit)}
+                </Box>
+              )}
           </Box>
         </Box>
 
         <Box sx={{ gridColumn: { xs: '1', sm: '2', md: '2' } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
-            <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
-              Activity:
-            </Typography>
-            <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurface, fontWeight: 600 }}>
-              {'+' + record?.comment_count}
-            </Typography>
-          </Box>
+          {record?.comment_count > 0 && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
+              <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
+                Activity:
+              </Typography>
+
+              <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurface, fontWeight: 600 }}>
+                {record?.comment_count === '1' ? '1' : '+' + (record?.comment_count - 1)}
+              </Typography>
+            </Box>
+          )}
 
           {record?.additional_info &&
             (hasData(record?.latest_note?.notes_dump?.new_data) ||
               hasData(record?.latest_note?.notes_dump?.old_data)) && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
-                <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  mb: 0.5,
+                  flexWrap: 'wrap'
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: '0.875rem',
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
                   Severity :{' '}
                 </Typography>
-                <Typography
-                  sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient, fontWeight: 400 }}
-                >
-                  {record?.latest_note?.notes_dump?.old_data?.severity}
-                  {record?.latest_note?.notes_dump?.old_data?.severity && ' → '}
-                  <strong>{record?.latest_note?.notes_dump?.new_data?.severity}</strong>
+                <Typography sx={{ fontSize: '0.875rem', fontWeight: 400 }}>
+                  <span style={{ color: theme.palette.customColors.secondaryBg }}>
+                    {record?.latest_note?.notes_dump?.old_data?.severity}
+                  </span>
+                  {record?.latest_note?.notes_dump?.old_data?.severity && (
+                    <span style={{ color: theme.palette.customColors.OnSurfaceVariant }}> → </span>
+                  )}
+                  <strong style={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+                    {record?.latest_note?.notes_dump?.new_data?.severity || record?.additional_info?.severity}
+                  </strong>
                 </Typography>
               </Box>
             )}
 
-          {record?.additional_info &&
-            (hasData(record?.latest_note?.notes_dump?.new_data) ||
-              hasData(record?.latest_note?.notes_dump?.old_data)) && (
-              <Tooltip title={record?.latest_note?.note} arrow placement='top'>
-                <Typography
-                  sx={{
-                    fontSize: '0.875rem',
-                    color: theme.palette.customColors.OnSurfaceVarient,
-                    mb: 1,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 1,
-                    WebkitBoxOrient: 'vertical',
-                    lineHeight: '1.4'
-                  }}
-                >
-                  Notes : {record?.latest_note?.note || 'N/A'}
-                </Typography>
-              </Tooltip>
-            )}
+          {record?.latest_note?.note && (
+            <Tooltip title={record?.latest_note?.note} arrow placement='top'>
+              <Typography
+                sx={{
+                  fontSize: '0.875rem',
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  mb: 1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 1,
+                  WebkitBoxOrient: 'vertical',
+                  lineHeight: '1.4'
+                }}
+              >
+                Notes : {record?.latest_note?.note}
+              </Typography>
+            </Tooltip>
+          )}
 
           {record?.additional_info &&
             !hasData(record?.latest_note?.notes_dump?.new_data) &&
@@ -291,7 +341,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
                 <Typography
                   sx={{
                     fontSize: '0.875rem',
-                    color: theme.palette.customColors.OnSurfaceVarient,
+                    color: theme.palette.customColors.OnSurfaceVariant,
                     mb: 1,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -307,9 +357,14 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
             )}
 
           <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.neutralSecondary }}>
-            Last Updated: {Utility.convertUTCToLocaltime(record?.latest_note?.modified_at)}
+            Last Updated:{' '}
+            {Utility?.formatDisplayDate(
+              record?.latest_note?.modified_at || record?.created_at || record?.latest_note?.created_at
+            )}
             <span style={{ margin: '0 8px', color: theme.palette.customColors.neutralSecondary }}>•</span>
-            {Utility?.formatDisplayDate(record?.latest_note?.modified_at)}
+            {Utility.convertUTCToLocaltime(
+              record?.latest_note?.modified_at || record?.created_at || record?.latest_note?.created_at
+            )}
           </Typography>
         </Box>
 
@@ -330,12 +385,20 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
                 ml: { xs: 0, md: 1 }
               }}
             >
-              Resolved by
+              {record?.status === 'active' ? 'Created by' : 'Resolved by'}
             </Typography>
             <UserAvatarDetails
-              profile_image={record?.additional_info?.resolved_user_profile_pic}
+              profile_image={
+                record?.status === 'active'
+                  ? record?.created_user_profile_pic
+                  : record?.additional_info?.resolved_user_profile_pic
+              }
               user_name={record?.additional_info?.resolved_user_name || record?.created_by_user_name}
-              date={Utility.formatDisplayDate(record?.created_at)}
+              date={
+                record?.status === 'active'
+                  ? record?.created_at
+                  : record?.latest_note?.modified_at || record?.additional_info?.closed_comment_date
+              }
               show_time
               compact={true}
             />
@@ -372,6 +435,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
           setIsDeleting={setIsDeleting}
           isDeleting={isDeleting}
           setActivityListData={setActivityListData}
+          isChanged={canEnableButton}
         />
       )}
       {isDeleteDialogOpen && (

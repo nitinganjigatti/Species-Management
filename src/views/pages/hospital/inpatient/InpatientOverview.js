@@ -1,4 +1,4 @@
-import { Divider, Tooltip, Typography, useTheme } from '@mui/material'
+import { Tooltip, Typography, useTheme, CircularProgress, Skeleton } from '@mui/material'
 import { Box, Grid } from '@mui/system'
 import React, { useEffect, useState } from 'react'
 import MoreMediaListing from 'src/components/MoreMediaListing'
@@ -6,56 +6,72 @@ import HealthcareOverview from './TreatmentOverview'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { useRouter } from 'next/router'
-import { getAnimalTotalHospitalVisits } from 'src/lib/api/hospital/inpatient'
+import { getAnimalTotalHospitalVisits, getMediaItems, getOverviewMediaItems } from 'src/lib/api/hospital/inpatient'
 import { useQuery } from '@tanstack/react-query'
 import Utility from 'src/utility'
 import { VisitType } from '../utility/hospitalSnippets'
 import { useHospital } from 'src/context/HospitalContext'
+import OverviewMediaListingDrawer from 'src/components/hospital/drawer/OverviewMediaListingDrawer'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 
-const getVisitTypeLabel = title => {
-  if (title === 'checkup') return 'Check up'
-  if (title === 'emergency') return 'Emergency'
-  if (title === 'follow_up') return 'Follow-up'
-  if (title === 'outpatient') return 'OUTPATIENT'
-  if (title === 'opd') return 'OUTPATIENT'
-  if (title === 'planned') return 'Planned'
-}
+const STORAGE_KEY = 'medical_record_data'
 
-const InpatientOverview = ({ overviewData }) => {
+const InpatientOverview = ({
+  overviewData,
+  refetchPatient,
+  hospitalVisit,
+  patientVisitFetching,
+  visitFilters,
+  setVisitFilters
+}) => {
   const router = useRouter()
   const theme = useTheme()
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
+  console.log(overviewData)
 
   const { selectedHospital } = useHospital()
+  const { id } = router.query
+  const animal_id = medicalRecordData?.animal_id
 
-  const { id, animal_id } = router.query
+  const [openDrawer, setOpenDrawer] = useState(false)
 
-  const [filters, setFilters] = useState({
-    page: 1,
-    limit: 10
-  })
+  // const [filters, setFilters] = useState({
+  //   page: 1,
+  //   limit: 10
+  // })
 
   useEffect(() => {
-    const { page = '1', limit = '10' } = router.query
+    refetchPatient()
+  }, [refetchPatient])
 
-    setFilters({
-      page: parseInt(page),
-      limit: parseInt(limit)
-    })
-  }, [router.query])
+  // useEffect(() => {
+  //   const { page = '1', limit = '10' } = router.query
 
-  const { data, isFetching } = useQuery({
-    queryKey: ['animal-total-hospital-visit', filters],
-    queryFn: () =>
-      getAnimalTotalHospitalVisits({
-        page_no: filters?.page,
-        limit: filters?.limit,
-        animal_id: animal_id,
-        hospital_id: selectedHospital?.id
-      })
-  })
+  //   setFilters({
+  //     page: parseInt(page),
+  //     limit: parseInt(limit)
+  //   })
+  // }, [router.query])
 
-  const total = data?.data?.total_records || 0
-  const rows = data?.data?.data || []
+  // const { data: hospitalVisit, isFetching } = useQuery({
+  //   queryKey: ['animal-total-hospital-visit', filters],
+  //   queryFn: () =>
+  //     getAnimalTotalHospitalVisits({
+  //       page_no: filters?.page,
+  //       limit: filters?.limit,
+  //       animal_id: animal_id,
+  //       hospital_id: selectedHospital?.id,
+  //       hospital_case_id: id
+  //     }),
+  //   enabled: !!(animal_id && selectedHospital?.id),
+  //   staleTime: 0,
+  //   cacheTime: 0,
+  //   refetchOnMount: true
+  // })
+
+  const visitTotal = hospitalVisit?.data?.total_records || 0
+  const rows = hospitalVisit?.data?.data || []
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -67,17 +83,29 @@ const InpatientOverview = ({ overviewData }) => {
     router.push({ query: params.toString() }, undefined, { shallow: true })
   }
 
+  // Fetch overview media files
+  const {
+    data: mediaItems,
+    isFetching: isFetchingMedia,
+    isLoading: isLoadingMedia
+  } = useQuery({
+    queryKey: ['media-items', id],
+    queryFn: () => getOverviewMediaItems({ id }),
+    enabled: !!id
+  })
+  const mediaFiles = mediaItems?.data?.media?.files || []
+
   const handlePaginationModelChange = model => {
     const updated = {
-      ...filters,
+      ...visitFilters,
       page: model.page + 1,
       limit: model.pageSize
     }
-    setFilters(updated)
+    setVisitFilters(updated)
     updateUrlParams(updated)
   }
 
-  const getSlNo = index => (filters.page - 1) * filters.limit + index + 1
+  const getSlNo = index => (visitFilters.page - 1) * visitFilters.limit + index + 1
 
   const indexedRows = rows.map((row, index) => ({
     ...row,
@@ -239,7 +267,7 @@ const InpatientOverview = ({ overviewData }) => {
       sortable: false,
       renderCell: params => (
         <>
-          <VisitType title={getVisitTypeLabel(params.row.visit_type)} />
+          <VisitType title={params.row.visit_type} />
         </>
       )
     },
@@ -279,68 +307,193 @@ const InpatientOverview = ({ overviewData }) => {
         <Box>
           <HealthcareOverview data={overviewData} />
         </Box>
-        <Grid container spacing={6} sx={{ borderRadius: 2, p: 4 }}>
-          <Grid size={{ xs: 12, md: 7 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.neutralPrimary }}>
-              Reason for Admission
-            </Typography>
-            <Tooltip title={overviewData?.purpose_of_visit}>
+        <Grid container spacing={6} sx={{ borderRadius: 2, padding: '0 0 16px 16px' }}>
+          {/* Purpose of Visit */}
+
+          {isLoadingMedia ? (
+            <HealthcareOverviewSkeleton />
+          ) : (
+            <>
+              {overviewData?.purpose_of_visit && (
+                <Grid
+                  size={{ xs: 12, md: overviewData?.reason_for_admission ? 3.5 : 12, lg: 7.7 }}
+                  sx={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '16px 0 0 16px' }}
+                >
+                  <Typography
+                    sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.neutralPrimary }}
+                  >
+                    Purpose of Visit
+                  </Typography>
+                  <Tooltip title={overviewData?.purpose_of_visit}>
+                    <Typography
+                      sx={{
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'normal'
+                      }}
+                    >
+                      {overviewData?.purpose_of_visit}
+                    </Typography>
+                  </Tooltip>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
+                    <UserAvatarDetails
+                      profile_image={overviewData?.transfer_by_profile_pic}
+                      user_name={overviewData?.transfer_by_full_name}
+                      date={overviewData?.transfer_created_at}
+                      show_time={true}
+                      size='medium'
+                    />
+                  </Box>
+                </Grid>
+              )}
+              {/* Reason for Admission */}
+              {overviewData?.reason_for_admission && (
+                <Grid
+                  size={{ xs: 12, md: 3.5 }}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    borderLeft: { md: `0.5px solid ${theme.palette.divider}`, xs: 'none' },
+                    pl: { md: 6, xs: 0 }
+                  }}
+                >
+                  <Typography
+                    sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.neutralPrimary }}
+                  >
+                    Reason for Admission
+                  </Typography>
+                  <Tooltip title={overviewData?.reason_for_admission}>
+                    <Typography
+                      sx={{
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'normal'
+                      }}
+                    >
+                      {overviewData?.reason_for_admission}
+                    </Typography>
+                  </Tooltip>
+                </Grid>
+              )}
+              {/* Media Section */}
+              {mediaFiles?.length > 0 && (
+                <Grid
+                  size={{ xs: 12, sm: 12, md: 12, lg: 4.3 }}
+                  sx={{
+                    pl: { lg: 3 },
+                    pt: { lg: 3 },
+                    borderLeft: { xs: 'none', lg: `0.5px solid ${theme.palette.divider}` },
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  {isLoadingMedia ? (
+                    <CircularProgress size={20} sx={{ ml: 4 }} />
+                  ) : mediaFiles?.length > 0 ? (
+                    <MoreMediaListing
+                      mediaItems={mediaFiles}
+                      maxVisibleItems={{ xs: 1, sm: 3, md: 4, lg: 2 }}
+                      onMoreClick={() => setOpenDrawer(true)}
+                    />
+                  ) : (
+                    <Typography variant='body2' color='text.secondary'>
+                      No media available
+                    </Typography>
+                  )}
+                </Grid>
+              )}
+            </>
+          )}
+          {/* Table */}
+          {indexedRows?.length > 0 && (
+            <Grid size={{ xs: 12 }}>
               <Typography
-                sx={{
-                  fontSize: '16px',
-                  fontWeight: 400,
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 4,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'normal'
-                }}
+                sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
               >
-                {overviewData?.purpose_of_visit}
+                Animal Visit History
               </Typography>
-            </Tooltip>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
-              <UserAvatarDetails
-                profile_image={overviewData?.created_by_profile_pic}
-                user_name={overviewData?.created_by_full_name}
-                date={overviewData?.created_at}
-                show_time={true}
-                size='medium'
+              <CommonTable
+                columns={columns}
+                indexedRows={indexedRows}
+                total={visitTotal}
+                loading={patientVisitFetching}
+                paginationModel={{ page: visitFilters.page - 1, pageSize: visitFilters.limit }}
+                setPaginationModel={handlePaginationModelChange}
+                getRowHeight={() => 'auto'}
+                externalTableStyle={{
+                  '& .MuiDataGrid-cell': {
+                    padding: 4
+                  },
+                  '& .MuiDataGrid-row:hover': {
+                    // backgroundColor: 'transparent',
+                    cursor: 'pointer'
+                  }
+                }}
               />
-            </Box>
-          </Grid>
-          <Grid
-            size={{ xs: 12, md: 5 }}
-            sx={{ pl: 6, pt: 6, pr: 6, borderLeft: { md: `0.5px solid ${theme.palette.divider}`, xs: 'none' } }}
-          >
-            {/* <MoreMediaListing mediaItems={sampleMediaItems} maxVisibleItems={2} /> */}
-          </Grid>
-          <Grid size={{ xs: 12 }}>
-            <CommonTable
-              columns={columns}
-              indexedRows={indexedRows}
-              total={total}
-              loading={isFetching}
-              paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
-              setPaginationModel={handlePaginationModelChange}
-              getRowHeight={() => 'auto'}
-              externalTableStyle={{
-                '& .MuiDataGrid-cell': {
-                  padding: 4
-                },
-                '& .MuiDataGrid-row:hover': {
-                  // backgroundColor: 'transparent',
-                  cursor: 'pointer'
-                }
-              }}
-            />
-          </Grid>
+            </Grid>
+          )}
         </Grid>
       </Box>
+      {/* Media Drawer */}
+      {openDrawer && (
+        <OverviewMediaListingDrawer
+          open={openDrawer}
+          onClose={() => setOpenDrawer(false)}
+          enableImageFullScreen={true}
+          media={mediaFiles}
+        />
+      )}
     </>
   )
 }
 
 export default InpatientOverview
+
+// Skeleton loader
+function HealthcareOverviewSkeleton() {
+  const theme = useTheme()
+
+  return (
+    <Grid container spacing={4}>
+      <Grid size={{ xs: 12, sm: 7 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Skeleton variant='text' width='40%' height={30} />
+        <Skeleton variant='rectangular' width='100%' height={80} sx={{ borderRadius: 2 }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Skeleton variant='circular' width={40} height={40} />
+          <Box sx={{ flex: 1 }}>
+            <Skeleton variant='text' width='30%' height={18} />
+            <Skeleton variant='text' width='30%' height={16} />
+          </Box>
+        </Box>
+      </Grid>
+      <Grid
+        size={{ xs: 12, sm: 5 }}
+        sx={{
+          pl: { lg: 3 },
+          borderLeft: { xs: 'none', lg: `0.5px solid ${theme.palette.divider}` },
+          display: 'flex',
+          alignItems: 'center'
+        }}
+      >
+        <Box sx={{ display: 'flex', gap: 3 }}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} variant='rectangular' width={80} height={80} sx={{ borderRadius: 2 }} />
+          ))}
+        </Box>
+      </Grid>
+    </Grid>
+  )
+}

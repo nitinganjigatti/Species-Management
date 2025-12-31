@@ -30,9 +30,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { TimePicker } from '@mui/x-date-pickers/TimePicker'
 import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
-
 import CustomFileUploaderSingle from 'src/views/forms/form-elements/file-uploader/CustomFileUploaderSingle'
-
 import Icon from 'src/@core/components/icon'
 import AddIngredientswithChoice from 'src/components/diet/AddIngredientswithchoice'
 import AddIngredients from 'src/components/diet/AddIngredients'
@@ -89,8 +87,6 @@ const StepBasicDetails = ({
   formData,
   uomList,
   dieticianList,
-  selectedCard,
-  setSelectedCard,
   setSelectedCardRecipe,
   setSelectedCardCombo,
   selectedCardRecipe,
@@ -101,14 +97,16 @@ const StepBasicDetails = ({
   feedType,
   id,
   diettypechildvalues,
-  loader
+  loader,
+  onLoadMore,
+  loadingfeed,
+  feedtotalCount
 }) => {
   // ** States
   const theme = useTheme()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const [uploadedImage, setUploadedImage] = useState(null)
   const [openIngredient, setOpenIngredient] = useState(false)
-  const [toValue, setToValue] = useState(null)
   const [OpenIngredientchoice, setOpenIngredientchoice] = useState(false)
   const [childStateValue, setChildStateValue] = useState([])
   const [allSelectedValues, setAllSelectedValues] = useState([])
@@ -175,7 +173,6 @@ const StepBasicDetails = ({
     reset,
     control,
     handleSubmit,
-    clearErrors,
     formState: { errors },
     trigger,
     setValue: setFormValue,
@@ -867,12 +864,30 @@ const StepBasicDetails = ({
   const removeIngredientButton = index => {
     return (
       <Box
-        style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: '20px', marginTop: '20px' }}
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          width: '100%',
+          pr: { xs: 1, sm: 2, md: 3 },
+          mt: '25px',
+          cursor: 'pointer'
+        }}
         onClick={() => {
           removeIngredients(index)
         }}
       >
-        <Icon icon='material-symbols:cancel' />
+        <Icon
+          icon='material-symbols:cancel'
+          sx={{
+            fontSize: { xs: 20, sm: 22, md: 24 },
+            color: theme => theme.palette.error.main,
+            transition: 'transform 0.2s ease-in-out',
+            '&:hover': {
+              transform: 'scale(1.1)'
+            }
+          }}
+        />
       </Box>
     )
   }
@@ -1390,7 +1405,7 @@ const StepBasicDetails = ({
                                   ? 2.3
                                   : recipe.label === 'Items'
                                   ? 1.5
-                                  : 3.5
+                                  : 3.4
                             }}
                             key={index}
                             sx={{ py: 4, px: 6, textAlign: 'center' }}
@@ -1415,7 +1430,9 @@ const StepBasicDetails = ({
                                   pb: 5,
                                   pt: 0,
                                   borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                  borderRadius: '7px'
+                                  borderRadius: '7px',
+                                  position: 'relative',
+                                  alignItems: 'center'
                                 }}
                                 key={index}
                               >
@@ -1482,18 +1499,27 @@ const StepBasicDetails = ({
                                   </Grid>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 3.3, md: 3.5 }}>
-                                  <Grid sx={{ pl: 7 }}>
-                                    <Typography className='w_280'>
-                                      <Tooltip title={all?.remarks} arrow placement='bottom'>
+                                  <Grid sx={{ pl: 5 }}>
+                                    <Tooltip title={all?.remarks} arrow placement='bottom-start'>
+                                      <Typography
+                                        className='w_280'
+                                        sx={{
+                                          display: 'inline-block',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          verticalAlign: 'middle',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
                                         <span className='text_overflow_moduled'>
                                           {all?.remarks ? all.remarks : '-'}
                                         </span>
-                                      </Tooltip>
-                                    </Typography>
+                                      </Typography>
+                                    </Tooltip>
                                   </Grid>
                                 </Grid>
                                 <Icon
-                                  style={{ position: 'absolute', right: '8%', fontSize: '22px', cursor: 'pointer' }}
+                                  style={{ fontSize: '22px', cursor: 'pointer' }}
                                   className='pencil_diet'
                                   onClick={() =>
                                     addEventSidebarOpen(
@@ -1510,7 +1536,7 @@ const StepBasicDetails = ({
                                 <Icon
                                   className='del_diet'
                                   onClick={() => removeingClickRecipe(all.recipe_id, all.mealid)}
-                                  style={{ position: 'absolute', right: '5%', cursor: 'pointer' }}
+                                  style={{ fontSize: '22px', cursor: 'pointer' }}
                                   icon='iconoir:cancel'
                                 />
                               </Grid>
@@ -1576,7 +1602,7 @@ const StepBasicDetails = ({
                                   ? 2.3
                                   : recipe.label === 'Items'
                                   ? 1.5
-                                  : 3.5
+                                  : 3.4
                             }}
                             key={index}
                             sx={{ py: 4, px: 6, textAlign: 'center' }}
@@ -1601,7 +1627,9 @@ const StepBasicDetails = ({
                                   pb: 5,
                                   pt: 0,
                                   borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                  borderRadius: '7px'
+                                  borderRadius: '7px',
+                                  position: 'relative',
+                                  alignItems: 'center'
                                 }}
                                 key={index}
                               >
@@ -1664,17 +1692,26 @@ const StepBasicDetails = ({
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 3.3, md: 3.5 }}>
                                   <Grid sx={{ pl: 5 }}>
-                                    <Typography className='w_280'>
-                                      <Tooltip title={all?.remarks} arrow placement='bottom'>
+                                    <Tooltip title={all?.remarks} arrow placement='bottom-start'>
+                                      <Typography
+                                        className='w_280'
+                                        sx={{
+                                          display: 'inline-block',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          verticalAlign: 'middle',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
                                         <span className='text_overflow_moduled'>
                                           {all?.remarks ? all.remarks : '-'}
                                         </span>
-                                      </Tooltip>
-                                    </Typography>
+                                      </Typography>
+                                    </Tooltip>
                                   </Grid>
                                 </Grid>
                                 <Icon
-                                  style={{ position: 'absolute', right: '8%', fontSize: '22px', cursor: 'pointer' }}
+                                  style={{ fontSize: '22px', cursor: 'pointer' }}
                                   className='pencil_diet'
                                   onClick={() =>
                                     addEventSidebarOpen(
@@ -1691,7 +1728,7 @@ const StepBasicDetails = ({
                                 <Icon
                                   className='del_diet'
                                   onClick={() => removeingClickCombo(all.recipe_id, all.mealid)}
-                                  style={{ position: 'absolute', right: '5%', cursor: 'pointer' }}
+                                  style={{ fontSize: '22px', cursor: 'pointer' }}
                                   icon='iconoir:cancel'
                                 />
                               </Grid>
@@ -1774,7 +1811,9 @@ const StepBasicDetails = ({
                                   pb: 5,
                                   pt: 0,
                                   borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                  borderRadius: '7px'
+                                  borderRadius: '7px',
+                                  position: 'relative',
+                                  alignItems: 'center'
                                 }}
                                 key={index}
                               >
@@ -1806,11 +1845,11 @@ const StepBasicDetails = ({
                                     {'ING' + all?.ingredient_id}
                                   </Typography>
                                 </Grid>
-                                <Grid size={{ xs: 12, sm: 1.7, md: 1.5 }} sx={{ pl: 2 }}>
+                                <Grid size={{ xs: 12, sm: 1.7, md: 1.5 }} sx={{ pl: 0 }}>
                                   <Typography>{all.preparation_type}</Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 3.3, md: 3.7 }}>
-                                  <Grid container spacing={1} sx={{ pl: 2 }}>
+                                  <Grid container spacing={1} sx={{ pl: 8 }}>
                                     {days.map((day, index) => (
                                       <Grid key={day}>
                                         <Typography
@@ -1829,19 +1868,28 @@ const StepBasicDetails = ({
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 3.3, md: 3.5 }}>
                                   <Grid sx={{ pl: 8 }}>
-                                    <Typography className='w_280'>
-                                      <Tooltip title={all?.remarks} arrow placement='bottom'>
+                                    <Tooltip title={all?.remarks} arrow placement='bottom-start'>
+                                      <Typography
+                                        className='w_280'
+                                        sx={{
+                                          display: 'inline-block',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          verticalAlign: 'middle',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
                                         <span className='text_overflow_moduled'>
                                           {all?.remarks ? all.remarks : '-'}
                                         </span>
-                                      </Tooltip>
-                                    </Typography>
+                                      </Typography>
+                                    </Tooltip>
                                   </Grid>
                                 </Grid>
 
                                 <Icon
                                   //onClick={() => removeingClickRecipe(all.recipe_id, all.mealid)}
-                                  style={{ position: 'absolute', right: '8%', fontSize: '22px', cursor: 'pointer' }}
+                                  style={{ fontSize: '22px', cursor: 'pointer' }}
                                   className='pencil_diet'
                                   onClick={() =>
                                     handleAddIngerdient(
@@ -1858,7 +1906,7 @@ const StepBasicDetails = ({
                                 <Icon
                                   className='del_diet'
                                   onClick={() => removeingClick(all.ingredient_id, all.mealid)}
-                                  style={{ position: 'absolute', right: '5%', cursor: 'pointer' }}
+                                  style={{ fontSize: '22px', cursor: 'pointer' }}
                                   icon='iconoir:cancel'
                                 />
                               </Grid>
@@ -1934,7 +1982,9 @@ const StepBasicDetails = ({
                                   pb: 5,
                                   pt: 0,
                                   borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                  borderRadius: '7px'
+                                  borderRadius: '7px',
+                                  position: 'relative',
+                                  alignItems: 'center'
                                 }}
                                 key={index}
                               >
@@ -1980,21 +2030,28 @@ const StepBasicDetails = ({
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 3.7, md: 3.6 }}>
                                   <Grid sx={{ pl: 7 }}>
-                                    <Typography className='w_280'>
-                                      <Tooltip title={all?.remarks} arrow placement='bottom'>
+                                    <Tooltip title={all?.remarks} arrow placement='bottom-start'>
+                                      <Typography
+                                        className='w_280'
+                                        sx={{
+                                          display: 'inline-block',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          verticalAlign: 'middle',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
                                         <span className='text_overflow_moduled'>
                                           {all?.remarks ? all.remarks : '-'}
                                         </span>
-                                      </Tooltip>
-                                    </Typography>
+                                      </Typography>
+                                    </Tooltip>
                                   </Grid>
                                 </Grid>
 
                                 <Icon
                                   className='pencil_diet'
                                   style={{
-                                    position: 'absolute',
-                                    right: '8%',
                                     fontSize: '22px',
                                     cursor: 'pointer'
                                   }}
@@ -2014,7 +2071,7 @@ const StepBasicDetails = ({
                                 <Icon
                                   className='del_diet'
                                   onClick={() => removeingClicking(index, all.mealid, all)}
-                                  style={{ position: 'absolute', right: '5%', cursor: 'pointer' }}
+                                  style={{ fontSize: '22px', cursor: 'pointer' }}
                                   icon='iconoir:cancel'
                                 />
 
@@ -2084,7 +2141,15 @@ const StepBasicDetails = ({
                                               </span>
 
                                               <span
-                                                style={{ color: theme.palette.customColors.secondaryBg, fontSize: 13 }}
+                                                title={all?.preparation_type}
+                                                style={{
+                                                  color: theme.palette.customColors.secondaryBg,
+                                                  fontSize: 13,
+                                                  width: '148px',
+                                                  overflow: 'hidden',
+                                                  whiteSpace: 'nowrap',
+                                                  textOverflow: 'ellipsis'
+                                                }}
                                               >
                                                 {all?.preparation_type}
                                               </span>
@@ -2315,6 +2380,9 @@ const StepBasicDetails = ({
             searchValue={searchValue}
             setSort={setSort}
             sort={sort}
+            onLoadMore={onLoadMore}
+            loadingfeed={loadingfeed}
+            feedtotalCount={feedtotalCount}
           />
           <AddIngredients
             open={openIngredient}
@@ -2346,6 +2414,9 @@ const StepBasicDetails = ({
             searchValue={searchValue}
             setSort={setSort}
             sort={sort}
+            onLoadMore={onLoadMore}
+            loadingfeed={loadingfeed}
+            feedtotalCount={feedtotalCount}
           />
           <RecipeList
             recipeList={recipeList}

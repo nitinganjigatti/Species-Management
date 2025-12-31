@@ -72,7 +72,6 @@ const ListOfStores = () => {
     message: ''
   })
 
-
   const addEventSidebarOpen = () => {
     setEditParams({ id: null, name: null, status: null })
     setResetForm(true)
@@ -98,7 +97,6 @@ const ListOfStores = () => {
     setTempPayload(null)
     setDeleteStore(false)
   }
-
 
   const columns = [
     {
@@ -294,6 +292,8 @@ const ListOfStores = () => {
         })
         setLoading(false)
       } catch (e) {
+        setTotal(0)
+        setRows([])
         setLoading(false)
       }
     },
@@ -488,8 +488,8 @@ const ListOfStores = () => {
                   sx={{
                     display: 'flex',
                     flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start', 
-                    alignItems: 'flex-start', 
+                    justifyContent: 'flex-start',
+                    alignItems: 'flex-start',
                     gap: { xs: 3, sm: 0 },
                     '& .MuiCardHeader-action': {
                       width: { xs: '100% ', sm: 'auto' }
@@ -791,7 +791,6 @@ const ListOfStores = () => {
                   </>
                 }
               />
-             
             </>
           )}
         </>

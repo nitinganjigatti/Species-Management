@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { styled } from '@mui/material/styles'
 import {
   Box,
   Drawer,
@@ -9,12 +10,19 @@ import {
   Grid,
   Divider,
   CircularProgress,
-  FormControlLabel
+  FormControlLabel,
+  Badge
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
 import NoDataFound from 'src/views/utility/NoDataFound'
+
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    borderRadius: '20%'
+  }
+}))
 
 const FilterSheet = ({
   open,
@@ -34,15 +42,42 @@ const FilterSheet = ({
   const searchInputRef = useRef(null)
   const [activeCategory, setActiveCategory] = useState(categories[0])
   const [searchValue, setSearchValue] = useState('')
+  const [draftSelectedOptions, setDraftSelectedOptions] = useState(selectedOptions || {})
+  const toIdString = id => (id == null ? '' : String(id))
+  const getSelectedIdsForCategory = category =>
+    Array.isArray(draftSelectedOptions?.[category]) ? draftSelectedOptions[category].map(toIdString) : []
 
   useEffect(() => {
-    if (open && animalId) {
-      setSelectedOptions(prev => ({
-        ...prev,
-        Site: selectedSites.length ? selectedSites : []
-      }))
+    if (open) {
+      setActiveCategory(categories[0])
+      setSearchValue('')
+
+      setDraftSelectedOptions(prev => {
+        const base = { ...(selectedOptions || {}) }
+        if (animalId) {
+          base.Site = selectedSites.length ? selectedSites.map(toIdString) : base.Site || []
+        }
+
+        const normalized = {}
+        Object.keys(base).forEach(key => {
+          normalized[key] = Array.isArray(base[key]) ? base[key].map(toIdString) : base[key]
+        })
+
+        return normalized
+      })
+    } else {
+      setSearchValue('')
+      setActiveCategory(categories[0])
+      setDraftSelectedOptions(
+        Object.fromEntries(
+          Object.entries(selectedOptions || {}).map(([key, val]) => [
+            key,
+            Array.isArray(val) ? val.map(toIdString) : val
+          ])
+        )
+      )
     }
-  }, [open])
+  }, [open, categories, selectedOptions, selectedSites, animalId])
 
   // const handleSelectAll = event => {
   //   if (event.target.checked) {
@@ -83,7 +118,7 @@ const FilterSheet = ({
 
     if (event.target.checked) {
       // ✅ Add only filtered IDs to current selection (merge with previous)
-      setSelectedOptions(prev => {
+      setDraftSelectedOptions(prev => {
         const current = prev[activeCategory] || []
         
 return {
@@ -93,7 +128,7 @@ return {
       })
     } else {
       // ❌ Remove only filtered IDs from selection
-      setSelectedOptions(prev => {
+      setDraftSelectedOptions(prev => {
         const current = prev[activeCategory] || []
         const updated = current.filter(id => !filteredIds.includes(id))
         
@@ -106,35 +141,44 @@ return {
   }
 
   const handleToggleOption = (optionId, category) => {
-    setSelectedOptions(prevSelectedOptions => {
+    setDraftSelectedOptions(prevSelectedOptions => {
       const updatedOptions = { ...prevSelectedOptions }
 
-      if (!updatedOptions[category]) {
-        updatedOptions[category] = []
-      }
+      const selectedIds = Array.isArray(updatedOptions[category]) ? updatedOptions[category].map(toIdString) : []
 
-      if (updatedOptions[category].includes(optionId)) {
-        updatedOptions[category] = updatedOptions[category].filter(id => id !== optionId)
-      } else {
-        updatedOptions[category] = [...updatedOptions[category], optionId]
-      }
+      const optionKey = toIdString(optionId)
+
+      const updatedCategoryIds = selectedIds.includes(optionKey)
+        ? selectedIds.filter(id => id !== optionKey)
+        : [...selectedIds, optionKey]
+
+      updatedOptions[category] = updatedCategoryIds
 
       return updatedOptions
     })
   }
 
   const handleConfirmSelection = () => {
-    const selectedSiteIDs = selectedOptions.Site || []
+    const normalized = Object.fromEntries(
+      Object.entries(draftSelectedOptions || {}).map(([key, val]) => [
+        key,
+        Array.isArray(val) ? val.map(toIdString) : val
+      ])
+    )
+
+    setSelectedOptions(normalized)
+
+    const selectedSiteIDs = normalized?.Site || []
     handleSelection(selectedSiteIDs, 'Site')
 
-    const selectedOrganizationIDs = selectedOptions.Organization || []
+    const selectedOrganizationIDs = normalized?.Organization || []
     handleSelection(selectedOrganizationIDs, 'Organization')
 
     setOpenFilterDrawer(false)
   }
 
   const handleClearFilter = () => {
-    setSelectedOptions([])
+    setDraftSelectedOptions({})
   }
 
   const filteredOptions =
@@ -153,12 +197,17 @@ return {
     setSearchValue('')
   }
 
-  const filteredIds = filteredOptions.map(option => (activeCategory === 'Site' ? option.site_id : option.id))
+  const filteredIds = filteredOptions
+    .map(option => (activeCategory === 'Site' ? toIdString(option.site_id) : toIdString(option.id)))
+    .filter(Boolean)
 
-  const selectedIds = selectedOptions[activeCategory] || []
+  const selectedIds = getSelectedIdsForCategory(activeCategory)
 
-  const isAllFilteredSelected = filteredIds.every(id => selectedIds.includes(id))
+  const isAllFilteredSelected = filteredIds.length > 0 && filteredIds.every(id => selectedIds.includes(id))
   const isSomeFilteredSelected = filteredIds.some(id => selectedIds.includes(id))
+
+  const getCategoryBadgeCount = category =>
+    Array.isArray(draftSelectedOptions?.[category]) ? draftSelectedOptions[category].length : 0
 
   useEffect(() => {
     if (open) {
@@ -194,7 +243,7 @@ return {
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Icon icon='mage:filter' fontSize={30} />
           <Typography sx={{ fontSize: '24px', fontWeight: 500, fontFamily: 'Inter' }}>
-            Filter - {getTotalSelectedFilters(selectedOptions)}
+            Filter - {getTotalSelectedFilters(draftSelectedOptions)}
           </Typography>
         </Box>
 
@@ -204,7 +253,7 @@ return {
             sx={{ color: 'text.primary' }}
             onClick={() => {
               setOpenFilterDrawer(false)
-              handleClearFilter()
+              // handleClearFilter()
             }}
           >
             <Icon icon='mdi:close' fontSize={24} />
@@ -220,29 +269,43 @@ return {
       >
         <Grid container sx={{ px: 5 }}>
           <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
-            {categories.map(menu => (
-              <Box
-                key={menu}
-                sx={{
-                  width: '190px',
-                  bgcolor: activeCategory === menu ? 'white' : 'transparent',
-                  cursor: 'pointer',
-                  p: 4,
-                  borderTopLeftRadius: '8px',
-                  borderBottomLeftRadius: '8px',
-                  '&:hover': {
-                    backgroundColor: activeCategory === menu ? 'white' : '#f5f5f5'
-                  }
-                }}
-                onClick={() => {
-                  handleCategoryClick(menu)
-                }}
-              >
-                <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
-                  {menu}
-                </Typography>
-              </Box>
-            ))}
+            {categories.map(menu => {
+              const badgeCount = getCategoryBadgeCount(menu)
+
+              return (
+                <Box
+                  key={menu}
+                  sx={{
+                    width: '190px',
+                    bgcolor: activeCategory === menu ? 'white' : 'transparent',
+                    cursor: 'pointer',
+                    p: 4,
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px',
+                    '&:hover': {
+                      backgroundColor: activeCategory === menu ? 'white' : '#f5f5f5'
+                    }
+                  }}
+                  onClick={() => {
+                    handleCategoryClick(menu)
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.dark,
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px'
+                    }}
+                  >
+                    {menu}
+                    <StyledBadge badgeContent={badgeCount} color='primary' sx={{ ml: 2 }} />
+                  </Typography>
+                </Box>
+              )
+            })}
           </Grid>
           <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
@@ -250,7 +313,7 @@ return {
                 bgcolor: '#fff',
                 borderRadius: '8px',
                 width: '345px',
-                height: 'calc(100vh - 190px)',
+                height: 'calc(100dvh - 125px)',
                 overflowY: 'auto',
                 '&::-webkit-scrollbar': {
                   width: 0,
@@ -342,7 +405,7 @@ return {
                             }
                             control={
                               <Checkbox
-                                checked={(selectedOptions[activeCategory] || []).includes(option.site_id)}
+                                checked={getSelectedIdsForCategory(activeCategory).includes(toIdString(option.site_id))}
                                 onChange={() => handleToggleOption(option.site_id, activeCategory)}
                               />
                             }
@@ -367,7 +430,7 @@ return {
                           }
                           control={
                             <Checkbox
-                              checked={(selectedOptions[activeCategory] || []).includes(option.id)}
+                              checked={getSelectedIdsForCategory(activeCategory).includes(toIdString(option.id))}
                               onChange={() => handleToggleOption(option.id, activeCategory)}
                             />
                           }
