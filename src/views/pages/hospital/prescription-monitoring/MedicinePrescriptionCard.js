@@ -416,9 +416,6 @@ const MedicinePrescriptionCard = ({
     const targetDateTime = new Date(`${datePart}T${convertTo24Hour(data?.scheduledTime)}`)
     const now = new Date()
 
-    console.log('targetDateTime', targetDateTime)
-    console.log('now', now)
-
     if (isNaN(targetDateTime.getTime())) {
       console.error('Invalid date or time format')
 
@@ -678,8 +675,6 @@ const MedicinePrescriptionCard = ({
 
       <Box sx={{ display: 'flex', padding: '0 16px', alignItems: 'center', gap: '10px', mb: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 0 0' }}>
-          {console.log('entry', entry)}
-
           <UserAvatarDetails
             user_name={entry?.administeredBy}
             profile_image={entry?.user_profile_pic}
