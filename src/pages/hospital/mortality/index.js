@@ -1,5 +1,18 @@
 import { useTheme } from '@emotion/react'
-import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem } from '@mui/material'
+import {
+  Breadcrumbs,
+  Box,
+  Typography,
+  Card,
+  CardHeader,
+  Grid,
+  Button,
+  Select,
+  Tooltip,
+  MenuItem,
+  IconButton,
+  CircularProgress
+} from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
@@ -9,8 +22,8 @@ import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilte
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { visitTypeOptions } from 'src/constants/Constants'
 import { useHospital } from 'src/context/HospitalContext'
-import { getPatientsMortalityListings } from 'src/lib/api/hospital/inpatient'
-import Utility from 'src/utility'
+import { getPatientDischargeSummary, getPatientsMortalityListings } from 'src/lib/api/hospital/inpatient'
+import Utility, { downloadPDF } from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
 import { VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
@@ -18,6 +31,8 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
+import Icon from 'src/@core/components/icon'
+import Toaster from 'src/components/Toaster'
 
 const HospitalMortality = () => {
   const theme = useTheme()
@@ -30,6 +45,7 @@ const HospitalMortality = () => {
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
   const [filterDate, setFilterDate] = useState({})
+  const [downloadingRowId, setDownloadingRowId] = useState(null)
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -146,6 +162,29 @@ const HospitalMortality = () => {
   const handleSearchClear = () => {
     setSearchValue('')
     debouncedSearch('')
+  }
+
+  const handleDownloadDischargeSummary = async row => {
+    const rowId = row?.id
+    if (!rowId) return
+
+    setDownloadingRowId(rowId)
+
+    try {
+      const params = {
+        hospital_case_id: row?.hospital_case_id
+      }
+
+      await downloadPDF({
+        apiCall: getPatientDischargeSummary,
+        params,
+        fileName: `Discharge_Summary${Date.now()}.pdf`
+      })
+    } catch (error) {
+      console.error('Error downloading discharge summary:', error)
+    } finally {
+      setDownloadingRowId(null)
+    }
   }
 
   const getSlNo = index => (filters.page - 1) * filters.limit + index + 1
@@ -367,14 +406,35 @@ const HospitalMortality = () => {
           </Typography>
         </>
       )
+    },
+    {
+      width: 100,
+      miWidth: 20,
+      field: 'action',
+      sortable: false,
+      headerName: 'Action',
+      renderCell: params => {
+        const isRowLoading = downloadingRowId === params.row.id
+
+        return (
+          <Tooltip title='Download Discharge Summary'>
+            <IconButton onClick={() => handleDownloadDischargeSummary(params.row)} disabled={isRowLoading}>
+              {isRowLoading ? <CircularProgress size={22} /> : <Icon icon='hugeicons:download-square-02' />}
+            </IconButton>
+          </Tooltip>
+        )
+      }
     }
   ]
 
-  const handleRowClick = params =>
-    router.push({
-      pathname: `/hospital/mortality/${params.row?.hospital_case_id}`,
-      query: { animal_id: params.row?.animal_detail?.animal_id, medical_record_id: params.row.medical_record_id }
-    })
+  const handleRowClick = params => {
+    if (params?.field !== 'action') {
+      router.push({
+        pathname: `/hospital/mortality/${params.row?.hospital_case_id}`,
+        query: { animal_id: params.row?.animal_detail?.animal_id, medical_record_id: params.row.medical_record_id }
+      })
+    }
+  }
 
   return (
     <>
@@ -449,7 +509,7 @@ const HospitalMortality = () => {
                 setPaginationModel={handlePaginationModelChange}
                 searchValue=''
                 getRowHeight={() => 'auto'}
-                onRowClick={handleRowClick}
+                onCellClick={handleRowClick}
                 externalTableStyle={{
                   '& .MuiDataGrid-cell': {
                     padding: 4
