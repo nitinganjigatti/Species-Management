@@ -56,7 +56,7 @@ export default function ScheduleMedicine({
   const medicalRecordData = data[STORAGE_KEY] || {}
 
   const animal_admitted_date = medicalRecordData?.animal_admitted_date
-  const { medicine_edit_id, fromPage } = router.query
+  const { medicine_edit_id, fromPage, date } = router.query
 
   const editIdStr = medicine_edit_id?.toString()
   const enclosureMedicines = data?.enclosure_medicines || []
@@ -150,7 +150,7 @@ export default function ScheduleMedicine({
       ])
 
       // Set default prescription start date to today
-      setValue('prescriptionStartDate', dayjs())
+      setValue('prescriptionStartDate', dayjs(date) || dayjs())
 
       // Set default prescription end date to today
       if (isDirectAdministerRegular) setValue('prescriptionEndDate', dayjs())

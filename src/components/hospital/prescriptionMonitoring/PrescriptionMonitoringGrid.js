@@ -693,10 +693,20 @@ const PrescriptionMonitoringGrid = ({
   }
 
   const handleRouterNavigation = () => {
+    const queryParams = {
+      date: selectedDate
+    }
+
     if (category === 'Outpatients') {
-      router.push(`/hospital/outpatient/${id}/schedule-prescription`)
+      router.push({
+        pathname: `/hospital/outpatient/${id}/schedule-prescription`,
+        query: queryParams
+      })
     } else {
-      router.push(`/hospital/inpatient/${id}/schedule-prescription`)
+      router.push({
+        pathname: `/hospital/inpatient/${id}/schedule-prescription`,
+        query: queryParams
+      })
     }
   }
 
@@ -918,6 +928,7 @@ const PrescriptionMonitoringGrid = ({
                             key={slotKey}
                             onClick={() => {
                               if (isDischared) return
+                              if (metric?.status?.toLowerCase() === 'stopped') return
 
                               const data = {
                                 scheduledTime: scheduledTime,
