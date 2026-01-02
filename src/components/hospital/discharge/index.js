@@ -664,7 +664,8 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     return (
       <Box sx={{ my: 20 }}>
         <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.error.main }}>
-          Discharge is restricted due to the absence of the security group at the origin site
+          Discharge is restricted due to the absence of the security group / transfer authority at the origin site of an
+          animal.
         </StyledTypography>
       </Box>
     )
