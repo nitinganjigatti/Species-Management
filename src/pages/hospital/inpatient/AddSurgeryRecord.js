@@ -1144,7 +1144,6 @@ const AddSurgeryRecord = () => {
                 name={'endTime'}
                 control={control}
                 label='End Time'
-                minTime={startTimeValue || null}
                 renderInput={params => (
                   <ControlledTextField
                     {...params}
