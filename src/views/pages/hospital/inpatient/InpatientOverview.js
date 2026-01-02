@@ -361,7 +361,8 @@ const InpatientOverview = ({
                     flexDirection: 'column',
                     gap: 2,
                     borderLeft: { md: `0.5px solid ${theme.palette.divider}`, xs: 'none' },
-                    pl: { md: 6, xs: 0 }
+                    pl: { md: 6, xs: 0 },
+                    py: 4
                   }}
                 >
                   <Typography
