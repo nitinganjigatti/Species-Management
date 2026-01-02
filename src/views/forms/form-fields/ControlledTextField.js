@@ -92,6 +92,20 @@ const ControlledTextField = ({
               '& .MuiInputBase-input': {
                 borderRadius: borderRadius,
                 backgroundColor: inputBackgroundColor ? inputBackgroundColor : 'inherit'
+              },
+              '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': {
+                WebkitAppearance: 'none',
+                margin: 0
+              },
+
+              /* Firefox */
+              '& input[type=number]': {
+                MozAppearance: 'textfield'
+              },
+
+              '& .MuiInputBase-input': {
+                borderRadius: borderRadius,
+                backgroundColor: inputBackgroundColor || 'inherit'
               }
             }}
           />
