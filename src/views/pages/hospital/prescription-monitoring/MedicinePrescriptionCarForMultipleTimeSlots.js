@@ -500,7 +500,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                   textDecoration: entry.isStrikethrough ? 'line-through' : 'none'
                 }}
               >
-                {formatTimeFromUTC(entry.time)}
+                {formatTime(entry?.scheduledTime)}
               </Typography>
               <Typography
                 variant='body2'
@@ -580,7 +580,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 0 0' }}>
           <UserAvatarDetails
             user_name={entry.administeredBy}
-            profile_image={entry.administeredBy}
+            profile_image={entry.user_profile_pic}
             date={entry.administeredAt}
             show_time={true}
           />
@@ -830,7 +830,8 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                     ) : (
                       renderDosageEntry({
                         id: item?.administritive_id,
-                        time: formatTime(item?.administritive_time || item?.scheduled_time),
+                        scheduledTime: item?.scheduled_time,
+                        time: formatTime(item?.administritive_time),
                         status: item?.status || 'Pending',
                         dosage: `${item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
                         amount:

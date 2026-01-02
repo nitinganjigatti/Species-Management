@@ -143,6 +143,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
         // Refresh the prescription list
         getPrescriptionList()
+        setSelectedMedicationsFromDetail([])
 
         // Refresh the details if the card is still open
         if (prescriptionCardOpen) {
@@ -261,7 +262,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
             response?.data?.medicine_timings?.map(item => ({
               ...item,
               id: item?.administritive_id,
-              time: item?.administritive_time || item?.scheduled_time,
+              time: item?.administritive_time,
               controlled_substance: response?.data?.controlled_substance,
 
               status: item?.status?.toLowerCase() === 'administrator' ? 'administered' : item?.status?.toLowerCase(),
@@ -958,6 +959,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
             category={category}
+
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -1036,6 +1038,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
+
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {
