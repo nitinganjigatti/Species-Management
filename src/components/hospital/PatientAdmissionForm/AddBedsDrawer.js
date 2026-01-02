@@ -215,7 +215,7 @@ const AddBedsDrawer = ({
               <Typography
                 sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
               >
-                Add Beds/Enclosures
+                Add Enclosures
               </Typography>
             </Box>
 

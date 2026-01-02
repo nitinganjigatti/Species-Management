@@ -349,7 +349,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
               loading={enclosureLoading}
               endAdornment={() =>
                 havePermissionToAddHospital && (
-                  <Tooltip title='Add Beds/Enclosures'>
+                  <Tooltip title='Add Enclosures'>
                     <IconButton
                       size='small'
                       onMouseDown={e => e.preventDefault()}

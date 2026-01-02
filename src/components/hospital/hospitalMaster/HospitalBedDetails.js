@@ -555,7 +555,7 @@ const HospitalBedDetails = () => {
             value={searchValue}
             onChange={e => handleSearch(e.target.value)}
             onClear={handleSearchClear}
-            placeholder='Search by Beds'
+            placeholder='Search by Enclosure'
             textFielsSX={{
               '& .MuiInputBase-input::placeholder': {
                 fontSize: '0.875rem'

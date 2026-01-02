@@ -451,7 +451,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
                 </Typography>
                 <ControlledAutocomplete
                   name='holdingEnclosure'
-                  label='Select Holding Unit'
+                  label='Select Holding Enclosure'
                   control={control}
                   errors={errors}
                   options={holdingEnclosures}
@@ -465,7 +465,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
                   loading={enclosureLoading}
                   endAdornment={() =>
                     havePermissionToAddHospital && (
-                      <Tooltip title='Add Beds/Enclosures'>
+                      <Tooltip title='Add Enclosures'>
                         <IconButton
                           size='small'
                           onMouseDown={e => e.preventDefault()}
