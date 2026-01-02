@@ -41,7 +41,7 @@ import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 import { useHospital } from 'src/context/HospitalContext'
 
 const statusOptions = [
-  { label: 'Bed Status', value: 'all' },
+  { label: 'Enclosure Status', value: 'all' },
   { label: 'Active', value: 'active' },
   { label: 'Inactive', value: 'inactive' }
 ]
@@ -532,7 +532,7 @@ const HospitalBedDetails = () => {
                 sx={{ py: 2, px: 3, borderRadius: '4px' }}
                 onClick={openAddBedDrawer}
               >
-                Add Bed
+                Add Enclosure
               </Button>
             </Box>
           }
