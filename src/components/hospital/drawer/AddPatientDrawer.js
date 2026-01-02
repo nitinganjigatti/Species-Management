@@ -247,7 +247,8 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
           paper: {
             sx: {
               width: { xs: '100%', sm: '80%', md: 560 },
-              height: '100vh',
+
+              // height: '100vh',
               display: 'flex',
               flexDirection: 'column',
               backgroundColor: theme.palette.customColors.OnPrimary,
