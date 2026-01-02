@@ -111,6 +111,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
   // Handle prescription card actions
   const handleOpenPrescriptionCard = data => {
     getPrescriptionDates(data)
+    setDetailSelectedDate(selectedDate)
     setPrescriptionCardOpen(true)
   }
 
@@ -119,6 +120,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
   }
 
   const handleClosePrescriptionCard = () => {
+    setDetailSelectedDate(selectedDate)
     setPrescriptionCardOpen(false)
   }
 
@@ -246,7 +248,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
       const payload = {
         prescription_id: data?.id || medicineDetails?.prescription_id,
-        date: data?.customDate || selectedDate || detailSelectedDate,
+        date: data?.customDate || detailSelectedDate || selectedDate,
         group_prescription_id: data?.id || medicineDetails?.prescription_id,
         administrative_ids: data?.administrative_ids || administrativeIds || ''
 
@@ -301,8 +303,8 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       setIsDatesLoading(true)
 
       const payload = {
-        from_date: selectedDate,
-        to_date: selectedDate,
+        from_date: dates?.length && dates[0],
+        to_date: new Date().toISOString().slice(0, 10),
         hospital_case_id: id,
         type: 'all',
         prescription_id: data?.id,
@@ -960,7 +962,6 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
             category={category}
-
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -1039,7 +1040,6 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
-
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {
@@ -1097,7 +1097,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         onAddNewDosage={handleAddNewDosage}
         onRefreshEntry={handleRefreshEntry}
         handleDateChange={handleDetailDateChange}
-        selectedDate={selectedDate}
+        selectedDate={detailSelectedDate}
         onAdministerSelected={handleAdministerSelectedFromDrawer}
         onSkipSelected={handleSkipSelectedFromDrawer}
         isAdministerLoading={isAdministerLoading}
