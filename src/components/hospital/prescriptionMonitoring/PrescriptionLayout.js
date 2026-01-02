@@ -262,6 +262,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
               ...item,
               id: item?.administritive_id,
               time: item?.administritive_time || item?.scheduled_time,
+              controlled_substance: response?.data?.controlled_substance,
 
               status: item?.status?.toLowerCase() === 'administrator' ? 'administered' : item?.status?.toLowerCase(),
               variant: item?.status?.toLowerCase() === 'administrator' ? 'administered' : item?.status?.toLowerCase(),
@@ -912,7 +913,9 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
   const handleBatchSearch = value => {
     setBatchSearchQuery(value)
-    const medicineId = selectedSlotData?.timeSlot?.medicine_id || selectedSlotData?.data?.medicine_id
+
+    const medicineId =
+      selectedSlotData?.timeSlot?.medicine_id || selectedSlotData?.data?.medicine_id || medicineDetails?.medicine_id
 
     fetchMedicineBatches(medicineId, value)
   }
@@ -955,7 +958,6 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
             category={category}
-
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -1034,7 +1036,6 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
-
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {
@@ -1097,7 +1098,13 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         onSkipSelected={handleSkipSelectedFromDrawer}
         isAdministerLoading={isAdministerLoading}
         isSkipLoading={isSkipLoading}
+        medicalMasterData={medicalMasterData}
+        mastersDataLoading={medicalMasterDataLoading}
         onRestartMedicine={handleRestartMedicine}
+        batchList={batchList}
+        batchLoading={batchLoading}
+        handleBatchSearch={handleBatchSearch}
+        isControlledSubstance={medicineDetails?.controlled_substance == 1}
       />
       <AdministerOrSkipModal
         open={isAdministerOrSkipPopupOpen}

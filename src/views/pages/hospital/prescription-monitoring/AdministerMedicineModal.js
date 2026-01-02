@@ -31,6 +31,7 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 import Utility from 'src/utility'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
+import RenderUtility from 'src/utility/render'
 
 // Enable custom parse format plugin for dayjs
 dayjs.extend(customParseFormat)
@@ -333,6 +334,8 @@ const AdministerMedicineSidesheet = ({
                 color: theme.palette.primary.deepDark
               }}
             >
+              {RenderUtility?.renderControlLabel(isControlledSubstance, 'CS')}
+
               {scheduleDosage?.data?.name}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>

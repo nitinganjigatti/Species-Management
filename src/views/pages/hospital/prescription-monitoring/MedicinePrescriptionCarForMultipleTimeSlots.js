@@ -38,6 +38,7 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import RenderUtility from 'src/utility/render'
 
 // Custom styled components for drawer content
 const DrawerContent = styled(Box)(({ theme }) => ({
@@ -676,6 +677,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                     color: theme.palette.primary.deepDark
                   }}
                 >
+                  {RenderUtility?.renderControlLabel(isControlledSubstance, 'CS')}
                   {medicineData?.name}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
