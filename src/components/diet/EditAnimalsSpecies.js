@@ -826,7 +826,7 @@ const EditAnimalSpeciesMapped = ({
         sx={{
           width: '100%',
           maxWidth: '562px',
-          height: '150px',
+          height: isSmallDevice ? '90px' : '150px',
           position: isSmallDevice ? 'absolute' : 'fixed',
           bottom: isSmallDevice ? 75 : 0,
           px: 4,

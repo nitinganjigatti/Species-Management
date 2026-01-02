@@ -1573,6 +1573,7 @@ const DietDetail = () => {
                                                                                   src='/icons/Notes.svg'
                                                                                   alt='Grocery Icon'
                                                                                   width='35px'
+                                                                                  draggable={false}
                                                                                 />
                                                                               </Tooltip>
                                                                             </Typography>
@@ -1691,6 +1692,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -1719,6 +1721,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -1745,6 +1748,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -1771,6 +1775,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -2256,6 +2261,7 @@ const DietDetail = () => {
                                                                                   src='/icons/Notes.svg'
                                                                                   alt='Grocery Icon'
                                                                                   width='35px'
+                                                                                  draggable={false}
                                                                                 />
                                                                               </Tooltip>
                                                                             </Typography>
@@ -2373,6 +2379,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -2401,6 +2408,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -2427,6 +2435,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -2453,6 +2462,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -2860,6 +2870,7 @@ const DietDetail = () => {
                                                                                   src='/icons/Notes.svg'
                                                                                   alt='Grocery Icon'
                                                                                   width='35px'
+                                                                                  draggable={false}
                                                                                 />
                                                                               </Tooltip>
                                                                             </Typography>
@@ -2980,6 +2991,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -3008,6 +3020,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -3034,6 +3047,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -3060,6 +3074,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -3408,6 +3423,7 @@ const DietDetail = () => {
                                                                                 src='/icons/Notes.svg'
                                                                                 alt='Grocery Icon'
                                                                                 width='35px'
+                                                                                draggable={false}
                                                                               />
                                                                             </Tooltip>
                                                                           </Typography>
@@ -3525,6 +3541,7 @@ const DietDetail = () => {
                                                                                             src='/icons/Notes.svg'
                                                                                             alt='Grocery Icon'
                                                                                             width='35px'
+                                                                                            draggable={false}
                                                                                           />
                                                                                         </Tooltip>
                                                                                       </Typography>
@@ -3553,6 +3570,7 @@ const DietDetail = () => {
                                                                                             src='/icons/Notes.svg'
                                                                                             alt='Grocery Icon'
                                                                                             width='35px'
+                                                                                            draggable={false}
                                                                                           />
                                                                                         </Tooltip>
                                                                                       </Typography>
@@ -3579,6 +3597,7 @@ const DietDetail = () => {
                                                                                             src='/icons/Notes.svg'
                                                                                             alt='Grocery Icon'
                                                                                             width='35px'
+                                                                                            draggable={false}
                                                                                           />
                                                                                         </Tooltip>
                                                                                       </Typography>
@@ -3605,6 +3624,7 @@ const DietDetail = () => {
                                                                                             src='/icons/Notes.svg'
                                                                                             alt='Grocery Icon'
                                                                                             width='35px'
+                                                                                            draggable={false}
                                                                                           />
                                                                                         </Tooltip>
                                                                                       </Typography>

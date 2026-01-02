@@ -91,9 +91,13 @@
     position: absolute !important;
     right: 11% !important;
   }
+  .pencil_diet_for_choice {
+  }
   .del_diet {
     position: absolute !important;
     right: 7% !important;
+  }
+  .del_diet_for_choice {
   }
   .diet_steps .MuiStepper-root {
     display: -webkit-inline-box;

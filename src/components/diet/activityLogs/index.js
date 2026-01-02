@@ -370,6 +370,10 @@ const ActivityLogs = ({
                                         }`} */}
                                     {item.action === 'diet_assign'
                                       ? 'Diet Assigned'
+                                      : item?.action === 'is_primary'
+                                      ? 'Marked as Primary Diet'
+                                      : item?.action === 'unmark_primary'
+                                      ? 'Unmarked as Primary Diet'
                                       : `${item.action.charAt(0).toUpperCase() + item.action.slice(1)} ${
                                           activity_type === 'combo'
                                             ? 'Mix'
