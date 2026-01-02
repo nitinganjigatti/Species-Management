@@ -248,9 +248,10 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         prescription_id: data?.id || medicineDetails?.prescription_id,
         date: data?.customDate || selectedDate || detailSelectedDate,
         group_prescription_id: data?.id || medicineDetails?.prescription_id,
-        administrative_ids: data?.administrative_ids || administrativeIds || '',
-        medical_record_id: data?.medical_record_id || medicineDetails?.medical_record_id,
-        medicine_id: data?.medicine_id || medicineDetails?.medicine_id
+        administrative_ids: data?.administrative_ids || administrativeIds || ''
+
+        // medical_record_id: data?.medical_record_id || medicineDetails?.medical_record_id,
+        // medicine_id: data?.medicine_id || medicineDetails?.medicine_id
       }
 
       const response = await getPrescriptionDetails(payload)

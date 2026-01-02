@@ -1344,7 +1344,7 @@ const MedicinePrescriptionCard = ({
                       >
                         Stop Medicine
                       </Button>
-                    ) : isStopDatePassed(medicineData?.stop_date) && medicineData?.will_restart !== 1 ? (
+                    ) : isStopDatePassed(medicineData?.stop_date) && medicineData?.will_restart != 0 ? (
                       <Button
                         variant='text'
                         startIcon={
