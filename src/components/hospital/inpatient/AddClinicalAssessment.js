@@ -437,15 +437,6 @@ function AddClinicalAssessment() {
         </Grid>
       </Grid>
       <Box>
-        {/* <ActionButtons
-          isSubmitLoading={isSubmitLoading}
-          cancelLabel='CANCEL'
-          addLabel='ADD'
-          onCancel={handleAssessmentCancel}
-          onAdd={handleAddAssessment}
-          width={200}
-          height={50}
-        /> */}
         <BottomActionBar
           submitLabel='ADD'
           cancelLabel='CANCEL'

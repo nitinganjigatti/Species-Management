@@ -5,7 +5,6 @@ import { useTheme } from '@mui/material/styles'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import ActionButtons from 'src/components/hospital/FooterActionbuttons'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
 import PrescriptionMedicineList from 'src/views/pages/hospital/prescription-monitoring/PrescriptionMedicineList'
 import ScheduleMedicine from 'src/views/pages/hospital/prescription-monitoring/ScheduleMedicine'
@@ -1578,7 +1577,7 @@ export default function AddMedicineToPrescription() {
     let endDate = start.clone()
     const durationValue = parseInt(dosageDuration.value)
     const intervalValue = parseInt(interval)
-    
+
     // Handle special case for duration 0 - it should be same as start date
     if (durationValue === 0) {
       endDate = start.clone()
@@ -1600,7 +1599,7 @@ export default function AddMedicineToPrescription() {
           endDate = start.add(durationValue - 1, 'days')
       }
     }
-    
+
     // Return proper ISO 8601 UTC string
     return endDate.toISOString()
   }
@@ -1694,7 +1693,6 @@ export default function AddMedicineToPrescription() {
             <PrescriptionMedicineList
               medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
               temporarilySelectedMedicine={temporarilySelectedMedicine}
-
               // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
               selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
               onSelect={handleMedicineSelect}
@@ -1739,22 +1737,6 @@ export default function AddMedicineToPrescription() {
         </Grid>
       </Box>
 
-      {/* <ActionButtons
-        cancelLabel={cancelOrCloseText}
-        addLabel={
-          fromPage === 'prescriptionDetail'
-            ? 'Restart Medicine'
-            : watch('selectMedicineType') === 'Direct Administer'
-            ? 'Administer'
-            : 'Schedule'
-        }
-        onCancel={handleCancel}
-        isSubmitLoading={isSubmitting}
-        isAddDisabled={temporarilySelectedMedicine?.id ? false : true}
-        onAdd={prescriptionSubmitHandler}
-        width={200}
-        height={50}
-      /> */}
       <BottomActionBar
         submitLabel={
           fromPage === 'prescriptionDetail'
