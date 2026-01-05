@@ -104,6 +104,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
   const handleDateChange = date => {
     setSelectedDate(date)
+    setDetailSelectedDate(date)
     setSelectedMetrics([])
     updateURLParams('date', date)
   }
@@ -135,7 +136,8 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         note: data.note,
         side_effect: data.hasAdverseEffects === 'yes',
         case: 'single',
-        main_prescription_id: medicineDetails?.prescription_id // prescription_id
+        main_prescription_id: medicineDetails?.prescription_id, // prescription_id
+        stop_date: new Date().toISOString().split('T')[0] === detailSelectedDate ? null : detailSelectedDate
       }
 
       const response = await stopPrescription(payload)
@@ -334,7 +336,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
   const handleAdministerOrSkipClose = () => setIsAdministerOrSkipPopupOpen(false)
 
-  const handleAdministerOrSubmit = async data => {
+  const handleAdministerOrSubmit = async (data, selectedItems, medicineData) => {
     setIsAdministerOrSkipPopupLoading(true)
     try {
       const wastageUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
@@ -346,11 +348,13 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       // Process the form data based on action type
       const payload = {
         medical_record_id: JSON.stringify([medicineDetails?.medical_record_id]),
-        medicine_id: JSON.stringify([selectedSlotData?.timeSlot?.medicine_id]),
+        medicine_id: JSON.stringify([selectedSlotData?.timeSlot?.medicine_id || medicineDetails?.medicine_id]),
         type: 'single',
-        purpose: data.action === 'administer' ? 'administer' : 'withheld',
+        purpose: data?.action === 'administer' ? 'administer' : 'withheld',
         side_effect: 0,
-        administer_id: JSON.stringify([selectedSlotData?.timeSlot?.schedule_id]),
+        administer_id: JSON.stringify([
+          selectedItems?.[0]?.administritive_id || selectedSlotData?.timeSlot?.administritive_id
+        ]),
         request_from: 'hospital_module',
 
         batch_details:
@@ -380,7 +384,13 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
           setSelectedMedicationsFromDetail([])
         }
         setAdministrativeIds([])
+        setSelectedMedicationsFromDetail([])
         getPrescriptionList()
+        if (prescriptionCardOpen && medicineData) {
+          getDetails(medicineData, detailSelectedDate)
+        } else if (isAdministerOrSkipForMultipleSlotsOpen && medicineData) {
+          getDetails(medicineData, selectedDate)
+        }
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
@@ -423,6 +433,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
           {
             start_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
             end_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
+            notes: data.notes || '',
             schedule_doses: [
               {
                 id: '',
@@ -433,29 +444,30 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
                 string_id: fetchUnit(formData?.quantityUnit)?.string_id
               }
             ],
-            batch_list: formData?.batchNumber?.batch_no
-              ? [
-                  {
-                    id: formData?.batchNumber?.batch_no,
-                    label: '',
-                    selectedAnimal: [
-                      {
-                        animal_id: animal_id,
-                        selectType: 'animal'
-                      }
-                    ],
-                    batchNumber:
-                      typeof formData.batchNumber === 'object'
-                        ? formData.batchNumber?.batch_no
-                        : formData.batchNumber || '',
-                    wastage: formData.wastageQuantity || '',
-                    wastageUnit: formData.wastageUnit || '',
-                    notes: formData.wastageNotes || '',
+            batch_list:
+              formData?.batchNumber?.batch_no || formData?.batchNumber
+                ? [
+                    {
+                      id: formData?.batchNumber?.batch_no,
+                      label: '',
+                      selectedAnimal: [
+                        {
+                          animal_id: animal_id,
+                          selectType: 'animal'
+                        }
+                      ],
+                      batchNumber:
+                        typeof formData.batchNumber === 'object'
+                          ? formData.batchNumber?.batch_no
+                          : formData.batchNumber || '',
+                      wastage: formData.wastageQuantity || '',
+                      wastageUnit: formData.wastageUnit || '',
+                      notes: formData.wastageNotes || '',
 
-                    totalAnimal: []
-                  }
-                ]
-              : [],
+                      totalAnimal: []
+                    }
+                  ]
+                : [],
             files: formData.batchImage ? [formData.batchImage] : [],
             1: formData?.attachment?.[0] && formData?.attachment[0]
           }
@@ -813,15 +825,15 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
   const handleAdministerSelectedFromDrawerForMultipleSlots = async (selectedItems, medicineData, formData) => {
     if (selectedItems?.length === 1) {
-      handleAdministerOrSubmit(formData)
+      handleAdministerOrSubmit(formData, selectedItems, medicineData)
     } else {
-      handleAdministerSelectedFromDrawer(selectedItems)
+      handleAdministerSelectedFromDrawer(selectedItems, medicineData)
     }
   }
 
   const handleSkipSelectedFromDrawerForMultipleSlots = async (selectedItems, medicineData, formData) => {
     if (selectedItems?.length === 1) {
-      handleAdministerOrSubmit(formData)
+      handleAdministerOrSubmit(formData, selectedItems, medicineData)
     } else {
       handleSkipSelectedFromDrawer(selectedItems, medicineData)
     }
@@ -962,6 +974,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
             category={category}
+
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -1040,6 +1053,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
+
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {
@@ -1098,10 +1112,10 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         onRefreshEntry={handleRefreshEntry}
         handleDateChange={handleDetailDateChange}
         selectedDate={detailSelectedDate}
-        onAdministerSelected={handleAdministerSelectedFromDrawer}
-        onSkipSelected={handleSkipSelectedFromDrawer}
-        isAdministerLoading={isAdministerLoading}
-        isSkipLoading={isSkipLoading}
+        onAdministerSelected={handleAdministerSelectedFromDrawerForMultipleSlots}
+        onSkipSelected={handleSkipSelectedFromDrawerForMultipleSlots}
+        isAdministerLoading={isAdministerLoading || isAdministerOrSkipPopupLoading}
+        isSkipLoading={isSkipLoading || isAdministerOrSkipPopupLoading}
         medicalMasterData={medicalMasterData}
         mastersDataLoading={medicalMasterDataLoading}
         onRestartMedicine={handleRestartMedicine}
@@ -1172,8 +1186,8 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         selectedDate={detailSelectedDate}
         onAdministerSelected={handleAdministerSelectedFromDrawerForMultipleSlots}
         onSkipSelected={handleSkipSelectedFromDrawerForMultipleSlots}
-        isAdministerLoading={isAdministerLoading}
-        isSkipLoading={isSkipLoading}
+        isAdministerLoading={isAdministerLoading || isAdministerOrSkipPopupLoading}
+        isSkipLoading={isSkipLoading || isAdministerOrSkipPopupLoading}
         medicalMasterData={medicalMasterData}
         mastersDataLoading={medicalMasterDataLoading}
         batchList={batchList}

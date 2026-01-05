@@ -1245,9 +1245,10 @@ export default function AddMedicineToPrescription() {
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
             start_date: toISTISOString(data.prescriptionStartDate),
-            end_date: isOneTimeFrequency
-              ? toISTISOString(data.prescriptionStartDate)
-              : toISTISOString(data.prescriptionEndDate),
+            end_date:
+              isOneTimeFrequency || data.prescriptionStartDate.split('T')[0] === data.prescriptionEndDate.split('T')[0]
+                ? toISTISOString(data.prescriptionStartDate)
+                : toISTISOString(data.prescriptionEndDate),
 
             restart_reason: '',
             stop_reason: '',
@@ -1259,8 +1260,8 @@ export default function AddMedicineToPrescription() {
             batch_list: batchListPayload,
             request_from: 'hospital_module',
             dose_type: 'fixed_dose',
-            files: data.batchImage ? [data.batchImage] : [],
-            1: data?.attachment?.[0] && data?.attachment[0]
+            files: data.batchImage ? data.batchImage : [],
+            1: data.batchImage ? data.batchImage : []
           }
         ])
       }

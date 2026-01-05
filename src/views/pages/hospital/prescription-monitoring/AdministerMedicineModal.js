@@ -578,7 +578,7 @@ const AdministerMedicineSidesheet = ({
                               label='Batch Image'
                               maxFiles={1}
                               maxFileSize={5 * 1024 * 1024} // 5MB
-                              acceptedFileTypes='image,pdf'
+                              acceptedFileTypes='images'
                             />
                           </Grid>
                         </Grid>

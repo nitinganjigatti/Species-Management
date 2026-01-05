@@ -534,19 +534,24 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
         </Box>
       </DosageHeader>
 
-      {entry?.batch_details?.length > 0 && (
-        <Box sx={{ display: 'flex', padding: '0 16px', flexDirection: 'column', gap: '4px' }}>
-          <Typography
-            variant='body1'
-            sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}
-          >
-            {entry.wastage}
-          </Typography>
-          <Typography variant='body2' sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-            {entry.wastageNote}
-          </Typography>
-        </Box>
-      )}
+      {entry?.batch_details?.length > 0 &&
+        (entry.batch_details?.[0]?.wastage_qty || entry?.batch_details?.[0]?.batch_note) && (
+          <Box sx={{ display: 'flex', padding: '0 16px', flexDirection: 'column', gap: '4px' }}>
+            {entry.batch_details?.[0]?.wastage_qty && entry.batch_details?.[0]?.wastage_unit_name ? (
+              <Typography
+                variant='body1'
+                sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}
+              >
+                Wastage - {entry.batch_details?.[0]?.wastage_qty} {entry.batch_details?.[0]?.wastage_unit_name}
+              </Typography>
+            ) : null}
+            {entry?.batch_details?.[0]?.batch_note && (
+              <Typography variant='body2' sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                {entry?.batch_details?.[0]?.batch_note}
+              </Typography>
+            )}
+          </Box>
+        )}
       {entry?.batch_details?.length > 0 && (
         <Box sx={{ display: 'flex', padding: '0 16px', alignItems: 'center', gap: '8px' }}>
           <Box
@@ -1000,9 +1005,9 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                           errors={errors}
                                           sx={commonFieldStyles}
                                           label='Batch Image'
-                                          maxFiles={5}
+                                          maxFiles={1}
                                           maxFileSize={5 * 1024 * 1024}
-                                          acceptedFileTypes='image,pdf'
+                                          acceptedFileTypes='images'
                                         />
                                       </Grid>
                                     </Grid>

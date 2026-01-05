@@ -451,6 +451,7 @@ const AdministerOrSkipSidesheet = ({
                       format='hh:mm A'
                       sx={{ backgroundColor: theme.palette.customColors.Surface, ...commonFieldStyles }}
                       error={errors.time}
+
                       // disabled={disableTimeField}
                       minTime={slotStart}
                       maxTime={slotEnd}
@@ -612,9 +613,9 @@ const AdministerOrSkipSidesheet = ({
                                   errors={errors}
                                   sx={commonFieldStyles}
                                   label='Batch Image'
-                                  maxFiles={5}
+                                  maxFiles={1}
                                   maxFileSize={5 * 1024 * 1024} // 5MB
-                                  acceptedFileTypes='image,pdf'
+                                  acceptedFileTypes='images'
                                 />
                               </Grid>
                             </Grid>

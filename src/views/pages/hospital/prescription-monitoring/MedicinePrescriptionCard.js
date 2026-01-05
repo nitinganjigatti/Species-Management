@@ -238,6 +238,7 @@ const MedicinePrescriptionCard = ({
     control,
     handleSubmit,
     reset,
+    setValue,
     watch,
     formState: { errors }
   } = useForm({
@@ -944,6 +945,7 @@ const MedicinePrescriptionCard = ({
                 onDateSelect={handleDateChange}
                 selectedDate={selectedDate}
                 showYear={true}
+                year={selectedDate ? selectedDate.split(' ')[0].split('-')[0] : ''}
                 containerStyle={{
                   backgroundColor: theme.palette.background.paper,
                   borderBottom: `0.5px solid ${theme.palette.customColors.OutlineVariant}`,
@@ -1130,7 +1132,7 @@ const MedicinePrescriptionCard = ({
 
                 {isSingleSelection && isControlledSubstance && (
                   <Box sx={{ backgroundColor: 'white' }}>
-                    <CardContent sx={{ p: 6 }}>
+                    <Box sx={{ py: 6 }}>
                       <form onSubmit={handleSubmit(onFormSubmit)}>
                         <Grid container spacing={4}>
                           {actionType === 'administer' ? (
@@ -1265,9 +1267,9 @@ const MedicinePrescriptionCard = ({
                                           errors={errors}
                                           sx={commonFieldStyles}
                                           label='Batch Image'
-                                          maxFiles={5}
+                                          maxFiles={1}
                                           maxFileSize={5 * 1024 * 1024}
-                                          acceptedFileTypes='image,pdf'
+                                          acceptedFileTypes='images'
                                         />
                                       </Grid>
                                     </Grid>
@@ -1293,7 +1295,7 @@ const MedicinePrescriptionCard = ({
                           )}
                         </Grid>
                       </form>
-                    </CardContent>
+                    </Box>
                   </Box>
                 )}
 
@@ -1316,8 +1318,7 @@ const MedicinePrescriptionCard = ({
                       mb: 12
                     }}
                   >
-                    {!isStopDatePassed(medicineData?.stop_date) &&
-                    new Date().toISOString().split('T')[0] === selectedDate ? (
+                    {new Date().toISOString().split('T')[0] === selectedDate || medicineData?.show_stop_button ? (
                       <Button
                         variant='text'
                         startIcon={
@@ -1423,9 +1424,13 @@ const MedicinePrescriptionCard = ({
                   >
                     <LoadingButton
                       variant='outlined'
+                      name='actionType'
                       type='button'
                       loading={isSkipLoading}
-                      onClick={handleSubmit(onFormSubmit)}
+                      onClick={() => {
+                        setValue('action', 'skipped')
+                        handleSkipSelected()
+                      }}
                       disabled={selectedMedications.length === 0}
                       sx={{ flex: 1, py: 2, height: '48px' }}
                     >
