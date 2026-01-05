@@ -578,7 +578,7 @@ export default function AddMedicineToPrescription() {
 
       if (response?.data) {
         return response?.data
-      } 
+      }
     } catch (error) {
       Toaster({ type: 'error', message: error || 'Something went wrong' })
       router.back()
@@ -602,20 +602,20 @@ export default function AddMedicineToPrescription() {
 
   const handleMedicineSelect = async medicine => {
     if (medicine) {
-      if(fromPage === "prescriptionDetail" || editingMedicine) {
+      if (fromPage === 'prescriptionDetail' || editingMedicine) {
         proceedWithMedicineSelection(medicine)
 
         return
       }
 
       let sideEffectMedicines
-      
+
       // Use cached data if available, otherwise fetch
       if (sideEffectMedicinesCache !== null) {
         sideEffectMedicines = sideEffectMedicinesCache
       } else {
         sideEffectMedicines = await fetchSideEffectMedicines()
-        
+
         // Cache the data for future use
         setSideEffectMedicinesCache(sideEffectMedicines)
       }
@@ -1245,9 +1245,10 @@ export default function AddMedicineToPrescription() {
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
             start_date: toISTISOString(data.prescriptionStartDate),
-            end_date: isOneTimeFrequency
-              ? toISTISOString(data.prescriptionStartDate)
-              : toISTISOString(data.prescriptionEndDate),
+            end_date:
+              isOneTimeFrequency || data.prescriptionStartDate.split('T')[0] === data.prescriptionEndDate.split('T')[0]
+                ? toISTISOString(data.prescriptionStartDate)
+                : toISTISOString(data.prescriptionEndDate),
 
             restart_reason: '',
             stop_reason: '',
@@ -1259,8 +1260,8 @@ export default function AddMedicineToPrescription() {
             batch_list: batchListPayload,
             request_from: 'hospital_module',
             dose_type: 'fixed_dose',
-            files: data.batchImage ? [data.batchImage] : [],
-            1: data?.attachment?.[0] && data?.attachment[0]
+            files: data.batchImage ? data.batchImage : [],
+            1: data.batchImage ? data.batchImage : []
           }
         ])
       }
@@ -1573,34 +1574,33 @@ export default function AddMedicineToPrescription() {
   const calculateEndDate = (startDate, dosageDuration, interval) => {
     if (!startDate || !dosageDuration?.value) return ''
 
-    const start = moment(startDate)
-    let endDate = moment(startDate)
-
+    const start = moment(startDate.toISOString ? startDate.toISOString() : startDate)
+    let endDate = start.clone()
     const durationValue = parseInt(dosageDuration.value)
     const intervalValue = parseInt(interval)
-
+    
     // Handle special case for duration 0 - it should be same as start date
     if (durationValue === 0) {
       endDate = start.clone()
     } else {
       switch (dosageDuration.unit) {
         case 'days':
-          endDate = start.add(1 * durationValue - 1, 'days')
+          endDate = start.add(durationValue - 1, 'days')
           break
         case 'weeks':
-          endDate = start.add(1 * 7 * durationValue - 1, 'days')
+          endDate = start.add(7 * durationValue - 1, 'days')
           break
         case 'months':
-          endDate = start.add(durationValue, 'months')
+          endDate = start.add(durationValue, 'months').subtract(1, 'day')
           break
         case 'years':
-          endDate = start.add(durationValue, 'years')
+          endDate = start.add(durationValue, 'years').subtract(1, 'day')
           break
         default:
-          endDate = start.add(durationValue, 'days')
+          endDate = start.add(durationValue - 1, 'days')
       }
     }
-
+    
     // Return proper ISO 8601 UTC string
     return endDate.toISOString()
   }

@@ -777,11 +777,11 @@ const AddPatientForm = () => {
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Holding Unit
+                    Holding Enclosure
                   </Typography>
                   <ControlledAutocomplete
                     name='holdingEnclosure'
-                    label='Select Holding Unit'
+                    label='Select Holding Enclosure'
                     control={control}
                     errors={errors}
                     options={holdingEnclosures}
@@ -796,7 +796,7 @@ const AddPatientForm = () => {
                     disabled={submitLoader}
                     endAdornment={() =>
                       havePermissionToAddHospital && (
-                        <Tooltip title='Add Beds/Enclosures'>
+                        <Tooltip title='Add Enclosures'>
                           <IconButton
                             size='small'
                             onMouseDown={e => e.preventDefault()}

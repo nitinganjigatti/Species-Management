@@ -31,14 +31,14 @@ const EditTreatmentDrawer = ({
   const { control, reset } = useForm({
     defaultValues: {
       editNotes: formData.notes || '',
-      startDate: formData.startDate || dayjs()
+      startDate: formData.startDate ? dayjs(formData.startDate) : dayjs()
     }
   })
 
   useEffect(() => {
     reset({
       editNotes: formData.notes || '',
-      startDate: formData.startDate || dayjs()
+      startDate: formData.startDate ? dayjs(formData.startDate) : dayjs()
     })
   }, [formData.notes, formData.startDate, reset, open])
 
@@ -151,7 +151,7 @@ const EditTreatmentDrawer = ({
                 <Controller
                   name='startDate'
                   control={control}
-                  defaultValue={formData.startDate || dayjs()}
+                  defaultValue={formData.startDate ? dayjs(formData.startDate) : dayjs()}
                   render={({ field }) => (
                     <MUIDatePicker
                       value={field.value}
@@ -370,7 +370,7 @@ const EditTreatmentDrawer = ({
                     >
                       Treatment Start Date:{' '}
                       <Box component='span' sx={{ fontWeight: 600 }}>
-                        {formatShortDate(activity.treatmentStartDate)}
+                        {formatShortDate(activity.treatment_start_date_time)}
                       </Box>
                     </Typography>
                     {activity.note && (
@@ -438,8 +438,7 @@ const EditTreatmentDrawer = ({
               <Button
                 variant='contained'
                 fullWidth
-                onClick={onUpdate}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !formData.notes}
                 sx={{
                   height: '56px',
                   borderRadius: '8px',
@@ -459,7 +458,7 @@ const EditTreatmentDrawer = ({
               variant='contained'
               fullWidth
               onClick={onAdd}
-              disabled={isAdding || isSubmitting}
+              disabled={isAdding || isSubmitting || !formData.notes}
               sx={{
                 height: '56px',
                 borderRadius: '8px',

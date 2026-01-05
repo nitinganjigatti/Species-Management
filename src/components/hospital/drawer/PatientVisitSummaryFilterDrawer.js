@@ -13,7 +13,7 @@ import React, { useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
 import { getPatientVisitSummary } from 'src/lib/api/hospital/inpatient'
-import Utility from 'src/utility'
+import Utility, { downloadPDF } from 'src/utility'
 
 const ALL_REPORTS_KEY = 'all_reports'
 
@@ -59,15 +59,21 @@ const PatientVisitSummaryFilterDrawer = ({ open, onClose, patientData, animalDat
         hospital_case_id: patientData?.hospital_case_id
       }
 
-      const response = await getPatientVisitSummary(payload)
+      await downloadPDF({
+        apiCall: getPatientVisitSummary,
+        params: payload,
+        fileName: `hospital_visit_summary_${Date.now()}.pdf`
+      })
 
-      if (response?.success) {
-        Utility.downloadFileFromURL(response.data.download_url)
-        Toaster({ type: 'success', message: response?.message })
-      } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to download visit summary' })
-        setSubmitLoader(false)
-      }
+      // const response = await getPatientVisitSummary(payload)
+
+      // if (response?.success) {
+      //   Utility.downloadFileFromURL(response.data.download_url)
+      //   Toaster({ type: 'success', message: response?.message })
+      // } else {
+      //   Toaster({ type: 'error', message: response?.message || 'Failed to download visit summary' })
+      //   setSubmitLoader(false)
+      // }
     } catch (error) {
       console.error(error)
     } finally {

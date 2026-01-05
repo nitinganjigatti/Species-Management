@@ -252,11 +252,15 @@ const InpatientOverview = ({
       headerAlign: 'left',
       align: 'left',
       sortable: false,
-      renderCell: params => (
-        <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-          {`${params.row.days_admitted} days`}
-        </Typography>
-      )
+      renderCell: params => {
+        const totalDuration = Number(params?.row?.days_admitted) + 1
+
+        return (
+          <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
+            {totalDuration} {totalDuration > 1 ? 'Days' : 'Day'}
+          </Typography>
+        )
+      }
     },
     {
       field: 'visit_type',
@@ -361,7 +365,8 @@ const InpatientOverview = ({
                     flexDirection: 'column',
                     gap: 2,
                     borderLeft: { md: `0.5px solid ${theme.palette.divider}`, xs: 'none' },
-                    pl: { md: 6, xs: 0 }
+                    pl: { md: 6, xs: 0 },
+                    py: 4
                   }}
                 >
                   <Typography

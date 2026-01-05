@@ -92,6 +92,7 @@ const mapTreatmentEntry = (entry, index = 0) => {
     noteCount: notesCount ?? (noteText ? 1 : 0),
     noteSummary: noteText || '',
     lastUpdated,
+    treatment_start_date_time: entry.treatment_start_date_time,
     clinician: {
       name: entry.created_by_name || '—',
       avatarUrl: entry.profile_pic || '',
@@ -148,6 +149,7 @@ const mapDetailRecordsToActivities = (records = []) => {
       },
       timestamp,
       treatmentStartDate: entry.start_time || entry.created_at || null,
+      treatment_start_date_time: entry.treatment_start_date_time,
       notes: note,
       description: note,
       note,
@@ -402,13 +404,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
     setSelectedTreatmentActivities([])
 
-    const inferredStartDate = activity?.treatmentStartDate
-      ? dayjs(activity.treatmentStartDate)
-      : activity?.timestamp
-      ? dayjs(activity.timestamp)
-      : treatment.lastUpdated
-      ? dayjs(treatment.lastUpdated)
-      : dayjs()
+    const inferredStartDate = treatment.treatment_start_date_time
 
     const prefillNotes = activity ? activity.description || activity.notes || '' : ''
 
@@ -590,14 +586,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
   const handlePrefillFromActivity = activity => {
     if (!selectedTreatment || !activity) return
 
-    const inferredStartDate = activity.treatmentStartDate
-      ? dayjs(activity.treatmentStartDate)
-      : activity.timestamp
-      ? dayjs(activity.timestamp)
-      : selectedTreatment.lastUpdated
-      ? dayjs(selectedTreatment.lastUpdated)
-      : dayjs()
-
+    const inferredStartDate = activity.treatment_start_date_time
     const prefillNotes = activity.description || activity.notes || ''
 
     setEditFormData({
