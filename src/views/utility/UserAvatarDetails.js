@@ -105,24 +105,23 @@ function UserAvatarDetails({
             )}
 
             {role && (
-              // <Box sx={{ display: 'flex', flex: 1, minWidth: 0, flexDirection: 'column' }}>
-              <Tooltip title={role}>
-                <Typography
-                  variant='caption'
-                  sx={{
-                    lineHeight: 1.6667,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    maxWidth: '100%',
-                    ...(selectedAvatarSize?.date || {})
-                  }}
-                >
-                  <span>{role}</span>
-                </Typography>
-              </Tooltip>
-
-              // </Box>
+              <Box sx={{ display: 'flex', flex: 1, minWidth: 0, flexDirection: 'column' }}>
+                <Tooltip title={role}>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      lineHeight: 1.6667,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '100%',
+                      ...(selectedAvatarSize?.date || {})
+                    }}
+                  >
+                    <span>{role}</span>
+                  </Typography>
+                </Tooltip>
+              </Box>
             )}
 
             {date && (
