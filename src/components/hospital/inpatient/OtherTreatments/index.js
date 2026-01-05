@@ -586,14 +586,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
   const handlePrefillFromActivity = activity => {
     if (!selectedTreatment || !activity) return
 
-    const inferredStartDate = activity.treatmentStartDate
-      ? dayjs(activity.treatmentStartDate)
-      : activity.timestamp
-      ? dayjs(activity.timestamp)
-      : selectedTreatment.lastUpdated
-      ? dayjs(selectedTreatment.lastUpdated)
-      : dayjs()
-
+    const inferredStartDate = activity.treatment_start_date_time
     const prefillNotes = activity.description || activity.notes || ''
 
     setEditFormData({
