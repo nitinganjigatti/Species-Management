@@ -260,7 +260,7 @@ const AddTreatmentDrawer = ({
             fullWidth
             variant='contained'
             onClick={handleSubmit(() => onSubmit())}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !formData.notes}
             sx={{
               borderRadius: '8px',
               height: '56px',
