@@ -136,7 +136,8 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         note: data.note,
         side_effect: data.hasAdverseEffects === 'yes',
         case: 'single',
-        main_prescription_id: medicineDetails?.prescription_id // prescription_id
+        main_prescription_id: medicineDetails?.prescription_id, // prescription_id
+        stop_date: new Date().toISOString().split('T')[0] === detailSelectedDate ? null : detailSelectedDate
       }
 
       const response = await stopPrescription(payload)

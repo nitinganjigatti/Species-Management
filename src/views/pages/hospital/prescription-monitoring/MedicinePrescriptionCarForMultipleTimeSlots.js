@@ -1000,9 +1000,9 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                           errors={errors}
                                           sx={commonFieldStyles}
                                           label='Batch Image'
-                                          maxFiles={5}
+                                          maxFiles={1}
                                           maxFileSize={5 * 1024 * 1024}
-                                          acceptedFileTypes='image,pdf'
+                                          acceptedFileTypes='images'
                                         />
                                       </Grid>
                                     </Grid>

@@ -928,7 +928,7 @@ const PrescriptionMonitoringGrid = ({
                             key={slotKey}
                             onClick={() => {
                               if (isDischared) return
-                              if (metric?.status?.toLowerCase() === 'stopped') return
+                              if (metric?.status?.toLowerCase() === 'stopped' && status !== 'pending') return
 
                               const data = {
                                 scheduledTime: scheduledTime,

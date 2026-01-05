@@ -1267,9 +1267,9 @@ const MedicinePrescriptionCard = ({
                                           errors={errors}
                                           sx={commonFieldStyles}
                                           label='Batch Image'
-                                          maxFiles={5}
+                                          maxFiles={1}
                                           maxFileSize={5 * 1024 * 1024}
-                                          acceptedFileTypes='image,pdf'
+                                          acceptedFileTypes='images'
                                         />
                                       </Grid>
                                     </Grid>
@@ -1318,8 +1318,7 @@ const MedicinePrescriptionCard = ({
                       mb: 12
                     }}
                   >
-                    {!isStopDatePassed(medicineData?.stop_date) &&
-                    new Date().toISOString().split('T')[0] === selectedDate ? (
+                    {new Date().toISOString().split('T')[0] === selectedDate || medicineData?.show_stop_button ? (
                       <Button
                         variant='text'
                         startIcon={
