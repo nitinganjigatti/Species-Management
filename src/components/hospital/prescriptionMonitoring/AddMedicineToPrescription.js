@@ -1072,7 +1072,7 @@ export default function AddMedicineToPrescription() {
               ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
               : '0 days',
             duration_string_id:
-              frequency?.string_id === 'at_regular_intervals' ? interval?.string_id : 'antz-prescription.days',
+              frequency?.string_id === 'at_regular_intervals' ? interval?.interval_string_id : 'antz-prescription.days',
             duration_type: data.dosageDuration?.unit
               ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
               : 'Days',
@@ -1236,6 +1236,16 @@ export default function AddMedicineToPrescription() {
             duration: calculatedDuration,
             duration_string_id: 'antz-prescription.days',
             duration_type: 'Days',
+
+            // duration_qty:
+            //   frequency?.string_id === 'at_regular_intervals' ? calculatedDuration?.toString()?.split(' ')[0] : 0,
+            // duration_id: frequency?.string_id === 'at_regular_intervals' ? interval?.id : '2',
+            // duration: calculatedDuration || '0 days',
+            // duration_string_id:
+            //   frequency?.string_id === 'at_regular_intervals' ? interval?.interval_string_id : 'antz-prescription.days',
+            // duration_type: data.dosageDuration?.unit
+            //   ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
+            //   : 'Days',
 
             notes: data.notes || '',
 
