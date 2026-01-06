@@ -921,7 +921,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         open={isDeleteDialogOpen}
         handleClose={handleCancelDeleteTreatment}
         action={handleConfirmDeleteTreatment}
-        message='Are you sure you want to delete this treatment?'
+        message='Are you sure you want to delete this note?'
         loading={isDeletingTreatment}
       />
     </Box>
