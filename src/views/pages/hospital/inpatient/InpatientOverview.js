@@ -324,11 +324,14 @@ const InpatientOverview = ({
                   size={{ xs: 12, md: overviewData?.reason_for_admission ? 3.5 : 12, lg: 7.7 }}
                   sx={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '16px 0 0 16px' }}
                 >
-                  <Typography
-                    sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.neutralPrimary }}
-                  >
-                    Purpose of Visit <VisitType title={patientData?.visit_type} />
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                    <Typography
+                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.neutralPrimary }}
+                    >
+                      Purpose of Visit
+                    </Typography>
+                    <VisitType title={patientData?.visit_type} />
+                  </Box>
                   <Tooltip title={overviewData?.purpose_of_visit}>
                     <Typography
                       sx={{
