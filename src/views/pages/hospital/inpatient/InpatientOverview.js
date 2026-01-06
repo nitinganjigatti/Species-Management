@@ -22,7 +22,8 @@ const InpatientOverview = ({
   hospitalVisit,
   patientVisitFetching,
   visitFilters,
-  setVisitFilters
+  setVisitFilters,
+  patientData
 }) => {
   const router = useRouter()
   const theme = useTheme()
@@ -326,7 +327,7 @@ const InpatientOverview = ({
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.neutralPrimary }}
                   >
-                    Purpose of Visit
+                    Purpose of Visit <VisitType title={patientData?.visit_type} />
                   </Typography>
                   <Tooltip title={overviewData?.purpose_of_visit}>
                     <Typography
