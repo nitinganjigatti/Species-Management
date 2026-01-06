@@ -1030,6 +1030,10 @@ export default function AddMedicineToPrescription() {
         item => item?.route_abbr === data.deliveryRoute
       )
 
+      const prescriptionDuration = medicalMasterData?.prescriptionDuration?.find(
+        item => item?.value === data.dosageDuration?.unit
+      )
+
       // Prepare schedule doses array
       const scheduleDoses = data.schedules.map((schedule, index) => ({
         id: '',
@@ -1067,12 +1071,14 @@ export default function AddMedicineToPrescription() {
             interval_string_id: interval?.interval_string_id || '',
 
             duration_qty: frequency?.string_id === 'at_regular_intervals' ? data.dosageDuration?.value?.toString() : 0,
-            duration_id: frequency?.string_id === 'at_regular_intervals' ? interval?.id : '2',
+            duration_id: frequency?.string_id === 'at_regular_intervals' ? prescriptionDuration?.id : '2',
             duration: data.dosageDuration?.value
               ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
               : '0 days',
             duration_string_id:
-              frequency?.string_id === 'at_regular_intervals' ? interval?.interval_string_id : 'antz-prescription.days',
+              frequency?.string_id === 'at_regular_intervals'
+                ? prescriptionDuration?.string_id
+                : 'antz-prescription.days',
             duration_type: data.dosageDuration?.unit
               ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
               : 'Days',
@@ -1703,6 +1709,7 @@ export default function AddMedicineToPrescription() {
             <PrescriptionMedicineList
               medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
               temporarilySelectedMedicine={temporarilySelectedMedicine}
+
               // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
               selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
               onSelect={handleMedicineSelect}
