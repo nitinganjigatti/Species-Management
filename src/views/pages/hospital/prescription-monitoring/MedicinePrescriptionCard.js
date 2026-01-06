@@ -1318,7 +1318,8 @@ const MedicinePrescriptionCard = ({
                       mb: 12
                     }}
                   >
-                    {new Date().toISOString().split('T')[0] === selectedDate || medicineData?.show_stop_button ? (
+                    {(new Date().toISOString().split('T')[0] === selectedDate || medicineData?.show_stop_button) &&
+                    !medicineData?.stop_date ? (
                       <Button
                         variant='text'
                         startIcon={
