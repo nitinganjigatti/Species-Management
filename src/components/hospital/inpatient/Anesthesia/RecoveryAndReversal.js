@@ -36,10 +36,14 @@ function RecoveryAndReversal({
   const {
     control,
     watch,
+    setValue,
+    getValues,
     formState: { errors }
   } = useFormContext()
   const reversalDrugs = watch('recoveryAndReversal.reversalDrugs') || []
   const recoveryType = watch('recoveryAndReversal.recovery_type')
+  const recoveryFirstEffect = watch('recoveryAndReversal.recovery_first_effect')
+  const recoveryFullEffect = watch('recoveryAndReversal.recovery_full_effect')
 
   const fetchDeliveryList = async () => {
     try {
@@ -52,6 +56,24 @@ function RecoveryAndReversal({
       }
     } catch (error) {}
   }
+
+  useEffect(() => {
+    const now = dayjs()
+
+    if (!recoveryFirstEffect) {
+      setValue('recoveryAndReversal.recovery_first_effect', now, {
+        shouldValidate: true,
+        shouldDirty: false
+      })
+    }
+
+    if (!recoveryFullEffect) {
+      setValue('recoveryAndReversal.recovery_full_effect', now, {
+        shouldValidate: true,
+        shouldDirty: false
+      })
+    }
+  }, [recoveryFirstEffect, recoveryFullEffect, setValue])
 
   const fetchMedicationGasList = async (pageToLoad = 1, append = false) => {
     if (isProductLoading) return
