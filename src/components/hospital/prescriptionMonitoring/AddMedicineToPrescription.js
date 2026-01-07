@@ -986,10 +986,34 @@ export default function AddMedicineToPrescription() {
     }
   }, [debouncedBatchSearch, debouncedSearch])
 
-  function toISTISOString(date) {
+  function toISTISOString(date, includeCurrentTime = false) {
     if (!date) return ''
 
-    return moment(date).utcOffset('+05:30').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+    let momentDate = moment(date)
+
+    if (includeCurrentTime) {
+      // Create a new moment with the date part from input and current time
+      const year = momentDate.year()
+      const month = momentDate.month()
+      const day = momentDate.date()
+
+      // Get current time
+      const now = new Date()
+
+      // Create new date with input date and current time
+      momentDate = moment({
+        year,
+        month,
+        date: day,
+        hour: now.getHours(),
+        minute: now.getMinutes(),
+        second: now.getSeconds(),
+        millisecond: now.getMilliseconds()
+      })
+    }
+
+    // Convert to IST timezone
+    return momentDate.utcOffset('+05:30').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
   }
 
   function convertUTCToLocaltime(date) {
@@ -1089,9 +1113,11 @@ export default function AddMedicineToPrescription() {
             delivery_route_id: deliveryRoute?.id || '',
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
-            start_date: toISTISOString(data.prescriptionStartDate),
+            start_date: isOneTimeFrequency
+              ? toISTISOString(data.prescriptionStartDate, true)
+              : toISTISOString(data.prescriptionStartDate),
             end_date: isOneTimeFrequency
-              ? toISTISOString(data.prescriptionStartDate)
+              ? toISTISOString(data.prescriptionStartDate, true)
               : calculateEndDate(data.prescriptionStartDate, data.dosageDuration, interval?.value),
 
             restart_reason: '',
@@ -1266,11 +1292,11 @@ export default function AddMedicineToPrescription() {
             delivery_route_id: deliveryRoute?.id || '',
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
-            start_date: toISTISOString(data.prescriptionStartDate),
+            start_date: toISTISOString(data.prescriptionStartDate, true),
             end_date:
               isOneTimeFrequency || data.prescriptionStartDate.split('T')[0] === data.prescriptionEndDate.split('T')[0]
-                ? toISTISOString(data.prescriptionStartDate)
-                : toISTISOString(data.prescriptionEndDate),
+                ? toISTISOString(data.prescriptionStartDate, true)
+                : toISTISOString(data.prescriptionEndDate, true),
 
             restart_reason: '',
             stop_reason: '',

@@ -68,7 +68,7 @@ const TimeSlotGrid = styled(Box)(({ theme, numColumns }) => ({
   gap: theme.spacing(2),
   alignItems: 'stretch',
   width: 'max-content',
-  marginBottom: theme.spacing(2)
+  marginBottom: theme.spacing(1.8)
 }))
 
 const HeaderContainer = styled(Box)(({ theme }) => ({
