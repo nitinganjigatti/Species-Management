@@ -18,7 +18,8 @@ const AddTreatmentDrawer = ({
   onSearchTreatment,
   optionsLoading,
   onInputValueChange,
-  isSubmitting
+  isSubmitting,
+  admissionDate
 }) => {
   const theme = useTheme()
 
@@ -160,6 +161,7 @@ const AddTreatmentDrawer = ({
                 onChange={value => onChange('startDate', value)}
                 label=''
                 format='DD MMM YYYY'
+                minDate={admissionDate}
                 sx={{
                   ...commonFieldStyles,
                   '& .MuiOutlinedInput-root': {
