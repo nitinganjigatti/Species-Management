@@ -259,7 +259,7 @@ const ExpiringMedicine = () => {
     {
       width: 350,
       minWidth: 200,
-      field: 'label',
+      field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
         <Box>
@@ -377,24 +377,15 @@ const ExpiringMedicine = () => {
         column: sortColumn,
         pending_days_start: filterDates?.startDate,
         pending_days_end: filterDates?.endDate,
-        ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy })
+        ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy }),
+        type: 'csv'
       }
-      const result = await aboutExpiringProduct({ params })
-      if (result?.data.length > 0) {
-        const data = result?.data.map(el => {
-          return {
-            ['Medicine Name']: el?.stock_items_name,
-            ['Batch']: el?.batch_no,
-            ['Expire Date']: el?.expiry_date,
-            ['Quantity']: el?.stock_qty,
-            ['Store Name']: el?.store_name
-          }
-        })
-
-        Utility.exportToCSV(data, `expired_products_datetime ${Utility.convertUTCToLocal(new Date())}`)
-        setExcelLoader(false)
+      const response = await aboutExpiringProduct({params})
+      if(response?.success && response?.data){
+        Utility.downloadFileFromURL(response?.data);
+        setExcelLoader(false);
       } else {
-        setExcelLoader(false)
+        setExcelLoader(false);
       }
     } catch (error) {
       setExcelLoader(false)

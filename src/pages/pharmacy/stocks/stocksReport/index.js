@@ -93,7 +93,6 @@ const ListOfStocks = () => {
   const [openReOrderLevelDialog, setOpenReOrderLevelDialog] = useState(false)
   const [configReOrderMed, setConfigReOrderMed] = useState(null)
   const [dialogCheck, setDialogCheck] = useState(false)
-
   // const textFieldRef = useRef(null)
 
   const handleChange = (event, newValue) => {
@@ -368,62 +367,34 @@ const ListOfStocks = () => {
 
   const getBatchWiseDataToExport = async () => {
     try {
-      if (!changeSwitch) {
-        setExcelLoader(true)
-        const result = await getStockReport(stockId, { sort, q: searchValue, column: sortColumn })
-
-        if (result?.success === true && result?.data?.length > 0) {
-          const data = result?.data?.map(el => {
-            return {
-              ['Id']: Number(el?.stock_item_id),
-              ['Medicine Name']: el?.stock_items_name,
-              ['Quantity']: Number(el?.stock_qty),
-              ['value']: Number(el?.total_cost),
-              ['Average price']: Number(
-                Number.isInteger(el.total_cost / el.stock_qty)
-                  ? el.total_cost / el.stock_qty
-                  : parseFloat(el.total_cost / el.stock_qty).toFixed(2)
-              ),
-              ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${
-                el?.package_uom_label
-              } ${el?.product_form_label}`
-            }
-          })
-
-          Utility.exportToCSV(data, 'Stock Report')
-        }
-        setExcelLoader(false)
-      } else {
-        setExcelLoader(true)
-
+      setExcelLoader(true)
+      if (changeSwitch === true) {
         const batchParams = {
           sort: batchSort,
           q: batchSearchValue,
-          column: batchSortColumn
-
+          column: batchSortColumn,
+          type: 'csv'
           // page: batchPaginationModel.page + 1,
-          // limit: batchPaginationModel.pageSize
+          // limit: batchPaginationModel.pageSize,
         }
-        const result = await getStockReportByBatch(stockId, batchParams)
+        const response = await getStockReportByBatch(stockId, batchParams)
 
-        if (result?.success === true && result?.data?.length > 0) {
-          const data = result?.data?.map(el => {
-            return {
-              ['Id']: Number(el?.stock_item_id),
-              ['Medicine Name']: el?.stock_items_name,
-              ['Quantity']: Number(el?.stock_qty),
-              ['Unit Price']: Number(el?.unit_price),
-              ['value']: Number(el?.total_cost),
-              ['Batch Number']: el?.batch_no,
-              ['Store Name']: el?.store_name,
-              ['Expiry Date']: el?.expiry_date,
-              ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${
-                el?.package_uom_label
-              } ${el?.product_form_label}`
-            }
-          })
-
-          Utility.exportToCSV(data, 'Stock Report Batch wise')
+        if (response?.success && response?.data) {
+          Utility.downloadFileFromURL(response?.data,`Stock_report_batch_wise`, Utility.extractHoursAndMinutes)
+        }
+        setExcelLoader(false)
+      } else {
+        const params = {
+          sort,
+          q: searchValue,
+          column: sortColumn,
+          response_type: 'csv'
+          // page: 1,
+          // limit: paginationModel.pageSize,
+        }
+        const response = await getStockReport(stockId, params)
+        if (response?.success && response?.data) {
+          Utility.downloadFileFromURL(response?.data,`Stock_report_not_batch_wise`, Utility.extractHoursAndMinutes )
         }
         setExcelLoader(false)
       }
@@ -446,12 +417,12 @@ const ListOfStocks = () => {
 
   const columns = [
     {
-      Width: 40,
+      width: 40,
       field: 'uid',
       headerName: 'SL.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {params?.row?.uid}
         </Typography>
       )
     },
@@ -574,7 +545,7 @@ const ListOfStocks = () => {
   const batchWiseColumn = [
     {
       // flex: 0.15,
-      Width: 40,
+      width: 40,
       field: 'uid',
       headerName: 'SL.NO',
       renderCell: params => (
@@ -1038,15 +1009,6 @@ const ListOfStocks = () => {
                   headerActions={headerAction}
                 /> */}
                   <PageCardLayout title={'Stock Report'}>
-                    {/* <Card>
-                    <CardHeader
-                      title={RenderUtility.pageTitle('Stock Report')}
-
-                      // sx={{
-                      //   px: 4
-                      // }}
-                    />
-                    <CardContent> */}
                     <Grid container spacing={3}>
                       <Grid item size={{ xs: 12, sm: 12, md: 3 }}>
                         <MUISearch
@@ -1083,76 +1045,6 @@ const ListOfStocks = () => {
                         >
                           {selectedPharmacy.type === 'central' && (
                             <Grid item size={{ xs: 12, sm: 12, md: 4 }}>
-                              {/* <FormControl
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: { sx: 'start', sm: 'flex-end' }
-                              }}
-                            >
-                              <InputLabel id='controlled-select-label'>Stores</InputLabel>
-                              <Select
-                                onChange={e => {
-                                  let id = e.target.value
-
-                                  const type = stores.find(el => el.id === id)?.type || ''
-
-                                  setStockType(type)
-                                  setStockId(id)
-
-                                  setStockReport([])
-                                  setConfigureMedId('')
-                                  setErrors('')
-                                  setBatchSearchValue('')
-                                  setBatchSort('asc')
-                                  setBatchSortColumn('stock_items_name')
-                                  setSort('asc')
-                                  setSortColumn('stock_items_name')
-
-                                  // textFieldRef.current.value = ''
-                                  let storeId = id === 'all' ? 'all' : id
-
-                                  // getStocksReport({ sort, q: searchValue, column: sortColumn, id })
-
-                                  changeSwitch
-                                    ? getStocksReportBatchWise({
-                                        batchSort: 'asc',
-                                        q: '',
-                                        batchColumn: 'stock_items_name',
-                                        id: storeId,
-                                        batchPaginationModel: { page: 0, pageSize: batchPaginationModel.pageSize }
-                                      })
-                                    : getStocksReport({
-                                        sort: 'asc',
-                                        q: '',
-                                        column: 'stock_items_name',
-                                        id: storeId,
-                                        type: type,
-                                        paginationModel: { page: 0, pageSize: paginationModel.pageSize }
-                                      })
-                                }}
-                                label='Stores'
-                                value={stockId}
-                                id='controlled-select'
-                                labelId='controlled-select-label'
-                                sx={{
-                                  width: '100%'
-                                }}
-                                size='small'
-                              >
-                                <MenuItem value='all'>All</MenuItem>
-                                {stores.length > 0 &&
-                                  stores.map(el => {
-                                    return (
-                                      <MenuItem key={el.id} value={el.id}>
-                                        {el.name}
-                                      </MenuItem>
-                                    )
-                                  })}
-                              </Select>
-                              <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
-                            </FormControl> */}
-
                               <MUIAutocomplete
                                 value={stockId}
                                 label='Stores'
@@ -1200,18 +1092,6 @@ const ListOfStocks = () => {
                           )}
 
                           <Grid item>
-                            {/* <FormControlLabel
-                            sx={{ m: 0 }}
-                            control={
-                              <Switch
-                                sx={{ mt: { xs: 1, sm: 1 } }}
-                                checked={changeSwitch}
-                                onChange={handleSwitchChange}
-                              />
-                            }
-                            labelPlacement='start'
-                            label='Batch Wise '
-                          /> */}
                             <MUISwitch
                               label='Batch Wise'
                               labelStyle={{

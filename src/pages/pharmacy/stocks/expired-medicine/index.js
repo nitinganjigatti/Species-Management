@@ -18,6 +18,7 @@ import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
+
 const ExpiredMedicine = () => {
   const theme = useTheme()
   const { selectedPharmacy } = usePharmacyContext()
@@ -75,7 +76,9 @@ const ExpiredMedicine = () => {
           column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy })
+          ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy }),
+
+      
         }
 
         await getExpiredMedicine({ params }).then(res => {
@@ -84,7 +87,7 @@ const ExpiredMedicine = () => {
             setRows(
               loadServerRows(
                 paginationModel.page,
-                res?.list_items?.sort((a, b) => a?.stock_item_name?.localeCompare(b?.stock_item_name))
+                res.list_items
               )
             )
             setTableLoader(true)
@@ -103,7 +106,7 @@ const ExpiredMedicine = () => {
         setTableLoader(false)
       }
     },
-    [paginationModel, selectedPharmacy.id, storeId]
+    [paginationModel, selectedPharmacy.id]
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, storeId)
@@ -250,6 +253,7 @@ const ExpiredMedicine = () => {
     {
       width: 250,
       minWidth: 100,
+      sortable: false,
       field: 'stock_qty',
       headerName: 'Qty',
       type: 'number',
@@ -273,38 +277,31 @@ const ExpiredMedicine = () => {
   const getDataToExport = async () => {
     try {
       setExcelLoader(true)
-      let selectedStorePharmacy = selectedPharmacy.type === 'local' ? selectedPharmacy.id : storeId
+      let selectedStorePharmacy = selectedPharmacy?.type === 'local' ? selectedPharmacy.id : storeId
 
       const params = {
         sort,
         q: searchValue,
         column: sortColumn,
-        ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy })
+        ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy }),
+        type: 'csv'
       }
-      const result = await getExpiredMedicine({ params })
+      const response = await getExpiredMedicine({ params })
+      if (response) {
+      Utility.downloadFileFromURL(response);
+      setExcelLoader(false);
+    }
+    else {
+      setExcelLoader(false);
+    }
 
-      if (result?.list_items.length > 0) {
-        const data = result?.list_items.map(el => {
-          return {
-            ['Medicine Name']: el?.stock_item_name,
-            ['Batch']: el?.batch_no,
-            ['Expire Date']: el?.expiry_date,
-            ['Quantity']: el?.stock_qty,
-            ['Store Name']: el?.store_name
-          }
-        })
 
-        Utility.exportToCSV(data, `expired_products_datetime ${Utility.convertUTCToLocal(new Date())}`)
-        setExcelLoader(false)
-      } else {
-        setExcelLoader(false)
-      }
-    } catch (error) {
+    } catch(error){
       setExcelLoader(false)
 
-      console.log('error', error)
+      console.log('error', error);
+      }
     }
-  }
 
   const handleHeaderAction = () => {
     console.log('Handle Header Action')
