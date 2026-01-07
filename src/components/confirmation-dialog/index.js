@@ -16,7 +16,7 @@ const ConfirmationDialog = ({
   onClose = () => {},
   formComponent,
   ConfirmationText,
-  confirmAction,
+  confirmAction = () => {},
   cancelText,
   confirmBtnStyle,
   cancelBtnStyle,
@@ -121,7 +121,7 @@ const ConfirmationDialog = ({
             }}
             disabled={loading}
             variant='contained'
-            onClick={() => confirmAction()}
+            onClick={confirmAction}
           >
             {loading ? <CircularProgress size={16} /> : <>{ConfirmationText ? ConfirmationText : 'Yes'}</>}
           </Button>
