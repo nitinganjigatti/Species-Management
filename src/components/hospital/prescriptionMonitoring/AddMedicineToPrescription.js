@@ -1160,6 +1160,10 @@ export default function AddMedicineToPrescription() {
       )
       const interval = medicalMasterData?.intervalList?.find(item => item?.value === data?.interval)
 
+      // const prescriptionDuration = medicalMasterData?.prescriptionDuration?.find(
+      //   item => item?.value === data.dosageDuration?.unit
+      // )
+
       // Find the selected batch from batchList
       const selectedBatch = batchList?.find(item => {
         const batchNo = typeof data.batchNumber === 'object' ? data.batchNumber?.batch_no : data.batchNumber
@@ -1243,12 +1247,15 @@ export default function AddMedicineToPrescription() {
             duration_string_id: 'antz-prescription.days',
             duration_type: 'Days',
 
-            // duration_qty:
-            //   frequency?.string_id === 'at_regular_intervals' ? calculatedDuration?.toString()?.split(' ')[0] : 0,
-            // duration_id: frequency?.string_id === 'at_regular_intervals' ? interval?.id : '2',
-            // duration: calculatedDuration || '0 days',
+            // duration_qty: frequency?.string_id === 'at_regular_intervals' ? data.dosageDuration?.value?.toString() : 1,
+            // duration_id: frequency?.string_id === 'at_regular_intervals' ? prescriptionDuration?.id : '2',
+            // duration: data.dosageDuration?.value
+            //   ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
+            //   : '1 days',
             // duration_string_id:
-            //   frequency?.string_id === 'at_regular_intervals' ? interval?.interval_string_id : 'antz-prescription.days',
+            //   frequency?.string_id === 'at_regular_intervals'
+            //     ? prescriptionDuration?.string_id
+            //     : 'antz-prescription.days',
             // duration_type: data.dosageDuration?.unit
             //   ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
             //   : 'Days',
@@ -1616,8 +1623,7 @@ export default function AddMedicineToPrescription() {
       }
     }
 
-    // Return proper ISO 8601 UTC string
-    return endDate.toISOString()
+    return endDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
   }
 
   const calculateStartDate = (endDate, dosageDuration) => {
