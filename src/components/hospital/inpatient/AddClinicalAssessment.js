@@ -5,13 +5,19 @@ import ClinicalAssessmentList from 'src/components/hospital/ClinicalAssessment/C
 import SelectedClinicalAssessment from 'src/components/hospital/ClinicalAssessment/SelectedClinicalAssessment'
 import AddClinicalAsmntDrawer from 'src/components/hospital/drawer/AddClinicalAsmntDrawer'
 import debounce from 'lodash/debounce'
-import { addClinicalAssessment, getDiagnosisList, getDiagnosysType } from 'src/lib/api/hospital/clinicalAssessment'
+import {
+  addClinicalAssessment,
+  checkAnimalStatusByType,
+  getDiagnosisList,
+  getDiagnosysType
+} from 'src/lib/api/hospital/clinicalAssessment'
 import Toaster from 'src/components/Toaster'
 import { useRouter } from 'next/router'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
@@ -49,6 +55,8 @@ function AddClinicalAssessment() {
   const [page, setPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const [isSubmitLoading, setIsSubmitLoading] = useState(false)
+  const [isDuplicatesErrorModelOpen, setDuplicatesErrorModelOpen] = useState(false)
+  const [duplicateAssessments, setDuplicateAssessments] = useState([])
 
   // Refs for intersection observer
   const observerRef = useRef(null)
@@ -263,9 +271,38 @@ function AddClinicalAssessment() {
 
   const availableSymptoms = allAssessments?.filter(symptom => !selectedSymptoms.some(s => s.id === symptom.id))
 
+  const checkDuplicateAssessments = async () => {
+    try {
+      const payload = {
+        type: 'diagnosis',
+        animal_ids: JSON.stringify([Number(patientData?.animal_detail?.animal_id)]),
+        master_ids: JSON.stringify(selectedSymptoms.map(s => s.id))
+      }
+      const response = await checkAnimalStatusByType(payload)
+      
+      if (response?.success) {
+        setDuplicateAssessments(response?.data)
+
+        return response?.data || []
+      } else {
+        return []
+      }
+    } catch (error) {
+      console.error('Error checking animal status:', error)
+    }
+  }
+
   const handleAddAssessment = async () => {
+    setIsSubmitLoading(true)
+    const duplicatesData = await checkDuplicateAssessments()
+
     if (selectedSymptoms.length === 0) {
       Toaster({ type: 'error', message: 'Please select at least one Assessment' })
+
+      return
+    }
+    if (duplicatesData?.length > 0) {
+      setDuplicatesErrorModelOpen(true)
 
       return
     }
@@ -459,6 +496,22 @@ function AddClinicalAssessment() {
           onCancel={handleAssessmentCancel}
         />
       </Box>
+
+      <ConfirmationDialog
+        dialogBoxStatus={isDuplicatesErrorModelOpen}
+        title={`Clinical assessment${duplicateAssessments?.length > 1 ? 's' : ''} already exists`}
+        description={`Duplicate assessments: ${duplicateAssessments?.map(item => item?.diagnosis)?.join(', ')}`}
+        additionalDescription={`To proceed choose a different Clinical Assessment or remove the animal accessed`}
+        confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
+        image={'/images/warning-icon.svg'}
+        imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
+        confirmAction={() => {
+          setDuplicatesErrorModelOpen(false)
+          setIsSubmitLoading(false)
+        }}
+        ConfirmationText={'OK'}
+        allowCancel={false}
+      />
 
       {temporarilySelected && (
         <AddClinicalAsmntDrawer

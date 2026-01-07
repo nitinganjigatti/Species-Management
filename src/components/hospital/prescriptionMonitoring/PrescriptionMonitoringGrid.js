@@ -68,7 +68,7 @@ const TimeSlotGrid = styled(Box)(({ theme, numColumns }) => ({
   gap: theme.spacing(2),
   alignItems: 'stretch',
   width: 'max-content',
-  marginBottom: theme.spacing(2)
+  marginBottom: theme.spacing(1.8)
 }))
 
 const HeaderContainer = styled(Box)(({ theme }) => ({
@@ -522,8 +522,8 @@ const PrescriptionMonitoringGrid = ({
   // Count occurrences of each time
   const prescriptionCardColorsConfig = prescriptionDetails => {
     const { status } = prescriptionDetails
-
-    if (status === 'restarted') {
+    
+    if (status === 'pending' && prescriptionDetails?.sideEffects === 1) {
       return {
         backgroundColor: alpha(theme.palette.customColors.antzNotes80, 0.5)
         // border: `0.5px solid ${theme.palette.customColors.TertiaryContainer}`

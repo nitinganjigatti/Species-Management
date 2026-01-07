@@ -162,7 +162,7 @@ const mapDetailRecordsToActivities = (records = []) => {
   })
 }
 
-const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDischarged = false }) => {
+const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDischarged = false, patientData }) => {
   const theme = useTheme()
   const [isAddDrawerOpen, setAddDrawerOpen] = useState(false)
   const [isEditDrawerOpen, setEditDrawerOpen] = useState(false)
@@ -897,6 +897,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         onSearchTreatment={handleTreatmentSearch}
         onInputValueChange={setTreatmentInputValue}
         isSubmitting={isCreatingTreatment}
+        admissionDate={dayjs(patientData?.admitted_at)}
       />
 
       <EditTreatmentDrawer
@@ -915,13 +916,14 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         isSubmitting={isUpdatingTreatment}
         formatTimestamp={formatTimestamp}
         formatShortDate={formatShortDate}
+        admissionDate={dayjs(patientData?.admitted_at)}
       />
 
       <DialogConfirmationDialog
         open={isDeleteDialogOpen}
         handleClose={handleCancelDeleteTreatment}
         action={handleConfirmDeleteTreatment}
-        message='Are you sure you want to delete this treatment?'
+        message='Are you sure you want to delete this note?'
         loading={isDeletingTreatment}
       />
     </Box>

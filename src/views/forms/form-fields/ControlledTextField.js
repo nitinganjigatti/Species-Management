@@ -57,14 +57,14 @@ const ControlledTextField = ({
               if (type === 'number') {
                 // disable negative values
                 if (value === '' || Number(value) >= 0) {
-                  field.onChange(value)
-                  if (onChangeOverride) onChangeOverride(value, e)
+                  field.onChange(e)
+                  if (onChangeOverride) onChangeOverride(e)
                 }
 
                 return
               }
-              field.onChange(value)
-              if (onChangeOverride) onChangeOverride(value, e)
+              field.onChange(e)
+              if (onChangeOverride) onChangeOverride(e)
             }}
             onKeyDown={onKeyDown}
             onPaste={onPaste}

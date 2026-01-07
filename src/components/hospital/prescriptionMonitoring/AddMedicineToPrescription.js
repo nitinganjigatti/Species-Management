@@ -986,10 +986,34 @@ export default function AddMedicineToPrescription() {
     }
   }, [debouncedBatchSearch, debouncedSearch])
 
-  function toISTISOString(date) {
+  function toISTISOString(date, includeCurrentTime = false) {
     if (!date) return ''
 
-    return moment(date).utcOffset('+05:30').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+    let momentDate = moment(date)
+
+    if (includeCurrentTime) {
+      // Create a new moment with the date part from input and current time
+      const year = momentDate.year()
+      const month = momentDate.month()
+      const day = momentDate.date()
+
+      // Get current time
+      const now = new Date()
+
+      // Create new date with input date and current time
+      momentDate = moment({
+        year,
+        month,
+        date: day,
+        hour: now.getHours(),
+        minute: now.getMinutes(),
+        second: now.getSeconds(),
+        millisecond: now.getMilliseconds()
+      })
+    }
+
+    // Convert to IST timezone
+    return momentDate.utcOffset('+05:30').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
   }
 
   function convertUTCToLocaltime(date) {
@@ -1030,6 +1054,10 @@ export default function AddMedicineToPrescription() {
         item => item?.route_abbr === data.deliveryRoute
       )
 
+      const prescriptionDuration = medicalMasterData?.prescriptionDuration?.find(
+        item => item?.value === data.dosageDuration?.unit
+      )
+
       // Prepare schedule doses array
       const scheduleDoses = data.schedules.map((schedule, index) => ({
         id: '',
@@ -1067,12 +1095,14 @@ export default function AddMedicineToPrescription() {
             interval_string_id: interval?.interval_string_id || '',
 
             duration_qty: frequency?.string_id === 'at_regular_intervals' ? data.dosageDuration?.value?.toString() : 0,
-            duration_id: frequency?.string_id === 'at_regular_intervals' ? interval?.id : '2',
+            duration_id: frequency?.string_id === 'at_regular_intervals' ? prescriptionDuration?.id : '2',
             duration: data.dosageDuration?.value
               ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
               : '0 days',
             duration_string_id:
-              frequency?.string_id === 'at_regular_intervals' ? interval?.string_id : 'antz-prescription.days',
+              frequency?.string_id === 'at_regular_intervals'
+                ? prescriptionDuration?.string_id
+                : 'antz-prescription.days',
             duration_type: data.dosageDuration?.unit
               ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
               : 'Days',
@@ -1083,9 +1113,11 @@ export default function AddMedicineToPrescription() {
             delivery_route_id: deliveryRoute?.id || '',
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
-            start_date: toISTISOString(data.prescriptionStartDate),
+            start_date: isOneTimeFrequency
+              ? toISTISOString(data.prescriptionStartDate, true)
+              : toISTISOString(data.prescriptionStartDate),
             end_date: isOneTimeFrequency
-              ? toISTISOString(data.prescriptionStartDate)
+              ? toISTISOString(data.prescriptionStartDate, true)
               : calculateEndDate(data.prescriptionStartDate, data.dosageDuration, interval?.value),
 
             restart_reason: '',
@@ -1153,6 +1185,10 @@ export default function AddMedicineToPrescription() {
         item => item?.route_abbr === data.deliveryRoute
       )
       const interval = medicalMasterData?.intervalList?.find(item => item?.value === data?.interval)
+
+      // const prescriptionDuration = medicalMasterData?.prescriptionDuration?.find(
+      //   item => item?.value === data.dosageDuration?.unit
+      // )
 
       // Find the selected batch from batchList
       const selectedBatch = batchList?.find(item => {
@@ -1237,17 +1273,30 @@ export default function AddMedicineToPrescription() {
             duration_string_id: 'antz-prescription.days',
             duration_type: 'Days',
 
+            // duration_qty: frequency?.string_id === 'at_regular_intervals' ? data.dosageDuration?.value?.toString() : 1,
+            // duration_id: frequency?.string_id === 'at_regular_intervals' ? prescriptionDuration?.id : '2',
+            // duration: data.dosageDuration?.value
+            //   ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
+            //   : '1 days',
+            // duration_string_id:
+            //   frequency?.string_id === 'at_regular_intervals'
+            //     ? prescriptionDuration?.string_id
+            //     : 'antz-prescription.days',
+            // duration_type: data.dosageDuration?.unit
+            //   ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
+            //   : 'Days',
+
             notes: data.notes || '',
 
             delivery_route_name: data?.deliveryRoute || '',
             delivery_route_id: deliveryRoute?.id || '',
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
-            start_date: toISTISOString(data.prescriptionStartDate),
+            start_date: toISTISOString(data.prescriptionStartDate, true),
             end_date:
               isOneTimeFrequency || data.prescriptionStartDate.split('T')[0] === data.prescriptionEndDate.split('T')[0]
-                ? toISTISOString(data.prescriptionStartDate)
-                : toISTISOString(data.prescriptionEndDate),
+                ? toISTISOString(data.prescriptionStartDate, true)
+                : toISTISOString(data.prescriptionEndDate, true),
 
             restart_reason: '',
             stop_reason: '',
@@ -1600,8 +1649,7 @@ export default function AddMedicineToPrescription() {
       }
     }
 
-    // Return proper ISO 8601 UTC string
-    return endDate.toISOString()
+    return endDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
   }
 
   const calculateStartDate = (endDate, dosageDuration) => {
@@ -1693,6 +1741,7 @@ export default function AddMedicineToPrescription() {
             <PrescriptionMedicineList
               medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
               temporarilySelectedMedicine={temporarilySelectedMedicine}
+
               // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
               selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
               onSelect={handleMedicineSelect}
