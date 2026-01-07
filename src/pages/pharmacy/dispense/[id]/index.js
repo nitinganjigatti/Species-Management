@@ -175,7 +175,7 @@ const IndividualDispense = () => {
               
             }}
           >
-            <Grid item size={{ xs: 12, md: 6.4 }} sx = {{mb: {xs: 'auto', sm: 2.8, lg: 0}}}>
+            <Grid item size={{ xs: 12, md: 6.4 }} sx = {{mb: {xs: 2.8, sm: 2.8, lg: 0}}}>
                 <PageCardLayout
                   title= 'Dispense Detail'
                   showIcon = {true}

@@ -579,7 +579,7 @@ export default function NewProductList() {
 
       const response = await getNonExistingProductList({ params })
       if (response?.success === true && response?.data) {
-        Utility.downloadFileFromURL(response?.data)
+        Utility.downloadFileFromURL(response?.data, Utility.extractHoursAndMinutes)
         setExcelLoader(false)
       } else {
         toast.error('No data available for export')

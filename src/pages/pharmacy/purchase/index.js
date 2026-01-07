@@ -424,7 +424,7 @@ const ListOfPurchase = () => {
       const response = await getPurchaseList({ params })
 
       if (response?.success === true && response?.data?.length > 0) {
-          Utility.downloadFileFromURL(response?.data, `${timestamp}`)
+          Utility.downloadFileFromURL(response?.data, Utility.extractHoursAndMinutes)
           setExcelLoader(false)
         } else {
           console.log('No data available for export.')
