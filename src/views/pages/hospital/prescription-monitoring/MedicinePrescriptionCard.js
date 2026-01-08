@@ -1368,7 +1368,9 @@ const MedicinePrescriptionCard = ({
                       >
                         Stop Medicine
                       </Button>
-                    ) : isStopDatePassed(medicineData?.stop_date) && medicineData?.will_restart != 0 ? (
+                    ) : isStopDatePassed(medicineData?.stop_date) &&
+                      medicineData?.will_restart != 0 &&
+                      medicineData?.prescription_created_for !== 'direct_administer' ? (
                       <Button
                         variant='text'
                         startIcon={

@@ -423,6 +423,10 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
     try {
       setIsAdministerSlotLoading(true)
 
+      const wastageUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
+        item => item.uom_abbr === formData?.wastageUnit
+      )
+      
       const payload = {
         record_date: date
           ? `${date} ${toISTISOString(new Date()).replace('T', ' ').slice(11, 19)}`
@@ -431,6 +435,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         created_for: 'DIRECT_ADMINISTER',
         prescription: JSON.stringify([
           {
+            id: selectedSlotData?.data?.medicine_id,
             start_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
             end_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
             notes: data.notes || '',
@@ -448,7 +453,8 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
               formData?.batchNumber?.batch_no || formData?.batchNumber
                 ? [
                     {
-                      id: formData?.batchNumber?.batch_no,
+                      id: formData?.batchNumber?.batch_no, // As per backend request default value is added
+                      batch_id: formData?.batchNumber?.id || '',
                       label: '',
                       selectedAnimal: [
                         {
@@ -462,8 +468,11 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
                           : formData.batchNumber || '',
                       wastage: formData.wastageQuantity || '',
                       wastageUnit: formData.wastageUnit || '',
-                      notes: formData.wastageNotes || '',
 
+                      frequencyValue: wastageUnit?.key || '',
+                      frequencyId: wastageUnit?.id || '',
+                      notes: formData.wastageNotes || '',
+                      files: [formData?.attachment?.[0]],
                       totalAnimal: []
                     }
                   ]
