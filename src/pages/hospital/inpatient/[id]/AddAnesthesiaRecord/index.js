@@ -19,7 +19,6 @@ import dayjs from 'dayjs'
 import BasicDetails from 'src/components/hospital/inpatient/Anesthesia/BasicDetails'
 import AnesthesiaSetUpSection from 'src/components/hospital/inpatient/Anesthesia/AnesthesiaSetUp'
 import VitalMonitoring from 'src/components/hospital/inpatient/Anesthesia/VitalMonitoring'
-import ActionButtons from 'src/components/hospital/FooterActionbuttons'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import MedicationsGasSection from 'src/components/hospital/inpatient/Anesthesia/MedicationsGasSection'
@@ -45,6 +44,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
+import BottomActionBar from 'src/views/utility/BottomActionBar'
 
 dayjs.extend(customParseFormat)
 
@@ -2098,21 +2098,26 @@ export default function AddAnesthesiaRecord() {
           </Box>
         </Box>
 
-        <ActionButtons
-          cancelLabel='RESET'
-          addLabel={
-            <Box display='flex' alignItems='center' gap={1}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-                {isSubmitting ? 'SUBMITTING...' : anaesthesia_id ? 'SAVE' : 'ADD'}
-              </span>
-            </Box>
-          }
-          onAdd={handleSubmit(onValid, onInvalid)}
+        <BottomActionBar
           onCancel={handleCancelNew}
-          width={200}
-          height={50}
-          isSubmitLoading={isSubmitting}
-          isAddDisabled={!isBasicDetailsValid}
+          onSubmit={handleSubmit(onValid, onInvalid)}
+          loading={isSubmitting}
+          disabled={!isBasicDetailsValid}
+          submitLabel={isSubmitting ? 'SUBMITTING...' : anaesthesia_id ? 'SAVE' : 'ADD'}
+          cancelLabel='RESET'
+          cancelBtnStyle={{
+            borderColor: theme.palette.customColors.OnSurfaceVariant,
+            color: theme.palette.customColors.OnSurfaceVariant,
+            borderRadius: 0.5,
+            minHeight: '50px',
+            minWidth: '200px'
+          }}
+          submitBtnStyle={{
+            backgroundColor: theme.palette.primary.main,
+            borderRadius: 0.5,
+            minWidth: '200px',
+            minHeight: '50px'
+          }}
         />
         <DeleteConfirmationDialog
           open={deleteDialogOpen}

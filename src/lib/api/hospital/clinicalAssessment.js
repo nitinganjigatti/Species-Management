@@ -1,6 +1,7 @@
 import {
   ADD_CLINICAL_ASSESSMENT,
   DELETE_NOTE_CLINICAL_ASSESSMENT,
+  GET_ANIMAL_STATUS_BY_TYPE,
   GET_CLINICAL_ASSESSMENTS,
   GET_CLINICAL_DIAGNOSIS_LIST,
   GET_CLINICAL_DIAGNOSIS_TYPE,
@@ -56,6 +57,16 @@ export async function addClinicalAssessment(payLoad) {
 export async function updateClinicalAssessment(payLoad) {
   try {
     const response = await axiosPost({ url: `${UPDATE_CLINICAL_ASSESSMENT}`, body: payLoad })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error adding clinical note:', error.message)
+  }
+}
+
+export async function checkAnimalStatusByType(payLoad) {
+  try {
+    const response = await axiosPost({ url: `${GET_ANIMAL_STATUS_BY_TYPE}`, body: payLoad })
 
     return response?.data
   } catch (error) {

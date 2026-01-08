@@ -737,10 +737,14 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                           display: 'flex',
                           flexDirection: 'column',
                           justifyContent: 'center',
-                          gap: 1
+                          gap: 1,
+                          minWidth: 0,
+                          flex: 1
                         }}
                       >
-                        <MetricName>{metric.label}</MetricName>
+                        <Tooltip title={metric.label} placement='top' arrow>
+                          <MetricName>{metric.label}</MetricName>
+                        </Tooltip>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Icon icon={'f7:waveform-path-ecg'} fontSize={16} />
                           <MetricSubtext>{metric.frequency_label}</MetricSubtext>
@@ -931,7 +935,12 @@ const MetricName = styled(Typography)(({ theme }) => ({
   fontSize: '14px',
   fontWeight: 500,
   color: theme.palette.customColors.deepDark,
-  marginBottom: '2px'
+  marginBottom: '2px',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  maxWidth: '100%',
+  cursor: 'default'
 }))
 
 const MetricSubtext = styled(Typography)(({ theme }) => ({

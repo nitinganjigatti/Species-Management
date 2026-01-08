@@ -20,6 +20,7 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 import { keyframes } from '@emotion/react'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import { useRouter } from 'next/router'
+import RenderUtility from 'src/utility/render'
 
 // Shimmer animation
 const shimmerAnimation = keyframes`
@@ -91,9 +92,8 @@ export default function PrescriptionMedicineList({
         ? isEnclosureMedicineAdded(medicine.id.toString())
         : isDirectAdminister
         ? isMedicinePrescribed(medicine?.id)
-
-       // ? false  // Commented for now as per the updated requirement
-        : isMedicinePrescribed(medicine?.id)
+        : // ? false  // Commented for now as per the updated requirement
+          isMedicinePrescribed(medicine?.id)
 
     return isPrescribed
   }
@@ -344,6 +344,8 @@ export default function PrescriptionMedicineList({
                       verticalAlign: 'middle'
                     }}
                   >
+                    {RenderUtility?.renderControlLabel(medicine?.controlled_substance, 'CS')}
+                    {RenderUtility?.renderPrescriptionLabel(medicine?.prescription_required, 'PR')}
                     {medicine?.name || ''}
                   </Typography>
                   <Typography
@@ -408,9 +410,9 @@ const MedicineShimmer = ({ count = 8 }) => {
               width: 28,
               height: 28,
               borderRadius: '50%',
-              background: `linear-gradient(90deg, 
-                ${theme.palette.customColors.OutlineVariant} 25%, 
-                ${theme.palette.customColors.mdAntzNeutral} 50%, 
+              background: `linear-gradient(90deg,
+                ${theme.palette.customColors.OutlineVariant} 25%,
+                ${theme.palette.customColors.mdAntzNeutral} 50%,
                 ${theme.palette.customColors.OutlineVariant} 75%)`,
               backgroundSize: '200% 100%',
               animation: `${shimmerAnimation} 1.5s infinite`,
@@ -431,10 +433,10 @@ const MedicineShimmer = ({ count = 8 }) => {
           </Box>
 
           {/* Medicine name and generic name container */}
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
               gap: '4px',
               ml: 1
             }}
@@ -444,24 +446,24 @@ const MedicineShimmer = ({ count = 8 }) => {
               sx={{
                 width: `${Math.random() * 100 + 150}px`,
                 height: '16px',
-                background: `linear-gradient(90deg, 
-                  ${theme.palette.customColors.OutlineVariant} 25%, 
-                  ${theme.palette.customColors.mdAntzNeutral} 50%, 
+                background: `linear-gradient(90deg,
+                  ${theme.palette.customColors.OutlineVariant} 25%,
+                  ${theme.palette.customColors.mdAntzNeutral} 50%,
                   ${theme.palette.customColors.OutlineVariant} 75%)`,
                 backgroundSize: '200% 100%',
                 animation: `${shimmerAnimation} 1.5s infinite`,
                 borderRadius: '4px'
               }}
             />
-            
+
             {/* Generic name shimmer */}
             <Box
               sx={{
                 width: `${Math.random() * 80 + 120}px`,
                 height: '14px',
-                background: `linear-gradient(90deg, 
-                  ${theme.palette.customColors.OutlineVariant} 25%, 
-                  ${theme.palette.customColors.mdAntzNeutral} 50%, 
+                background: `linear-gradient(90deg,
+                  ${theme.palette.customColors.OutlineVariant} 25%,
+                  ${theme.palette.customColors.mdAntzNeutral} 50%,
                   ${theme.palette.customColors.OutlineVariant} 75%)`,
                 backgroundSize: '200% 100%',
                 animation: `${shimmerAnimation} 1.5s infinite`,

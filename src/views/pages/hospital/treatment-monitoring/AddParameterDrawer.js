@@ -252,6 +252,8 @@ const AddParameterDrawer = ({
     }
   }
 
+  const hasNewParameters = parameters.some(p => !p.isExisting)
+
   return (
     <>
       <Drawer
@@ -442,8 +444,9 @@ const AddParameterDrawer = ({
                       sx={{
                         fontSize: '1rem',
                         fontWeight: 600,
-                        color: theme.palette.customColors.Error,
-                        cursor: 'pointer'
+                        color: hasNewParameters ? theme.palette.customColors.Error : theme.palette.text.disabled,
+                        cursor: hasNewParameters ? 'pointer' : 'not-allowed',
+                        opacity: hasNewParameters ? 1 : 0.5
                       }}
                       onClick={() => {
                         setParameters(prev => prev.filter(item => item?.isExisting === true))
