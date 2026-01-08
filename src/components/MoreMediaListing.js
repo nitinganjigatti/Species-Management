@@ -60,6 +60,7 @@ const MoreMediaListing = ({
           width={'133px'}
           height={'100px'}
           showTitle={false}
+          fileName={item?.file_original_name}
         />
       ))}
       {remainingCount > 0 && (

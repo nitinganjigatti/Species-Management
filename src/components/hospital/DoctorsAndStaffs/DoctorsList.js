@@ -120,7 +120,7 @@ const DoctorsList = () => {
       )
     },
     {
-      minWidth: 250,
+      minWidth: 300,
       field: 'user_full_name',
       sortable: false,
       headerName: 'Doctors Name',
@@ -135,15 +135,16 @@ const DoctorsList = () => {
         />
       )
     },
-    {
-      minWidth: 250,
-      field: 'designation',
-      sortable: false,
-      headerName: 'Designation',
-      align: 'left',
-      headerAlign: 'left',
-      renderCell: params => <StyledTypography paddingLeft={1}>{params.row?.designation || '-'}</StyledTypography>
-    },
+
+    // {
+    //   minWidth: 250,
+    //   field: 'designation',
+    //   sortable: false,
+    //   headerName: 'Designation',
+    //   align: 'left',
+    //   headerAlign: 'left',
+    //   renderCell: params => <StyledTypography paddingLeft={1}>{params.row?.designation || '-'}</StyledTypography>
+    // },
 
     // {
     //   minWidth: 250,

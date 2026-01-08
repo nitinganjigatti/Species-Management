@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react'
 import { Breadcrumbs, Card, Tab, Tabs, Typography, Box, Tooltip } from '@mui/material'
 import { useRouter } from 'next/router'
-import React, { useState, Suspense, lazy, useMemo, useCallback, useEffect } from 'react'
+import React, { useState, Suspense, lazy, useMemo, useCallback, useEffect, useContext } from 'react'
 import PatientCard from 'src/views/pages/hospital/utility/PatientCard'
 import CircularProgress from '@mui/material/CircularProgress'
 
@@ -12,10 +12,14 @@ import MenuItem from '@mui/material/MenuItem'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import CloseIcon from '@mui/icons-material/Close'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import { useHospital } from 'src/context/HospitalContext'
 import { getAnimalTotalHospitalVisits } from 'src/lib/api/hospital/inpatient'
+import { getHospitalListing } from 'src/lib/api/hospital/hospitalAnalytics'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
+import { write } from 'src/lib/windows/utils'
+import { AuthContext } from 'src/context/AuthContext'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -59,7 +63,10 @@ const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'
 const PatientDetails = ({ category }) => {
   const router = useRouter()
   const theme = useTheme()
-  const { selectedHospital } = useHospital()
+  const authData = useContext(AuthContext)
+
+  const queryClient = useQueryClient()
+  const { selectedHospital, updateSelectedHospital, updateHospitalStatus } = useHospital()
   const { data, updateState, resetState } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
   const medical_record_id = medicalRecordData?.medical_record_id
@@ -70,6 +77,8 @@ const PatientDetails = ({ category }) => {
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
   const [anchorEl, setAnchorEl] = useState(null)
+  const [permissionStatus, setPermissionStatus] = useState('checking')
+  const [showConfirmation, setShowConfirmation] = useState(false)
 
   const openMenu = Boolean(anchorEl)
 
@@ -96,7 +105,7 @@ const PatientDetails = ({ category }) => {
   } = useQuery({
     queryKey: ['patientDetails', id],
     queryFn: () => getPatientDetails(id),
-    enabled: !!id // only run when id exists
+    enabled: !!id // only run when id exists and has hospital permission
   })
 
   // Initialize medical record data when patient details are loaded
@@ -142,6 +151,46 @@ const PatientDetails = ({ category }) => {
       }
     : {}
 
+  useEffect(() => {
+    if (!patientData) return
+
+    const patientHospitalId = patientData?.hospital_id
+
+    if (!selectedHospital?.id && patientHospitalId) {
+      updateSelectedHospital({ id: patientHospitalId })
+
+      return
+    }
+
+    if (selectedHospital?.id && patientHospitalId) {
+      if (String(patientHospitalId) === String(selectedHospital.id)) {
+        setPermissionStatus('allowed')
+      } else {
+        setPermissionStatus('denied')
+        setShowConfirmation(true)
+      }
+    }
+  }, [patientData, selectedHospital?.id])
+
+  const handleAccessRestrictedConfirmation = () => {
+    setShowConfirmation(false)
+    updateSelectedHospital(null)
+    write('selectedHospital', null)
+
+    // updateHospitalStatus(null)
+
+    // Invalidate ALL queries that start with 'hospitals-inpatient'
+    queryClient.invalidateQueries(
+      {
+        queryKey: ['hospitals-listing-inpatient']
+      },
+      {
+        type: 'all' // This will invalidate all queries with this prefix
+      }
+    )
+    router.back()
+  }
+
   const handleMenuOpen = event => {
     setAnchorEl(event.currentTarget)
   }
@@ -163,7 +212,7 @@ const PatientDetails = ({ category }) => {
         hospital_case_id: id
       }),
 
-    enabled: Boolean(resolvedAnimalId && selectedHospital?.id && id),
+    enabled: permissionStatus === 'allowed' && Boolean(resolvedAnimalId && selectedHospital?.id && id),
     staleTime: 0,
     cacheTime: 0,
     refetchOnMount: true,
@@ -436,104 +485,180 @@ const PatientDetails = ({ category }) => {
 
   return (
     <>
-      <Box>
-        {breadcrumbs}
-        <PatientCard
-          animalData={animalData}
-          patientData={patientData}
-          loading={patientLoading}
-          refetch={refetchPatient}
-          category={category}
-          totalVisitCount={totalVisitCount}
-        />
-        <Card sx={{ mt: 6, p: { xs: 3, md: 6 }, mb: selectedTab === 'discharge' ? 4 : 0 }}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <IconButton size='large' edge='start' color='inherit' aria-label='menu' onClick={handleMenuOpen}>
-                <MenuIcon />
-              </IconButton>
-              <Menu
-                anchorEl={anchorEl}
-                open={openMenu}
-                onClose={handleMenuClose}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-                slotProps={{
-                  paper: {
-                    sx: {
-                      maxHeight: '60vh',
-                      overflowY: 'auto',
-                      maxWidth: { xs: '60vw', sm: '30vw', md: '30vw', lg: '15vw' },
-                      width: { xs: '60vw', sm: '30vw', md: '30vw', lg: '15vw' }
+      {permissionStatus === 'allowed' ? (
+        <Box>
+          {breadcrumbs}
+          <PatientCard
+            animalData={animalData}
+            patientData={patientData}
+            loading={patientLoading}
+            refetch={refetchPatient}
+            category={category}
+            totalVisitCount={totalVisitCount}
+          />
+          <Card sx={{ mt: 6, p: { xs: 3, md: 6 }, mb: selectedTab === 'discharge' ? 4 : 0 }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <IconButton size='large' edge='start' color='inherit' aria-label='menu' onClick={handleMenuOpen}>
+                  <MenuIcon />
+                </IconButton>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={openMenu}
+                  onClose={handleMenuClose}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                  slotProps={{
+                    paper: {
+                      sx: {
+                        maxHeight: '60vh',
+                        overflowY: 'auto',
+                        maxWidth: { xs: '60vw', sm: '30vw', md: '30vw', lg: '15vw' },
+                        width: { xs: '60vw', sm: '30vw', md: '30vw', lg: '15vw' }
+                      }
                     }
-                  }
-                }}
-              >
-                {isSmallScreen && (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                      alignItems: 'center',
-                      p: 1,
-                      borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      position: 'sticky',
-                      top: 0,
-                      backgroundColor: 'background.paper',
-                      zIndex: 1
-                    }}
-                  >
-                    <IconButton onClick={handleMenuClose}>
-                      <CloseIcon />
-                    </IconButton>
-                  </Box>
-                )}
-                {tabConfig.map(tab => (
-                  <MenuItem
-                    key={tab.value}
-                    onClick={() => handleMenuTabChange(tab.value)}
-                    selected={selectedTab === tab.value}
-                  >
-                    <Tooltip title={tab.label} arrow placement='top'>
-                      <Typography
-                        sx={{
-                          color:
-                            selectedTab === tab.value
-                              ? theme.palette.primary.main
-                              : theme.palette.customColors.OnSurfaceVarient,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 1,
-                          WebkitBoxOrient: 'vertical',
-                          fontWeight: selectedTab === tab.value ? 'bold' : 'normal'
-                        }}
-                      >
-                        {tab.label}
-                      </Typography>
-                    </Tooltip>
-                  </MenuItem>
-                ))}
-              </Menu>
+                  }}
+                >
+                  {isSmallScreen && (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        alignItems: 'center',
+                        p: 1,
+                        borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        position: 'sticky',
+                        top: 0,
+                        backgroundColor: 'background.paper',
+                        zIndex: 1
+                      }}
+                    >
+                      <IconButton onClick={handleMenuClose}>
+                        <CloseIcon />
+                      </IconButton>
+                    </Box>
+                  )}
+                  {tabConfig.map(tab => (
+                    <MenuItem
+                      key={tab.value}
+                      onClick={() => handleMenuTabChange(tab.value)}
+                      selected={selectedTab === tab.value}
+                    >
+                      <Tooltip title={tab.label} arrow placement='top'>
+                        <Typography
+                          sx={{
+                            color:
+                              selectedTab === tab.value
+                                ? theme.palette.primary.main
+                                : theme.palette.customColors.OnSurfaceVarient,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 1,
+                            WebkitBoxOrient: 'vertical',
+                            fontWeight: selectedTab === tab.value ? 'bold' : 'normal'
+                          }}
+                        >
+                          {tab.label}
+                        </Typography>
+                      </Tooltip>
+                    </MenuItem>
+                  ))}
+                </Menu>
 
-              <Tabs
-                value={selectedTab}
-                onChange={handleTabChange}
-                variant='scrollable'
-                scrollButtons='auto'
-                aria-label={`Inpatient details tabs`}
-              >
-                {tabElements}
-              </Tabs>
+                <Tabs
+                  value={selectedTab}
+                  onChange={handleTabChange}
+                  variant='scrollable'
+                  scrollButtons='auto'
+                  aria-label={`Inpatient details tabs`}
+                >
+                  {tabElements}
+                </Tabs>
+              </Box>
             </Box>
-          </Box>
-          <Box role='tabpanel' aria-label={`${selectedLabel} content`}>
-            <Suspense fallback={<TabContentLoader />}>
-              <SelectedComponent {...componentProps} />
-            </Suspense>
-          </Box>
-        </Card>
-      </Box>
+            <Box role='tabpanel' aria-label={`${selectedLabel} content`}>
+              <Suspense fallback={<TabContentLoader />}>
+                <SelectedComponent {...componentProps} />
+              </Suspense>
+            </Box>
+          </Card>
+        </Box>
+      ) : permissionStatus === 'checking' ? (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '400px',
+            width: '100%',
+            gap: 3
+          }}
+        >
+          <CircularProgress
+            size={60}
+            sx={{
+              color: theme.palette.primary.main
+            }}
+          />
+          <Typography
+            sx={{
+              fontSize: '16px',
+              fontWeight: 500,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Checking access permissions...
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 400,
+              color: theme.palette.customColors.OnSurfaceVariant,
+              textAlign: 'center',
+              maxWidth: '500px'
+            }}
+          >
+            Please wait while we verify your access to view this patient's details.
+          </Typography>
+        </Box>
+      ) : null}
+
+      {showConfirmation && (
+        <ConfirmationDialog
+          dialogBoxStatus={showConfirmation}
+          onClose={() => setShowConfirmation(false)}
+          title={'Access Restricted'}
+          // cancelText={'G'}
+          cancelBtnStyle={{
+            borderColor: theme.palette.grey[500],
+            color: theme.palette.grey[700]
+          }}
+          confirmBtnStyle={{
+            background: theme.palette.primary.main,
+            py: 2
+          }}
+          image={'/images/warning-icon.svg'}
+          imgStyle={{
+            background: theme.palette.grey[200],
+            p: 4
+          }}
+          confirmAction={handleAccessRestrictedConfirmation}
+          ConfirmationText={'OK'}
+          description={
+            <Box>
+              <Typography variant='body1' sx={{ mb: 1 }}>
+                You don't have permission to view this patient's details.
+              </Typography>
+              <Typography variant='body2' color='text.secondary'>
+                Either Select the correct hospital or contact your administrator for access.
+              </Typography>
+            </Box>
+          }
+          allowCancel={false}
+        />
+      )}
     </>
   )
 }

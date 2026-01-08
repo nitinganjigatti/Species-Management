@@ -1,57 +1,47 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Box, IconButton, useTheme } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import UserAvatarDetails from './UserAvatarDetails'
 import FileDialog from 'src/components/utility/FileDialog'
 import { useAuth } from 'src/hooks/useAuth'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import SignedMediaPlayer from 'src/components/utility/SignedMediaPlayer'
 
-// --- File type configuration ---
+// File type mapping to extensions
 const EXT_ICON_MAP = {
-  image: ['jpeg', 'jpg', 'png', 'svg', 'gif', 'webp'],
+  image: ['jpeg', 'jpg', 'png', 'webp', 'heic'],
   pdf: ['pdf'],
   xls: ['xls', 'xlsx'],
   document: ['doc', 'docx'],
-  audio: ['mp3', 'wav', 'ogg'],
-  video: ['mp4', 'mov', 'avi', 'webm', 'mkv'],
+  audio: ['mp3', 'wav'],
+  video: ['mp4', 'webm', 'ogv'],
   ppt: ['ppt', 'pptx'],
   text: ['txt'],
   csv: ['csv'],
-  zip: ['zip', 'rar', '7z']
+  zip: ['zip', 'rar']
 }
 
-// --- Helper to determine file type based on extension or MIME ---
+// Helper to determine file type based on extension or MIME
 const getFileType = (fileName, fileTypeFromApi) => {
-  if (fileTypeFromApi) {
-    const mimeType = fileTypeFromApi.toLowerCase()
-
-    if (mimeType.includes('image')) return 'image'
-    if (mimeType.includes('video')) return 'video'
-    if (mimeType.includes('audio')) return 'audio'
-    if (mimeType.includes('pdf')) return 'pdf'
-    if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'xls'
-    if (mimeType.includes('word')) return 'document'
-  }
-
   if (!fileName) return 'unknown'
-  const ext = fileName?.split('.').pop()?.toLowerCase() || ''
+  const ext = fileName?.split('.').pop().toLowerCase() || ''
 
   return Object.entries(EXT_ICON_MAP).find(([_, exts]) => exts.includes(ext))?.[0] || 'unknown'
 }
 
-// --- Get fallback icon if not image/video/audio ---
+// Get fallback icon if not image/video/audio
 const getFileIcon = (fileType, imgPath) => {
   return imgPath?.[fileType] || imgPath?.default || {}
 }
 
-// --- Main Component ---
+// Main Component
 const FilePreviewCard = ({
   fileUrl,
   fileName,
   fileType: fileTypeFromApi,
   user,
-  width = 200,
-  height = 200,
+  width,
+  height,
   showTitle = false,
   showTitleIcon = false,
   onTitleIconClick,
@@ -63,44 +53,42 @@ const FilePreviewCard = ({
   const [previewFile, setPreviewFile] = useState(null)
   const [isImageError, setIsImageError] = useState(false)
 
-  // --- Derive file name safely ---
-  let derivedFileName = ''
-  if (fileName && typeof fileName === 'string') {
-    derivedFileName = fileName.trim()
-  } else if (typeof fileUrl === 'string' && fileUrl.length > 0) {
+  // Derive file name safely
+  const derivedFileName = () => {
+    if (fileName) return fileName.trim()
+
     try {
-      const parts = fileUrl.split('/')
-      const lastPart = parts.pop() || ''
-      derivedFileName = decodeURIComponent(lastPart.split('?')[0] || '')
+      const lastSegment = fileUrl?.split('/')?.pop() || ''
+
+      return decodeURIComponent(lastSegment.split('?')[0] || 'unknown')
     } catch {
-      derivedFileName = 'unknown_file'
+      return 'unknown'
     }
-  } else {
-    derivedFileName = 'unknown_file'
   }
 
-  // --- Determine type and icon ---
-  const fileType = getFileType(derivedFileName, fileTypeFromApi)
+  // Determine file type and icon
+  const fileType = getFileType(derivedFileName(), fileTypeFromApi)
   const fileIcon = getFileIcon(fileType, imgPath)
 
-  // --- Handle preview click ---
+  // Handle preview click
   const handlePreviewClick = () => {
     if (!fileUrl || typeof fileUrl !== 'string') return
     const typeMap = { image: 'image', video: 'video', pdf: 'pdf', audio: 'audio' }
     setPreviewFile({
       src: fileUrl,
       type: typeMap[fileType] || 'other',
-      name: derivedFileName
+      name: derivedFileName(),
+      fileIcon: fileIcon
     })
   }
 
-  // --- Render preview ---
+  // Render preview
   const renderPreview = () => {
     const commonProps = {
       sx: {
         width: '100%',
         display: 'flex',
-        flex: 1,
+        height: '100%',
         borderRadius: showTitle ? '8px' : '4px',
         overflow: 'hidden',
         cursor: 'pointer'
@@ -108,7 +96,7 @@ const FilePreviewCard = ({
       onClick: handlePreviewClick
     }
 
-    if (fileType === 'image') {
+    if (fileType == 'image') {
       if (isImageError || !fileUrl) {
         // Show fallback icon when broken or missing
         return (
@@ -130,35 +118,67 @@ const FilePreviewCard = ({
         <Box {...commonProps}>
           <img
             src={fileUrl}
-            alt={derivedFileName}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            onError={() => setIsImageError(true)} // fallback when broken
+            alt={derivedFileName()}
+            style={{ width: '100%', height: '133px', objectFit: 'cover' }}
+            onError={() => setIsImageError(true)}
           />
         </Box>
       )
     }
 
-    if (fileType === 'video')
+    if (fileType == 'video')
       return (
-        <Box {...commonProps}>
-          <video src={fileUrl} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <Box
+          {...commonProps}
+          sx={{
+            ...commonProps.sx,
+            position: 'relative', // needed for overlay
+            overflow: 'hidden'
+          }}
+        >
+          {/* <video src={fileUrl}  muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> */}
+          <SignedMediaPlayer
+            src={fileUrl}
+            preload='auto'
+            type='video'
+            controls={false}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block'
+            }}
+          />
+          <Box
+            onClick={handlePreviewClick}
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              backgroundColor: 'transparent'
+            }}
+          >
+            <Box
+              sx={{
+                backgroundColor: theme.palette.customColors.OnPrimary,
+                width: 34,
+                height: 34,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'background-color 200ms',
+                '&:hover': { backgroundColor: theme.palette.customColors.OnPrimary50 }
+              }}
+            >
+              <Icon icon='mdi:play' fontSize={28} color={theme.palette.customColors.neutralPrimary} />
+            </Box>
+          </Box>
         </Box>
       )
-
-    // if (fileType === 'audio')
-    //   return (
-    //     <Box
-    //       {...commonProps}
-    //       sx={{
-    //         ...commonProps.sx,
-    //         alignItems: 'center',
-    //         justifyContent: 'center',
-    //         backgroundColor: theme.palette.background.paper
-    //       }}
-    //     >
-    //       <audio controls src={fileUrl} style={{ width: '90%' }} />
-    //     </Box>
-    //   )
 
     // fallback icon for other/unknown types
     return (
@@ -198,6 +218,7 @@ const FilePreviewCard = ({
           src={previewFile?.src}
           type={previewFile?.type}
           title={previewFile?.name}
+          fileIcon={previewFile?.fileIcon}
         />
       )}
 
@@ -221,12 +242,12 @@ const FilePreviewCard = ({
             {showTitle && (
               <TextEllipsisWithModal
                 enableDialog={false}
-                text={derivedFileName}
+                text={derivedFileName()}
                 style={{
                   color: theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '0.875rem',
                   fontWeight: 400,
-                  maxWidth: '220px'
+                  maxWidth: width
                 }}
               />
             )}

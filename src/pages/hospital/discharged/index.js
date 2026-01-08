@@ -327,9 +327,11 @@ const HospitalDischarged = () => {
       align: 'left',
       headerAlign: 'left',
       renderCell: params => {
+        const totalDuration = Number(params.row.duration_days) + 1
+
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.total_admitted_days}
+            {totalDuration} {totalDuration > 1 ? 'Days' : 'Day'}
           </Typography>
         )
       }

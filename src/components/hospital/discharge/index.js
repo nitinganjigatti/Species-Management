@@ -214,19 +214,42 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
       minWidth: 250,
       flex: 1,
       sortable: false,
-      renderCell: params => (
-        <TextEllipsisWithModal
-          enableDialog={false}
-          text={`${params?.row?.dosage_count} / ${params?.row?.frequency}`}
-          style={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '1rem',
-            pl: 1.4,
-            maxWidth: '230px',
-            fontWeight: 400
-          }}
-        />
-      )
+      renderCell: params => {
+        const dosage = params?.row?.dosage_count
+        const frequency = params?.row?.frequency
+
+        const isInvalid =
+          dosage === null ||
+          dosage === undefined ||
+          dosage === 0 ||
+          dosage === '0' ||
+          dosage === '0 Time' ||
+          frequency === null ||
+          frequency === undefined ||
+          frequency === ''
+
+        if (isInvalid) {
+          return (
+            <StyledTypography sx={{ pl: 1.4 }} fontWeight={400}>
+              -
+            </StyledTypography>
+          )
+        }
+
+        return (
+          <TextEllipsisWithModal
+            enableDialog={false}
+            text={`${dosage} / ${frequency}`}
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '1rem',
+              pl: 1.4,
+              maxWidth: '230px',
+              fontWeight: 400
+            }}
+          />
+        )
+      }
     },
     {
       field: 'start_date',
@@ -244,26 +267,37 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
       headerName: 'Ending Date',
       minWidth: 180,
       sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 1,
-            border: `1px solid ${theme.palette.customColors.OnSurface}`,
-            borderRadius: '4px',
-            ml: 1.4,
-            padding: '8px 16px',
-            width: '160px',
-            color: theme.palette.customColors.OnSurface
-          }}
-        >
-          <Icon icon='mdi:calendar-blank' style={{ fontSize: 18 }} />
-          <StyledTypography color={theme.palette.customColors.OnSurface}>
-            {Utility.convertUtcToLocalReadableDate(params?.row?.end_date)}
-          </StyledTypography>
-        </Box>
-      )
+      renderCell: params => {
+        const endDate = params?.row?.end_date
+        const formattedDate = endDate ? Utility.convertUtcToLocalReadableDate(endDate) : null
+
+        if (!endDate || !formattedDate || formattedDate === 'Invalid date') {
+          return (
+            <StyledTypography sx={{ pl: 1.4 }} fontWeight={400}>
+              -
+            </StyledTypography>
+          )
+        }
+
+        return (
+          <Box
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 1,
+              border: `1px solid ${theme.palette.customColors.OnSurface}`,
+              borderRadius: '4px',
+              ml: 1.4,
+              padding: '8px 16px',
+              width: '160px',
+              color: theme.palette.customColors.OnSurface
+            }}
+          >
+            <Icon icon='mdi:calendar-blank' style={{ fontSize: 18 }} />
+            <StyledTypography color={theme.palette.customColors.OnSurface}>{formattedDate}</StyledTypography>
+          </Box>
+        )
+      }
     },
     {
       field: 'duration',
@@ -285,15 +319,6 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
         isStopPrescriptionLoading ? (
           <CircularProgress size={20} />
         ) : (
-          // <StyledTypography
-          //   sx={{ pl: 2, textTransform: 'capitalize', cursor: 'pointer' }}
-          //   fontWeight={600}
-          //   color={theme.palette.customColors.OnSurface}
-          //   onClick={() => handleStopPrescription(params?.row)}
-          // >
-          //   Stop Medicine
-          // </StyledTypography>
-
           <Button
             variant='outlined'
             sx={{
@@ -664,7 +689,8 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     return (
       <Box sx={{ my: 20 }}>
         <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.error.main }}>
-          Discharge is restricted due to the absence of the security group at the origin site
+          Discharge is restricted due to the absence of the security group or transfer authority at the origin site of
+          an animal.
         </StyledTypography>
       </Box>
     )

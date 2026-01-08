@@ -108,7 +108,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
               }}
             />
 
-            {mappedRecord?.prognosis && (
+            {mappedRecord?.prognosis && !isDifferential && (
               <Box
                 component='span'
                 sx={{
@@ -188,7 +188,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
             </Box>
           )}
 
-          {record?.latest_note?.is_system_generated == true && mappedRecord.chronic && (
+          {record?.latest_note?.is_system_generated == true && mappedRecord.chronic && !isDifferential && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
                 Is it Chronic :{' '}
@@ -205,7 +205,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
             </Box>
           )}
 
-          {record.latest_note?.is_system_generated == true && mappedRecord.prognosis && (
+          {record.latest_note?.is_system_generated == true && mappedRecord.prognosis && !isDifferential && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
                 Prognosis :{' '}

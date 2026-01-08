@@ -24,6 +24,7 @@ import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePick
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import AddEditSurgeryDrawer from 'src/views/pages/hospital/masters/surgery'
+import BottomActionBar from 'src/views/utility/BottomActionBar'
 
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
@@ -1144,7 +1145,6 @@ const AddSurgeryRecord = () => {
                 name={'endTime'}
                 control={control}
                 label='End Time'
-                minTime={startTimeValue || null}
                 renderInput={params => (
                   <ControlledTextField
                     {...params}
@@ -1638,7 +1638,7 @@ const AddSurgeryRecord = () => {
         />
       </Card>
 
-      <Box
+      {/* <Box
         sx={{
           position: 'fixed',
           bottom: 0,
@@ -1691,7 +1691,32 @@ const AddSurgeryRecord = () => {
         >
           {isSubmitting ? (isEditMode ? 'Updating...' : 'Submitting...') : isEditMode ? 'UPDATE' : 'SAVE'}
         </Button>
-      </Box>
+      </Box> */}
+
+      <BottomActionBar
+        onCancel={handleCancelForm}
+        onSubmit={handleSubmit(onSubmit)}
+        loading={isSubmitting}
+        disabled={isSubmitting}
+        submitLabel={isSubmitting ? (isEditMode ? 'Updating...' : 'Submitting...') : isEditMode ? 'UPDATE' : 'SAVE'}
+        cancelLabel='RESET'
+        cancelBtnStyle={{
+          height: '56px',
+          minWidth: { xs: '100%', sm: '160px' },
+          borderColor: theme.palette.customColors.Outline,
+          color: theme.palette.customColors.OnSurfaceVariant,
+          fontWeight: 600,
+          letterSpacing: 0,
+          px: '24px'
+        }}
+        submitBtnStyle={{
+          height: '56px',
+          minWidth: { xs: '100%', sm: '160px' },
+          fontWeight: 600,
+          letterSpacing: 0,
+          px: '24px'
+        }}
+      />
 
       <AddEditSurgeryDrawer
         open={openAddSurgeryDrawer}

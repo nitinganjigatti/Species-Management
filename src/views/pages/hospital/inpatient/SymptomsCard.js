@@ -281,38 +281,49 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
           )}
 
           {record?.additional_info &&
-            (hasData(record?.latest_note?.notes_dump?.new_data) ||
-              hasData(record?.latest_note?.notes_dump?.old_data)) && (
-              <Box
+          (hasData(record?.latest_note?.notes_dump?.new_data) || hasData(record?.latest_note?.notes_dump?.old_data)) ? (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                mb: 0.5,
+                flexWrap: 'wrap'
+              }}
+            >
+              <Typography
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  mb: 0.5,
-                  flexWrap: 'wrap'
+                  fontSize: '0.875rem',
+                  color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                <Typography
-                  sx={{
-                    fontSize: '0.875rem',
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                >
-                  Severity :{' '}
-                </Typography>
-                <Typography sx={{ fontSize: '0.875rem', fontWeight: 400 }}>
-                  <span style={{ color: theme.palette.customColors.secondaryBg }}>
-                    {record?.latest_note?.notes_dump?.old_data?.severity}
-                  </span>
-                  {record?.latest_note?.notes_dump?.old_data?.severity && (
-                    <span style={{ color: theme.palette.customColors.OnSurfaceVariant }}> → </span>
-                  )}
-                  <strong style={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-                    {record?.latest_note?.notes_dump?.new_data?.severity || record?.additional_info?.severity}
-                  </strong>
-                </Typography>
-              </Box>
-            )}
+                Severity :{' '}
+              </Typography>
+              <Typography sx={{ fontSize: '0.875rem', fontWeight: 400 }}>
+                <span style={{ color: theme.palette.customColors.secondaryBg }}>
+                  {record?.latest_note?.notes_dump?.old_data?.severity}
+                </span>
+                {record?.latest_note?.notes_dump?.old_data?.severity && (
+                  <span style={{ color: theme.palette.customColors.OnSurfaceVariant }}> → </span>
+                )}
+                <strong style={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+                  {record?.latest_note?.notes_dump?.new_data?.severity || record?.additional_info?.severity}
+                </strong>
+              </Typography>
+            </Box>
+          ) : (
+            <Typography
+              sx={{
+                fontSize: '0.875rem',
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              Severity :{' '}
+              <strong style={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+                {record?.additional_info?.severity}
+              </strong>
+            </Typography>
+          )}
 
           {record?.latest_note?.note && (
             <Tooltip title={record?.latest_note?.note} arrow placement='top'>
@@ -333,28 +344,6 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
               </Typography>
             </Tooltip>
           )}
-
-          {record?.additional_info &&
-            !hasData(record?.latest_note?.notes_dump?.new_data) &&
-            !hasData(record?.latest_note?.notes_dump?.old_data) && (
-              <Tooltip title={record?.latest_note?.note} arrow placement='top'>
-                <Typography
-                  sx={{
-                    fontSize: '0.875rem',
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    mb: 1,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    lineHeight: '1.4'
-                  }}
-                >
-                  {record?.latest_note?.note || ''}
-                </Typography>
-              </Tooltip>
-            )}
 
           <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.neutralSecondary }}>
             Last Updated:{' '}

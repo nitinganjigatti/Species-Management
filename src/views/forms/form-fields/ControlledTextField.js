@@ -56,14 +56,14 @@ const ControlledTextField = ({
               if (type === 'number') {
                 // disable negative values
                 if (value === '' || Number(value) >= 0) {
-                  field.onChange(value)
-                  if (onChangeOverride) onChangeOverride(value, e)
+                  field.onChange(e)
+                  if (onChangeOverride) onChangeOverride(e)
                 }
 
                 return
               }
-              field.onChange(value)
-              if (onChangeOverride) onChangeOverride(value, e)
+              field.onChange(e)
+              if (onChangeOverride) onChangeOverride(e)
             }}
             onKeyDown={onKeyDown}
             onPaste={onPaste}
@@ -91,6 +91,20 @@ const ControlledTextField = ({
               '& .MuiInputBase-input': {
                 borderRadius: borderRadius,
                 backgroundColor: inputBackgroundColor ? inputBackgroundColor : 'inherit'
+              },
+              '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': {
+                WebkitAppearance: 'none',
+                margin: 0
+              },
+
+              /* Firefox */
+              '& input[type=number]': {
+                MozAppearance: 'textfield'
+              },
+
+              '& .MuiInputBase-input': {
+                borderRadius: borderRadius,
+                backgroundColor: inputBackgroundColor || 'inherit'
               }
             }}
           />

@@ -374,9 +374,11 @@ const HospitalMortality = () => {
       headerAlign: 'left',
 
       renderCell: params => {
+        const totalDuration = Number(params?.row?.duration_days || 0) + 1
+
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.duration_days} {params?.row?.duration_days > 1 ? 'Days' : 'Day'}
+            {totalDuration} {totalDuration > 1 ? 'Days' : 'Day'}
           </Typography>
         )
       }
