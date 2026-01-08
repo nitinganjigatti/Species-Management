@@ -11,6 +11,10 @@ export const HospitalProvider = ({ children }) => {
   const [hasFetchedStatsForCurrentHospital, setHasFetchedStatsForCurrentHospital] = useState(false)
   const [isHospitalAccessChecked, setIsHospitalAccessChecked] = useState(false)
 
+  // State to track if user has no hospitals on initial fetch
+  const [hasNoHospitalsOnInitialFetch, setHasNoHospitalsOnInitialFetch] = useState(false)
+  const [hasCompletedInitialFetch, setHasCompletedInitialFetch] = useState(false)
+
   const updateSelectedHospital = hospital => {
     setSelectedHospital(hospital)
     write('selectedHospital', hospital)
@@ -41,11 +45,21 @@ export const HospitalProvider = ({ children }) => {
     setHasFetchedStatsForCurrentHospital(true)
   }
 
+  // Function to mark initial fetch completion and check if no hospitals
+  const markInitialFetchComplete = hospitalsCount => {
+    if (!hasCompletedInitialFetch) {
+      setHasCompletedInitialFetch(true)
+      setHasNoHospitalsOnInitialFetch(hospitalsCount === 0)
+    }
+  }
+
   const clearHospitalData = () => {
     setSelectedHospital(null)
     setHospitals([])
     setHospitalStats(null)
     setHasFetchedStatsForCurrentHospital(false)
+    setHasNoHospitalsOnInitialFetch(false)
+    setHasCompletedInitialFetch(false)
   }
 
   const value = {
@@ -61,7 +75,10 @@ export const HospitalProvider = ({ children }) => {
     setHospitalStatsLoading,
     hasFetchedStatsForCurrentHospital,
     isHospitalAccessChecked,
-    setIsHospitalAccessChecked
+    setIsHospitalAccessChecked,
+    hasNoHospitalsOnInitialFetch,
+    hasCompletedInitialFetch,
+    markInitialFetchComplete
   }
 
   return <HospitalContext.Provider value={value}>{children}</HospitalContext.Provider>

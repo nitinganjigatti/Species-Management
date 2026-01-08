@@ -25,7 +25,10 @@ const HospitalDropdown = ({ disabled = false }) => {
     setHospitalStatsLoading,
     hasFetchedStatsForCurrentHospital,
     markStatsAsFetched,
-    setIsHospitalAccessChecked
+    setIsHospitalAccessChecked,
+    hasNoHospitalsOnInitialFetch,
+    hasCompletedInitialFetch,
+    markInitialFetchComplete
   } = useHospital()
 
   const [anchorEl, setAnchorEl] = useState(null)
@@ -117,6 +120,11 @@ const HospitalDropdown = ({ disabled = false }) => {
       if (response?.status) {
         const newHospitals = response.data.list || []
         const totalPages = Math.ceil(response.data.total_records / PAGE_SIZE) || 1
+
+        // Mark initial fetch complete only for page 1 with empty search
+        if (pageParam === 1 && !hasCompletedInitialFetch && !searchQuery?.trim()) {
+          markInitialFetchComplete(newHospitals.length)
+        }
 
         return {
           result: newHospitals,
@@ -335,8 +343,10 @@ const HospitalDropdown = ({ disabled = false }) => {
         }}
       >
         <Box sx={{ maxWidth: 400, display: 'flex', alignItems: 'center' }}>
-          {isCheckingHospitalAccess ? (
-
+          {hasNoHospitalsOnInitialFetch ? (
+            <Box>No hospitals found</Box>
+          ) : isCheckingHospitalAccess ? (
+            
             // Shimmer for checking hospital access state
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
               <ShimmerBox width='160px' height='24px' mb={0} />
