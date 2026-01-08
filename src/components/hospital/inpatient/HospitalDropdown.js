@@ -334,7 +334,7 @@ const HospitalDropdown = ({ disabled = false }) => {
           }
         }}
       >
-        <Box sx={{ maxWidth: 200, display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ maxWidth: 400, display: 'flex', alignItems: 'center' }}>
           {isCheckingHospitalAccess ? (
 
             // Shimmer for checking hospital access state
@@ -347,7 +347,7 @@ const HospitalDropdown = ({ disabled = false }) => {
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                maxWidth: 200
+                maxWidth: 400
               }}
             >
               <Tooltip title={selectedHospital?.name}>

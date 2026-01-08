@@ -508,7 +508,7 @@ export default function AddMedicineToPrescription() {
 
       dosageDuration: {
         value: data?.duration_qty || '0',
-        unit: data?.duration?.split(' ')[1] || ''
+        unit: data?.duration_label?.toLowerCase() || data?.duration?.split(' ')[1] || ''
       },
 
       notes: data.notes || '',
