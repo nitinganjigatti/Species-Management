@@ -25,7 +25,8 @@ const CommonTable = ({
   externalTableStyle,
   getRowHeight,
   handleSearch,
-  getRowClassName // New prop for conditional row styling
+  hideFooter = false,
+  getRowClassName, // New prop for conditional row styling
 }) => {
   const theme = useTheme()
 
@@ -86,6 +87,8 @@ const CommonTable = ({
       sortingMode='server'
       rowHeight={rowHeight}
       hideFooterPagination={hideFooterPagination}
+      hideFooter= {hideFooter}
+      
       // paginationMode='server'
       // pageSizeOptions={[7, 10, 25, 50]}
       paginationMode={disablePagination ? undefined : 'server'}
