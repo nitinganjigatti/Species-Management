@@ -565,7 +565,28 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
               justifyContent: 'center'
             }}
           >
-            <Icon icon='mdi:package-variant' fontSize='24px' color={theme.palette.grey[600]} />
+            {entry?.batch_details?.[0]?.batch_no_image ? (
+              <Avatar
+                src={entry?.batch_details?.[0]?.batch_no_image}
+                alt='Hospital Icon'
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '6px'
+                }}
+                slotProps={{
+                  img: {
+                    style: {
+                      objectFit: 'cover',
+                      width: '100%',
+                      height: '100%'
+                    }
+                  }
+                }}
+              />
+            ) : (
+              <Icon icon='mdi:package-variant' fontSize='24px' color={theme.palette.grey[600]} />
+            )}
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px', flex: '1 0 0' }}>
             <Typography variant='body2' sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
