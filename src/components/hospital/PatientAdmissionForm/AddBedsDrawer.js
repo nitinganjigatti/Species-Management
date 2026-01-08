@@ -471,7 +471,7 @@ const AddBedsDrawer = ({
               sx={{ height: '56px' }}
               disabled={addLoading}
             >
-              {addLoading ? <CircularProgress size={24} /> : 'ADD ROOM'}
+              {addLoading ? <CircularProgress size={24} /> : 'ADD ENCLOSURE'}
             </Button>
           </Box>
         </Box>
