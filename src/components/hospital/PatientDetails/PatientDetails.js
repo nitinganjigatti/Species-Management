@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react'
 import { Breadcrumbs, Card, Tab, Tabs, Typography, Box, Tooltip } from '@mui/material'
 import { useRouter } from 'next/router'
-import React, { useState, Suspense, lazy, useMemo, useCallback, useEffect } from 'react'
+import React, { useState, Suspense, lazy, useMemo, useCallback, useEffect, useContext } from 'react'
 import PatientCard from 'src/views/pages/hospital/utility/PatientCard'
 import CircularProgress from '@mui/material/CircularProgress'
 
@@ -16,9 +16,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import { useHospital } from 'src/context/HospitalContext'
 import { getAnimalTotalHospitalVisits } from 'src/lib/api/hospital/inpatient'
-import { getHospitalDetail } from 'src/lib/api/hospital/hospitalAnalytics'
+import { getHospitalListing } from 'src/lib/api/hospital/hospitalAnalytics'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { write } from 'src/lib/windows/utils'
+import { AuthContext } from 'src/context/AuthContext'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -62,6 +63,7 @@ const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'
 const PatientDetails = ({ category }) => {
   const router = useRouter()
   const theme = useTheme()
+  const authData = useContext(AuthContext)
 
   const queryClient = useQueryClient()
   const { selectedHospital, updateSelectedHospital, updateHospitalStatus } = useHospital()
@@ -79,54 +81,6 @@ const PatientDetails = ({ category }) => {
   const [showConfirmation, setShowConfirmation] = useState(false)
 
   const openMenu = Boolean(anchorEl)
-
-  //Hospital Permission Checking
-  const checkHospitalPermission = async hospitalId => {
-    try {
-      const response = await getHospitalDetail(hospitalId)
-
-      if (response?.status && response?.data?.has_permission === 1) {
-        setPermissionStatus('allowed')
-      } else {
-        setPermissionStatus('denied')
-        setShowConfirmation(true)
-      }
-    } catch (error) {
-      console.error('Permission check failed', error)
-      setPermissionStatus('denied')
-      setShowConfirmation(true)
-    }
-  }
-
-  const handleAccessRestrictedConfirmation = () => {
-    setShowConfirmation(false)
-    updateSelectedHospital(null)
-    write('selectedHospital', null)
-
-    // updateHospitalStatus(null)
-
-    // Invalidate ALL queries that start with 'hospitals-inpatient'
-    queryClient.invalidateQueries(
-      {
-        queryKey: ['hospitals-listing-inpatient']
-      },
-      {
-        type: 'all' // This will invalidate all queries with this prefix
-      }
-    )
-    router.back()
-  }
-
-  useEffect(() => {
-    if (!selectedHospital?.id) {
-      setShowConfirmation(true)
-
-      return
-    }
-
-    setPermissionStatus('checking')
-    checkHospitalPermission(selectedHospital.id)
-  }, [selectedHospital?.id])
 
   const [filters, setFilters] = useState({
     page: 1,
@@ -151,7 +105,7 @@ const PatientDetails = ({ category }) => {
   } = useQuery({
     queryKey: ['patientDetails', id],
     queryFn: () => getPatientDetails(id),
-    enabled: permissionStatus === 'allowed' && !!id // only run when id exists and has hospital permission
+    enabled: !!id // only run when id exists and has hospital permission
   })
 
   // Initialize medical record data when patient details are loaded
@@ -196,6 +150,46 @@ const PatientDetails = ({ category }) => {
         transfer_created_at: patientResponse?.data?.transfer_created_at
       }
     : {}
+
+  useEffect(() => {
+    if (!patientData) return
+
+    const patientHospitalId = patientData?.hospital_id
+
+    if (!selectedHospital?.id && patientHospitalId) {
+      updateSelectedHospital({ id: patientHospitalId })
+
+      return
+    }
+
+    if (selectedHospital?.id && patientHospitalId) {
+      if (String(patientHospitalId) === String(selectedHospital.id)) {
+        setPermissionStatus('allowed')
+      } else {
+        setPermissionStatus('denied')
+        setShowConfirmation(true)
+      }
+    }
+  }, [patientData, selectedHospital?.id])
+
+  const handleAccessRestrictedConfirmation = () => {
+    setShowConfirmation(false)
+    updateSelectedHospital(null)
+    write('selectedHospital', null)
+
+    // updateHospitalStatus(null)
+
+    // Invalidate ALL queries that start with 'hospitals-inpatient'
+    queryClient.invalidateQueries(
+      {
+        queryKey: ['hospitals-listing-inpatient']
+      },
+      {
+        type: 'all' // This will invalidate all queries with this prefix
+      }
+    )
+    router.back()
+  }
 
   const handleMenuOpen = event => {
     setAnchorEl(event.currentTarget)
@@ -658,7 +652,7 @@ const PatientDetails = ({ category }) => {
                 You don't have permission to view this patient's details.
               </Typography>
               <Typography variant='body2' color='text.secondary'>
-                Please contact your administrator or request access to proceed.
+                Either Select the correct hospital or contact your administrator for access.
               </Typography>
             </Box>
           }
