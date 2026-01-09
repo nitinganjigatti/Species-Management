@@ -191,7 +191,8 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
           paper: {
             sx: {
               width: { xs: '100%', sm: '80%', md: 560 },
-              height: '100vh',
+
+              // height: '100vh',
               display: 'flex',
               flexDirection: 'column',
               backgroundColor: theme.palette.customColors.OnPrimary,
@@ -348,7 +349,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
               loading={enclosureLoading}
               endAdornment={() =>
                 havePermissionToAddHospital && (
-                  <Tooltip title='Add Beds/Enclosures'>
+                  <Tooltip title='Add Enclosures'>
                     <IconButton
                       size='small'
                       onMouseDown={e => e.preventDefault()}
@@ -389,6 +390,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
               color: theme.palette.customColors.OnPrimaryContainer,
               borderColor: theme.palette.customColors.OnPrimaryContainer
             }}
+            onClick={onClose}
           >
             CANCEL
           </Button>

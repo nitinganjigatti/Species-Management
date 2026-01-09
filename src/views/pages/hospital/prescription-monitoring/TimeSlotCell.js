@@ -54,7 +54,7 @@ const TimeSlotCell = ({ hasSchedule, status, scheduledTime, administeredTime, do
                 letterSpacing: 0,
                 color: theme.palette.customColors.OnSurfaceVariant,
                 textDecoration: config?.textDecoration,
-                textDecoration: status === 'administered' ? 'line-through' : 'none'
+                textDecoration: status === 'stopped' ? 'line-through' : 'none'
               }}
               variant='caption'
             >

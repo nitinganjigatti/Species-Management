@@ -169,7 +169,12 @@ function AddMedicationDrawer({
         setValue('delivery_status', editData.delivery_status, { shouldValidate: true })
       }
     } else {
-      reset(defaultValues)
+      const now = dayjs()
+      reset({
+        ...defaultValues,
+        delivery_time: now,
+        max_effect_time: now
+      })
       setSelectedStatus(null)
     }
   }, [editData, setValue, reset, handleSidebarOpen])

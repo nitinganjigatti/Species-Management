@@ -20,11 +20,11 @@ const ALL_REPORTS_KEY = 'all_reports'
 const REPORT_OPTIONS = [
   { key: 'treatment_monitoring', label: 'Treatment Monitoring' },
   { key: 'symptoms', label: 'Symptoms' },
+  { key: 'clinical_assessment', label: 'Clinical Assessment' },
   { key: 'clinical_notes', label: 'Clinical Notes' },
   { key: 'other_treatments', label: 'Other Treatments' },
   { key: 'prescription', label: 'Prescriptions' },
-  { key: 'lab_reports', label: 'Lab Reports' },
-  { key: 'Anesthesia', label: 'Anesthesia' },
+  { key: 'anaesthesia', label: 'Anesthesia' },
   { key: 'surgery', label: 'Surgery' }
 ]
 

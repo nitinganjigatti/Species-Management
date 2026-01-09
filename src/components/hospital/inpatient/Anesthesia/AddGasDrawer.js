@@ -155,7 +155,14 @@ function AddGasDrawer({
         setValue('delivery_status', editData.delivery_status, { shouldValidate: true })
       }
     } else {
-      reset(defaultValues)
+      const now = dayjs()
+
+      reset({
+        ...defaultValues,
+        start_time: now,
+        end_time: now
+      })
+
       setSelectedStatus(null)
     }
   }, [editData, setValue, reset, handleSidebarOpen])

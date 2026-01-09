@@ -18,7 +18,8 @@ const AddTreatmentDrawer = ({
   onSearchTreatment,
   optionsLoading,
   onInputValueChange,
-  isSubmitting
+  isSubmitting,
+  admissionDate
 }) => {
   const theme = useTheme()
 
@@ -160,6 +161,7 @@ const AddTreatmentDrawer = ({
                 onChange={value => onChange('startDate', value)}
                 label=''
                 format='DD MMM YYYY'
+                minDate={admissionDate}
                 sx={{
                   ...commonFieldStyles,
                   '& .MuiOutlinedInput-root': {
@@ -260,7 +262,7 @@ const AddTreatmentDrawer = ({
             fullWidth
             variant='contained'
             onClick={handleSubmit(() => onSubmit())}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !formData.notes}
             sx={{
               borderRadius: '8px',
               height: '56px',

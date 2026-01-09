@@ -22,7 +22,8 @@ const InpatientOverview = ({
   hospitalVisit,
   patientVisitFetching,
   visitFilters,
-  setVisitFilters
+  setVisitFilters,
+  patientData
 }) => {
   const router = useRouter()
   const theme = useTheme()
@@ -252,11 +253,15 @@ const InpatientOverview = ({
       headerAlign: 'left',
       align: 'left',
       sortable: false,
-      renderCell: params => (
-        <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-          {`${params.row.days_admitted} days`}
-        </Typography>
-      )
+      renderCell: params => {
+        const totalDuration = Number(params?.row?.days_admitted) + 1
+
+        return (
+          <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
+            {totalDuration} {totalDuration > 1 ? 'Days' : 'Day'}
+          </Typography>
+        )
+      }
     },
     {
       field: 'visit_type',
@@ -319,11 +324,14 @@ const InpatientOverview = ({
                   size={{ xs: 12, md: overviewData?.reason_for_admission ? 3.5 : 12, lg: 7.7 }}
                   sx={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '16px 0 0 16px' }}
                 >
-                  <Typography
-                    sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.neutralPrimary }}
-                  >
-                    Purpose of Visit
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                    <Typography
+                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.neutralPrimary }}
+                    >
+                      Purpose of Visit
+                    </Typography>
+                    <VisitType title={patientData?.visit_type} />
+                  </Box>
                   <Tooltip title={overviewData?.purpose_of_visit}>
                     <Typography
                       sx={{
@@ -361,7 +369,8 @@ const InpatientOverview = ({
                     flexDirection: 'column',
                     gap: 2,
                     borderLeft: { md: `0.5px solid ${theme.palette.divider}`, xs: 'none' },
-                    pl: { md: 6, xs: 0 }
+                    pl: { md: 6, xs: 0 },
+                    py: 4
                   }}
                 >
                   <Typography

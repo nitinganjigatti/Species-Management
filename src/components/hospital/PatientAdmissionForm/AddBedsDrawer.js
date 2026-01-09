@@ -158,6 +158,7 @@ const AddBedsDrawer = ({
         if (selectedHospital?.id) {
           fetchAndUpdateHospitalStats(selectedHospital?.id)
         }
+        handleDrawerClose()
 
         // reset({
         //   // room: null,
@@ -215,7 +216,7 @@ const AddBedsDrawer = ({
               <Typography
                 sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
               >
-                Add Beds/Enclosures
+                Add Enclosures
               </Typography>
             </Box>
 
@@ -470,7 +471,7 @@ const AddBedsDrawer = ({
               sx={{ height: '56px' }}
               disabled={addLoading}
             >
-              {addLoading ? <CircularProgress size={24} /> : 'ADD ROOM'}
+              {addLoading ? <CircularProgress size={24} /> : 'ADD ENCLOSURE'}
             </Button>
           </Box>
         </Box>

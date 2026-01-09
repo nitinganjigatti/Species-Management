@@ -4,7 +4,7 @@ import { Box, Typography, Menu, MenuItem, CircularProgress, useTheme, Tooltip, A
 import { KeyboardArrowDown } from '@mui/icons-material'
 import { useHospital } from 'src/context/HospitalContext'
 import { getHospitalBedStats, getHospitalDetail, getHospitalListing } from 'src/lib/api/hospital/hospitalAnalytics'
-import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { useInView } from 'react-intersection-observer'
 import Search from 'src/views/utility/Search'
 import debounce from 'lodash/debounce'
@@ -13,6 +13,7 @@ import { AuthContext } from 'src/context/AuthContext'
 
 const HospitalDropdown = ({ disabled = false }) => {
   const theme = useTheme()
+  const queryClient = useQueryClient()
 
   const {
     selectedHospital,
@@ -24,7 +25,10 @@ const HospitalDropdown = ({ disabled = false }) => {
     setHospitalStatsLoading,
     hasFetchedStatsForCurrentHospital,
     markStatsAsFetched,
-    setIsHospitalAccessChecked
+    setIsHospitalAccessChecked,
+    hasNoHospitalsOnInitialFetch,
+    hasCompletedInitialFetch,
+    markInitialFetchComplete
   } = useHospital()
 
   const [anchorEl, setAnchorEl] = useState(null)
@@ -32,6 +36,7 @@ const HospitalDropdown = ({ disabled = false }) => {
   const [localSearch, setLocalSearch] = useState('')
   const [isCheckingHospitalAccess, setIsCheckingHospitalAccess] = useState(false)
   const [hasCheckedLocalStorage, setHasCheckedLocalStorage] = useState(false)
+  const [shouldRefetchHospitals, setShouldRefetchHospitals] = useState(false)
   const searchInputRef = useRef(null)
 
   const authData = useContext(AuthContext)
@@ -98,7 +103,8 @@ const HospitalDropdown = ({ disabled = false }) => {
     hasNextPage,
     isFetching,
     isFetchingNextPage,
-    isLoading
+    isLoading,
+    refetch: refetchHospitals
   } = useInfiniteQuery({
     queryKey: ['hospitals-listing-inpatient', searchQuery],
     queryFn: async ({ pageParam = 1 }) => {
@@ -115,6 +121,11 @@ const HospitalDropdown = ({ disabled = false }) => {
         const newHospitals = response.data.list || []
         const totalPages = Math.ceil(response.data.total_records / PAGE_SIZE) || 1
 
+        // Mark initial fetch complete only for page 1 with empty search
+        if (pageParam === 1 && !hasCompletedInitialFetch && !searchQuery?.trim()) {
+          markInitialFetchComplete(newHospitals.length)
+        }
+
         return {
           result: newHospitals,
           nextPage: pageParam < totalPages ? pageParam + 1 : undefined,
@@ -125,7 +136,11 @@ const HospitalDropdown = ({ disabled = false }) => {
       }
     },
     getNextPageParam: lastPage => lastPage.nextPage,
-    enabled: !disabled && (Boolean(anchorEl) || (shouldFetchInitial && !hospitals?.length && hasCheckedLocalStorage))
+    enabled:
+      !disabled &&
+      (Boolean(anchorEl) ||
+        (shouldFetchInitial && !hospitals?.length && hasCheckedLocalStorage) ||
+        shouldRefetchHospitals)
   })
 
   // Flatten all pages into a single list
@@ -191,57 +206,67 @@ const HospitalDropdown = ({ disabled = false }) => {
   }, [anchorEl])
 
   // Check hospital access from local storage on initial render ONLY ONCE
-  useEffect(() => {
-    const checkHospitalAccess = async () => {
-      if (hasCheckedLocalStorage) return
+  const checkHospitalAccess = async () => {
+    if (hasCheckedLocalStorage) return
 
-      const storedHospital = read('selectedHospital')
-      console.log('Checking stored hospital:', storedHospital)
+    const storedHospital = read('selectedHospital')
 
-      if (storedHospital && storedHospital.id) {
-        setIsCheckingHospitalAccess(true)
-        try {
-          const detailResponse = await fetchHospitalDetail(storedHospital.id)
-          console.log('Hospital detail response:', detailResponse)
+    if (storedHospital && storedHospital.id) {
+      setIsCheckingHospitalAccess(true)
+      try {
+        const detailResponse = await fetchHospitalDetail(storedHospital.id)
 
-          if (detailResponse?.status) {
-            const hospitalData = detailResponse.data
+        if (detailResponse?.status) {
+          const hospitalData = detailResponse.data
 
-            // Check if hospital is active (is_active === 1 or true)
-            if (hospitalData?.has_permission) {
-              console.log('Hospital is active, setting from localStorage')
+          // Check if hospital is active (is_active === 1 or true)
+          if (hospitalData?.has_permission) {
 
-              // User has access - set the hospital directly
-              updateSelectedHospital({
-                ...storedHospital
-              })
-              setIsHospitalAccessChecked(true)
-              setIsCheckingHospitalAccess(false)
+            // User has access - set the hospital directly
+            updateSelectedHospital({
+              ...storedHospital
+            })
+            setIsHospitalAccessChecked(true)
+            setIsCheckingHospitalAccess(false)
 
-              // Fetch stats for the hospital (even if disabled)
-              await fetchAndUpdateHospitalStats(hospitalData.id)
-            } else {
-              // User doesn't have access - clear the stored hospital
-              updateSelectedHospital(null)
-              console.warn('User does not have access to the stored hospital:', storedHospital.name)
-            }
+            // Fetch stats for the hospital (even if disabled)
+            await fetchAndUpdateHospitalStats(hospitalData.id)
           } else {
-            // If no valid response, clear stored hospital
+            // User doesn't have access - clear the stored hospital
             updateSelectedHospital(null)
+
+            // Fetch hospital list again to show available options
+            setShouldRefetchHospitals(true) // Trigger refetch
+
+            // Also invalidate the cache to force fresh data
+            queryClient.invalidateQueries(['hospitals-listing-inpatient'])
+
+            console.warn('User does not have access to the stored hospital:', storedHospital.name)
           }
-        } catch (error) {
-          console.error('Error checking hospital access:', error)
+        } else {
+          // If no valid response, clear stored hospital
           updateSelectedHospital(null)
-        } finally {
-          if (isCheckingHospitalAccess) setIsCheckingHospitalAccess(false)
-          setHasCheckedLocalStorage(true)
+
+          // Trigger refetch of hospital list
+          setShouldRefetchHospitals(true)
         }
-      } else {
-        // No stored hospital, mark as checked
+      } catch (error) {
+        console.error('Error checking hospital access:', error)
+        updateSelectedHospital(null)
+
+        // Trigger refetch of hospital list
+        setShouldRefetchHospitals(true)
+      } finally {
+        if (isCheckingHospitalAccess) setIsCheckingHospitalAccess(false)
         setHasCheckedLocalStorage(true)
       }
+    } else {
+      // No stored hospital, mark as checked
+      setHasCheckedLocalStorage(true)
     }
+  }
 
+  useEffect(() => {
     // Only run check on initial mount
     if (!hasFetchedStatsForCurrentHospital) checkHospitalAccess()
   }, []) // Empty dependency array - runs only once on mount
@@ -259,6 +284,14 @@ const HospitalDropdown = ({ disabled = false }) => {
       handleHospitalSelect(hospitalList[0])
     }
   }, [hospitalList, selectedHospital, isFetching, isCheckingHospitalAccess, hasCheckedLocalStorage, disabled])
+
+  useEffect(() => {
+    if (shouldRefetchHospitals && hospitalList.length > 0) {
+      handleHospitalSelect(hospitalList[0])
+      setIsCheckingHospitalAccess(false)
+      setShouldRefetchHospitals(false)
+    }
+  }, [shouldRefetchHospitals, hospitalList])
 
   const handleDropdownClick = e => {
     if (disabled) return
@@ -309,8 +342,11 @@ const HospitalDropdown = ({ disabled = false }) => {
           }
         }}
       >
-        <Box sx={{ maxWidth: 200, display: 'flex', alignItems: 'center' }}>
-          {isCheckingHospitalAccess ? (
+        <Box sx={{ maxWidth: 400, display: 'flex', alignItems: 'center' }}>
+          {hasNoHospitalsOnInitialFetch ? (
+            <Box>No hospitals found</Box>
+          ) : isCheckingHospitalAccess ? (
+            
             // Shimmer for checking hospital access state
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
               <ShimmerBox width='160px' height='24px' mb={0} />
@@ -321,7 +357,7 @@ const HospitalDropdown = ({ disabled = false }) => {
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                maxWidth: 200
+                maxWidth: 400
               }}
             >
               <Tooltip title={selectedHospital?.name}>
@@ -352,6 +388,7 @@ const HospitalDropdown = ({ disabled = false }) => {
               )}
             </Box>
           ) : (
+
             // Shimmer for initial loading state when no stored hospital
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
               <ShimmerBox width='160px' height='24px' mb={0} />
@@ -402,6 +439,7 @@ const HospitalDropdown = ({ disabled = false }) => {
             }}
           >
             {isLoading ? (
+
               // Shimmer for initial loading of hospital list
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {Array.from({ length: 5 }).map((_, index) => (

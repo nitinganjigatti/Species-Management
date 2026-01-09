@@ -11,11 +11,12 @@ const ConfirmationDialog = ({
   title,
   loading = false,
   description,
+  additionalDescription,
   dialogBoxStatus,
   onClose = () => {},
   formComponent,
   ConfirmationText,
-  confirmAction,
+  confirmAction = () => {},
   cancelText,
   confirmBtnStyle,
   cancelBtnStyle,
@@ -93,6 +94,9 @@ const ConfirmationDialog = ({
           <Typography sx={{ fontWeight: 400, fontSize: 14, textAlign: 'center' }}>
             {description ? description : null}
           </Typography>
+          {additionalDescription ? (
+            <Typography sx={{ fontWeight: 400, fontSize: 14, textAlign: 'center' }}>{additionalDescription}</Typography>
+          ) : null}
         </Box>
         {formComponent ? <Box sx={{ width: '100%' }}>{formComponent} </Box> : null}
         <Box sx={{ display: 'flex', justifyContent: allowCancel ? 'space-between' : 'center', width: '100%', gap: 5 }}>
@@ -117,7 +121,7 @@ const ConfirmationDialog = ({
             }}
             disabled={loading}
             variant='contained'
-            onClick={() => confirmAction()}
+            onClick={confirmAction}
           >
             {loading ? <CircularProgress size={16} /> : <>{ConfirmationText ? ConfirmationText : 'Yes'}</>}
           </Button>

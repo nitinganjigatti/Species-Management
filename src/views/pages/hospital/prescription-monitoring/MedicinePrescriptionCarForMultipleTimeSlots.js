@@ -38,6 +38,7 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import RenderUtility from 'src/utility/render'
 
 // Custom styled components for drawer content
 const DrawerContent = styled(Box)(({ theme }) => ({
@@ -499,7 +500,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                   textDecoration: entry.isStrikethrough ? 'line-through' : 'none'
                 }}
               >
-                {formatTimeFromUTC(entry.time)}
+                {formatTime(entry?.scheduledTime)}
               </Typography>
               <Typography
                 variant='body2'
@@ -533,19 +534,24 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
         </Box>
       </DosageHeader>
 
-      {entry?.batch_details?.length > 0 && (
-        <Box sx={{ display: 'flex', padding: '0 16px', flexDirection: 'column', gap: '4px' }}>
-          <Typography
-            variant='body1'
-            sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}
-          >
-            {entry.wastage}
-          </Typography>
-          <Typography variant='body2' sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-            {entry.wastageNote}
-          </Typography>
-        </Box>
-      )}
+      {entry?.batch_details?.length > 0 &&
+        (entry.batch_details?.[0]?.wastage_qty || entry?.batch_details?.[0]?.batch_note) && (
+          <Box sx={{ display: 'flex', padding: '0 16px', flexDirection: 'column', gap: '4px' }}>
+            {entry.batch_details?.[0]?.wastage_qty && entry.batch_details?.[0]?.wastage_unit_name ? (
+              <Typography
+                variant='body1'
+                sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}
+              >
+                Wastage - {entry.batch_details?.[0]?.wastage_qty} {entry.batch_details?.[0]?.wastage_unit_name}
+              </Typography>
+            ) : null}
+            {entry?.batch_details?.[0]?.batch_note && (
+              <Typography variant='body2' sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                {entry?.batch_details?.[0]?.batch_note}
+              </Typography>
+            )}
+          </Box>
+        )}
       {entry?.batch_details?.length > 0 && (
         <Box sx={{ display: 'flex', padding: '0 16px', alignItems: 'center', gap: '8px' }}>
           <Box
@@ -559,7 +565,28 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
               justifyContent: 'center'
             }}
           >
-            <Icon icon='mdi:package-variant' fontSize='24px' color={theme.palette.grey[600]} />
+            {entry?.batch_details?.[0]?.batch_no_image ? (
+              <Avatar
+                src={entry?.batch_details?.[0]?.batch_no_image}
+                alt='Hospital Icon'
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '6px'
+                }}
+                slotProps={{
+                  img: {
+                    style: {
+                      objectFit: 'cover',
+                      width: '100%',
+                      height: '100%'
+                    }
+                  }
+                }}
+              />
+            ) : (
+              <Icon icon='mdi:package-variant' fontSize='24px' color={theme.palette.grey[600]} />
+            )}
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px', flex: '1 0 0' }}>
             <Typography variant='body2' sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
@@ -579,7 +606,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 0 0' }}>
           <UserAvatarDetails
             user_name={entry.administeredBy}
-            profile_image={entry.administeredBy}
+            profile_image={entry.user_profile_pic}
             date={entry.administeredAt}
             show_time={true}
           />
@@ -676,6 +703,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                     color: theme.palette.primary.deepDark
                   }}
                 >
+                  {RenderUtility?.renderControlLabel(isControlledSubstance, 'CS')}
                   {medicineData?.name}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -828,7 +856,8 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                     ) : (
                       renderDosageEntry({
                         id: item?.administritive_id,
-                        time: formatTime(item?.administritive_time || item?.scheduled_time),
+                        scheduledTime: item?.scheduled_time,
+                        time: formatTime(item?.administritive_time),
                         status: item?.status || 'Pending',
                         dosage: `${item?.scheduled_quantity} ${item?.scheduled_unit_name}`,
                         amount:
@@ -997,9 +1026,9 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                           errors={errors}
                                           sx={commonFieldStyles}
                                           label='Batch Image'
-                                          maxFiles={5}
+                                          maxFiles={1}
                                           maxFileSize={5 * 1024 * 1024}
-                                          acceptedFileTypes='image,pdf'
+                                          acceptedFileTypes='images'
                                         />
                                       </Grid>
                                     </Grid>

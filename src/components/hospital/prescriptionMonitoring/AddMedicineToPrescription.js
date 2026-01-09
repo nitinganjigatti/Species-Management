@@ -5,7 +5,6 @@ import { useTheme } from '@mui/material/styles'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import ActionButtons from 'src/components/hospital/FooterActionbuttons'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
 import PrescriptionMedicineList from 'src/views/pages/hospital/prescription-monitoring/PrescriptionMedicineList'
 import ScheduleMedicine from 'src/views/pages/hospital/prescription-monitoring/ScheduleMedicine'
@@ -509,7 +508,7 @@ export default function AddMedicineToPrescription() {
 
       dosageDuration: {
         value: data?.duration_qty || '0',
-        unit: data?.duration?.split(' ')[1] || ''
+        unit: data?.duration_label?.toLowerCase() || data?.duration?.split(' ')[1] || ''
       },
 
       notes: data.notes || '',
@@ -578,7 +577,7 @@ export default function AddMedicineToPrescription() {
 
       if (response?.data) {
         return response?.data
-      } 
+      }
     } catch (error) {
       Toaster({ type: 'error', message: error || 'Something went wrong' })
       router.back()
@@ -602,20 +601,20 @@ export default function AddMedicineToPrescription() {
 
   const handleMedicineSelect = async medicine => {
     if (medicine) {
-      if(fromPage === "prescriptionDetail" || editingMedicine) {
+      if (fromPage === 'prescriptionDetail' || editingMedicine) {
         proceedWithMedicineSelection(medicine)
 
         return
       }
 
       let sideEffectMedicines
-      
+
       // Use cached data if available, otherwise fetch
       if (sideEffectMedicinesCache !== null) {
         sideEffectMedicines = sideEffectMedicinesCache
       } else {
         sideEffectMedicines = await fetchSideEffectMedicines()
-        
+
         // Cache the data for future use
         setSideEffectMedicinesCache(sideEffectMedicines)
       }
@@ -987,10 +986,34 @@ export default function AddMedicineToPrescription() {
     }
   }, [debouncedBatchSearch, debouncedSearch])
 
-  function toISTISOString(date) {
+  function toISTISOString(date, includeCurrentTime = false) {
     if (!date) return ''
 
-    return moment(date).utcOffset('+05:30').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+    let momentDate = moment(date)
+
+    if (includeCurrentTime) {
+      // Create a new moment with the date part from input and current time
+      const year = momentDate.year()
+      const month = momentDate.month()
+      const day = momentDate.date()
+
+      // Get current time
+      const now = new Date()
+
+      // Create new date with input date and current time
+      momentDate = moment({
+        year,
+        month,
+        date: day,
+        hour: now.getHours(),
+        minute: now.getMinutes(),
+        second: now.getSeconds(),
+        millisecond: now.getMilliseconds()
+      })
+    }
+
+    // Convert to IST timezone
+    return momentDate.utcOffset('+05:30').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
   }
 
   function convertUTCToLocaltime(date) {
@@ -1031,6 +1054,10 @@ export default function AddMedicineToPrescription() {
         item => item?.route_abbr === data.deliveryRoute
       )
 
+      const prescriptionDuration = medicalMasterData?.prescriptionDuration?.find(
+        item => item?.value === data.dosageDuration?.unit
+      )
+
       // Prepare schedule doses array
       const scheduleDoses = data.schedules.map((schedule, index) => ({
         id: '',
@@ -1068,12 +1095,14 @@ export default function AddMedicineToPrescription() {
             interval_string_id: interval?.interval_string_id || '',
 
             duration_qty: frequency?.string_id === 'at_regular_intervals' ? data.dosageDuration?.value?.toString() : 0,
-            duration_id: frequency?.string_id === 'at_regular_intervals' ? interval?.id : '2',
+            duration_id: frequency?.string_id === 'at_regular_intervals' ? prescriptionDuration?.id : '2',
             duration: data.dosageDuration?.value
               ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
               : '0 days',
             duration_string_id:
-              frequency?.string_id === 'at_regular_intervals' ? interval?.string_id : 'antz-prescription.days',
+              frequency?.string_id === 'at_regular_intervals'
+                ? prescriptionDuration?.string_id
+                : 'antz-prescription.days',
             duration_type: data.dosageDuration?.unit
               ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
               : 'Days',
@@ -1084,9 +1113,11 @@ export default function AddMedicineToPrescription() {
             delivery_route_id: deliveryRoute?.id || '',
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
-            start_date: toISTISOString(data.prescriptionStartDate),
+            start_date: isOneTimeFrequency
+              ? toISTISOString(data.prescriptionStartDate, true)
+              : toISTISOString(data.prescriptionStartDate),
             end_date: isOneTimeFrequency
-              ? toISTISOString(data.prescriptionStartDate)
+              ? toISTISOString(data.prescriptionStartDate, true)
               : calculateEndDate(data.prescriptionStartDate, data.dosageDuration, interval?.value),
 
             restart_reason: '',
@@ -1154,6 +1185,10 @@ export default function AddMedicineToPrescription() {
         item => item?.route_abbr === data.deliveryRoute
       )
       const interval = medicalMasterData?.intervalList?.find(item => item?.value === data?.interval)
+
+      // const prescriptionDuration = medicalMasterData?.prescriptionDuration?.find(
+      //   item => item?.value === data.dosageDuration?.unit
+      // )
 
       // Find the selected batch from batchList
       const selectedBatch = batchList?.find(item => {
@@ -1238,16 +1273,30 @@ export default function AddMedicineToPrescription() {
             duration_string_id: 'antz-prescription.days',
             duration_type: 'Days',
 
+            // duration_qty: frequency?.string_id === 'at_regular_intervals' ? data.dosageDuration?.value?.toString() : 1,
+            // duration_id: frequency?.string_id === 'at_regular_intervals' ? prescriptionDuration?.id : '2',
+            // duration: data.dosageDuration?.value
+            //   ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
+            //   : '1 days',
+            // duration_string_id:
+            //   frequency?.string_id === 'at_regular_intervals'
+            //     ? prescriptionDuration?.string_id
+            //     : 'antz-prescription.days',
+            // duration_type: data.dosageDuration?.unit
+            //   ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
+            //   : 'Days',
+
             notes: data.notes || '',
 
             delivery_route_name: data?.deliveryRoute || '',
             delivery_route_id: deliveryRoute?.id || '',
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
-            start_date: toISTISOString(data.prescriptionStartDate),
-            end_date: isOneTimeFrequency
-              ? toISTISOString(data.prescriptionStartDate)
-              : toISTISOString(data.prescriptionEndDate),
+            start_date: toISTISOString(data.prescriptionStartDate, true),
+            end_date:
+              isOneTimeFrequency || data.prescriptionStartDate.split('T')[0] === data.prescriptionEndDate.split('T')[0]
+                ? toISTISOString(data.prescriptionStartDate, true)
+                : toISTISOString(data.prescriptionEndDate, true),
 
             restart_reason: '',
             stop_reason: '',
@@ -1259,8 +1308,8 @@ export default function AddMedicineToPrescription() {
             batch_list: batchListPayload,
             request_from: 'hospital_module',
             dose_type: 'fixed_dose',
-            files: data.batchImage ? [data.batchImage] : [],
-            1: data?.attachment?.[0] && data?.attachment[0]
+            files: data.batchImage ? data.batchImage : [],
+            1: data.batchImage ? data.batchImage : []
           }
         ])
       }
@@ -1573,9 +1622,8 @@ export default function AddMedicineToPrescription() {
   const calculateEndDate = (startDate, dosageDuration, interval) => {
     if (!startDate || !dosageDuration?.value) return ''
 
-    const start = moment(startDate)
-    let endDate = moment(startDate)
-
+    const start = moment(startDate.toISOString ? startDate.toISOString() : startDate)
+    let endDate = start.clone()
     const durationValue = parseInt(dosageDuration.value)
     const intervalValue = parseInt(interval)
 
@@ -1585,24 +1633,23 @@ export default function AddMedicineToPrescription() {
     } else {
       switch (dosageDuration.unit) {
         case 'days':
-          endDate = start.add(1 * durationValue - 1, 'days')
+          endDate = start.add(durationValue - 1, 'days')
           break
         case 'weeks':
-          endDate = start.add(1 * 7 * durationValue - 1, 'days')
+          endDate = start.add(7 * durationValue - 1, 'days')
           break
         case 'months':
-          endDate = start.add(durationValue, 'months')
+          endDate = start.add(durationValue, 'months').subtract(1, 'day')
           break
         case 'years':
-          endDate = start.add(durationValue, 'years')
+          endDate = start.add(durationValue, 'years').subtract(1, 'day')
           break
         default:
-          endDate = start.add(durationValue, 'days')
+          endDate = start.add(durationValue - 1, 'days')
       }
     }
 
-    // Return proper ISO 8601 UTC string
-    return endDate.toISOString()
+    return endDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
   }
 
   const calculateStartDate = (endDate, dosageDuration) => {
@@ -1739,22 +1786,6 @@ export default function AddMedicineToPrescription() {
         </Grid>
       </Box>
 
-      {/* <ActionButtons
-        cancelLabel={cancelOrCloseText}
-        addLabel={
-          fromPage === 'prescriptionDetail'
-            ? 'Restart Medicine'
-            : watch('selectMedicineType') === 'Direct Administer'
-            ? 'Administer'
-            : 'Schedule'
-        }
-        onCancel={handleCancel}
-        isSubmitLoading={isSubmitting}
-        isAddDisabled={temporarilySelectedMedicine?.id ? false : true}
-        onAdd={prescriptionSubmitHandler}
-        width={200}
-        height={50}
-      /> */}
       <BottomActionBar
         submitLabel={
           fromPage === 'prescriptionDetail'

@@ -100,7 +100,7 @@ const MetricCard = ({
             </Box>
           </Tooltip>
         </Box>
-        {metric?.status === 'restarted' && metric?.sideEffects == 1 && (
+        {metric?.sideEffects == 1 && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <ReportProblemIcon sx={{ fontSize: '10px', color: theme.palette.customColors.Tertiary }} />
             <Typography sx={{ fontSize: '10px', color: theme.palette.customColors.Tertiary, fontWeight: 500 }}>
