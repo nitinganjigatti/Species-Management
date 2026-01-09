@@ -57,6 +57,12 @@ const ComposeReportNavigation = ({
     openInNewTab: true
   }
 
+  const caretakerReport = {
+    title: 'Caretaker Report',
+    path: '/report/caretaker-report',
+    icon: 'mdi:account-group-outline'
+  }
+
   const reportNavigationArray = []
   if (enable_specie_report || enable_daily_report || enable_animal_report) {
     reportNavigationArray.push(reportTitle)
@@ -85,6 +91,9 @@ const ComposeReportNavigation = ({
   if (enable_animal_assessment_report) {
     reportNavigationArray.push(assessmentDashboard)
   }
+
+  // Always show caretaker report
+  reportNavigationArray.push(caretakerReport)
 
   return reportNavigationArray
 }
