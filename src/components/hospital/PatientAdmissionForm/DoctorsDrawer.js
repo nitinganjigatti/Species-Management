@@ -4,8 +4,6 @@ import Icon from 'src/@core/components/icon'
 import { FilterButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-import { readAsync } from 'src/lib/windows/utils'
-import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { debounce } from 'lodash'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 

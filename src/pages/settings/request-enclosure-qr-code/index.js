@@ -241,12 +241,14 @@ const RequestEnclosureQRCode = () => {
           }
         }
 
-        if (formData.request_type === 'site' && formData.site_id) {
+        if (formData.request_type === 'enclosure' && formData.enclosure_ids?.length > 0) {
+          payload.payload.filter_ids = formData.enclosure_ids.map(id => Number(id))
+        } else if (formData.request_type === 'site' && formData.site_id) {
           payload.payload.filter_id = Number(formData.site_id)
         } else if (formData.request_type === 'section' && formData.section_id) {
           payload.payload.filter_id = Number(formData.section_id)
         }
-        console.log(payload)
+
         const response = await createJobRequest(payload)
         if (response?.success) {
           Toaster({ type: 'success', message: 'Request submitted successfully' })

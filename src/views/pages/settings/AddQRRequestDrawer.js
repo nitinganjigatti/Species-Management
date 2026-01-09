@@ -1,8 +1,12 @@
-import { useEffect, useState, useContext } from 'react'
+import { useEffect, useState, useContext, useRef, useCallback } from 'react'
 import { LoadingButton } from '@mui/lab'
 import {
+  Autocomplete,
   Box,
   Button,
+  Checkbox,
+  Chip,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -14,10 +18,12 @@ import {
   TextField,
   Typography
 } from '@mui/material'
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank'
+import CheckBoxIcon from '@mui/icons-material/CheckBox'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import { AuthContext } from 'src/context/AuthContext'
-import { getAllSections } from 'src/lib/api/housing'
+import { getAllSections, getEnclosureListSectionWise } from 'src/lib/api/housing'
 
 const AddQRRequestDrawer = props => {
   const { openDrawer, setOpenDrawer, handleSubmitData, loading } = props
@@ -32,6 +38,17 @@ const AddQRRequestDrawer = props => {
   const [sections, setSections] = useState([])
   const [loadingSections, setLoadingSections] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState(false)
+
+  // Enclosure states
+  const [selectedEnclosures, setSelectedEnclosures] = useState([])
+  const [enclosures, setEnclosures] = useState([])
+  const [loadingEnclosures, setLoadingEnclosures] = useState(false)
+  const [enclosureSearchText, setEnclosureSearchText] = useState('')
+  const [enclosurePage, setEnclosurePage] = useState(1)
+  const [hasMoreEnclosures, setHasMoreEnclosures] = useState(true)
+  const [loadingMoreEnclosures, setLoadingMoreEnclosures] = useState(false)
+  const [totalEnclosureCount, setTotalEnclosureCount] = useState(0)
+  const listboxRef = useRef(null)
 
   // Fetch sections when site is selected
   useEffect(() => {
@@ -59,6 +76,82 @@ const AddQRRequestDrawer = props => {
     }
   }, [siteId])
 
+  // Fetch enclosures when section is selected
+  useEffect(() => {
+    if (sectionId) {
+      const fetchEnclosures = async () => {
+        setLoadingEnclosures(true)
+        setEnclosurePage(1)
+        setHasMoreEnclosures(true)
+        setTotalEnclosureCount(0)
+        try {
+          const response = await getEnclosureListSectionWise({
+            section_id: sectionId,
+            page_no: 1
+          })
+          if (response?.success && response?.data?.list_items) {
+            const items = response.data.list_items
+            const total = parseInt(response.data.total_count, 10) || 0
+            setEnclosures(items)
+            setTotalEnclosureCount(total)
+            setHasMoreEnclosures(items.length < total)
+          }
+        } catch (error) {
+          console.error('Error fetching enclosures:', error)
+        } finally {
+          setLoadingEnclosures(false)
+        }
+      }
+      fetchEnclosures()
+    } else {
+      setEnclosures([])
+      setSelectedEnclosures([])
+      setEnclosurePage(1)
+      setHasMoreEnclosures(true)
+      setTotalEnclosureCount(0)
+    }
+  }, [sectionId])
+
+  // Load more enclosures
+  const loadMoreEnclosures = useCallback(async () => {
+    if (loadingMoreEnclosures || !hasMoreEnclosures || !sectionId) return
+
+    setLoadingMoreEnclosures(true)
+    const nextPage = enclosurePage + 1
+    try {
+      const response = await getEnclosureListSectionWise({
+        section_id: sectionId,
+        page_no: nextPage
+      })
+      if (response?.success && response?.data?.list_items) {
+        const newItems = response.data.list_items
+        setEnclosures(prev => {
+          const updatedList = [...prev, ...newItems]
+          setHasMoreEnclosures(updatedList.length < totalEnclosureCount)
+          return updatedList
+        })
+        setEnclosurePage(nextPage)
+      } else {
+        setHasMoreEnclosures(false)
+      }
+    } catch (error) {
+      console.error('Error loading more enclosures:', error)
+    } finally {
+      setLoadingMoreEnclosures(false)
+    }
+  }, [loadingMoreEnclosures, hasMoreEnclosures, sectionId, enclosurePage, totalEnclosureCount])
+
+  // Handle scroll in listbox
+  const handleListboxScroll = useCallback(
+    event => {
+      const listbox = event.target
+      if (listbox.scrollTop + listbox.clientHeight >= listbox.scrollHeight - 50) {
+        loadMoreEnclosures()
+      }
+    },
+    [loadMoreEnclosures]
+  )
+
   const onSubmit = e => {
     e.preventDefault()
     setConfirmDialog(true)
@@ -68,7 +161,9 @@ const AddQRRequestDrawer = props => {
     setConfirmDialog(false)
 
     let requestType = 'all'
-    if (sectionId) {
+    if (selectedEnclosures.length > 0) {
+      requestType = 'enclosure'
+    } else if (sectionId) {
       requestType = 'section'
     } else if (siteId) {
       requestType = 'site'
@@ -77,7 +172,8 @@ const AddQRRequestDrawer = props => {
     const payload = {
       request_type: requestType,
       site_id: siteId || null,
-      section_id: sectionId || null
+      section_id: sectionId || null,
+      enclosure_ids: selectedEnclosures.length > 0 ? selectedEnclosures.map(e => e.enclosure_id) : null
     }
     await handleSubmitData(payload)
   }
@@ -86,16 +182,39 @@ const AddQRRequestDrawer = props => {
     setSiteId('')
     setSectionId('')
     setSections([])
+    setEnclosures([])
+    setSelectedEnclosures([])
+    setEnclosureSearchText('')
+    setEnclosurePage(1)
+    setHasMoreEnclosures(true)
+    setTotalEnclosureCount(0)
     setOpenDrawer(false)
   }
 
   const handleSiteChange = e => {
     setSiteId(e.target.value)
     setSectionId('')
+    setSelectedEnclosures([])
+    setEnclosures([])
+    setEnclosurePage(1)
+    setHasMoreEnclosures(true)
+    setTotalEnclosureCount(0)
+  }
+
+  const handleSectionChange = e => {
+    setSectionId(e.target.value)
+    setSelectedEnclosures([])
+    setEnclosurePage(1)
+    setHasMoreEnclosures(true)
+    setTotalEnclosureCount(0)
   }
 
   // Helper text based on current selection
   const getSelectionInfo = () => {
+    if (selectedEnclosures.length > 0) {
+      const enclosureNames = selectedEnclosures.map(e => e.user_enclosure_name || e.enclosure_name).join(', ')
+      return `QR codes will be generated for ${selectedEnclosures.length} selected enclosure${selectedEnclosures.length > 1 ? 's' : ''}: ${enclosureNames}`
+    }
     if (sectionId) {
       const section = sections.find(s => s.section_id === sectionId)
       const site = sites.find(s => s.site_id === siteId)
@@ -107,6 +226,12 @@ const AddQRRequestDrawer = props => {
     }
     return 'QR codes will be generated for all enclosures in the zoo'
   }
+
+  // Filter enclosures based on search text
+  const filteredEnclosures = enclosures.filter(enclosure => {
+    const name = enclosure.user_enclosure_name || enclosure.enclosure_name || ''
+    return name.toLowerCase().includes(enclosureSearchText.toLowerCase())
+  })
 
   return (
     <Drawer
@@ -177,7 +302,7 @@ const AddQRRequestDrawer = props => {
                 fullWidth
                 label='Select Section (Optional)'
                 value={sectionId}
-                onChange={e => setSectionId(e.target.value)}
+                onChange={handleSectionChange}
                 disabled={loadingSections}
               >
                 <MenuItem value=''>All Sections</MenuItem>
@@ -193,6 +318,75 @@ const AddQRRequestDrawer = props => {
                   <MenuItem disabled>No sections available</MenuItem>
                 )}
               </TextField>
+            )}
+
+            {/* Enclosure Multi-Select - shows when section is selected */}
+            {sectionId && (
+              <Autocomplete
+                multiple
+                disableCloseOnSelect
+                options={filteredEnclosures}
+                value={selectedEnclosures}
+                onChange={(event, newValue) => {
+                  if (newValue.length <= 10) {
+                    setSelectedEnclosures(newValue)
+                  }
+                }}
+                getOptionDisabled={option =>
+                  selectedEnclosures.length >= 10 &&
+                  !selectedEnclosures.some(e => e.enclosure_id === option.enclosure_id)
+                }
+                getOptionLabel={option => option.user_enclosure_name || option.enclosure_name || ''}
+                isOptionEqualToValue={(option, value) => option.enclosure_id === value.enclosure_id}
+                loading={loadingEnclosures || loadingMoreEnclosures}
+                onInputChange={(event, newInputValue) => setEnclosureSearchText(newInputValue)}
+                ListboxProps={{
+                  onScroll: handleListboxScroll,
+                  ref: listboxRef,
+                  style: { maxHeight: 250 }
+                }}
+                renderOption={(props, option, { selected }) => (
+                  <li {...props}>
+                    <Checkbox
+                      icon={<CheckBoxOutlineBlankIcon fontSize='small' />}
+                      checkedIcon={<CheckBoxIcon fontSize='small' />}
+                      style={{ marginRight: 8 }}
+                      checked={selected}
+                    />
+                    {option.user_enclosure_name || option.enclosure_name}
+                  </li>
+                )}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => (
+                    <Chip
+                      {...getTagProps({ index })}
+                      key={option.enclosure_id}
+                      label={option.user_enclosure_name || option.enclosure_name}
+                      size='small'
+                    />
+                  ))
+                }
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    label={`Select Enclosures (Optional - Max 10)`}
+                    placeholder={selectedEnclosures.length === 0 ? 'Search & select enclosures' : ''}
+                    helperText={selectedEnclosures.length > 0 ? `${selectedEnclosures.length}/10 selected` : ''}
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <>
+                          {(loadingEnclosures || loadingMoreEnclosures) ? (
+                            <CircularProgress color='inherit' size={20} />
+                          ) : null}
+                          {params.InputProps.endAdornment}
+                        </>
+                      )
+                    }}
+                  />
+                )}
+                noOptionsText={loadingEnclosures ? 'Loading...' : 'No enclosures found'}
+              />
             )}
 
             {/* Selection Info */}

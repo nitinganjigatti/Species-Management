@@ -140,7 +140,7 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                         </Box>
                       )}
 
-                      {activity?.isSystemGenerated && (activity?.oldIsChronical || activity?.newIsChronical) && (
+                      {activity?.isSystemGenerated && (activity?.oldIsChronical || activity?.newIsChronical) ? (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
                           <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
                             Is Cronical :{' '}
@@ -170,7 +170,7 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                             </Typography>
                           )}
                         </Box>
-                      )}
+                      ) : null}
 
                       {activity?.status && (
                         <Typography
@@ -189,7 +189,8 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                       {activity?.duration !== '' &&
                         activity?.duration != 'null' &&
                         activity?.duration !== 0 &&
-                        activity?.duration !== '0' && (
+                        activity?.duration !== '0' &&
+                        !isFromAssessment && (
                           <Typography
                             sx={{
                               mb: 2,

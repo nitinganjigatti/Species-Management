@@ -458,9 +458,11 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
 
   const handleDeleteColumn = columnId => {
     const columnToDelete = columns.find(c => c.id === columnId)
+    const isTempId = columnId.startsWith('temp_')
     setColumnToDelete({
       id: columnId,
-      timeLabel: columnToDelete?.timeLabel || 'this time'
+      timeLabel: columnToDelete?.timeLabel || 'this time',
+      isTemp: isTempId
     })
     setDeleteDialogOpen(true)
   }
@@ -469,30 +471,50 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
     if (!columnToDelete) return
 
     setIsDeleting(true)
-    try {
-      const response = await deleteVitalMonitoring({
-        record_time_id: columnToDelete.id
-      })
 
-      if (response.success) {
+    try {
+      if (columnToDelete.isTemp) {
         const updatedColumns = columns.filter(column => column.id !== columnToDelete.id)
         updateColumns(updatedColumns)
 
         Toaster({
           type: 'success',
-          message: response?.message || 'Time column deleted successfully'
+          message: 'Record time deleted successfully'
         })
       } else {
-        Toaster({
-          type: 'error',
-          message: response.message || 'Failed to delete time column'
+        const response = await deleteVitalMonitoring({
+          record_time_id: columnToDelete.id
         })
+
+        if (response.success) {
+          const updatedColumns = columns.filter(column => column.id !== columnToDelete.id)
+          updateColumns(updatedColumns)
+
+          Toaster({
+            type: 'success',
+            message: response?.message || 'Time column deleted successfully'
+          })
+        } else {
+          Toaster({
+            type: 'error',
+            message: response.message || 'Failed to delete time column'
+          })
+          setIsDeleting(false)
+          setColumnToDelete(null)
+          setDeleteDialogOpen(false)
+          return
+        }
       }
     } catch (error) {
       Toaster({
         type: 'error',
         message: 'An error occurred while deleting the time column'
       })
+
+      setIsDeleting(false)
+      setColumnToDelete(null)
+      setDeleteDialogOpen(false)
+      return
     } finally {
       setIsDeleting(false)
       setColumnToDelete(null)

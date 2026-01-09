@@ -112,6 +112,7 @@ const AddRoomDrawer = ({
         if (selectedHospital?.id) {
           fetchAndUpdateHospitalStats(selectedHospital?.id)
         }
+        handleDrawerClose()
 
         // reset({
         //   floor: '',

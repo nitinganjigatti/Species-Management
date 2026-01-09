@@ -10,18 +10,20 @@ const OverviewMediaListingDrawer = ({ open, onClose, media = [] }) => {
     <Drawer
       anchor='right'
       open={open}
-      onClose={onClose}
-      slotProps={{
-        paper: {
-          sx: {
-            width: { xs: '75%', sm: '560px' },
-            height: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: theme.palette.customColors.OnPrimary
-          }
-        }
-      }}
+      ModalProps={{ keepMounted: true }}
+      sx={{ '& .MuiDrawer-paper': { width: { xs: '75%', sm: '560px' } } }}
+
+      // slotProps={{
+      //   paper: {
+      //     sx: {
+      //       width: { xs: '75%', sm: '560px' },
+      //       height: '100vh',
+      //       display: 'flex',
+      //       flexDirection: 'column',
+      //       backgroundColor: theme.palette.customColors.OnPrimary
+      //     }
+      //   }
+      // }}
     >
       <Box
         sx={{

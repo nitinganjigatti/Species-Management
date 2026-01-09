@@ -56,7 +56,8 @@ const Navigation = props => {
     afterNavMenuContent,
     beforeNavMenuContent,
     navMenuContent: userNavMenuContent,
-    navVisible
+    navVisible,
+    setNavVisible
   } = props
 
   // ** States
@@ -166,14 +167,17 @@ const Navigation = props => {
       if (intervalId) clearInterval(intervalId)
     }
   }, [])
-
   useEffect(() => {
     if (router?.isReady) {
+      if (hidden && navVisible) {
+        setNavVisible(false)
+      }
       const cleanup = scrollToActive()
 
       return cleanup
     }
-  }, [router?.asPath, router?.isReady, scrollToActive])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router?.asPath, router?.isReady, scrollToActive, hidden, setNavVisible])
 
   // ** Mobile/Tablet: Scroll when drawer opens
   useEffect(() => {

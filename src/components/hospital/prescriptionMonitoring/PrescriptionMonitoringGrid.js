@@ -7,7 +7,6 @@ import { useTheme } from '@emotion/react'
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
-import ActionButtons from '../FooterActionbuttons'
 import TimeSlotCell from 'src/views/pages/hospital/prescription-monitoring/TimeSlotCell'
 import MetricCard from 'src/views/pages/hospital/prescription-monitoring/MetricCard'
 import Router from 'next/router'
@@ -69,7 +68,7 @@ const TimeSlotGrid = styled(Box)(({ theme, numColumns }) => ({
   gap: theme.spacing(2),
   alignItems: 'stretch',
   width: 'max-content',
-  marginBottom: theme.spacing(2)
+  marginBottom: theme.spacing(1.8)
 }))
 
 const HeaderContainer = styled(Box)(({ theme }) => ({
@@ -523,8 +522,8 @@ const PrescriptionMonitoringGrid = ({
   // Count occurrences of each time
   const prescriptionCardColorsConfig = prescriptionDetails => {
     const { status } = prescriptionDetails
-
-    if (status === 'restarted') {
+    
+    if (status === 'pending' && prescriptionDetails?.sideEffects === 1) {
       return {
         backgroundColor: alpha(theme.palette.customColors.antzNotes80, 0.5)
         // border: `0.5px solid ${theme.palette.customColors.TertiaryContainer}`
@@ -693,10 +692,20 @@ const PrescriptionMonitoringGrid = ({
   }
 
   const handleRouterNavigation = () => {
+    const queryParams = {
+      date: selectedDate
+    }
+
     if (category === 'Outpatients') {
-      router.push(`/hospital/outpatient/${id}/schedule-prescription`)
+      router.push({
+        pathname: `/hospital/outpatient/${id}/schedule-prescription`,
+        query: queryParams
+      })
     } else {
-      router.push(`/hospital/inpatient/${id}/schedule-prescription`)
+      router.push({
+        pathname: `/hospital/inpatient/${id}/schedule-prescription`,
+        query: queryParams
+      })
     }
   }
 
@@ -761,7 +770,7 @@ const PrescriptionMonitoringGrid = ({
   return (
     <>
       <Grid container spacing={4} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
-        <Grid item size={isDischared ? { xs: 12 } : { xs: 8, sm: 9, lg: 9.5 }}>
+        <Grid item size={isDischared || displayMetrics?.length === 0 ? { xs: 12 } : { xs: 8, sm: 9, lg: 9.5 }}>
           <HorizontalDateNav
             isLoading={isLoading}
             onDateSelect={handleDateChange}
@@ -769,7 +778,7 @@ const PrescriptionMonitoringGrid = ({
             dates={dates}
           />
         </Grid>
-        {!isDischared ? (
+        {!isDischared && displayMetrics?.length > 0 ? (
           <Grid item size={{ xs: 4, sm: 3, lg: 2.5 }}>
             <Button onClick={handleRouterNavigation} sx={{ height: '48px', width: '100%' }} variant='contained'>
               ADD PRESCRIPTION
@@ -918,6 +927,7 @@ const PrescriptionMonitoringGrid = ({
                             key={slotKey}
                             onClick={() => {
                               if (isDischared) return
+                              if (metric?.status?.toLowerCase() === 'stopped' && status !== 'pending') return
 
                               const data = {
                                 scheduledTime: scheduledTime,

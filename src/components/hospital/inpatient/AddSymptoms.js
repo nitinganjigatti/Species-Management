@@ -9,9 +9,10 @@ import SelectedSymptoms from 'src/components/hospital/Symptoms/SelectedSymptoms'
 import AddSymptomDrawer from 'src/components/hospital/drawer/AddSymptomDrawer'
 import Toaster from 'src/components/Toaster'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
-import { getDiagnosisList } from 'src/lib/api/hospital/clinicalAssessment'
+import { checkAnimalStatusByType, getDiagnosisList } from 'src/lib/api/hospital/clinicalAssessment'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -69,6 +70,8 @@ function AddSymptoms() {
   const [tabOptions, setTabOptions] = useState([])
   const [currentTab, setCurrentTab] = useState('')
   const [currentTabId, setCurrentTabId] = useState('')
+  const [isDuplicatesErrorModelOpen, setDuplicatesErrorModelOpen] = useState(false)
+  const [duplicateSymptoms, setDuplicateSymptoms] = useState([])
   const medicalRecordId = medicalRecordData?.medical_record_id
 
   const initialLoadRef = useRef(false)
@@ -148,8 +151,10 @@ function AddSymptoms() {
               if (!x) {
                 return acc.concat([current])
               }
+
               return acc
             }, [])
+
             return unique
           })
 
@@ -246,6 +251,7 @@ function AddSymptoms() {
 
       try {
         setIsTabsLoading(true)
+
         const params = {
           include_all: 1,
           type: 'complaints',
@@ -293,13 +299,43 @@ function AddSymptoms() {
     fetchSymptoms(searchQuery, 1, false, tabId)
   }
 
+  const checkDuplicateSymptoms = async () => {
+    try {
+      const payload = {
+        type: 'complaint',
+        animal_ids: JSON.stringify([Number(patientData?.animal_detail?.animal_id)]),
+        master_ids: JSON.stringify(selectedSymptoms.map(s => s.id))
+      }
+      const response = await checkAnimalStatusByType(payload)
+
+      if (response?.success) {
+        setDuplicateSymptoms(response?.data)
+
+        return response?.data || []
+      } else {
+        return []
+      }
+    } catch (error) {
+      console.error('Error checking animal status:', error)
+    }
+  }
+
   const handleAddClick = async () => {
+    setAddLoading(true)
+    const duplicatesData = await checkDuplicateSymptoms()
+
     try {
       if (selectedSymptoms.length === 0) {
         Toaster({ type: 'error', message: 'Please select at least one Symptom' })
+
         return
       }
-      setAddLoading(true)
+      
+      if (duplicatesData?.length > 0) {
+        setDuplicatesErrorModelOpen(true)
+
+        return
+      }
 
       const complaints = selectedSymptoms.map(symptom => ({
         id: symptom.id,
@@ -412,6 +448,21 @@ function AddSymptoms() {
           minWidth: '200px',
           minHeight: '50px'
         }}
+      />
+      <ConfirmationDialog
+        dialogBoxStatus={isDuplicatesErrorModelOpen}
+        title={`Clinical assessment${duplicateSymptoms?.length > 1 ? 's' : ''} already exists`}
+        description={`Duplicate assessments: ${duplicateSymptoms?.map(item => item?.diagnosis)?.join(', ')}`}
+        additionalDescription={`To proceed choose a different Clinical Assessment or remove the animal accessed`}
+        confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
+        image={'/images/warning-icon.svg'}
+        imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
+        confirmAction={() => {
+          setDuplicatesErrorModelOpen(false)
+          setAddLoading(false)
+        }}
+        ConfirmationText={'OK'}
+        allowCancel={false}
       />
       {temporarilySelected && (
         <AddSymptomDrawer
