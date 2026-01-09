@@ -24,7 +24,7 @@ import RenderUtility from 'src/utility/render'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
-const Salts = () => {
+const Driver = () => {
   const theme = useTheme()
 
   const [driversList, setDriversList] = useState([])
@@ -359,4 +359,4 @@ const Salts = () => {
   )
 }
 
-export default Salts
+export default Driver
