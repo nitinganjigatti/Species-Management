@@ -3,7 +3,14 @@ import { Breadcrumbs, Typography } from '@mui/material'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 
-const DynamicBreadcrumbs = ({ pageItems, sx, lastBreadcrumbLabel, disableRoot = true }) => {
+const DynamicBreadcrumbs = ({
+  pageItems,
+  sx,
+  lastBreadcrumbLabel,
+  disableRoot = true,
+  hiddenSegments = [],
+  nonClickableSegments = []
+}) => {
   const router = useRouter()
 
   // Helper to process URL segments
@@ -11,20 +18,22 @@ const DynamicBreadcrumbs = ({ pageItems, sx, lastBreadcrumbLabel, disableRoot = 
     const asPathWithoutQuery = router.asPath.split('?')[0]
     const asPathNestedRoutes = asPathWithoutQuery.split('/').filter(v => v.length > 0)
 
-    return asPathNestedRoutes.map((subpath, idx) => {
-      const href = '/' + asPathNestedRoutes.slice(0, idx + 1).join('/')
+    return asPathNestedRoutes
+      .map((subpath, idx) => {
+        const href = '/' + asPathNestedRoutes.slice(0, idx + 1).join('/')
 
-      let title = subpath
-        .replace(/-/g, ' ')
-        .replace(/_/g, ' ')
-        .replace(/\b\w/g, char => char.toUpperCase()) // Capitalize
+        let title = subpath
+          .replace(/-/g, ' ')
+          .replace(/_/g, ' ')
+          .replace(/\b\w/g, char => char.toUpperCase()) // Capitalize
 
-      if (lastBreadcrumbLabel && idx === asPathNestedRoutes.length - 1) {
-        title = lastBreadcrumbLabel
-      }
+        if (lastBreadcrumbLabel && idx === asPathNestedRoutes.length - 1) {
+          title = lastBreadcrumbLabel
+        }
 
-      return { href, title }
-    })
+        return { href, title, segment: subpath }
+      })
+      .filter(item => !hiddenSegments.includes(item.segment))
   }
 
   const itemsToRender = pageItems || generateBreadcrumbs()
@@ -44,14 +53,17 @@ const DynamicBreadcrumbs = ({ pageItems, sx, lastBreadcrumbLabel, disableRoot = 
         }
 
         // Handle object items
-        const { title, href, onClick, active } = item
+        const { title, href, onClick, active, segment } = item
         const isActive = active || isLast
+
+        // Check if segment is non-clickable
+        const isNonClickable = nonClickableSegments.includes(segment)
 
         // If it's the last item, don't make it a link unless explicitly overridden
         // Also disable root item (first item) if disableRoot is true
         const isRoot = index === 0 && disableRoot
 
-        if (href && !isActive && !isRoot) {
+        if (href && !isActive && !isRoot && !isNonClickable) {
           return (
             <Link key={index} href={href} passHref style={{ textDecoration: 'none' }}>
               <Typography
