@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import debounce from 'lodash/debounce'
 import { getMannerOfDeath, getCarcassCondition, getCarcassDeposition } from 'src/lib/api/housing'
-import { addInpatientDischarge } from 'src/lib/api/hospital/inpatientDischarge'
+import { addInpatientDischarge, getNecropsyCenter } from 'src/lib/api/hospital/inpatientDischarge'
 import Toaster from 'src/components/Toaster'
 import { useHospital } from 'src/context/HospitalContext'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
@@ -10,6 +10,7 @@ function MortalityDischarge() {
   const [causeOfDeath, setCauseOfDeath] = useState([])
   const [carcassCondition, setCarcassCondition] = useState([])
   const [carcassDeposition, setCarcassDeposition] = useState([])
+  const [necropsyCenter, setNecropsyCenter] = useState([])
 
   const [fetchLoading, setFetchLoading] = useState(true)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -32,7 +33,7 @@ function MortalityDischarge() {
   //  Fetch cause of death list
   const fetchManner = async (q = '') => {
     try {
-      const params = { q, limit: 5, page: 1 }
+      const params = { q, limit: 10, page: 1 }
       const res = await getMannerOfDeath(params)
 
       if (res?.is_success) {
@@ -53,7 +54,7 @@ function MortalityDischarge() {
   //  Fetch carcass condition list
   const fetchCondition = async (q = '') => {
     try {
-      const params = { q, limit: 5, page: 1 }
+      const params = { q, limit: 10, page: 1 }
       const res = await getCarcassCondition(params)
 
       if (res?.is_success) {
@@ -73,7 +74,7 @@ function MortalityDischarge() {
   //  Fetch carcass Disposition list
   const fetchDisposition = async (q = '') => {
     try {
-      const params = { q, limit: 5, page: 1 }
+      const params = { q, limit: 10, page: 1 }
       const res = await getCarcassDeposition(params)
 
       if (res?.is_success) {
@@ -87,6 +88,27 @@ function MortalityDischarge() {
       }
     } catch (error) {
       console.error('Error fetchDisposition:', error?.response?.data?.message || error?.message)
+    }
+  }
+
+  const fetchNecropsyCenter = async (q = '') => {
+    try {
+      const params = { q, limit: 10, page: 1 }
+
+      // debugger
+      const res = await getNecropsyCenter(params)
+
+      if (res?.status) {
+        const formatted = res?.data?.list?.map(item => ({
+          value: item?.id,
+          label: item?.name
+        }))
+        setNecropsyCenter(formatted)
+      } else {
+        setNecropsyCenter([])
+      }
+    } catch (error) {
+      console.error('Error fetchNecropsyCenter:', error?.response?.data?.message || error?.message)
     }
   }
 
@@ -106,11 +128,16 @@ function MortalityDischarge() {
     []
   )
 
+  const debouncedFetchNecropsyCenter = useCallback(
+    debounce(q => fetchNecropsyCenter(q), 500),
+    []
+  )
+
   // Initial fetch on mount
   useEffect(() => {
     setFetchLoading(true)
 
-    Promise.all([fetchManner(''), fetchCondition(''), fetchDisposition('')])
+    Promise.all([fetchManner(''), fetchCondition(''), fetchDisposition(''), fetchNecropsyCenter('')])
       .catch(error => console.error('Initial fetch error:', error?.response?.data?.message || error?.message))
       .finally(() => setFetchLoading(false))
   }, [])
@@ -119,6 +146,7 @@ function MortalityDischarge() {
   const handleMannerSearch = text => debouncedFetchManner(text || '')
   const handleConditionSearch = text => debouncedFetchCondition(text || '')
   const handleDispositionSearch = text => debouncedFetchDisposition(text || '')
+  const handleNecropsyCenterSearch = text => debouncedFetchNecropsyCenter(text || '')
 
   // Handle mortality form submission
   const handleSubmitData = async payload => {
@@ -157,11 +185,13 @@ function MortalityDischarge() {
     causeOfDeath,
     carcassCondition,
     carcassDeposition,
+    necropsyCenter,
     fetchLoading,
 
     handleMannerSearch,
     handleConditionSearch,
     handleDispositionSearch,
+    handleNecropsyCenterSearch,
 
     submitLoader,
     handleSubmitData
