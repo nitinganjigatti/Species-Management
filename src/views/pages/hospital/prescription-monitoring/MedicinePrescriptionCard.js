@@ -1486,7 +1486,10 @@ const MedicinePrescriptionCard = ({
                       variant='outlined'
                       type='button'
                       loading={isSkipLoading}
-                      onClick={handleSkipSelected}
+                      onClick={() => {
+                        setValue('action', 'skipped')
+                        handleSkipSelected()
+                      }}
                       disabled={selectedMedications.length === 0}
                       sx={{ flex: 1, py: 2, height: '48px' }}
                     >

@@ -1115,7 +1115,7 @@ export default function AddMedicineToPrescription() {
 
             start_date: isOneTimeFrequency
               ? toISTISOString(data.prescriptionStartDate, true)
-              : toISTISOString(data.prescriptionStartDate),
+              : toISTISOString(data.prescriptionStartDate, true),
             end_date: isOneTimeFrequency
               ? toISTISOString(data.prescriptionStartDate, true)
               : calculateEndDate(data.prescriptionStartDate, data.dosageDuration, interval?.value),

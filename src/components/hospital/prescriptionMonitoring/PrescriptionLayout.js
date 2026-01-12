@@ -336,7 +336,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
   const handleAdministerOrSkipClose = () => setIsAdministerOrSkipPopupOpen(false)
 
-  const handleAdministerOrSubmit = async (data, selectedItems, medicineData) => {
+  const handleAdministerOrSubmit = async (data, selectedItems, medicineData, action) => {
     setIsAdministerOrSkipPopupLoading(true)
     try {
       const wastageUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
@@ -350,7 +350,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         medical_record_id: JSON.stringify([medicineDetails?.medical_record_id]),
         medicine_id: JSON.stringify([selectedSlotData?.timeSlot?.medicine_id || medicineDetails?.medicine_id]),
         type: 'single',
-        purpose: data?.action === 'administer' ? 'administer' : 'withheld',
+        purpose: action ? action : data?.action === 'withheld' ? 'withheld' : 'administer',
         side_effect: 0,
         administer_id: JSON.stringify([
           selectedItems?.[0]?.administritive_id || selectedSlotData?.timeSlot?.administritive_id
@@ -834,7 +834,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
   const handleAdministerSelectedFromDrawerForMultipleSlots = async (selectedItems, medicineData, formData) => {
     if (selectedItems?.length === 1) {
-      handleAdministerOrSubmit(formData, selectedItems, medicineData)
+      handleAdministerOrSubmit(formData, selectedItems, medicineData, 'administer')
     } else {
       handleAdministerSelectedFromDrawer(selectedItems, medicineData)
     }
@@ -842,7 +842,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
   const handleSkipSelectedFromDrawerForMultipleSlots = async (selectedItems, medicineData, formData) => {
     if (selectedItems?.length === 1) {
-      handleAdministerOrSubmit(formData, selectedItems, medicineData)
+      handleAdministerOrSubmit(formData, selectedItems, medicineData, 'withheld')
     } else {
       handleSkipSelectedFromDrawer(selectedItems, medicineData)
     }

@@ -29,6 +29,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [isFetchingMore, setIsFetchingMore] = useState(false)
+  const [totalRecordsCount, setTotalRecordsCount] = useState(0)
 
   const animalId = medicalRecordData?.animal_id
   const medicalRecordId = medicalRecordData?.medical_record_id
@@ -75,6 +76,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
           setRecords(prevRecords =>
             append ? [...prevRecords, ...response?.data?.result] : response?.data?.result || []
           )
+          setTotalRecordsCount(response?.data?.all || 0)
           setRecordTypeCount(response?.data)
           setTotalCount(response?.data?.total_count || 0)
         }
@@ -176,7 +178,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
 
   return (
     <Box>
-      {records?.length > 0 || searchQuery.trim().length > 0 ? (
+      {totalRecordsCount > 0 || searchQuery.trim().length > 0 ? (
         <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
           <Box
             sx={{

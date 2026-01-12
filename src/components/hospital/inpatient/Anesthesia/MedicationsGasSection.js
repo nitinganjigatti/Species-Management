@@ -9,7 +9,8 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import dayjs from 'dayjs'
 import { deliveryRouteList } from 'src/lib/api/hospital/anesthesia'
-import { getProductList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { getMedicineProductList } from 'src/lib/api/hospital/anesthesia'
+import Toaster from 'src/components/Toaster'
 
 function MedicationsGasSection({
   onAddMedication,
@@ -31,6 +32,8 @@ function MedicationsGasSection({
   const [productPage, setProductPage] = useState(1)
   const [productTotal, setProductTotal] = useState(0)
   const [isProductLoading, setIsProductLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
 
   const { watch } = useFormContext()
   const medications = watch('medicationsGas.medications') || []
@@ -48,30 +51,31 @@ function MedicationsGasSection({
     } catch (error) {}
   }
 
-  const fetchMedicationGasList = async (pageToLoad = 1, append = false) => {
+  const fetchMedicationGasList = async (pageToLoad = 1, append = false, q = '') => {
     if (isProductLoading) return
 
     setIsProductLoading(true)
 
     const params = {
       sort: 'asc',
-      q: '',
+      q,
       limit: 50,
-      column: 'package',
-      page: pageToLoad
+      screen: 'Medicine',
+      page_no: pageToLoad
     }
     try {
-      const response = await getProductList({ params })
-      if (response?.success && response?.data?.list_items?.length > 0) {
-        const newItems = response?.data?.list_items || []
-        const totalCount = response?.data?.total_count || 0
+      const response = await getMedicineProductList({ params })
+      if (response?.success && response?.data?.brand_name?.result?.length > 0) {
+        const newItems = response?.data?.brand_name?.result || []
+        const totalCount = response?.data?.brand_name?.count || 0
 
         setProductTotal(totalCount)
         setmedicationGasList(prev => (append ? [...prev, ...newItems] : newItems))
         setProductPage(pageToLoad)
-      } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to fetch products' })
       }
+      // else {
+      //   Toaster({ type: 'error', message: response?.message || '' })
+      // }
     } catch (error) {
       Toaster({ type: 'error', message: 'Failed to fetch products' })
     } finally {
@@ -82,9 +86,22 @@ function MedicationsGasSection({
   useEffect(() => {
     if (drawerType) {
       fetchDeliveryList()
-      fetchMedicationGasList(1, false)
     }
   }, [drawerType])
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm)
+    }, 500)
+
+    return () => clearTimeout(handler)
+  }, [searchTerm])
+
+  useEffect(() => {
+    if (drawerType) {
+      fetchMedicationGasList(1, false, debouncedSearch)
+    }
+  }, [debouncedSearch, drawerType])
 
   const hasMoreProducts = medicationGasList.length < productTotal
 
@@ -559,9 +576,10 @@ function MedicationsGasSection({
           purposeStageOptions={purposeStageOptions}
           deliveryRouteOptions={deliveryRouteOptions}
           unitList={unitList}
+          onSearch={setSearchTerm}
           onLoadMoreDrugs={() => {
             if (hasMoreProducts && !isProductLoading) {
-              fetchMedicationGasList(productPage + 1, true)
+              fetchMedicationGasList(productPage + 1, true, debouncedSearch)
             }
           }}
           hasMoreDrugs={hasMoreProducts}
@@ -578,9 +596,10 @@ function MedicationsGasSection({
           gasOptions={medicationGasList}
           existingMedications={gases}
           deliveryRouteOptions={deliveryRouteOptions}
+          onSearch={setSearchTerm}
           onLoadMoreDrugs={() => {
             if (hasMoreProducts && !isProductLoading) {
-              fetchMedicationGasList(productPage + 1, true)
+              fetchMedicationGasList(productPage + 1, true, debouncedSearch)
             }
           }}
           hasMoreDrugs={hasMoreProducts}
