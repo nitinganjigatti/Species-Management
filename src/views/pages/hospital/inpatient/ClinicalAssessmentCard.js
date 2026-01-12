@@ -301,12 +301,16 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
           <UserAvatarDetails
             profile_image={
               record?.additional_info?.status === 'active'
-                ? record?.created_user_profile_pic
+                ? record?.updated_by_user_name
+                  ? record?.updated_user_profile_pic
+                  : record?.created_user_profile_pic
                 : record.additional_info?.resolved_user_profile_pic || record.created_by_user_name
             }
             user_name={
               record?.additional_info?.status === 'active'
-                ? record.created_by_user_name
+                ? record?.updated_by_user_name
+                  ? record?.updated_by_user_name
+                  : record.created_by_user_name
                 : record.additional_info?.resolved_user_name
             }
             date={record?.latest_note?.modified_at || record.additional_info?.closed_at}
