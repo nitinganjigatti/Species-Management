@@ -28,7 +28,7 @@ const REPORT_OPTIONS = [
   { key: 'surgery', label: 'Surgery' }
 ]
 
-const PatientVisitSummaryFilterDrawer = ({ open, onClose, patientData, animalData }) => {
+const PatientVisitSummaryFilterDrawer = ({ open, onClose, caseId, animalId }) => {
   const theme = useTheme()
 
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -55,8 +55,8 @@ const PatientVisitSummaryFilterDrawer = ({ open, onClose, patientData, animalDat
 
       const payload = {
         sections: sectionsValue,
-        animal_id: animalData?.animal_id,
-        hospital_case_id: patientData?.hospital_case_id
+        animal_id: animalId,
+        hospital_case_id: caseId
       }
 
       await downloadPDF({
