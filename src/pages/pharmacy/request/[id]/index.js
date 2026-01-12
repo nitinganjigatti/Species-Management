@@ -1501,6 +1501,7 @@ const IndividualRequest = () => {
                 titleStyles={{
                   fontSize: '20px'
                 }}
+                headerStyles={{ padding: ' 8px 20px' }}
                 onIconClick={() => {
                   if (
                     selectedPharmacy?.type === 'local' &&
@@ -1876,15 +1877,17 @@ const IndividualRequest = () => {
                 <Grid
                   spacing={2}
                   sx={{
-                    mt: 5,
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'center',
+                    justifyContent: 'center'
                   }}
                 >
                   <TabContext value={detailsTab}>
                     <TabList
-                      sx={{ mt: 4, borderBottom: `1px solid ${theme.palette.customColors.neutral05} !important` }}
+                      sx={{
+                        pt: '24px',
+                        borderBottom: `1px solid ${theme.palette.customColors.neutral05} !important`
+                      }}
                       onChange={(event, newValue) => {
                         setDetailsTab(newValue)
                         updateUrlParams({
@@ -1942,7 +1945,7 @@ const IndividualRequest = () => {
                           <Box>
                             {shippedItems?.length > 0 && (
                               <>
-                                <Card sx={{ mb: 6, minWidth: '100%', boxShadow: 'none !important', mt: 5  }}>
+                                <Card sx={{ mb: 6, minWidth: '100%', boxShadow: 'none !important', mt: 5 }}>
                                   <TableBasic
                                     columns={shippedColumns}
                                     rows={shippedItems}
@@ -1953,7 +1956,6 @@ const IndividualRequest = () => {
                                         query: { orderId: e.id, requestId: id }
                                       })
                                     }}
-                                 
                                   />
                                 </Card>
                               </>
@@ -2095,46 +2097,44 @@ const IndividualRequest = () => {
                               <TabPanel
                                 value='Ready To Ship'
                                 sx={{
-                                  padding: '0px !important',
-                                  
+                                  padding: '0px !important'
                                 }}
                               >
                                 {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' && (
-                                  <Card sx={{ minWidth: '100%',  boxShadow: 'none !important' }}>
+                                  <Card sx={{ minWidth: '100%', boxShadow: 'none !important' }}>
                                     <CardHeader
                                       title={``}
-                                      sx = {{
+                                      sx={{
                                         px: 0
                                       }}
                                       action={
                                         (selectedPharmacy.permission.key === 'ADD' ||
                                           selectedPharmacy.permission.key === 'allow_full_access') &&
                                         requestItems.status !== 'Cancelled' && (
-                                          <Grid container sx = {{
-                                            display: 'flex', justifyContent: {sm: 'flex-end'}
-                                          }}>
                                           <Grid
-                                            item
-                                            size={{ xs: 12, sm: 'auto' }}
-                                            
+                                            container
+                                            sx={{
+                                              display: 'flex',
+                                              justifyContent: { sm: 'flex-end' }
+                                            }}
                                           >
-                                            <Button
-                                              size='big'
-                                              variant='contained'
-                                              onClick={() => {
-                                                // openShipDialog()
-                                                Router.push({
-                                                  pathname: `/pharmacy/request/${id}/ship-all-items`,
-                                                  query: {
-                                                    // orderId: e.id,
-                                                  }
-                                                })
-                                              }}
-                                            
-                                            >
-                                              Ship All Items
-                                            </Button>
-                                          </Grid>
+                                            <Grid item size={{ xs: 12, sm: 'auto' }}>
+                                              <Button
+                                                size='big'
+                                                variant='contained'
+                                                onClick={() => {
+                                                  // openShipDialog()
+                                                  Router.push({
+                                                    pathname: `/pharmacy/request/${id}/ship-all-items`,
+                                                    query: {
+                                                      // orderId: e.id,
+                                                    }
+                                                  })
+                                                }}
+                                              >
+                                                Ship All Items
+                                              </Button>
+                                            </Grid>
                                           </Grid>
                                         )
                                       }
