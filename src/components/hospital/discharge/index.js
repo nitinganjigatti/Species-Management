@@ -80,9 +80,11 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     causeOfDeath,
     carcassCondition,
     carcassDeposition,
+    necropsyCenter,
     handleMannerSearch,
     handleConditionSearch,
     handleDispositionSearch,
+    handleNecropsyCenterSearch,
     fetchLoading: mortalityFetchLoading,
     submitLoader: mortalitySubmitLoader,
     handleSubmitData: handleMortalitySubmitData
@@ -749,10 +751,12 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
             causeOfDeath={causeOfDeath}
             carcassCondition={carcassCondition}
             carcassDeposition={carcassDeposition}
+            necropsyCenter={necropsyCenter}
             fetchLoading={mortalityFetchLoading}
             handleMannerSearch={handleMannerSearch}
             handleConditionSearch={handleConditionSearch}
             handleDispositionSearch={handleDispositionSearch}
+            handleNecropsyCenterSearch={handleNecropsyCenterSearch}
             submitLoader={mortalitySubmitLoader}
             handleSubmitData={handleMortalitySubmitData}
             onDirtyChange={setIsMortalityDirty}

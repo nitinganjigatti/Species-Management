@@ -55,6 +55,17 @@ const mortalitySchema = yup.object({
     then: schema => schema.required('Priority is required'),
     otherwise: schema => schema.notRequired()
   }),
+  necropsy_center_id: yup
+    .object({
+      value: yup.string().required(),
+      label: yup.string().required()
+    })
+    .nullable()
+    .when('necropsy_requested', {
+      is: true,
+      then: schema => schema.required('Necropsy Center is required'),
+      otherwise: schema => schema.notRequired()
+    }),
   attachments: yup.array().nullable().optional()
 })
 
@@ -65,10 +76,12 @@ const MortalityDischargeForm = props => {
     causeOfDeath,
     carcassCondition,
     carcassDeposition,
+    necropsyCenter,
     fetchLoading,
     handleMannerSearch,
     handleConditionSearch,
     handleDispositionSearch,
+    handleNecropsyCenterSearch,
     submitLoader,
     handleSubmitData,
     onDirtyChange,
@@ -89,6 +102,7 @@ const MortalityDischargeForm = props => {
     reason: '',
     necropsy_requested: true,
     priority: 'high',
+    necropsy_center_id: null,
     necropsy_reason: '',
     attachments: []
   }
@@ -181,6 +195,7 @@ const MortalityDischargeForm = props => {
       reason: formData.reason,
       necropsy_requested: formData.necropsy_requested ? '1' : '0',
       priority: formData.necropsy_requested ? formData.priority : null,
+      necropsy_center_id: formData.necropsy_center_id ? formData.necropsy_center_id.value : null,
       necropsy_reason: !formData.necropsy_requested ? formData.necropsy_reason : null,
       attachments: formData.attachments?.length > 0 ? formData.attachments : undefined
     }
@@ -204,6 +219,8 @@ const MortalityDischargeForm = props => {
       clearErrors('necropsy_reason')
     } else {
       clearErrors('priority')
+      setValue('necropsy_center_id', null)
+      clearErrors('necropsy_center_id')
     }
   }, [watchRequestNecropsy, setValue, clearErrors])
 
@@ -363,6 +380,32 @@ const MortalityDischargeForm = props => {
           </Grid>
 
           <Divider />
+
+          {watchRequestNecropsy && (
+            <>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mb: 4 }}>
+                <StyledTypography>Necropsy Center*</StyledTypography>
+
+                <ControlledAutocomplete
+                  control={control}
+                  name={'necropsy_center_id'}
+                  errors={errors}
+                  label={'Necropsy Center'}
+                  options={necropsyCenter}
+                  getOptionLabel={option => option?.label || ''}
+                  getOptionValue={option => option?.value || ''}
+                  onInputChange={value => handleNecropsyCenterSearch(value)}
+                  isOptionEqualToValue={(option, value) => option?.value === value?.value}
+                  onItemClear={() => handleNecropsyCenterSearch('')}
+                  loading={fetchLoading}
+                  required
+                  showIcons={false}
+                  sx={{ width: { xs: '100%', sm: '50%', md: '32%' } }}
+                />
+              </Box>
+              <Divider />
+            </>
+          )}
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <StyledTypography>Attachments</StyledTypography>

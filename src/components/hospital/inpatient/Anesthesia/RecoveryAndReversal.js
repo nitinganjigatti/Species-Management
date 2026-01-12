@@ -12,7 +12,7 @@ import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import { deliveryRouteList } from 'src/lib/api/hospital/anesthesia'
-import { getProductList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { getMedicineProductList } from 'src/lib/api/hospital/anesthesia'
 import Toaster from 'src/components/Toaster'
 
 function RecoveryAndReversal({
@@ -32,6 +32,8 @@ function RecoveryAndReversal({
   const [productPage, setProductPage] = useState(1)
   const [productTotal, setProductTotal] = useState(0)
   const [isProductLoading, setIsProductLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
 
   const {
     control,
@@ -75,30 +77,28 @@ function RecoveryAndReversal({
     }
   }, [recoveryFirstEffect, recoveryFullEffect, setValue])
 
-  const fetchMedicationGasList = async (pageToLoad = 1, append = false) => {
+  const fetchMedicationGasList = async (pageToLoad = 1, append = false, q = '') => {
     if (isProductLoading) return
 
     setIsProductLoading(true)
 
     const params = {
       sort: 'asc',
-      q: '',
+      q,
       limit: 50,
-      column: 'package',
-      page: pageToLoad
+      screen: 'Medicine',
+      page_no: pageToLoad
     }
     try {
-      const response = await getProductList({ params })
+      const response = await getMedicineProductList({ params })
 
-      if (response?.success && response?.data?.list_items?.length > 0) {
-        const newItems = response?.data?.list_items || []
-        const totalCount = response?.data?.total_count || 0
+      if (response?.success && response?.data?.brand_name?.result?.length > 0) {
+        const newItems = response?.data?.brand_name?.result || []
+        const totalCount = response?.data?.brand_name?.count || 0
 
         setProductTotal(totalCount)
         setMedicationGasList(prev => (append ? [...prev, ...newItems] : newItems))
         setProductPage(pageToLoad)
-      } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to fetch products' })
       }
     } catch (error) {
       Toaster({ type: 'error', message: 'Failed to fetch products' })
@@ -110,9 +110,22 @@ function RecoveryAndReversal({
   useEffect(() => {
     if (openDrawer) {
       fetchDeliveryList()
-      fetchMedicationGasList(1, false)
     }
   }, [openDrawer])
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm)
+    }, 500)
+
+    return () => clearTimeout(handler)
+  }, [searchTerm])
+
+  useEffect(() => {
+    if (openDrawer) {
+      fetchMedicationGasList(1, false, debouncedSearch)
+    }
+  }, [debouncedSearch, openDrawer])
 
   const hasMoreProducts = medicationGasList.length < productTotal
 
@@ -498,9 +511,10 @@ function RecoveryAndReversal({
           existingMedications={reversalDrugs}
           unitList={unitList}
           deliveryRouteOptions={deliveryRouteOptionsState}
+          onSearch={setSearchTerm}
           onLoadMoreDrugs={() => {
             if (hasMoreProducts && !isProductLoading) {
-              fetchMedicationGasList(productPage + 1, true)
+              fetchMedicationGasList(productPage + 1, true, debouncedSearch)
             }
           }}
           hasMoreDrugs={hasMoreProducts}
