@@ -1026,7 +1026,7 @@ export default function AddAnesthesiaRecord() {
     })
 
     const basicDetailsForm = {
-      location: detail?.location || '',
+      location: detail?.location || selectedHospital?.name || '',
       anaesthesia_datetime: detail?.anaesthesia_datetime
         ? dayjs.utc(detail.anaesthesia_datetime).local().format('YYYY-MM-DD HH:mm:ss')
         : '',
@@ -1470,7 +1470,7 @@ export default function AddAnesthesiaRecord() {
         // console.log('vitalMetaForBlocks (from vitalMonitorList):', JSON.stringify(vitalMetaForBlocks, null, 2))
 
         blocks = formColumnsToVitalMonitoringBlocks(columns, vitalMetaForBlocks)
-        console.log(blocks, 'blocks')
+
         blocks = (blocks || []).map(block => ({
           ...block,
           recorded_time: toBackendTime(block.recorded_time)

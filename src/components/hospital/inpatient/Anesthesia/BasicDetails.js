@@ -55,7 +55,7 @@ export default function BasicDetails({
         shouldValidate: true
       })
     }
-    setValue('basicDetails.location', selectedHospital?.name)
+    // setValue('basicDetails.location', selectedHospital?.name)
   }, [anaesthesiaDateTimeValue, setValue])
 
   const commonTextFieldSx = {
