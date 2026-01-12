@@ -350,7 +350,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         medical_record_id: JSON.stringify([medicineDetails?.medical_record_id]),
         medicine_id: JSON.stringify([selectedSlotData?.timeSlot?.medicine_id || medicineDetails?.medicine_id]),
         type: 'single',
-        purpose: action ? action : data?.action === 'withheld' ? 'withheld' : 'administer',
+        purpose: action ? action : data?.action === 'administer' ? 'administer' : 'withheld',
         side_effect: 0,
         administer_id: JSON.stringify([
           selectedItems?.[0]?.administritive_id || selectedSlotData?.timeSlot?.administritive_id
