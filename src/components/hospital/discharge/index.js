@@ -103,7 +103,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     TransferEnclosureDischarge()
 
   const { control, watch, setValue } = useForm({
-    defaultValues: { discharge_type: 'Mortality' }
+    defaultValues: { discharge_type: 'TransferEnclosure' }
   })
   const watchDischargeType = watch('discharge_type')
 
