@@ -1369,9 +1369,7 @@ const MedicinePrescriptionCard = ({
                       >
                         Stop Medicine
                       </Button>
-                    ) : isStopDatePassed(medicineData?.stop_date) &&
-                      medicineData?.will_restart != 0 &&
-                      medicineData?.prescription_created_for !== 'direct_administer' ? (
+                    ) : isStopDatePassed(medicineData?.stop_date) && medicineData?.will_restart != 0 ? (
                       <Button
                         variant='text'
                         startIcon={
@@ -1401,7 +1399,8 @@ const MedicinePrescriptionCard = ({
                     )}
                     {handleAddNewDosageTimeCheck(selectedDate) &&
                       !isStopDatePassed(medicineData?.stop_date) &&
-                      medicineData?.prescription_frequency !== 'one_time' && (
+                      medicineData?.prescription_frequency !== 'one_time' &&
+                      medicineData?.prescription_created_for !== 'direct_administer' && (
                         <Button
                           variant='text'
                           startIcon={<Icon icon='mdi:plus' />}
