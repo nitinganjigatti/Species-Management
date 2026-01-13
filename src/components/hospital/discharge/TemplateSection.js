@@ -302,11 +302,14 @@ const TemplateSection = ({
       })
 
       const safeHtml = getSafeString(html)
-      onChange?.(safeHtml)
 
-      if (safeHtml.trim().length > 0) {
-        onDirtyChange?.(true)
-      }
+      // onChange?.(safeHtml)
+
+      // if (safeHtml.trim().length > 0) {
+      //   onDirtyChange?.(true)
+      // }
+      const normalizedHtml = richFromHtml(safeHtml) === '' ? '' : safeHtml
+      onChange?.(normalizedHtml)
     },
     [onChange, onDirtyChange]
   )
@@ -393,11 +396,14 @@ const TemplateSection = ({
 
       const html = getRichTextHtml(valueObj)
       const safeHtml = getSafeString(html)
-      onChange?.(safeHtml)
 
-      if (safeHtml.trim().length > 0) {
-        onDirtyChange?.(true)
-      }
+      //  onChange?.(safeHtml)
+
+      // if (safeHtml.trim().length > 0) {
+      //   onDirtyChange?.(true)
+      // }
+      const normalizedHtml = richFromHtml(safeHtml) === '' ? '' : safeHtml
+      onChange?.(normalizedHtml)
     },
     [onChange, onDirtyChange]
   )

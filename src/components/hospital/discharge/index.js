@@ -606,14 +606,13 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
 
   // Handle tab change with form and table confirmation
   const handleTabChange = newType => {
+    if (newType === selectedTab) return
+
     const leavingHospital =
-      selectedTab === 'TransferHospital' &&
-      (transferTempMedicines.length > 0 || transferMedicines.length > 0 || isTransferHospitalDirty)
+      (selectedTab === 'TransferHospital' && transferMedicines.length > 0) || isTransferHospitalDirty
 
     const leavingEnclosure =
-      selectedTab === 'TransferEnclosure' &&
-      (enclosureTempMedicines.length > 0 || enclosureMedicines.length > 0 || isTransferEnclosureDirty)
-
+      (selectedTab === 'TransferEnclosure' && enclosureMedicines.length > 0) || isTransferEnclosureDirty
     const leavingMortality = selectedTab === 'Mortality' && isMortalityDirty
     const hasPending = leavingHospital || leavingEnclosure || leavingMortality
 
@@ -809,7 +808,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
             cancelText={'Cancel'}
             confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 2 }}
             confirmAction={handleConfirm}
-            ConfirmationText={'Discard'}
+            ConfirmationText={'Yes'}
           />
         )}
       </Box>
