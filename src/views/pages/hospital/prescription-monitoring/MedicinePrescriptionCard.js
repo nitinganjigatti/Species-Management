@@ -759,7 +759,8 @@ const MedicinePrescriptionCard = ({
                     variant='h5'
                     sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    {RenderUtility?.renderControlLabel(medicine?.controlled_substance, 'CS')}
+                    {medicine?.controlled_substance == 1 &&
+                      RenderUtility?.renderControlLabel(medicine?.controlled_substance, 'CS')}
                     {RenderUtility?.renderPrescriptionLabel(medicine?.prescription_required, 'PR')} {medicine?.name}
                   </Typography>
                 </Box>

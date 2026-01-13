@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Avatar } from '@mui/material'
+import { Box, Avatar, Skeleton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
@@ -8,12 +8,35 @@ const FALLBACK_IMAGE = '/icons/antz.svg'
 const AnimalCardBasic = ({ image, name, scientificName, age, gender }) => {
   const theme = useTheme()
   const [imgSrc, setImgSrc] = useState(FALLBACK_IMAGE)
+  const [imageLoading, setImageLoading] = useState(true)
 
   const capitalize = str => (str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '-')
+  const hasAge = age !== null && age !== '' && age !== 'null'
+
+  const isFallback = imgSrc === FALLBACK_IMAGE
+
+  const getImageType = url => {
+    if (!url || typeof url !== 'string') return 'img'
+
+    try {
+      const parsedUrl = new URL(url)
+      const encodedPath = parsedUrl.searchParams.get('path')
+      if (!encodedPath) return 'img'
+
+      const decodedPath = decodeURIComponent(encodedPath)
+
+      return decodedPath.toLowerCase().endsWith('.svg') ? 'svg' : 'img'
+    } catch {
+      return 'img'
+    }
+  }
 
   useEffect(() => {
+    setImageLoading(true)
+
     if (!image || typeof image !== 'string') {
       setImgSrc(FALLBACK_IMAGE)
+      setImageLoading(false)
 
       return
     }
@@ -23,10 +46,12 @@ const AnimalCardBasic = ({ image, name, scientificName, age, gender }) => {
 
     img.onload = () => {
       setImgSrc(image)
+      setImageLoading(false)
     }
 
     img.onerror = () => {
       setImgSrc(FALLBACK_IMAGE)
+      setImageLoading(false)
     }
 
     return () => {
@@ -34,6 +59,29 @@ const AnimalCardBasic = ({ image, name, scientificName, age, gender }) => {
       img.onerror = null
     }
   }, [image])
+
+  const avatarContent = imageLoading ? (
+    <Skeleton variant='rectangular' width={56} height={56} sx={{ borderRadius: '8px', flexShrink: 0 }} />
+  ) : (
+    <Avatar
+      src={imgSrc || FALLBACK_IMAGE}
+      alt={name}
+      sx={{
+        width: 56,
+        height: 56,
+        borderRadius: '8px',
+        '& img': {
+          objectFit: getImageType(imgSrc) === 'svg' ? 'contain' : 'cover',
+          padding: isFallback ? '4px' : 0
+        }
+      }}
+      slotProps={{
+        img: {
+          onError: () => setImgSrc(FALLBACK_IMAGE)
+        }
+      }}
+    />
+  )
 
   return (
     <Box
@@ -44,17 +92,7 @@ const AnimalCardBasic = ({ image, name, scientificName, age, gender }) => {
         maxWidth: '100%'
       }}
     >
-      <Avatar
-        src={imgSrc}
-        alt={name}
-        sx={{
-          width: 56,
-          height: 56,
-          borderRadius: '8px',
-          objectFit: 'cover'
-        }}
-        onError={() => setImgSrc(FALLBACK_IMAGE)}
-      />
+      {avatarContent}
 
       <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <TextEllipsisWithModal
@@ -81,7 +119,7 @@ const AnimalCardBasic = ({ image, name, scientificName, age, gender }) => {
 
         <TextEllipsisWithModal
           enableDialog={false}
-          text={`${age} ${age && gender ? '•' : ''} ${capitalize(gender)}`}
+          text={`${hasAge ? age : ''} ${hasAge && gender ? '•' : ''} ${capitalize(gender)}`}
           style={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
