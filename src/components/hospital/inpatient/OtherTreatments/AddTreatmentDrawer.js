@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import dayjs from 'dayjs'
 import { Box, Button, Drawer, IconButton, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { Close as CloseIcon } from '@mui/icons-material'
@@ -162,6 +163,7 @@ const AddTreatmentDrawer = ({
                 label=''
                 format='DD MMM YYYY'
                 minDate={admissionDate}
+                maxDate={dayjs()}
                 sx={{
                   ...commonFieldStyles,
                   '& .MuiOutlinedInput-root': {

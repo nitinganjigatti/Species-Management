@@ -177,9 +177,10 @@ const InpatientClinicalNotes = props => {
                       color: theme.palette.customColors.OnSurfaceVariant,
                       textAlign: 'justify'
                     }}
-                  >
-                    {data?.note || 'NA'}
-                  </Typography>
+                    dangerouslySetInnerHTML={{
+                      __html: (data?.note || 'NA').replace(/\\n/g, '<br />')
+                    }}
+                  />
 
                   {discharge_at === null && (
                     <IconButton
