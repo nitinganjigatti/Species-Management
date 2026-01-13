@@ -59,8 +59,9 @@ const MedicalSummaryFilterDrawer = ({
         data = Array.isArray(res?.data)
           ? res.data.map(item => ({
               label: item.user_name,
-              value: item.user_id,
-              image: item.user_profile_pic
+              value: item.user_id
+
+              // image: item.user_profile_pic
             }))
           : []
       }

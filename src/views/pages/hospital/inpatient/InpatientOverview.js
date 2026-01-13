@@ -6,13 +6,21 @@ import HealthcareOverview from './TreatmentOverview'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { useRouter } from 'next/router'
-import { getAnimalTotalHospitalVisits, getMediaItems, getOverviewMediaItems } from 'src/lib/api/hospital/inpatient'
+import {
+  getAnimalTotalHospitalVisits,
+  getMediaItems,
+  getOverviewMediaItems,
+  getPatientDischargeSummary
+} from 'src/lib/api/hospital/inpatient'
 import { useQuery } from '@tanstack/react-query'
-import Utility from 'src/utility'
+import Utility, { downloadPDF } from 'src/utility'
 import { VisitType } from '../utility/hospitalSnippets'
 import { useHospital } from 'src/context/HospitalContext'
 import OverviewMediaListingDrawer from 'src/components/hospital/drawer/OverviewMediaListingDrawer'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import MenuWithDots from 'src/components/MenuWithDots'
+import Icon from 'src/@core/components/icon'
+import PatientVisitSummaryFilterDrawer from 'src/components/hospital/drawer/PatientVisitSummaryFilterDrawer'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -29,7 +37,63 @@ const InpatientOverview = ({
   const theme = useTheme()
   const { data } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
-  console.log(overviewData)
+
+  const [dischargeSummaryLoading, setDischargeSummaryLoading] = useState(false)
+  const [openVisitSummaryFilterDrawer, setOpenVisitSummaryFilterDrawer] = useState(false)
+
+  const [selectedVisit, setSelectedVisit] = useState({
+    case_id: null,
+    animal_id: null
+  })
+
+  const getMenuOptions = (caseId, animalId) => {
+    const options = [
+      {
+        label: (
+          <Tooltip title='Hospital Visit Summary'>
+            <Typography>Hospital Visit Summary</Typography>
+          </Tooltip>
+        ),
+        icon: <Icon icon='hugeicons:download-square-02' />,
+        action: () => {
+          setSelectedVisit({ case_id: caseId, animal_id: animalId })
+          setOpenVisitSummaryFilterDrawer(true)
+        }
+      },
+      {
+        label: (
+          <Tooltip title='Discharge Summary'>
+            <Typography>Discharge Summary</Typography>
+          </Tooltip>
+        ),
+        icon: dischargeSummaryLoading ? <CircularProgress size={18} /> : <Icon icon='hugeicons:download-square-02' />,
+        action: () => getDischargeSummary(caseId, animalId)
+      }
+    ]
+
+    return options
+  }
+
+  const getDischargeSummary = async (caseId, animalId) => {
+    setDischargeSummaryLoading(true)
+    try {
+      const params = {
+        hospital_case_id: caseId
+      }
+
+      await downloadPDF({
+        apiCall: getPatientDischargeSummary,
+        params,
+        fileName: `Discharge_Summary${Date.now()}.pdf`
+      })
+    } catch (error) {
+      console.error('Error fetching discharge summary:', error)
+      setDischargeSummaryLoading(false)
+    } finally {
+      setDischargeSummaryLoading(false)
+      setSelectedVisit({ case_id: null, animal_id: null })
+    }
+  }
 
   const { selectedHospital } = useHospital()
   const { id } = router.query
@@ -303,6 +367,19 @@ const InpatientOverview = ({
           </Typography>
         </Tooltip>
       )
+    },
+    {
+      field: 'action',
+      headerName: 'Actions',
+      width: 100,
+      headerAlign: 'right',
+      align: 'right',
+      sortable: false,
+      renderCell: params => (
+        <>
+          <MenuWithDots options={getMenuOptions(params?.row?.case_id, params?.row?.animal_id)} />
+        </>
+      )
     }
   ]
 
@@ -463,6 +540,14 @@ const InpatientOverview = ({
           onClose={() => setOpenDrawer(false)}
           enableImageFullScreen={true}
           media={mediaFiles}
+        />
+      )}
+      {openVisitSummaryFilterDrawer && (
+        <PatientVisitSummaryFilterDrawer
+          open={openVisitSummaryFilterDrawer}
+          onClose={() => setOpenVisitSummaryFilterDrawer(false)}
+          animalId={selectedVisit?.animal_id}
+          caseId={selectedVisit?.case_id}
         />
       )}
     </>
