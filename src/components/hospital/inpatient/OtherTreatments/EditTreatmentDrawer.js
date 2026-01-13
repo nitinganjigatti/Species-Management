@@ -63,6 +63,11 @@ const EditTreatmentDrawer = ({
 
   const activityList = activities || []
 
+  const activeActivity = activityList.find(a => a.id === formData.activeActivityId)
+  const originalStartDate = activeActivity ? activeActivity.treatment_start_date_time : null
+  const dateHasChanged = originalStartDate ? !dayjs(originalStartDate).isSame(dayjs(formData.startDate), 'day') : false
+  const isUpdateDisabled = isSubmitting || (!formData.notes && !dateHasChanged)
+
   const formatTreatmentName = name => {
     if (!name || typeof name !== 'string') return ''
 
@@ -302,7 +307,8 @@ const EditTreatmentDrawer = ({
                             lineHeight: '100%'
                           }}
                         >
-                          {activity.author} • {formatTimestamp(activity.timestamp)}
+                          {/* {activity.author} • {formatTimestamp(activity.timestamp)} */}
+                          {activity.author} • {formatTimestamp(activity.treatment_start_date_time)}
                         </Typography>
                       </Box>
                       <IconButton
@@ -441,7 +447,7 @@ const EditTreatmentDrawer = ({
                 variant='contained'
                 fullWidth
                 onClick={onUpdate}
-                disabled={isSubmitting || !formData.notes}
+                disabled={isUpdateDisabled}
                 sx={{
                   height: '56px',
                   borderRadius: '8px',

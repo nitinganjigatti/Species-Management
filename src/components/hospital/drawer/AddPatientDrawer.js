@@ -147,6 +147,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
         const res = await getRoomsAndEnclosures({
           hospital_id: selectedHospital?.id,
           room_id: selectedRoom.value,
+          status: 'active',
           page: 1,
           is_occupied: 'available',
           q: searchEnclosure
