@@ -168,6 +168,7 @@ const EditTreatmentDrawer = ({
                       label=''
                       format='DD MMM YYYY'
                       minDate={admissionDate}
+                      maxDate={dayjs()}
                       sx={{
                         ...commonFieldStyles,
                         '& .MuiOutlinedInput-root': {
