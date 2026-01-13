@@ -183,6 +183,7 @@ const PatientAdmitForm = () => {
       try {
         const res = await getRoomsAndEnclosures({
           hospital_id: selectedHospital?.id,
+          status: 'active',
           room_id: selectedRoom.value,
           page: 1,
           is_occupied: 'available',

@@ -221,7 +221,6 @@ const HospitalDropdown = ({ disabled = false }) => {
 
           // Check if hospital is active (is_active === 1 or true)
           if (hospitalData?.has_permission) {
-
             // User has access - set the hospital directly
             updateSelectedHospital({
               ...storedHospital
@@ -303,6 +302,25 @@ const HospitalDropdown = ({ disabled = false }) => {
     }
   }
 
+  // Focus effect when menu opens
+  useEffect(() => {
+    if (anchorEl) {
+
+      const timer = setTimeout(() => {
+
+        const menuElement = document.querySelector('[role="menu"]')
+        if (menuElement) {
+          const input = menuElement.querySelector('input')
+          if (input) {
+            input.focus()
+          }
+        }
+      }, 50)
+
+      return () => clearTimeout(timer)
+    }
+  }, [anchorEl])
+
   // Shimmer component for loading states
   const ShimmerBox = ({ width = '100%', height = '20px', mb = 1 }) => (
     <Box
@@ -346,7 +364,7 @@ const HospitalDropdown = ({ disabled = false }) => {
           {hasNoHospitalsOnInitialFetch ? (
             <Box>No hospitals found</Box>
           ) : isCheckingHospitalAccess ? (
-            
+
             // Shimmer for checking hospital access state
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
               <ShimmerBox width='160px' height='24px' mb={0} />

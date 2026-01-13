@@ -55,6 +55,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   const discharge_at = medicalRecordData?.discharge_at
   const site_id = medicalRecordData?.site_id
   const purpose_of_visit = medicalRecordData?.purpose_of_visit
+  const status = medicalRecordData?.status
 
   // Separate dynamic states for each medicine table discharge type
   const transferMedicines = data.transfer_medicines || []
@@ -80,9 +81,11 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     causeOfDeath,
     carcassCondition,
     carcassDeposition,
+    necropsyCenter,
     handleMannerSearch,
     handleConditionSearch,
     handleDispositionSearch,
+    handleNecropsyCenterSearch,
     fetchLoading: mortalityFetchLoading,
     submitLoader: mortalitySubmitLoader,
     handleSubmitData: handleMortalitySubmitData
@@ -100,23 +103,23 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     TransferEnclosureDischarge()
 
   const { control, watch, setValue } = useForm({
-    defaultValues: { discharge_type: 'Mortality' }
+    defaultValues: { discharge_type: 'TransferEnclosure' }
   })
   const watchDischargeType = watch('discharge_type')
 
-  useEffect(() => {
-    if (!site_id) return
-    setIsSecurityCheckLoading(true)
+  // useEffect(() => {
+  //   if (!site_id) return
+  //   setIsSecurityCheckLoading(true)
 
-    const getTransferCheck = async () => {
-      await getSecurityCheckForTransfer(site_id).then(res => {
-        setSecurityCheck(res?.success)
-        setIsSecurityCheckLoading(false)
-      })
-    }
+  //   const getTransferCheck = async () => {
+  //     await getSecurityCheckForTransfer(site_id).then(res => {
+  //       setSecurityCheck(res?.success)
+  //       setIsSecurityCheckLoading(false)
+  //     })
+  //   }
 
-    getTransferCheck()
-  }, [site_id])
+  //   getTransferCheck()
+  // }, [site_id])
 
   // Fetch active prescriptions
   const getPrescriptionList = async () => {
@@ -665,7 +668,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   }
 
   //  if already discharged show message
-  if (discharge_at !== null) {
+  if (status == 'discharge') {
     return (
       <Box sx={{ my: 20 }}>
         <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.customColors.OnSurfaceVariant }}>
@@ -676,25 +679,25 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   }
 
   // security check loading
-  if (isSecurityCheckLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', my: 20 }}>
-        <CircularProgress size={30} />
-      </Box>
-    )
-  }
+  // if (isSecurityCheckLoading) {
+  //   return (
+  //     <Box sx={{ display: 'flex', justifyContent: 'center', my: 20 }}>
+  //       <CircularProgress size={30} />
+  //     </Box>
+  //   )
+  // }
 
-  // if security restricted show message
-  if (securityCheck === false) {
-    return (
-      <Box sx={{ my: 20 }}>
-        <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.error.main }}>
-          Discharge is restricted due to the absence of the security group or transfer authority at the origin site of
-          an animal.
-        </StyledTypography>
-      </Box>
-    )
-  }
+  // // if security restricted show message
+  // if (securityCheck === false) {
+  //   return (
+  //     <Box sx={{ my: 20 }}>
+  //       <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.error.main }}>
+  //         Discharge is restricted due to the absence of the security group or transfer authority at the origin site of
+  //         an animal.
+  //       </StyledTypography>
+  //     </Box>
+  //   )
+  // }
 
   return (
     <>
@@ -749,10 +752,12 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
             causeOfDeath={causeOfDeath}
             carcassCondition={carcassCondition}
             carcassDeposition={carcassDeposition}
+            necropsyCenter={necropsyCenter}
             fetchLoading={mortalityFetchLoading}
             handleMannerSearch={handleMannerSearch}
             handleConditionSearch={handleConditionSearch}
             handleDispositionSearch={handleDispositionSearch}
+            handleNecropsyCenterSearch={handleNecropsyCenterSearch}
             submitLoader={mortalitySubmitLoader}
             handleSubmitData={handleMortalitySubmitData}
             onDirtyChange={setIsMortalityDirty}

@@ -485,6 +485,39 @@ const MedicinePrescriptionCard = ({
     return `${formattedDate} • ${formattedTime}`
   }
 
+  const isLocalStopDatePassed = stopDateString => {
+    if (!stopDateString) return false
+
+    try {
+      // Parse the backend date string (YYYY-MM-DD HH:mm:ss format)
+      const [datePart, timePart] = stopDateString.split(' ')
+      const [year, month, day] = datePart.split('-')
+      const [hours, minutes, seconds] = timePart.split(':')
+
+      // Create UTC date from backend string
+      const stopDateUTC = new Date(
+        parseInt(year),
+        parseInt(month) - 1,
+        parseInt(day),
+        parseInt(hours),
+        parseInt(minutes),
+        parseInt(seconds)
+      )
+
+      // Convert to local time
+      const stopDateLocal = new Date(stopDateUTC)
+      // Get current local time
+      const now = new Date()
+
+      // Check if stop date is in the past
+      return stopDateLocal < now
+    } catch (error) {
+      console.error('Error parsing stop date:', error)
+
+      return false
+    }
+  }
+
   const isStopDatePassed = stopDateString => {
     if (!stopDateString) return false
 
@@ -508,7 +541,6 @@ const MedicinePrescriptionCard = ({
 
       // Convert to local time
       const stopDateLocal = new Date(stopDateUTC)
-
       // Get current local time
       const now = new Date()
 
@@ -759,7 +791,8 @@ const MedicinePrescriptionCard = ({
                     variant='h5'
                     sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    {RenderUtility?.renderControlLabel(medicine?.controlled_substance, 'CS')}
+                    {medicine?.controlled_substance == 1 &&
+                      RenderUtility?.renderControlLabel(medicine?.controlled_substance, 'CS')}
                     {RenderUtility?.renderPrescriptionLabel(medicine?.prescription_required, 'PR')} {medicine?.name}
                   </Typography>
                 </Box>
@@ -1368,9 +1401,8 @@ const MedicinePrescriptionCard = ({
                       >
                         Stop Medicine
                       </Button>
-                    ) : isStopDatePassed(medicineData?.stop_date) &&
-                      medicineData?.will_restart != 0 &&
-                      medicineData?.prescription_created_for !== 'direct_administer' ? (
+                    ) : (isStopDatePassed(medicineData?.stop_date) || isLocalStopDatePassed(medicineData?.stop_date)) &&
+                      medicineData?.will_restart != 0 ? (
                       <Button
                         variant='text'
                         startIcon={
@@ -1400,7 +1432,8 @@ const MedicinePrescriptionCard = ({
                     )}
                     {handleAddNewDosageTimeCheck(selectedDate) &&
                       !isStopDatePassed(medicineData?.stop_date) &&
-                      medicineData?.prescription_frequency !== 'one_time' && (
+                      medicineData?.prescription_frequency !== 'one_time' &&
+                      medicineData?.prescription_created_for !== 'direct_administer' && (
                         <Button
                           variant='text'
                           startIcon={<Icon icon='mdi:plus' />}
@@ -1486,7 +1519,10 @@ const MedicinePrescriptionCard = ({
                       variant='outlined'
                       type='button'
                       loading={isSkipLoading}
-                      onClick={handleSkipSelected}
+                      onClick={() => {
+                        setValue('action', 'skipped')
+                        handleSkipSelected()
+                      }}
                       disabled={selectedMedications.length === 0}
                       sx={{ flex: 1, py: 2, height: '48px' }}
                     >

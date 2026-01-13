@@ -1115,7 +1115,7 @@ export default function AddMedicineToPrescription() {
 
             start_date: isOneTimeFrequency
               ? toISTISOString(data.prescriptionStartDate, true)
-              : toISTISOString(data.prescriptionStartDate),
+              : toISTISOString(data.prescriptionStartDate, true),
             end_date: isOneTimeFrequency
               ? toISTISOString(data.prescriptionStartDate, true)
               : calculateEndDate(data.prescriptionStartDate, data.dosageDuration, interval?.value),
@@ -1447,10 +1447,10 @@ export default function AddMedicineToPrescription() {
           delivery_route_string_id: deliveryRoute?.string_id || '',
 
           start_date: isOneTimeFrequency
-            ? toISTISOString(data.prescriptionStartDate)
-            : toISTISOString(data.prescriptionStartDate).replace('+05:30', 'Z'),
+            ? toISTISOString(data.prescriptionStartDate, true)
+            : toISTISOString(data.prescriptionStartDate, true).replace('+05:30', 'Z'),
           end_date: isOneTimeFrequency
-            ? toISTISOString(data.prescriptionStartDate)
+            ? toISTISOString(data.prescriptionStartDate, true)
             : formatDateWithCurrentTime(
                 calculateEndDate(data.prescriptionStartDate, data.dosageDuration, interval?.value)
               ),

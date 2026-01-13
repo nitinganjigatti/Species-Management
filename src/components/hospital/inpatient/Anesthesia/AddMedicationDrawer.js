@@ -17,7 +17,14 @@ import customParseFormat from 'dayjs/plugin/customParseFormat'
 dayjs.extend(customParseFormat)
 
 const schema = yup.object().shape({
-  drug_name: yup.object().required('Drug Name is required'),
+  drug_name: yup
+    .object()
+    .nullable()
+    .required('Please select a drug from the list')
+    .test('is-valid-drug', 'Please select a valid drug from the list', function (value) {
+      if (!value) return false
+      return Boolean(value.id && value.name)
+    }),
   purpose_stage: yup.string().required('Purpose or stage is required'),
   amount: yup.string().trim().required('Amount is required'),
   unit: yup.string().required('Unit is required'),
@@ -87,16 +94,18 @@ function AddMedicationDrawer({
   deliveryRouteOptions = [],
   onLoadMoreDrugs,
   hasMoreDrugs = false,
-  isLoadingDrugs = false
+  isLoadingDrugs = false,
+  onSearch
 }) {
   const theme = useTheme()
   const [selectedStatus, setSelectedStatus] = useState(null)
-
+  const [drugNameTouched, setDrugNameTouched] = useState(false)
   const {
     reset,
     control,
     handleSubmit,
     setValue,
+    trigger,
     formState: { errors, isValid }
   } = useForm({
     defaultValues,
@@ -168,6 +177,10 @@ function AddMedicationDrawer({
         setSelectedStatus(editData.delivery_status)
         setValue('delivery_status', editData.delivery_status, { shouldValidate: true })
       }
+
+      if (editData.drug_name) {
+        setDrugNameTouched(true)
+      }
     } else {
       const now = dayjs()
       reset({
@@ -176,6 +189,7 @@ function AddMedicationDrawer({
         max_effect_time: now
       })
       setSelectedStatus(null)
+      setDrugNameTouched(false)
     }
   }, [editData, setValue, reset, handleSidebarOpen])
 
@@ -184,6 +198,21 @@ function AddMedicationDrawer({
       setValue('delivery_status', selectedStatus, { shouldValidate: true })
     }
   }, [selectedStatus, setValue])
+
+  const handleDrugNameBlur = useCallback(() => {
+    setDrugNameTouched(true)
+    trigger('drug_name')
+  }, [trigger])
+
+  const handleDrugNameChange = useCallback(
+    (event, value) => {
+      if (event?.type === 'change' && !value?.id) {
+        setDrugNameTouched(true)
+      }
+      setTimeout(() => trigger('drug_name'), 100)
+    },
+    [trigger]
+  )
 
   const onSubmit = useCallback(
     async formData => {
@@ -207,6 +236,7 @@ function AddMedicationDrawer({
         reset(defaultValues)
         setSelectedStatus(null)
         handleSidebarClose()
+        onSearch?.('')
       } catch (error) {
         console.error('Error submitting form:', error)
       }
@@ -218,6 +248,7 @@ function AddMedicationDrawer({
     reset(defaultValues)
     setSelectedStatus(null)
     handleSidebarClose()
+    onSearch?.('')
   }, [reset, handleSidebarClose])
 
   return (
@@ -264,37 +295,80 @@ function AddMedicationDrawer({
           <Card sx={{ p: 6, boxShadow: 0, border: `2px solid ${theme.palette.customColors.SurfaceVariant}` }}>
             <Grid container spacing={6}>
               <Grid size={{ xs: 12 }}>
-                <ControlledAutocomplete
-                  control={control}
+                <Controller
                   name='drug_name'
-                  errors={errors}
-                  label='Enter Drug Name*'
-                  options={filteredDrugOptions}
-                  getOptionLabel={option => option?.name || ''}
-                  isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                  renderOption={(props, option) => (
-                    <li {...props} key={option.id}>
-                      {option.name}
-                    </li>
-                  )}
-                  loading={isLoadingDrugs}
-                  autocompleteProps={{
-                    slotProps: {
-                      listbox: {
-                        onScroll: event => {
-                          const listboxNode = event.currentTarget
-                          const scrollBottom = listboxNode.scrollTop + listboxNode.clientHeight
-                          const threshold = listboxNode.scrollHeight - 50
+                  control={control}
+                  render={({ field, fieldState: { error } }) => (
+                    <ControlledAutocomplete
+                      {...field}
+                      control={control}
+                      name='drug_name'
+                      errors={errors}
+                      label='Enter Drug Name*'
+                      options={filteredDrugOptions}
+                      getOptionLabel={option => option?.name || ''}
+                      isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                      renderOption={(props, option) => (
+                        <li {...props} key={option.id}>
+                          {option.name}
+                        </li>
+                      )}
+                      loading={isLoadingDrugs}
+                      autocompleteProps={{
+                        onBlur: event => {
+                          handleDrugNameBlur()
+                          field.onBlur(event)
+                        },
+                        onChange: (event, value, reason) => {
+                          field.onChange(value)
+                          if (reason === 'selectOption') {
+                            setDrugNameTouched(false)
+                          } else {
+                            handleDrugNameChange(event, value)
+                          }
+                        },
+                        onInputChange: (_, value, reason) => {
+                          if (reason === 'input') {
+                            onSearch?.(value)
+                          }
+                          if (reason === 'clear') {
+                            onSearch?.('')
+                            field.onChange(null)
+                          }
+                        },
+                        slotProps: {
+                          listbox: {
+                            onScroll: event => {
+                              const listboxNode = event.currentTarget
+                              const scrollBottom = listboxNode.scrollTop + listboxNode.clientHeight
+                              const threshold = listboxNode.scrollHeight - 50
 
-                          if (scrollBottom >= threshold) {
-                            if (hasMoreDrugs && !isLoadingDrugs && typeof onLoadMoreDrugs === 'function') {
-                              onLoadMoreDrugs()
+                              if (scrollBottom >= threshold) {
+                                if (hasMoreDrugs && !isLoadingDrugs && typeof onLoadMoreDrugs === 'function') {
+                                  onLoadMoreDrugs()
+                                }
+                              }
+                            }
+                          },
+                          paper: {
+                            onBlur: () => {
+                              if (!field.value?.id) {
+                                handleDrugNameBlur()
+                              }
                             }
                           }
+                        },
+                        filterOptions: (options, params) => {
+                          const filtered = options.filter(option =>
+                            option.name.toLowerCase().includes(params.inputValue.toLowerCase())
+                          )
+                          return filtered
                         }
-                      }
-                    }
-                  }}
+                      }}
+                      error={drugNameTouched || error ? Boolean(error) : false}
+                      helperText={drugNameTouched || error ? error?.message : ''}
+                    />
+                  )}
                 />
               </Grid>
 
@@ -443,7 +517,7 @@ function AddMedicationDrawer({
                   color: theme.palette.customColors.OnPrimaryContainer,
                   borderColor: theme.palette.customColors.OnPrimaryContainer
                 }}
-                onClick={handleSidebarClose}
+                onClick={handleClose}
               >
                 Cancel
               </LoadingButton>

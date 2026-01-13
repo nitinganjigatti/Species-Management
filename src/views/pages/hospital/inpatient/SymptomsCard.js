@@ -374,7 +374,11 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
                 ml: { xs: 0, md: 1 }
               }}
             >
-              {record?.status === 'active' ? 'Created by' : 'Resolved by'}
+              {record?.status === 'active'
+                ? record?.latest_note?.modified_at?.slice(0, 19) === record?.created_at
+                  ? 'Created by'
+                  : 'Updated by'
+                : 'Resolved by'}
             </Typography>
             <UserAvatarDetails
               profile_image={

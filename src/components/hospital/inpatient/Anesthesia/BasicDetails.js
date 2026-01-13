@@ -55,7 +55,7 @@ export default function BasicDetails({
         shouldValidate: true
       })
     }
-    setValue('basicDetails.location', selectedHospital?.name)
+    // setValue('basicDetails.location', selectedHospital?.name)
   }, [anaesthesiaDateTimeValue, setValue])
 
   const commonTextFieldSx = {
@@ -256,6 +256,7 @@ export default function BasicDetails({
           />
         </Grid>
         {/* Veterinarian Field */}
+
         <Grid item size={{ xs: 12, md: 4 }}>
           <Controller
             name='basicDetails.veterinarian_id'
@@ -266,10 +267,12 @@ export default function BasicDetails({
                 openOnFocus
                 options={vetOptions}
                 getOptionLabel={option => option?.name || ''}
-                isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
                 loading={loadingDoctors}
                 value={
-                  vetOptions.filter(opt => (Array.isArray(field.value) ? field.value.includes(opt.id) : false)) || []
+                  Array.isArray(field.value)
+                    ? field.value.map(id => vetOptions.find(opt => opt.id === id)).filter(Boolean)
+                    : []
                 }
                 onChange={(_, newValue) => {
                   const selectedIds = newValue.map(item => item.id)
@@ -310,12 +313,12 @@ export default function BasicDetails({
                 openOnFocus
                 options={anesthetistOptions}
                 getOptionLabel={option => option?.name || ''}
-                isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
                 loading={loadingDoctors}
                 value={
-                  anesthetistOptions.filter(opt =>
-                    Array.isArray(field.value) ? field.value.includes(opt.id) : false
-                  ) || []
+                  Array.isArray(field.value)
+                    ? field.value.map(id => anesthetistOptions.find(opt => opt.id === id)).filter(Boolean)
+                    : []
                 }
                 onChange={(_, newValue) => {
                   const selectedIds = newValue.map(item => item.id)

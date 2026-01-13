@@ -385,7 +385,7 @@ export default function AddAnesthesiaRecord() {
       const params = {
         hospital_id: hospitalId,
         page_no: pageNo,
-        limit: 100
+        limit: 10
       }
       const res = await getHospitalStaff({ params })
       const data = res?.data
@@ -395,13 +395,18 @@ export default function AddAnesthesiaRecord() {
       }
 
       const mapped = data.records.map(item => ({
-        id: item.user_id,
+        id: String(item.user_id),
         name: item.user_full_name,
         default_icon: item.user_profile_pic,
         role_name: item.role_name
       }))
 
-      setDoctors(prev => (pageNo === 1 ? mapped : [...prev, ...mapped]))
+      setDoctors(prev => {
+        const merged = [...prev, ...mapped]
+
+        return Array.from(new Map(merged.map(item => [String(item.id), item])).values())
+      })
+
       setHasMore(data.current_page < data.total_pages)
       setPage(data.current_page)
     } catch (e) {
@@ -410,6 +415,37 @@ export default function AddAnesthesiaRecord() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (!anesthesiaDetail) return
+
+    const selectedUsers = [
+      ...(anesthesiaDetail.veterinarians || []).map(v => ({
+        id: String(v.user_id),
+        name: v.full_name,
+        role_name: v.role_name
+      })),
+      ...(anesthesiaDetail.anesthetists || []).map(a => ({
+        id: String(a.user_id),
+        name: a.full_name,
+        role_name: a.role_name
+      }))
+    ]
+
+    if (!selectedUsers.length) return
+
+    setDoctors(prev => {
+      const map = new Map(prev.map(d => [String(d.id), d]))
+
+      selectedUsers.forEach(user => {
+        if (!map.has(user.id)) {
+          map.set(user.id, user)
+        }
+      })
+
+      return Array.from(map.values())
+    })
+  }, [anesthesiaDetail])
 
   const fetchAssessmentList = async () => {
     const params = {
@@ -746,6 +782,20 @@ export default function AddAnesthesiaRecord() {
     [gases, setValue]
   )
 
+  useEffect(() => {
+    if (!anesthesiaDetail) return
+
+    setValue(
+      'basicDetails.veterinarian_id',
+      (anesthesiaDetail.veterinarians || []).map(v => String(v.user_id))
+    )
+
+    setValue(
+      'basicDetails.anesthetist_id',
+      (anesthesiaDetail.anesthetists || []).map(a => String(a.user_id))
+    )
+  }, [anesthesiaDetail, setValue])
+
   const handleUpdateMedication = React.useCallback(
     async (index, medicationData) => {
       const updatedMedications = Array.isArray(medications) ? [...medications] : []
@@ -1026,7 +1076,7 @@ export default function AddAnesthesiaRecord() {
     })
 
     const basicDetailsForm = {
-      location: detail?.location || '',
+      location: detail?.location || selectedHospital?.name || '',
       anaesthesia_datetime: detail?.anaesthesia_datetime
         ? dayjs.utc(detail.anaesthesia_datetime).local().format('YYYY-MM-DD HH:mm:ss')
         : '',
@@ -1470,7 +1520,7 @@ export default function AddAnesthesiaRecord() {
         // console.log('vitalMetaForBlocks (from vitalMonitorList):', JSON.stringify(vitalMetaForBlocks, null, 2))
 
         blocks = formColumnsToVitalMonitoringBlocks(columns, vitalMetaForBlocks)
-        console.log(blocks, 'blocks')
+
         blocks = (blocks || []).map(block => ({
           ...block,
           recorded_time: toBackendTime(block.recorded_time)
