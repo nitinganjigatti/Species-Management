@@ -158,22 +158,22 @@ const SpeciesMappedtoDiet = ({
     setSelectedSections([])
   }
 
-  useEffect(() => {
-    if (speciesData.length > 0 && tempSelectedSpecies.length > 0) {
-      const idField = selectionType === 'species' ? 'species_id' : 'animal_id'
+  // useEffect(() => {
+  //   if (speciesData.length > 0 && tempSelectedSpecies.length > 0) {
+  //     const idField = selectionType === 'species' ? 'species_id' : 'animal_id'
 
-      // Create a Set of all valid IDs from speciesData
-      const validIds = new Set(speciesData.map(item => item[idField]))
+  //     // Create a Set of all valid IDs from speciesData
+  //     const validIds = new Set(speciesData.map(item => item[idField]))
 
-      // Filter tempSelectedSpecies to only keep IDs that exist in speciesData
-      const filteredSelectedSpecies = tempSelectedSpecies.filter(id => validIds.has(id))
+  //     // Filter tempSelectedSpecies to only keep IDs that exist in speciesData
+  //     const filteredSelectedSpecies = tempSelectedSpecies.filter(id => validIds.has(id))
 
-      // Only update state if there were invalid IDs that needed to be removed
-      if (filteredSelectedSpecies.length !== tempSelectedSpecies.length) {
-        setTempSelectedSpecies(filteredSelectedSpecies)
-      }
-    }
-  }, [speciesData])
+  //     // Only update state if there were invalid IDs that needed to be removed
+  //     if (filteredSelectedSpecies.length !== tempSelectedSpecies.length) {
+  //       setTempSelectedSpecies(filteredSelectedSpecies)
+  //     }
+  //   }
+  // }, [speciesData])
 
   return (
     <Drawer

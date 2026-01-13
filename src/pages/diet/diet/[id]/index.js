@@ -248,15 +248,17 @@ const DietDetail = () => {
             setsepeciescountforFilter(totalCount)
           }
 
-          if (pageNo === 1 && tempSelectedSpecies.length <= 0) {
+          if (pageNo === 1 || searchQuery !== '') {
             setspeciesData(resultData)
             setAllFetchedData(resultData)
             if (filterState === 'species' && !searchQuery) {
               setspeciesDataforFilter(resultData)
             }
-          } else if (filterState === '' && tempSelectedSpecies.length > 0) {
-            setspeciesData(resultData)
-          } else if (filterState === '') {
+          }
+          // else if (filterState === '' && tempSelectedSpecies.length > 0) {
+          //   setspeciesData(resultData)
+          // }
+          else if (filterState === '') {
             setspeciesData(prevData => {
               const combinedData = [...prevData, ...resultData]
 
