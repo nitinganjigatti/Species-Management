@@ -168,6 +168,7 @@ const EditTreatmentDrawer = ({
                       label=''
                       format='DD MMM YYYY'
                       minDate={admissionDate}
+                      maxDate={dayjs()}
                       sx={{
                         ...commonFieldStyles,
                         '& .MuiOutlinedInput-root': {
@@ -307,8 +308,8 @@ const EditTreatmentDrawer = ({
                             lineHeight: '100%'
                           }}
                         >
-                          {/* {activity.author} • {formatTimestamp(activity.timestamp)} */}
-                          {activity.author} • {formatTimestamp(activity.treatment_start_date_time)}
+                          {activity.author} • {formatTimestamp(activity.timestamp)}
+                          {/* {activity.author} • {formatTimestamp(activity.treatment_start_date_time)} */}
                         </Typography>
                       </Box>
                       <IconButton
