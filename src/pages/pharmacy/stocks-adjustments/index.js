@@ -205,7 +205,7 @@ const ListOfStockAdjusted = () => {
       headerName: 'SL.NO',
       renderCell: params => (
         <Box sx={{ display: 'flex' }}>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }}>
             {parseInt(params.row.sl) + '.'}
           </Typography>
         </Box>
@@ -218,7 +218,9 @@ const ListOfStockAdjusted = () => {
       headerName: 'Product',
       renderCell: params => (
         <Tooltip title={params.row.stock_name}>
-          <Typography noWrap>{params.row.stock_name}</Typography>
+          <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }} noWrap>
+            {params.row.stock_name}
+          </Typography>
         </Tooltip>
       )
     },
@@ -230,7 +232,9 @@ const ListOfStockAdjusted = () => {
       renderCell: params => (
         <Tooltip title={params.row.batch_no}>
           {' '}
-          <Typography noWrap>{params.row.batch_no}</Typography>
+          <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }} noWrap>
+            {params.row.batch_no}
+          </Typography>
         </Tooltip>
       )
     },
@@ -239,7 +243,11 @@ const ListOfStockAdjusted = () => {
       minWidth: 100,
       field: 'adjustment_quantity',
       headerName: 'Qty',
-      renderCell: params => <Typography noWrap>{params.row.adjustment_quantity}</Typography>
+      renderCell: params => (
+        <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }} noWrap>
+          {params.row.adjustment_quantity}
+        </Typography>
+      )
     },
 
     {
@@ -266,7 +274,7 @@ const ListOfStockAdjusted = () => {
       field: 'expiry_date',
       headerName: 'Expiry',
       renderCell: params => (
-        <Typography noWrap>
+        <Typography noWrap sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }}>
           {params.row.expiry_date ? Utility.formatDisplayDate(params.row.expiry_date) : 'NA'}
         </Typography>
       )
