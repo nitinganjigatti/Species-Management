@@ -330,6 +330,10 @@ const AddSurgeryRecord = () => {
   const [isSurgerySaving, setIsSurgerySaving] = useState(false)
   const [localProcedureOptions, setLocalProcedureOptions] = useState([])
   const [surgeonSearchTerm, setSurgeonSearchTerm] = useState('')
+  const [doctors, setDoctors] = useState([])
+  const [doctorsPage, setDoctorsPage] = useState(1)
+  const [hasMoreDoctors, setHasMoreDoctors] = useState(true)
+  const [doctorsLoading, setDoctorsLoading] = useState(false)
   const [formResetKey, setFormResetKey] = useState(0)
   const selectedDate = watch('date')
   const startTimeValue = watch('startTime')
@@ -547,59 +551,74 @@ const AddSurgeryRecord = () => {
   }, [surgeryMasterResponse, localProcedureOptions])
 
   const hospitalId = patientData?.hospital_id
-  const { data: surgeonsResponse, isFetching: isSurgeonsLoading } = useQuery({
-    queryKey: ['surgeon-list', surgeonSearchTerm, hospitalId],
-    queryFn: async () => {
-      if (!hospitalId) {
-        return []
+  const getDoctorList = useCallback(async (hospitalId, pageNo = 1, searchTerm = '') => {
+    if (!hospitalId) return
+
+    setDoctorsLoading(true)
+    try {
+      const params = {
+        hospital_id: hospitalId,
+        page_no: pageNo,
+        limit: 10
       }
-
-      const params = { hospital_id: hospitalId }
-      const trimmed = surgeonSearchTerm.trim()
-
-      if (trimmed) {
-        params.q = trimmed
+      if (searchTerm.trim()) {
+        params.q = searchTerm.trim()
       }
-
       const res = await getHospitalStaff({ params })
+      const data = res?.data
 
-      if (res?.success) {
-        return Array.isArray(res?.data?.records) ? res.data.records : []
+      if (!data?.records?.length) {
+        setHasMoreDoctors(pageNo > 1)
+        if (pageNo === 1) setDoctors([])
+        return
       }
 
-      throw new Error(res?.message || 'Failed to fetch surgeons')
-    },
-    keepPreviousData: true,
-    staleTime: 5 * 60 * 1000,
-    retry: false,
-    enabled: Boolean(hospitalId),
-    onError: error => {
-      console.error('Failed to fetch surgeons:', error)
-      Toaster({ type: 'error', message: error?.message || 'Failed to load surgeon list' })
-    }
-  })
-
-  const surgeonOptions = useMemo(() => {
-    if (!Array.isArray(surgeonsResponse)) return []
-
-    return surgeonsResponse
-      .map(user => ({
-        label: getSafeString(user?.user_full_name),
-        value: getSafeString(user?.user_id),
-        default_icon: user?.user_profile_pic
+      const mapped = data.records.map(item => ({
+        id: String(item.user_id),
+        name: item.user_full_name,
+        default_icon: item.user_profile_pic,
+        role_name: item.role_name
       }))
-      .filter(item => item.label && item.value)
-  }, [surgeonsResponse])
 
-  const doctorOptions = useMemo(
-    () =>
-      surgeonOptions.map(opt => ({
-        name: opt.label,
-        id: opt.value,
-        default_icon: opt.default_icon
-      })),
-    [surgeonOptions]
+      if (pageNo === 1) {
+        setDoctors(mapped)
+      } else {
+        setDoctors(prev => {
+          const merged = [...prev, ...mapped]
+          return Array.from(new Map(merged.map(item => [item.id, item])).values())
+        })
+      }
+
+      setHasMoreDoctors(data.current_page < data.total_pages)
+      setDoctorsPage(data.current_page)
+    } catch (e) {
+      console.error(e)
+      Toaster({ type: 'error', message: 'Failed to load doctors' })
+    } finally {
+      setDoctorsLoading(false)
+    }
+  }, []) // Empty dependency array for useCallback as it's a stable function definition
+
+  useEffect(() => {
+    const hospitalId = patientData?.hospital_id
+    if (!hospitalId) {
+      setDoctors([])
+      return
+    }
+
+    getDoctorList(hospitalId, 1, surgeonSearchTerm)
+  }, [patientData?.hospital_id, surgeonSearchTerm, getDoctorList])
+
+  const loadMoreDoctors = () => {
+    if (!hasMoreDoctors || doctorsLoading) return
+    getDoctorList(patientData?.hospital_id, doctorsPage + 1, surgeonSearchTerm)
+  }
+
+  const surgeonOptions = useMemo(
+    () => doctors.map(d => ({ label: d.name, value: d.id, default_icon: d.default_icon })),
+    [doctors]
   )
+  const doctorOptions = doctors
 
   useEffect(() => {
     if (!isEditMode || !resolvedHospitalCaseId || !surgeryRecordId) return
@@ -1205,7 +1224,7 @@ const AddSurgeryRecord = () => {
                   key={`surgeon-${formResetKey}`}
                   label='Name of Surgeon'
                   options={surgeonOptions}
-                  loading={isSurgeonsLoading}
+                  loading={doctorsLoading}
                   onInputChange={handleSurgeonInputChange}
                   onItemClear={handleSurgeonClear}
                   getOptionLabel={surgeonGetOptionLabel}
@@ -1734,6 +1753,8 @@ const AddSurgeryRecord = () => {
         patientData={patientData}
         animalInfoData={animalInfoData}
         onSuccess={handleAnesthesiaCreateSuccess}
+        loadMoreDoctors={loadMoreDoctors}
+        loadingDoctors={doctorsLoading}
       />
       <SelectAnesthesiaRecordDrawer
         open={openSelectAnesthesiaDrawer}
