@@ -292,12 +292,28 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
               ml: { xs: 0, md: 1 }
             }}
           >
-            {mappedRecord.resolvedBy ? 'Resolved by' : 'Created by'}
+            {record.additional_info?.status === 'active'
+              ? record?.latest_note?.modified_at?.slice(0, 19) === record?.created_at
+                ? 'Created by'
+                : 'Updated by'
+              : 'Resolved by'}
           </Typography>
           <UserAvatarDetails
-            profile_image={mappedRecord.resolvedBy.avatar}
-            user_name={mappedRecord.resolvedBy.name}
-            date={mappedRecord.resolvedBy.date}
+            profile_image={
+              record?.additional_info?.status === 'active'
+                ? record?.updated_by_user_name
+                  ? record?.updated_user_profile_pic
+                  : record?.created_user_profile_pic
+                : record.additional_info?.resolved_user_profile_pic || record.created_by_user_name
+            }
+            user_name={
+              record?.additional_info?.status === 'active'
+                ? record?.updated_by_user_name
+                  ? record?.updated_by_user_name
+                  : record.created_by_user_name
+                : record.additional_info?.resolved_user_name
+            }
+            date={record?.latest_note?.modified_at || record.additional_info?.closed_at}
             show_time
             compact={true}
           />

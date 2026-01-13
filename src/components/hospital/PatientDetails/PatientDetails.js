@@ -119,7 +119,8 @@ const PatientDetails = ({ category }) => {
         purpose_of_visit: patientResponse.data?.purpose_of_visit,
         discharge_at: patientResponse.data?.discharge_at,
         site_id: patientResponse?.data?.animal_detail?.site_id,
-        hospital_case_id: patientResponse?.data?.hospital_case_id
+        hospital_case_id: patientResponse?.data?.hospital_case_id,
+        status: patientResponse?.data?.status
       })
     }
   }, [patientResponse?.data])

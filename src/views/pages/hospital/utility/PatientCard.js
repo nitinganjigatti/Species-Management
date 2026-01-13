@@ -72,6 +72,8 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
     } catch (error) {
       console.error('Error fetching discharge summary:', error)
       setDischargeSummaryLoading(false)
+    } finally {
+      setDischargeSummaryLoading(false)
     }
   }
 
@@ -370,8 +372,8 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
         <PatientVisitSummaryFilterDrawer
           open={openVisitSummaryFilterDrawer}
           onClose={() => setOpenVisitSummaryFilterDrawer(false)}
-          patientData={patientData}
-          animalData={animalData}
+          caseId={patientData?.hospital_case_id}
+          animalId={animalData?.animal_id}
         />
       )}
     </>

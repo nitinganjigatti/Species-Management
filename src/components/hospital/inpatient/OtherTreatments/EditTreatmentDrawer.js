@@ -440,6 +440,7 @@ const EditTreatmentDrawer = ({
               <Button
                 variant='contained'
                 fullWidth
+                onClick={onUpdate}
                 disabled={isSubmitting || !formData.notes}
                 sx={{
                   height: '56px',
