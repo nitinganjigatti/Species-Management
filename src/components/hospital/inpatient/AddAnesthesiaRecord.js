@@ -56,7 +56,9 @@ const AddanesthesiaRecordDrawer = ({
   anesthetistOptions = [],
   patientData = null,
   animalInfoData = null,
-  onSuccess = () => {}
+  onSuccess = () => {},
+  loadMoreDoctors = () => {},
+  loadingDoctors = false
 }) => {
   const theme = useTheme()
   const [purposeOptions, setPurposeOptions] = useState([])
@@ -339,6 +341,8 @@ const AddanesthesiaRecordDrawer = ({
                   vetOptions={vetOptions}
                   anesthetistOptions={anesthetistOptions}
                   purposeOptions={purposeOptions}
+                  loadMoreDoctors={loadMoreDoctors}
+                  loadingDoctors={loadingDoctors}
                 />
               </Card>
             </Box>
@@ -378,7 +382,7 @@ const AddanesthesiaRecordDrawer = ({
                 px: '24px'
               }}
             >
-              CANCEL
+              RESET
             </LoadingButton>
             <LoadingButton
               type='submit'
