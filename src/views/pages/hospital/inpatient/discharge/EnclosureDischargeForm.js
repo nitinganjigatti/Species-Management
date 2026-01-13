@@ -197,9 +197,8 @@ const EnclosureDischargeForm = props => {
     medId => {
       const updated = medicationData?.filter(med => med.id !== medId)
       updateState('enclosure_medicines', updated)
-      onDirtyChange?.(true)
     },
-    [medicationData, updateState, onDirtyChange]
+    [medicationData, updateState]
   )
 
   // Add actions column
@@ -470,7 +469,6 @@ const EnclosureDischargeForm = props => {
                   indexedRows={prescriptionData || []}
                   rowHeight={64}
                   externalTableStyle={{
-                    // '--unstable_DataGrid-headWeight': 600,
                     '& .MuiDataGrid-columnHeaders': {
                       backgroundColor: theme.palette.customColors.neutral05,
                       fontSize: '0.75rem',
