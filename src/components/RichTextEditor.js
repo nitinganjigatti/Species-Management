@@ -144,7 +144,7 @@ export default function RichTextEditor({ value, onChange, label, placeholder = '
           },
           '& .ql-toolbar': {
             border: 'none !important',
-            borderBottom: `1px solid ${theme.palette.divider}`,
+            borderBottom: `1px solid ${theme.palette.divider} !important`,
             borderTopLeftRadius: 8,
             borderTopRightRadius: 8
           },
