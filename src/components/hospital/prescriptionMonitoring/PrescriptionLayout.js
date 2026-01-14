@@ -613,6 +613,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
   const handleDetailDateChange = date => {
     setDetailSelectedDate(date)
+    setSelectedMedicationsFromDetail([])
   }
 
   const handleSelectAllAdministerrOrSkip = async (purpose, data) => {
