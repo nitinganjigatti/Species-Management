@@ -135,15 +135,15 @@ export default function RichTextEditor({ value, onChange, label, placeholder = '
 
       <Box
         sx={{
-          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+          border: `1px solid ${theme.palette.customColors.OutlineVariant} !important`,
           borderRadius: 1,
           background: theme.palette.customColors.OnPrimary,
           '& .ql-container': {
-            border: 'none',
+            border: 'none !important',
             fontSize: '0.95rem'
           },
           '& .ql-toolbar': {
-            border: 'none',
+            border: 'none !important',
             borderBottom: `1px solid ${theme.palette.divider}`,
             borderTopLeftRadius: 8,
             borderTopRightRadius: 8
