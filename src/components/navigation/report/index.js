@@ -58,7 +58,7 @@ const ComposeReportNavigation = ({
   }
 
   const caretakerReport = {
-    title: 'Caretaker Report',
+    title: 'Animal Keeper Report',
     path: '/report/caretaker-report',
     icon: 'mdi:account-group-outline'
   }

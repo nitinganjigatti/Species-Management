@@ -160,7 +160,7 @@ const CaretakerReport = () => {
           mx: { xs: 2, sm: 0, md: 0 },
           gap: { xs: 2, sm: 0, md: 0 }
         }}
-        title={RenderUtility.pageTitle('Caretaker Report')}
+        title={RenderUtility.pageTitle(viewType === 'animal' ? 'Animal Wise Report' : 'Keeper Wise Report')}
         action={
           viewType === 'animal' && (
             <LoadingButton
@@ -220,7 +220,7 @@ const CaretakerReport = () => {
         }}
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
-          <Typography sx={{ fontSize: '20px', fontWeight: 600 }}>Download Caretaker Report</Typography>
+          <Typography sx={{ fontSize: '20px', fontWeight: 600 }}>Download Animal Keeper Report</Typography>
           <IconButton onClick={handleCloseDownloadDialog} size='small'>
             <Icon icon='mdi:close' />
           </IconButton>
