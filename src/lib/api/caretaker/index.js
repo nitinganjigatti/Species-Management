@@ -28,3 +28,11 @@ export async function getAnimalKeepers(animalId, params) {
 
   return response.data
 }
+
+// Export animal-keeper report as Excel
+// filter: 'with_keeper' | 'without_keeper' | undefined (all)
+export async function exportAnimalKeeperReport(params) {
+  const response = await axiosGet({ url: 'v1/animal-staff-map/export', params })
+
+  return response.data
+}
