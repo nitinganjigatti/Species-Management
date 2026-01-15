@@ -1,21 +1,45 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Box, Card, CardContent, CardHeader, Typography, Chip, Grid } from '@mui/material'
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Typography,
+  Chip,
+  Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  IconButton
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
+import { LoadingButton } from '@mui/lab'
+import Icon from 'src/@core/components/icon'
 import UserWiseList from 'src/views/pages/report/caretaker-report/UserWiseList'
 import AnimalWiseList from 'src/views/pages/report/caretaker-report/AnimalWiseList'
-import { getKeepersWithAnimals, getAnimalsWithKeepers } from 'src/lib/api/caretaker'
+import { getKeepersWithAnimals, getAnimalsWithKeepers, exportAnimalKeeperReport } from 'src/lib/api/caretaker'
 import RenderUtility from 'src/utility/render'
 
 const PAGE_SIZE = 20
 
 const CaretakerReport = () => {
   const theme = useTheme()
-  const [viewType, setViewType] = useState('user')
+  const [viewType, setViewType] = useState('animal')
   const [loading, setLoading] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
+
+  // Download dialog state
+  const [downloadDialogOpen, setDownloadDialogOpen] = useState(false)
+  const [downloadFilter, setDownloadFilter] = useState('withKeeper')
 
   // User wise state
   const [keepers, setKeepers] = useState([])
@@ -85,6 +109,37 @@ const CaretakerReport = () => {
     fetchAnimals(model.page, model.pageSize)
   }
 
+  const handleOpenDownloadDialog = () => {
+    setDownloadFilter('withKeeper')
+    setDownloadDialogOpen(true)
+  }
+
+  const handleCloseDownloadDialog = () => {
+    setDownloadDialogOpen(false)
+  }
+
+  const handleDownloadReport = async () => {
+    setIsDownloading(true)
+    try {
+      // Build filter param based on selection
+      const filterParam =
+        downloadFilter === 'all' ? undefined : downloadFilter === 'withKeeper' ? 'with_keeper' : 'without_keeper'
+
+      const response = await exportAnimalKeeperReport({ filter: filterParam })
+
+      if (response?.success && response.data) {
+        // Open the download URL in a new tab
+        window.open(response.data, '_blank')
+      }
+
+      setDownloadDialogOpen(false)
+    } catch (error) {
+      console.error('Error downloading report:', error)
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
   const TabBadge = ({ label, totalCount }) => (
     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       {label}
@@ -106,6 +161,18 @@ const CaretakerReport = () => {
           gap: { xs: 2, sm: 0, md: 0 }
         }}
         title={RenderUtility.pageTitle('Caretaker Report')}
+        action={
+          viewType === 'animal' && (
+            <LoadingButton
+              size='medium'
+              variant='contained'
+              startIcon={<Icon icon='material-symbols:download' />}
+              onClick={handleOpenDownloadDialog}
+            >
+              Download Report
+            </LoadingButton>
+          )
+        }
       />
       <Grid sx={{ margin: '0px 1.375rem 1.375rem 1.375rem' }}>
         {viewType === 'user' ? (
@@ -132,17 +199,128 @@ const CaretakerReport = () => {
       <TabContext value={viewType}>
         <TabList variant='scrollable' allowScrollButtonsMobile onChange={handleViewChange}>
           <Tab
-            value='user'
-            label={<TabBadge label='User wise' totalCount={viewType === 'user' ? keepersPagination.total : null} />}
+            value='animal'
+            label={<TabBadge label='Animal Wise' totalCount={viewType === 'animal' ? animalsPagination.total : null} />}
           />
           <Tab
-            value='animal'
-            label={<TabBadge label='Animal wise' totalCount={viewType === 'animal' ? animalsPagination.total : null} />}
+            value='user'
+            label={<TabBadge label='Keeper Wise' totalCount={viewType === 'user' ? keepersPagination.total : null} />}
           />
         </TabList>
-        <TabPanel value='user'>{tableContent()}</TabPanel>
         <TabPanel value='animal'>{tableContent()}</TabPanel>
+        <TabPanel value='user'>{tableContent()}</TabPanel>
       </TabContext>
+
+      {/* Download Dialog */}
+      <Dialog
+        open={downloadDialogOpen}
+        onClose={handleCloseDownloadDialog}
+        PaperProps={{
+          sx: { borderRadius: '12px', minWidth: 400, maxWidth: 500 }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+          <Typography sx={{ fontSize: '20px', fontWeight: 600 }}>Download Caretaker Report</Typography>
+          <IconButton onClick={handleCloseDownloadDialog} size='small'>
+            <Icon icon='mdi:close' />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: theme.palette.text.secondary, mb: 3 }}>
+            Select which animals to include in the Excel report:
+          </Typography>
+          <RadioGroup value={downloadFilter} onChange={e => setDownloadFilter(e.target.value)}>
+            <Box
+              sx={{
+                border: `1px solid ${downloadFilter === 'all' ? theme.palette.primary.main : theme.palette.divider}`,
+                borderRadius: '8px',
+                p: 2,
+                mb: 2,
+                cursor: 'pointer',
+                backgroundColor: downloadFilter === 'all' ? theme.palette.primary.lighter : 'transparent'
+              }}
+              onClick={() => setDownloadFilter('all')}
+            >
+              <FormControlLabel
+                value='all'
+                control={<Radio color='primary' />}
+                label={
+                  <Box>
+                    <Typography sx={{ fontWeight: 600 }}>All Animals</Typography>
+                    <Typography sx={{ color: theme.palette.text.secondary, fontSize: '14px' }}>
+                      Download complete report
+                    </Typography>
+                  </Box>
+                }
+                sx={{ m: 0, width: '100%' }}
+              />
+            </Box>
+            <Box
+              sx={{
+                border: `1px solid ${downloadFilter === 'withKeeper' ? theme.palette.primary.main : theme.palette.divider}`,
+                borderRadius: '8px',
+                p: 2,
+                mb: 2,
+                cursor: 'pointer',
+                backgroundColor: downloadFilter === 'withKeeper' ? theme.palette.primary.lighter : 'transparent'
+              }}
+              onClick={() => setDownloadFilter('withKeeper')}
+            >
+              <FormControlLabel
+                value='withKeeper'
+                control={<Radio color='primary' />}
+                label={
+                  <Box>
+                    <Typography sx={{ fontWeight: 600 }}>With Keeper</Typography>
+                    <Typography sx={{ color: theme.palette.text.secondary, fontSize: '14px' }}>
+                      Only animals with assigned caretakers
+                    </Typography>
+                  </Box>
+                }
+                sx={{ m: 0, width: '100%' }}
+              />
+            </Box>
+            <Box
+              sx={{
+                border: `1px solid ${downloadFilter === 'withoutKeeper' ? theme.palette.primary.main : theme.palette.divider}`,
+                borderRadius: '8px',
+                p: 2,
+                cursor: 'pointer',
+                backgroundColor: downloadFilter === 'withoutKeeper' ? theme.palette.primary.lighter : 'transparent'
+              }}
+              onClick={() => setDownloadFilter('withoutKeeper')}
+            >
+              <FormControlLabel
+                value='withoutKeeper'
+                control={<Radio color='primary' />}
+                label={
+                  <Box>
+                    <Typography sx={{ fontWeight: 600 }}>Without Keeper</Typography>
+                    <Typography sx={{ color: theme.palette.text.secondary, fontSize: '14px' }}>
+                      Only animals without caretakers
+                    </Typography>
+                  </Box>
+                }
+                sx={{ m: 0, width: '100%' }}
+              />
+            </Box>
+          </RadioGroup>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'center', gap: 2 }}>
+          <Button variant='outlined' onClick={handleCloseDownloadDialog} sx={{ minWidth: 100 }}>
+            Cancel
+          </Button>
+          <LoadingButton
+            variant='contained'
+            loading={isDownloading}
+            startIcon={<Icon icon='material-symbols:download' />}
+            onClick={handleDownloadReport}
+            sx={{ minWidth: 150 }}
+          >
+            Download Excel
+          </LoadingButton>
+        </DialogActions>
+      </Dialog>
     </Grid>
   )
 }
