@@ -42,34 +42,53 @@ const RoomAnalytics = ({ isRoomStatsLoading, roomDetails }) => {
     >
       <CardContent sx={{ p: { xs: 2, sm: 4 } }}>
         <Grid container spacing={6} alignItems='center'>
-          <Grid size={{ xs: 6, sm: 4, md: 2.5 }}>
-            <StatBox label='Room Name' value={roomDetails?.room_name ?? '-'} />
+          <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+            <Typography
+              sx={{
+                color: theme.palette.customColors.neutralSecondary,
+                fontSize: '0.875rem'
+              }}
+            >
+              Room Name
+            </Typography>
+            {isRoomStatsLoading ? (
+              <CircularProgress size={20} />
+            ) : (
+              <TextEllipsisWithModal
+                enableDialog={false}
+                text={roomDetails?.room_name ?? '-'}
+                style={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '1rem',
+                  fontWeight: 500,
+                  maxWidth: '100%'
+                }}
+              />
+            )}
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 3.5 }}>
-            <Box>
-              <Typography
-                sx={{
-                  color: theme.palette.customColors.neutralSecondary,
-                  fontSize: '0.875rem'
+            <Typography
+              sx={{
+                color: theme.palette.customColors.neutralSecondary,
+                fontSize: '0.875rem'
+              }}
+            >
+              Hospital Name
+            </Typography>
+            {isRoomStatsLoading ? (
+              <CircularProgress size={20} />
+            ) : (
+              <TextEllipsisWithModal
+                enableDialog={false}
+                text={roomDetails?.hospital_name ?? '-'}
+                style={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '1rem',
+                  fontWeight: 500,
+                  maxWidth: '100%'
                 }}
-              >
-                Hospital Name
-              </Typography>
-              {isRoomStatsLoading ? (
-                <CircularProgress size={20} />
-              ) : (
-                <TextEllipsisWithModal
-                  enableDialog={false}
-                  text={roomDetails?.hospital_name ?? '-'}
-                  style={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '1rem',
-                    fontWeight: 500,
-                    maxWidth: { xs: '230px', md: '260px' }
-                  }}
-                />
-              )}
-            </Box>
+              />
+            )}
           </Grid>
 
           <Grid size={{ xs: 6, sm: 4, md: 1.5 }}>
@@ -78,10 +97,10 @@ const RoomAnalytics = ({ isRoomStatsLoading, roomDetails }) => {
           <Grid size={{ xs: 6, sm: 4, md: 1.2 }}>
             <StatBox label='Occupied' value={roomDetails?.no_of_occupied ?? '-'} />
           </Grid>
-          <Grid size={{ xs: 6, sm: 4, md: 1 }}>
+          <Grid size={{ xs: 6, sm: 4, md: 1.1 }}>
             <StatBox label='Floor' value={roomDetails?.floor_name ?? '-'} />
           </Grid>
-          <Grid size={{ xs: 6, sm: 4, md: 2.3 }}>
+          <Grid size={{ xs: 6, sm: 4, md: 2.7 }}>
             {isRoomStatsLoading ? (
               <CircularProgress size={20} />
             ) : (
