@@ -7,11 +7,12 @@ import { Grid, Card, CardContent, Box, CardHeader, Divider } from '@mui/material
 import Icon from 'src/@core/components/icon'
 
 // ** Custom Components
-import PharmacySettingsDrawer from '../../../views/pages/pharmacy/store/pharmacy-settings/PharmacySettingsDrawer'
+// import PharmacySettingsDrawer from '../../../views/pages/pharmacy/store/pharmacy-settings/PharmacySettingsDrawer'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { AuthContext } from 'src/context/AuthContext'
+import PharmacySettingsDrawer from 'src/views/pages/pharmacy/store/pharmacy-settings/PharmacySettingsDrawer'
 
 // ** API
 import { getPharmacySettingsList, submitPharmacySettings } from 'src/lib/api/pharmacy/pharmacySettings'
@@ -51,10 +52,14 @@ const PharmacySettingsList = () => {
     const response = await getUserList({ zoo_id: userData?.user?.zoos[0].zoo_id })
     if (response?.success) {
       setUsersList(
-        response?.data?.map(user => ({
-          label: user.user_name || user.name,
-          value: String(user.user_id || user.id)
-        }))
+        response?.data?.map(user => {
+          // debugger
+
+          return {
+            label: user.user_name || user.name,
+            value: String(user.user_id || user.id)
+          }
+        })
       )
     }
   }, [userData])
@@ -168,7 +173,7 @@ const PharmacySettingsList = () => {
               </Box>
             }
           />
-          <Divider />
+          {/* <Divider /> */}
           <CardContent sx={{ px: 2 }}>
             <CommonTable hideFooter disablePagination indexedRows={tableData} columns={columns} loading={loading} />
           </CardContent>

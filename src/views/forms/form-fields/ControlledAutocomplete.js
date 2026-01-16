@@ -69,7 +69,7 @@ const ControlledAutocomplete = ({
               renderOption
                 ? renderOption
                 : (props, option, { selected }) => (
-                    <li {...props}>
+                    <li {...props} key={option?.value}>
                       {multiple && (
                         <Checkbox icon={icon} checkedIcon={checkedIcon} checked={selected} style={{ marginRight: 8 }} />
                       )}

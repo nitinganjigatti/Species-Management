@@ -1,8 +1,7 @@
-import { Fragment } from 'react'
-
 // ** MUI Imports
 import { styled } from '@mui/material/styles'
-import { Drawer, Box, FormControl, IconButton, LoadingButton, Typography, Button } from '@mui/material'
+import { Drawer, Box, FormControl, IconButton, Typography, Button } from '@mui/material'
+import { LoadingButton } from '@mui/lab'
 
 // ** Third Party Imports
 import * as yup from 'yup'
@@ -55,19 +54,6 @@ const PharmacySettingsDrawer = props => {
     onSubmit(payloadKeys)
   }
 
-  const RenderSidebarFooter = () => {
-    return (
-      <Fragment>
-        <LoadingButton size='large' type='submit' variant='contained' loading={isLoading} sx={{ mr: 3 }}>
-          Submit
-        </LoadingButton>
-        <Button size='large' variant='outlined' color='secondary' onClick={handleClose}>
-          Cancel
-        </Button>
-      </Fragment>
-    )
-  }
-
   return (
     <Drawer
       open={open}
@@ -89,7 +75,6 @@ const PharmacySettingsDrawer = props => {
           onSubmit={handleSubmit(onFormSubmit)}
           style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
         >
-          {console.log('errors', errors)}
           <Box sx={{ flex: 1 }}>
             <FormControl fullWidth sx={{ mb: 6 }}>
               <ControlledAutocomplete
@@ -107,7 +92,12 @@ const PharmacySettingsDrawer = props => {
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 4 }}>
-            <RenderSidebarFooter />
+            <LoadingButton size='large' type='submit' variant='contained' loading={isLoading} sx={{ mr: 3 }}>
+              Submit
+            </LoadingButton>
+            <Button size='large' variant='outlined' color='secondary' onClick={handleClose}>
+              Cancel
+            </Button>
           </Box>
         </form>
       </Box>
