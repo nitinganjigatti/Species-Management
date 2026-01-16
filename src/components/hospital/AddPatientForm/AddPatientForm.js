@@ -48,19 +48,7 @@ import BottomActionBar from 'src/views/utility/BottomActionBar'
 
 // import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
-const defaultValues = {
-  treatmentType: 'inpatient',
-  purposeOfVisit: '',
-  visitType: '',
-  medicalRecordId: '',
-  holdingEnclosure: null,
-  medicalRecordChoice: 'new',
-  selectedAnimal: null,
-  selectedDoctor: null,
-  admission_date: dayjs(),
-  admission_time: dayjs(),
-  room: null
-}
+
 
 const treatmentType = [
   { label: 'OPD(outpatient)', value: 'opd' },
@@ -96,11 +84,26 @@ const schema = yup.object().shape({
   room: yup.object().required('Room is required')
 })
 
-const AddPatientForm = () => {
+const AddPatientForm = ({ defaultTreatmentType }) => {
   const theme = useTheme()
+
   const router = useRouter()
   const authData = useContext(AuthContext)
   const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
+
+  const defaultValues = {
+    treatmentType: defaultTreatmentType || 'inpatient',
+    purposeOfVisit: '',
+    visitType: '',
+    medicalRecordId: '',
+    holdingEnclosure: null,
+    medicalRecordChoice: 'new',
+    selectedAnimal: null,
+    selectedDoctor: null,
+    admission_date: dayjs(),
+    admission_time: dayjs(),
+    room: null
+  }
 
   const { selectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } = useHospital()
   const [medicalId, setMedicalId] = useState([])
