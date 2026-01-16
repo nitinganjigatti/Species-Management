@@ -99,13 +99,6 @@ const getAnesthesiaIdentifier = value => {
   return value?.anaesthesia_id ?? ''
 }
 
-const getAutocompleteLabel = value => {
-  if (!value) return ''
-  if (typeof value === 'string') return value
-
-  return value?.label ?? ''
-}
-
 const getSurgeryRecordIdentifier = record => {
   if (!record || typeof record !== 'object') return ''
   if (record.id !== undefined && record.id !== null) return String(record.id)
@@ -322,8 +315,6 @@ const AddSurgeryRecord = () => {
   const [pendingAnesthesiaRecord, setPendingAnesthesiaRecord] = useState(null)
   const [richNote, setRichNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [prefillLoading, setPrefillLoading] = useState(false)
-  const [prefillError, setPrefillError] = useState('')
   const [prefillDetail, setPrefillDetail] = useState(null)
   const [procedureSearchTerm, setProcedureSearchTerm] = useState('')
   const [openAddSurgeryDrawer, setOpenAddSurgeryDrawer] = useState(false)
@@ -550,7 +541,6 @@ const AddSurgeryRecord = () => {
     return Array.from(unique.values())
   }, [surgeryMasterResponse, localProcedureOptions])
 
-  const hospitalId = patientData?.hospital_id
   const getDoctorList = useCallback(async (hospitalId, pageNo = 1, searchTerm = '') => {
     if (!hospitalId) return
 
@@ -626,9 +616,6 @@ const AddSurgeryRecord = () => {
     let isMounted = true
 
     const fetchSurgeryRecord = async () => {
-      setPrefillLoading(true)
-      setPrefillError('')
-
       try {
         const response = await getPatientSurgeryList({ params: { hospital_case_id: resolvedHospitalCaseId } })
         const records = Array.isArray(response?.data?.surgery_records) ? response.data.surgery_records : []
@@ -639,19 +626,13 @@ const AddSurgeryRecord = () => {
         if (match) {
           applyPrefillFromRecord(match?.detail || match)
         } else {
-          setPrefillError('Surgery record not found.')
           Toaster({ type: 'error', message: 'Surgery record not found.' })
         }
       } catch (error) {
         if (!isMounted) return
         console.error('Failed to load surgery record', error)
         const message = error?.response?.data?.message || error?.message || 'Failed to load surgery record.'
-        setPrefillError(message)
         Toaster({ type: 'error', message })
-      } finally {
-        if (isMounted) {
-          setPrefillLoading(false)
-        }
       }
     }
 
@@ -702,34 +683,6 @@ const AddSurgeryRecord = () => {
   const animalInfoData = useMemo(() => buildAnimalInfoData(patientData), [patientData])
   const minDate = useMemo(() => (admissionDateTime ? admissionDateTime.startOf('day') : null), [admissionDateTime])
   const maxDate = dayjs()
-
-  // const buildReturnUrl = useCallback(() => {
-  //   const getFirst = value => (Array.isArray(value) ? value[0] : value || '')
-
-  //   if (router.query?.returnUrl) {
-  //     const fromQuery = getFirst(router.query.returnUrl)
-  //     if (fromQuery) return fromQuery
-  //   }
-
-  //   const basePath = resolvedHospitalCaseId ? `/hospital/inpatient/${resolvedHospitalCaseId}` : '/hospital/inpatient'
-  //   const params = new URLSearchParams()
-
-  //   const animalId = getFirst(router.query?.animal_id) || (patientData?.animal_id ? String(patientData.animal_id) : '')
-  //   const medicalRecord = getFirst(router.query?.medical_record_id) || medicalRecordId
-  //   const admittedDate =
-  //     getFirst(router.query?.animal_admitted_date) ||
-  //     (patientData?.admitted_at ? String(patientData.admitted_at) : '')
-  //   const tab = getFirst(router.query?.tab) || 'surgery'
-
-  //   if (animalId) params.set('animal_id', animalId)
-  //   if (medicalRecord) params.set('medical_record_id', medicalRecord)
-  //   if (admittedDate) params.set('animal_admitted_date', admittedDate)
-  //   if (tab) params.set('tab', tab)
-
-  //   const queryString = params.toString()
-
-  //   return queryString ? `${basePath}?${queryString}` : basePath
-  // }, [router.query, resolvedHospitalCaseId, medicalRecordId, patientData?.animal_id, patientData?.admitted_at])
 
   useEffect(() => {
     if (!selectedDate || !startTimeValue || !endTimeValue) {
@@ -991,9 +944,6 @@ const AddSurgeryRecord = () => {
             (isEditMode ? 'Surgery record updated successfully' : 'Surgery record added successfully')
         })
         resetForm()
-
-        // const redirectUrl = buildReturnUrl()
-        // router.push(redirectUrl)
         router.back()
       } else {
         Toaster({
@@ -1656,61 +1606,6 @@ const AddSurgeryRecord = () => {
           acceptedFileTypes='images,pdf,csv,audio,videos'
         />
       </Card>
-
-      {/* <Box
-        sx={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 11,
-          backgroundColor: theme.palette.primary.contrastText,
-          boxShadow: `0px -8px 12px 0px ${theme.palette.customColors.shadowColor}`,
-          height: { sm: '108px' },
-          borderRadius: '4px',
-          pl: '24px',
-          pr: '84px',
-          py: '16px',
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          justifyContent: 'flex-end',
-          gap: '24px',
-          alignItems: 'center',
-          alignSelf: 'stretch'
-        }}
-      >
-        <Button
-          variant='outlined'
-          onClick={handleCancelForm}
-          disabled={isSubmitting}
-          sx={{
-            height: '56px',
-            minWidth: { xs: '100%', sm: '160px' },
-            borderColor: theme.palette.customColors.Outline,
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontWeight: 600,
-            letterSpacing: 0,
-            px: '24px'
-          }}
-        >
-          RESET
-        </Button>
-        <Button
-          type='submit'
-          form={FORM_ID}
-          variant='contained'
-          disabled={isSubmitting}
-          sx={{
-            height: '56px',
-            minWidth: { xs: '100%', sm: '160px' },
-            fontWeight: 600,
-            letterSpacing: 0,
-            px: '24px'
-          }}
-        >
-          {isSubmitting ? (isEditMode ? 'Updating...' : 'Submitting...') : isEditMode ? 'UPDATE' : 'SAVE'}
-        </Button>
-      </Box> */}
 
       <BottomActionBar
         onCancel={handleCancelForm}

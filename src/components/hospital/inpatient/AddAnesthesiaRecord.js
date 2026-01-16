@@ -16,6 +16,12 @@ import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 
 const FORM_ID = 'add-anesthesia-record-form'
 
+const getSafeString = value => {
+  if (value === undefined || value === null) return ''
+
+  return String(value)
+}
+
 const anesthesiaSchema = yup.object().shape({
   basicDetails: yup.object().shape({
     location: yup.string().trim().required('Location is required'),
@@ -62,6 +68,17 @@ const AddanesthesiaRecordDrawer = ({
 }) => {
   const theme = useTheme()
   const [purposeOptions, setPurposeOptions] = useState([])
+  const holdingLocation = [patientData?.bed_name, patientData?.room_name].filter(Boolean).join(', ')
+  const chiefVeterinarian = patientData?.admitted_by_full_name || patientData?.attend_by_full_name
+  const animalImage = getSafeString(patientData?.animal_detail?.default_icon)
+  const animalName = getSafeString(
+    patientData?.animal_detail?.common_name || patientData?.animal_detail?.default_common_name
+  )
+  const animalScientificName = getSafeString(
+    patientData?.animal_detail?.complete_name || patientData?.animal_detail?.scientific_name
+  )
+  const animalAge = getSafeString(patientData?.animal_detail?.age)
+  const animalSex = getSafeString(patientData?.animal_detail?.sex)
 
   const methods = useForm({
     defaultValues,
@@ -205,7 +222,6 @@ const AddanesthesiaRecordDrawer = ({
       fetchPurposes()
     }
   }, [openAddanesthesiaDrawer])
-  console.log('patientData', patientData)
 
   return (
     <Drawer
@@ -260,16 +276,16 @@ const AddanesthesiaRecordDrawer = ({
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               {patientData ? (
                 <AnimalInfoCard
-                  image={patientData?.animal_detail?.default_icon}
-                  name={patientData?.animal_detail?.common_name}
-                  scientificName={patientData?.animal_detail?.complete_name}
-                  age={`${patientData?.animal_detail?.age}`}
-                  gender={`${patientData?.animal_detail?.sex}`}
+                  image={animalImage}
+                  name={animalName}
+                  scientificName={animalScientificName}
+                  age={animalAge}
+                  gender={animalSex}
                   additionalFields={[
-                    { label: 'AID', value: patientData?.animal_detail?.animal_id },
-                    { label: 'Admitted days', value: patientData?.admitted_for_day },
-                    { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
-                    { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }
+                    { label: 'AID', value: getSafeString(patientData?.animal_detail?.animal_id) },
+                    { label: 'Admitted days', value: getSafeString(patientData?.admitted_for_day) },
+                    { label: 'Holding Location', value: holdingLocation },
+                    { label: 'Chief Veterinarian', value: getSafeString(chiefVeterinarian) }
                   ]}
                   backgroundColor={theme.palette.customColors.OnPrimary}
                   isLoading={!patientData}
