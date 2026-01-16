@@ -170,9 +170,13 @@ export default function PrescriptionMedicineList({
                 sx={{
                   fontWeight: 600,
                   fontSize: '16px',
-                  color: theme.palette.customColors.OnSurfaceVariant
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  display: 'flex',
+                  alignItems: 'center'
                 }}
               >
+                {RenderUtility?.renderControlLabel(option?.controlled_substance, 'CS')}
+                {RenderUtility?.renderPrescriptionLabel(option?.prescription_required, 'PR')}
                 {option.label || option.name}
               </Box>
               <Box
@@ -341,7 +345,9 @@ export default function PrescriptionMedicineList({
                       fontSize: '16px',
                       lineHeight: '100%',
                       letterSpacing: '0.1px',
-                      verticalAlign: 'middle'
+                      verticalAlign: 'middle',
+                      display: 'flex',
+                      alignItems: 'center'
                     }}
                   >
                     {RenderUtility?.renderControlLabel(medicine?.controlled_substance, 'CS')}
