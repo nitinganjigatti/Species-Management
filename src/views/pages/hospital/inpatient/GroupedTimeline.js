@@ -1,5 +1,5 @@
 import React from 'react'
-import { Grid, Box, FormControl, MenuItem, Select, Skeleton, Tooltip, Typography } from '@mui/material'
+import { Grid, Box, FormControl, MenuItem, Select, Skeleton, Typography } from '@mui/material'
 import Timeline from '@mui/lab/Timeline'
 import TimelineItem, { timelineItemClasses } from '@mui/lab/TimelineItem'
 import { timelineOppositeContentClasses } from '@mui/lab'
@@ -11,10 +11,10 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import { useTheme, styled } from '@mui/material/styles'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import Search from 'src/views/utility/Search'
-import { FilterButton } from 'src/views/utility/render-snippets'
 import Utility from 'src/utility'
-import NoDataFound from 'src/views/utility/NoDataFound'
-import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const medicalTypeOptions = [
   { label: 'All Activities', value: '' },
@@ -27,15 +27,6 @@ const medicalTypeOptions = [
 const TimelineEvent = ({ entry, isFirst, isLast }) => {
   const theme = useTheme()
 
-  const snakeToTitleCase = title => {
-    if (!title || typeof title !== 'string') return 'NA'
-
-    return title
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
-  }
-
   return (
     <TimelineItem sx={{ minHeight: '5rem' }}>
       <StyledTimelineOppositeContent>
@@ -47,7 +38,7 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
             visibility: isFirst ? 'hidden' : 'visible',
             minHeight: isFirst ? 0 : '1.25rem',
             backgroundColor: theme.palette.customColors.OnPrimaryContainer,
-            width: '1.6px'
+            width: '1.5px'
           }}
         />
         <Box
@@ -68,7 +59,7 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
             visibility: isLast ? 'hidden' : 'visible',
             minHeight: isLast ? 0 : '1.25rem',
             backgroundColor: theme.palette.customColors.OnPrimaryContainer,
-            width: '1.6px'
+            width: '1.5px'
           }}
         />
       </TimelineSeparator>
@@ -82,46 +73,21 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
           wrap='nowrap' // Prevents wrapping
           sx={{ xs: '100%', minWidth: '540px' }} // Minimum width similar to iPad layout
         >
-          <Grid size={{ xs: 3 }} sx={{ display: 'flex', flexDirection: 'column' }}>
-            <TextEllipsisWithModal
-              placement='top'
-              enableDialog={false}
-              text={snakeToTitleCase(entry?.title)}
-              style={{
-                fontWeight: 600,
-                fontSize: '1rem',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                maxWidth: '100%'
-              }}
-            />
-            <TextEllipsisWithModal
-              enableDialog={false}
-              text={snakeToTitleCase(
-                entry?.details?.medical_record_number ? entry?.details?.medical_record_number : 'NA'
-              )}
-              style={{
-                fontWeight: 400,
-                fontSize: '0.75rem',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                maxWidth: '100%'
-              }}
-            />
+          <Grid size={{ xs: 3 }} sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', gap: 1 }}>
+            <StyledTypography fontWeight={600}>{entry?.title}</StyledTypography>
+            <StyledTypography fontWeight={400} fontSize={'0.75rem'}>
+              {entry?.details?.medical_record_number}
+            </StyledTypography>
           </Grid>
           <Grid
             size={{ xs: 6 }}
             sx={{
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              textAlign: entry?.complaints ? 'justify' : 'center'
+              display: 'flex',
+              alignItems: 'center'
             }}
           >
             <StyledTypography fontSize={'0.875rem'} fontWeight={500}>
-              <Tooltip title={entry?.complaints || 'NA'} arrow placement='top'>
-                {entry?.details?.complaints || 'NA'}
-              </Tooltip>
+              {entry?.details?.complaints || '--'}
             </StyledTypography>
           </Grid>
           <Grid
@@ -146,7 +112,7 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
 const TimelineSection = ({ section }) => {
   const theme = useTheme()
 
-  if (!section?.entries || section.entries.length === 0) return
+  if (!section?.entries || section?.entries?.length === 0) return
 
   return (
     <Box sx={{}}>
@@ -173,6 +139,7 @@ const TimelineSection = ({ section }) => {
 const GroupedTimeline = ({
   medicalSummaryData,
   isLoading,
+  isRefetching,
   searchQuery,
   onSearchChange,
   onMedicalTypeChange,
@@ -180,95 +147,140 @@ const GroupedTimeline = ({
   onClearSearch,
   lastTimelineRef,
   hasNextPage,
-  isFetchingNextPage
+  isFetchingNextPage,
+  setOpenFilterDrawer,
+  filterCount,
+  filterDate,
+  setFilterDate,
+  hasActiveFilters
 }) => {
   const theme = useTheme()
 
-  return (
-    <>
-      <Box sx={{ width: '100%', mt: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-        <>
+  const dataLength = medicalSummaryData?.length || 0
+  const noData = dataLength === 0
+  const filtering = hasActiveFilters
+
+  const Header = (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: { xs: 'center', sm: 'space-between' },
+        alignItems: { xs: 'stretch', sm: 'center' },
+        gap: 3,
+        mb: '1.5rem'
+      }}
+    >
+      <Search
+        borderRadius='4px'
+        width={{ xs: '100%', sm: 222 }}
+        value={searchQuery}
+        onChange={e => onSearchChange(e.target.value)}
+        onClear={onClearSearch}
+      />
+
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <CommonDateRangePickers
+          filterDates={filterDate}
+          onChange={(start, end) => setFilterDate({ startDate: start, endDate: end })}
+        />
+
+        <FilterButtonWithNotification onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={filterCount} />
+      </Box>
+    </Box>
+  )
+
+  if (isLoading && !filtering) {
+    return (
+      <Box sx={{ mt: 2 }}>
+        <TimelineSkeleton />
+      </Box>
+    )
+  }
+
+  if (!isLoading && !filtering && noData) {
+    return (
+      <Box
+        sx={{
+          width: '100%',
+          mt: '2rem',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}
+      >
+        <NoMedicalData isDischarged={true} />
+      </Box>
+    )
+  }
+
+  if (filtering && noData) {
+    return (
+      <Box sx={{ width: '100%', mt: '1.5rem' }}>
+        {Header}
+
+        {/* Show skeleton while filtering refetch or initial load */}
+        {isLoading || isRefetching ? (
+          <TimelineSkeleton />
+        ) : (
           <Box
             sx={{
+              width: '100%',
+              mt: 4,
               display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: { xs: 'center', sm: 'space-between' },
-              alignItems: { xs: 'stretch', sm: 'center' },
-              gap: 3,
-              mb: '1.5rem'
+              justifyContent: 'center',
+              alignItems: 'center'
             }}
           >
-            <Search
-              borderRadius={'4px'}
-              width={{ xs: '100%', sm: 222 }}
-              value={searchQuery}
-              onChange={e => onSearchChange(e.target.value)}
-              onClear={onClearSearch}
-            />
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <FormControl sx={{ minWidth: 120, flex: 1, m: 0 }}>
-                <Select
-                  value={medicalType}
-                  onChange={e => onMedicalTypeChange(e.target.value)}
-                  displayEmpty
-                  inputProps={{ 'aria-label': 'Without label' }}
-                  sx={{
-                    height: 40,
-                    width: { xs: '100%', sm: 200 },
-                    borderRadius: '4px'
-                  }}
-                >
-                  {medicalTypeOptions?.map(type => (
-                    <MenuItem key={type.value} value={type.value}>
-                      {type.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <FilterButton />
-            </Box>
+            <NoMedicalData isDischarged={true} />
           </Box>
-
-          {isLoading ? (
-            <TimelineSkeleton />
-          ) : medicalSummaryData?.length > 0 ? (
-            <>
-              {medicalSummaryData?.map((section, index) => {
-                const isLast = index === medicalSummaryData.length - 1
-
-                return (
-                  <Box key={`${section?.date}-${index}`} ref={isLast ? lastTimelineRef : null} sx={{ mb: '1rem' }}>
-                    <TimelineSection section={section} />
-                  </Box>
-                )
-              })}
-              {/* Show skeleton only when fetching more pages and we already have data */}
-              {isFetchingNextPage && medicalSummaryData.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <TimelineSkeleton />
-                </Box>
-              )}
-
-              {/*  Show "No more data" */}
-              {!hasNextPage && medicalSummaryData.length > 0 && (
-                <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.text.disabled }}>
-                  No more medical summary data to load
-                </StyledTypography>
-              )}
-            </>
-          ) : (
-            <NoDataFound variant='Seal' height={300} width={300} />
-          )}
-        </>
+        )}
       </Box>
-    </>
+    )
+  }
+
+  return (
+    <Box sx={{ width: '100%', mt: '1.5rem' }}>
+      {Header}
+
+      {/* If filtering and refetching, show skeleton for data section */}
+      {isRefetching && filtering && (
+        <Box sx={{ mt: 2 }}>
+          <TimelineSkeleton />
+        </Box>
+      )}
+
+      {/* Data List */}
+      {!isRefetching &&
+        medicalSummaryData?.map((section, index) => {
+          const isLast = index === dataLength - 1
+
+          return (
+            <Box key={`${section?.date}-${index}`} ref={isLast ? lastTimelineRef : null} sx={{ mb: '1rem' }}>
+              <TimelineSection section={section} />
+            </Box>
+          )
+        })}
+
+      {/* Show skeleton only when fetching more pages */}
+      {isFetchingNextPage && (
+        <Box sx={{ mt: 2 }}>
+          <TimelineSkeleton />
+        </Box>
+      )}
+
+      {/*  Show "No more data" */}
+      {!hasNextPage && dataLength > 9 && (
+        <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.text.disabled }}>
+          No more medical summary data to load
+        </StyledTypography>
+      )}
+    </Box>
   )
 }
 
 export default GroupedTimeline
 
-// Styled Components
 const StyledTimeline = styled(Timeline)(() => ({
   [`& .${timelineOppositeContentClasses.root}`]: {
     flex: 0,
@@ -326,7 +338,6 @@ const StyledTypography = styled(Typography)(({ theme, fontWeight, fontSize, colo
   color: color || theme.palette.customColors.OnSurfaceVariant
 }))
 
-// skeleton loader
 const TimelineSkeleton = () => {
   return (
     <Timeline

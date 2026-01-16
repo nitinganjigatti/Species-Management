@@ -4,7 +4,7 @@ import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import Icon from 'src/@core/components/icon'
 
 const truncateText = (text, limit) => {
-  return text.length > limit ? text.slice(0, limit) + '...' : text
+  return text?.length > limit ? text.slice(0, limit) + '...' : text
 }
 
 const TextEllipsisWithModal = ({ enableDialog = true, placement = 'bottom', arrow = false, ...props }) => {
@@ -23,7 +23,7 @@ const TextEllipsisWithModal = ({ enableDialog = true, placement = 'bottom', arro
         sx={{
           display: 'flex',
           color: 'customColors.neutralSecondary',
-          cursor: 'pointer',
+          cursor: enableDialog ? 'pointer' : 'text',
           alignItems: 'center'
         }}
       >
@@ -33,7 +33,7 @@ const TextEllipsisWithModal = ({ enableDialog = true, placement = 'bottom', arro
             style={{ fontSize: '20px', color: props?.iconColor ? props?.iconColor : '#00000066', flexShrink: 0 }}
           />
         )}
-        <Tooltip sx={{ cursor: 'pointer' }} title={props?.text} placement={placement} arrow={arrow}>
+        <Tooltip title={props?.text} placement={placement} arrow={arrow}>
           <Typography
             variant='body2'
             sx={{
@@ -41,7 +41,7 @@ const TextEllipsisWithModal = ({ enableDialog = true, placement = 'bottom', arro
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
               overflow: 'hidden',
-              cursor: 'pointer',
+              cursor: enableDialog ? 'pointer' : 'text',
               maxWidth: '100px',
               ...props?.style
             }}

@@ -114,7 +114,9 @@ export const SaveTemplateButton = ({
   fontSize = '16px',
   onClick = () => {},
   loading = false,
-  loadingText = 'Saving...'
+  loadingText = 'Saving...',
+  iconSize,
+  sx = {}
 }) => {
   const theme = useTheme()
 
@@ -123,13 +125,21 @@ export const SaveTemplateButton = ({
       <Box>
         <Button
           onClick={onClick}
-          startIcon={<Icon icon={'material-symbols:save-outline-sharp'} color={theme.palette.customColors.OnSurface} />}
+          startIcon={
+            <Icon
+              icon={'material-symbols:save-outline-sharp'}
+              color={theme.palette.customColors.OnSurface}
+              width={iconSize}
+              height={iconSize}
+            />
+          }
           sx={{
             display: 'flex',
             alignItems: 'center',
             color: `${fontColor ? fontColor : theme.palette.customColors.OnSurface}`,
             fontSize: fontSize,
-            fontWeight: fontWeight
+            fontWeight: fontWeight,
+            ...sx
           }}
         >
           {loading ? loadingText : text}

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Typography, Box, ListItem, List } from '@mui/material'
+import { Typography, Box } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Utility from 'src/utility'
 
@@ -7,24 +7,26 @@ const ObservationView = ({ data: { child_enrichment_type, master_enrichment_type
   const theme = useTheme()
 
   // Parse child enrichment types from comma-separated string
-  const childEnrichmentTypes = child_enrichment_type
-    ?.split(',')
-    ?.map(item => item.trim())
-    ?.filter(item => item.length > 0)
+  const childEnrichmentTypes = Array.isArray(child_enrichment_type)
+    ? child_enrichment_type
+        .map(item => (typeof item === 'string' ? item.trim() : item))
+        .filter(item => (typeof item === 'string' ? item.length > 0 : Boolean(item)))
+    : `${child_enrichment_type ?? ''}`
+        .split(',')
+        .map(item => item.trim())
+        .filter(item => item.length > 0)
 
   // Format date and time
   const formatDateTime = dateTime => {
     const formattedDateStr = Utility.convertUTCToLocalDateTime(dateTime)
 
-    // Split into date and time
-    const [date, time] = formattedDateStr.split(/(?<=^.{11})\s/) // Split after the first 11 chars (date part)
-
-    // Convert to IST using Intl.DateTimeFormat
+    const [date = '', time = ''] = formattedDateStr.split('|').map(part => part.trim())
 
     return { date, time }
   }
 
   const { date, time } = formatDateTime(date_time)
+  const showConnector = childEnrichmentTypes.length > 1
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', px: 2, py: '16px' }}>
@@ -34,36 +36,29 @@ const ObservationView = ({ data: { child_enrichment_type, master_enrichment_type
       {/* <Typography variant='body2' color='text.secondary'>
         -
       </Typography> */}
-      <List
-        dense
-        sx={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          columnGap: 5,
-          padding: 0,
-          listStyleType: 'disc',
-          pl: 3
-        }}
-        component='ul'
-      >
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
         {childEnrichmentTypes?.map((type, index) => (
-          <ListItem
-            key={index}
-            sx={{
-              fontSize: '14px',
-              color: theme.palette.customColors.OnSurfaceVariant,
-              width: 'auto',
-              p: 0,
-              display: 'list-item',
-              alignItems: 'flex-start',
-              pl: 0
-            }}
-            component='li'
-          >
-            {type}
-          </ListItem>
+          <React.Fragment key={`${type}-${index}`}>
+            {showConnector && index > 0 && (
+              <Typography
+                component='span'
+                sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
+              >
+                •
+              </Typography>
+            )}
+            <Typography
+              component='span'
+              sx={{
+                fontSize: '14px',
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              {type}
+            </Typography>
+          </React.Fragment>
         ))}
-      </List>
+      </Box>
 
       {/* Date and Time */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

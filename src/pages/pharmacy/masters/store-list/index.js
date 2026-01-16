@@ -276,6 +276,8 @@ const ListOfStores = () => {
         })
         setLoading(false)
       } catch (e) {
+        setTotal(0)
+        setRows([])
         setLoading(false)
       }
     },

@@ -1,5 +1,5 @@
-import React from 'react'
-import { Box, Typography, useTheme } from '@mui/material'
+import React, { useMemo } from 'react'
+import { alpha, Box, Typography, useTheme } from '@mui/material'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
 export const symptomsPriorityChips = ({ label, fontColor, disabled, backgroundColor }) => {
@@ -83,6 +83,7 @@ export const VisitType = ({ title }) => {
   const theme = useTheme()
 
   const visitTypeMap = {
+    inpatient: 'INPATIENT',
     checkup: 'Check up',
     emergency: 'Emergency',
     follow_up: 'Follow-up',
@@ -122,7 +123,9 @@ export const VisitType = ({ title }) => {
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        height: 24
+        padding: '4px 8px'
+
+        // height: 24
       }}
     >
       <Typography
@@ -135,6 +138,58 @@ export const VisitType = ({ title }) => {
         }}
       >
         {normalizedTitle}
+      </Typography>
+    </Box>
+  )
+}
+
+export const StatusChip = ({ status, chipStyles, labelStyles }) => {
+  const theme = useTheme()
+
+  const styles = useMemo(() => {
+    const stylesMap = {
+      0: {
+        backgroundColor: theme.palette.customColors.Tertiary30,
+        color: theme.palette.customColors.customDropdownColor,
+        label: 'Inactive'
+      },
+      1: {
+        backgroundColor: alpha(theme.palette.customColors.OnBackground, 0.6),
+        color: theme.palette.primary.main,
+        label: 'Active'
+      }
+    }
+
+    return (
+      stylesMap[status] || {
+        // fallback for unexpected status values
+        backgroundColor: theme.palette.grey[300],
+        color: theme.palette.text.primary,
+        label: 'Unknown'
+      }
+    )
+  }, [status, theme])
+
+  return (
+    <Box
+      sx={{
+        py: 1,
+        borderRadius: '4px',
+        backgroundColor: styles.backgroundColor,
+        minWidth: '90px',
+        textAlign: 'center',
+        ...chipStyles
+      }}
+    >
+      <Typography
+        sx={{
+          fontSize: '0.875rem',
+          fontWeight: 500,
+          color: styles.color,
+          ...labelStyles
+        }}
+      >
+        {styles.label}
       </Typography>
     </Box>
   )

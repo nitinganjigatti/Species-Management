@@ -10,7 +10,8 @@ import {
   Tabs,
   Tooltip,
   Typography,
-  useTheme
+  useTheme,
+  alpha
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { debounce, set } from 'lodash'
@@ -18,9 +19,10 @@ import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import IncomingFilterDrawer from 'src/components/hospital/drawer/IncomingFilterDrawer'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { visitTypeOptions } from 'src/constants/Constants'
 import { useHospital } from 'src/context/HospitalContext'
-import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
+import { getNewIncomingPatientsLists } from 'src/lib/api/hospital/incomingPatient'
 import RenderUtility from 'src/utility/render'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
 import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
@@ -34,7 +36,7 @@ const HospitalIncoming = () => {
   const theme = useTheme()
   const router = useRouter()
 
-  const { selectedHospital } = useHospital()
+  const { selectedHospital, isHospitalAccessChecked } = useHospital()
 
   const [searchValue, setSearchValue] = useState('')
   const [selectedVisitType, setSelectedVisitType] = useState('')
@@ -92,30 +94,33 @@ const HospitalIncoming = () => {
       selectedOptions
     ],
     queryFn: () =>
-      getIncomingPatients({
+      getNewIncomingPatientsLists({
         page_no: filters?.page,
         limit: filters?.limit,
-        search: filters?.q,
-
+        q: filters?.q,
+        request_from: 'web',
+        reference_type: 'hospital_transfer',
         hospital_id: selectedHospital?.id,
-        status: activeTab,
+        hospital_status_filter: activeTab,
         visit_type: selectedVisitType,
-        patient_category: 'incoming',
         from_date: formatDate(filterDate.startDate),
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('User'),
         origin_site: prepareFilterParams('Origin Site')
       }),
+    enabled: !!(isHospitalAccessChecked && selectedHospital?.id),
     refetchOnMount: true,
     refetchOnWindowFocus: true
   })
 
   useEffect(() => {
     refetch()
-  }, [refetch])
+  }, [refetch, selectedHospital?.id, activeTab])
 
-  const total = data?.data?.total || 0
-  const rows = data?.data?.records || []
+  const total = data?.data?.total_count || 0
+  const rows = data?.data?.result || []
+  const pendingCount = data?.data?.stats?.transfer_pending_count || 0
+  const rejectedCount = data?.data?.stats?.transfer_rejected_count || 0
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -168,7 +173,7 @@ const HospitalIncoming = () => {
 
   const indexedRows = rows.map((row, index) => ({
     ...row,
-    id: +row?.hospital_case_id,
+    id: +row?.transfer_id,
     sl_no: getSlNo(index)
   }))
 
@@ -202,8 +207,9 @@ const HospitalIncoming = () => {
             animal_id: params.row?.animal_id,
             common_name: params.row?.common_name,
             scientific_name: params.row?.scientific_name,
-            age: params.row?.age,
-            site_name: params.row?.site_name
+            age: params.row?.age_formatted,
+            site_name: params.row?.site_name,
+            total_animal: params?.row?.total_animal
           }}
         />
       )
@@ -214,22 +220,22 @@ const HospitalIncoming = () => {
     {
       width: 400,
       minWidth: 20,
-      field: 'purpose_of_visit',
+      field: 'reason_for_transfer',
       sortable: false,
       headerName: 'Purpose of Visit',
       renderCell: params => (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
-            <VisitType title={params.row.visit_type} />
-            {params?.row?.medical_record_code && (
+            <VisitType title={params.row.purpose} />
+            {params?.row?.transfer_reference_code && (
               <MedicalIdChip
-                medId={params?.row?.medical_record_code}
+                medId={params?.row?.transfer_reference_code}
                 backgroundColor={theme.palette.customColors.mdAntzNeutral}
               />
             )}
           </Box>
-          {params.row.purpose_of_visit && (
-            <Tooltip title={params.row.purpose_of_visit} arrow>
+          {params.row.reason_for_transfer && (
+            <Tooltip title={params.row.reason_for_transfer} arrow>
               <Typography
                 variant='body2'
                 sx={{
@@ -245,7 +251,7 @@ const HospitalIncoming = () => {
                   whiteSpace: 'normal'
                 }}
               >
-                {params.row.purpose_of_visit || ''}
+                {params.row.reason_for_transfer || ''}
               </Typography>
             </Tooltip>
           )}
@@ -253,15 +259,16 @@ const HospitalIncoming = () => {
       )
     },
     {
-      width: 200,
+      width: 260,
       minWidth: 20,
       field: 'requested_user_full_name',
       headerName: 'Requested By',
       renderCell: params => (
         <UserAvatarDetails
           date={params?.row?.created_at}
-          user_name={params?.row?.requested_user_full_name}
+          user_name={`${params?.row?.user_first_name} ${params?.row?.user_last_name}`}
           profile_image={params?.row?.user_profile_pic}
+          show_time
         />
       )
     }
@@ -271,11 +278,11 @@ const HospitalIncoming = () => {
     {
       width: 400,
       minWidth: 20,
-      field: 'rejection_reason',
+      field: 'reason_for_rejection',
       sortable: false,
       headerName: 'Reason for Rejection',
       renderCell: params => (
-        <Tooltip title={params.row.rejection_reason || ''} arrow>
+        <Tooltip title={params.row.reason_for_rejection || ''} arrow>
           <Typography
             variant='body2'
             sx={{
@@ -291,21 +298,22 @@ const HospitalIncoming = () => {
               whiteSpace: 'normal'
             }}
           >
-            {params.row.reject_reason || '-'}
+            {params.row.reason_for_rejection || '-'}
           </Typography>
         </Tooltip>
       )
     },
     {
-      width: 200,
+      width: 260,
       minWidth: 20,
       field: 'rejected_by',
       headerName: 'Rejected By',
       renderCell: params => (
         <UserAvatarDetails
           date={params?.row?.rejected_at}
-          user_name={params?.row?.rejected_user_name}
-          profile_image={params?.row?.rejected_user_profile_pic}
+          user_name={`${params?.row?.rejected_user_first_name} ${params?.row?.rejected_user_last_name}`}
+          profile_image={params?.row?.rejected_user_profile}
+          show_time
         />
       )
     }
@@ -315,9 +323,11 @@ const HospitalIncoming = () => {
     activeTab === 'pending' ? [...commonColumns, ...pendingColumns] : [...commonColumns, ...rejectedColumns]
 
   const handleRowClick = data => {
-    router.push({
-      pathname: `/hospital/incoming/${data?.row?.hospital_case_id}/patient-admit-form`
-    })
+    if (activeTab === 'pending') {
+      router.push({
+        pathname: `/hospital/incoming/${data?.row?.transfer_id}/patient-admit-form`
+      })
+    }
   }
 
   const handleTabChange = (_, newValue) => {
@@ -327,10 +337,10 @@ const HospitalIncoming = () => {
   }
 
   const getTabLabel = (key, label) => {
-    if (activeTab !== key) return label
-    if (isFetching && !data) return label
+    if (key === 'pending') return `${label} - ${pendingCount}`
+    if (key === 'rejected') return `${label} - ${rejectedCount}`
 
-    return total ? `${label} - ${total}` : label
+    return label
   }
 
   return (
@@ -342,14 +352,14 @@ const HospitalIncoming = () => {
           <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Incoming</Typography>
         </Breadcrumbs>
         <HospitalAnalytics />
-        <Box sx={{ mt: 6 }}>
+        <Box sx={{ mt: 4 }}>
           <Card>
             <CardHeader title={RenderUtility?.pageTitle('Incoming Patient')} />
             <Box
               sx={{
                 p: 3,
                 display: 'flex',
-                flexDirection: { md: 'column', lg: 'row' },
+                flexDirection: { xs: 'column', lg: 'row' },
                 justifyContent: 'space-between',
                 gap: 4
               }}
@@ -425,7 +435,7 @@ const HospitalIncoming = () => {
 
             <Grid
               sx={{
-                mx: { xs: 3, md: 5 }
+                mx: { xs: 5 }
               }}
             >
               <CommonTable
@@ -467,4 +477,4 @@ const HospitalIncoming = () => {
   )
 }
 
-export default HospitalIncoming
+export default enforceModuleAccess(HospitalIncoming, 'add_hospital')

@@ -11,9 +11,18 @@ import {
 
 const Toaster = ({ type = 'success', message, ignoreCase = false }) => {
   function toSentenceCase(str) {
-    if (!str?.trim()) return str
+    // Enhanced type checking
+    if (typeof str !== 'string') {
+      if (str === null || str === undefined) return ''
 
-    return str?.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+      // Convert non-string values to string
+      return String(str)
+    }
+
+    const trimmedStr = str.trim()
+    if (!trimmedStr) return str
+
+    return trimmedStr.charAt(0).toUpperCase() + trimmedStr.slice(1).toLowerCase()
   }
 
   const getIcon = () => {
@@ -42,6 +51,10 @@ const Toaster = ({ type = 'success', message, ignoreCase = false }) => {
     }
   }
 
+  // Safe message handling
+  const displayMessage =
+    ignoreCase === true ? (typeof message === 'string' ? message : String(message || '')) : toSentenceCase(message)
+
   return toast(
     t => (
       <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -61,9 +74,7 @@ const Toaster = ({ type = 'success', message, ignoreCase = false }) => {
               {getTypeLabel()}
             </Typography>
             <Divider sx={{ my: 2, width: '360px' }} />
-            <Typography sx={{ fontWeight: 400, color: '#44544A', fontSize: '14px' }}>
-              {ignoreCase === true ? message : toSentenceCase(message)}
-            </Typography>
+            <Typography sx={{ fontWeight: 400, color: '#44544A', fontSize: '14px' }}>{displayMessage}</Typography>
           </div>
         </Box>
         <IconButton

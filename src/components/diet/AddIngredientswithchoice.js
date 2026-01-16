@@ -1,5 +1,5 @@
 /* eslint-disable lines-around-comment */
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useRef } from 'react'
 import Drawer from '@mui/material/Drawer'
 import {
   Box,
@@ -37,7 +37,6 @@ const AddIngredientswithChoice = props => {
     onChange,
     allIngredientchoiceSelectedValues,
     checkid,
-    formData,
     ingType,
     setingType,
     ingredientChoiceIndex,
@@ -56,10 +55,13 @@ const AddIngredientswithChoice = props => {
     setReachedEnd,
     searchValue,
     setSearchValue,
-    setSort,
-    sort
+    sort,
+    onLoadMore,
+    loadingfeed,
+    feedtotalCount
   } = props
   const theme = useTheme()
+  const menuRef = useRef(null)
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
 
@@ -93,6 +95,24 @@ const AddIngredientswithChoice = props => {
       return newVisibility
     })
   }
+
+  const handleScrollnew = e => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target
+    const nearBottom = scrollHeight - scrollTop - clientHeight < 20
+
+    if (nearBottom && !loadingfeed) {
+      onLoadMore()
+    }
+  }
+
+  useEffect(() => {
+    const menuEl = menuRef.current?.querySelector('.MuiPaper-root')
+    if (menuEl) menuEl.addEventListener('scroll', handleScrollnew)
+
+    return () => {
+      if (menuEl) menuEl.removeEventListener('scroll', handleScrollnew)
+    }
+  }, [feedType, loadingfeed])
 
   const handleSidebarClose = () => {
     setSearchValue('')
@@ -686,6 +706,12 @@ const AddIngredientswithChoice = props => {
                     '&:hover .MuiOutlinedInput-notchedOutline': {
                       borderColor: theme.palette.customColors.Outline
                     },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: theme.palette.primary.main
+                    },
+                    '&.Mui-focused .MuiSelect-select': {
+                      color: theme.palette.primary.main
+                    },
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '0px'
                     }
@@ -693,8 +719,26 @@ const AddIngredientswithChoice = props => {
                   MenuProps={{
                     PaperProps: {
                       style: {
-                        maxHeight: 300
+                        maxHeight: 300,
+                        width: 184
+                      },
+                      onScroll: e => {
+                        const { scrollTop, scrollHeight, clientHeight } = e.target
+                        const nearBottom = scrollHeight - scrollTop - clientHeight < 20
+
+                        if (nearBottom && !loadingfeed && feedType.length < feedtotalCount) {
+                          onLoadMore()
+                        }
                       }
+                    },
+                    //getContentAnchorEl: null,
+                    anchorOrigin: {
+                      vertical: 'bottom',
+                      horizontal: 'left'
+                    },
+                    transformOrigin: {
+                      vertical: 'top',
+                      horizontal: 'left'
                     }
                   }}
                   endAdornment={
@@ -710,10 +754,36 @@ const AddIngredientswithChoice = props => {
                   }
                 >
                   {feedType?.map(feedList => (
-                    <MenuItem key={feedList?.key} value={feedList?.id}>
+                    <MenuItem
+                      key={feedList?.key}
+                      value={feedList?.id}
+                      sx={{
+                        display: 'block',
+                        maxWidth: 200,
+                        overflowX: 'auto',
+                        whiteSpace: 'nowrap',
+                        scrollbarWidth: 'thin',
+                        '&::-webkit-scrollbar': {
+                          height: '6px'
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                          backgroundColor: theme.palette.grey[400],
+                          borderRadius: '3px'
+                        },
+                        '&::-webkit-scrollbar-thumb:hover': {
+                          backgroundColor: theme.palette.grey[600]
+                        }
+                      }}
+                    >
                       {feedList?.feed_type_name}
                     </MenuItem>
                   ))}
+
+                  {loadingfeed && (
+                    <MenuItem disabled sx={{ justifyContent: 'center' }}>
+                      Loading...
+                    </MenuItem>
+                  )}
                 </Select>
               </FormControl>
             </Box>
@@ -874,16 +944,60 @@ const AddIngredientswithChoice = props => {
                               '&:hover .MuiOutlinedInput-notchedOutline': {
                                 borderColor: theme.palette.customColors.Outline
                               },
+                              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                borderColor: theme.palette.primary.main
+                              },
+                              '&.Mui-focused .MuiSelect-select': {
+                                color: theme.palette.primary.main
+                              },
                               '& .MuiOutlinedInput-root': {
                                 borderRadius: '0px'
                               }
+                            }}
+                            renderValue={selected => {
+                              const selectedUnit = item.preparation_types?.find(unit => unit.id === selected)
+                              return (
+                                <Tooltip title={selectedUnit?.label || ''}>
+                                  <span
+                                    style={{
+                                      display: 'block',
+                                      maxWidth: 150,
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      whiteSpace: 'nowrap'
+                                    }}
+                                  >
+                                    {selectedUnit ? selectedUnit.label : 'Select'}
+                                  </span>
+                                </Tooltip>
+                              )
                             }}
                           >
                             <MenuItem value='' disabled>
                               Select
                             </MenuItem>
                             {item.preparation_types.map(preparationType => (
-                              <MenuItem key={preparationType.key} value={preparationType.id}>
+                              <MenuItem
+                                key={preparationType.key}
+                                value={preparationType.id}
+                                sx={{
+                                  display: 'block',
+                                  maxWidth: 200,
+                                  overflowX: 'auto',
+                                  whiteSpace: 'nowrap',
+                                  scrollbarWidth: 'thin',
+                                  '&::-webkit-scrollbar': {
+                                    height: '1px'
+                                  },
+                                  '&::-webkit-scrollbar-thumb': {
+                                    backgroundColor: theme.palette.grey[400],
+                                    borderRadius: '1px'
+                                  },
+                                  '&::-webkit-scrollbar-thumb:hover': {
+                                    backgroundColor: theme.palette.grey[600]
+                                  }
+                                }}
+                              >
                                 {preparationType.label}
                               </MenuItem>
                             ))}
@@ -911,7 +1025,7 @@ const AddIngredientswithChoice = props => {
                         <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
                           <Typography>Enter cut size</Typography>
 
-                          <Box sx={{ pl: 5 }}>
+                          <Box sx={{ pl: 5, width: 150 }}>
                             <FormControl fullWidth>
                               <Select
                                 size='small'
@@ -931,6 +1045,18 @@ const AddIngredientswithChoice = props => {
                                   },
                                   '& .MuiOutlinedInput-root': {
                                     borderRadius: '0px'
+                                  },
+                                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: theme.palette.primary.main
+                                  },
+                                  '&.Mui-focused .MuiSelect-select': {
+                                    color: theme.palette.primary.main
+                                  },
+                                  '&.Mui-error .MuiOutlinedInput-notchedOutline': {
+                                    borderColor:
+                                      selectFeed[item.id]?.id !== size[item.id]?.id
+                                        ? theme.palette.customColors.errorText
+                                        : 'none'
                                   }
                                 }}
                                 MenuProps={{
@@ -938,14 +1064,60 @@ const AddIngredientswithChoice = props => {
                                     style: {
                                       maxHeight: 300
                                     }
+                                  },
+                                  anchorOrigin: {
+                                    vertical: 'bottom',
+                                    horizontal: 'left'
+                                  },
+                                  transformOrigin: {
+                                    vertical: 'top',
+                                    horizontal: 'left'
                                   }
+                                }}
+                                renderValue={selected => {
+                                  const selectedUnit = uom?.find(unit => unit.id === selected)
+                                  return (
+                                    <Tooltip title={selectedUnit?.cut_size || ''}>
+                                      <span
+                                        style={{
+                                          display: 'block',
+                                          maxWidth: 150,
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          whiteSpace: 'nowrap'
+                                        }}
+                                      >
+                                        {selectedUnit ? selectedUnit.cut_size : 'Select'}
+                                      </span>
+                                    </Tooltip>
+                                  )
                                 }}
                               >
                                 <MenuItem value='' disabled>
                                   Select
                                 </MenuItem>
                                 {uom?.map(unit => (
-                                  <MenuItem key={unit.id} value={unit.id}>
+                                  <MenuItem
+                                    key={unit.id}
+                                    value={unit.id}
+                                    sx={{
+                                      display: 'block',
+                                      maxWidth: 150,
+                                      overflowX: 'auto',
+                                      whiteSpace: 'nowrap',
+                                      scrollbarWidth: 'thin',
+                                      '&::-webkit-scrollbar': {
+                                        height: '2px'
+                                      },
+                                      '&::-webkit-scrollbar-thumb': {
+                                        backgroundColor: theme.palette.grey[400],
+                                        borderRadius: '1px'
+                                      },
+                                      '&::-webkit-scrollbar-thumb:hover': {
+                                        backgroundColor: theme.palette.grey[600]
+                                      }
+                                    }}
+                                  >
                                     {unit.cut_size}
                                   </MenuItem>
                                 ))}
@@ -959,7 +1131,7 @@ const AddIngredientswithChoice = props => {
                 </>
               </Box>
             ))
-          ) : sortedIngredientList?.length <= 0 ? (
+          ) : sortedIngredientList?.length <= 0 && searchValue ? (
             <Box
               sx={{
                 display: 'flex',
@@ -971,14 +1143,6 @@ const AddIngredientswithChoice = props => {
               }}
             >
               <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
-              <Box
-                sx={{
-                  color: theme.palette.customColors.statusText,
-                  fontSize: '16px'
-                }}
-              >
-                No records to show
-              </Box>
             </Box>
           ) : null}
           {!loading && reachedEnd ? (

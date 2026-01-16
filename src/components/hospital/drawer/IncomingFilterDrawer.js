@@ -25,8 +25,6 @@ const IncomingFilterDrawer = ({
 
   const authData = useContext(AuthContext)
 
-  console.log(authData)
-
   const [menuData, setMenuData] = useState({
     User: [],
     'Origin Site': []

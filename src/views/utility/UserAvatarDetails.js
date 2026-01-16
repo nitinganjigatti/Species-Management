@@ -1,5 +1,5 @@
 import React from 'react'
-import { Typography, Box, Tooltip } from '@mui/material'
+import { Typography, Box, Tooltip, useTheme } from '@mui/material'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import Utility from 'src/utility'
 
@@ -12,8 +12,11 @@ function UserAvatarDetails({
   role,
   crby_width,
   size = 'large',
-  show_time = false
+  show_time = false,
+  dateType
 }) {
+  const theme = useTheme()
+
   const avatarSizes = {
     small: {
       profile_picture: { width: '24px', height: '24px' },
@@ -84,11 +87,10 @@ function UserAvatarDetails({
                       <Typography
                         sx={{
                           maxWidth: '100%',
-
-                          // fontSize: fontSize,
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
-                          textOverflow: 'ellipsis'
+                          textOverflow: 'ellipsis',
+                          color: theme => text_color ?? theme.palette.common.white
                         }}
                         variant='body2'
                       >
@@ -131,16 +133,26 @@ function UserAvatarDetails({
             {date && (
               <Typography variant='caption' sx={{ lineHeight: 1.6667, ...(selectedAvatarSize?.date || {}) }}>
                 <span>
+                  {dateType === 'created' ? (
+                    <span style={{ color: theme.palette.customColors.neutralSecondary }}>
+                      Created on {Utility.convertUtcToLocalReadableDate(date)}
+                    </span>
+                  ) : dateType === 'updated' ? (
+                    <span style={{ color: theme.palette.customColors.neutralSecondary }}>
+                      Updated on {Utility.convertUtcToLocalReadableDate(date)}
+                    </span>
+                  ) : (
+                    <span>{date ? Utility.convertUtcToLocalReadableDate(date) : ''}</span>
+                  )}
                   {show_time ? (
                     <>
-                      {Utility.convertUTCToLocaltime(date)}
-                      <span> &bull; </span>
+                      <span> &bull; </span> {Utility.convertUTCToLocaltime(date)}
                     </>
                   ) : (
                     ''
                   )}
                 </span>
-                <span>{date ? Utility.convertUtcToLocalReadableDate(date) : ''}</span>
+                {/* <span>{date ? Utility.convertUtcToLocalReadableDate(date) : ''}</span> */}
               </Typography>
             )}
           </Box>

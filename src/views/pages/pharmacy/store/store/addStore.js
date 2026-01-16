@@ -107,6 +107,7 @@ const AddStore = props => {
           ...response?.data,
           site_id: response?.data?.site_ids?.map(site => ({ label: site?.label, value: site?.value }))
         }
+
         reset(data)
       } else {
       }
@@ -133,9 +134,9 @@ const AddStore = props => {
     )
   }
 
-  const siteOptions = authData?.userData?.user?.zoos[0].sites.map(site => ({
-    label: site.site_name,
-    value: site.site_id
+  const siteOptions = authData?.userData?.user?.zoos[0]?.sites?.map(site => ({
+    label: site?.site_name,
+    value: site?.site_id
   }))
 
   return (

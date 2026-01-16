@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import {
   Box,
   TextField,
@@ -21,14 +21,14 @@ export default function ClinicalAssessmentList({
   handleTabChange,
   currentTab,
   isTabsLoading,
-  isListLoading,
+  isInitialLoading,
   tabOptions,
   searchTerm,
   setSearchTerm,
   hasMore,
   totalCount,
   isLoading,
-  loaderRef
+  loadMoreTriggerRef
 }) {
   const theme = useTheme()
 
@@ -77,7 +77,7 @@ export default function ClinicalAssessmentList({
                 ))
               : tabOptions?.map(tab => (
                   <Box
-                    key={tab}
+                    key={tab.id}
                     onClick={() => handleTabChange(tab?.category, tab?.id)}
                     sx={{
                       flexShrink: 0,
@@ -121,8 +121,6 @@ export default function ClinicalAssessmentList({
           mt: 3,
           background: theme.palette.customColors.mdAntzNeutral,
           display: 'flex',
-
-          //justifyContent: 'space-between',
           alignItems: 'center'
         }}
       >
@@ -131,7 +129,7 @@ export default function ClinicalAssessmentList({
       </Box>
 
       <Box sx={{ maxHeight: 500, overflowY: 'auto', mt: 0 }}>
-        {isTabsLoading || isListLoading ? (
+        {isTabsLoading || isInitialLoading ? (
           <ClinicalAssessmentListShimmer rows={8} />
         ) : filteredSymptoms.length === 0 ? (
           <Box
@@ -151,73 +149,85 @@ export default function ClinicalAssessmentList({
             </Typography>
           </Box>
         ) : (
-          filteredSymptoms.map((symptom, index) => {
-            const isSelected = selectedSymptoms.includes(symptom.id)
-            const isTemporarilySelected = temporarilySelected?.id === symptom.id
+          <>
+            {filteredSymptoms.map((symptom, index) => {
+              const isSelected = selectedSymptoms.includes(symptom.id)
+              const isTemporarilySelected = temporarilySelected?.id === symptom.id
 
-            return (
-              <Box
-                key={index}
-                sx={{
-                  background:
-                    isSelected || isTemporarilySelected ? theme.palette.customColors.OnBackground : 'transparent',
-                  borderRadius: '1px',
-                  px: 1,
-                  py: 3.7,
-                  display: 'flex',
-                  alignItems: 'center',
-                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
-                }}
-              >
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={isSelected || isTemporarilySelected}
-                      onChange={() => onSelect(symptom)}
-                      sx={{
-                        transform: 'scale(0.8)',
-                        padding: '4px'
-                      }}
-                    />
-                  }
-                  label={symptom.name}
+              return (
+                <Box
+                  key={symptom.id || index}
                   sx={{
-                    flex: 1,
-                    m: 0,
-                    '& .MuiFormControlLabel-label': {
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      fontSize: '16px',
-                      fontWeight: 600
-                    }
-                  }}
-                />
-                <Typography
-                  sx={{
-                    width: '200px',
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '14px',
-                    fontWeight: 400
+                    background:
+                      isSelected || isTemporarilySelected ? theme.palette.customColors.OnBackground : 'transparent',
+                    borderRadius: '1px',
+                    px: 1,
+                    py: 3.7,
+                    display: 'flex',
+                    alignItems: 'center',
+                    borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
                   }}
                 >
-                  {symptom.category_name}
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={isSelected || isTemporarilySelected}
+                        onChange={() => onSelect(symptom)}
+                        sx={{
+                          transform: 'scale(0.8)',
+                          padding: '4px'
+                        }}
+                      />
+                    }
+                    label={symptom.name}
+                    sx={{
+                      flex: 1,
+                      m: 0,
+                      '& .MuiFormControlLabel-label': {
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        fontSize: '16px',
+                        fontWeight: 600
+                      }
+                    }}
+                  />
+                  <Typography
+                    sx={{
+                      width: '200px',
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontSize: '14px',
+                      fontWeight: 400
+                    }}
+                  >
+                    {symptom.category_name}
+                  </Typography>
+                </Box>
+              )
+            })}
+
+            {/* Infinite scroll trigger element - shows loader when loading more pages */}
+            {(hasMore || isLoading) && (
+              <Box
+                ref={loadMoreTriggerRef}
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  padding: 3,
+                  minHeight: '60px'
+                }}
+              >
+                {isLoading && <CircularProgress size={24} />}
+              </Box>
+            )}
+
+            {/* End message when all items loaded */}
+            {!hasMore && !isLoading && symptoms?.length > 0 && (
+              <Box sx={{ textAlign: 'center', py: 2 }}>
+                <Typography variant='body2' color='textSecondary'>
+                  All assessments loaded ({symptoms?.length} of {totalCount})
                 </Typography>
               </Box>
-            )
-          })
-        )}
-
-        {((isLoading || hasMore) && !isListLoading) && (
-          <Box ref={loaderRef} sx={{ display: 'flex', justifyContent: 'center', padding: 4 }}>
-            {isLoading && <CircularProgress />}
-          </Box>
-        )}
-
-        {!hasMore && (!isLoading || !isListLoading) && symptoms?.length > 0 && (
-          <Box sx={{ textAlign: 'center', py: 2 }}>
-            <Typography variant='body2' color='textSecondary'>
-              {symptoms?.length >= totalCount ? 'All assessments loaded' : 'No more assessments to load'}
-            </Typography>
-          </Box>
+            )}
+          </>
         )}
       </Box>
     </Box>

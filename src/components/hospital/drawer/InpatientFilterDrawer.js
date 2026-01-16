@@ -1,14 +1,10 @@
-import { useTheme } from '@mui/material'
 import { debounce } from 'lodash'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import FilterContent from 'src/components/drawers/FilterContent'
 import Toaster from 'src/components/Toaster'
-import { AuthContext } from 'src/context/AuthContext'
-import { getMasterImports } from 'src/lib/api/compliance/masters'
+import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import { getAllSites } from 'src/lib/api/housing'
-import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
-import { readAsync } from 'src/lib/windows/utils'
 
 const InpatientFilterDrawer = ({
   open,
@@ -16,16 +12,13 @@ const InpatientFilterDrawer = ({
   onSubmitLoading,
   onApplyFilters,
   setFilterCount,
-  initialSelectedOptions
+  initialSelectedOptions,
+  hospitalId
 }) => {
   const [selectedMenu, setSelectedMenu] = useState('Chief Veterinarian')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)
   const [localFilterCount, setLocalFilterCount] = useState(0)
-
-  const authData = useContext(AuthContext)
-
-  console.log(authData)
 
   const [menuData, setMenuData] = useState({
     'Chief Veterinarian': [],
@@ -48,28 +41,22 @@ const InpatientFilterDrawer = ({
 
         switch (menuName) {
           case 'Chief Veterinarian': {
-            const userDetails = await readAsync('userDetails')
-
-            if (userDetails?.user?.zoos?.length > 0) {
-              const zoo_id = userDetails.user.zoos[0].zoo_id
-              const params = { zoo_id }
-
-              if (query.trim() !== '') {
-                params.q = query
-              }
-
-              const res = await getUserList(params)
-
-              data =
-                res?.data?.length > 0
-                  ? res.data.map(item => ({
-                      label: item?.user_name,
-                      value: item?.user_id
-                    }))
-                  : []
-            } else {
-              data = []
+            if (query.trim() !== '') {
+              params.q = query
             }
+
+            const res = await getHospitalStaff({
+              params: { ...params, hospital_id: hospitalId }
+            })
+
+            data =
+              res?.data?.records.length > 0
+                ? res?.data?.records.map(item => ({
+                    label: item?.user_full_name,
+                    value: item?.user_id,
+                    profile: item?.user_profile_pic
+                  }))
+                : []
             break
           }
 
@@ -109,7 +96,7 @@ const InpatientFilterDrawer = ({
         setSearchLoading(false)
       }
     },
-    [selectedMenu]
+    [selectedMenu, hospitalId]
   )
 
   const handleClearAll = useCallback(() => {

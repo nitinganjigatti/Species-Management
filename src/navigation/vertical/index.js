@@ -40,6 +40,9 @@ const ComposeNavigation = () => {
   const housingModule = authData?.userData?.roles?.settings?.enable_housing_in_web
   const housingModuleCluster = authData?.userData?.roles?.settings?.manage_cluster_permission
 
+  const hospitalModule = authData?.userData?.roles?.settings?.add_hospital
+  const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
+
   const userRole = authData?.userData?.roles?.role_name
 
   // console.log('labList', labList)
@@ -91,9 +94,10 @@ const ComposeNavigation = () => {
     const housingNav = housingNavigation(housingModuleCluster)
     navigationArray.push(...housingNav)
   }
-
-  const hospitalNav = hospitalNavigation()
-  navigationArray.push(...hospitalNav)
+  if (hospitalModule) {
+    const hospitalNav = hospitalNavigation(havePermissionToAddHospital)
+    navigationArray.push(...hospitalNav)
+  }
 
   const medicalNav = medicalNavigation({
     userSettings

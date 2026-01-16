@@ -69,9 +69,19 @@ const ExportCard = ({
           borderRadius: '8px',
           backgroundColor: theme.palette.common.white,
           boxShadow: 'none',
-          minHeight: '120px'
+          minHeight: '120px',
+          cursor: 'pointer'
         }}
         onClick={() => handleClickAnimals(exportId)}
+        onKeyDown={event => {
+          if (event.target !== event.currentTarget) return
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            handleClickAnimals(exportId)
+          }
+        }}
+        tabIndex={0}
+        role='button'
       >
         <CardContent sx={{ flex: 1, px: 4, py: 4 }}>
           <Typography
