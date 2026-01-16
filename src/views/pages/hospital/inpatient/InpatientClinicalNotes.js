@@ -38,6 +38,7 @@ const InpatientClinicalNotes = props => {
   const medical_record_id = medicalRecordData?.medical_record_id
   const hospital_case_id = medicalRecordData?.hospital_case_id
   const discharge_at = medicalRecordData?.discharge_at
+  const status = medicalRecordData?.status
 
   const { control, handleSubmit, reset, watch } = useForm({ defaultValues })
 
@@ -67,7 +68,7 @@ const InpatientClinicalNotes = props => {
   }
 
   // after fetch if no data shows empty state
-  if (!isInitialLoading && clinicalNotesData?.length === 0 && discharge_at !== null) {
+  if (!isInitialLoading && clinicalNotesData?.length === 0 && status == 'discharge') {
     return (
       <Box
         sx={{
@@ -85,7 +86,7 @@ const InpatientClinicalNotes = props => {
 
   return (
     <>
-      {discharge_at === null && (
+      {status == 'admitted' && (
         <Box
           sx={{
             p: 6,
@@ -182,7 +183,7 @@ const InpatientClinicalNotes = props => {
                     }}
                   />
 
-                  {discharge_at === null && (
+                  {status == 'admitted' && (
                     <IconButton
                       onClick={() => onDeleteNote(data?.note_id)}
                       sx={{ color: theme.palette.customColors.Tertiary, p: 0, ml: 3 }}
