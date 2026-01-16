@@ -328,7 +328,7 @@ const SpeciesMappedtoDiet = ({
                       const speciesCount = selectedItems.Species?.length || 0
                       const taxonomyCount = selectedItems.Taxonomy?.length || 0
 
-                      return speciesCount > 0 ? siteCount + speciesCount : siteCount + taxonomyCount
+                      return [siteCount, speciesCount, taxonomyCount].filter(count => count > 0).length
                     })()}
                   </span>
                 )}

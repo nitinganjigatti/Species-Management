@@ -13,7 +13,8 @@ const ControlledDatePicker = ({
   views,
   disabled = false,
   sx = {},
-  size = 'large'
+  size = 'large',
+  onChangeOverride = () => {}
 }) => {
   return (
     <Controller
@@ -23,7 +24,17 @@ const ControlledDatePicker = ({
       render={({ field, fieldState: { error } }) => (
         <MUIDatePicker
           value={field.value || null}
-          onChange={field.onChange}
+
+          // onChange={field.onChange}
+          onChange={newValue => {
+            // Always update RHF form value
+            field.onChange(newValue)
+
+            // Call parent override ONLY if provided
+            if (onChangeOverride) {
+              onChangeOverride(newValue)
+            }
+          }}
           label={label}
           minDate={minDate}
           maxDate={maxDate}

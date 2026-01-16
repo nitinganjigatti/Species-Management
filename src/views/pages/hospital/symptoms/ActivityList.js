@@ -3,12 +3,19 @@ import { Box, Typography, Paper, IconButton, alpha, CircularProgress } from '@mu
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import { useTheme } from '@mui/material/styles'
 import ActivityListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ActivityListShimmer'
+import Utility from 'src/utility'
 
 const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = false }) => {
   const theme = useTheme()
 
   if (activityLoader) {
     return <ActivityListShimmer count={3} />
+  }
+
+  const formatDurationUnit = (value, unit) => {
+    if (!unit) return ''
+
+    return Number(value) === 1 || Number(value) === 0 ? unit.replace(/s$/i, '') : unit
   }
 
   return (
@@ -20,7 +27,6 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
       ) : (
         <>
           <Typography sx={{ fontWeight: 600, mb: 2 }}>Activity</Typography>
-
           {activities.map((activity, i) => {
             return (
               <Paper
@@ -60,7 +66,6 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                       >
                         {activity?.createdBy} • {activity?.formattedTime}
                       </Typography>
-
                       {(activity?.oldSeverity || activity?.newSeverity) && (
                         <Typography
                           sx={{
@@ -75,11 +80,102 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                           <strong>{activity?.newSeverity}</strong>
                         </Typography>
                       )}
+                      {activity?.isSystemGenerated && (activity?.oldRecord || activity?.newRecord) && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
+                          <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
+                            Clinical Assessment :{' '}
+                          </Typography>
+                          {activity?.oldRecord && (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: theme.palette.customColors.neutralSecondary,
+                                fontWeight: 600
+                              }}
+                            >
+                              {Utility.capitalizeFirstLetter(activity?.oldRecord)}
+                            </Typography>
+                          )}
+                          {activity?.newRecord && (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: theme.palette.customColors.OnSurfaceVarient,
+                                fontWeight: 600
+                              }}
+                            >
+                              {activity?.oldRecord && '→'} {Utility.capitalizeFirstLetter(activity.newRecord)}
+                            </Typography>
+                          )}
+                        </Box>
+                      )}
+
+                      {activity?.isSystemGenerated && (activity?.oldPrognosis || activity?.newPrognosis) && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
+                          <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
+                            Prognosis :{' '}
+                          </Typography>
+                          {activity?.oldPrognosis && (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: theme.palette.customColors.neutralSecondary,
+                                fontWeight: 600
+                              }}
+                            >
+                              {Utility.capitalizeFirstLetter(activity?.oldPrognosis)}
+                            </Typography>
+                          )}
+                          {activity?.newPrognosis && (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: theme.palette.customColors.OnSurfaceVarient,
+                                fontWeight: 600
+                              }}
+                            >
+                              {activity?.oldPrognosis && '→'} {Utility.capitalizeFirstLetter(activity.newPrognosis)}
+                            </Typography>
+                          )}
+                        </Box>
+                      )}
+
+                      {activity?.isSystemGenerated && (activity?.oldIsChronical || activity?.newIsChronical) ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
+                          <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
+                            Is Cronical :{' '}
+                          </Typography>
+                          {activity?.oldIsChronical !== undefined && (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: theme.palette.customColors.neutralSecondary,
+                                fontWeight: 600
+                              }}
+                            >
+                              {activity?.oldIsChronical == 1 ? 'Yes' : 'No'}
+                            </Typography>
+                          )}
+
+                          {activity?.newIsChronical !== undefined && (
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                color: theme.palette.customColors.OnSurfaceVarient,
+                                fontWeight: 600
+                              }}
+                            >
+                              {activity?.oldIsChronical !== undefined && ` →`}{' '}
+                              {activity?.newIsChronical == 1 ? 'Yes' : 'No'}
+                            </Typography>
+                          )}
+                        </Box>
+                      ) : null}
 
                       {activity?.status && (
                         <Typography
                           sx={{
-                            mb: 2,
+                            mb: 1,
                             color: theme.palette.customColors.OnSurfaceVariant,
                             fontWeight: 400,
                             fontSize: '12px'
@@ -89,6 +185,26 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                           <strong>{activity?.status.charAt(0).toUpperCase() + activity?.status.slice(1)}</strong>
                         </Typography>
                       )}
+
+                      {activity?.duration !== '' &&
+                        activity?.duration != 'null' &&
+                        activity?.duration !== 0 &&
+                        activity?.duration !== '0' &&
+                        !isFromAssessment && (
+                          <Typography
+                            sx={{
+                              mb: 2,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: 400,
+                              fontSize: '12px'
+                            }}
+                          >
+                            Duration:{' '}
+                            <strong>
+                              {activity.duration} {formatDurationUnit(activity.duration, activity.duration_unit)}
+                            </strong>
+                          </Typography>
+                        )}
 
                       {activity?.note && (
                         <>

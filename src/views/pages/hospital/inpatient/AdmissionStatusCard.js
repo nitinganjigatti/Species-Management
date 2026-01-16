@@ -2,7 +2,7 @@ import { alpha, Box, Tooltip, Typography, useTheme } from '@mui/material'
 import React from 'react'
 import Utility from 'src/utility'
 
-const AdmissionStatusCard = ({ type = 'admitted_on', value }) => {
+const AdmissionStatusCard = ({ type = 'admitted_on', value, isPatientDischarged }) => {
   const theme = useTheme()
 
   // Define value as styled JSX per config case
@@ -25,7 +25,7 @@ const AdmissionStatusCard = ({ type = 'admitted_on', value }) => {
                 whiteSpace: 'nowrap'
               }}
             >
-              {Utility.convertUTCToLocaltime(value)} <span>&bull;</span> {Utility.convertUtcToLocalReadableDate(value)}
+              {Utility.convertUtcToLocalReadableDate(value)} <span>&bull;</span> {Utility.convertUTCToLocaltime(value)}
             </Typography>
           )
         }
@@ -109,7 +109,7 @@ const AdmissionStatusCard = ({ type = 'admitted_on', value }) => {
                 whiteSpace: 'nowrap'
               }}
             >
-              {Utility.convertUTCToLocaltime(value)} <span>&bull;</span> {Utility.convertUtcToLocalReadableDate(value)}
+              {Utility.convertUtcToLocalReadableDate(value)} <span>&bull;</span> {Utility.convertUTCToLocaltime(value)}
             </Typography>
           )
         }

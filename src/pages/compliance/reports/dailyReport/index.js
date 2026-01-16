@@ -25,7 +25,7 @@ import Icon from 'src/@core/components/icon'
 import SiteDrawer from 'src/views/pages/compliance/reports/dailyReport/SiteDrawer'
 import ReportCard from 'src/views/pages/report/ReportCard'
 import StickyTable from 'src/views/table/sticky-table'
-import AnimalCard from 'src/views/utility/AnimalCard'
+import AnimalView from 'src/views/pages/compliance/reports/biologists/ReportAnimalView'
 import Search from 'src/views/utility/Search'
 
 import { getComplianceDailyReport, getObservationMasterType } from 'src/lib/api/compliance/reports'
@@ -157,7 +157,22 @@ const DailyReport = () => {
     let counter = baseIndex
 
     for (const block of items) {
-      const { ref_type, sex, ref_id, animal_id, taxonomy, scientific_name, enclosure, section, site, date } = block
+      const {
+        ref_type,
+        sex,
+        ref_id,
+        animal_id,
+        taxonomy,
+        scientific_name,
+        enclosure,
+        section,
+        site,
+        date,
+        common_name,
+        default_icon,
+        local_identifier_name,
+        local_identifier_value
+      } = block
 
       const detailsArr = Array.isArray(block.observation_details) ? block.observation_details : []
 
@@ -165,20 +180,33 @@ const DailyReport = () => {
         counter += 1
         const child = Array.isArray(d.child_observation) ? d.child_observation.join('• ') : ''
 
+        const reporterName = d.created_by || block?.created_by || ''
+        const reportedAt = d.created_at || block?.created_at || ''
+
         rows.push({
           id: d.observation_id || `${ref_type}-${ref_id}-${counter}`,
           sl_no: String(counter).padStart(2, '0'),
           date: d.date_ || date || '',
-          animal_id: animal_id || '-',
-          scientific_name: scientific_name || '-',
-          common_name: '',
-          section_name: section || '-',
-          user_enclosure_name: enclosure || '-',
-          observation_type: d.master_enrichment_type || '-',
-          observation_details: child || '-',
-          observation: d.details || d.observation || '-',
-          site_name: site || '-',
-          sex: sex || '-'
+          animal_id: animal_id || '',
+          scientific_name: scientific_name || '',
+          common_name: common_name || '',
+          section_name: section || '',
+          user_enclosure_name: enclosure || '',
+          section: section || '',
+          enclosure: enclosure || '',
+          site: site || '',
+          default_icon,
+          local_identifier_name: local_identifier_name || '',
+          local_identifier_value: local_identifier_value || '',
+          taxonomy: taxonomy || null,
+          observation_type: d.master_enrichment_type || '',
+          observation_details: child || '',
+          observation: d.details || d.observation || '',
+          site_name: site || '',
+          sex: sex || '',
+          ref_type: ref_type || (animal_id ? 'animal' : ''),
+          created_by: reporterName,
+          created_at: reportedAt
         })
       }
     }
@@ -444,9 +472,9 @@ const DailyReport = () => {
       minWidth: 300,
       width: 400,
       field: 'animal_name',
-      headerName: 'ANIMAL NAME',
+      headerName: 'Entity',
       sortable: false,
-      renderCell: params => <AnimalCard data={params?.row} />
+      renderCell: params => <AnimalView data={params.row} />
     },
     {
       minWidth: 250,
@@ -481,10 +509,10 @@ const DailyReport = () => {
       )
     },
     {
-      minWidth: 400,
+      minWidth: 370,
       width: 500,
       field: 'observation',
-      headerName: 'OBSERVATION',
+      headerName: 'Treatment',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -498,6 +526,40 @@ const DailyReport = () => {
         >
           {params.row.observation}
         </Typography>
+      )
+    },
+    {
+      width: 170,
+      field: 'created_by',
+      headerName: 'REPORTED BY',
+      sortable: false,
+      renderCell: params => (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 400,
+              letterSpacing: 0,
+              lineHeight: 1
+            }}
+          >
+            {params.row.created_by || '-'}
+          </Typography>
+          {params.row.created_at && (
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '14px',
+                fontWeight: 400,
+                letterSpacing: 0,
+                lineHeight: 1
+              }}
+            >
+              {Utility.convertUTCToLocaltime(params.row.created_at)}
+            </Typography>
+          )}
+        </Box>
       )
     }
   ]

@@ -49,7 +49,6 @@ const AddSymptomDrawer = ({
   return (
     <Drawer
       open={open}
-
       //onClose={onClose}
       anchor='right'
     >
@@ -115,8 +114,8 @@ const AddSymptomDrawer = ({
                     }
                   }}
                 >
-                  <MenuItem value='Low'>Low</MenuItem>
-                  <MenuItem value='Medium'>Medium</MenuItem>
+                  <MenuItem value='Mild'>Mild</MenuItem>
+                  <MenuItem value='Moderate'>Moderate</MenuItem>
                   <MenuItem value='High'>High</MenuItem>
                   <MenuItem value='Extreme'>Extreme</MenuItem>
                 </Select>
@@ -138,7 +137,7 @@ const AddSymptomDrawer = ({
                   value={durationValue}
                   onChange={e => {
                     const val = e.target.value
-                    if (val === '' || Number(val) >= 1) {
+                    if (val === '' || Number(val) >= 0) {
                       setDurationValue(val)
                     }
                   }}

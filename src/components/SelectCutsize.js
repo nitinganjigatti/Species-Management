@@ -1,9 +1,11 @@
 import React from 'react'
-import { Box, FormControl, Select, MenuItem } from '@mui/material'
+import { Box, FormControl, Select, MenuItem, Tooltip } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 
 const SizeSelector = ({ size, cutsizelist, item, ingredient, handleChangeSize, showErrors }) => {
+  const theme = useTheme()
   return (
-    <Box sx={{ pl: 5 }}>
+    <Box sx={{ pl: 5, width: 162 }}>
       <FormControl fullWidth>
         <Select
           size='small'
@@ -22,6 +24,9 @@ const SizeSelector = ({ size, cutsizelist, item, ingredient, handleChangeSize, s
             },
             '& .MuiOutlinedInput-root': {
               borderRadius: '0px'
+            },
+            '&.Mui-focused .MuiSelect-select': {
+              color: theme.palette.primary.main
             }
           }}
           MenuProps={{
@@ -31,12 +36,46 @@ const SizeSelector = ({ size, cutsizelist, item, ingredient, handleChangeSize, s
               }
             }
           }}
+          renderValue={selected => {
+            const selectedUnit = cutsizelist?.find(unit => unit.id === selected)
+            return (
+              <Tooltip title={selectedUnit?.cut_size || ''}>
+                <span
+                  style={{
+                    display: 'block',
+                    maxWidth: 162,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {selectedUnit ? selectedUnit.cut_size : 'Select'}
+                </span>
+              </Tooltip>
+            )
+          }}
         >
           <MenuItem value='' disabled>
             Select
           </MenuItem>
           {cutsizelist?.map(unit => (
-            <MenuItem key={unit.id} value={unit.id}>
+            <MenuItem
+              key={unit.id}
+              value={unit.id}
+              sx={{
+                display: 'block',
+                maxWidth: 150,
+                overflowX: 'auto',
+                whiteSpace: 'nowrap',
+                scrollbarWidth: 'thin',
+                '&::-webkit-scrollbar': {
+                  height: '2px'
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  borderRadius: '1px'
+                }
+              }}
+            >
               {unit.cut_size}
             </MenuItem>
           ))}

@@ -28,6 +28,7 @@ const parseStatusToBoolean = value => {
   if (typeof value === 'number') return value === 1
   if (typeof value === 'string') {
     const normalized = value.trim().toLowerCase()
+
     return normalized === '1' || normalized === 'true' || normalized === 'active'
   }
 
@@ -152,7 +153,6 @@ const AddEditSurgeryDrawer = ({ open, onClose, onSubmit, loading = false, initia
             <ControlledTextArea
               control={control}
               name='description'
-              label='Description'
               placeholder='Enter description'
               rows={1}
               errors={errors}

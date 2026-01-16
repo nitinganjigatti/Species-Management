@@ -7,6 +7,7 @@ import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { visitTypeOptions } from 'src/constants/Constants'
 import { useHospital } from 'src/context/HospitalContext'
 import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
@@ -23,7 +24,7 @@ const HospitalInpatient = () => {
   const theme = useTheme()
   const router = useRouter()
 
-  const { selectedHospital } = useHospital()
+  const { selectedHospital, isHospitalAccessChecked } = useHospital()
 
   const [searchValue, setSearchValue] = useState('')
   const [selectedVisitType, setSelectedVisitType] = useState('')
@@ -32,7 +33,7 @@ const HospitalInpatient = () => {
   const [filterDate, setFilterDate] = useState({})
 
   const [selectedOptions, setSelectedOptions] = useState({
-    User: [],
+    'Chief Veterinarian': [],
     'Origin Site': []
   })
 
@@ -70,24 +71,29 @@ const HospitalInpatient = () => {
   }
 
   const { data, isFetching, refetch } = useQuery({
-    queryKey: ['inpatients-listings', filters, selectedVisitType, selectedHospital?.id],
+    queryKey: ['inpatients-listings', filters, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions],
     queryFn: () =>
       getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
-        search: filters?.q,
+        q: filters?.q,
         hospital_id: selectedHospital?.id,
         visit_type: selectedVisitType,
-        patient_category: 'inpatient'
-      })
+        patient_category: 'inpatient',
+        from_date: formatDate(filterDate.startDate),
+        to_date: formatDate(filterDate.endDate),
+        users: prepareFilterParams('Chief Veterinarian'),
+        origin_site: prepareFilterParams('Origin Site')
+      }),
+    enabled: !!(isHospitalAccessChecked && selectedHospital?.id)
   })
 
   const total = data?.data?.total || 0
   const rows = data?.data?.records || []
 
-  useEffect(() => {
-    refetch()
-  }, [refetch])
+  // useEffect(() => {
+  //   refetch()
+  // }, [refetch, selectedHospital?.id])
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -190,7 +196,7 @@ const HospitalInpatient = () => {
       headerName: 'Purpose of Visit',
       renderCell: params => (
         <>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
               <VisitType title={params.row.visit_type} />
               {params?.row?.medical_record_code && (
@@ -254,25 +260,15 @@ const HospitalInpatient = () => {
     {
       width: 180,
       minWidth: 20,
-      field: 'duration',
+      field: 'total_admitted_days',
       sortable: false,
       headerName: 'duration',
       align: 'left',
       headerAlign: 'left',
-
       renderCell: params => {
-        const admittedAt = params?.row?.admitted_at
-        let days = '-'
-
-        if (admittedAt) {
-          const admittedDate = new Date(admittedAt)
-          const today = new Date()
-          days = differenceInDays(today, admittedDate)
-        }
-
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {days} {days !== '-' ? 'days' : ''}
+            {params?.row?.total_admitted_days}
           </Typography>
         )
       }
@@ -308,10 +304,11 @@ const HospitalInpatient = () => {
   ]
 
   const handleRowClick = params => {
-    router.push({
-      pathname: `/hospital/inpatient/${params.row.id}`,
-      query: { animal_id: params.row.animal_id, medical_record_id: params.row.medical_record_id }
-    })
+    const patientId = params?.id || params?.row?.id
+
+    if (patientId) {
+      router.push(`/hospital/inpatient/${patientId}`)
+    }
   }
 
   const headerAction = (
@@ -334,7 +331,15 @@ const HospitalInpatient = () => {
         <Box sx={{ mt: 6 }}>
           <Card>
             <CardHeader title={RenderUtility?.pageTitle('Inpatients')} action={headerAction} />
-            <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between' }}>
+            <Box
+              sx={{
+                p: 3,
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexDirection: { xs: 'column', lg: 'row' },
+                gap: 4
+              }}
+            >
               <Box sx={{ ml: 2 }}>
                 <Search
                   borderRadius='4px'
@@ -350,7 +355,7 @@ const HospitalInpatient = () => {
                   }}
                 />
               </Box>
-              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
                 <CommonDateRangePickers
                   filterDates={filterDate}
                   onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
@@ -375,7 +380,7 @@ const HospitalInpatient = () => {
             </Box>
             <Grid
               sx={{
-                mx: { xs: 3, md: 5 }
+                mx: { xs: 5 }
               }}
             >
               <CommonTable
@@ -409,10 +414,11 @@ const HospitalInpatient = () => {
           onApplyFilters={applyFilters}
           setFilterCount={setFilterCount}
           initialSelectedOptions={selectedOptions}
+          hospitalId={selectedHospital?.id}
         />
       )}
     </>
   )
 }
 
-export default HospitalInpatient
+export default enforceModuleAccess(HospitalInpatient, 'add_hospital')

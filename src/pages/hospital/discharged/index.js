@@ -1,35 +1,68 @@
 import { useTheme } from '@emotion/react'
-import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem } from '@mui/material'
-import { minWidth } from '@mui/system'
+import {
+  Breadcrumbs,
+  Box,
+  Typography,
+  Card,
+  CardHeader,
+  Grid,
+  Select,
+  Tooltip,
+  MenuItem,
+  IconButton,
+  CircularProgress
+} from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { differenceInDays } from 'date-fns'
-import { debounce } from 'lodash'
+import { debounce, set } from 'lodash'
 import { useRouter } from 'next/router'
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { visitTypeOptions } from 'src/constants/Constants'
-import { AuthContext } from 'src/context/AuthContext'
+import { useHospital } from 'src/context/HospitalContext'
 import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
-import Utility from 'src/utility'
+import Utility, { downloadPDF } from 'src/utility'
 import RenderUtility from 'src/utility/render'
+import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
 import { VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
+import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
+import Icon from 'src/@core/components/icon'
+import { getPatientDischargeSummary } from 'src/lib/api/hospital/inpatient'
+import Toaster from 'src/components/Toaster'
 
 const HospitalDischarged = () => {
   const theme = useTheme()
   const router = useRouter()
 
-  const authData = useContext(AuthContext)
+  const { selectedHospital } = useHospital()
 
   const [searchValue, setSearchValue] = useState('')
   const [selectedVisitType, setSelectedVisitType] = useState('')
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [filterCount, setFilterCount] = useState(0)
+  const [filterDate, setFilterDate] = useState({})
+  const [downloadingRowId, setDownloadingRowId] = useState(null)
+
+  const [selectedOptions, setSelectedOptions] = useState({
+    'Chief Veterinarian': [],
+    'Origin Site': []
+  })
 
   const [filters, setFilters] = useState({
     page: 1,
     limit: 50,
     q: ''
   })
+
+  const applyFilters = selectedOptions => {
+    setSelectedOptions(selectedOptions)
+    setOpenFilterDrawer(false)
+  }
 
   useEffect(() => {
     const { page = '1', limit = '50', q = '' } = router.query
@@ -43,17 +76,32 @@ const HospitalDischarged = () => {
     setSearchValue(q)
   }, [router.query])
 
+  const prepareFilterParams = key => {
+    return selectedOptions[key]?.length > 0 ? selectedOptions[key].join(',') : undefined
+  }
+
+  const formatDate = dateString => {
+    if (!dateString) return null
+
+    return new Date(dateString).toISOString().split('T')[0]
+  }
+
   const { data, isFetching, refetch } = useQuery({
-    queryKey: ['outpatients-listings', filters, selectedVisitType],
+    queryKey: ['outpatients-listings', filters, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions],
     queryFn: () =>
       getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
-        search: filters?.q,
-        hospital_id: 1,
+        q: filters?.q,
+        hospital_id: selectedHospital?.id,
         visit_type: selectedVisitType,
-        patient_category: 'discharge'
-      })
+        patient_category: 'discharge',
+        from_date: formatDate(filterDate.startDate),
+        to_date: formatDate(filterDate.endDate),
+        users: prepareFilterParams('Chief Veterinarian'),
+        origin_site: prepareFilterParams('Origin Site')
+      }),
+    enabled: !!selectedHospital?.id
   })
 
   const total = data?.data?.total || 0
@@ -105,6 +153,34 @@ const HospitalDischarged = () => {
     [debouncedSearch]
   )
 
+  const handleSearchClear = () => {
+    setSearchValue('')
+    debouncedSearch('')
+  }
+
+  const handleDownloadDischargeSummary = async row => {
+    const rowId = row?.id
+    if (!rowId) return
+
+    setDownloadingRowId(rowId)
+
+    try {
+      const params = {
+        hospital_case_id: rowId
+      }
+
+      await downloadPDF({
+        apiCall: getPatientDischargeSummary,
+        params,
+        fileName: `Discharge_Summary${Date.now()}.pdf`
+      })
+    } catch (error) {
+      console.error('Error downloading discharge summary:', error)
+    } finally {
+      setDownloadingRowId(null)
+    }
+  }
+
   const getSlNo = index => (filters.page - 1) * filters.limit + index + 1
 
   const indexedRows = rows.map((row, index) => ({
@@ -127,7 +203,7 @@ const HospitalDischarged = () => {
       )
     },
     {
-      width: 300,
+      width: 350,
       minWidth: 20,
       sortable: false,
       field: 'animal_name',
@@ -154,14 +230,21 @@ const HospitalDischarged = () => {
     {
       width: 250,
       minWidth: 20,
-      field: 'purpose_of_visit',
+      field: 'discharge_reason',
       sortable: false,
       headerName: 'Discharge Summary',
       renderCell: params => (
         <>
-          <Tooltip title={params.row.purpose_of_visit}>
-            <Typography
-              variant='body2'
+          <Tooltip
+            title={
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: params?.row?.notes || 'NA'
+                }}
+              />
+            }
+          >
+            <Box
               sx={{
                 fontSize: '14px',
                 fontWeight: 400,
@@ -175,9 +258,10 @@ const HospitalDischarged = () => {
                 whiteSpace: 'normal',
                 py: 4
               }}
-            >
-              <>{params.row.purpose_of_visit || ''}</>
-            </Typography>
+              dangerouslySetInnerHTML={{
+                __html: params?.row?.discharge_reason || 'NA'
+              }}
+            />
           </Tooltip>
         </>
       )
@@ -185,7 +269,7 @@ const HospitalDischarged = () => {
     {
       width: 200,
       minWidth: 20,
-      field: 'admitted_at',
+      field: 'discharge_at',
       sortable: false,
       headerName: 'Discharged',
       align: 'left',
@@ -197,12 +281,12 @@ const HospitalDischarged = () => {
             <Typography
               sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
             >
-              {Utility.convertUtcToLocalReadableDate(params?.row?.admitted_at)}
+              {Utility.convertUtcToLocalReadableDate(params?.row?.discharge_at)}
             </Typography>
             <Typography
               sx={{ fontSize: '12px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
             >
-              {Utility.convertUTCToLocaltime(params?.row?.admitted_at)}
+              {Utility.convertUTCToLocaltime(params?.row?.discharge_at)}
             </Typography>
           </Box>
         </>
@@ -237,25 +321,17 @@ const HospitalDischarged = () => {
     {
       width: 180,
       minWidth: 20,
-      field: 'duration',
+      field: 'total_admitted_days',
       sortable: false,
       headerName: 'duration',
       align: 'left',
       headerAlign: 'left',
-
       renderCell: params => {
-        const admittedAt = params?.row?.admitted_at
-        let days = '-'
-
-        if (admittedAt) {
-          const admittedDate = new Date(admittedAt)
-          const today = new Date()
-          days = differenceInDays(today, admittedDate)
-        }
+        const totalDuration = Number(params.row.duration_days) + 1
 
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {days} {days !== '-' ? 'days' : ''}
+            {totalDuration} {totalDuration > 1 ? 'Days' : 'Day'}
           </Typography>
         )
       }
@@ -275,23 +351,46 @@ const HospitalDischarged = () => {
     {
       width: 200,
       minWidth: 20,
-      field: 'holding_enclosure_name',
+      field: 'doctor_full_name',
       sortable: false,
-      headerName: 'Location',
+      headerName: 'Chief Veterinarian',
       renderCell: params => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.holding_enclosure_name ? params?.row?.holding_enclosure_name : '-'}
+            {params?.row?.doctor_full_name ? params?.row?.doctor_full_name : '-'}
           </Typography>
         </>
       )
+    },
+
+    {
+      width: 100,
+      miWidth: 20,
+      field: 'action',
+      sortable: false,
+      headerName: 'Action',
+      renderCell: params => {
+        const isRowLoading = downloadingRowId === params.row.id
+
+        return (
+          <Tooltip title='Download Discharge Summary'>
+            <IconButton onClick={() => handleDownloadDischargeSummary(params.row)} disabled={isRowLoading}>
+              {isRowLoading ? <CircularProgress size={22} /> : <Icon icon='hugeicons:download-square-02' />}
+            </IconButton>
+          </Tooltip>
+        )
+      }
     }
   ]
 
-  const handleRowClick = params =>
-    router.push({
-      pathname: `/hospital/inpatient/${params.row.id}`
-    })
+  const handleRowClick = params => {
+    if (params?.field !== 'action') {
+      router.push({
+        pathname: `/hospital/discharged/${params.row.id}`,
+        query: { animal_id: params.row.animal_id, medical_record_id: params.row.medical_record_id }
+      })
+    }
+  }
 
   return (
     <>
@@ -301,21 +400,39 @@ const HospitalDischarged = () => {
           <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
           <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Discharged</Typography>
         </Breadcrumbs>
-        <Box>{/* This is for Hospital Card */}</Box>
+        <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>
             <CardHeader title={RenderUtility?.pageTitle('Discharged')} />
-            <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between' }}>
+            <Box
+              sx={{
+                p: 3,
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexDirection: { xs: 'column', lg: 'row' },
+                gap: 4
+              }}
+            >
               <Box sx={{ ml: 2 }}>
                 <Search
                   borderRadius='4px'
                   width='343px'
-                  placeholder='Search by medical Id or animal id'
+                  placeholder='Search by medical Id / AID / animal identifier'
                   value={searchValue}
+                  onClear={handleSearchClear}
                   onChange={e => handleSearch(e.target.value)}
+                  textFielsSX={{
+                    '& .MuiInputBase-input::placeholder': {
+                      fontSize: '13px'
+                    }
+                  }}
                 />
               </Box>
-              <Box sx={{ mr: 2 }}>
+              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
+                <CommonDateRangePickers
+                  filterDates={filterDate}
+                  onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
+                />
                 <Select
                   size='small'
                   value={selectedVisitType}
@@ -328,12 +445,15 @@ const HospitalDischarged = () => {
                     </MenuItem>
                   ))}
                 </Select>
-                <Box></Box>
+                <FilterButtonWithNotification
+                  onClick={() => setOpenFilterDrawer(true)}
+                  appliedFiltersCount={filterCount}
+                />
               </Box>
             </Box>
             <Grid
               sx={{
-                mx: { xs: 3, md: 5 }
+                mx: { xs: 5 }
               }}
             >
               <CommonTable
@@ -345,10 +465,14 @@ const HospitalDischarged = () => {
                 setPaginationModel={handlePaginationModelChange}
                 searchValue=''
                 getRowHeight={() => 'auto'}
-                onRowClick={handleRowClick}
+                onCellClick={handleRowClick}
                 externalTableStyle={{
                   '& .MuiDataGrid-cell': {
                     padding: 4
+                  },
+                  '& .MuiDataGrid-row:hover': {
+                    // backgroundColor: 'transparent',
+                    cursor: 'pointer'
                   }
                 }}
               />
@@ -356,8 +480,18 @@ const HospitalDischarged = () => {
           </Card>
         </Box>
       </Box>
+      {openFilterDrawer && (
+        <InpatientFilterDrawer
+          open={openFilterDrawer}
+          onClose={() => setOpenFilterDrawer(false)}
+          onApplyFilters={applyFilters}
+          setFilterCount={setFilterCount}
+          initialSelectedOptions={selectedOptions}
+          hospitalId={selectedHospital?.id}
+        />
+      )}
     </>
   )
 }
 
-export default HospitalDischarged
+export default enforceModuleAccess(HospitalDischarged, 'add_hospital')
