@@ -178,10 +178,9 @@ const InpatientClinicalNotes = props => {
                       color: theme.palette.customColors.OnSurfaceVariant,
                       textAlign: 'justify'
                     }}
-                    dangerouslySetInnerHTML={{
-                      __html: (data?.note || 'NA').replace(/\\n/g, '<br />')
-                    }}
-                  />
+                  >
+                    {data?.note || 'NA'}
+                  </Typography>
 
                   {status == 'admitted' && (
                     <IconButton
