@@ -25,7 +25,6 @@ import toast from 'react-hot-toast'
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import Utility from 'src/utility'
-import MediaCard from 'src/views/utility/MediaCard'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 import LoadingSkeleton from 'src/components/hospital/inpatient/Anesthesia/LoadingSkeleton'
 import VitalMonitoringDetail from './Anesthesia/vitalForms/VitalMonitoringDetail'
@@ -41,7 +40,11 @@ const tooltipSlotProps = {
   }
 }
 
-const Tooltip = ({ slotProps, ...props }) => {
+const Tooltip = ({ slotProps, title, children, ...props }) => {
+  if (title === undefined || title === null || title === '') {
+    return <>{children}</>
+  }
+
   const mergedSlotProps = {
     ...tooltipSlotProps,
     ...(slotProps
@@ -52,7 +55,11 @@ const Tooltip = ({ slotProps, ...props }) => {
       : undefined)
   }
 
-  return <MuiTooltip slotProps={mergedSlotProps} {...props} />
+  return (
+    <MuiTooltip title={title} slotProps={mergedSlotProps} {...props}>
+      {children}
+    </MuiTooltip>
+  )
 }
 
 const PAGE_SIZE = 10
@@ -75,16 +82,6 @@ const formatDateTime = value => {
   return formatted && formatted !== 'Invalid date' ? formatted : String(value)
 }
 
-const formatTimestamp = isoString => {
-  const date = new Date(isoString)
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = date.toLocaleString('en-US', { month: 'short' })
-  const year = date.getFullYear()
-  const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
-
-  return `${day} ${month} ${year} • ${time}`
-}
-
 const formatStaffNames = list => {
   if (!Array.isArray(list) || !list.length) return '--'
 
@@ -94,50 +91,6 @@ const formatStaffNames = list => {
     .join(', ')
 
   return names || '--'
-}
-
-const MediaScroller = ({ items = [] }) => {
-  if (!items.length) {
-    return <Typography sx={{ color: 'text.secondary' }}>No attachments available.</Typography>
-  }
-
-  return (
-    <Box
-      sx={theme => ({
-        width: '100%',
-        overflowX: 'auto',
-        py: 2,
-        '&::-webkit-scrollbar': { height: '2px !important' },
-        '&::-webkit-scrollbar-track': { background: 'transparent' },
-        '&::-webkit-scrollbar-thumb': {
-          background: theme.palette.customColors.OutlineSecondary,
-          borderRadius: '6px'
-        },
-        scrollbarWidth: 'thin',
-        scrollbarColor: `${theme.palette.customColors.OutlineSecondary} transparent`
-      })}
-    >
-      <Box
-        sx={{
-          display: 'inline-flex',
-          gap: 2,
-          px: 2
-        }}
-      >
-        {items.map(item => (
-          <Box
-            key={item.id}
-            sx={{
-              width: 240,
-              flexShrink: 0
-            }}
-          >
-            <MediaCard media={item} isBorderedCard />
-          </Box>
-        ))}
-      </Box>
-    </Box>
-  )
 }
 
 function Anesthesia({
@@ -284,11 +237,7 @@ function Anesthesia({
   const isRecordsLoading = isAnesthesiaLoading || (isFetchingRecords && !anesthesiaRecords.length)
   const activeRecordAnesthesiaId = activeRecordId
 
-  const {
-    data: anesthesiaDetailResponse,
-    refetch: refetchAnesthesiaDetail,
-    isFetching: isAnesthesiaDetailFetching
-  } = useQuery({
+  const { data: anesthesiaDetailResponse, isFetching: isAnesthesiaDetailFetching } = useQuery({
     queryKey: ['anesthesiaDetail', activeRecordAnesthesiaId],
     queryFn: () => getAnesthesiaDetail(activeRecordAnesthesiaId),
     // queryFn: () => getAnesthesiaDetail(4),
@@ -542,12 +491,6 @@ function Anesthesia({
 
   const hasAnyRating = Object.values(anaesthesiaRatings).some(v => v !== '')
 
-  const attachments = useMemo(() => {
-    const records = anesthesiaDetail?.attachments?.records
-
-    return Array.isArray(records) ? records : []
-  }, [anesthesiaDetail])
-
   const vitalMonitoringData = useMemo(() => {
     const monitoring = anesthesiaDetail?.vital_monitoring
 
@@ -631,16 +574,12 @@ function Anesthesia({
   const handleRecordTabClick = useCallback(
     selectionId => {
       if (selectionId === activeRecordId) {
-        // refetchAnesthesiaDetail()
         return
       }
 
       setActiveRecordId(selectionId)
     },
-    [
-      activeRecordId
-      // refetchAnesthesiaDetail
-    ]
+    [activeRecordId]
   )
 
   const handleDeleteClick = useCallback(() => {
@@ -656,9 +595,11 @@ function Anesthesia({
   }, [deleteLoading])
 
   const handleEditClick = value => {
-    if (value?.anaesthesia_id) {
+    const caseId = resolvedHospitalCaseId || router?.query?.id
+
+    if (value?.anaesthesia_id && caseId) {
       router.push({
-        pathname: `/hospital/inpatient/${router?.query?.id}/AddAnesthesiaRecord`,
+        pathname: `/hospital/inpatient/${caseId}/AddAnesthesiaRecord`,
         query: {
           tab: 'anesthesia',
           anaesthesia_id: value?.anaesthesia_id
@@ -708,13 +649,7 @@ function Anesthesia({
   )
 
   const renderRecordTabs = () => {
-    if (!shouldFetchRecords) {
-      return (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap' }}>
-          {/* Provide hospital case & medical record IDs to view anesthesia records. */}
-        </Typography>
-      )
-    }
+    if (!shouldFetchRecords) return null
 
     if (isRecordsLoading) {
       return renderTabSkeletons()
@@ -873,7 +808,7 @@ function Anesthesia({
 
           {!patientDischarged && anesthesiaRecords.length > 0 && (
             <Button
-              onClick={() => router.push(`/hospital/inpatient/${patientData?.hospital_case_id}/AddAnesthesiaRecord/`)}
+              onClick={() => router.push(`/hospital/inpatient/${resolvedHospitalCaseId}/AddAnesthesiaRecord/`)}
               variant='contained'
               sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
             >
@@ -894,7 +829,7 @@ function Anesthesia({
               btnText={'ADD ANESTHESIA'}
               text={'All Added Anesthesia Will Appear here'}
               isDischarged={isDischared}
-              btnAction={() => router.push(`/hospital/inpatient/${hospitalCaseId}/AddAnesthesiaRecord`)}
+              btnAction={() => router.push(`/hospital/inpatient/${resolvedHospitalCaseId}/AddAnesthesiaRecord`)}
             />
           </Box>
         )}
@@ -1904,11 +1839,6 @@ function Anesthesia({
                 ''
               )}
             </Box>
-
-            {/* <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <DetailsHeader text={'ATTACHMENTS'} />
-            <MediaScroller items={attachments} />
-          </Box> */}
           </Box>
         )}
       </Box>
