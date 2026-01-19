@@ -20,6 +20,9 @@ import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMul
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
 
 const transferEnclosureSchema = yup.object({
   discharge_date: yup.date().nullable().required('Date of discharge is required'),
@@ -335,8 +338,10 @@ const EnclosureDischargeForm = props => {
                     name='discharge_time'
                     label='Time'
                     errors={errors}
-                    minTime={minTime}
-                    maxTime={maxTime}
+                    // minTime={minTime}
+                    // maxTime={maxTime}
+                    minTime={dayjs.utc(patientData?.admitted_at).local()}
+                    maxTime={dayjs()}
                     shouldDisableTime={shouldDisableDischargeTime}
                   />
                 </Grid>

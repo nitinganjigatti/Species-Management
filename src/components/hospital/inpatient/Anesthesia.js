@@ -1622,7 +1622,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
               )}
 
               {recoveryProblemText || recoveryNotesText || hasAnyRating ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
                   <Box
                     sx={{
                       // px: '8px',
@@ -1633,15 +1633,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                       justifyContent: 'space-between',
                       alignItems: 'center'
                     }}
-                  >
-                    <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                      <Typography
-                        sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
-                      >
-                        Recovery Details
-                      </Typography>
-                    </Box>
-                  </Box>
+                  ></Box>
 
                   <Box
                     sx={{
@@ -1655,7 +1647,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                       alignItems: 'center'
                     }}
                   >
-                    {recoveryProblemText ? (
+                    {recoveryProblemText && recoveryData.recovery_type === 'Problem' ? (
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mt: 2, minWidth: 0 }}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
                           <Typography
@@ -1704,7 +1696,8 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                           width: '100%',
                           px: 4,
                           py: 2,
-                          borderRadius: '8px'
+                          borderRadius: '8px',
+                          mt: 1
                         })}
                       >
                         <Typography

@@ -359,6 +359,7 @@ const AddanesthesiaRecordDrawer = ({
                   purposeOptions={purposeOptions}
                   loadMoreDoctors={loadMoreDoctors}
                   loadingDoctors={loadingDoctors}
+                  patientData={patientData}
                 />
               </Card>
             </Box>
