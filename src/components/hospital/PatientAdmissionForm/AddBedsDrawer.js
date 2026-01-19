@@ -125,6 +125,12 @@ const AddBedsDrawer = ({
     })
   }
 
+  useEffect(() => {
+    if (selectedHospital?.id && !hospitalStats) {
+      fetchAndUpdateHospitalStats(selectedHospital?.id)
+    }
+  }, [selectedHospital])
+
   // Hospital stats
   const fetchAndUpdateHospitalStats = async hospitalId => {
     if (!hospitalId) return

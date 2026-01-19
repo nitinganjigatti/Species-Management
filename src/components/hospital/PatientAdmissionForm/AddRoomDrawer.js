@@ -11,7 +11,7 @@ import {
   useTheme
 } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
@@ -95,6 +95,12 @@ const AddRoomDrawer = ({
       console.error('Error fetching hospital stats:', error)
     }
   }
+
+  useEffect(() => {
+    if (selectedHospital?.id && !hospitalStats) {
+      fetchAndUpdateHospitalStats(selectedHospital?.id)
+    }
+  }, [selectedHospital])
 
   const onAddClick = async data => {
     setAddLoading(true)
