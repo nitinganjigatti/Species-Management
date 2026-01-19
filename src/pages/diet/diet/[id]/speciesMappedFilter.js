@@ -720,12 +720,12 @@ const SpeciesMappedtoDietFilter = ({
                         width: '100%',
                         '& .MuiDrawer-paper': { width: ['100%', '562px'] },
                         overflowY: 'auto',
-                        height: '100%'
+                        height: '100vh'
                       }}
                       onScroll={handleScrollforFilter}
                     >
                       <Box sx={{ mb: 3, width: '100%' }}>
-                        <Box sx={{ maxHeight: 600, mt: 1, width: '100%' }}>
+                        <Box sx={{ mt: 1, height: '100vh', width: '100%' }}>
                           {speciesDataforFilter?.length > 0 ? (
                             speciesDataforFilter.map(item => {
                               const itemName = item.scientific_name
@@ -842,12 +842,12 @@ const SpeciesMappedtoDietFilter = ({
 
                         // backgroundColor: 'background.default',
                         overflowY: 'auto',
-                        height: '100%'
+                        height: '100vh'
                       }}
                       onScroll={handleScrollforTaxonomy}
                     >
                       <Box sx={{ mb: 3, width: '100%' }}>
-                        <Box sx={{ maxHeight: 600, mt: 1, width: '100%' }}>
+                        <Box sx={{ height: '100vh', mt: 1, width: '100%' }}>
                           {filteredTaxonomyList?.length > 0 ? (
                             filteredTaxonomyList.map(item => {
                               const itemName = item.scientific_name

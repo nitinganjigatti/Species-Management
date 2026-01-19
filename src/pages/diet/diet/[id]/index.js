@@ -181,7 +181,7 @@ const DietDetail = () => {
 
       const commonParams = {
         page_no: pageNo,
-        limit: 15,
+        limit: 20,
         diet_id: id,
         ...(searchQuery && { q: searchQuery }),
         ...(type && { type }),
@@ -195,7 +195,7 @@ const DietDetail = () => {
         setLoadingSpecies(true)
         const params = {
           page_no: pageNo,
-          limit: 15,
+          limit: 20,
           diet_id: id,
           ...(searchQuery && { q: searchQuery }),
           ...(selectedItems?.Taxonomy?.length > 0 && { species_ids: `[${selectedItems?.Taxonomy.join(',')}]` })
@@ -334,15 +334,15 @@ const DietDetail = () => {
         let res
         if (selectionType === 'animals' && filterState === 'species') {
           // Params for animals list
-          const params = { page_no: pageNo, q: search, diet_id: id, limit: 15 }
+          const params = { page_no: pageNo, q: search, diet_id: id, limit: 20 }
           res = await getSpeciesList(params)
         } else if (selectionType === 'species') {
           // Params for species list
-          const params = { q: search, page_no: pageNo, limit: 15, diet_id: id, ...(type && { type }) }
+          const params = { q: search, page_no: pageNo, limit: 20, diet_id: id, ...(type && { type }) }
           res = await getSpeciesList(params)
         } else if (selectionType === 'animals') {
           // Params for animals list
-          const params = { page_no: pageNo, q: search, diet_id: id, limit: 15, ...(type && { type }) }
+          const params = { page_no: pageNo, q: search, diet_id: id, limit: 20, ...(type && { type }) }
           res = await getAnimalsList(params)
         }
 
@@ -411,7 +411,7 @@ const DietDetail = () => {
     setTaxonomyLoading(true)
     try {
       setLoadingTaxonomy(true)
-      const params = { search: searchQuery, page_no: pageNoTaxonomy, limit: 15 }
+      const params = { search: searchQuery, page_no: pageNoTaxonomy, limit: 20 }
       const response = await getTaxonomyList(params)
       if (response?.data) {
         setTaxonomyList(prev => (pageNoTaxonomy === 1 ? response.data.result : [...prev, ...response.data.result]))
