@@ -817,6 +817,8 @@ export const ADD_PRESCRIPTION = 'medical/v2/prescription-update'
 
 export const SCHEDULE_PRESCRIPTION = 'v1/hospital/add-additional-dosage-timing'
 
+export const UPDATE_PRESCRIPTION = 'medical/v2/prescription-update'
+
 export const STOP_PRESCRIPTION = 'medical/v2/restart-stop-medicine'
 
 export const UNDO_PRESCRIPTION = 'administer/reset'
@@ -842,6 +844,8 @@ export const GET_BATCH_LIST = 'vaccination/get-batch-list-by-medicine'
 export const GET_PRESCRIPTION_BY_RECORD = 'v1/hospital/list-prescription-by-record'
 
 export const GET_FREQUENCY = 'medical/frequency'
+
+export const VALIDATE_PRESCRIPTION_BEFORE_UPDATE = 'administer/validate-prescription-for-update'
 
 export const GET_INTERVALS = 'medical/master/prescription/interval/list'
 
