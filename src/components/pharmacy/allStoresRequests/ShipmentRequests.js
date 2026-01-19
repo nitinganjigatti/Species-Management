@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Box, Tooltip, Grid, Card, Button, Typography} from '@mui/material'
+import { Box, Tooltip, Grid, Card, Button, Typography } from '@mui/material'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
@@ -22,7 +22,6 @@ import { deleteFulfillItem } from 'src/lib/api/pharmacy/getRequestItemsList'
 import toast from 'react-hot-toast'
 import { LoadingButton } from '@mui/lab'
 import MUISelect from 'src/views/forms/form-fields/MUISelect'
-
 
 export default function ShipmentRequests({ updateUrlParams }) {
   const { selectedPharmacy } = usePharmacyContext()
@@ -138,8 +137,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {parseInt(params.row.sl_no) + '.'}
@@ -237,8 +235,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params?.row?.ro_no}
@@ -254,8 +251,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.batch_no}
@@ -271,8 +267,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility?.formatDisplayDate(params.row.expiry_date)}
@@ -288,8 +283,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.dispatch_qty}
@@ -299,18 +293,18 @@ export default function ShipmentRequests({ updateUrlParams }) {
 
     {
       width: 200,
-      field: 'requested_date',
+      field: 'created_at',
       headerName: 'Packed Date',
+      sortable: false,
       renderCell: params => (
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
-          {Utility?.formatDisplayDate(params.row.requested_date)}
+          {Utility?.formatDisplayDate(params.row.created_at)}
         </Typography>
       )
     },
@@ -452,9 +446,8 @@ export default function ShipmentRequests({ updateUrlParams }) {
           mt: 4
         }}
       >
-        <Grid item size = {{xs: 12, sm: 'auto'}}>
+        <Grid item size={{ xs: 12, sm: 'auto' }}>
           <TabLists
-            // variant='scrollable'
             allowScrollButtonsMobile
             onChange={(event, newValue) => {
               setShipmentTab(newValue)
@@ -462,10 +455,10 @@ export default function ShipmentRequests({ updateUrlParams }) {
                 subTab: newValue
               })
             }}
-            sx={{    
+            sx={{
               display: 'flex',
               flexDirection: 'row',
-              alignItems: 'center',           
+              alignItems: 'center'
             }}
           >
             {selectedPharmacy.type === 'local' ? null : (
@@ -476,8 +469,9 @@ export default function ShipmentRequests({ updateUrlParams }) {
         </Grid>
         <Grid
           item
-          size = {{
-            xs: 12, sm: 12
+          size={{
+            xs: 12,
+            sm: 12
           }}
           sx={{
             display: 'flex',
@@ -634,7 +628,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
           sx={{
             mb: 6,
             minWidth: '100%',
-  
+
             boxShadow: 'none !important'
           }}
         >
