@@ -237,8 +237,8 @@ const AddRoomDrawer = ({
                   )}
                 </Box>
               </Box>
-              <Grid container spacing={4} alignItems='center' justifyContent='space-between'>
-                <Grid item xs={3} md={2}>
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                   <Box>
                     {isHospitalStatsLoading ? (
                       <ShimmerBox width='60px' height='24px' mb={1} />
@@ -264,8 +264,7 @@ const AddRoomDrawer = ({
                     </Typography>
                   </Box>
                 </Grid>
-
-                <Grid item xs={3} md={2}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                   <Box>
                     {isHospitalStatsLoading ? (
                       <ShimmerBox width='60px' height='24px' mb={1} />
@@ -292,7 +291,7 @@ const AddRoomDrawer = ({
                   </Box>
                 </Grid>
 
-                <Grid item xs={3} md={2}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                   <Box>
                     {isHospitalStatsLoading ? (
                       <ShimmerBox width='60px' height='24px' mb={1} />
@@ -320,7 +319,7 @@ const AddRoomDrawer = ({
                   </Box>
                 </Grid>
 
-                <Grid item xs={3} md={2}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                   <Box>
                     {isHospitalStatsLoading ? (
                       <ShimmerBox width='60px' height='24px' mb={1} />
