@@ -105,13 +105,12 @@ const StorageList = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 500,
-
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap'
             }}
           >
-            {`${params.row.label}°C`}
+            {params?.row?.label}
           </Typography>
         </Tooltip>
       )
@@ -129,8 +128,6 @@ const StorageList = () => {
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
             fontWeight: 500
-
-            // fontFamily: 'Inter'
           }}
         >
           {params.row.active === '1' ? 'Active' : 'Inactive'}
