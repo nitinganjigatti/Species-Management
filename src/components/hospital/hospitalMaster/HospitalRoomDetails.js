@@ -534,7 +534,7 @@ const HospitalRoomDetails = () => {
     {
       minWidth: 150,
       field: 'no_of_bed',
-      headerName: 'Beds',
+      headerName: 'Enclosures',
       sortable: false,
       renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.no_of_bed ?? '-'}</StyledTypography>
     },
@@ -756,7 +756,7 @@ const HospitalRoomDetails = () => {
       {isOccupiedRoomWarningOpen && (
         <ConfirmationDialog
           dialogBoxStatus={isOccupiedRoomWarningOpen}
-          title='The hospital status cannot be changed because there are patients currently occupying the beds'
+          title='The hospital status cannot be changed because there are patients currently occupying the Enclosures'
           confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}

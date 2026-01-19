@@ -287,7 +287,7 @@ const AddRoomDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Total beds
+                      Total Enclosures
                     </Typography>
                   </Box>
                 </Grid>
@@ -315,7 +315,7 @@ const AddRoomDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Available Beds
+                      Available Enclosures
                     </Typography>
                   </Box>
                 </Grid>
@@ -343,7 +343,7 @@ const AddRoomDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Occupied Beds
+                      Occupied Enclosures
                     </Typography>
                   </Box>
                 </Grid>

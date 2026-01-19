@@ -48,8 +48,6 @@ import BottomActionBar from 'src/views/utility/BottomActionBar'
 
 // import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
-
-
 const treatmentType = [
   { label: 'OPD(outpatient)', value: 'opd' },
   { label: 'Hospital Admission(inpatient)', value: 'inpatient' }
@@ -773,7 +771,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                         fontWeight: 400
                       }}
                     >
-                      No available beds, All beds are occupied
+                      No available Enclosures, All Enclosures are occupied
                     </Typography>
                   )}
                 </Grid>

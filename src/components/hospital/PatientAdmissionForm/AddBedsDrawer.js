@@ -335,7 +335,7 @@ const AddBedsDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Total beds
+                      Total Enclosures
                     </Typography>
                   </Box>
                 </Grid>
@@ -363,7 +363,7 @@ const AddBedsDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Available Beds
+                      Available Enclosures
                     </Typography>
                   </Box>
                 </Grid>
@@ -391,7 +391,7 @@ const AddBedsDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Occupied Beds
+                      Occupied Enclosures
                     </Typography>
                   </Box>
                 </Grid>
@@ -426,11 +426,11 @@ const AddBedsDrawer = ({
                 <Typography
                   sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Bed
+                  Enclosure
                 </Typography>
                 <ControlledTextField
                   name='bed'
-                  label='Enter Bed Name'
+                  label='Enter Enclosure Name'
                   control={control}
                   errors={errors}
                   required

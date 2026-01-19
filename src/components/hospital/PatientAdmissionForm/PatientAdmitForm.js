@@ -692,7 +692,7 @@ const PatientAdmitForm = () => {
                             fontWeight: 400
                           }}
                         >
-                          No available beds, All beds are occupied
+                          No available Enclosures, All Enclosures are occupied
                         </Typography>
                       )}
                     </Grid>

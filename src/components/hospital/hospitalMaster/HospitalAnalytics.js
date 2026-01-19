@@ -183,7 +183,7 @@ const HospitalAnalytics = ({ isHospitalStatsLoading, isInitialLoading, hospitalD
           </Grid>
 
           <Grid size={{ xs: 6, sm: 2, md: 1 }}>
-            <StatBox label='Beds' value={hospitalDetails?.no_of_bed ?? '-'} />
+            <StatBox label='Enclosures' value={hospitalDetails?.no_of_bed ?? '-'} />
           </Grid>
 
           <Grid size={{ xs: 6, sm: 2, md: 1.2 }}>

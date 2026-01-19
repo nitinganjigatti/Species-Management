@@ -11,7 +11,9 @@ import {
   Tooltip,
   MenuItem,
   CircularProgress,
-  IconButton
+  IconButton,
+  Tabs,
+  Tab
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
@@ -43,6 +45,7 @@ const HospitalFollowUp = () => {
   const [filterCount, setFilterCount] = useState(0)
   const [filterDate, setFilterDate] = useState({})
   const [downloadingRowId, setDownloadingRowId] = useState(null)
+  const [activeTab, setActiveTab] = useState(0)
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -83,7 +86,14 @@ const HospitalFollowUp = () => {
   }
 
   const { data, isFetching, refetch } = useQuery({
-    queryKey: ['patients-discharge-follow-up-listings', filters, selectedHospital?.id, filterDate, selectedOptions],
+    queryKey: [
+      'patients-discharge-follow-up-listings',
+      filters,
+      selectedHospital?.id,
+      filterDate,
+      selectedOptions,
+      activeTab
+    ],
     queryFn: () =>
       getFollowUpPatientsListings({
         page_no: filters?.page,
@@ -94,12 +104,13 @@ const HospitalFollowUp = () => {
         from_date: formatDate(filterDate.startDate),
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('Chief Veterinarian'),
-        origin_site: prepareFilterParams('Origin Site')
+        origin_site: prepareFilterParams('Origin Site'),
+        due_days_crossed: activeTab
       }),
     enabled: !!selectedHospital?.id
   })
 
-  const total = data?.data?.total || 0
+  const total = data?.data?.total_records || 0
   const rows = data?.data?.records || []
 
   useEffect(() => {
@@ -289,7 +300,7 @@ const HospitalFollowUp = () => {
       minWidth: 20,
       field: 'due_in_days',
       sortable: false,
-      headerName: 'Due in ',
+      headerName: activeTab === 0 ? 'Due in' : 'Due For',
       align: 'left',
       headerAlign: 'left',
       renderCell: params => {
@@ -334,13 +345,41 @@ const HospitalFollowUp = () => {
     }
   ]
 
-  const handleRowClick = params => {
+  const handleRowClick = async params => {
     if (params?.field !== 'action') {
-      router.push({
-        pathname: `/hospital/followup/${params.row?.hospital_case_id}`,
-        query: { animal_id: params.row?.animal_detail?.animal_id, medical_record_id: params.row.medical_record_id }
-      })
+      // router.push({
+      //   pathname: `/hospital/followup/${params.row?.hospital_case_id}`,
+      //   query: { animal_id: params.row?.animal_detail?.animal_id, medical_record_id: params.row.medical_record_id }
+      // })
+      try {
+        const payload = {
+          hospital_case_id: params?.row?.hospital_case_id
+        }
+
+        const response = await getPatientDischargeSummary(payload)
+        if (response?.success) {
+          const pdfLink = response?.data?.download_url
+
+          if (pdfLink) {
+            window.open(pdfLink, '_blank', 'noopener,noreferrer')
+          }
+        }
+      } catch (error) {
+        console.error('Error downloading discharge summary:', error)
+      } finally {
+        setDownloadingRowId(null)
+      }
     }
+  }
+
+  const handleTabChange = (_, newValue) => {
+    setActiveTab(newValue)
+    setSearchValue('')
+    debouncedSearch('')
+  }
+
+  const getTabLabel = (key, label) => {
+    return key === activeTab ? `${label} - ${total}` : label
   }
 
   return (
@@ -390,6 +429,36 @@ const HospitalFollowUp = () => {
                   appliedFiltersCount={filterCount}
                 />
               </Box>
+            </Box>
+            <Box
+              sx={{
+                display: 'inline-flex',
+                ml: 6,
+                borderBottom: `1px solid ${theme.palette.divider}`
+              }}
+            >
+              <Tabs
+                value={activeTab}
+                onChange={handleTabChange}
+                TabIndicatorProps={{
+                  style: {
+                    backgroundColor: theme.palette.primary.main,
+                    height: '2px',
+                    borderRadius: '2px 2px 0 0'
+                  }
+                }}
+                sx={{
+                  minHeight: 40,
+                  '& .MuiTab-root': {
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    minHeight: 40
+                  }
+                }}
+              >
+                <Tab value={0} label={getTabLabel(0, 'Active')} />
+                <Tab value={1} label={getTabLabel(1, 'Overdue')} />
+              </Tabs>
             </Box>
             <Grid
               sx={{

@@ -92,7 +92,7 @@ const RoomAnalytics = ({ isRoomStatsLoading, roomDetails }) => {
           </Grid>
 
           <Grid size={{ xs: 6, sm: 4, md: 1.5 }}>
-            <StatBox label='Total beds' value={roomDetails?.no_of_bed ?? '-'} />
+            <StatBox label='Total Enclosures' value={roomDetails?.no_of_bed ?? '-'} />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 1.2 }}>
             <StatBox label='Occupied' value={roomDetails?.no_of_occupied ?? '-'} />

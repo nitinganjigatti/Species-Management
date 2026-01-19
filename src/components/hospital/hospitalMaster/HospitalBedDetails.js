@@ -619,7 +619,7 @@ const HospitalBedDetails = () => {
       {isOccupiedBedWarningOpen && (
         <ConfirmationDialog
           dialogBoxStatus={isOccupiedBedWarningOpen}
-          title='The room status cannot be changed because there are patients currently occupying the beds'
+          title='The room status cannot be changed because there are patients currently occupying the Enclosures'
           confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
