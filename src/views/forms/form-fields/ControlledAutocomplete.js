@@ -2,7 +2,6 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
 import { Autocomplete, TextField, FormControl, Checkbox, FormHelperText } from '@mui/material'
-import { Autocomplete, TextField, FormControl, Checkbox, FormHelperText } from '@mui/material'
 import get from 'lodash/get'
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank'
 import CheckBoxIcon from '@mui/icons-material/CheckBox'

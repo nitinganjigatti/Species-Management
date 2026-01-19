@@ -126,7 +126,6 @@ const CommonTable = ({
       rowSelectionModel={selectedRows ? selectedRows : []}
       getRowHeight={getRowHeight ? getRowHeight : null}
       getRowClassName={getRowClassName ? getRowClassName : undefined}
-      hideFooter={hideFooter}
     />
   )
 }
