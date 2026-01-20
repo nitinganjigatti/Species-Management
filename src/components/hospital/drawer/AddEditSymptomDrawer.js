@@ -21,6 +21,7 @@ import { deleteNoteSymptoms } from 'src/lib/api/hospital/symptoms'
 import Utility from 'src/utility'
 import Toaster from 'src/components/Toaster'
 import EditNotes from '../inpatient/EditNotes'
+import { useRouter } from 'next/router'
 
 const AddEditSymptomDrawer = ({
   open,
@@ -54,6 +55,8 @@ const AddEditSymptomDrawer = ({
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
+  const router = useRouter()
+  const { id } = router.query
 
   const handleSave = () => {
     onSave({
@@ -111,7 +114,8 @@ const AddEditSymptomDrawer = ({
         med_id: temporarilySelected?.medical_record_id,
         type: 'COMPLAINT',
         note: notes || '',
-        note_id: noteId || ''
+        note_id: noteId || '',
+        hospital_case_id: id || ''
       }
       const response = await updateNotes(payload)
 

@@ -77,7 +77,8 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
         med_id: selectedAssessment?.medical_record_id,
         type: 'DIAGNOSIS',
         note: notes || '',
-        note_id: noteRecord?.note_id || ''
+        note_id: noteRecord?.note_id || '',
+        hospital_case_id: id || ''
       }
       const response = await updateNotes(payload)
 
@@ -325,7 +326,8 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
       med_id: selectedAssessment?.medical_record_id || '',
       type: 'DIAGNOSIS',
       is_system_generated: isSystemGenerated,
-      animal_id: animal_id || ''
+      animal_id: animal_id || '',
+      hospital_case_id: id || ''
     }
 
     // Only add clinical_assessment if changed
