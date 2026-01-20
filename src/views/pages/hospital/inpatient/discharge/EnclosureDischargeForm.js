@@ -20,27 +20,6 @@ import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMul
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
-import utc from 'dayjs/plugin/utc'
-
-dayjs.extend(utc)
-
-const transferEnclosureSchema = yup.object({
-  discharge_date: yup.date().nullable().required('Date of discharge is required'),
-  discharge_time: yup.date().nullable().required('Time of discharge is required'),
-  follow_up_required: yup.boolean().optional(),
-  follow_up_date: yup
-    .date()
-    .nullable()
-    .when('follow_up_required', {
-      is: true,
-      then: schema => schema.required('Follow up date required')
-    }),
-  reason: yup.string().optional(),
-  care_diet_instruction: yup.string().trim().optional(),
-  care_restriction: yup.string().trim().optional(),
-  care_notes: yup.string().trim().optional(),
-  attachments: yup.array().nullable().optional()
-})
 
 const EnclosureDischargeForm = props => {
   const {
@@ -79,6 +58,24 @@ const EnclosureDischargeForm = props => {
       })),
     [medicationData]
   )
+
+  const transferEnclosureSchema = yup.object({
+    discharge_date: yup.date().nullable().required('Date of discharge is required'),
+    discharge_time: yup.date().nullable().required('Time of discharge is required'),
+    follow_up_required: yup.boolean().optional(),
+    follow_up_date: yup
+      .date()
+      .nullable()
+      .when('follow_up_required', {
+        is: true,
+        then: schema => schema.required('Follow up date required')
+      }),
+    reason: yup.string().optional(),
+    care_diet_instruction: yup.string().trim().optional(),
+    care_restriction: yup.string().trim().optional(),
+    care_notes: yup.string().trim().optional(),
+    attachments: yup.array().nullable().optional()
+  })
 
   const defaultValues = {
     discharge_type: 'TransferEnclosure',
@@ -142,7 +139,7 @@ const EnclosureDischargeForm = props => {
 
   // time limits for discharge time
   const selectedDischargeDate = watch('discharge_date')
-  const admittedAtLocal = dayjs(patientData?.admitted_at)
+  const admittedAt = dayjs(patientData?.admitted_at)
   const now = dayjs()
 
   let minTime = null
@@ -152,8 +149,8 @@ const EnclosureDischargeForm = props => {
     const selectedDay = dayjs(selectedDischargeDate)
 
     // If discharge day is same as admission date  cannot select a time before admission
-    if (selectedDay.isSame(admittedAtLocal, 'day')) {
-      minTime = admittedAtLocal
+    if (selectedDay.isSame(admittedAt, 'day')) {
+      minTime = admittedAt
     }
 
     // If discharge day is today  cannot pick time after current time
@@ -166,10 +163,10 @@ const EnclosureDischargeForm = props => {
   const shouldDisableDischargeTime = (timeValue, clockType) => {
     if (timeValue == null) return false
 
-    const t = dayjs(selectedDischargeDate).set(clockType, timeValue)
+    const base = dayjs(selectedDischargeDate).set(clockType, timeValue)
 
-    if (minTime && t.isBefore(minTime)) return true
-    if (maxTime && t.isAfter(maxTime)) return true
+    if (minTime && base.isBefore(minTime)) return true
+    if (maxTime && base.isAfter(maxTime)) return true
 
     return false
   }
@@ -267,6 +264,9 @@ const EnclosureDischargeForm = props => {
       const target = document.querySelector(window.location.hash)
       if (target) {
         target.scrollIntoView({ behavior: 'smooth' })
+
+        // Remove the hash from URL after scrolling
+        window.history.replaceState(null, null, ' ')
       }
     }
   }, [])
@@ -338,10 +338,8 @@ const EnclosureDischargeForm = props => {
                     name='discharge_time'
                     label='Time'
                     errors={errors}
-                    // minTime={minTime}
-                    // maxTime={maxTime}
-                    minTime={dayjs.utc(patientData?.admitted_at).local()}
-                    maxTime={dayjs()}
+                    minTime={minTime}
+                    maxTime={maxTime}
                     shouldDisableTime={shouldDisableDischargeTime}
                   />
                 </Grid>
@@ -487,7 +485,7 @@ const EnclosureDischargeForm = props => {
             </>
           )}
           <Divider />
-          <Box sx={{ display: 'flex', flexDirection: 'column' }} id='medications-section'>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Box
               sx={{
                 display: 'flex',
@@ -508,6 +506,7 @@ const EnclosureDischargeForm = props => {
                   md: 0
                 }
               }}
+              id='medications-section'
             >
               <StyledTypography fontSize='1.25rem'>Medications</StyledTypography>
               <Button
