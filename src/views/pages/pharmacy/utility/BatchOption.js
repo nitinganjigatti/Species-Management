@@ -10,33 +10,40 @@ const BatchOption = ({ option, ...props }) => {
     <Box
       component='li'
       {...props}
+      key={option.value}
       sx={{
-        border: '1px solid transparent',
-        '&:last-child': {
-          borderBottom: 'none'
-        },
-        m: 3,
-        '&:hover': {
-          border: `1px solid ${theme.palette.customColors.neutral05}`
-        },
-        borderRadius: '2px'
+        padding: '0px !important',
+        margin: '5px',
+        Width: '100%!important'
       }}
     >
-      <Box sx={{ p: 1 }}>
+      <Box
+        sx={{
+          padding: '8px !important',
+          borderRadius: '4px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px'
+        }}
+      >
         <Typography
           sx={{
-            color: 'customColors.customHeadingTextColor',
-            fontSize: '0.875rem',
-            fontWeight: 600
-          }}>
+            color: 'customColors.OnSurfaceVariant',
+            fontSize: '14px',
+            fontWeight: '600',
+            lineHeight: '16.94px'
+          }}
+        >
           {option.label}
         </Typography>
         <Typography
           sx={{
-            color: 'customColors.neutralSecondary',
-            fontSize: '0.875rem',
-            fontWeight: 400
-          }}>
+            fontSize: '12px',
+            fontWeight: '400',
+            lineHeight: '14.52px',
+            color: 'customColors.neutralSecondary'
+          }}
+        >
           Expiry Date: {Utility.formatDisplayDate(option.expiry_date)}
         </Typography>
         <Typography
@@ -44,12 +51,13 @@ const BatchOption = ({ option, ...props }) => {
             color: 'primary.main',
             fontSize: '0.875rem',
             fontWeight: 400
-          }}>
+          }}
+        >
           Availability: {option.available_item_qty}
         </Typography>
       </Box>
     </Box>
-  );
+  )
 }
 
 export default React.memo(BatchOption)
