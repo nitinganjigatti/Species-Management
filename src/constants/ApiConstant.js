@@ -789,8 +789,6 @@ export const GET_CLINICAL_DIAGNOSIS_TYPE = 'medical/get-complaint-diagnosis-type
 
 export const ADD_CLINICAL_ASSESSMENT = 'medical/v2/diagnosis-update'
 
-export const UPDATE_CLINICAL_ASSESSMENT = 'medical/v2/update-diagnosis-prescription'
-
 export const GET_NOTES = 'medical/v2/record-details'
 
 export const UPDATE_NOTES = 'medical/v2/update-diagnosis-prescription'
