@@ -484,7 +484,7 @@ const HospitalBedDetails = () => {
         <Typography onClick={() => router.back()} sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}>
           Room
         </Typography>
-        <Typography color={theme.palette.text.primary}>Bed</Typography>
+        <Typography color={theme.palette.text.primary}>Enclosures</Typography>
       </Breadcrumbs>
       <Card sx={{ p: 6 }}>
         <CardHeader
@@ -561,7 +561,7 @@ const HospitalBedDetails = () => {
                 fontSize: '0.875rem'
               }
             }}
-            width={{ xs: '100%', sm: 320 }}
+            width={{ xs: '100%', sm: 300, md: 320 }}
           />
 
           <Select
@@ -570,7 +570,7 @@ const HospitalBedDetails = () => {
             displayEmpty
             onChange={e => handleStatusChange(e.target.value)}
             sx={{
-              width: { xs: '50%', sm: 140 },
+              width: { xs: '40%', sm: 180, md: 180 },
               borderRadius: '4px'
             }}
           >
@@ -619,7 +619,7 @@ const HospitalBedDetails = () => {
       {isOccupiedBedWarningOpen && (
         <ConfirmationDialog
           dialogBoxStatus={isOccupiedBedWarningOpen}
-          title='The room status cannot be changed because there are patients currently occupying the beds'
+          title='The room status cannot be changed because there are patients currently occupying the Enclosures'
           confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}

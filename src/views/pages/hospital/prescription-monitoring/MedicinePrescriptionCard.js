@@ -162,7 +162,8 @@ const MedicinePrescriptionCard = ({
   handleBatchSearch,
   isControlledSubstance = false,
   medicalMasterData,
-  mastersDataLoading
+  mastersDataLoading,
+  onUpdateMedicine
 }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -565,6 +566,10 @@ const MedicinePrescriptionCard = ({
     onRestartMedicine()
   }
 
+  const handleUpdateMedicine = async () => {
+    onUpdateMedicine()
+  }
+
   const renderDosageEntry = entry => (
     <DosageSection key={entry.id} variant={entry.variant}>
       <DosageHeader variant={entry.status}>
@@ -796,9 +801,16 @@ const MedicinePrescriptionCard = ({
                     {RenderUtility?.renderPrescriptionLabel(medicine?.prescription_required, 'PR')} {medicine?.name}
                   </Typography>
                 </Box>
-                <IconButton onClick={handleClose}>
-                  <Icon icon='mdi:close' fontSize='24px' color={theme.palette.customColors.OnPrimaryContainer} />
-                </IconButton>
+                <Box>
+                  {!medicineData?.stop_date && (
+                    <IconButton onClick={handleUpdateMedicine}>
+                      <Icon icon='mdi:edit' fontSize='24px' color={theme.palette.customColors.OnPrimaryContainer} />
+                    </IconButton>
+                  )}
+                  <IconButton onClick={handleClose}>
+                    <Icon icon='mdi:close' fontSize='24px' color={theme.palette.customColors.OnPrimaryContainer} />
+                  </IconButton>
+                </Box>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flex: '1 0 0' }}>

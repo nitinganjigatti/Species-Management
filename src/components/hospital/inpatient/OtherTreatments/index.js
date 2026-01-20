@@ -11,7 +11,6 @@ import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import AddTreatmentDrawer from './AddTreatmentDrawer'
 import EditTreatmentDrawer from './EditTreatmentDrawer'
-import NoDataFound from 'src/views/utility/NoDataFound'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 import {
@@ -204,6 +203,8 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     })
     setIsUpdatingTreatment(false)
     setIsDeletingTreatment(false)
+    setIsAddingTreatmentNote(false)
+    setTreatmentActivitiesLoading(false)
   }, [])
 
   const totalTreatments = useMemo(
@@ -256,6 +257,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
       if (!finalAnimalId || !finalMedicalRecordId || !finalTreatmentMasterId) {
         setSelectedTreatmentActivities([])
+        setTreatmentActivitiesLoading(false)
 
         return
       }

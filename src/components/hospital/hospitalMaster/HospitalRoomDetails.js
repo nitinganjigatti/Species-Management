@@ -513,7 +513,7 @@ const HospitalRoomDetails = () => {
       }
     },
     {
-      minWidth: 230,
+      minWidth: 240,
       field: 'room_name',
       headerName: 'Room Name',
       sortable: false,
@@ -532,11 +532,11 @@ const HospitalRoomDetails = () => {
       )
     },
     {
-      minWidth: 150,
+      minWidth: 160,
       field: 'no_of_bed',
-      headerName: 'Beds',
+      headerName: 'Enclosures',
       sortable: false,
-      renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.no_of_bed ?? '-'}</StyledTypography>
+      renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.active_bed_count ?? '-'}</StyledTypography>
     },
     {
       minWidth: 150,
@@ -546,14 +546,14 @@ const HospitalRoomDetails = () => {
       renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.no_of_occupied ?? '-'}</StyledTypography>
     },
     {
-      minWidth: 180,
+      minWidth: 140,
       field: 'floor_name',
       headerName: 'Floor',
       sortable: false,
       renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.floor_name ?? '-'}</StyledTypography>
     },
     {
-      minWidth: 200,
+      minWidth: 140,
       field: 'status',
       headerName: 'Status',
       sortable: false,
@@ -756,7 +756,7 @@ const HospitalRoomDetails = () => {
       {isOccupiedRoomWarningOpen && (
         <ConfirmationDialog
           dialogBoxStatus={isOccupiedRoomWarningOpen}
-          title='The hospital status cannot be changed because there are patients currently occupying the beds'
+          title='The hospital status cannot be changed because there are patients currently occupying the Enclosures'
           confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}

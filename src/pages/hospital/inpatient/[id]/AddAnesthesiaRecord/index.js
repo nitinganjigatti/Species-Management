@@ -2140,6 +2140,7 @@ export default function AddAnesthesiaRecord() {
                       selectedHospital={selectedHospital}
                       loadMoreDoctors={loadMoreDoctors}
                       loadingDoctors={loading}
+                      patientData={patientData}
                     />
                   </AccordionDetails>
                 </Accordion>

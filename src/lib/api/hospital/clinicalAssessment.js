@@ -6,7 +6,6 @@ import {
   GET_CLINICAL_DIAGNOSIS_LIST,
   GET_CLINICAL_DIAGNOSIS_TYPE,
   GET_NOTES,
-  UPDATE_CLINICAL_ASSESSMENT,
   UPDATE_NOTES
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
@@ -56,7 +55,7 @@ export async function addClinicalAssessment(payLoad) {
 
 export async function updateClinicalAssessment(payLoad) {
   try {
-    const response = await axiosPost({ url: `${UPDATE_CLINICAL_ASSESSMENT}`, body: payLoad })
+    const response = await axiosPost({ url: `${UPDATE_NOTES}`, body: payLoad })
 
     return response?.data
   } catch (error) {

@@ -30,7 +30,8 @@ export default function BasicDetails({
   addLoader = false,
   selectedHospital,
   loadMoreDoctors = () => {},
-  loadingDoctors = false
+  loadingDoctors = false,
+  patientData = []
 }) {
   const {
     control,
@@ -203,6 +204,8 @@ export default function BasicDetails({
                     value={value}
                     onChange={handleDateChange}
                     format='DD MMM YYYY · hh:mm A'
+                    minDateTime={dayjs.utc(patientData?.admitted_at).local()}
+                    maxDateTime={dayjs()}
                     slotProps={{
                       textField: {
                         fullWidth: true,

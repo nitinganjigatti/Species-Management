@@ -95,7 +95,7 @@ const HospitalAnalytics = ({ disabled = false }) => {
                     fontSize: '14px'
                   }}
                 >
-                  Total beds
+                  Total Enclosures
                 </Typography>
               </Box>
             </Grid>
