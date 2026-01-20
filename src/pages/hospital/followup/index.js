@@ -334,12 +334,31 @@ const HospitalFollowUp = () => {
     }
   ]
 
-  const handleRowClick = params => {
+  const handleRowClick = async params => {
     if (params?.field !== 'action') {
-      router.push({
-        pathname: `/hospital/followup/${params.row?.hospital_case_id}`,
-        query: { animal_id: params.row?.animal_detail?.animal_id, medical_record_id: params.row.medical_record_id }
-      })
+      // router.push({
+      //   pathname: `/hospital/followup/${params.row?.hospital_case_id}`,
+      //   query: { animal_id: params.row?.animal_detail?.animal_id, medical_record_id: params.row.medical_record_id }
+      // })
+
+      try {
+        const payload = {
+          hospital_case_id: params?.row?.hospital_case_id
+        }
+
+        const response = await getPatientDischargeSummary(payload)
+        if (response?.success) {
+          const pdfLink = response?.data?.download_url
+
+          if (pdfLink) {
+            window.open(pdfLink, '_blank', 'noopener,noreferrer')
+          }
+        }
+      } catch (error) {
+        console.error('Error downloading discharge summary:', error)
+      } finally {
+        setDownloadingRowId(null)
+      }
     }
   }
 
