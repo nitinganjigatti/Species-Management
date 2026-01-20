@@ -66,7 +66,7 @@ const RoomAnalytics = ({ isRoomStatsLoading, roomDetails }) => {
               />
             )}
           </Grid>
-          <Grid size={{ xs: 6, sm: 4, md: 3.5 }}>
+          <Grid size={{ xs: 6, sm: 4, md: 2.8 }}>
             <Typography
               sx={{
                 color: theme.palette.customColors.neutralSecondary,
@@ -92,12 +92,12 @@ const RoomAnalytics = ({ isRoomStatsLoading, roomDetails }) => {
           </Grid>
 
           <Grid size={{ xs: 6, sm: 4, md: 1.5 }}>
-            <StatBox label='Total Enclosures' value={roomDetails?.no_of_bed ?? '-'} />
+            <StatBox label='Enclosures' value={roomDetails?.active_bed_count ?? '-'} />
           </Grid>
-          <Grid size={{ xs: 6, sm: 4, md: 1.2 }}>
+          <Grid size={{ xs: 6, sm: 4, md: 1.5 }}>
             <StatBox label='Occupied' value={roomDetails?.no_of_occupied ?? '-'} />
           </Grid>
-          <Grid size={{ xs: 6, sm: 4, md: 1.1 }}>
+          <Grid size={{ xs: 6, sm: 4, md: 1.5 }}>
             <StatBox label='Floor' value={roomDetails?.floor_name ?? '-'} />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2.7 }}>
