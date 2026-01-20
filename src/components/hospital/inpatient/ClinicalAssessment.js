@@ -311,7 +311,9 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
       clinicalAsmnt?.toLowerCase() !== selectedAssessment?.clinical_assessment?.toLowerCase()
 
     const isPrognosisChanged =
-      prognosisVal?.toLowerCase() !== selectedAssessment?.additional_info?.prognosis?.toLowerCase()
+      clinicalAsmnt?.toLowerCase() === 'diagnosis'
+        ? prognosisVal?.toLowerCase() !== selectedAssessment?.additional_info?.prognosis?.toLowerCase()
+        : false
 
     const isChronicChanged = chronicVal !== selectedAssessment?.additional_info?.isChronic
 
