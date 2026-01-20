@@ -613,6 +613,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
   const handleDetailDateChange = date => {
     setDetailSelectedDate(date)
+    setSelectedMedicationsFromDetail([])
   }
 
   const handleSelectAllAdministerrOrSkip = async (purpose, data) => {
@@ -968,6 +969,18 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
     })
   }
 
+  const handleUpdateMedicine = async data => {
+    const today = new Date().toISOString().split('T')[0]
+    router.push({
+      pathname: `/hospital/inpatient/${id}/schedule-prescription`,
+      query: {
+        fromPage: 'editPrescription',
+        date: date ? date : today,
+        prescriptionId: medicineDetails?.prescription_id
+      }
+    })
+  }
+
   useEffect(() => {
     if (hospital?.id) fetchMedicalMasterData()
   }, [hospital?.id, fetchMedicalMasterData])
@@ -983,7 +996,6 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
             category={category}
-
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -1062,7 +1074,6 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
-
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {
@@ -1132,6 +1143,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         batchLoading={batchLoading}
         handleBatchSearch={handleBatchSearch}
         isControlledSubstance={medicineDetails?.controlled_substance == 1}
+        onUpdateMedicine={handleUpdateMedicine}
       />
       <AdministerOrSkipModal
         open={isAdministerOrSkipPopupOpen}

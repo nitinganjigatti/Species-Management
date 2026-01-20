@@ -142,6 +142,8 @@ export const DISPENSE_LIST = 'dispense-item'
 
 export const USER_LIST = 'user/listing'
 
+export const PHARMACY_SETTINGS = 'zoo-setting-pharmacy'
+
 export const PRODUCT_LIST = 'v1/pharma/stock/list'
 
 export const BATCH_LIST = 'batch-details'
@@ -789,8 +791,6 @@ export const GET_CLINICAL_DIAGNOSIS_TYPE = 'medical/get-complaint-diagnosis-type
 
 export const ADD_CLINICAL_ASSESSMENT = 'medical/v2/diagnosis-update'
 
-export const UPDATE_CLINICAL_ASSESSMENT = 'medical/v2/update-diagnosis-prescription'
-
 export const GET_NOTES = 'medical/v2/record-details'
 
 export const UPDATE_NOTES = 'medical/v2/update-diagnosis-prescription'
@@ -817,6 +817,8 @@ export const ADD_PRESCRIPTION = 'medical/v2/prescription-update'
 
 export const SCHEDULE_PRESCRIPTION = 'v1/hospital/add-additional-dosage-timing'
 
+export const UPDATE_PRESCRIPTION = 'medical/v2/prescription-update'
+
 export const STOP_PRESCRIPTION = 'medical/v2/restart-stop-medicine'
 
 export const UNDO_PRESCRIPTION = 'administer/reset'
@@ -842,6 +844,8 @@ export const GET_BATCH_LIST = 'vaccination/get-batch-list-by-medicine'
 export const GET_PRESCRIPTION_BY_RECORD = 'v1/hospital/list-prescription-by-record'
 
 export const GET_FREQUENCY = 'medical/frequency'
+
+export const VALIDATE_PRESCRIPTION_BEFORE_UPDATE = 'administer/validate-prescription-for-update'
 
 export const GET_INTERVALS = 'medical/master/prescription/interval/list'
 

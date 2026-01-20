@@ -36,13 +36,17 @@ const ConfirmationDialog = ({
       disableEscapeKeyDown
       aria-labelledby='alert-dialog-title'
       aria-describedby='alert-dialog-description'
-      onClose={onClose}
+      // onClose={onClose}
       sx={{
         '& .MuiDialog-paper': {
           backgroundColor: '#fff',
           padding: 8,
           textAlign: 'center'
         }
+      }}
+      onClose={(event, reason) => {
+        if (reason === 'backdropClick') return
+        onClose()
       }}
     >
       <Box

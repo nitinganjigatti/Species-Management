@@ -40,7 +40,7 @@ const AdmissionStatusCard = ({ type = 'admitted_on', value, isPatientDischarged 
                 fontSize: '14px',
                 fontWeight: 500,
                 color: theme.palette.customColors.OnSurfaceVariant,
-                maxWidth: '200px',
+                maxWidth: '300px',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap'
@@ -82,7 +82,7 @@ const AdmissionStatusCard = ({ type = 'admitted_on', value, isPatientDischarged 
                 fontSize: '16px',
                 fontWeight: 600,
                 color: theme.palette.customColors.OnSurfaceVariant,
-                maxWidth: '200px',
+                maxWidth: '300px',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap'
@@ -103,6 +103,7 @@ const AdmissionStatusCard = ({ type = 'admitted_on', value, isPatientDischarged 
                 fontSize: '14px',
                 fontWeight: 500,
                 color: theme.palette.customColors.OnSurfaceVariant,
+
                 maxWidth: '200px',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -124,7 +125,7 @@ const AdmissionStatusCard = ({ type = 'admitted_on', value, isPatientDischarged 
                 fontSize: '14px',
                 fontWeight: 500,
                 color: theme.palette.customColors.OnSurfaceVariant,
-                maxWidth: '200px',
+                maxWidth: '300px',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap'

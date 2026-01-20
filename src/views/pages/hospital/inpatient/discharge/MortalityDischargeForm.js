@@ -197,7 +197,8 @@ const MortalityDischargeForm = props => {
       priority: formData.necropsy_requested ? formData.priority : null,
       necropsy_center_id: formData.necropsy_center_id ? formData.necropsy_center_id.value : null,
       necropsy_reason: !formData.necropsy_requested ? formData.necropsy_reason : null,
-      attachments: formData.attachments?.length > 0 ? formData.attachments : undefined
+      attachments: formData.attachments?.length > 0 ? formData.attachments : undefined,
+      request_from: 'web'
     }
 
     const success = await handleSubmitData(payload)

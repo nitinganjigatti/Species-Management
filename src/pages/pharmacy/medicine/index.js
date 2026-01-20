@@ -32,6 +32,8 @@ import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import MenuWithDots from 'src/components/MenuWithDots'
+import AddReOrderDialog from 'src/components/pharmacy/stockLocation/AddReOrderDialog'
 
 const ListOfMedicine = () => {
   const theme = useTheme()
@@ -45,6 +47,10 @@ const ListOfMedicine = () => {
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
+  const [dialogCheck, setDialogCheck] = useState(false)
+
+  const [openReOrderLevelDialog, setOpenReOrderLevelDialog] = useState(false)
+  const [configReOrderMed, setConfigReOrderMed] = useState(null)
 
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -315,22 +321,27 @@ const ListOfMedicine = () => {
       headerName: 'Action',
 
       renderCell: params => (
-        <>
+        <Box onClick={e => e.stopPropagation()} sx={{ display: 'flex', alignItems: 'center' }}>
           {selectedPharmacy.type === 'central' &&
             (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-              <Box>
-                <IconButton
-                  size='small'
-                  onClick={e => {
-                    e.stopPropagation(), handleEdit(params.row)
-                  }}
-                  aria-label='Edit'
-                >
-                  <Icon icon='mdi:pencil-outline' />
-                </IconButton>
-              </Box>
+              <>
+                <Box>
+                  <IconButton
+                    size='small'
+                    onClick={e => {
+                      e.stopPropagation(), handleEdit(params.row)
+                    }}
+                    aria-label='Edit'
+                  >
+                    <Icon icon='mdi:pencil-outline' />
+                  </IconButton>
+                </Box>
+                <Tooltip title='More Options' placement='top'>
+                  <MenuWithDots options={getMenuOptions(params?.row)} />
+                </Tooltip>
+              </>
             )}
-        </>
+        </Box>
 
         //     // {selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') &&(<Box>
         //     //   <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
@@ -519,6 +530,16 @@ const ListOfMedicine = () => {
     setStatusFilter(newValue)
   }
 
+  const getMenuOptions = row => [
+    {
+      label: 'Add Reorder Level',
+      action: () => {
+        setOpenReOrderLevelDialog(true)
+        setConfigReOrderMed(row)
+      }
+    }
+  ]
+
   const RenderTable = () => {
     return (
       <>
@@ -693,6 +714,16 @@ const ListOfMedicine = () => {
                     {RenderTable()}
                   </TabPanel>
                 </TabContext>
+                {openReOrderLevelDialog && (
+                  <AddReOrderDialog
+                    openDrawer={openReOrderLevelDialog}
+                    setOpenDrawer={setOpenReOrderLevelDialog}
+                    stockDetails={configReOrderMed}
+                    setStockDetails={setConfigReOrderMed}
+                    dialogCheck={dialogCheck}
+                    setDialogCheck={setDialogCheck}
+                  />
+                )}
               </Card>
             </>
           )}
