@@ -26,7 +26,7 @@ import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
 import Utility, { downloadPDF } from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
-import { VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
+import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
@@ -225,6 +225,18 @@ const HospitalDischarged = () => {
             }}
           />
         </>
+      )
+    },
+    {
+      width: 200,
+      minWidth: 20,
+      field: 'medical_record_code',
+      headerName: 'Medical Record ID',
+      renderCell: params => (
+        <MedicalIdChip
+          medId={params?.row?.medical_record_code}
+          backgroundColor={theme.palette.customColors.mdAntzNeutral}
+        />
       )
     },
     {
