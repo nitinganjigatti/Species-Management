@@ -45,6 +45,7 @@ import AddRoomDrawer from '../PatientAdmissionForm/AddRoomDrawer'
 import AddBedsDrawer from '../PatientAdmissionForm/AddBedsDrawer'
 import { AuthContext } from 'src/context/AuthContext'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
+import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
 
 // import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
@@ -79,7 +80,8 @@ const schema = yup.object().shape({
   holdingEnclosure: yup.object().required('Holding Enclosure is required'),
   selectedAnimal: yup.mixed().nullable().required('Animal is required'),
   selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
-  room: yup.object().required('Room is required')
+  room: yup.object().required('Room is required'),
+  patient_status: yup.boolean().required('Patient Status is Required')
 })
 
 const AddPatientForm = ({ defaultTreatmentType }) => {
@@ -100,7 +102,8 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
     selectedDoctor: null,
     admission_date: dayjs(),
     admission_time: dayjs(),
-    room: null
+    room: null,
+    patient_status: false
   }
 
   const { selectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } = useHospital()
@@ -164,6 +167,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
 
   const watchMedicalChoice = watch('medicalRecordChoice')
   const watchTreatmentType = watch('treatmentType')
+  const watchPatientStatus = watch('patient_status')
 
   useEffect(() => {
     const getHospitalRooms = async () => {
@@ -723,6 +727,34 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                     sx={{ borderRadius: 1 }}
                     placeholder={'Enter Reason'}
                     disabled={submitLoader}
+                  />
+                </Grid>
+                <Grid
+                  size={{ xs: 12 }}
+                  sx={{
+                    display: 'none',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 3,
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    p: 3,
+                    borderRadius: 1
+                  }}
+                >
+                  <Typography
+                    sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    Patient Status
+                  </Typography>
+                  <ControlledSwitch
+                    control={control}
+                    name='patient_status'
+                    errors={errors}
+                    required
+                    disabled={submitLoader}
+                    label={watchPatientStatus ? 'Critical' : 'Normal'}
+                    labelPosition='start'
+                    spaceBetween
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>

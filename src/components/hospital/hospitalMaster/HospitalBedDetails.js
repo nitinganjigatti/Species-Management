@@ -360,7 +360,7 @@ const HospitalBedDetails = () => {
   // Table columns
   const columns = [
     {
-      minWidth: 50,
+      width: 80,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
@@ -371,7 +371,7 @@ const HospitalBedDetails = () => {
       )
     },
     {
-      minWidth: 250,
+      minWidth: 230,
       field: 'bed_name',
       headerName: 'Cage/stall/enclosure',
       sortable: false,
@@ -384,13 +384,13 @@ const HospitalBedDetails = () => {
             fontSize: '1rem',
             fontWeight: 400,
             pl: 1.4,
-            maxWidth: '230px'
+            maxWidth: '210px'
           }}
         />
       )
     },
     {
-      minWidth: 280,
+      minWidth: 320,
       field: 'occupant',
       headerName: 'Occupant',
       sortable: false,

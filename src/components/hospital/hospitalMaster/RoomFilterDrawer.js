@@ -6,8 +6,9 @@ import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 const MENU_DATA = {
   Availability: [
     { label: 'Available', value: 'Available' },
-    { label: 'Occupied', value: 'Occupied' },
-    { label: 'Unavailable', value: 'Unavailable' }
+    { label: 'Occupied', value: 'Occupied' }
+
+    // { label: 'Unavailable', value: 'Unavailable' }
   ],
   Status: [
     { label: 'Active', value: 'active' },
@@ -95,6 +96,7 @@ const RoomFilterDrawer = ({
       const restored = initialSelectedOptions || DEFAULT_OPTIONS
       setSelectedOptions(restored)
       setLocalFilterCount(Object.values(restored).reduce((acc, arr) => acc + arr.length, 0))
+      setSelectedMenu('Availability')
     }
   }, [openFilterDrawer, initialSelectedOptions])
 

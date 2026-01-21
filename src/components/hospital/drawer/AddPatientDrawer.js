@@ -24,6 +24,7 @@ import { editAnimalAdmissionDetails } from 'src/lib/api/hospital/inpatient'
 import AddRoomDrawer from '../PatientAdmissionForm/AddRoomDrawer'
 import AddBedsDrawer from '../PatientAdmissionForm/AddBedsDrawer'
 import { AuthContext } from 'src/context/AuthContext'
+import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
 
 const defaultValues = {
   holdingEnclosure: null,
@@ -31,7 +32,8 @@ const defaultValues = {
   admission_date: dayjs(),
   admission_time: dayjs(),
   room: null,
-  reason: ''
+  reason: '',
+  patient_status: false
 }
 
 const schema = yup.object().shape({
@@ -40,7 +42,8 @@ const schema = yup.object().shape({
   selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
   admission_date: yup.date().required('Admission date is required'),
   admission_time: yup.string().required('Admission time is required'),
-  reason: yup.string().required('Reason for admission is required')
+  reason: yup.string().required('Reason for admission is required'),
+  patient_status: yup.boolean().required('Patient status is required')
 })
 
 const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) => {
@@ -138,6 +141,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
   }, [selectedHospital, searchRoom, hospitalStats?.available_rooms])
 
   const selectedRoom = watch('room')
+  const watchPatientStatus = watch('patient_status')
 
   useEffect(() => {
     const getHospitalBeds = async () => {
@@ -407,6 +411,32 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
                     <ControlledTimePicker control={control} name={'admission_time'} label='Time' minTime={minTime} />
                   </Grid>
                 </Grid>
+              </Box>
+              <Box
+                sx={{
+                  display: 'none',
+                  justifyContent: 'space-between',
+                  alignItem: 'center',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  borderRadius: 1,
+                  p: 3
+                }}
+              >
+                <Typography
+                  sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  Patient Status
+                </Typography>
+                <ControlledSwitch
+                  control={control}
+                  name='patient_status'
+                  errors={errors}
+                  required
+                  disabled={submitLoader}
+                  label={watchPatientStatus ? 'Critical' : 'Normal'}
+                  labelPosition='start'
+                  spaceBetween
+                />
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <Typography
