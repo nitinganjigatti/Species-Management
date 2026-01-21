@@ -1,13 +1,12 @@
 import { useState, useEffect, useCallback, useContext } from 'react'
 
 // ** MUI Imports
-import { Grid, Card, CardContent, Box, CardHeader, Divider } from '@mui/material'
+import { Grid, Card, CardContent, Box, CardHeader, CircularProgress } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
 // ** Custom Components
-// import PharmacySettingsDrawer from '../../../views/pages/pharmacy/store/pharmacy-settings/PharmacySettingsDrawer'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
@@ -18,7 +17,6 @@ import PharmacySettingsDrawer from 'src/views/pages/pharmacy/store/pharmacy-sett
 import { getPharmacySettingsList, submitPharmacySettings } from 'src/lib/api/pharmacy/pharmacySettings'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import toast from 'react-hot-toast'
-import { LoadingButton } from '@mui/lab'
 
 const PharmacySettingsList = () => {
   const { userData } = useContext(AuthContext)
@@ -53,8 +51,6 @@ const PharmacySettingsList = () => {
     if (response?.success) {
       setUsersList(
         response?.data?.map(user => {
-          // debugger
-
           return {
             label: user.user_name || user.name,
             value: String(user.user_id || user.id)
@@ -117,6 +113,7 @@ const PharmacySettingsList = () => {
   const columns = [
     {
       minWidth: 400,
+      width: 400,
       field: 'username',
       headerName: 'User Details',
       sortable: false,
@@ -131,32 +128,18 @@ const PharmacySettingsList = () => {
       }
     },
 
-    // {
-    //   minWidth: 200,
-    //   field: 'designation',
-    //   headerName: 'Role',
-    //   sortable: false,
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.designation || 'N/A'}
-    //     </Typography>
-    //   )
-    // },
     {
       ...(pharmacyRole && {
         minWidth: 400,
         field: 'action',
         sortable: false,
         headerName: 'Action',
-        renderCell: params => (
-          <LoadingButton
-            variant='contained'
-            size='small'
-            onClick={() => deleteHandler(params?.row?.id)} // Clicking this opens the drawer to edit the whole list
-            startIcon={<Icon icon='mdi:delete-outline' />}
-            loading={params?.row?.id === deleteLoading}
-          />
-        )
+        renderCell: params =>
+          params?.row?.id === deleteLoading ? (
+            <CircularProgress size={20} color='primary' />
+          ) : (
+            <Icon onClick={() => deleteHandler(params?.row?.id)} icon='mdi:delete-outline' />
+          )
       })
     }
   ]
@@ -173,7 +156,6 @@ const PharmacySettingsList = () => {
               </Box>
             }
           />
-          {/* <Divider /> */}
           <CardContent sx={{ px: 2 }}>
             <CommonTable hideFooter disablePagination indexedRows={tableData} columns={columns} loading={loading} />
           </CardContent>

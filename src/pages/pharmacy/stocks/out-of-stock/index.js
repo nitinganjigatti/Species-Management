@@ -180,17 +180,24 @@ const StockOut = () => {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'expiry_date',
-    //   headerName: 'Expiry Date',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.expiry_date}
-    //     </Typography>
-    //   )
-    // },
+    {
+      width: 100,
+      minWidth: 100,
+      sortable: false,
+      field: 'priority',
+      headerName: 'Priority',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: params?.row?.priority === 'critical' ? 'error.main' : 'success.main',
+            fontSize: '14px',
+            fontWeight: 500
+          }}
+        >
+          {params?.row?.priority === 'critical' ? 'Critical' : 'Normal'}
+        </Typography>
+      )
+    },
 
     {
       width: 150,
@@ -264,6 +271,24 @@ const StockOut = () => {
     //   )
     // },
 
+    {
+      width: 150,
+      minWidth: 150,
+      sortable: false,
+      field: 'priority',
+      headerName: 'Priority',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: params?.row?.priority === 'critical' ? 'error.main' : 'success.main',
+            fontSize: '14px',
+            fontWeight: 500
+          }}
+        >
+          {params?.row?.priority === 'critical' ? 'Critical' : 'Normal'}
+        </Typography>
+      )
+    },
     {
       width: 200,
       minWidth: 100,

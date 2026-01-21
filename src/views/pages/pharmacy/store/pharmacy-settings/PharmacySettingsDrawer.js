@@ -84,7 +84,7 @@ const PharmacySettingsDrawer = props => {
                 multiple
                 label='Select Users'
                 placeholder='Search or Type User'
-                isOptionEqualToValue={(option, value) => option.value === value.value}
+                isOptionEqualToValue={(option, value) => option?.value === value?.value}
                 errors={errors}
                 helperText={errors.selectedUsers?.message}
               />

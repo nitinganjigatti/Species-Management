@@ -26,6 +26,6 @@ export const getPharmacySettingsList = async params => {
   } catch (error) {
     console.error('Error fetching pharmacy settings:', error)
 
-    return { success: false, message: 'Failed to fetch settings' }
+    return error
   }
 }
