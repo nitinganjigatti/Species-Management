@@ -8,14 +8,12 @@ import {
   Select,
   MenuItem,
   TextField,
-  Divider,
   Box,
   Button,
   IconButton,
   CardContent,
   CardHeader,
   Tooltip,
-  InputAdornment,
   FormGroup,
   FormControlLabel,
   Checkbox,
@@ -56,20 +54,11 @@ import { useTheme } from '@emotion/react'
 import ShipmentPrintComponent from 'src/components/ShipmentPrintComponent'
 import { getShipmentDetailOfOrder } from 'src/lib/api/pharmacy/storeWiseRequest'
 import { getRequestsShipmentDetailPdf, getStoreWiseShipmentDetailPdf } from 'src/lib/api/pharmacy/downloadShipmentPdf'
-import { textAlign } from '@mui/system'
+import InfoDisplayGrid from 'src/views/utility/InfoDisplayGrid'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
-
-const LabelValues = ({ label, value }) => {
-  return (
-    <Grid item size={{ xs: 6, sm: 3, md: 2 }} sx={{ pt: 6 }}>
-      <p style={{ margin: '0px' }}> {label}</p>
-      <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{value}</h4>
-    </Grid>
-  )
-}
 
 const DisputeItemDetails = React.forwardRef((props, ref) => {
   const {
@@ -89,42 +78,60 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
       {disputeItemDetails?.item_details?.length > 0 ? (
         <Grid container size={{ xs: 12 }} sx={{ mx: 'auto' }}>
           <Grid item size={{ xs: 12 }}>
-            <Grid
-              container
-              size={{ xs: 12 }}
-              className='printable-container'
-              sx={{ backgroundColor: 'customColors.bodyBg', pb: 6, px: 6, borderRadius: '10px' }}
-            >
-              {orderData?.request_number ? (
-                <LabelValues label={'Reference No:'} value={orderData?.request_number} />
-              ) : null}
-              {orderData?.from_store_name ? (
-                <LabelValues label={'Shipped From:'} value={orderData?.from_store_name} />
-              ) : null}
-              {orderData?.to_store_name ? <LabelValues label={'Shipped To:'} value={orderData?.to_store_name} /> : null}
-              {/* {orderData?.shipment_id ? <LabelValues label={'Shipping id:'} value={orderData.shipment_id} /> : null} */}
+            <InfoDisplayGrid
+              cardsData={[
+                orderData?.request_number && {
+                  label: 'Reference No:',
+                  value: orderData?.request_number
+                },
 
-              {orderData?.shipment_date ? (
-                <LabelValues label={'Shipped Date:'} value={Utility.formatDisplayDate(orderData.shipment_date)} />
-              ) : null}
-              {orderData?.vehicle_no ? <LabelValues label={'Vehicle Number:'} value={orderData.vehicle_no} /> : null}
-              {/* {orderData?.to_store_name ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>To Store: </p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.to_store_name}</h4>
-                </Grid>
-              ) : null} */}
+                orderData?.from_store_name && {
+                  label: 'Shipped From:',
+                  value: orderData?.from_store_name
+                },
 
-              {orderData?.person_shipping ? (
-                <LabelValues label={'Driver Name:'} value={orderData.person_shipping} />
-              ) : // <Grid item md={2} sm={3} xs={6}>
-              //   <p style={{ margin: '0px' }}>Driver Name:</p>
-              //   <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.person_shipping}</h4>
-              // </Grid>
-              null}
-              {orderData?.person_shipping ? <LabelValues label={'Mobile No:'} value={orderData?.phone_number} /> : null}
-              {orderData?.carton_box ? <LabelValues label={'Carton Boxes:'} value={orderData?.carton_box} /> : null}
-            </Grid>
+                orderData?.to_store_name && {
+                  label: 'Shipped To:',
+                  value: orderData?.to_store_name
+                },
+
+                {
+                  label: 'Shipped Date',
+                  value: Utility.formatDisplayDate(orderData.shipment_date)
+                },
+                {
+                  label: 'Vehicle Number',
+                  value: orderData.vehicle_no
+                },
+                {
+                  label: 'Driver Name',
+                  value: orderData.person_shipping
+                },
+                {
+                  label: 'Mobile No',
+                  value: orderData?.phone_number
+                },
+                {
+                  label: 'Carton Boxes',
+                  value: orderData?.carton_box
+                }
+              ]}
+              commonLabelStyle={{ fontSize: '16px', color: 'theme.palette.customColors.secondaryBg' }}
+              commonValueStyle={{
+                fontSize: '16px',
+                fontWeight: '600',
+                color: 'theme.palette.customColors.secondaryBg'
+              }}
+              showSeparator={false}
+              displayVertically={true}
+              GridSizes={{
+                xs: 6,
+                sm: 3,
+                md: 2
+              }}
+              textContainer={{ gap: '10px' }}
+              rowSpacing={6}
+            />
 
             {disputeItemDetails?.item_details?.length > 0 ? (
               <>
