@@ -252,7 +252,8 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         prescription_id: data?.id || medicineDetails?.prescription_id,
         date: data?.customDate || detailSelectedDate || selectedDate,
         group_prescription_id: data?.id || medicineDetails?.prescription_id,
-        administrative_ids: data?.administrative_ids || administrativeIds || ''
+        administrative_ids: data?.administrative_ids || administrativeIds || '',
+        request_from: 'hospital'
 
         // medical_record_id: data?.medical_record_id || medicineDetails?.medical_record_id,
         // medicine_id: data?.medicine_id || medicineDetails?.medicine_id
@@ -426,7 +427,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       const wastageUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
         item => item.uom_abbr === formData?.wastageUnit
       )
-      
+
       const payload = {
         record_date: date
           ? `${date} ${toISTISOString(new Date()).replace('T', ' ').slice(11, 19)}`
