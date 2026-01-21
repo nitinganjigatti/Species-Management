@@ -26,7 +26,8 @@ const AnimalDrawer = ({
   handleSortClick = () => {},
   module = 'housing',
   filters = {},
-  sortType
+  sortType,
+  filterCount
 }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
@@ -290,6 +291,7 @@ const AnimalDrawer = ({
                   bgColor={theme?.palette?.customColors?.OnPrimary}
                   border={`1px solid ${theme?.palette?.customColors?.OutlineVariant}`}
                   onClick={handleFilterClick}
+                  appliedFiltersCount={filterCount}
                 />
               </Grid>
               <Grid size={{ xs: 1, sm: 1 }}>
