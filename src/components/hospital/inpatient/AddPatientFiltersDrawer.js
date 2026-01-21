@@ -79,8 +79,8 @@ const AddPatientFiltersDrawer = ({
               : genderListOptions
             break
           case 'Species':
-            params = query ? { q: query } : {}
-            const speciesRes = await getAllSpeciesListForHospital({ zoo_id: zooId })
+            params = query ? { q: query, zoo_id: zooId } : { zoo_id: zooId }
+            const speciesRes = await getAllSpeciesListForHospital(params)
             data = speciesRes.success
               ? speciesRes?.data?.taxonomy_list?.map(item => ({
                   label: item?.complete_name || item?.default_common_name || '',

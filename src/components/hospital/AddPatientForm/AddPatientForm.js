@@ -889,6 +889,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
           module='hospital'
           filters={selectedOptions}
           sortType={currentSort}
+          filterCount={filterCount}
         />
       )}
       {doctorDrawerOpen && (
