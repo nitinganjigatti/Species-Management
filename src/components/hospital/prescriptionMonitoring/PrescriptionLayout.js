@@ -175,7 +175,9 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
       const payload = {
         administer_id: entryId,
-        group_prescription_id: medicineDetails?.group_prescription_id || medicineDetails?.prescription_id
+        group_prescription_id: medicineDetails?.group_prescription_id || medicineDetails?.prescription_id,
+        request_from: 'hospital_module',
+        hospital_id: hospital?.id || ''
       }
 
       const response = await undoPrescription(payload)
