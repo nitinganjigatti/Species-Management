@@ -562,7 +562,9 @@ export default function AddMedicineToPrescription() {
         prescription_id: data?.id,
         date: date || '',
         group_prescription_id: data?.id,
-        request_from: 'hospital'
+
+        // request_from: 'hospital'
+        hospital_id: hospital?.id || ''
       }
 
       const response = await getPrescriptionDetails(payload)
