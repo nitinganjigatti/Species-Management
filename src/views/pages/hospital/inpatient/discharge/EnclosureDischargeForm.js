@@ -9,6 +9,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import moment from 'moment'
+import Utility from 'src/utility'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
@@ -60,8 +61,66 @@ const EnclosureDischargeForm = props => {
   )
 
   const transferEnclosureSchema = yup.object({
-    discharge_date: yup.date().nullable().required('Date of discharge is required'),
-    discharge_time: yup.date().nullable().required('Time of discharge is required'),
+    discharge_date: yup
+      .date()
+      .typeError('Invalid Date')
+      .nullable()
+      .required('Date of discharge is required')
+      .test('is-valid-date', 'Discharge date is invalid', function (value) {
+        if (!value) return true
+
+        const admittedAt = dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)).startOf('day')
+        const now = dayjs().startOf('day')
+        const selectedDate = dayjs(value).startOf('day')
+
+        if (selectedDate.isBefore(admittedAt)) {
+          return this.createError({
+            message: `Date must be on or after (${dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)).format(
+              'DD MMM YYYY'
+            )})`
+          })
+        }
+
+        if (selectedDate.isAfter(now)) {
+          return this.createError({ message: 'Discharge date cannot be in the future' })
+        }
+
+        return true
+      }),
+    discharge_time: yup
+      .date()
+      .typeError('Invalid Date')
+      .nullable()
+      .required('Time of discharge is required')
+      .test('is-valid-time', 'Discharge time is invalid', function (value) {
+        const { discharge_date } = this.parent
+        if (!value || !discharge_date) return true
+
+        const admittedAt = dayjs(Utility.convertUTCToLocal(patientData?.admitted_at))
+        const now = dayjs()
+
+        const dischargeDateTime = dayjs(discharge_date)
+          .startOf('day')
+          .set('hour', dayjs(value).hour())
+          .set('minute', dayjs(value).minute())
+          .set('second', 0)
+
+        if (dayjs(discharge_date).format('YYYY-MM-DD') === admittedAt.format('YYYY-MM-DD')) {
+          if (dischargeDateTime.isBefore(admittedAt)) {
+            return this.createError({
+              message: `Time must be after admission time (${Utility.convertUTCToLocaltime(patientData?.admitted_at)})`
+            })
+          }
+        }
+
+        if (dayjs(discharge_date).format('YYYY-MM-DD') === now.format('YYYY-MM-DD')) {
+          if (dischargeDateTime.isAfter(now)) {
+            return this.createError({ message: 'Time cannot be in the future' })
+          }
+        }
+
+        return true
+      }),
     follow_up_required: yup.boolean().optional(),
     follow_up_date: yup
       .date()
@@ -173,7 +232,6 @@ const EnclosureDischargeForm = props => {
 
   const followUp = watch('follow_up_required')
 
-  // mark dirty when form changes
   useEffect(() => {
     onDirtyChange?.(isDirty)
   }, [isDirty, onDirtyChange])
@@ -234,16 +292,18 @@ const EnclosureDischargeForm = props => {
       hospital_case_id: id,
       animal_id: patientDetails?.animal_id,
       discharge_type: watchDischargeType,
-      discharge_date: moment(formData.discharge_date).format('YYYY-MM-DD'),
-      discharge_time: dayjs(formData.discharge_time).set('second', 0).format('HH:mm:ss'),
+      discharge_date: formData.discharge_date ? moment(formData.discharge_date).format('YYYY-MM-DD') : null,
+      discharge_time: formData.discharge_time
+        ? dayjs(formData.discharge_time).set('second', 0).format('HH:mm:ss')
+        : null,
       reason: formData.reason,
       care_diet_instruction: formData.care_diet_instruction,
       care_restriction: formData.care_restriction,
       care_notes: formData.care_notes,
       follow_up_required: formData.follow_up_required ? '1' : '0',
-      follow_up_date: moment(formData.follow_up_date).format('YYYY-MM-DD'),
-      attachments: formData.attachments.length > 0 ? formData.attachments : undefined,
-      medications: JSON.stringify(medicationData),
+      follow_up_date: formData.follow_up_date ? moment(formData.follow_up_date).format('YYYY-MM-DD') : null,
+      attachments: formData.attachments.length > 0 ? formData.attachments : null,
+      medications: medicationData.length > 0 ? JSON.stringify(medicationData) : null,
       transfer_back_to_original_location: 1,
       transfer_to_site_id: patientDetails?.site_id,
       transfer_to_enclosure_id: patientDetails?.user_enclosure_id,
