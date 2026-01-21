@@ -83,67 +83,69 @@ function InfoDisplayGrid({
         }}
       >
         <Grid container columnSpacing={columnSpacing} rowSpacing={rowSpacing} sx={{ display: 'flex', ...contentBoxSx }}>
-          {cardsData?.map((item, index) => {
-            const isLast = index === cardsData.length - 1
-            const onClick = item?.onClick || null
-            const cardsDataLength = userCard ? cardsData.length % 3 !== 0 : cardsData.length % 4 !== 0
-            const isLastItem = isLast && displayLastItemFullWidth && cardsDataLength
+          {cardsData
+            ?.filter(item => item?.label && item?.value)
+            .map((item, index) => {
+              const isLast = index === cardsData?.length - 1
+              const onClick = item?.onClick || null
+              const cardsDataLength = userCard ? cardsData?.length % 3 !== 0 : cardsData?.length % 4 !== 0
+              const isLastItem = isLast && displayLastItemFullWidth && cardsDataLength
 
-            const lastItemStyle = isLastItem
-              ? {
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: isLastItem ? { xs: 'auto', md: 'auto' } : 'auto'
-                }
-              : ConstantStyle.textEllipsis
+              const lastItemStyle = isLastItem
+                ? {
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    width: isLastItem ? { xs: 'auto', md: 'auto' } : 'auto'
+                  }
+                : ConstantStyle.textEllipsis
 
-            return (
-              <Grid
-                item
-                key={index}
-                size={{
-                  xs: ConstantStyle.GridSizes.xs,
-                  sm: ConstantStyle.GridSizes.sm,
-                  md: isLastItem ? 'auto' : ConstantStyle.GridSizes.md,
-                  lg: isLastItem ? 'auto' : ConstantStyle.GridSizes.lg
-                }}
-                sx={{
-                  display: 'flex',
-                  gap: 1,
-                  alignItems: 'flex-start',
-                  justifyContent: 'flex-start',
-                  cursor: item.onClick ? 'pointer' : 'default',
-                  flexDirection: displayVertically ? 'column' : 'row',
-                  ...textContainer
-                }}
-                onClick={() => onClick && onClick()}
-              >
-                <Tooltip title={item.label}>
-                  <Typography
-                    sx={{
-                      ...lastItemStyle,
-                      ...ConstantStyle.textLabelStyle,
-                      ...item.labelStyle
-                    }}
-                  >
-                    {item.label} {showSeparator && !displayVertically && labelValueSeparator}
-                  </Typography>
-                </Tooltip>
-                <Tooltip title={item.value}>
-                  <Typography
-                    sx={{
-                      ...lastItemStyle,
-                      ...ConstantStyle.textValueStyle,
-                      ...item.valueStyle
-                    }}
-                  >
-                    {item.value}
-                  </Typography>
-                </Tooltip>
-              </Grid>
-            )
-          })}
+              return (
+                <Grid
+                  item
+                  key={index}
+                  size={{
+                    xs: ConstantStyle.GridSizes.xs,
+                    sm: ConstantStyle.GridSizes.sm,
+                    md: isLastItem ? 'auto' : ConstantStyle.GridSizes.md,
+                    lg: isLastItem ? 'auto' : ConstantStyle.GridSizes.lg
+                  }}
+                  sx={{
+                    display: 'flex',
+                    gap: 1,
+                    alignItems: 'flex-start',
+                    justifyContent: 'flex-start',
+                    cursor: item?.onClick ? 'pointer' : 'default',
+                    flexDirection: displayVertically ? 'column' : 'row',
+                    ...textContainer
+                  }}
+                  onClick={() => onClick && onClick()}
+                >
+                  <Tooltip title={item?.label}>
+                    <Typography
+                      sx={{
+                        ...lastItemStyle,
+                        ...ConstantStyle?.textLabelStyle,
+                        ...item?.labelStyle
+                      }}
+                    >
+                      {item?.label} {showSeparator && !displayVertically && labelValueSeparator}
+                    </Typography>
+                  </Tooltip>
+                  <Tooltip title={item?.value}>
+                    <Typography
+                      sx={{
+                        ...lastItemStyle,
+                        ...ConstantStyle?.textValueStyle,
+                        ...item?.valueStyle
+                      }}
+                    >
+                      {item?.value}
+                    </Typography>
+                  </Tooltip>
+                </Grid>
+              )
+            })}
         </Grid>
       </Grid>
 
