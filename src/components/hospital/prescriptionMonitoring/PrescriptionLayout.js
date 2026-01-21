@@ -347,6 +347,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
       // Process the form data based on action type
       const payload = {
+        hospital_id: hospital?.id || '',
         medical_record_id: JSON.stringify([medicineDetails?.medical_record_id]),
         medicine_id: JSON.stringify([selectedSlotData?.timeSlot?.medicine_id || medicineDetails?.medicine_id]),
         type: 'single',
@@ -620,6 +621,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       const medicalRecordIds = data?.map(item => item?.medical_record_id)
 
       const payload = {
+        hospital_id: hospital?.id || '',
         administer_date: selectedDate,
         type: 'single',
         request_from: 'hospital_module',
@@ -672,6 +674,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       )
 
       const payload = {
+        hospital_id: hospital?.id || '',
         medical_record_id: JSON.stringify(medicalRecordIds),
         medicine_id: data?.length > 1 ? JSON.stringify(medicineIds) : JSON.stringify([data[0]?.medicine_id]),
         type: 'single',
@@ -791,6 +794,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       const administerIds = JSON.stringify(selectedItems.map(item => item?.administritive_id).filter(Boolean))
 
       const payload = {
+        hospital_id: hospital?.id || '',
         medical_record_id: JSON.stringify([medicineDetails?.medical_record_id]),
         medicine_id: JSON.stringify([medicineData?.medicine_id]),
         type: 'single',
@@ -856,6 +860,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       const administerIds = JSON.stringify(selectedItems.map(item => item?.administritive_id).filter(Boolean))
 
       const payload = {
+        hospital_id: hospital?.id || '',
         medical_record_id: JSON.stringify([medicineDetails?.medical_record_id]),
         medicine_id: JSON.stringify([medicineData?.medicine_id]),
         type: 'single',
