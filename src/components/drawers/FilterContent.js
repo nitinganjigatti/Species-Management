@@ -3,6 +3,7 @@ import { Box, Checkbox, Typography, Divider, CircularProgress } from '@mui/mater
 import Search from 'src/views/utility/Search'
 import ImageWithShimmer from '../utility/ImageWithShimmer'
 import { useTheme } from '@mui/material/styles'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const FilterContent = ({
   menuName,
@@ -56,9 +57,14 @@ const FilterContent = ({
                   onChange={() => onOptionChange(item.value, menuName)}
                 />
                 {item.image && <ImageWithShimmer src={item.image} alt={item.label} />}
-                <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.Outline }}>
-                  {item.label}
-                </Typography>
+
+                <SpeciesCard
+                  species={{
+                    common_name: item?.label,
+                    scientific_name: item?.scientific_name,
+                    default_icon: item?.default_icon
+                  }}
+                />
               </Box>
             ))}
           </Box>
