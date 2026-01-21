@@ -83,7 +83,9 @@ const AddPatientFiltersDrawer = ({
             const speciesRes = await getAllSpeciesListForHospital(params)
             data = speciesRes.success
               ? speciesRes?.data?.taxonomy_list?.map(item => ({
-                  label: item?.complete_name || item?.default_common_name || '',
+                  label: item?.default_common_name || '',
+                  scientific_name: item?.complete_name || '',
+                  default_icon: item?.default_icon,
 
                   // image: item?.default_icon || '/images/default_specie_icon.png',
                   value: Number(item?.tsn) || ''
