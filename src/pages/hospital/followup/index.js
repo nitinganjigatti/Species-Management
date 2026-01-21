@@ -33,6 +33,7 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
+import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 
 const HospitalFollowUp = () => {
   const theme = useTheme()
@@ -233,6 +234,18 @@ const HospitalFollowUp = () => {
             }}
           />
         </>
+      )
+    },
+    {
+      width: 200,
+      minWidth: 20,
+      field: 'medical_record_code',
+      headerName: 'Medical Record ID',
+      renderCell: params => (
+        <MedicalIdChip
+          medId={params?.row?.medical_record_code}
+          backgroundColor={theme.palette.customColors.mdAntzNeutral}
+        />
       )
     },
     {

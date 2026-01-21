@@ -310,11 +310,18 @@ const HospitalRoomDetails = () => {
   const handleApplyFilter = selectedOptions => {
     setAppliedFilters(selectedOptions)
 
+    let finalStatus = selectedOptions?.Status?.join(',') || ''
+
+    // Apply default active status only if Availability is selected and Status is empty
+    if (selectedOptions?.Availability?.length > 0 && !finalStatus) {
+      finalStatus = 'active'
+    }
+
     const updated = {
       ...filters,
       page: 1,
-      availability: selectedOptions?.Availability ? selectedOptions?.Availability?.join(',') : '',
-      status: selectedOptions?.Status ? selectedOptions?.Status?.join(',') : ''
+      availability: selectedOptions?.Availability?.join(',') || '',
+      status: finalStatus
     }
 
     setFilters(updated)
@@ -546,7 +553,7 @@ const HospitalRoomDetails = () => {
       renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.no_of_occupied ?? '-'}</StyledTypography>
     },
     {
-      minWidth: 140,
+      minWidth: 160,
       field: 'floor_name',
       headerName: 'Floor',
       sortable: false,
@@ -560,7 +567,7 @@ const HospitalRoomDetails = () => {
       renderCell: params => <StatusChip chipStyles={{ ml: 1.4 }} status={params?.row?.status} />
     },
     {
-      minWidth: 150,
+      minWidth: 120,
       field: 'actions',
       headerName: 'Actions',
       sortable: false,

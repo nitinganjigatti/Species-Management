@@ -24,21 +24,24 @@ const AddTreatmentDrawer = ({
 }) => {
   const theme = useTheme()
 
+  const resolveLabel = value => {
+    if (typeof value === 'string') return value
+
+    return value?.label || value?.value || ''
+  }
+
   const handleTreatmentInputChange = (value, reason) => {
     if (reason === 'input') {
-      onInputValueChange?.(value || '')
-      onSearchTreatment?.(value || '')
-      onChange('treatmentName', value || null)
+      const label = resolveLabel(value)
+      onInputValueChange?.(label)
+      onSearchTreatment?.(label)
+      onChange('treatmentName', label || null)
 
       return
     }
 
     if (reason === 'reset') {
-      if (typeof value === 'string') {
-        onInputValueChange?.(value)
-      } else if (value?.label) {
-        onInputValueChange?.(value.label)
-      }
+      onInputValueChange?.(resolveLabel(value))
 
       return
     }
@@ -53,15 +56,9 @@ const AddTreatmentDrawer = ({
   const handleTreatmentSelect = value => {
     onChange('treatmentName', value)
 
-    if (typeof value === 'string') {
-      onInputValueChange?.(value)
-      onSearchTreatment?.('')
-    } else if (value?.label) {
-      onInputValueChange?.(value.label)
-      onSearchTreatment?.('')
-    } else {
-      onInputValueChange?.('')
-    }
+    const label = resolveLabel(value)
+    onInputValueChange?.(label)
+    onSearchTreatment?.('')
   }
 
   const {
