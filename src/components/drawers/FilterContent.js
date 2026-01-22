@@ -56,7 +56,7 @@ const FilterContent = ({
                   checked={selectedOptions?.includes(item.value)}
                   onChange={() => onOptionChange(item.value, menuName)}
                 />
-                {item.image && <ImageWithShimmer src={item.image} alt={item.label} />}
+                {/* {item.image && <ImageWithShimmer src={item.image} alt={item.label} />} */}
 
                 <SpeciesCard
                   species={{
