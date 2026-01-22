@@ -941,7 +941,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
               <Typography
                 sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
               >
-                Purpose of Anaesthesia
+                Purpose of Anesthesia
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 {purposeItems.length ? (

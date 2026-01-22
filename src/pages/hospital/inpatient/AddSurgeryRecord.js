@@ -792,7 +792,10 @@ const AddSurgeryRecord = () => {
           }
           setProcedureSearchTerm('')
 
-          Toaster({ type: 'success', message: response?.message || 'Surgery has been created successfully.' })
+          Toaster({
+            type: 'success',
+            message: response?.message || 'Surgery has been added to the masters list successfully'
+          })
           setOpenAddSurgeryDrawer(false)
         } else {
           Toaster({ type: 'error', message: response?.message || 'Failed to create surgery' })
