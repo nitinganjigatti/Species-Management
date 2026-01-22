@@ -32,12 +32,10 @@ import { getAnimalMedicalIds } from 'src/lib/api/hospital/hospitalMaster'
 import { addHospitalPatient } from 'src/lib/api/hospital/inpatient'
 import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
-import { LoadingButton } from '@mui/lab'
 import { useHospital } from 'src/context/HospitalContext'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import dayjs from 'dayjs'
-import moment from 'moment'
 import AddPatientFiltersDrawer from '../inpatient/AddPatientFiltersDrawer'
 import SortBottomSheet from '../inpatient/SortBottomSheet'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
@@ -46,6 +44,7 @@ import AddBedsDrawer from '../PatientAdmissionForm/AddBedsDrawer'
 import { AuthContext } from 'src/context/AuthContext'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
+import Utility from 'src/utility'
 
 // import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
@@ -67,7 +66,6 @@ const visitTypes = [
   { label: 'Planned', value: 'planned' }
 ]
 
-// Updated schema to validate form fields directly
 const schema = yup.object().shape({
   treatmentType: yup.string().required('Treatment Type is Required'),
   purposeOfVisit: yup.string().required('Purpose of Visit is Required'),
@@ -249,7 +247,8 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
             setMedicalId(
               res?.data?.result?.map(item => ({
                 label: item?.medical_record_code,
-                value: item?.id
+                value: item?.id,
+                createAt: item?.created_at
               }))
             )
           }
@@ -409,7 +408,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                 <Typography
                   sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Select Patient
+                  Select Patient*
                 </Typography>
                 {selectedAnimal !== null ? (
                   <>
@@ -457,7 +456,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                           : theme.palette.customColors.OnPrimaryContainer
                       }}
                     >
-                      Select Animal
+                      Select Animal*
                     </Typography>
                     <Icon icon={'simple-line-icons:plus'} color={theme.palette.customColors.addPrimary} />
                   </Box>
@@ -514,7 +513,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                     <ControlledDatePicker
                       control={control}
                       name={'admission_date'}
-                      label='Date'
+                      label='Date*'
                       defaultValue={dayjs()}
                       disabled={submitLoader}
                     />
@@ -523,7 +522,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                     <ControlledTimePicker
                       control={control}
                       name={'admission_time'}
-                      label='Time'
+                      label='Time*'
                       disabled={submitLoader}
                     />
                   </Grid>
@@ -592,7 +591,19 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                                   ? medicalId
                                   : [{ label: 'No medical IDs available', value: '' }]
                               }
-                              getOptionLabel={option => option.label}
+                              getOptionLabel={option => (
+                                <>
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                    <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>{option?.label}</Typography>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                      <Icon icon={'uim:calender'} fontSize={'16px'} />
+                                      <Typography sx={{ fontSize: '12px', fontWeight: 400 }}>
+                                        {Utility.convertUtcToLocalReadableDate(option?.createAt)}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+                                </>
+                              )}
                               getOptionValue={option => option.value}
                               sx={{ background: theme.palette.customColors.Surface }}
                               disabled={!selectedAnimal || submitLoader}
@@ -613,7 +624,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                     control={control}
                     name={'visitType'}
                     errors={errors}
-                    label={'Select Visit Type'}
+                    label={'Select Visit Type*'}
                     options={visitTypes}
                     getOptionLabel={option => option.label}
                     getOptionValue={option => option.value}
@@ -653,7 +664,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                               : theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                          Select chief Veterinarian
+                          Select chief Veterinarian*
                         </Typography>
                         <Icon
                           icon='mdi:chevron-down'
@@ -718,7 +729,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Purpose of visit
+                    Purpose of visit*
                   </Typography>
                   <ControlledTextArea
                     control={control}
@@ -765,7 +776,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                   </Typography>
                   <ControlledAutocomplete
                     name='room'
-                    label='Select Room'
+                    label='Select Room*'
                     control={control}
                     errors={errors}
                     options={rooms}
@@ -815,7 +826,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                   </Typography>
                   <ControlledAutocomplete
                     name='holdingEnclosure'
-                    label='Select Holding Enclosure'
+                    label='Select Holding Enclosure*'
                     control={control}
                     errors={errors}
                     options={holdingEnclosures}

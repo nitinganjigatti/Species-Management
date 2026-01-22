@@ -532,7 +532,7 @@ const PatientAdmitForm = () => {
                           <ControlledDatePicker
                             control={control}
                             name={'admission_date'}
-                            label='Date'
+                            label='Date*'
                             defaultValue={dayjs()}
                             minDate={minDate}
                             maxDate={maxDate}
@@ -543,7 +543,7 @@ const PatientAdmitForm = () => {
                           <ControlledTimePicker
                             control={control}
                             name={'admission_time'}
-                            label='Time'
+                            label='Time*'
                             minTime={minTime}
                             maxTime={maxTime}
                             disabled={submitLoader}
@@ -584,7 +584,7 @@ const PatientAdmitForm = () => {
                                   : theme.palette.customColors.OnSurfaceVariant
                               }}
                             >
-                              Select chief Veterinarian
+                              Select chief Veterinarian*
                             </Typography>
                             <Icon
                               icon='mdi:chevron-down'
@@ -683,7 +683,7 @@ const PatientAdmitForm = () => {
                       </Typography>
                       <ControlledAutocomplete
                         name='room'
-                        label='Select Room'
+                        label='Select Room*'
                         control={control}
                         errors={errors}
                         options={rooms}
@@ -736,7 +736,7 @@ const PatientAdmitForm = () => {
                       </Typography>
                       <ControlledAutocomplete
                         name='holdingEnclosure'
-                        label='Select Holding Enclosure'
+                        label='Select Holding Enclosure*'
                         control={control}
                         errors={errors}
                         options={holdingEnclosures}
@@ -865,7 +865,7 @@ const PatientAdmitForm = () => {
           description={"Once rejected, the animal can't be admitted again."}
           formComponent={
             <TextField
-              label='Enter Rejection Reason'
+              label='Enter Rejection Reason*'
               multiline
               rows={4}
               fullWidth

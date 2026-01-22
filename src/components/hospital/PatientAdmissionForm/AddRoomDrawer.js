@@ -363,7 +363,7 @@ const AddRoomDrawer = ({
                 </Typography>
                 <ControlledTextField
                   name='room'
-                  label='Enter Room Name'
+                  label='Enter Room Name*'
                   control={control}
                   errors={errors}
                   required
@@ -379,7 +379,7 @@ const AddRoomDrawer = ({
                 </Typography>
                 <ControlledTextField
                   name='floor'
-                  label='Enter Floor'
+                  label='Enter Floor*'
                   control={control}
                   errors={errors}
                   required
