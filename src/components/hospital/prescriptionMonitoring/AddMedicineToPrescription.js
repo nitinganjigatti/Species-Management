@@ -1549,7 +1549,7 @@ export default function AddMedicineToPrescription() {
       )
 
       const scheduleDoses = data.schedules.map((schedule, index) => ({
-        id: schedule?.scheduled_dose_id,
+        id: schedule?.scheduled_dose_id ?? null,
         time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
         quantity: schedule.quantity,
         unit_id: getUnitIdFromName(schedule?.unit, medicalMasterData),
