@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import {
   Box,
   TextField,
@@ -8,12 +8,15 @@ import {
   Typography,
   CircularProgress,
   IconButton,
-  Skeleton
+  Skeleton,
+  Button
 } from '@mui/material'
+import { Add as AddIcon } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
 import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentListShimmer'
+import { AuthContext } from 'src/context/AuthContext'
 
 export default function SymptomsList({
   symptoms,
@@ -31,36 +34,70 @@ export default function SymptomsList({
   currentTab,
   handleTabChange,
   symptomsCount,
-  hasMore
+  hasMore,
+  handleAddNewClick
 }) {
   const theme = useTheme()
+  const authData = useContext(AuthContext)
+  const userSettings = authData?.userData?.permission?.user_settings
 
   return (
     <Box sx={{ pt: 1 }}>
-      <TextField
-        placeholder='Search'
-        fullWidth
-        size='small'
-        sx={{ mb: 3, borderRadius: '8px' }}
-        value={searchQuery}
-        onChange={handleSearchChange}
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position='start'>
-                <SearchIcon fontSize='small' sx={{ color: 'gray' }} />
-              </InputAdornment>
-            ),
-            endAdornment: searchQuery && (
-              <InputAdornment position='end'>
-                <IconButton onClick={handleClearSearch} size='small' sx={{ color: 'gray' }}>
-                  <ClearIcon fontSize='small' />
-                </IconButton>
-              </InputAdornment>
-            )
-          }
-        }}
-      />
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 3 }}>
+        <TextField
+          placeholder='Search'
+          fullWidth
+          size='small'
+          sx={{
+            flex: 1,
+            borderRadius: '8px',
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '8px'
+            }
+          }}
+          value={searchQuery}
+          onChange={handleSearchChange}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon fontSize='small' sx={{ color: 'gray' }} />
+                </InputAdornment>
+              ),
+              endAdornment: searchQuery && (
+                <InputAdornment position='end'>
+                  <IconButton onClick={handleClearSearch} size='small' sx={{ color: 'gray' }}>
+                    <ClearIcon fontSize='small' />
+                  </IconButton>
+                </InputAdornment>
+              )
+            }
+          }}
+        />
+
+        {userSettings?.medical_add_complaints && (
+          <Button
+            variant='contained'
+            startIcon={<AddIcon />}
+            onClick={handleAddNewClick}
+            sx={{
+              height: '40px',
+              borderRadius: '8px',
+              backgroundColor: theme.palette.secondary.dark,
+              color: theme.palette.primary.contrastText,
+              textTransform: 'none',
+              fontWeight: 500,
+              fontSize: '14px',
+              px: 3,
+              '&:hover': {
+                backgroundColor: theme.palette.secondary.main
+              }
+            }}
+          >
+            ADD NEW
+          </Button>
+        )}
+      </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box

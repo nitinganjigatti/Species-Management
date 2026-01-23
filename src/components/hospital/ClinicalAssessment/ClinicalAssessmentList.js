@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import {
   Box,
   TextField,
@@ -7,11 +7,14 @@ import {
   InputAdornment,
   Typography,
   CircularProgress,
-  Skeleton
+  Skeleton,
+  Button
 } from '@mui/material'
+import { Add as AddIcon } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
 import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentListShimmer'
+import { AuthContext } from 'src/context/AuthContext'
 
 export default function ClinicalAssessmentList({
   symptoms,
@@ -28,31 +31,66 @@ export default function ClinicalAssessmentList({
   hasMore,
   totalCount,
   isLoading,
-  loadMoreTriggerRef
+  loadMoreTriggerRef,
+  handleAddNewClick
 }) {
   const theme = useTheme()
+
+  const authData = useContext(AuthContext)
+  const userSettings = authData?.userData?.permission?.user_settings
 
   const filteredSymptoms = symptoms
 
   return (
     <Box sx={{ pt: 1 }}>
-      <TextField
-        placeholder='Search'
-        fullWidth
-        size='small'
-        sx={{ mb: 3, borderRadius: '8px' }}
-        value={searchTerm}
-        onChange={e => setSearchTerm(e.target.value)}
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position='start'>
-                <SearchIcon fontSize='small' sx={{ color: 'gray' }} />
-              </InputAdornment>
-            )
-          }
-        }}
-      />
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 3 }}>
+        <TextField
+          placeholder='Search'
+          fullWidth
+          size='small'
+          sx={{
+            flex: 1,
+            borderRadius: '8px',
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '8px'
+            }
+          }}
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon fontSize='small' sx={{ color: 'gray' }} />
+                </InputAdornment>
+              )
+            }
+          }}
+        />
+
+        {userSettings?.medical_add_diagnosis && (
+          <Button
+            variant='contained'
+            startIcon={<AddIcon />}
+            onClick={handleAddNewClick}
+            sx={{
+              height: '40px',
+              borderRadius: '8px',
+              backgroundColor: theme.palette.secondary.dark,
+              color: theme.palette.primary.contrastText,
+              textTransform: 'none',
+              fontWeight: 500,
+              fontSize: '14px',
+              px: 3,
+              '&:hover': {
+                backgroundColor: theme.palette.secondary.main
+              }
+            }}
+          >
+            ADD NEW
+          </Button>
+        )}
+      </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box

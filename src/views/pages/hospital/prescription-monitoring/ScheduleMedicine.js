@@ -289,7 +289,7 @@ export default function ScheduleMedicine({
           }}
         >
           <CircularProgress />
-          <Typography>Checking for adverse side effects...</Typography>
+          {/* <Typography>Checking for adverse side effects...</Typography> */}
         </Paper>
       </Box>
     )

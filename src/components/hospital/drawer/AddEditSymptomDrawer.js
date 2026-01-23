@@ -84,6 +84,7 @@ const AddEditSymptomDrawer = ({
       )}`,
       note: activity.note || 'N/A'
     })) ||
+
     // .sort((a, b) => {
     //   return b.isSystemGenerated - a.isSystemGenerated
     // })
@@ -215,7 +216,7 @@ const AddEditSymptomDrawer = ({
 
         <Box
           sx={{
-            pb: 2,
+            pb: 22,
             borderBottom:
               processedActivities?.length > 0 ? `1px solid ${theme.palette.customColors.OutlineVariant}` : 'none',
             height: processedActivities?.length > 0 ? '-webkit-fill-available' : '80%'
@@ -387,6 +388,7 @@ const AddEditSymptomDrawer = ({
               fullWidth
               multiline
               rows={3}
+
               //value={notes}
               onChange={e => setNotes(e.target.value)}
               sx={{
@@ -410,15 +412,17 @@ const AddEditSymptomDrawer = ({
             ''
           )}
         </Box>
-        <SideSheetActionButtons
-          addLabel='UPDATE'
-          cancelLabel='CANCEL'
-          onAdd={handleSave}
-          onCancel={handleCancel}
-          width={260}
-          height={50}
-          isDisabled={!isChanged}
-        />
+        <Box sx={{ position: 'fixed', bottom: 0 }}>
+          <SideSheetActionButtons
+            addLabel='UPDATE'
+            cancelLabel='CANCEL'
+            onAdd={handleSave}
+            onCancel={handleCancel}
+            width={260}
+            height={50}
+            isDisabled={!isChanged}
+          />
+        </Box>
       </Box>
 
       <EditNotes

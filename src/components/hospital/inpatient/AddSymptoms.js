@@ -372,6 +372,10 @@ function AddSymptoms() {
     }
   }
 
+  const handleAddNewClick = () => {
+    router.push('/medical/masters/complaints')
+  }
+
   const handleRouterNavigation = () => {
     router.back()
   }
@@ -421,6 +425,7 @@ function AddSymptoms() {
             handleTabChange={handleTabChange}
             symptomsCount={symptomsCount}
             hasMore={hasMore}
+            handleAddNewClick={handleAddNewClick}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>

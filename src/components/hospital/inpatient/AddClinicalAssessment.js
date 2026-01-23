@@ -406,6 +406,10 @@ function AddClinicalAssessment() {
     setClinicalDrawerOpen(true)
   }
 
+  const handleAddNewClick = () => {
+    router.push('/medical/masters/diagnosis')
+  }
+
   useEffect(() => {
     if (id) {
       getPatientInfo()
@@ -462,6 +466,7 @@ function AddClinicalAssessment() {
             isTabsLoading={isTabsLoading}
             isListLoading={isLoading}
             isInitialLoading={isInitialLoading}
+            handleAddNewClick={handleAddNewClick}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
