@@ -457,10 +457,18 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
   const recoveryInfoList = useMemo(() => {
     if (!recoveryData) return []
 
+    const hasRecoveryType = recoveryData.recovery_type && recoveryData.recovery_type !== '--'
+
     return [
       { label: 'Recovery Type', value: recoveryData.recovery_type || '--' },
-      { label: 'Recovery 1st Effect', value: formatTimeOnly(recoveryData.recovery_first_effect_time) },
-      { label: 'Recovery Full Effect', value: formatTimeOnly(recoveryData.recovery_full_effect_time) }
+      {
+        label: 'Recovery 1st Effect',
+        value: hasRecoveryType ? formatTimeOnly(recoveryData.recovery_first_effect_time) : '--'
+      },
+      {
+        label: 'Recovery Full Effect',
+        value: hasRecoveryType ? formatTimeOnly(recoveryData.recovery_full_effect_time) : '--'
+      }
     ]
   }, [recoveryData])
 

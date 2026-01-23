@@ -84,7 +84,6 @@ const AddEditSymptomDrawer = ({
       )}`,
       note: activity.note || 'N/A'
     })) ||
-
     // .sort((a, b) => {
     //   return b.isSystemGenerated - a.isSystemGenerated
     // })
@@ -306,7 +305,7 @@ const AddEditSymptomDrawer = ({
                     width: '260px',
                     '& .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',
-                      borderColor: getSymptomsSeverityColor(severity).color
+                      borderColor: `${getSymptomsSeverityColor(severity).color} !important`
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',
@@ -388,7 +387,6 @@ const AddEditSymptomDrawer = ({
               fullWidth
               multiline
               rows={3}
-
               //value={notes}
               onChange={e => setNotes(e.target.value)}
               sx={{
