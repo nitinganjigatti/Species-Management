@@ -172,7 +172,7 @@ const SpeciesMappedtoDietFilter = ({
     setTempSelectedItems(clearedTempSelectedItems)
     setSelectedItems(clearedSelectedItems)
     setOpenFilterDrawer(false)
-
+    setPageNo(1)
     setFilterState('')
     setSelectedSpeciesIds([])
     setSelectedTaxonomyIds([])
