@@ -253,6 +253,20 @@ const AnimalCard = ({ data, size, edit }) => {
           </Typography>
         )}
 
+        {data?.weight && (
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 600,
+              lineHeight: '16.94px',
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            <span>Weight : </span>
+            {data?.weight}
+          </Typography>
+        )}
+
         {data?.type === 'group' && (
           <Typography
             variant='caption'

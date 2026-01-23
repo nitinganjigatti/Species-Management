@@ -85,7 +85,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
         observation_time: dayjs(istTime || new Date()),
         observation_value:
           resType === 'numeric_scale' || resType === 'list'
-            ? data?.assessment_dropdown_id || ''
+            ? data?.assessment_value || ''
             : data?.assessment_value || '',
         value_unit: data?.assessment_unit_id || null,
         note: data?.comments || ''
