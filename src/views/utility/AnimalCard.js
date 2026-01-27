@@ -239,7 +239,7 @@ const AnimalCard = ({ data, size, edit }) => {
           </Typography>
         )}
 
-        {data?.age && (
+        {data?.age?.trim() && (
           <Typography
             sx={{
               fontSize: '14px',
@@ -253,7 +253,7 @@ const AnimalCard = ({ data, size, edit }) => {
           </Typography>
         )}
 
-        {data?.weight && (
+        {data?.weight?.trim() && (
           <Typography
             sx={{
               fontSize: '14px',
