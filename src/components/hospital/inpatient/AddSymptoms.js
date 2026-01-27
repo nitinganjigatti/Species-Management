@@ -7,6 +7,7 @@ import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import SymptomsList from 'src/components/hospital/Symptoms/SymptomsList'
 import SelectedSymptoms from 'src/components/hospital/Symptoms/SelectedSymptoms'
 import AddSymptomDrawer from 'src/components/hospital/drawer/AddSymptomDrawer'
+import AddComplaintDrawer from 'src/components/hospital/drawer/AddComplaintDrawer'
 import Toaster from 'src/components/Toaster'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import { checkAnimalStatusByType, getDiagnosisList } from 'src/lib/api/hospital/clinicalAssessment'
@@ -50,6 +51,7 @@ function AddSymptoms() {
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [symptomDrawerOpen, setSymptomDrawerOpen] = useState(false)
+  const [complaintDrawerOpen, setComplaintDrawerOpen] = useState(false)
   const [severity, setSeverity] = useState('Mild')
   const [durationValue, setDurationValue] = useState(0)
   const [durationUnit, setDurationUnit] = useState('Days')
@@ -179,6 +181,40 @@ function AddSymptoms() {
     [patientData?.medical_record_id]
   )
 
+  const fetchDiagnosisTypes = useCallback(async () => {
+    try {
+      setIsTabsLoading(true)
+
+      const params = {
+        include_all: 1,
+        type: 'complaints',
+        request_from: 'web_hospital',
+        medical_record_id: patientData?.medical_record_id || ''
+      }
+
+      const res = await getDiagnosisList(params)
+      if (res?.success) {
+        const categories = res.data?.result || []
+        setTabOptions(categories)
+
+        if (categories.length > 0 && !currentTabId) {
+          const firstCategory = categories[0]
+          setCurrentTab(firstCategory?.category || '')
+          setCurrentTabId(firstCategory?.id || '')
+
+          const key = `${firstCategory?.id || 'all'}_noquery`
+          loadedItemsRef.current[key] = 0
+
+          fetchSymptoms('', 1, false, firstCategory?.id || '')
+        }
+      }
+    } catch (error) {
+      setTabOptions([])
+    } finally {
+      setIsTabsLoading(false)
+    }
+  }, [patientData?.medical_record_id, currentTabId, fetchSymptoms])
+
   const debouncedSearch = useDebounce((query, categoryId) => {
     setResetPagination(true)
     setPage(1)
@@ -246,45 +282,11 @@ function AddSymptoms() {
   }, [id])
 
   useEffect(() => {
-    const fetchDiagnosisTypes = async () => {
-      if (!patientData?.medical_record_id || initialLoadRef.current) return
-
-      try {
-        setIsTabsLoading(true)
-
-        const params = {
-          include_all: 1,
-          type: 'complaints',
-          request_from: 'web_hospital',
-          medical_record_id: patientData.medical_record_id
-        }
-
-        const res = await getDiagnosisList(params)
-        if (res?.success) {
-          const categories = res.data?.result || []
-          setTabOptions(categories)
-
-          if (categories.length > 0) {
-            const firstCategory = categories[0]
-            setCurrentTab(firstCategory?.category || '')
-            setCurrentTabId(firstCategory?.id || '')
-
-            const key = `${firstCategory?.id || 'all'}_noquery`
-            loadedItemsRef.current[key] = 0
-
-            fetchSymptoms('', 1, false, firstCategory?.id || '')
-            initialLoadRef.current = true
-          }
-        }
-      } catch (error) {
-        setTabOptions([])
-      } finally {
-        setIsTabsLoading(false)
-      }
-    }
+    if (!patientData?.medical_record_id || initialLoadRef.current) return
 
     fetchDiagnosisTypes()
-  }, [patientData?.medical_record_id, fetchSymptoms])
+    initialLoadRef.current = true
+  }, [patientData?.medical_record_id, fetchDiagnosisTypes])
 
   const handleTabChange = (tabValue, tabId) => {
     setCurrentTab(tabValue)
@@ -330,7 +332,7 @@ function AddSymptoms() {
 
         return
       }
-      
+
       if (duplicatesData?.length > 0) {
         setDuplicatesErrorModelOpen(true)
 
@@ -373,7 +375,19 @@ function AddSymptoms() {
   }
 
   const handleAddNewClick = () => {
-    router.push('/medical/masters/complaints')
+    setComplaintDrawerOpen(true)
+  }
+
+  const handleComplaintAdded = symptom => {
+    handleSymptomSelect(symptom)
+
+    // Refetch categories and symptoms
+    fetchDiagnosisTypes()
+
+    // Refetch symptoms for current tab
+    const key = `${currentTabId || 'all'}_${searchQuery || 'noquery'}`
+    loadedItemsRef.current[key] = 0
+    fetchSymptoms(searchQuery, 1, false, currentTabId)
   }
 
   const handleRouterNavigation = () => {
@@ -485,6 +499,13 @@ function AddSymptoms() {
           setStatus={setStatus}
           setNotes={setNotes}
           onSave={addSymptomDetails}
+        />
+      )}
+      {complaintDrawerOpen && (
+        <AddComplaintDrawer
+          open={complaintDrawerOpen}
+          setOpen={setComplaintDrawerOpen}
+          onComplaintAdded={handleComplaintAdded}
         />
       )}
     </Box>

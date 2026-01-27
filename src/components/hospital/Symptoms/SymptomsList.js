@@ -83,15 +83,10 @@ export default function SymptomsList({
             sx={{
               height: '40px',
               borderRadius: '8px',
-              backgroundColor: theme.palette.secondary.dark,
-              color: theme.palette.primary.contrastText,
               textTransform: 'none',
               fontWeight: 500,
               fontSize: '14px',
-              px: 3,
-              '&:hover': {
-                backgroundColor: theme.palette.secondary.main
-              }
+              px: 3
             }}
           >
             ADD NEW
@@ -257,7 +252,7 @@ export default function SymptomsList({
           </Box>
         )}
 
-        {!hasMore && !loading && symptoms?.length > 0 && (
+        {!hasMore && !loading && symptoms?.length > 10 && (
           <Box sx={{ textAlign: 'center', py: 2 }}>
             <Typography variant='body2' color='textSecondary'>
               All symptoms loaded ({symptoms?.length} of {symptomsCount})

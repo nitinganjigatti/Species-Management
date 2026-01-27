@@ -76,15 +76,10 @@ export default function ClinicalAssessmentList({
             sx={{
               height: '40px',
               borderRadius: '8px',
-              backgroundColor: theme.palette.secondary.dark,
-              color: theme.palette.primary.contrastText,
               textTransform: 'none',
               fontWeight: 500,
               fontSize: '14px',
-              px: 3,
-              '&:hover': {
-                backgroundColor: theme.palette.secondary.main
-              }
+              px: 3
             }}
           >
             ADD NEW
@@ -258,7 +253,7 @@ export default function ClinicalAssessmentList({
             )}
 
             {/* End message when all items loaded */}
-            {!hasMore && !isLoading && symptoms?.length > 0 && (
+            {!hasMore && !isLoading && symptoms?.length > 10 && (
               <Box sx={{ textAlign: 'center', py: 2 }}>
                 <Typography variant='body2' color='textSecondary'>
                   All assessments loaded ({symptoms?.length} of {totalCount})
