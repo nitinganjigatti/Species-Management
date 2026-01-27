@@ -402,6 +402,7 @@ const MortalityDischargeForm = props => {
                 control={control}
                 errors={errors}
                 gap={4}
+                disabled={true}
               />
             </Grid>
 

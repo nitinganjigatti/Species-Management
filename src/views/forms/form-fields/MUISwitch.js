@@ -35,7 +35,13 @@ const StyledSwitch = styled(({ switchColor, size = 'medium', padding = 0, ...res
           '& + .MuiSwitch-track': {
             backgroundColor: trackColor,
             opacity: 1
+          },
+          '&.Mui-disabled + .MuiSwitch-track': {
+            opacity: 0.5
           }
+        },
+        '&.Mui-disabled + .MuiSwitch-track': {
+          opacity: 0.7
         }
       },
       '& .MuiSwitch-thumb': {
