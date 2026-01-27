@@ -34,7 +34,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [localSearch, setLocalSearch] = useState('')
-  const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true') 
+  const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true')
   const [records, setRecords] = useState([])
   const [tabCounts, setTabCounts] = useState({ Active: 0, Resolved: 0, All: 0 })
   const [total, setTotal] = useState(0)
@@ -244,7 +244,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const handleTabChange = newValue => {
     setCurrentTab(newValue)
     setPage(1)
-    setRecords([])
+    //setRecords([])
   }
 
   const filteredRecords = records
