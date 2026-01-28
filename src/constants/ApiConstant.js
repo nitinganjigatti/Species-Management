@@ -648,6 +648,8 @@ export const GET_OBSERVATION_REPORT = `v1/notes/observation`
 
 export const GET_ANIMAL_FILTERS_LISTS = `/v1/collection/animal/stats`
 
+export const GET_ALL_SITE_LIST_WITHOUT_PERMISSION = `get-zoo-wise-site-list`
+
 // Compliance: Enclosure Count Register
 export const GET_ANIMAL_COUNT_REGISTER = `v1/animal/count/register`
 

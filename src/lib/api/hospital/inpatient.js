@@ -1,6 +1,7 @@
 import {
   ADD_HOSPITAL_PATIENT,
   EDIT_PATIENT_DETAILS,
+  GET_ALL_SITE_LIST_WITHOUT_PERMISSION,
   GET_ANIMAL_TOTAL_HOSPITAL_VISIT,
   GET_FOLLOWUP_PATIENTS_LISTS,
   GET_MORTALITY_PATIENTS_LISTS,
@@ -95,4 +96,10 @@ export async function uploadPatientMedia(payload) {
 
     return error
   }
+}
+
+export async function getZooWiseSiteLists(params) {
+  const response = await axiosGet({ url: `${GET_ALL_SITE_LIST_WITHOUT_PERMISSION}`, params: params })
+
+  return response?.data
 }

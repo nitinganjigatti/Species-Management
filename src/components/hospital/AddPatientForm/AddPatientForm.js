@@ -213,7 +213,8 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
           status: 'active',
           room_id: selectedRoom.value,
           page: 1,
-          is_occupied: 'available',
+
+          // is_occupied: 'available',
           q: searchEnclosure
         })
         if (res?.success === true) {

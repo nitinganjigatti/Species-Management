@@ -3,11 +3,10 @@ import { Typography, Box, CircularProgress, Button, Checkbox, FormControlLabel, 
 import { useTheme } from '@mui/material/styles'
 import debounce from 'lodash/debounce'
 import { useInView } from 'react-intersection-observer'
-
 import CustomDrawer from '../../../views/pages/housing/utils/CustomDrawer'
 import Search from 'src/views/utility/Search'
-import { getAllSites } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
+import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 
 const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
   const theme = useTheme()
@@ -40,11 +39,11 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
   } = useInfiniteQuery({
     queryKey: ['hospital-sites', search, open],
     queryFn: async ({ pageParam = 1 }) => {
-      const res = await getAllSites({
+      const res = await getZooWiseSiteLists({
         ...data?.params,
         page_no: pageParam,
         limit: PAGE_SIZE,
-        search
+        q: search
       })
 
       return {
@@ -112,10 +111,8 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
   const handleSiteSelect = site => {
     console.log('site', site)
     setSelectedSites(prev => {
-      const isAlreadySelected = prev.some(selectedSite => 
-        selectedSite.site_id === site.site_id
-      )
-      
+      const isAlreadySelected = prev.some(selectedSite => selectedSite.site_id === site.site_id)
+
       if (isAlreadySelected) {
         return prev.filter(selectedSite => selectedSite.site_id !== site.site_id)
       } else {
@@ -137,9 +134,7 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
   // Update select all state when selection changes
   useEffect(() => {
     if (list.length > 0) {
-      const allSelected = list.every(site => 
-        selectedSites.some(selectedSite => selectedSite.site_id === site.site_id)
-      )
+      const allSelected = list.every(site => selectedSites.some(selectedSite => selectedSite.site_id === site.site_id))
       setIsAllSelected(allSelected)
     } else {
       setIsAllSelected(false)
