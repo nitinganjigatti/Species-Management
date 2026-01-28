@@ -35,6 +35,7 @@ import SpeciesMappedtoDietFilter from './speciesMappedFilter'
 import { useMediaQuery } from '@mui/material'
 import SpeciesAnimalsMapped from 'src/components/diet/Species_Animals_mapped'
 import EditAnimalSpeciesMapped from 'src/components/diet/EditAnimalsSpecies'
+import SelectSiteList from 'src/components/diet/SelectSiteList'
 
 const DietDetail = () => {
   const router = useRouter()
@@ -114,8 +115,12 @@ const DietDetail = () => {
 
   const handleSpeciesClick = value => {
     setSelectionType(value)
-    setIsOpen(true)
     setPageNo(1)
+    if (value === 'site_species') {
+      setSiteListDrawer(true)
+    } else {
+      setIsOpen(true)
+    }
   }
 
   const handleSpeciesClicknew = (val, type) => {
@@ -3727,6 +3732,23 @@ const DietDetail = () => {
               </Box>
             </Box>
           )}
+          <SelectSiteList
+            setSiteListDrawer={setSiteListDrawer}
+            openSiteListDrawer={openSiteListDrawer}
+            tabsforfilter={tabsforfilter}
+            setActiveTab={setActiveTab}
+            activeTab={activeTab}
+            setSearchTerm={setSearchTerm}
+            searchTerm={searchTerm}
+            setSelectedItems={setSelectedItems}
+            selectedItems={selectedItems}
+            items={items}
+            //filteredItems={filteredItems}
+            tempSelectedItems={tempSelectedItems}
+            setTempSelectedItems={setTempSelectedItems}
+            setSelectionType={setSelectionType}
+            selectionType={selectionType}
+          />
           <SpeciesMappedtoDiet
             isOpen={isOpen}
             setIsOpen={setIsOpen}

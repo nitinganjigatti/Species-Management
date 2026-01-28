@@ -25,7 +25,9 @@ const SelectSiteList = ({
   setSearchTerm,
   searchTerm,
   tempSelectedItems,
-  setTempSelectedItems
+  setTempSelectedItems,
+  setSelectionType,
+  selectionType
 }) => {
   const theme = useTheme()
   const [pendingSelections, setPendingSelections] = useState({ Site: [] })
@@ -42,17 +44,42 @@ const SelectSiteList = ({
   }
 
   const handleSiteCheckboxChange = site => {
-    const isSelected = pendingSelections?.Site?.includes(site.site_id)
+    console.log(selectionType, 'selectionType')
+    if (selectionType == 'site_species') {
+      alert('kkk')
+      // SINGLE SELECT
+      setPendingSelections({
+        ...pendingSelections,
+        Site: [site.site_id]
+      })
+    } else {
+      alert('ooo')
+      // MULTI SELECT (existing behavior)
+      const isSelected = pendingSelections.Site.includes(site.site_id)
 
-    const updatedSelection = isSelected
-      ? pendingSelections.Site.filter(id => id !== site.site_id)
-      : [...pendingSelections.Site, site.site_id]
+      const updatedSelection = isSelected
+        ? pendingSelections.Site.filter(id => id !== site.site_id)
+        : [...pendingSelections.Site, site.site_id]
 
-    setPendingSelections({
-      ...pendingSelections,
-      Site: updatedSelection
-    })
+      setPendingSelections({
+        ...pendingSelections,
+        Site: updatedSelection
+      })
+    }
   }
+
+  // const handleSiteCheckboxChange = site => {
+  //   const isSelected = pendingSelections?.Site?.includes(site.site_id)
+
+  //   const updatedSelection = isSelected
+  //     ? pendingSelections?.Site?.filter(id => id !== site?.site_id)
+  //     : [...pendingSelections?.Site, site?.site_id]
+
+  //   setPendingSelections({
+  //     ...pendingSelections,
+  //     Site: updatedSelection
+  //   })
+  // }
 
   useEffect(() => {
     if (openSiteListDrawer) {
@@ -174,59 +201,61 @@ const SelectSiteList = ({
         </Box>
 
         {/* Selected Count */}
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-            Selected {pendingSelections?.Site?.length} / {items?.Site?.length}
-          </Typography>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <Button
-              size='small'
+        {selectionType !== 'site_species' && (
+          <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+              Selected {pendingSelections?.Site?.length} / {items?.Site?.length}
+            </Typography>
+            <Box
               sx={{
-                color:
-                  pendingSelections?.Site?.length === items?.Site?.length
-                    ? theme.palette.primary.main
-                    : theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '12px',
-                fontWeight: 600,
-                textTransform: 'none',
-                p: 0
+                display: 'flex',
+                alignItems: 'center'
               }}
-              onClick={handleSelectAllSites}
             >
-              {/* {tempSelectedSpecies?.length === speciesData.length ? 'Select all' : 'Select all'} */}
-              Select all
-            </Button>
+              <Button
+                size='small'
+                sx={{
+                  color:
+                    pendingSelections?.Site?.length === items?.Site?.length
+                      ? theme.palette.primary.main
+                      : theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  p: 0
+                }}
+                onClick={handleSelectAllSites}
+              >
+                {/* {tempSelectedSpecies?.length === speciesData.length ? 'Select all' : 'Select all'} */}
+                Select all
+              </Button>
 
-            <Checkbox
-              checked={
-                searchTerm
-                  ? filteredSites.length > 0 &&
-                    filteredSites.every(site => pendingSelections.Site.includes(site.site_id))
-                  : pendingSelections.Site.length === items.Site.length
-              }
-              onChange={handleSelectAllSites}
-              slotProps={{
-                root: { 'aria-label': 'Select all species' }
-              }}
-              sx={{
-                '&.Mui-checked': {
-                  color: theme.palette.primary.main
-                },
-                '& .MuiSvgIcon-root': {
-                  width: '19px',
-                  height: '19px',
-                  border: '2px dotted'
-                },
-                mr: 1
-              }}
-            />
+              <Checkbox
+                checked={
+                  searchTerm
+                    ? filteredSites.length > 0 &&
+                      filteredSites.every(site => pendingSelections.Site.includes(site.site_id))
+                    : pendingSelections.Site?.length === items?.Site?.length
+                }
+                onChange={handleSelectAllSites}
+                slotProps={{
+                  root: { 'aria-label': 'Select all species' }
+                }}
+                sx={{
+                  '&.Mui-checked': {
+                    color: theme.palette.primary.main
+                  },
+                  '& .MuiSvgIcon-root': {
+                    width: '19px',
+                    height: '19px',
+                    border: '2px dotted'
+                  },
+                  mr: 1
+                }}
+              />
+            </Box>
           </Box>
-        </Box>
+        )}
 
         {/* Sites List */}
         <Box

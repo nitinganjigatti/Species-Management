@@ -362,6 +362,16 @@ const DietDetailCard = ({
                         >
                           Assign to Animals
                         </MenuItem>
+                        <MenuItem
+                          onClick={() => {
+                            handleSpeciesClick('site_species')
+                            handleClose()
+                            setapplyfilterCheck(false)
+                          }}
+                          sx={{ fontSize: '14px' }}
+                        >
+                          Assign Site to Species
+                        </MenuItem>
                       </Menu>
                     </div>
                   </Box>
