@@ -460,7 +460,9 @@ const PrescriptionMonitoringGrid = ({
             !(
               Array.isArray(metric.schedule) &&
               metric.schedule.length > 0 &&
-              metric.schedule.every(s => s.status === 'administered')
+              metric.schedule.every(
+                s => s.status === "administrator" || s.status === "withheld" || s.status === 'stopped'
+              )
             )
         )
       )
