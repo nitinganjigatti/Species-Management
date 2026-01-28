@@ -779,6 +779,10 @@ export const GET_SPECIES_FOR_HOSPITAL = `master/zoo/taxonomy/list`
 
 export const GET_OVERVIEW_MEDIA_FILES = 'v1/hospital/get-hospital-case-overview'
 
+export const GET_PATIENT_MEDIA = 'v1/hospital/media/get'
+
+export const UPLOAD_PATIENT_MEDIA = 'medical/attachment-update'
+
 // Clinical Assessment
 
 export const GET_CLINICAL_ASSESSMENTS = 'medical/v2/'

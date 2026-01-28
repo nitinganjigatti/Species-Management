@@ -58,6 +58,7 @@ const OtherTreatments = lazy(() => import('src/components/hospital/inpatient/Oth
 const PrescriptionLayout = lazy(() => import('src/components/hospital/prescriptionMonitoring/PrescriptionLayout'))
 const Anesthesia = lazy(() => import('src/components/hospital/inpatient/Anesthesia'))
 const InpatientSurgery = lazy(() => import('src/views/pages/hospital/inpatient/InpatientSurgery'))
+const PatientMedia = lazy(() => import('src/components/hospital/inpatient/PatientMedia'))
 const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'))
 
 const PatientDetails = ({ category }) => {
@@ -242,6 +243,7 @@ const PatientDetails = ({ category }) => {
       { label: 'Medical Summary', value: 'medicalSummary', component: InpatientMedicalSummary },
       { label: 'Anesthesia', value: 'anesthesia', component: Anesthesia },
       { label: 'Surgery', value: 'surgery', component: InpatientSurgery },
+      { label: 'Media', value: 'media', component: PatientMedia },
       { label: 'Discharge', value: 'discharge', component: InpatientDischarge }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
