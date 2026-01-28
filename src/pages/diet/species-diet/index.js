@@ -7,6 +7,8 @@ import {
   Tooltip,
   Box,
   Breadcrumbs,
+  Tabs,
+  Tab,
   TextField,
   Grid,
   FormControl,
@@ -32,9 +34,108 @@ import { FilterButton } from '../../../views/utility/render-snippets'
 import { getSpeciesList } from 'src/lib/api/diet/speciesDiet'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 
+const ANIMAL_DUMMY_DATA = [
+  {
+    animal_id: 1001,
+    common_name: 'African Lion',
+    scientific_name: 'Panthera leo',
+    genus_name: 'Panthera',
+    attachment_count: 2,
+    class_name: 'Mammalia',
+    default_icon: '/images/housing/species-icon-colored.svg'
+  },
+  {
+    animal_id: 1002,
+    common_name: 'Bengal Tiger',
+    scientific_name: 'Panthera tigris',
+    genus_name: 'Panthera',
+    attachment_count: 1,
+    class_name: 'Mammalia',
+    default_icon: '/images/housing/species-icon-colored.svg'
+  },
+  {
+    animal_id: 1003,
+    common_name: 'Giraffe',
+    scientific_name: 'Giraffa camelopardalis',
+    genus_name: 'Giraffa',
+    attachment_count: 0,
+    class_name: 'Mammalia',
+    default_icon: '/images/housing/species-icon-colored.svg'
+  },
+  {
+    animal_id: 1004,
+    common_name: 'Asian Elephant',
+    scientific_name: 'Elephas maximus',
+    genus_name: 'Elephas',
+    attachment_count: 3,
+    class_name: 'Mammalia',
+    default_icon: '/images/housing/species-icon-colored.svg'
+  },
+  {
+    animal_id: 1005,
+    common_name: 'Red Panda',
+    scientific_name: 'Ailurus fulgens',
+    genus_name: 'Ailurus',
+    attachment_count: 0,
+    class_name: 'Mammalia',
+    default_icon: '/images/housing/species-icon-colored.svg'
+  },
+  {
+    animal_id: 1006,
+    common_name: 'Zebra',
+    scientific_name: 'Equus quagga',
+    genus_name: 'Equus',
+    attachment_count: 1,
+    class_name: 'Mammalia',
+    default_icon: '/images/housing/species-icon-colored.svg'
+  },
+  {
+    animal_id: 1007,
+    common_name: 'Snow Leopard',
+    scientific_name: 'Panthera uncia',
+    genus_name: 'Panthera',
+    attachment_count: 0,
+    class_name: 'Mammalia',
+    default_icon: '/images/housing/species-icon-colored.svg'
+  },
+  {
+    animal_id: 1008,
+    common_name: 'Red Kangaroo',
+    scientific_name: 'Macropus rufus',
+    genus_name: 'Macropus',
+    attachment_count: 2,
+    class_name: 'Mammalia',
+    default_icon: '/images/housing/species-icon-colored.svg'
+  },
+  {
+    animal_id: 1009,
+    common_name: 'Hippopotamus',
+    scientific_name: 'Hippopotamus amphibius',
+    genus_name: 'Hippopotamus',
+    attachment_count: 0,
+    class_name: 'Mammalia',
+    default_icon: '/images/housing/species-icon-colored.svg'
+  },
+  {
+    animal_id: 1010,
+    common_name: 'Okapi',
+    scientific_name: 'Okapia johnstoni',
+    genus_name: 'Okapia',
+    attachment_count: 1,
+    class_name: 'Mammalia',
+    default_icon: '/images/housing/species-icon-colored.svg'
+  }
+]
+
+const TAB_VALUES = {
+  SPECIES: 'species',
+  ANIMAL: 'animal'
+}
+
 const SpeciesDietList = () => {
   const colWidths = [65, 300, 200, 100]
   const theme = useTheme()
+  const [activeTab, setActiveTab] = useState(TAB_VALUES.SPECIES)
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
@@ -60,6 +161,28 @@ const SpeciesDietList = () => {
   const [uploadingAttachment, setUploadingAttachment] = useState(false)
   const [speciesId, setspeciesId] = useState(null)
   const [speciesData, setSpeciesData] = useState({})
+
+  const [animalTotal, setAnimalTotal] = useState(0)
+  const [animalRows, setAnimalRows] = useState([])
+  const [animalSearchValue, setAnimalSearchValue] = useState('')
+  const [animalSortModel, setAnimalSortModel] = useState([{ field: 'scientific_name', sort: 'asc' }])
+  const [animalPaginationModel, setAnimalPaginationModel] = useState({ page: 0, pageSize: 50 })
+  const [animalLoading, setAnimalLoading] = useState(false)
+
+  const [animalUploadDietDrawer, setAnimalUploadDietDrawer] = useState(false)
+  const [animalFilterByDiet, setAnimalFilterByDiet] = useState('-1')
+  const [animalExportLoading, setAnimalExportLoading] = useState(false)
+
+  const [animalOpenFilterDrawer, setAnimalOpenFilterDrawer] = useState(false)
+  const [animalSearchQuery, setAnimalSearchQuery] = useState('')
+  const [animalSelectedFiltersOptions, setAnimalSelectedFiltersOptions] = useState({})
+  const [animalFilterCount, setAnimalFilterCount] = useState(0)
+
+  const [animalSelectedOptions, setAnimalSelectedOptions] = useState({
+    Class: []
+  })
+  const [animalId, setAnimalId] = useState(null)
+  const [animalData, setAnimalData] = useState({})
 
   ///////////////////////////////////////////////////
 
@@ -90,6 +213,16 @@ const SpeciesDietList = () => {
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
+  const isAnimalTab = activeTab === TAB_VALUES.ANIMAL
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue)
+    setSpeciesDetailsDrawer(false)
+    setUploadDietDrawer(false)
+    setOpenFilterDrawer(false)
+    setAnimalUploadDietDrawer(false)
+    setAnimalOpenFilterDrawer(false)
+  }
 
   function loadServerRows(currentPage, data) {
     return data
@@ -129,8 +262,10 @@ const SpeciesDietList = () => {
   )
 
   useEffect(() => {
-    fetchTableData(searchValue)
-  }, [fetchTableData, selectedFiltersOptions])
+    if (activeTab === TAB_VALUES.SPECIES) {
+      fetchTableData(searchValue)
+    }
+  }, [fetchTableData, selectedFiltersOptions, activeTab])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -161,12 +296,149 @@ const SpeciesDietList = () => {
     searchTableData(value)
   }
 
-  const speciesDietDropdownChange = event => {
-    const newValue = event.target.value
-    setSpeciesDietDropdown(newValue)
+  const getFilteredAnimalData = useCallback(
+    queryValue => {
+      const searchText = (queryValue ?? '').toString().trim().toLowerCase()
+      const classNames = animalSelectedFiltersOptions?.Class?.map(option => option.name) || []
+      const normalizedClassNames = classNames.map(name => name.toString().toLowerCase())
+      let filteredData = [...ANIMAL_DUMMY_DATA]
+
+      if (searchText) {
+        filteredData = filteredData.filter(row => {
+          const commonName = (row.common_name || '').toString().toLowerCase()
+          const scientificName = (row.scientific_name || '').toString().toLowerCase()
+          const genusName = (row.genus_name || '').toString().toLowerCase()
+
+          return (
+            commonName.includes(searchText) || scientificName.includes(searchText) || genusName.includes(searchText)
+          )
+        })
+      }
+
+      if (animalFilterByDiet !== '-1') {
+        const hasDiet = animalFilterByDiet === '1'
+        filteredData = filteredData.filter(row => (hasDiet ? row.attachment_count > 0 : row.attachment_count === 0))
+      }
+
+      if (normalizedClassNames.length > 0) {
+        filteredData = filteredData.filter(row =>
+          normalizedClassNames.some(name => name.includes((row.class_name || '').toString().toLowerCase()))
+        )
+      }
+
+      return filteredData
+    },
+    [animalFilterByDiet, animalSelectedFiltersOptions]
+  )
+
+  const fetchAnimalTableData = useCallback(
+    async q => {
+      try {
+        setAnimalLoading(true)
+        const queryValue = q?.q ?? q
+        const filteredData = getFilteredAnimalData(queryValue)
+        const start = animalPaginationModel.page * animalPaginationModel.pageSize
+        const end = start + animalPaginationModel.pageSize
+        const pageRows = filteredData.slice(start, end).map(row => ({
+          ...row,
+          id: row.animal_id
+        }))
+
+        setAnimalTotal(filteredData.length)
+        setAnimalRows(pageRows)
+      } catch (error) {
+        console.log(error)
+      } finally {
+        setAnimalLoading(false)
+      }
+    },
+    [animalPaginationModel, getFilteredAnimalData]
+  )
+
+  useEffect(() => {
+    if (activeTab === TAB_VALUES.ANIMAL) {
+      fetchAnimalTableData(animalSearchValue)
+    }
+  }, [fetchAnimalTableData, animalSelectedFiltersOptions, activeTab])
+
+  const getAnimalSlNo = index => (animalPaginationModel.page + 1 - 1) * animalPaginationModel.pageSize + index + 1
+
+  const indexedAnimalRows = animalRows?.map((row, index) => ({
+    ...row,
+    sl_no: getAnimalSlNo(index)
+  }))
+
+  const searchAnimalTableData = useCallback(
+    debounce(async q => {
+      setAnimalSearchValue(q)
+      try {
+        await fetchAnimalTableData({ q })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    [fetchAnimalTableData]
+  )
+
+  const handleAnimalSearch = value => {
+    setAnimalSearchValue(value)
+    searchAnimalTableData(value)
   }
 
-  const columns = [
+  const downloadCsvFile = (fileName, csvRows) => {
+    const csvContent = csvRows.join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  }
+
+  const handleAnimalExport = async () => {
+    try {
+      setAnimalExportLoading(true)
+      const filteredData = getFilteredAnimalData(animalSearchValue)
+      const headers = ['Common Name', 'Scientific Name', 'Genus', 'Active Diets']
+      const rowsData = filteredData.map(row => [
+        row.common_name || '',
+        row.scientific_name || '',
+        row.genus_name || '',
+        row.attachment_count || 0
+      ])
+      const csvRows = [headers, ...rowsData].map(row =>
+        row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+      )
+      downloadCsvFile('animal-diet-list.csv', csvRows)
+    } catch (error) {
+      console.error('Error downloading Excel:', error)
+    } finally {
+      setAnimalExportLoading(false)
+    }
+  }
+
+  const handleSpeciesUploadClick = params => {
+    const scientific_name = params.row.scientific_name
+    const common_name = params.row.common_name
+    const default_icon = params.row.default_icon
+    setSpeciesData({ default_icon, scientific_name, common_name })
+    setspeciesId(params.row.species_id)
+    setUploadDietDrawer(true)
+  }
+
+  const handleAnimalUploadClick = params => {
+    const scientific_name = params.row.scientific_name
+    const common_name = params.row.common_name
+    const default_icon = params.row.default_icon
+    setAnimalData({ default_icon, scientific_name, common_name })
+    setAnimalId(params.row.animal_id)
+    setAnimalUploadDietDrawer(true)
+  }
+
+  const buildColumns = ({ nameHeader, onRowClick, onUploadClick }) => [
     {
       width: colWidths[0],
       field: 'id',
@@ -175,33 +447,35 @@ const SpeciesDietList = () => {
       sortable: false,
       renderCell: params => (
         <Typography
-          onClick={() => setSpeciesDetailsDrawer(true)}
+          onClick={onRowClick ? () => onRowClick(params) : undefined}
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontWeight: '400',
             lineHeight: '14.52px',
-            fontSize: '12px'
+            fontSize: '12px',
+            cursor: onRowClick ? 'pointer' : 'default'
           }}
         >
           {params.row.sl_no}
         </Typography>
       )
     },
-
     {
       width: colWidths[1],
       sortable: false,
       field: 'scientific_name',
-      headerName: 'SPECIES',
+      headerName: nameHeader,
       renderCell: params => (
-        <Box onClick={() => setSpeciesDetailsDrawer(true)} sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Box
+          onClick={onRowClick ? () => onRowClick(params) : undefined}
+          sx={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: onRowClick ? 'pointer' : 'default' }}
+        >
           <SpeciesCard species={params?.row} />
         </Box>
       )
     },
     {
       width: colWidths[2],
-      // flex: 1,
       sortable: false,
       field: 'attachment_count',
       headerName: 'ACTIVE DIETS',
@@ -248,291 +522,7 @@ const SpeciesDietList = () => {
         </Tooltip>
       )
     },
-    // {
-    //   width: colWidths[2],
-    //   // flex: 1,
-    //   sortable: false,
-    //   field: 'inactive_attachment_count',
-    //   headerName: 'INACTIVE DIETS',
-    //   renderCell: params => (
-    //     <Tooltip title={params.row.inactive_attachment_count ? params.row.inactive_attachment_count : 0}>
-    //       <Typography
-    //         noWrap
-    //         sx={{
-    //           color: theme.palette.customColors.OnSurfaceVariant,
-    //           fontSize: '16px',
-    //           fontWeight: '400',
-    //           lineHeight: '19.36px',
-    //           overflow: 'hidden',
-    //           textOverflow: 'ellipsis',
-    //           ml: 2
-    //         }}
-    //       >
-    //         {params.row.inactive_attachment_count ? params.row.inactive_attachment_count : 0}
-    //       </Typography>
-    //     </Tooltip>
-    //   )
-    // },
-
-    // {
-    //   // flex: '8',
-    //   width: attachmentWidth,
-    //   sortable: false,
-    //   field: 'diet_attached',
-    //   headerName: 'Primary Diet',
-    //   renderCell: ({ row }) => {
-    //     return (
-    //       <Box
-    //         onClick={() => setSpeciesDetailsDrawer(true)}
-    //         sx={{ ml: 1, width: '100%', display: 'flex', gap: 2, justifyContent: 'space-between' }}
-    //       >
-    //         {/* Attachment Section */}
-    //         <Box sx={{ width: '100%', display: 'flex', gap: 2 }}>
-    //           {uploadingAttachment === true && speciesId == row?.species_id && (
-    //             <Box
-    //               sx={{
-    //                 width: '144px',
-    //                 height: '32px',
-    //                 padding: '6px',
-    //                 borderRadius: '4px',
-    //                 display: 'flex',
-    //                 alignItems: 'center',
-    //                 gap: '4px',
-    //                 backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor
-    //               }}
-    //             >
-    //               <Avatar variant='rounded' alt='Medicine Image' sx={{ width: 20, height: 20, overflow: 'hidden' }}>
-    //                 <img style={{ width: '100%', height: '100%' }} src={'/icons/files_green.svg'} alt='Profile' />
-    //               </Avatar>
-    //               <Box sx={{ width: '110px' }}>
-    //                 <Typography
-    //                   noWrap
-    //                   sx={{
-    //                     color: theme.palette.customColors.OnSurfaceVariant,
-    //                     fontSize: '16px',
-    //                     fontWeight: '400',
-    //                     lineHeight: '19.36px',
-    //                     overflow: 'hidden',
-    //                     textOverflow: 'ellipsis'
-    //                   }}
-    //                 >
-    //                   uploading
-    //                 </Typography>
-    //                 <LinearProgress sx={{ height: '2px' }} value={50} />
-    //               </Box>
-    //             </Box>
-    //           )}
-    //           {row.attachments.length > 0 ? (
-    //             <>
-    //               {row.attachments.map((item, index) => (
-    //                 <Box
-    //                   key={index}
-    //                   onClick={e => {
-    //                     e.stopPropagation()
-    //                     window.open(item.file, '_blank')
-    //                   }}
-    //                   sx={{
-    //                     width: '240px',
-    //                     height: '32px',
-    //                     padding: '6px',
-    //                     borderRadius: '4px',
-    //                     display: 'flex',
-    //                     alignItems: 'center',
-    //                     gap: '4px',
-    //                     backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor
-    //                   }}
-    //                 >
-    //                   <Avatar variant='rounded' alt='Medicine Image' sx={{ width: 20, height: 20, overflow: 'hidden' }}>
-    //                     <img style={{ width: '100%', height: '100%' }} src={'/icons/document_icon.svg'} alt='Profile' />
-    //                   </Avatar>
-    //                   <Typography
-    //                     noWrap
-    //                     sx={{
-    //                       color: theme.palette.customColors.OnSurfaceVariant,
-    //                       fontSize: '16px',
-    //                       fontWeight: '400',
-    //                       lineHeight: '19.36px',
-    //                       overflow: 'hidden',
-    //                       textOverflow: 'ellipsis'
-    //                     }}
-    //                   >
-    //                     {item.file_original_name}
-    //                   </Typography>
-    //                 </Box>
-    //               ))}
-    //             </>
-    //           ) : (
-    //             <Typography
-    //               sx={{
-    //                 color: '#E93353',
-    //                 fontSize: '14px',
-    //                 fontWeight: 500,
-    //                 lineHeight: '16.96px',
-    //                 letterSpacing: '0.1px'
-    //               }}
-    //             >
-    //               -
-    //             </Typography>
-    //           )}
-    //         </Box>
-    //       </Box>
-    //     )
-    //   }
-    // },
-    // {
-    //   // width: ,
-    //   width: attachmentWidth,
-    //   sortable: false,
-    //   field: 'diet_attached',
-    //   headerName: 'Primary Diets',
-    //   renderCell: ({ row }) => {
-    //     return (
-    //       <Box sx={{ ml: 1, width: '100%', display: 'flex', gap: 2, justifyContent: 'space-between' }}>
-    //         {/* Attachment Section */}
-    //         <Box onClick={() => setSpeciesDetailsDrawer(true)} sx={{ width: '100%', display: 'flex', gap: 2 }}>
-    //           {uploadingAttachment === true && speciesId == row.species_id && (
-    //             <Box
-    //               sx={{
-    //                 width: '144px',
-    //                 height: '32px',
-    //                 padding: '6px',
-    //                 borderRadius: '4px',
-    //                 display: 'flex',
-    //                 alignItems: 'center',
-    //                 gap: '4px',
-    //                 backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor
-    //               }}
-    //             >
-    //               <Avatar variant='rounded' alt='Medicine Image' sx={{ width: 20, height: 20, overflow: 'hidden' }}>
-    //                 <img style={{ width: '100%', height: '100%' }} src={'/icons/files_green.svg'} alt='Profile' />
-    //               </Avatar>
-    //               <Box sx={{ width: '110px' }}>
-    //                 <Typography
-    //                   noWrap
-    //                   sx={{
-    //                     color: theme.palette.customColors.OnSurfaceVariant,
-    //                     fontSize: '16px',
-    //                     fontWeight: '400',
-    //                     lineHeight: '19.36px',
-    //                     overflow: 'hidden',
-    //                     textOverflow: 'ellipsis'
-    //                   }}
-    //                 >
-    //                   uploading...
-    //                 </Typography>
-    //                 <LinearProgress sx={{ height: '2px' }} value={50} />
-    //               </Box>
-    //             </Box>
-    //           )}
-    //           {row.attachments.length > 0 ? (
-    //             attachmentWidth > 250 ? (
-    //               <>
-    //                 {row.attachments.slice(0, Math.floor((attachmentWidth - 100) / 150)).map((item, index) => (
-    //                   <Box
-    //                     key={index}
-    //                     onClick={e => {
-    //                       e.stopPropagation()
-    //                       window.open(item.file, '_blank')
-    //                     }}
-    //                     sx={{
-    //                       width: '144px',
-    //                       height: '32px',
-    //                       padding: '6px',
-    //                       borderRadius: '4px',
-    //                       display: 'flex',
-    //                       alignItems: 'center',
-    //                       gap: '4px',
-    //                       backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor
-    //                     }}
-    //                   >
-    //                     <Avatar
-    //                       variant='rounded'
-    //                       alt='Medicine Image'
-    //                       sx={{ width: 20, height: 20, overflow: 'hidden' }}
-    //                     >
-    //                       <img
-    //                         style={{ width: '100%', height: '100%' }}
-    //                         src={'/icons/documents_icon.svg'}
-    //                         alt='Profile'
-    //                       />
-    //                     </Avatar>
-    //                     <Typography
-    //                       noWrap
-    //                       sx={{
-    //                         color: theme.palette.customColors.OnSurfaceVariant,
-    //                         fontSize: '16px',
-    //                         fontWeight: '400',
-    //                         lineHeight: '19.36px',
-    //                         overflow: 'hidden',
-    //                         textOverflow: 'ellipsis'
-    //                       }}
-    //                     >
-    //                       {item.file_original_name}
-    //                     </Typography>
-    //                   </Box>
-    //                 ))}
-    //                 {/* Show extra count if any */}
-    //                 {row.attachments.length > Math.floor((attachmentWidth - 100) / 150) && (
-    //                   <Box
-    //                     sx={{
-    //                       height: '32px',
-    //                       padding: '6px',
-    //                       borderRadius: '4px',
-    //                       backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor,
-    //                       display: 'flex',
-    //                       alignItems: 'center',
-    //                       justifyContent: 'center'
-    //                     }}
-    //                   >
-    //                     <Typography
-    //                       noWrap
-    //                       sx={{
-    //                         color: theme.palette.primary.dark,
-    //                         fontSize: '14px',
-    //                         fontWeight: '600',
-    //                         lineHeight: '16.94px'
-    //                       }}
-    //                     >
-    //                       +{row.attachments.length - Math.floor((attachmentWidth - 100) / 150)}
-    //                     </Typography>
-    //                   </Box>
-    //                 )}
-    //               </>
-    //             ) : (
-    //               <Typography
-    //                 sx={{
-    //                   color: theme.palette.primary.dark,
-    //                   fontSize: '14px',
-    //                   fontWeight: '600',
-    //                   lineHeight: '16.94px'
-    //                 }}
-    //               >
-    //                 +{row.attachments.length}
-    //               </Typography>
-    //             )
-    //           ) : (
-    //             <Typography
-    //               sx={{
-    //                 color: '#E93353',
-    //                 fontSize: '14px',
-    //                 fontWeight: 500,
-    //                 lineHeight: '16.96px',
-    //                 letterSpacing: '0.1px'
-    //               }}
-    //             >
-    //               -
-    //             </Typography>
-    //           )}
-    //         </Box>
-
-    //         {/* Upload Section */}
-    //       </Box>
-    //     )
-    //   }
-    // },
-
     {
-      // width: colWidths[3],
       flex: 1,
       minWidth: 100,
       sortable: false,
@@ -544,16 +534,7 @@ const SpeciesDietList = () => {
           {(dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
             <Box sx={{ width: '100%', display: 'flex', justifyContent: 'end' }}>
               <Box
-                onClick={e => {
-                  // console.log('e', e.target)
-                  // if (Number(params.row.attachment_count) > 0) {
-                  //   setAttachmentUploadConfirmDialog(true)
-                  // } else {
-                  //   fileInputRef.current.click()
-                  // }
-                  setUploadDietDrawer(true)
-                  // fileInputRef.current.click()
-                }}
+                onClick={() => onUploadClick(params)}
                 sx={{
                   width: '80px',
                   display: 'flex',
@@ -588,6 +569,17 @@ const SpeciesDietList = () => {
     }
   ]
 
+  const speciesColumns = buildColumns({
+    nameHeader: 'SPECIES',
+    onRowClick: () => setSpeciesDetailsDrawer(true),
+    onUploadClick: handleSpeciesUploadClick
+  })
+
+  const animalColumns = buildColumns({
+    nameHeader: 'ANIMAL',
+    onUploadClick: handleAnimalUploadClick
+  })
+
   const handleExport = async () => {
     try {
       setExportLoading(true)
@@ -616,8 +608,13 @@ const SpeciesDietList = () => {
     const scientific_name = e.row.scientific_name
     const common_name = e.row.common_name
     const default_icon = e.row.default_icon
-    setSpeciesData({ default_icon, scientific_name, common_name })
-    setspeciesId(e.row.species_id)
+    if (isAnimalTab) {
+      setAnimalData({ default_icon, scientific_name, common_name })
+      setAnimalId(e.row.animal_id)
+    } else {
+      setSpeciesData({ default_icon, scientific_name, common_name })
+      setspeciesId(e.row.species_id)
+    }
   }
 
   useEffect(() => {
@@ -625,6 +622,17 @@ const SpeciesDietList = () => {
     const newAttachmentWidth = gridWidth - (totalColumnsWidth + 30)
     setAttachmentWidth(newAttachmentWidth > 300 ? newAttachmentWidth : 300)
   }, [gridWidth])
+
+  const activeRows = isAnimalTab ? indexedAnimalRows : indexedRows
+  const activeTotal = isAnimalTab ? animalTotal : total
+  const activePaginationModel = isAnimalTab ? animalPaginationModel : paginationModel
+  const activeSortModel = isAnimalTab ? animalSortModel : sortModel
+  const activeColumns = isAnimalTab ? animalColumns : speciesColumns
+  const activeLoading = isAnimalTab ? animalLoading : loading
+  const activeExportLoading = isAnimalTab ? animalExportLoading : exportLoading
+  const activeSearchValue = isAnimalTab ? animalSearchValue : searchValue
+  const activeFilterByDiet = isAnimalTab ? animalFilterByDiet : filterByDiet
+  const activeFilterCount = isAnimalTab ? animalFilterCount : filterCount
 
   return (
     <>
@@ -638,10 +646,16 @@ const SpeciesDietList = () => {
                 cursor: 'pointer'
               }}
             >
-              Species Diet List
+              Diet List
             </Typography>
           </Breadcrumbs>
           <Card>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 4, pt: 2 }}>
+              <Tabs value={activeTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
+                <Tab label='Species Diet' value={TAB_VALUES.SPECIES} />
+                <Tab label='Animal Diet' value={TAB_VALUES.ANIMAL} />
+              </Tabs>
+            </Box>
             <Grid
               container
               sx={{
@@ -662,7 +676,7 @@ const SpeciesDietList = () => {
                     lineHeight: '29.05px'
                   }}
                 >
-                  Species Diet
+                  {isAnimalTab ? 'Animal Diet' : 'Species Diet'}
                 </Typography>
               </Grid>
               <Grid item size={{ xs: 12, sm: 8 }}>
@@ -670,21 +684,27 @@ const SpeciesDietList = () => {
                   <Grid item size={{ xs: 12, sm: 12, md: 'auto', xl: 'auto' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginRight: { xs: 4, md: 0 } }}>
                       <FormControl sx={{ minWidth: 250 }}>
-                        <InputLabel id='controlled-select-label'>Filter Species</InputLabel>
+                        <InputLabel id='controlled-select-label'>
+                          {isAnimalTab ? 'Filter Animal' : 'Filter Species'}
+                        </InputLabel>
                         <Select
                           onChange={e => {
-                            setFilterByDiet(e.target.value)
+                            if (isAnimalTab) {
+                              setAnimalFilterByDiet(e.target.value)
+                            } else {
+                              setFilterByDiet(e.target.value)
+                            }
                           }}
-                          label='Filter Species'
-                          value={filterByDiet}
+                          label={isAnimalTab ? 'Filter Animal' : 'Filter Species'}
+                          value={activeFilterByDiet}
                           id='controlled-select'
                           labelId='controlled-select-label'
                           sx={{ width: '100%' }}
                           size='small'
                         >
                           <MenuItem value='-1'>All</MenuItem>
-                          <MenuItem value='1'>Species With Diet</MenuItem>
-                          <MenuItem value='0'>Species Without Diet</MenuItem>
+                          <MenuItem value='1'>{isAnimalTab ? 'Animals With Diet' : 'Species With Diet'}</MenuItem>
+                          <MenuItem value='0'>{isAnimalTab ? 'Animals Without Diet' : 'Species Without Diet'}</MenuItem>
                         </Select>
                       </FormControl>
                     </Box>
@@ -715,9 +735,11 @@ const SpeciesDietList = () => {
                       >
                         <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
                         <TextField
-                          value={searchValue}
+                          value={activeSearchValue}
                           // clearSearch={() => handleSearch('')}
-                          onChange={event => handleSearch(event.target.value)}
+                          onChange={event =>
+                            isAnimalTab ? handleAnimalSearch(event.target.value) : handleSearch(event.target.value)
+                          }
                           variant='outlined'
                           placeholder='Search...'
                           sx={{
@@ -739,7 +761,7 @@ const SpeciesDietList = () => {
                       <Box>
                         <Tooltip title='Export'>
                           <>
-                            {loading || exportLoading ? (
+                            {activeLoading || activeExportLoading ? (
                               <Box
                                 sx={{
                                   display: 'flex',
@@ -766,7 +788,7 @@ const SpeciesDietList = () => {
                                   alignItems: 'center',
                                   cursor: 'pointer'
                                 }}
-                                onClick={handleExport}
+                                onClick={isAnimalTab ? handleAnimalExport : handleExport}
                               >
                                 <Icon icon='ic:round-download' fontSize={20} />
                               </Box>
@@ -776,8 +798,8 @@ const SpeciesDietList = () => {
                       </Box>
 
                       <FilterButton
-                        onClick={() => setOpenFilterDrawer(true)}
-                        appliedFiltersCount={filterCount}
+                        onClick={() => (isAnimalTab ? setAnimalOpenFilterDrawer(true) : setOpenFilterDrawer(true))}
+                        appliedFiltersCount={activeFilterCount}
                         icon='mage:filter'
                         iconSize={24}
                       />
@@ -853,20 +875,20 @@ const SpeciesDietList = () => {
               disableColumnSelector={true}
               autoHeight
               pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
+              rows={activeRows === undefined ? [] : activeRows}
+              rowCount={activeTotal}
               rowHeight={64}
               disableRowSelectionOnClick
               disableColumnMenu
-              columns={columns}
+              columns={activeColumns}
               sortingMode='server'
               paginationMode='server'
               pageSizeOptions={[7, 10, 25, 50, 100]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              sortModel={sortModel}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
+              paginationModel={activePaginationModel}
+              onSortModelChange={isAnimalTab ? setAnimalSortModel : handleSortModel}
+              sortModel={activeSortModel}
+              onPaginationModelChange={isAnimalTab ? setAnimalPaginationModel : setPaginationModel}
+              loading={activeLoading}
               // onRowClick={() => setSpeciesDetailsDrawer(true)}
               onCellClick={onCellClick}
             />
@@ -888,7 +910,7 @@ const SpeciesDietList = () => {
           setSiteList={setSiteList}
         />
       )} */}
-          {speciesDetailsDrawer && (
+          {!isAnimalTab && speciesDetailsDrawer && (
             <SpeciesDetails
               fetchTableData={fetchTableData}
               speciesId={speciesId}
@@ -897,7 +919,7 @@ const SpeciesDietList = () => {
               setSpeciesDetailsDrawer={setSpeciesDetailsDrawer}
             />
           )}
-          {uploadDietDrawer && (
+          {!isAnimalTab && uploadDietDrawer && (
             <UploadDiet
               fetchTableData={fetchTableData}
               speciesId={speciesId}
@@ -908,16 +930,28 @@ const SpeciesDietList = () => {
               setUploadDietDrawer={setUploadDietDrawer}
             />
           )}
-          {openFilterDrawer && (
+          {isAnimalTab && animalUploadDietDrawer && (
+            <UploadDiet
+              fetchTableData={fetchAnimalTableData}
+              uploadDietDrawer={animalUploadDietDrawer}
+              setUploadDietDrawer={setAnimalUploadDietDrawer}
+              handleSearch={handleAnimalSearch}
+              entityType='animal'
+              entityId={animalId}
+              setEntityId={setAnimalId}
+              entityData={animalData}
+            />
+          )}
+          {(isAnimalTab ? animalOpenFilterDrawer : openFilterDrawer) && (
             <SpeciesDietFilterDrawer
-              setOpenFilterDrawer={setOpenFilterDrawer}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              openFilterDrawer={openFilterDrawer}
-              setSelectedFiltersOptions={setSelectedFiltersOptions}
-              selectedOptions={selectedOptions}
-              setSelectedOptions={setSelectedOptions}
-              setFilterCount={setFilterCount}
+              setOpenFilterDrawer={isAnimalTab ? setAnimalOpenFilterDrawer : setOpenFilterDrawer}
+              searchQuery={isAnimalTab ? animalSearchQuery : searchQuery}
+              setSearchQuery={isAnimalTab ? setAnimalSearchQuery : setSearchQuery}
+              openFilterDrawer={isAnimalTab ? animalOpenFilterDrawer : openFilterDrawer}
+              setSelectedFiltersOptions={isAnimalTab ? setAnimalSelectedFiltersOptions : setSelectedFiltersOptions}
+              selectedOptions={isAnimalTab ? animalSelectedOptions : selectedOptions}
+              setSelectedOptions={isAnimalTab ? setAnimalSelectedOptions : setSelectedOptions}
+              setFilterCount={isAnimalTab ? setAnimalFilterCount : setFilterCount}
             />
           )}
         </>

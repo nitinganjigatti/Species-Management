@@ -49,10 +49,22 @@ function UploadDiet({
   speciesData,
   getSpecieDetail,
   handleSearch = () => {},
-  speciesDetailsDrawer
+  speciesDetailsDrawer,
+  entityType = 'species',
+  entityId,
+  setEntityId,
+  entityData,
+  entityDetailsDrawer,
+  getEntityDetail
 }) {
   const theme = useTheme()
   const fileInputRef = useRef(null)
+  const resolvedEntityType = entityType || 'species'
+  const resolvedEntityId = entityId ?? speciesId
+  const resolvedEntityData = entityData ?? speciesData
+  const resolvedSetEntityId = setEntityId ?? setspeciesId
+  const resolvedDetailsDrawer = entityDetailsDrawer ?? speciesDetailsDrawer
+  const resolvedGetDetail = getEntityDetail ?? getSpecieDetail
 
   const [preparedByUsers, setPreparedByUsers] = useState([])
   const [defaultPreparedBy, setDefaultPreparedBy] = useState(null)
@@ -98,7 +110,7 @@ function UploadDiet({
     }
   }
 
-  const handleFileUpload = async (event, speciesId) => {
+  const handleFileUpload = async event => {
     const file = event?.target?.files[0]
 
     const allowedTypes = ['application/pdf']
@@ -119,22 +131,31 @@ function UploadDiet({
   const onSubmit = async ({ dietitian_id, notes }) => {
     setUploadingAttachment(true)
     try {
-      const res = await speciesAttachmentUpload({
-        species_id: speciesId,
+      const payload = {
         attachment: selectedFile,
         dietitian_id,
         notes
+      }
+      if (resolvedEntityType === 'animal') {
+        payload.animal_id = resolvedEntityId
+      } else {
+        payload.species_id = resolvedEntityId
+      }
+      const res = await speciesAttachmentUpload({
+        ...payload
       })
       Toaster({ type: 'success', message: res.message })
-      fetchTableData()
+      if (typeof fetchTableData === 'function') {
+        fetchTableData()
+      }
       setUploadDietDrawer(false)
       reset()
       setDefaultPreparedBy(null)
       setSelectedFileName(null)
       setSelectedFile(null)
       if (typeof handleSearch === 'function') handleSearch('')
-      if (speciesDetailsDrawer) {
-        getSpecieDetail(speciesId)
+      if (resolvedDetailsDrawer && typeof resolvedGetDetail === 'function') {
+        resolvedGetDetail(resolvedEntityId)
       }
     } catch (error) {
       Toaster({ type: 'error', message: error.message || 'File upload failed.' })
@@ -159,13 +180,15 @@ function UploadDiet({
       }}
     >
       <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-        <SpeciesCard species={speciesData} />
+        <SpeciesCard species={resolvedEntityData || {}} />
       </Box>
       <IconButton
         size='small'
         sx={{ color: 'text.primary', height: '40px', width: '40px' }}
         onClick={() => {
-          setspeciesId(null)
+          if (typeof resolvedSetEntityId === 'function') {
+            resolvedSetEntityId(null)
+          }
           reset()
           setUploadDietDrawer(false)
         }}
