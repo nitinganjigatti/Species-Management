@@ -885,6 +885,8 @@ export const UPDATE_HOSPITAL_BED = 'v1/hospital/bed/update'
 
 export const ROOM_STATUS_UPDATE = 'v1/hospital/room/status/update'
 
+export const GET_PATIENT_LIST_BY_ENCLOSURES = `v1/hospital/bed/admitted-animals`
+
 // Hospital inpatient discharge
 
 export const ADD_DISCHARGE = 'v1/hospital/discharge'

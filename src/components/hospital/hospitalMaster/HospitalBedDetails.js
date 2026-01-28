@@ -39,6 +39,7 @@ import Utility from 'src/utility'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 import { useHospital } from 'src/context/HospitalContext'
+import EnclosureOccupantsDrawer from 'src/views/pages/hospital/masters/hospital/EnclosureOccupantsDrawer'
 
 const statusOptions = [
   { label: 'Enclosure Status', value: 'all' },
@@ -60,6 +61,8 @@ const HospitalBedDetails = () => {
   const [roomStatusEdit, setRoomStatusEdit] = useState(null)
   const [isStatusUpdating, setIsStatusUpdating] = useState(false)
   const [isOccupiedBedWarningOpen, setIsOccupiedBedWarningOpen] = useState(false)
+  const [openOccupantsDrawer, setOpenOccupantDrawer] = useState(false)
+  const [selectedEnclosure, setSelectedEnclosure] = useState(null)
 
   const [filters, setFilters] = useState({
     page: page ? Number(page) : 1,
@@ -396,19 +399,49 @@ const HospitalBedDetails = () => {
       sortable: false,
       renderCell: params => {
         const animalData = {
-          animal_id: params?.row?.animal_id ?? '-',
-          common_name: params?.row?.default_common_name ?? '-',
-          scientific_name: params?.row?.scientific_name ?? '-',
-          age: params?.row?.age ?? '-',
-          site_name: params?.row?.site_name ?? '-',
-          sex: params?.row?.sex ?? '-',
+          animal_id: params?.row?.animal_id,
+          common_name: params?.row?.default_common_name,
+          scientific_name: params?.row?.scientific_name,
+          age: params?.row?.age,
+          site_name: params?.row?.site_name,
+          sex: params?.row?.sex,
           default_icon: params?.row?.occupant_icon
         }
 
         const isOccupied = String(params?.row?.is_occupied) === '1'
         const isActive = String(params?.row?.active) === '1'
 
-        return <Box sx={{ pl: 1.4 }}>{!isActive ? '' : isOccupied ? <AnimalCard data={animalData} /> : '--'}</Box>
+        const animalCount = Number(params?.row?.animal_count || 0)
+        const extraAnimals = animalCount > 1 ? animalCount - 1 : 0
+
+        if (!isActive) return ''
+
+        if (!isOccupied) return '--'
+
+        return (
+          <Box sx={{ pl: 1.4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <AnimalCard data={animalData} />
+
+            {extraAnimals > 0 && (
+              <Box
+                sx={{
+                  minWidth: 32,
+                  height: 32,
+                  borderRadius: '16px',
+                  backgroundColor: theme.palette.customColors.displaybgSecondary,
+                  color: theme.palette.customColors.OnPrimaryContainer,
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                +{extraAnimals}
+              </Box>
+            )}
+          </Box>
+        )
       }
     },
     {
@@ -476,6 +509,13 @@ const HospitalBedDetails = () => {
     if (!router.isReady || !id || !roomId) return
     refetchBeds()
   }, [filters, id, router.isReady])
+
+  const handleAnimalColumnClick = params => {
+    if (params?.field === 'occupant' && params?.row?.animal_count > 1) {
+      setOpenOccupantDrawer(true)
+      setSelectedEnclosure(params?.row)
+    }
+  }
 
   return (
     <>
@@ -591,6 +631,7 @@ const HospitalBedDetails = () => {
           paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
           setPaginationModel={handlePaginationChange}
           getRowClassName={getRowClassName}
+          onCellClick={handleAnimalColumnClick}
           externalTableStyle={{
             '& .inactive-row': {
               backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.1),
@@ -626,6 +667,16 @@ const HospitalBedDetails = () => {
           confirmAction={() => setIsOccupiedBedWarningOpen(false)}
           ConfirmationText={'OK'}
           allowCancel={false}
+        />
+      )}
+      {openOccupantsDrawer && (
+        <EnclosureOccupantsDrawer
+          open={openOccupantsDrawer}
+          onClose={() => {
+            setOpenOccupantDrawer(false)
+            setSelectedEnclosure(null)
+          }}
+          selectedEnclosure={selectedEnclosure}
         />
       )}
     </>
