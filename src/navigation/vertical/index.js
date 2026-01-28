@@ -14,6 +14,7 @@ import medicalNavigation from 'src/components/navigation/medical'
 import housingNavigation from 'src/components/navigation/housing'
 import hospitalNavigation from 'src/components/navigation/hospital'
 import settingsNavigation from 'src/components/navigation/settings'
+import necropsyNavigation from 'src/components/navigation/necropsy'
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -46,6 +47,9 @@ const ComposeNavigation = () => {
   const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
 
   const userRole = authData?.userData?.roles?.role_name
+
+  const necropsyModule = authData?.userData?.roles?.settings?.enable_add_necropsy_report
+  const hasPermissionToAddNecropsyCenter = authData?.userData?.permission?.user_settings?.add_necropsy_center
 
   // console.log('labList', labList)
   const { selectedPharmacy } = usePharmacyContext()
@@ -110,6 +114,12 @@ const ComposeNavigation = () => {
     const complianceNav = complianceNavigation()
     navigationArray.push(...complianceNav)
   }
+
+  if (necropsyModule) {
+    const necropsyNav = necropsyNavigation(hasPermissionToAddNecropsyCenter)
+    navigationArray.push(...necropsyNav)
+  }
+
   if (housingModule || housingModuleWeb) {
     const settingsNav = settingsNavigation()
     navigationArray.push(...settingsNav)
