@@ -52,7 +52,8 @@ const FilePreviewCard = ({
   actions = null,
   onDeleteaction,
   ondownloadaction,
-  isDeleteLoading = false
+  isDeleteLoading = false,
+  downloadUrl = null
 }) => {
   const theme = useTheme()
   const { userData } = useAuth()
@@ -62,7 +63,7 @@ const FilePreviewCard = ({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
   // Derive file name safely
-  const derivedFileName = () => {
+  const derivedFileName = useMemo(() => {
     if (fileName) return fileName.trim()
 
     try {
@@ -72,10 +73,10 @@ const FilePreviewCard = ({
     } catch {
       return 'unknown'
     }
-  }
+  }, [fileName, fileUrl])
 
   // Determine file type and icon
-  const fileType = getFileType(derivedFileName(), fileTypeFromApi)
+  const fileType = getFileType(derivedFileName, fileTypeFromApi)
   const fileIcon = getFileIcon(fileType, imgPath)
 
   // Handle preview click
@@ -85,7 +86,7 @@ const FilePreviewCard = ({
     setPreviewFile({
       src: fileUrl,
       type: typeMap[fileType] || 'other',
-      name: derivedFileName(),
+      name: derivedFileName,
       fileIcon: fileIcon
     })
   }
@@ -112,6 +113,7 @@ const FilePreviewCard = ({
             {...commonProps}
             sx={{
               ...commonProps.sx,
+              height: '120px',
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: fileIcon?.bg_color || theme.palette.action.hover
@@ -123,10 +125,10 @@ const FilePreviewCard = ({
       }
 
       return (
-        <Box {...commonProps} sx={{ ...commonProps.sx, maxHeight: '144px' }}>
+        <Box {...commonProps} sx={{ ...commonProps.sx, height: '120px' }}>
           <img
             src={fileUrl}
-            alt={derivedFileName()}
+            alt={derivedFileName}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             onError={() => setIsImageError(true)}
           />
@@ -141,7 +143,8 @@ const FilePreviewCard = ({
           sx={{
             ...commonProps.sx,
             position: 'relative', // needed for overlay
-            overflow: 'hidden'
+            overflow: 'hidden',
+            height: '120px'
           }}
         >
           {/* <video src={fileUrl}  muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> */}
@@ -194,6 +197,7 @@ const FilePreviewCard = ({
         {...commonProps}
         sx={{
           ...commonProps.sx,
+          height: '120px',
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: fileIcon?.bg_color || theme.palette.action.hover
@@ -225,7 +229,15 @@ const FilePreviewCard = ({
         label: <Typography>Download</Typography>,
 
         // icon: <Icon icon='mdi:download' fontSize={20} />,
-        action: () => Utility.downloadFileFromURLWithBlob(fileUrl, derivedFileName())
+        action: () => {
+          if (downloadUrl) {
+            // Use direct download when downloadUrl is provided
+            Utility.downloadFileFromURL(downloadUrl, derivedFileName)
+          } else {
+            // Use blob-based download for regular fileUrl
+            Utility.downloadFileFromURLWithBlob(fileUrl, derivedFileName)
+          }
+        }
       })
     }
 
@@ -243,7 +255,7 @@ const FilePreviewCard = ({
     }
 
     return opts
-  }, [actions, onDeleteaction, ondownloadaction, fileUrl])
+  }, [actions, onDeleteaction, ondownloadaction, fileUrl, downloadUrl, derivedFileName])
 
   return (
     <>
@@ -296,7 +308,7 @@ const FilePreviewCard = ({
             {showTitle && (
               <TextEllipsisWithModal
                 enableDialog={false}
-                text={derivedFileName()}
+                text={derivedFileName}
                 style={{
                   color: theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '0.875rem',

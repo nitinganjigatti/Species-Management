@@ -47,17 +47,68 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
   const { getRootProps, getInputProps } = useDropzone({
     multiple: true,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp', '.webp'],
+      'image/*': ['.png', '.jpg', '.jpeg', '.svg', '.heic'],
       'application/pdf': ['.pdf'],
       'application/msword': ['.doc'],
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
       'application/vnd.ms-excel': ['.xls'],
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-      'text/csv': ['.csv'],
-      'video/*': ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm'],
-      'audio/*': ['.mp3', '.wav', '.ogg', '.m4a', '.aac']
+
+      // 'text/csv': ['.csv'],
+      'video/*': ['.mp4'],
+      'audio/*': ['.mp3', '.ogg', '.m4a']
     },
-    onDrop: async acceptedFiles => {
+    validator: file => {
+      const allowedExtensions = [
+        '.png',
+        '.jpg',
+        '.jpeg',
+        '.heic',
+        '.svg',
+        '.pdf',
+        '.doc',
+        '.docx',
+        '.xls',
+        '.xlsx',
+        '.mp4',
+        '.mp3',
+        '.ogg',
+        '.m4a'
+      ]
+
+      const maxSize = 2 * 1024 * 1024 // 2 MB in bytes
+
+      const fileName = file.name.toLowerCase()
+      const isValidType = allowedExtensions.some(ext => fileName.endsWith(ext))
+
+      if (!isValidType) {
+        return {
+          code: 'file-invalid-type',
+          message: `File type not supported. Allowed types: ${allowedExtensions.join(', ')}`
+        }
+      }
+
+      if (file.size > maxSize) {
+        return {
+          code: 'file-too-large',
+          message: `File size exceeds 2 MB. Current size: ${(file.size / 1024 / 1024).toFixed(2)} MB`
+        }
+      }
+
+      return null
+    },
+    onDrop: async (acceptedFiles, rejectedFiles) => {
+      // Show error for rejected files
+      if (rejectedFiles.length > 0) {
+        rejectedFiles.forEach(({ file, errors }) => {
+          errors.forEach(error => {
+            Toaster({ type: 'error', message: `${file.name}: ${error.message}` })
+          })
+        })
+      }
+
+      // Process accepted files
+      if (acceptedFiles.length === 0) return
       try {
         setUploadLoading(true)
         let successCount = 0
@@ -401,8 +452,11 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
                 height='100%'
                 showTitle={true}
                 ondownloadaction={() => {}}
-                onDeleteaction={file.is_created_for_medical_record === '1' ? () => handleDeleteMedia(file.id) : undefined}
+                onDeleteaction={
+                  file.is_created_for_medical_record === '1' ? () => handleDeleteMedia(file.id) : undefined
+                }
                 isDeleteLoading={deletingMediaId === file.id}
+                downloadUrl={file.download_url}
               />
             </Grid>
           ))}
