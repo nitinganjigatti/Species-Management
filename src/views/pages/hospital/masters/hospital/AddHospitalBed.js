@@ -154,9 +154,9 @@ const AddHospitalBed = props => {
 
   const drawerTitle = useMemo(() => {
     if (isRoomEditMode) return 'Update Room'
-    if (editParams?.id) return 'Edit Bed'
+    if (editParams?.id) return 'Edit Enclosure'
 
-    return 'Add New Bed'
+    return 'Add New Enclosure'
   }, [isRoomEditMode, editParams])
 
   return (
@@ -286,7 +286,7 @@ const AddHospitalBed = props => {
             sx={{ flex: 1, py: 4 }}
             disabled={!isValid || submitLoader}
           >
-            {editParams?.id || isRoomEditMode ? 'Update' : 'Add Bed'}
+            {editParams?.id || isRoomEditMode ? 'Update' : 'Add Enclosure'}
           </LoadingButton>
         </Box>
       </Box>

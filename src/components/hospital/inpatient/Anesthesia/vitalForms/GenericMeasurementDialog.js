@@ -169,6 +169,9 @@ export default function GenericMeasurementDialog({
     )
   }
 
+  const isSingleUnit = unitsForSingle.length === 1
+  const displayValue = unitsForSingle[0] || '—'
+
   // Single-number UI (Temperature-style)
   if (isSingleNumber) {
     return (
@@ -214,23 +217,43 @@ export default function GenericMeasurementDialog({
 
           <Box sx={measurementSecondaryFieldColumnSx}>
             <Typography sx={measurementFieldLabelSx(theme)}>UOM</Typography>
-            <TextField
-              select
-              fullWidth
-              value={singleUnit}
-              onChange={event => setSingleUnit(event.target.value)}
-              sx={createMeasurementFieldSx(
-                theme,
-                theme.palette.customColors?.Surface,
-                theme.palette.customColors?.neutralSecondary
-              )}
-            >
-              {unitsForSingle.map(option => (
-                <MenuItem key={String(option || '__none')} value={option || ''}>
-                  {option || '—'}
-                </MenuItem>
-              ))}
-            </TextField>
+            {isSingleUnit ? (
+              <TextField
+                fullWidth
+                value={displayValue}
+                disabled
+                sx={{
+                  ...createMeasurementFieldSx(
+                    theme,
+                    theme.palette.customColors?.Surface,
+                    theme.palette.customColors?.neutralSecondary
+                  ),
+
+                  '& .MuiInputBase-input.Mui-disabled': {
+                    color: '#7A8684',
+                    WebkitTextFillColor: '#7A8684'
+                  }
+                }}
+              />
+            ) : (
+              <TextField
+                select
+                fullWidth
+                value={singleUnit}
+                onChange={event => setSingleUnit(event.target.value)}
+                sx={createMeasurementFieldSx(
+                  theme,
+                  theme.palette.customColors?.Surface,
+                  theme.palette.customColors?.neutralSecondary
+                )}
+              >
+                {unitsForSingle.map(option => (
+                  <MenuItem key={String(option || '__none')} value={option || ''}>
+                    {option || '—'}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
           </Box>
         </Box>
       </VitalFormDialog>
@@ -285,7 +308,6 @@ export default function GenericMeasurementDialog({
               }}
               sx={{ display: 'flex', gap: '12px' }}
             >
-              {console.log(options, 'options')}
               {options.map((opt, index) => {
                 const value = String(opt)
                 const label = prettifyOptionLabel(opt)
@@ -299,8 +321,6 @@ export default function GenericMeasurementDialog({
                     <Typography sx={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '16px', color: 'inherit' }}>
                       {label}
                     </Typography>
-                    {console.log(selection, 'selection')}
-                    {console.log(value, 'value')}
                     <Radio checked={selection === value} tabIndex={-1} disableRipple sx={radioStyles} />
                   </ToggleButton>
                 )

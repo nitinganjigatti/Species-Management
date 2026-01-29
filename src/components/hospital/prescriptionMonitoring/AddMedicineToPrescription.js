@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react'
 import { Box, Grid, Typography, Button, useMediaQuery } from '@mui/material'
 import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
 import { useTheme } from '@mui/material/styles'
@@ -23,7 +23,9 @@ import {
   getPrescriptionDetails,
   getPrescriptions,
   getSideEffectMedicines,
-  stopPrescription
+  stopPrescription,
+  updatePrescription,
+  validatePrescriptionUpdate
 } from 'src/lib/api/hospital/prescription'
 import Utility from 'src/utility'
 import moment from 'moment'
@@ -34,6 +36,7 @@ import dayjs from 'dayjs'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import { AuthContext } from 'src/context/AuthContext'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -370,6 +373,7 @@ export default function AddMedicineToPrescription() {
   const [sideEffectMedicinesCache, setSideEffectMedicinesCache] = useState(null)
 
   const { selectedHospital: hospital } = useHospital()
+  const authData = useContext(AuthContext)
 
   // Watch frequency to determine if it's "one_time"
   const selectedFrequency = watch('frequency')
@@ -504,7 +508,8 @@ export default function AddMedicineToPrescription() {
       interval: interval?.id || data.interval || '',
       deliveryRoute: deliveryRoute?.value || '',
 
-      prescriptionStartDate: data?.stop_date ? dayjs(data.stop_date) : null,
+      prescriptionStartDate:
+        fromPage === 'editPrescription' ? dayjs(date) : data?.stop_date ? dayjs(data.stop_date) : null,
 
       dosageDuration: {
         value: data?.duration_qty || '0',
@@ -522,7 +527,7 @@ export default function AddMedicineToPrescription() {
 
       schedules:
         data.medicine_timings?.map(schedule => ({
-          oldTime: getTimeDayjs(schedule.scheduled_time),
+          oldTime: formatTimeWithMoment(schedule.scheduled_time),
           createdAt: schedule.created_at,
           time: schedule.scheduled_time ? getTimeDayjs(schedule.scheduled_time) : dayjs(),
           quantity: schedule.scheduled_quantity || '',
@@ -535,6 +540,14 @@ export default function AddMedicineToPrescription() {
 
   useEffect(() => {
     if (medicineDetail && medicalMasterData && frequencyData && fromPage === 'prescriptionDetail' && intervalList) {
+      handleSetDefaultValues(medicineDetail)
+      handleMedicineSelect({ id: medicineDetail?.medicine_id, name: medicineDetail?.medicine_name })
+      setApiMedicineList([{ id: medicineDetail?.medicine_id, name: medicineDetail?.medicine_name }])
+    }
+  }, [fromPage, medicalMasterData, medicineDetail])
+
+  useEffect(() => {
+    if (medicineDetail && medicalMasterData && frequencyData && fromPage === 'editPrescription' && intervalList) {
       handleSetDefaultValues(medicineDetail)
       handleMedicineSelect({ id: medicineDetail?.medicine_id, name: medicineDetail?.medicine_name })
       setApiMedicineList([{ id: medicineDetail?.medicine_id, name: medicineDetail?.medicine_name }])
@@ -604,7 +617,7 @@ export default function AddMedicineToPrescription() {
 
   const handleMedicineSelect = async medicine => {
     if (medicine) {
-      if (fromPage === 'prescriptionDetail' || editingMedicine) {
+      if (fromPage === 'prescriptionDetail' || editingMedicine || fromPage === 'editPrescription') {
         proceedWithMedicineSelection(medicine)
 
         return
@@ -849,7 +862,7 @@ export default function AddMedicineToPrescription() {
 
   const handleMedicineSearch = e => {
     const value = e.target.value
-    if (fromPage === 'prescriptionDetail' || medicine_edit_id) {
+    if (fromPage === 'prescriptionDetail' || medicine_edit_id || fromPage === 'editPrescription') {
       return
     } else {
       setMedicineSearchQuery(value)
@@ -861,13 +874,13 @@ export default function AddMedicineToPrescription() {
     setMedicineSearchQuery('')
     setPage(1)
     if (isSmallerDevices) {
-      if (fromPage === 'prescriptionDetail' || medicine_edit_id) {
+      if (fromPage === 'prescriptionDetail' || medicine_edit_id || fromPage === 'editPrescription') {
         return
       }
       setSelectedMedicine(null)
       setTemporarilySelectedMedicine(null)
     }
-    if (fromPage === 'prescriptionDetail' || medicine_edit_id) {
+    if (fromPage === 'prescriptionDetail' || medicine_edit_id || fromPage === 'editPrescription') {
       return
     } else {
       fetchMedicines('', 1, false)
@@ -899,7 +912,11 @@ export default function AddMedicineToPrescription() {
   // }, [currentPage, medicineSearchQuery, medicineLoading, hasMoreData, fetchMedicines])
 
   useEffect(() => {
-    if (fromPage === 'prescriptionDetail') {
+    if (fromPage === 'editPrescription') {
+      getDetails({
+        id: prescriptionId
+      })
+    } else if (fromPage === 'prescriptionDetail') {
       getDetails({
         id: prescriptionId
       })
@@ -922,7 +939,8 @@ export default function AddMedicineToPrescription() {
               res.data?.animal_detail?.animal_id &&
               id &&
               res.data?.medical_record_id &&
-              fromPage !== 'prescriptionDetail'
+              fromPage !== 'prescriptionDetail' &&
+              fromPage !== 'editPrescription'
             ) {
               getPrescriptionList(res.data?.animal_detail?.animal_id, res.data?.medical_record_id)
             }
@@ -1026,6 +1044,16 @@ export default function AddMedicineToPrescription() {
     const local = moment(stillUtc).local(true).format('hh : mm : A') // 👈 adds leading zero + spaces around colons
 
     return local
+  }
+
+  function formatTimeWithMoment(timeString) {
+    if (!timeString) return ''
+
+    // Create a moment object with the time
+    const time = moment(timeString, 'HH:mm:ss')
+    if (!time.isValid()) return ''
+
+    return time.format('hh : mm : A')
   }
 
   const resetForm = useCallback(() => {
@@ -1400,12 +1428,16 @@ export default function AddMedicineToPrescription() {
         item => item?.route_abbr === data.deliveryRoute
       )
 
+      const prescriptionDuration = medicalMasterData?.prescriptionDuration?.find(
+        item => item?.value === data.dosageDuration?.unit
+      )
+
       const scheduleDoses = data.schedules.map((schedule, index) => ({
         id: schedule?.scheduled_dose_id,
         time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
         quantity: schedule.quantity,
         unit_id: getUnitIdFromName(schedule?.unit, medicalMasterData),
-        old_time: schedule?.oldTime ? convertUTCToLocaltime(schedule.oldTime) : '',
+        old_time: schedule?.oldTime ? schedule.oldTime : '',
         unit_name: schedule.unit,
         string_id: getStringIdFromUnitName(schedule?.unit, medicalMasterData),
         created_at: schedule?.createdAt
@@ -1433,12 +1465,15 @@ export default function AddMedicineToPrescription() {
           interval_id: interval?.id || '',
           interval_string_id: interval?.interval_string_id || '',
 
-          duration_qty: data.dosageDuration?.value?.toString() || '1',
-          duration_id: interval?.id || '',
+          duration_qty: frequency?.string_id === 'at_regular_intervals' ? data.dosageDuration?.value?.toString() : 0,
+          duration_id: frequency?.string_id === 'at_regular_intervals' ? prescriptionDuration?.id : '2',
           duration: data.dosageDuration?.value
             ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
-            : '1 days',
-          duration_string_id: interval?.string_id || '',
+            : '0 days',
+          duration_string_id:
+            frequency?.string_id === 'at_regular_intervals'
+              ? prescriptionDuration?.string_id
+              : 'antz-prescription.days',
           duration_type: data.dosageDuration?.unit
             ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
             : 'Days',
@@ -1479,121 +1514,438 @@ export default function AddMedicineToPrescription() {
     }
   }
 
-  const prescriptionSubmitHandler = handleSubmit(async data => {
-    const interval = medicalMasterData?.intervalList?.find(item => item?.value === data?.interval)
-    const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
+  const validatePrescriptionBeforeUpdate = async data => {
+    try {
+      const payload = {
+        medical_record_id: medicineDetail?.medical_record_id,
+        prescription_id: medicineDetail?.prescription_id,
+        medicine_id: medicineDetail?.medicine_id
+      }
 
-    const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
-      item => item?.route_abbr === data.deliveryRoute
-    )
+      const response = await validatePrescriptionUpdate(payload)
 
-    // Prepare schedule doses array
-    const scheduleDoses = data.schedules.map((schedule, index) => ({
-      id: '',
-      time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
-      quantity: schedule.quantity,
-      unit_id: getUnitIdFromName(schedule?.unit, medicalMasterData),
-      unit_name: schedule.unit,
-      string_id: getStringIdFromUnitName(schedule?.unit, medicalMasterData)
-    }))
+      if (response?.success) {
+        handleUpdatePrescription(data)
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {
+      console.error('Error in validatePresctiptionBeforeUpdate:', error)
+    }
+  }
 
-    const payload = {
-      medical_record_id: medical_record_id,
-      request_from: 'hospital',
-      hospital_case_id: id,
-      data: [
-        {
-          id: temporarilySelectedMedicine?.id, // Prescription id
-          label: temporarilySelectedMedicine?.name,
-          name: temporarilySelectedMedicine?.name,
-          generic_name: temporarilySelectedMedicine?.generic_name, //new added
-          total_qty: temporarilySelectedMedicine?.total_qty || 0,
-          total_central_store_qty: temporarilySelectedMedicine?.total_central_store_qty || 0,
-          total_local_store_qty: temporarilySelectedMedicine?.total_local_store_qty || 0,
+  const handleUpdatePrescription = async data => {
+    try {
+      setIsSubmitting(true)
+      const interval = medicalMasterData?.intervalList?.find(item => item?.value === data?.interval)
+      const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
 
-          frequency_key: frequency?.string_id || '',
-          frequency_id: frequency?.id || '',
-          frequency: data?.frequency,
-          frequency_string_id: frequency?.translation_string_id || '',
-          frequency_name: frequency?.label, //new added
+      const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
+        item => item?.route_abbr === data.deliveryRoute
+      )
 
-          schedule_doses: scheduleDoses,
+      const prescriptionDuration = medicalMasterData?.prescriptionDuration?.find(
+        item => item?.value === data.dosageDuration?.unit
+      )
 
-          interval: interval?.label || '',
-          interval_id: interval?.id || '',
-          interval_string_id: interval?.interval_string_id || '',
+      const scheduleDoses = data.schedules.map((schedule, index) => ({
+        id: schedule?.scheduled_dose_id ?? null,
+        time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
+        quantity: schedule.quantity,
+        unit_id: getUnitIdFromName(schedule?.unit, medicalMasterData),
+        old_time: schedule?.oldTime ? schedule.oldTime : '',
+        unit_name: schedule.unit,
+        string_id: getStringIdFromUnitName(schedule?.unit, medicalMasterData),
+        created_at: schedule?.createdAt
+      }))
 
-          duration_qty: data.dosageDuration?.value?.toString(),
-          duration_id: interval?.id || '',
+      const payload = {
+        medical_record_id: medicineDetail?.medical_record_id,
+        data: JSON.stringify([
+          {
+            prescription_id: medicineDetail?.prescription_id,
+            follow_up_date: null,
 
-          // duration: `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`,
-          duration: data.dosageDuration?.value
-            ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
-            : '1 days',
-          duration_string_id: interval?.string_id || '',
+            // when: null,
+            group_prescription_id: medicineDetail?.prescription_id, // Backend: You need medicine id here
+            id: medicineDetail?.medicine_id,
+            controlled_substance: medicineDetail?.controlled_substance == 1 ? true : false,
+            side_effect: medicineDetail?.side_effect == 1 ? true : false,
+            medical_record_id: medicineDetail?.medical_record_id,
+            created_for: 'medical',
+            created_by: authData?.userData?.id, // Check
+            dose_type: 'fixed_dose',
 
-          //   duration_type: data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1),
-          duration_type: data.dosageDuration?.unit
-            ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
-            : 'Days',
+            // weight_dose: {
+            //   unit_id: null,
+            //   string_id: null,
+            //   unit_name: null
+            // },
 
-          notes: data?.notes || '',
+            delivery_route_id: deliveryRoute?.id || '',
+            delivery_route_name: data?.deliveryRoute || '',
+            delivery_route_string_id: deliveryRoute?.string_id || '',
 
-          delivery_route_name: data?.deliveryRoute || '',
-          delivery_route_id: deliveryRoute?.id || '',
-          delivery_route_string_id: deliveryRoute?.string_id || '',
-          delivery_route_label: deliveryRoute?.label, //new added
+            frequency_id: frequency?.id || '',
+            frequency_compare: frequency?.string_id || '',
+            frequency: data?.frequency,
+            frequency_string_id: frequency?.translation_string_id || '',
 
-          start_date: toISTISOString(data.prescriptionStartDate),
+            interval: interval?.label || '',
+            interval_id: interval?.id || '',
+            interval_string_id: interval?.interval_string_id || '',
 
-          //  end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
-          end_date: isOneTimeFrequency
-            ? toISTISOString(data.prescriptionStartDate)
-            : calculateEndDate(data.prescriptionStartDate, data.dosageDuration, intervalItem),
+            notes: data?.notes || '',
 
-          restart_reason: '',
-          stop_reason: '',
-          will_restart: false,
-          side_effect: false,
-          created_for: 'SINGLE',
+            start_date: isOneTimeFrequency
+              ? toISTISOString(data.prescriptionStartDate, true)
+              : toISTISOString(data.prescriptionStartDate, true).replace('+05:30', 'Z'),
+            stop_date: null,
+            show_stop_button: 'no',
+            administer_date: null,
+            end_date: isOneTimeFrequency
+              ? toISTISOString(data.prescriptionStartDate, true)
+              : formatDateWithCurrentTime(
+                  calculateEndDate(data.prescriptionStartDate, data.dosageDuration, interval?.value)
+                ),
+            status: 'active',
+            stop_reason: '',
+            is_new_data: '1',
+            restart_reason: '',
+            will_restart: false,
 
-          administer_date: toISTISOString(data.prescriptionStartDate),
+            dosage: null,
+            duration_qty: frequency?.string_id === 'at_regular_intervals' ? data.dosageDuration?.value?.toString() : 0,
+            duration_id: frequency?.string_id === 'at_regular_intervals' ? prescriptionDuration?.id : '2',
+            duration: data.dosageDuration?.value
+              ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
+              : '0 days',
+            duration_string_id:
+              frequency?.string_id === 'at_regular_intervals'
+                ? prescriptionDuration?.string_id
+                : 'antz-prescription.days',
+            duration_type: data.dosageDuration?.unit
+              ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
+              : 'Days',
+            created_at: medicineDetail?.created_at || '', // Add created_at field
 
-          batch_list: [],
+            schedule_doses: scheduleDoses,
 
-          //     dose_type: data.doseType,
-          dose_type: 'fixed_dose',
-          selectMedicineType: 'Schedule'
+            name: medicineDetail?.medicine_name,
+            label: medicineDetail?.medicine_name,
+
+            // composition: medicineDetail?.composition_name || '',
+            // total_central_store_qty: medicineDetail?.total_central_store_qty || 0,
+            // total_local_store_qty: medicineDetail?.total_local_store_qty || 0,
+            // total_qty: medicineDetail?.total_qty || 0,
+
+            // is_administer_pending: '1',
+
+            frequency_key: frequency?.string_id || '',
+            frequency_id: frequency?.id || '',
+            frequency: data?.frequency,
+            frequency_string_id: frequency?.translation_string_id || ''
+          }
+        ])
+      }
+
+      const response = await updatePrescription(payload)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message })
+        router.back()
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {
+      console.error('Error in handleRestartMedicine:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const scrollToFirstError = errors => {
+    if (!errors || Object.keys(errors).length === 0) return
+
+    const findFirstErrorField = (errorObj, path = '') => {
+      // Check if this is an array (like schedules)
+      if (Array.isArray(errorObj)) {
+        for (let i = 0; i < errorObj.length; i++) {
+          if (errorObj[i]) {
+            const result = findFirstErrorField(errorObj[i], `${path}[${i}]`)
+            if (result) return result
+          }
         }
+      }
+
+      // Check if this is an object
+      else if (typeof errorObj === 'object' && errorObj !== null) {
+        // First check if there's a message at this level
+        if (errorObj.message && path) {
+          // This is a leaf error node
+          return { path, message: errorObj.message }
+        }
+
+        // Otherwise recurse into the object
+        for (const key in errorObj) {
+          const newPath = path ? `${path}.${key}` : key
+          const result = findFirstErrorField(errorObj[key], newPath)
+          if (result) return result
+        }
+      }
+
+      // This is a leaf with a message but no path (shouldn't happen)
+      else if (errorObj?.message) {
+        return { path, message: errorObj.message }
+      }
+
+      return null
+    }
+
+    const firstError = findFirstErrorField(errors)
+
+    if (!firstError) return
+
+    const { path, message } = firstError
+
+    // Convert path to selector-friendly format
+    let selectorPath = path
+      .replace(/\[(\d+)\]/g, '.$1') // Convert [0] to .0
+      .replace(/^\./, '') // Remove leading dot if present
+
+    let element = null
+    let attempts = []
+
+    // Try different selector strategies
+    if (selectorPath.includes('schedules.')) {
+      const parts = selectorPath.split('.')
+      const index = parts[1]
+      const field = parts[2]
+
+      attempts = [
+        `[name="schedules.${index}.${field}"]`,
+        `input[name*="schedules.${index}.${field}"]`,
+        `select[name*="schedules.${index}.${field}"]`,
+        `[data-error-field="schedules.${index}.${field}"]`,
+        `.schedule-field-${index}-${field}`
       ]
-    }
 
-    if (discharge_tab === 'TransferHospital' || discharge_tab === 'TransferEnclosure') {
-      const newMedicine = payload.data[0]
+      for (const attempt of attempts) {
+        element = document.querySelector(attempt)
+        if (element) break
+      }
+    } else if (selectorPath.includes('dosageDuration')) {
+      // If it's just 'dosageDuration', check both value and unit
+      if (selectorPath === 'dosageDuration') {
+        // Try to find which subfield has the error by checking the message
+        if (message.includes('value') || message.includes('Duration must')) {
+          attempts = [
+            'input[name*="dosageDuration.value"]',
+            '[name="dosageDuration.value"]',
+            '[data-error-field="dosageDuration.value"]'
+          ]
+        } else if (message.includes('unit') || message.includes('select duration')) {
+          attempts = [
+            'select[name*="dosageDuration.unit"]',
+            '[name="dosageDuration.unit"]',
+            '[data-error-field="dosageDuration.unit"]'
+          ]
+        } else {
+          // Try both
+          attempts = [
+            'input[name*="dosageDuration.value"]',
+            'select[name*="dosageDuration.unit"]',
+            '[name*="dosageDuration"]',
+            '[data-error-field*="dosageDuration"]'
+          ]
+        }
+      } else {
+        // It has the full path like dosageDuration.value
+        const field = selectorPath.split('.')[1]
+        attempts = [
+          `[name="dosageDuration.${field}"]`,
+          `${field === 'value' ? 'input' : 'select'}[name*="dosageDuration.${field}"]`,
+          `[data-error-field="dosageDuration.${field}"]`
+        ]
+      }
 
-      // Determine which context key to use
-      const tempKey = discharge_tab === 'TransferHospital' ? 'transfer_temp_medicines' : 'enclosure_temp_medicines'
-
-      // Get the existing array from context
-      const existing = data[tempKey] || []
-      const alreadyExists = existing.some(med => med.id === newMedicine.id)
-
-      // Merge new medicine into list (avoid duplicates)
-      const updatedList = alreadyExists
-        ? existing.map(med => (med.id === newMedicine.id ? newMedicine : med))
-        : [newMedicine, ...existing]
-
-      // Save to context under the correct key
-      updateState(tempKey, updatedList)
-      router.back()
-
-      return
-    } else if (fromPage === 'prescriptionDetail') {
-      handleRestartMedicine(data)
+      for (const attempt of attempts) {
+        element = document.querySelector(attempt)
+        if (element) break
+      }
     } else {
-      submitHandler(data)
+      // Simple field
+      attempts = [
+        `[name="${selectorPath}"]`,
+        `[data-error-field="${selectorPath}"]`,
+        `input[name*="${selectorPath}"]`,
+        `select[name*="${selectorPath}"]`
+      ]
+
+      for (const attempt of attempts) {
+        element = document.querySelector(attempt)
+        if (element) break
+      }
     }
-  })
+
+    if (element) {
+      // Scroll to the element
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest'
+      })
+    } else {
+      // Fallback: Try to scroll to the form section
+
+      // Add data attributes to your form fields for better targeting
+      const formContainer =
+        document.querySelector('.schedule-medicine-form') ||
+        document.querySelector('form') ||
+        document.querySelector('.MuiBox-root')
+
+      if (formContainer) {
+        formContainer.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        })
+
+        console.error('Validation error:', message)
+      }
+    }
+  }
+
+  const prescriptionSubmitHandler = handleSubmit(
+    async data => {
+      const interval = medicalMasterData?.intervalList?.find(item => item?.value === data?.interval)
+      const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
+
+      const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
+        item => item?.route_abbr === data.deliveryRoute
+      )
+
+      const prescriptionDuration = medicalMasterData?.prescriptionDuration?.find(
+        item => item?.value === data.dosageDuration?.unit
+      )
+
+      // Prepare schedule doses array
+      const scheduleDoses = data.schedules.map((schedule, index) => ({
+        id: '',
+        time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
+        quantity: schedule.quantity,
+        unit_id: getUnitIdFromName(schedule?.unit, medicalMasterData),
+        unit_name: schedule.unit,
+        string_id: getStringIdFromUnitName(schedule?.unit, medicalMasterData)
+      }))
+
+      const payload = {
+        medical_record_id: medical_record_id,
+        request_from: 'hospital',
+        hospital_case_id: id,
+        data: [
+          {
+            id: temporarilySelectedMedicine?.id, // Prescription id
+            label: temporarilySelectedMedicine?.name,
+            name: temporarilySelectedMedicine?.name,
+            generic_name: temporarilySelectedMedicine?.generic_name, //new added
+            total_qty: temporarilySelectedMedicine?.total_qty || 0,
+            total_central_store_qty: temporarilySelectedMedicine?.total_central_store_qty || 0,
+            total_local_store_qty: temporarilySelectedMedicine?.total_local_store_qty || 0,
+
+            frequency_key: frequency?.string_id || '',
+            frequency_id: frequency?.id || '',
+            frequency: data?.frequency,
+            frequency_string_id: frequency?.translation_string_id || '',
+            frequency_name: frequency?.label, //new added
+
+            schedule_doses: scheduleDoses,
+
+            interval: interval?.label || '',
+            interval_id: interval?.id || '',
+            interval_string_id: interval?.interval_string_id || '',
+
+            duration_qty: frequency?.string_id === 'at_regular_intervals' ? data.dosageDuration?.value?.toString() : 0,
+            duration_id: frequency?.string_id === 'at_regular_intervals' ? prescriptionDuration?.id : '2',
+            duration: data.dosageDuration?.value
+              ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
+              : '0 days',
+            duration_string_id:
+              frequency?.string_id === 'at_regular_intervals'
+                ? prescriptionDuration?.string_id
+                : 'antz-prescription.days',
+            duration_type: data.dosageDuration?.unit
+              ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
+              : 'Days',
+
+            //   duration_type: data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1),
+            duration_type: data.dosageDuration?.unit
+              ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
+              : 'Days',
+
+            notes: data?.notes || '',
+
+            delivery_route_name: data?.deliveryRoute || '',
+            delivery_route_id: deliveryRoute?.id || '',
+            delivery_route_string_id: deliveryRoute?.string_id || '',
+            delivery_route_label: deliveryRoute?.label, //new added
+
+            start_date: toISTISOString(data.prescriptionStartDate),
+
+            //  end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
+            end_date: isOneTimeFrequency
+              ? toISTISOString(data.prescriptionStartDate)
+              : calculateEndDate(data.prescriptionStartDate, data.dosageDuration, intervalItem),
+
+            restart_reason: '',
+            stop_reason: '',
+            will_restart: false,
+            side_effect: false,
+            created_for: 'SINGLE',
+
+            administer_date: toISTISOString(data.prescriptionStartDate),
+
+            batch_list: [],
+
+            //     dose_type: data.doseType,
+            dose_type: 'fixed_dose',
+            selectMedicineType: 'Schedule'
+          }
+        ]
+      }
+
+      if (discharge_tab === 'TransferHospital' || discharge_tab === 'TransferEnclosure') {
+        const newMedicine = payload.data[0]
+
+        // Determine which context key to use
+        const tempKey = discharge_tab === 'TransferHospital' ? 'transfer_temp_medicines' : 'enclosure_temp_medicines'
+
+        // Get the existing array from context
+        const existing = data[tempKey] || []
+        const alreadyExists = existing.some(med => med.id === newMedicine.id)
+
+        // Merge new medicine into list (avoid duplicates)
+        const updatedList = alreadyExists
+          ? existing.map(med => (med.id === newMedicine.id ? newMedicine : med))
+          : [newMedicine, ...existing]
+
+        // Save to context under the correct key
+        updateState(tempKey, updatedList)
+        router.back()
+
+        return
+      } else if (fromPage === 'editPrescription') {
+        // If coming from editPrescription page, call update function
+        validatePrescriptionBeforeUpdate(data)
+      } else if (fromPage === 'prescriptionDetail') {
+        handleRestartMedicine(data)
+      } else {
+        submitHandler(data)
+      }
+    },
+    errors => {
+      scrollToFirstError(errors)
+    }
+  )
 
   // Prefill form when editing a medicine from discharge
   useEffect(() => {
@@ -1749,7 +2101,7 @@ export default function AddMedicineToPrescription() {
               selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
               onSelect={handleMedicineSelect}
               searchQuery={
-                fromPage === 'prescriptionDetail' || medicine_edit_id
+                fromPage === 'prescriptionDetail' || medicine_edit_id || fromPage === 'editPrescription'
                   ? temporarilySelectedMedicine?.name
                   : medicineSearchQuery
               }
@@ -1791,7 +2143,9 @@ export default function AddMedicineToPrescription() {
 
       <BottomActionBar
         submitLabel={
-          fromPage === 'prescriptionDetail'
+          fromPage === 'editPrescription'
+            ? 'Update Medicine'
+            : fromPage === 'prescriptionDetail'
             ? 'Restart Medicine'
             : watch('selectMedicineType') === 'Direct Administer'
             ? 'Administer'

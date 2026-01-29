@@ -165,6 +165,7 @@ const AddHospitalRoom = props => {
     <Drawer
       anchor='right'
       open={handleSidebarOpen}
+      onClick={e => e.stopPropagation()}
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: ['100%', 562] } }}
     >

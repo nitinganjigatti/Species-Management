@@ -13,10 +13,12 @@ import Toaster from 'src/components/Toaster'
 import AddRoomDrawer from '../PatientAdmissionForm/AddRoomDrawer'
 import AddBedsDrawer from '../PatientAdmissionForm/AddBedsDrawer'
 import { AuthContext } from 'src/context/AuthContext'
+import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
 
 const defaultValues = {
   holdingEnclosure: null,
-  selectedDoctor: null
+  selectedDoctor: null,
+  patient_status: false
 }
 
 const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
@@ -109,6 +111,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
   }, [selectedHospital, search, hospitalStats?.available_rooms])
 
   const selectedRoom = watch('room')
+  const watchPatientStatus = watch('patient_status')
 
   useEffect(() => {
     const getHospitalBeds = async () => {
@@ -120,7 +123,8 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
           status: 'active',
           room_id: selectedRoom.value,
           page: 1,
-          is_occupied: 'available',
+
+          // is_occupied: 'available',
           q: searchEnclosure
         })
         if (res?.success === true) {
@@ -362,6 +366,30 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
                   </Tooltip>
                 )
               }
+            />
+          </Box>
+          <Box
+            sx={{
+              display: 'none',
+              justifyContent: 'space-between',
+              alignItem: 'center',
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+              borderRadius: 1,
+              p: 3
+            }}
+          >
+            <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+              Patient Status
+            </Typography>
+            <ControlledSwitch
+              control={control}
+              name='patient_status'
+              errors={errors}
+              required
+              disabled={submitLoader}
+              label={watchPatientStatus ? 'Critical' : 'Normal'}
+              labelPosition='start'
+              spaceBetween
             />
           </Box>
         </Box>

@@ -596,7 +596,9 @@ export default function VitalMonitoring({ vitalMonitorList = [] }) {
                         }}
                         onClick={() => handleOpenCellForm(column.id, row.key)}
                       >
-                        <Typography sx={styles.dataPrimaryText}>{display.primary}</Typography>
+                        <Typography sx={styles.dataPrimaryText}>
+                          {display.primary === 'no_reflex' ? 'no reflex' : display.primary}
+                        </Typography>
                         <Typography sx={styles.dataSecondaryText}>{display.secondary}</Typography>
                       </Box>
                     )

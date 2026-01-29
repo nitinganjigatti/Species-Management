@@ -310,11 +310,18 @@ const HospitalRoomDetails = () => {
   const handleApplyFilter = selectedOptions => {
     setAppliedFilters(selectedOptions)
 
+    let finalStatus = selectedOptions?.Status?.join(',') || ''
+
+    // Apply default active status only if Availability is selected and Status is empty
+    if (selectedOptions?.Availability?.length > 0 && !finalStatus) {
+      finalStatus = 'active'
+    }
+
     const updated = {
       ...filters,
       page: 1,
-      availability: selectedOptions?.Availability ? selectedOptions?.Availability?.join(',') : '',
-      status: selectedOptions?.Status ? selectedOptions?.Status?.join(',') : ''
+      availability: selectedOptions?.Availability?.join(',') || '',
+      status: finalStatus
     }
 
     setFilters(updated)
@@ -513,7 +520,7 @@ const HospitalRoomDetails = () => {
       }
     },
     {
-      minWidth: 230,
+      minWidth: 240,
       field: 'room_name',
       headerName: 'Room Name',
       sortable: false,
@@ -532,11 +539,11 @@ const HospitalRoomDetails = () => {
       )
     },
     {
-      minWidth: 150,
+      minWidth: 160,
       field: 'no_of_bed',
-      headerName: 'Beds',
+      headerName: 'Enclosures',
       sortable: false,
-      renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.no_of_bed ?? '-'}</StyledTypography>
+      renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.active_bed_count ?? '-'}</StyledTypography>
     },
     {
       minWidth: 150,
@@ -546,21 +553,21 @@ const HospitalRoomDetails = () => {
       renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.no_of_occupied ?? '-'}</StyledTypography>
     },
     {
-      minWidth: 180,
+      minWidth: 160,
       field: 'floor_name',
       headerName: 'Floor',
       sortable: false,
       renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.floor_name ?? '-'}</StyledTypography>
     },
     {
-      minWidth: 200,
+      minWidth: 140,
       field: 'status',
       headerName: 'Status',
       sortable: false,
       renderCell: params => <StatusChip chipStyles={{ ml: 1.4 }} status={params?.row?.status} />
     },
     {
-      minWidth: 150,
+      minWidth: 120,
       field: 'actions',
       headerName: 'Actions',
       sortable: false,
@@ -756,7 +763,7 @@ const HospitalRoomDetails = () => {
       {isOccupiedRoomWarningOpen && (
         <ConfirmationDialog
           dialogBoxStatus={isOccupiedRoomWarningOpen}
-          title='The hospital status cannot be changed because there are patients currently occupying the beds'
+          title='The hospital status cannot be changed because there are patients currently occupying the Enclosures'
           confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}

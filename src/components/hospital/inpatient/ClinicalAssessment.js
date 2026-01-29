@@ -34,7 +34,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [localSearch, setLocalSearch] = useState('')
-  const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true') 
+  const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true')
   const [records, setRecords] = useState([])
   const [tabCounts, setTabCounts] = useState({ Active: 0, Resolved: 0, All: 0 })
   const [total, setTotal] = useState(0)
@@ -210,7 +210,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
           setRecords(prev => (pageNum === 1 ? newItems : [...prev, ...newItems]))
           setHasMore(newItems.length === PAGE_SIZE)
         } else {
-          throw new Error(res.message || 'Failed to fetch clinical assessments')
+          console.error(res.message || 'Failed to fetch clinical assessments')
         }
       } catch (error) {
         console.error('Error fetching clinical assessments:', error)
@@ -244,7 +244,8 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const handleTabChange = newValue => {
     setCurrentTab(newValue)
     setPage(1)
-    setRecords([])
+
+    //setRecords([])
   }
 
   const filteredRecords = records

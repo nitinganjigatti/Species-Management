@@ -142,6 +142,8 @@ export const DISPENSE_LIST = 'dispense-item'
 
 export const USER_LIST = 'user/listing'
 
+export const PHARMACY_SETTINGS = 'zoo-setting-pharmacy'
+
 export const PRODUCT_LIST = 'v1/pharma/stock/list'
 
 export const BATCH_LIST = 'batch-details'
@@ -648,6 +650,8 @@ export const GET_OBSERVATION_REPORT = `v1/notes/observation`
 
 export const GET_ANIMAL_FILTERS_LISTS = `/v1/collection/animal/stats`
 
+export const GET_ALL_SITE_LIST_WITHOUT_PERMISSION = `get-zoo-wise-site-list`
+
 // Compliance: Enclosure Count Register
 export const GET_ANIMAL_COUNT_REGISTER = `v1/animal/count/register`
 
@@ -779,6 +783,10 @@ export const GET_SPECIES_FOR_HOSPITAL = `master/zoo/taxonomy/list`
 
 export const GET_OVERVIEW_MEDIA_FILES = 'v1/hospital/get-hospital-case-overview'
 
+export const GET_PATIENT_MEDIA = 'v1/hospital/media/get'
+
+export const UPLOAD_PATIENT_MEDIA = 'medical/attachment-update'
+
 // Clinical Assessment
 
 export const GET_CLINICAL_ASSESSMENTS = 'medical/v2/'
@@ -815,6 +823,8 @@ export const ADD_PRESCRIPTION = 'medical/v2/prescription-update'
 
 export const SCHEDULE_PRESCRIPTION = 'v1/hospital/add-additional-dosage-timing'
 
+export const UPDATE_PRESCRIPTION = 'medical/v2/prescription-update'
+
 export const STOP_PRESCRIPTION = 'medical/v2/restart-stop-medicine'
 
 export const UNDO_PRESCRIPTION = 'administer/reset'
@@ -840,6 +850,8 @@ export const GET_BATCH_LIST = 'vaccination/get-batch-list-by-medicine'
 export const GET_PRESCRIPTION_BY_RECORD = 'v1/hospital/list-prescription-by-record'
 
 export const GET_FREQUENCY = 'medical/frequency'
+
+export const VALIDATE_PRESCRIPTION_BEFORE_UPDATE = 'administer/validate-prescription-for-update'
 
 export const GET_INTERVALS = 'medical/master/prescription/interval/list'
 
@@ -874,6 +886,8 @@ export const CREATE_HOSPITAL_BED = 'v1/hospital/bed/create'
 export const UPDATE_HOSPITAL_BED = 'v1/hospital/bed/update'
 
 export const ROOM_STATUS_UPDATE = 'v1/hospital/room/status/update'
+
+export const GET_PATIENT_LIST_BY_ENCLOSURES = `v1/hospital/bed/admitted-animals`
 
 // Hospital inpatient discharge
 

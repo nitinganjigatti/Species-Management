@@ -46,6 +46,7 @@ import AddRoomDrawer from './AddRoomDrawer'
 import AddBedsDrawer from './AddBedsDrawer'
 import { AuthContext } from 'src/context/AuthContext'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
+import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
 
 const treatmentType = [
   { label: 'OPD (outpatient)', value: 'opd' },
@@ -57,7 +58,8 @@ const defaultValues = {
   holdingEnclosure: null,
   room: null,
   admission_date: dayjs(),
-  admission_time: dayjs()
+  admission_time: dayjs(),
+  patient_status: false
 }
 
 const schema = yup.object().shape({
@@ -66,7 +68,8 @@ const schema = yup.object().shape({
   holdingEnclosure: yup.object().required('Holding Enclosure is required'),
   room: yup.object().required('Room is required'),
   admission_date: yup.date().required('Admission date is required'),
-  admission_time: yup.string().required('Admission time is required')
+  admission_time: yup.string().required('Admission time is required'),
+  patient_status: yup.boolean().required('Patient Status is Required')
 })
 
 const PatientAdmitForm = () => {
@@ -175,6 +178,7 @@ const PatientAdmitForm = () => {
 
   const selectedRoom = watch('room')
   const watchTreatmentType = watch('treatmentType')
+  const watchPatientStatus = watch('patient_status')
 
   useEffect(() => {
     const getHospitalBeds = async () => {
@@ -186,7 +190,8 @@ const PatientAdmitForm = () => {
           status: 'active',
           room_id: selectedRoom.value,
           page: 1,
-          is_occupied: 'available',
+
+          // is_occupied: 'available',
           q: searchEnclosure
         })
         if (res?.success === true) {
@@ -528,7 +533,7 @@ const PatientAdmitForm = () => {
                           <ControlledDatePicker
                             control={control}
                             name={'admission_date'}
-                            label='Date'
+                            label='Date*'
                             defaultValue={dayjs()}
                             minDate={minDate}
                             maxDate={maxDate}
@@ -539,7 +544,7 @@ const PatientAdmitForm = () => {
                           <ControlledTimePicker
                             control={control}
                             name={'admission_time'}
-                            label='Time'
+                            label='Time*'
                             minTime={minTime}
                             maxTime={maxTime}
                             disabled={submitLoader}
@@ -580,7 +585,7 @@ const PatientAdmitForm = () => {
                                   : theme.palette.customColors.OnSurfaceVariant
                               }}
                             >
-                              Select chief Veterinarian
+                              Select chief Veterinarian*
                             </Typography>
                             <Icon
                               icon='mdi:chevron-down'
@@ -642,6 +647,34 @@ const PatientAdmitForm = () => {
                       )}
                     </Grid>
                   </Grid>
+                  <Grid
+                    size={{ xs: 12 }}
+                    sx={{
+                      display: 'none',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 3,
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      p: 3,
+                      borderRadius: 1
+                    }}
+                  >
+                    <Typography
+                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      Patient Status
+                    </Typography>
+                    <ControlledSwitch
+                      control={control}
+                      name='patient_status'
+                      errors={errors}
+                      required
+                      disabled={submitLoader}
+                      label={watchPatientStatus ? 'Critical' : 'Normal'}
+                      labelPosition='start'
+                      spaceBetween
+                    />
+                  </Grid>
                   <Grid container spacing={6}>
                     <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       <Typography
@@ -651,7 +684,7 @@ const PatientAdmitForm = () => {
                       </Typography>
                       <ControlledAutocomplete
                         name='room'
-                        label='Select Room'
+                        label='Select Room*'
                         control={control}
                         errors={errors}
                         options={rooms}
@@ -692,7 +725,7 @@ const PatientAdmitForm = () => {
                             fontWeight: 400
                           }}
                         >
-                          No available beds, All beds are occupied
+                          No available Enclosures, All Enclosures are occupied
                         </Typography>
                       )}
                     </Grid>
@@ -704,7 +737,7 @@ const PatientAdmitForm = () => {
                       </Typography>
                       <ControlledAutocomplete
                         name='holdingEnclosure'
-                        label='Select Holding Enclosure'
+                        label='Select Holding Enclosure*'
                         control={control}
                         errors={errors}
                         options={holdingEnclosures}
@@ -833,7 +866,7 @@ const PatientAdmitForm = () => {
           description={"Once rejected, the animal can't be admitted again."}
           formComponent={
             <TextField
-              label='Enter Rejection Reason'
+              label='Enter Rejection Reason*'
               multiline
               rows={4}
               fullWidth

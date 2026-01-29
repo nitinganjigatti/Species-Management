@@ -58,6 +58,7 @@ const OtherTreatments = lazy(() => import('src/components/hospital/inpatient/Oth
 const PrescriptionLayout = lazy(() => import('src/components/hospital/prescriptionMonitoring/PrescriptionLayout'))
 const Anesthesia = lazy(() => import('src/components/hospital/inpatient/Anesthesia'))
 const InpatientSurgery = lazy(() => import('src/views/pages/hospital/inpatient/InpatientSurgery'))
+const PatientMedia = lazy(() => import('src/components/hospital/inpatient/PatientMedia'))
 const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'))
 
 const PatientDetails = ({ category }) => {
@@ -233,15 +234,16 @@ const PatientDetails = ({ category }) => {
   const tabConfig = useMemo(
     () => [
       { label: 'Overview', value: 'overview', component: InpatientOverview },
-      { label: 'Medical Summary', value: 'medicalSummary', component: InpatientMedicalSummary },
-      { label: 'Monitoring', value: 'treatmentMonitoring', component: TreatmentLayout },
       { label: 'Symptoms', value: 'symptoms', component: Symptoms },
       { label: 'Clinical Assessment', value: 'clinicalAssessment', component: ClinicalAssessment },
+      { label: 'Prescription', value: 'prescriptionMonitoring', component: PrescriptionLayout },
       { label: 'Clinical Notes', value: 'clinicalNotes', component: ClinicalNotes },
       { label: 'Other Treatments', value: 'otherTreatments', component: OtherTreatments },
-      { label: 'Prescription', value: 'prescriptionMonitoring', component: PrescriptionLayout },
+      { label: 'Monitoring', value: 'treatmentMonitoring', component: TreatmentLayout },
+      { label: 'Medical Summary', value: 'medicalSummary', component: InpatientMedicalSummary },
       { label: 'Anesthesia', value: 'anesthesia', component: Anesthesia },
       { label: 'Surgery', value: 'surgery', component: InpatientSurgery },
+      { label: 'Media', value: 'media', component: PatientMedia },
       { label: 'Discharge', value: 'discharge', component: InpatientDischarge }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps

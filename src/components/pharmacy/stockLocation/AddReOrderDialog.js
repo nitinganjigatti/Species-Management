@@ -66,7 +66,7 @@ const AddReOrderDialog = ({
   const handleSave = async minQty => {
     setSubmitLoader(true)
     try {
-      const stockId = stockDetails?.stock_item_id
+      const stockId = stockDetails?.stock_item_id || stockDetails?.id
 
       const payload = {
         min_qty: minQty.reorder_level
@@ -168,7 +168,7 @@ const AddReOrderDialog = ({
           }}
         >
           <PharmacyProductCard
-            title={stockDetails?.stock_name || stockDetails?.stock_items_name || 'NA'}
+            title={stockDetails?.stock_name || stockDetails?.stock_items_name || stockDetails?.name || 'NA'}
             subTitle={stockDetails?.generic_name ? stockDetails?.generic_name : 'NA'}
             icon={stockDetails?.image}
           />

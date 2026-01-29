@@ -17,15 +17,13 @@ import {
 } from '@mui/material'
 import { Box, Grid } from '@mui/system'
 import Skeleton from '@mui/material/Skeleton'
-import { useTheme } from '@mui/material/styles'
-import { alpha } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 
 import dayjs from 'dayjs'
 import toast from 'react-hot-toast'
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import Utility from 'src/utility'
-import MediaCard from 'src/views/utility/MediaCard'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 import LoadingSkeleton from 'src/components/hospital/inpatient/Anesthesia/LoadingSkeleton'
 import VitalMonitoringDetail from './Anesthesia/vitalForms/VitalMonitoringDetail'
@@ -75,16 +73,6 @@ const formatDateTime = value => {
   return formatted && formatted !== 'Invalid date' ? formatted : String(value)
 }
 
-const formatTimestamp = isoString => {
-  const date = new Date(isoString)
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = date.toLocaleString('en-US', { month: 'short' })
-  const year = date.getFullYear()
-  const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
-
-  return `${day} ${month} ${year} • ${time}`
-}
-
 const formatStaffNames = list => {
   if (!Array.isArray(list) || !list.length) return '--'
 
@@ -96,58 +84,7 @@ const formatStaffNames = list => {
   return names || '--'
 }
 
-const MediaScroller = ({ items = [] }) => {
-  if (!items.length) {
-    return <Typography sx={{ color: 'text.secondary' }}>No attachments available.</Typography>
-  }
-
-  return (
-    <Box
-      sx={theme => ({
-        width: '100%',
-        overflowX: 'auto',
-        py: 2,
-        '&::-webkit-scrollbar': { height: '2px !important' },
-        '&::-webkit-scrollbar-track': { background: 'transparent' },
-        '&::-webkit-scrollbar-thumb': {
-          background: theme.palette.customColors.OutlineSecondary,
-          borderRadius: '6px'
-        },
-        scrollbarWidth: 'thin',
-        scrollbarColor: `${theme.palette.customColors.OutlineSecondary} transparent`
-      })}
-    >
-      <Box
-        sx={{
-          display: 'inline-flex',
-          gap: 2,
-          px: 2
-        }}
-      >
-        {items.map(item => (
-          <Box
-            key={item.id}
-            sx={{
-              width: 240,
-              flexShrink: 0
-            }}
-          >
-            <MediaCard media={item} isBorderedCard />
-          </Box>
-        ))}
-      </Box>
-    </Box>
-  )
-}
-
-function Anesthesia({
-  hospitalCaseId,
-  medicalRecordId,
-  animalId,
-  patientData,
-  overviewData,
-  patientDischarged = false
-}) {
+function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData, patientDischarged = false }) {
   const theme = useTheme()
   const router = useRouter()
   const scrollContainerRef = useRef(null)
@@ -520,10 +457,18 @@ function Anesthesia({
   const recoveryInfoList = useMemo(() => {
     if (!recoveryData) return []
 
+    const hasRecoveryType = recoveryData.recovery_type && recoveryData.recovery_type !== '--'
+
     return [
       { label: 'Recovery Type', value: recoveryData.recovery_type || '--' },
-      { label: 'Recovery 1st Effect', value: formatTimeOnly(recoveryData.recovery_first_effect_time) },
-      { label: 'Recovery Full Effect', value: formatTimeOnly(recoveryData.recovery_full_effect_time) }
+      {
+        label: 'Recovery 1st Effect',
+        value: hasRecoveryType ? formatTimeOnly(recoveryData.recovery_first_effect_time) : '--'
+      },
+      {
+        label: 'Recovery Full Effect',
+        value: hasRecoveryType ? formatTimeOnly(recoveryData.recovery_full_effect_time) : '--'
+      }
     ]
   }, [recoveryData])
 
@@ -541,12 +486,6 @@ function Anesthesia({
   )
 
   const hasAnyRating = Object.values(anaesthesiaRatings).some(v => v !== '')
-
-  const attachments = useMemo(() => {
-    const records = anesthesiaDetail?.attachments?.records
-
-    return Array.isArray(records) ? records : []
-  }, [anesthesiaDetail])
 
   const vitalMonitoringData = useMemo(() => {
     const monitoring = anesthesiaDetail?.vital_monitoring
@@ -631,16 +570,12 @@ function Anesthesia({
   const handleRecordTabClick = useCallback(
     selectionId => {
       if (selectionId === activeRecordId) {
-        // refetchAnesthesiaDetail()
         return
       }
 
       setActiveRecordId(selectionId)
     },
-    [
-      activeRecordId
-      // refetchAnesthesiaDetail
-    ]
+    [activeRecordId]
   )
 
   const handleDeleteClick = useCallback(() => {
@@ -656,9 +591,12 @@ function Anesthesia({
   }, [deleteLoading])
 
   const handleEditClick = value => {
-    if (value?.anaesthesia_id) {
+    // const caseId =  router?.query?.id
+    const caseId = resolvedHospitalCaseId || router?.query?.id
+
+    if (value?.anaesthesia_id && caseId) {
       router.push({
-        pathname: `/hospital/inpatient/${router?.query?.id}/AddAnesthesiaRecord`,
+        pathname: `/hospital/inpatient/${caseId}/AddAnesthesiaRecord`,
         query: {
           tab: 'anesthesia',
           anaesthesia_id: value?.anaesthesia_id
@@ -708,13 +646,7 @@ function Anesthesia({
   )
 
   const renderRecordTabs = () => {
-    if (!shouldFetchRecords) {
-      return (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap' }}>
-          {/* Provide hospital case & medical record IDs to view anesthesia records. */}
-        </Typography>
-      )
-    }
+    if (!shouldFetchRecords) return null
 
     if (isRecordsLoading) {
       return renderTabSkeletons()
@@ -1017,7 +949,7 @@ function Anesthesia({
               <Typography
                 sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
               >
-                Purpose of Anaesthesia
+                Purpose of Anesthesia
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 {purposeItems.length ? (
@@ -1698,7 +1630,7 @@ function Anesthesia({
               )}
 
               {recoveryProblemText || recoveryNotesText || hasAnyRating ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
                   <Box
                     sx={{
                       // px: '8px',
@@ -1709,15 +1641,7 @@ function Anesthesia({
                       justifyContent: 'space-between',
                       alignItems: 'center'
                     }}
-                  >
-                    <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                      <Typography
-                        sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
-                      >
-                        Recovery Details
-                      </Typography>
-                    </Box>
-                  </Box>
+                  ></Box>
 
                   <Box
                     sx={{
@@ -1731,7 +1655,7 @@ function Anesthesia({
                       alignItems: 'center'
                     }}
                   >
-                    {recoveryProblemText ? (
+                    {recoveryProblemText && recoveryData.recovery_type === 'Problem' ? (
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mt: 2, minWidth: 0 }}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
                           <Typography
@@ -1780,7 +1704,8 @@ function Anesthesia({
                           width: '100%',
                           px: 4,
                           py: 2,
-                          borderRadius: '8px'
+                          borderRadius: '8px',
+                          mt: 1
                         })}
                       >
                         <Typography
@@ -1904,11 +1829,6 @@ function Anesthesia({
                 ''
               )}
             </Box>
-
-            {/* <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <DetailsHeader text={'ATTACHMENTS'} />
-            <MediaScroller items={attachments} />
-          </Box> */}
           </Box>
         )}
       </Box>

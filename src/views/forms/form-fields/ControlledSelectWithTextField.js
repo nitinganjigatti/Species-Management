@@ -55,10 +55,20 @@ const ControlledSelectWithTextField = ({
   isBackgroundColor,
   hideNumberSpinners = true,
 
-  selectWidth = 80,
-  secondSelectWidth = 80,
+  selectWidth,
+  minSelectWidth = 40,
+  maxSelectWidth = 130,
+  menuItemWidth,
+  minMenuItemWidth = 40,
+  maxMenuItemWidth = 130,
+  secondSelectWidth,
+  minSecondSelectWidth = 40,
+  maxSecondSelectWidth = 130,
+  secondMenuItemWidth,
+  minSecondMenuItemWidth = 40,
+  maxSecondMenuItemWidth = 130,
   separator = '| per',
-  menuExtraWidth = 10,
+  menuMaxHeight = 300,
   maxDecimals,
 
   inputProps = {}
@@ -66,18 +76,51 @@ const ControlledSelectWithTextField = ({
   const getError = name => get(errors, name)?.message
   const errorText = getError(textFieldName) || getError(selectFieldName) || getError(secondSelectFieldName)
 
-  const getSelectSx = width => ({
-    width: typeof width === 'number' ? `${width}px` : width,
-    '& .MuiSelect-select.MuiSelect-select': {
-      minWidth: '0 !important',
-      textAlign: 'end'
-    },
-    ...selectSx
-  })
+  const getSelectSx = (width, minWidth, maxWidth) => {
+    const baseSx = {
+      '& .MuiSelect-select.MuiSelect-select': {
+        minWidth: '0 !important',
+        textAlign: 'end'
+      },
+      ...selectSx
+    }
 
-  const renderValue = (value, options, getLabel, getValue, width) => {
-    const selected = options?.find(opt => getValue(opt) === value)
+    // If width is explicitly provided (ignores min/max)
+    if (width !== undefined) {
+      return {
+        ...baseSx,
+        width: typeof width === 'number' ? `${width}px` : width
+      }
+    }
 
+    // If no width provided, use auto with min/max constraints
+    return {
+      ...baseSx,
+      width: 'auto',
+      minWidth: typeof minWidth === 'number' ? `${minWidth}px` : minWidth,
+      maxWidth: typeof maxWidth === 'number' ? `${maxWidth}px` : maxWidth
+    }
+  }
+
+  const getMenuSx = (menuWidth, minMenuWidth, maxMenuWidth) => {
+    // If explicit menuItemWidth is provided (ignores min/max)
+    if (menuWidth !== undefined) {
+      return {
+        width: typeof menuWidth === 'number' ? `${menuWidth}px` : menuWidth,
+        maxHeight: menuMaxHeight
+      }
+    }
+
+    // If auto mode, use menu-specific min/max
+    return {
+      minWidth: typeof minMenuWidth === 'number' ? `${minMenuWidth}px !important` : minMenuWidth,
+      maxWidth: typeof maxMenuWidth === 'number' ? `${maxMenuWidth}px !important` : maxMenuWidth,
+      maxHeight: menuMaxHeight
+    }
+  }
+
+  const renderValue = (value, opts, getLabel, getValue) => {
+    const selected = opts?.find(opt => getValue(opt) === value)
     const display = selected ? getLabel(selected) : showEmptyMenuItemLabel ? emptyMenuItemLabel : ''
 
     return (
@@ -85,7 +128,6 @@ const ControlledSelectWithTextField = ({
         <Typography
           noWrap
           sx={{
-            maxWidth: typeof width === 'number' ? `${width}px` : width,
             marginLeft: '6px',
             textAlign: 'right',
             overflow: 'hidden',
@@ -179,15 +221,22 @@ const ControlledSelectWithTextField = ({
                       disableUnderline
                       displayEmpty={showEmptyMenuItem}
                       disabled={disabled || readOnly}
-                      sx={getSelectSx(selectWidth)}
+                      sx={getSelectSx(selectWidth, minSelectWidth, maxSelectWidth)}
                       MenuProps={{
                         PaperProps: {
-                          sx: {
-                            width: typeof selectWidth === 'number' ? selectWidth + menuExtraWidth : selectWidth
-                          }
+                          sx: getMenuSx(menuItemWidth, minMenuItemWidth, maxMenuItemWidth)
+                        },
+                        anchorOrigin: {
+                          vertical: 'bottom',
+                          horizontal: 'right'
+                        },
+
+                        transformOrigin: {
+                          vertical: 'top',
+                          horizontal: 'right'
                         }
                       }}
-                      renderValue={value => renderValue(value, options, getOptionLabel, getOptionValue, selectWidth)}
+                      renderValue={value => renderValue(value, options, getOptionLabel, getOptionValue)}
                     >
                       {showEmptyMenuItem && (
                         <MenuItem value='' disabled>
@@ -196,10 +245,21 @@ const ControlledSelectWithTextField = ({
                       )}
 
                       {options?.map((opt, i) => (
-                        <MenuItem key={i} value={getOptionValue(opt)} disabled={isOptionDisabled(opt)}>
-                          <Tooltip title={getOptionLabel(opt)} arrow placement='top'>
-                            <Typography noWrap>{getOptionLabel(opt)}</Typography>
-                          </Tooltip>
+                        <MenuItem
+                          key={i}
+                          value={getOptionValue(opt)}
+                          disabled={isOptionDisabled(opt)}
+                          sx={{ whiteSpace: 'normal' }}
+                        >
+                          <Typography
+                            sx={{
+                              wordBreak: 'break-word',
+                              whiteSpace: 'normal',
+                              width: '100%'
+                            }}
+                          >
+                            {getOptionLabel(opt)}
+                          </Typography>
                         </MenuItem>
                       ))}
                     </Select>
@@ -224,27 +284,26 @@ const ControlledSelectWithTextField = ({
                         displayEmpty={showEmptyMenuItem}
                         disabled={disabled || readOnly}
                         sx={{
-                          ...getSelectSx(secondSelectWidth),
+                          ...getSelectSx(secondSelectWidth, minSecondSelectWidth, maxSecondSelectWidth),
                           ...secondSelectSx
                         }}
                         MenuProps={{
                           PaperProps: {
                             sx: {
-                              width:
-                                typeof secondSelectWidth === 'number'
-                                  ? secondSelectWidth + menuExtraWidth
-                                  : secondSelectWidth
+                              ...getMenuSx(secondMenuItemWidth, minSecondMenuItemWidth, maxSecondMenuItemWidth)
                             }
+                          },
+                          anchorOrigin: {
+                            vertical: 'bottom',
+                            horizontal: 'right'
+                          },
+                          transformOrigin: {
+                            vertical: 'top',
+                            horizontal: 'right'
                           }
                         }}
                         renderValue={value =>
-                          renderValue(
-                            value,
-                            secondOptions,
-                            getSecondOptionLabel,
-                            getSecondOptionValue,
-                            secondSelectWidth
-                          )
+                          renderValue(value, secondOptions, getSecondOptionLabel, getSecondOptionValue)
                         }
                       >
                         {showEmptyMenuItem && (
@@ -254,10 +313,21 @@ const ControlledSelectWithTextField = ({
                         )}
 
                         {secondOptions?.map((opt, i) => (
-                          <MenuItem key={i} value={getSecondOptionValue(opt)} disabled={isSecondOptionDisabled(opt)}>
-                            <Tooltip title={getSecondOptionLabel(opt)} arrow placement='top'>
-                              <Typography noWrap>{getSecondOptionLabel(opt)}</Typography>
-                            </Tooltip>
+                          <MenuItem
+                            key={i}
+                            value={getSecondOptionValue(opt)}
+                            disabled={isSecondOptionDisabled(opt)}
+                            sx={{ whiteSpace: 'normal' }}
+                          >
+                            <Typography
+                              sx={{
+                                wordBreak: 'break-word',
+                                whiteSpace: 'normal',
+                                width: '100%'
+                              }}
+                            >
+                              {getSecondOptionLabel(opt)}
+                            </Typography>
                           </MenuItem>
                         ))}
                       </Select>
@@ -278,55 +348,77 @@ const ControlledSelectWithTextField = ({
 export default React.memo(ControlledSelectWithTextField)
 
 /**
- *
  * Combines a text input with one or two inline dropdown selects
  *
  * === Form Integration ===
  * - textFieldName: string (required) — Name of the text input field
  * - selectFieldName: string (required) — Name of the first select field
- * - secondSelectFieldName?: string — Optional second select field name (e.g. for "per unit" scenarios)
+ * - secondSelectFieldName?: string — Optional second select field name
  * - control: object (required) — The `control` object from react-hook-form
  * - errors?: object — The `errors` object from react-hook-form for showing validation messages
  *
  * === Labeling & Behavior ===
  * - label?: string — Floating label for the text field
  * - placeholder?: string — Placeholder for the text input
- * - required?: boolean — Marks the text field as required for validation
- * - type?: string — Input type for the text field (e.g. "text", "number")
+ * - required?: boolean — Marks the text field as required
+ * - type?: string — Input type (e.g. "text", "number")
  * - readOnly?: boolean — Makes the text input read-only
- * - disabled?: boolean — Disables the entire component (input + selects)
- * - fullWidth?: boolean — If true, stretches the component to 100% width (default: true)
+ * - disabled?: boolean — Disables the entire component
+ * - fullWidth?: boolean — Stretches component to 100% width (default: true)
  *
  * === Options ===
  * - options: array — Options for the first select
- * - secondOptions?: array — Options for the optional second select
- * - getOptionLabel: function — Returns label for a first select option (default: identity)
- * - getOptionValue: function — Returns value for a first select option (default: identity)
- * - getSecondOptionLabel?: function — Label extractor for second select (default: identity)
- * - getSecondOptionValue?: function — Value extractor for second select (default: identity)
- * - isOptionDisabled?: function — Disables specific options in the first select (default: false)
- * - isSecondOptionDisabled?: function — Disables options in second select (default: false)
- * - showEmptyMenuItem?: boolean — If true, adds an empty/default item to the selects (default: true)
- * - emptyMenuItemLabel?: string — Label for the empty/default select option (default: "Select")
- * - showEmptyMenuItemLabel?: boolean - Whether to show the label for the empty/default select option (default: true)
+ * - secondOptions?: array — Options for the second select
+ * - getOptionLabel: function — Returns label for first select option
+ * - getOptionValue: function — Returns value for first select option
+ * - getSecondOptionLabel?: function — Label extractor for second select
+ * - getSecondOptionValue?: function — Value extractor for second select
+ * - isOptionDisabled?: function — Disables specific options in first select
+ * - isSecondOptionDisabled?: function — Disables options in second select
+ * - showEmptyMenuItem?: boolean — Adds empty/default item to selects (default: true)
+ * - emptyMenuItemLabel?: string — Label for empty select option (default: "Select")
+ * - showEmptyMenuItemLabel?: boolean - Show label for empty option (default: true)
  *
  * === Event Handlers ===
- * - onChangeOverride?: function — Optional override for text input's `onChange` handler
+ * - onChangeOverride?: function — Override for text input's onChange
  * - onKeyDown?: function — Key down event handler for text input
  * - onPaste?: function — Paste event handler for text input
  * - onInput?: function — Input event handler for text input
  *
  * === Styling ===
- * - size?: 'small' | 'normal' — Size for input and selects (default: 'normal')
- * - sx?: object — MUI `sx` prop for root container
- * - inputSx?: object — `sx` for the text input
- * - selectSx?: object — `sx` for the first select
- * - secondSelectSx?: object — `sx` for the second select
- * - selectTypographySx?: object — Custom styles for select text display
- * - isBackgroundColor?: string — Background color used for input
- * - selectWidth?: number | string — Width for the first select (default: 80)
- * - secondSelectWidth?: number | string — Width for the second select (default: 80)
- * - menuExtraWidth?: number — Extra width for dropdown menu (default: 10)
- * - separator?: string — Separator string shown between selects (default: '| per'; pass '' to hide)
+ * - size?: 'small' | 'normal' — Size for input and selects
+ * - sx?: object — MUI sx prop for root container
+ * - inputSx?: object — sx for the text input
+ * - selectSx?: object — sx for the first select
+ * - secondSelectSx?: object — sx for the second select
+ * - selectTypographySx?: object — Custom styles for select text
+ * - isBackgroundColor?: string — Background color for input
+ * - menuMaxHeight?: number — Max height for dropdown menu (default: 300)
+ * - separator?: string — Separator between selects (default: '| per'; pass '' to hide)
+ * - maxDecimals?: number — Max decimal places for number input
  *
+ * === WIDTH CONTROLS (Two Independent Systems) ===
+ *
+ * 1. SELECT BUTTON WIDTH (Overall select component width)
+ * - selectWidth?: number | string — Fixed width for first select button
+ * - minSelectWidth?: number — Min width for auto-sized first select (default: 40)
+ * - maxSelectWidth?: number — Max width for auto-sized first select (default: 130)
+ * - secondSelectWidth?: number | string — Fixed width for second select button
+ * - minSecondSelectWidth?: number — Min width for auto-sized second select (default: 40)
+ * - maxSecondSelectWidth?: number — Max width for auto-sized second select (default: 130)
+ *
+ * 2. MENU DROPDOWN WIDTH (Dropdown options list)
+ * - menuItemWidth?: number | string — Fixed width for dropdown menu
+ * - minMenuItemWidth?: number — Min width for auto-sized menu (default: 40)
+ * - maxMenuItemWidth?: number — Max width for auto-sized menu (default: 130)
+ * - secondMenuItemWidth?: number | string — Fixed width for second dropdown menu
+ * - minSecondMenuItemWidth?: number — Min width for auto-sized second menu (default: 40)
+ * - maxSecondMenuItemWidth?: number — Max width for auto-sized second menu (default: 130)
+ *
+ * === USAGE EXAMPLES ===
+ *
+ * Priority:
+ * - If specific width prop is set → uses that fixed width
+ * - If specific width prop is set and also min/max width prop is set → uses that fixed width (min/max width props are ignored)
+ * - If not set → uses auto with respective min/max constraints
  */

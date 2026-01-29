@@ -39,6 +39,7 @@ import Utility from 'src/utility'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 import { useHospital } from 'src/context/HospitalContext'
+import EnclosureOccupantsDrawer from 'src/views/pages/hospital/masters/hospital/EnclosureOccupantsDrawer'
 
 const statusOptions = [
   { label: 'Enclosure Status', value: 'all' },
@@ -60,6 +61,8 @@ const HospitalBedDetails = () => {
   const [roomStatusEdit, setRoomStatusEdit] = useState(null)
   const [isStatusUpdating, setIsStatusUpdating] = useState(false)
   const [isOccupiedBedWarningOpen, setIsOccupiedBedWarningOpen] = useState(false)
+  const [openOccupantsDrawer, setOpenOccupantDrawer] = useState(false)
+  const [selectedEnclosure, setSelectedEnclosure] = useState(null)
 
   const [filters, setFilters] = useState({
     page: page ? Number(page) : 1,
@@ -360,7 +363,7 @@ const HospitalBedDetails = () => {
   // Table columns
   const columns = [
     {
-      minWidth: 50,
+      width: 80,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
@@ -371,7 +374,7 @@ const HospitalBedDetails = () => {
       )
     },
     {
-      minWidth: 250,
+      minWidth: 230,
       field: 'bed_name',
       headerName: 'Cage/stall/enclosure',
       sortable: false,
@@ -384,31 +387,61 @@ const HospitalBedDetails = () => {
             fontSize: '1rem',
             fontWeight: 400,
             pl: 1.4,
-            maxWidth: '230px'
+            maxWidth: '210px'
           }}
         />
       )
     },
     {
-      minWidth: 280,
+      minWidth: 320,
       field: 'occupant',
       headerName: 'Occupant',
       sortable: false,
       renderCell: params => {
         const animalData = {
-          animal_id: params?.row?.animal_id ?? '-',
-          common_name: params?.row?.default_common_name ?? '-',
-          scientific_name: params?.row?.scientific_name ?? '-',
-          age: params?.row?.age ?? '-',
-          site_name: params?.row?.site_name ?? '-',
-          sex: params?.row?.sex ?? '-',
+          animal_id: params?.row?.animal_id,
+          common_name: params?.row?.default_common_name,
+          scientific_name: params?.row?.scientific_name,
+          age: params?.row?.age,
+          site_name: params?.row?.site_name,
+          sex: params?.row?.sex,
           default_icon: params?.row?.occupant_icon
         }
 
         const isOccupied = String(params?.row?.is_occupied) === '1'
         const isActive = String(params?.row?.active) === '1'
 
-        return <Box sx={{ pl: 1.4 }}>{!isActive ? '' : isOccupied ? <AnimalCard data={animalData} /> : '--'}</Box>
+        const animalCount = Number(params?.row?.animal_count || 0)
+        const extraAnimals = animalCount > 1 ? animalCount - 1 : 0
+
+        if (!isActive) return ''
+
+        if (!isOccupied) return '--'
+
+        return (
+          <Box sx={{ pl: 1.4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <AnimalCard data={animalData} />
+
+            {extraAnimals > 0 && (
+              <Box
+                sx={{
+                  minWidth: 32,
+                  height: 32,
+                  borderRadius: '16px',
+                  backgroundColor: theme.palette.customColors.displaybgSecondary,
+                  color: theme.palette.customColors.OnPrimaryContainer,
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                +{extraAnimals}
+              </Box>
+            )}
+          </Box>
+        )
       }
     },
     {
@@ -477,6 +510,13 @@ const HospitalBedDetails = () => {
     refetchBeds()
   }, [filters, id, router.isReady])
 
+  const handleAnimalColumnClick = params => {
+    if (params?.field === 'occupant' && params?.row?.animal_count > 1) {
+      setOpenOccupantDrawer(true)
+      setSelectedEnclosure(params?.row)
+    }
+  }
+
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
@@ -484,7 +524,7 @@ const HospitalBedDetails = () => {
         <Typography onClick={() => router.back()} sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}>
           Room
         </Typography>
-        <Typography color={theme.palette.text.primary}>Bed</Typography>
+        <Typography color={theme.palette.text.primary}>Enclosures</Typography>
       </Breadcrumbs>
       <Card sx={{ p: 6 }}>
         <CardHeader
@@ -561,7 +601,7 @@ const HospitalBedDetails = () => {
                 fontSize: '0.875rem'
               }
             }}
-            width={{ xs: '100%', sm: 320 }}
+            width={{ xs: '100%', sm: 300, md: 320 }}
           />
 
           <Select
@@ -570,7 +610,7 @@ const HospitalBedDetails = () => {
             displayEmpty
             onChange={e => handleStatusChange(e.target.value)}
             sx={{
-              width: { xs: '50%', sm: 140 },
+              width: { xs: '40%', sm: 180, md: 180 },
               borderRadius: '4px'
             }}
           >
@@ -591,6 +631,7 @@ const HospitalBedDetails = () => {
           paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
           setPaginationModel={handlePaginationChange}
           getRowClassName={getRowClassName}
+          onCellClick={handleAnimalColumnClick}
           externalTableStyle={{
             '& .inactive-row': {
               backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.1),
@@ -619,13 +660,23 @@ const HospitalBedDetails = () => {
       {isOccupiedBedWarningOpen && (
         <ConfirmationDialog
           dialogBoxStatus={isOccupiedBedWarningOpen}
-          title='The room status cannot be changed because there are patients currently occupying the beds'
+          title='The room status cannot be changed because there are patients currently occupying the Enclosures'
           confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
           confirmAction={() => setIsOccupiedBedWarningOpen(false)}
           ConfirmationText={'OK'}
           allowCancel={false}
+        />
+      )}
+      {openOccupantsDrawer && (
+        <EnclosureOccupantsDrawer
+          open={openOccupantsDrawer}
+          onClose={() => {
+            setOpenOccupantDrawer(false)
+            setSelectedEnclosure(null)
+          }}
+          selectedEnclosure={selectedEnclosure}
         />
       )}
     </>

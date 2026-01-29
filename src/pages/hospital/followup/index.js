@@ -11,7 +11,9 @@ import {
   Tooltip,
   MenuItem,
   CircularProgress,
-  IconButton
+  IconButton,
+  Tabs,
+  Tab
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
@@ -31,6 +33,7 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
+import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 
 const HospitalFollowUp = () => {
   const theme = useTheme()
@@ -43,6 +46,10 @@ const HospitalFollowUp = () => {
   const [filterCount, setFilterCount] = useState(0)
   const [filterDate, setFilterDate] = useState({})
   const [downloadingRowId, setDownloadingRowId] = useState(null)
+  const [activeTab, setActiveTab] = useState(0)
+  const [rows, setRows] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -82,29 +89,68 @@ const HospitalFollowUp = () => {
     return new Date(dateString).toISOString().split('T')[0]
   }
 
-  const { data, isFetching, refetch } = useQuery({
-    queryKey: ['patients-discharge-follow-up-listings', filters, selectedHospital?.id, filterDate, selectedOptions],
-    queryFn: () =>
-      getFollowUpPatientsListings({
+  const fetchFollowUpPatients = async () => {
+    if (!selectedHospital?.id) return
+
+    try {
+      setLoading(true)
+
+      const res = await getFollowUpPatientsListings({
         page_no: filters?.page,
         limit: filters?.limit,
         q: filters?.q,
-        hospital_id: 1,
         hospital_id: selectedHospital?.id,
         from_date: formatDate(filterDate.startDate),
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('Chief Veterinarian'),
-        origin_site: prepareFilterParams('Origin Site')
-      }),
-    enabled: !!selectedHospital?.id
-  })
+        origin_site: prepareFilterParams('Origin Site'),
+        due_days_crossed: activeTab
+      })
 
-  const total = data?.data?.total || 0
-  const rows = data?.data?.records || []
+      setRows(res?.data?.records || [])
+      setTotal(res?.data?.total_records || 0)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    refetch()
-  }, [refetch])
+    fetchFollowUpPatients()
+  }, [filters?.page, filters?.limit, filters?.q, selectedHospital?.id, filterDate, selectedOptions, activeTab])
+
+  // const { data, isFetching, refetch } = useQuery({
+  //   queryKey: [
+  //     'patients-discharge-follow-up-listings',
+  //     filters,
+  //     selectedHospital?.id,
+  //     filterDate,
+  //     selectedOptions,
+  //     activeTab
+  //   ],
+  //   queryFn: () =>
+  //     getFollowUpPatientsListings({
+  //       page_no: filters?.page,
+  //       limit: filters?.limit,
+  //       q: filters?.q,
+  //       hospital_id: 1,
+  //       hospital_id: selectedHospital?.id,
+  //       from_date: formatDate(filterDate.startDate),
+  //       to_date: formatDate(filterDate.endDate),
+  //       users: prepareFilterParams('Chief Veterinarian'),
+  //       origin_site: prepareFilterParams('Origin Site'),
+  //       due_days_crossed: activeTab
+  //     }),
+  //   enabled: !!selectedHospital?.id
+  // })
+
+  // const total = data?.data?.total_records || 0
+  // const rows = data?.data?.records || []
+
+  // useEffect(() => {
+  //   refetch()
+  // }, [refetch])
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -225,6 +271,18 @@ const HospitalFollowUp = () => {
       )
     },
     {
+      width: 200,
+      minWidth: 20,
+      field: 'medical_record_code',
+      headerName: 'Medical Record ID',
+      renderCell: params => (
+        <MedicalIdChip
+          medId={params?.row?.medical_record_code}
+          backgroundColor={theme.palette.customColors.mdAntzNeutral}
+        />
+      )
+    },
+    {
       width: 250,
       minWidth: 20,
       field: 'reason',
@@ -289,7 +347,7 @@ const HospitalFollowUp = () => {
       minWidth: 20,
       field: 'due_in_days',
       sortable: false,
-      headerName: 'Due in ',
+      headerName: activeTab === 0 ? 'Due in' : 'Due For',
       align: 'left',
       headerAlign: 'left',
       renderCell: params => {
@@ -340,7 +398,6 @@ const HospitalFollowUp = () => {
       //   pathname: `/hospital/followup/${params.row?.hospital_case_id}`,
       //   query: { animal_id: params.row?.animal_detail?.animal_id, medical_record_id: params.row.medical_record_id }
       // })
-
       try {
         const payload = {
           hospital_case_id: params?.row?.hospital_case_id
@@ -360,6 +417,16 @@ const HospitalFollowUp = () => {
         setDownloadingRowId(null)
       }
     }
+  }
+
+  const handleTabChange = (_, newValue) => {
+    setActiveTab(newValue)
+    setSearchValue('')
+    debouncedSearch('')
+  }
+
+  const getTabLabel = (key, label) => {
+    return key === activeTab ? `${label} - ${total}` : label
   }
 
   return (
@@ -410,6 +477,36 @@ const HospitalFollowUp = () => {
                 />
               </Box>
             </Box>
+            <Box
+              sx={{
+                display: 'inline-flex',
+                ml: 6,
+                borderBottom: `1px solid ${theme.palette.divider}`
+              }}
+            >
+              <Tabs
+                value={activeTab}
+                onChange={handleTabChange}
+                TabIndicatorProps={{
+                  style: {
+                    backgroundColor: theme.palette.primary.main,
+                    height: '2px',
+                    borderRadius: '2px 2px 0 0'
+                  }
+                }}
+                sx={{
+                  minHeight: 40,
+                  '& .MuiTab-root': {
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    minHeight: 40
+                  }
+                }}
+              >
+                <Tab value={0} label={getTabLabel(0, 'Active')} />
+                <Tab value={1} label={getTabLabel(1, 'Overdue')} />
+              </Tabs>
+            </Box>
             <Grid
               sx={{
                 mx: { xs: 5 }
@@ -419,7 +516,7 @@ const HospitalFollowUp = () => {
                 columns={columns}
                 indexedRows={indexedRows}
                 total={total}
-                loading={isFetching}
+                loading={loading}
                 paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
                 setPaginationModel={handlePaginationModelChange}
                 searchValue=''

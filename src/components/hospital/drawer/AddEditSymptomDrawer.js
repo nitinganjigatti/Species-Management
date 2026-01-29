@@ -215,7 +215,7 @@ const AddEditSymptomDrawer = ({
 
         <Box
           sx={{
-            pb: 2,
+            pb: 22,
             borderBottom:
               processedActivities?.length > 0 ? `1px solid ${theme.palette.customColors.OutlineVariant}` : 'none',
             height: processedActivities?.length > 0 ? '-webkit-fill-available' : '80%'
@@ -305,7 +305,7 @@ const AddEditSymptomDrawer = ({
                     width: '260px',
                     '& .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',
-                      borderColor: getSymptomsSeverityColor(severity).color
+                      borderColor: `${getSymptomsSeverityColor(severity).color} !important`
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',
@@ -410,15 +410,17 @@ const AddEditSymptomDrawer = ({
             ''
           )}
         </Box>
-        <SideSheetActionButtons
-          addLabel='UPDATE'
-          cancelLabel='CANCEL'
-          onAdd={handleSave}
-          onCancel={handleCancel}
-          width={260}
-          height={50}
-          isDisabled={!isChanged}
-        />
+        <Box sx={{ position: 'fixed', bottom: 0 }}>
+          <SideSheetActionButtons
+            addLabel='UPDATE'
+            cancelLabel='CANCEL'
+            onAdd={handleSave}
+            onCancel={handleCancel}
+            width={260}
+            height={50}
+            isDisabled={!isChanged}
+          />
+        </Box>
       </Box>
 
       <EditNotes

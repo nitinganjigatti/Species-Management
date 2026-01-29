@@ -50,49 +50,23 @@ const FilterContent = ({
             </>
           )}
           <Box sx={{ display: 'flex', gap: 3, flexDirection: 'column' }}>
-            {items?.map(item => {
-              const isSelected = selectedOptions?.includes(item.value)
-              const handleToggle = () => onOptionChange(item.value, menuName)
+            {items?.map(item => (
+              <Box key={item.value} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Checkbox
+                  checked={selectedOptions?.includes(item.value)}
+                  onChange={() => onOptionChange(item.value, menuName)}
+                />
+                {/* {item.image && <ImageWithShimmer src={item.image} alt={item.label} />} */}
 
-              return (
-                <Box
-                  key={item.value}
-                  onClick={handleToggle}
-                  onKeyDown={event => {
-                    if (event.target !== event.currentTarget) return
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault()
-                      handleToggle()
-                    }
+                <SpeciesCard
+                  species={{
+                    common_name: item?.label,
+                    scientific_name: item?.scientific_name,
+                    default_icon: item?.default_icon
                   }}
-                  tabIndex={0}
-                  role='button'
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    cursor: 'pointer'
-                  }}
-                >
-                  <Checkbox
-                    checked={isSelected}
-                    onClick={event => {
-                      event.stopPropagation()
-                    }}
-                    onChange={() => handleToggle()}
-                    inputProps={{ 'aria-label': `${menuName} option` }}
-                  />
-                  {item.image && <ImageWithShimmer src={item.image} alt={item.label} />}
-                  <SpeciesCard
-                    species={{
-                      common_name: item?.label,
-                      scientific_name: item?.scientific_name,
-                      default_icon: item?.default_icon
-                    }}
-                  />
-                </Box>
-              )
-            })}
+                />
+              </Box>
+            ))}
           </Box>
         </Box>
       )}

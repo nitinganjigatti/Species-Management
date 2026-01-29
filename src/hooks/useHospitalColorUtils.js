@@ -56,7 +56,10 @@ const useHospitalColorUtils = () => {
           color: theme.palette.customColors.Tertiary
         }
       case 'Extreme':
-        return { bgColor: alpha(theme.palette.customColors.Error, 0.06), color: theme.palette.customColors.Error }
+        return {
+          bgColor: alpha(theme.palette.customColors.ErrorContainer, 0.4),
+          color: theme.palette.customColors.Error
+        }
       default:
         return { bgColor: theme.palette.customColors.displaybgPrimary, color: theme.palette.customColors.addPrimary }
     }

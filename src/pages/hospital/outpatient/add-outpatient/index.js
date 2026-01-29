@@ -16,7 +16,7 @@ const AddPatient = () => {
         </Typography>
         <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Add Patient</Typography>
       </Breadcrumbs>
-      <AddPatientForm />
+      <AddPatientForm defaultTreatmentType='opd' />
     </>
   )
 }

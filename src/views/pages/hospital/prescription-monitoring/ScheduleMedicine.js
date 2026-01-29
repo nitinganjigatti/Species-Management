@@ -289,7 +289,7 @@ export default function ScheduleMedicine({
           }}
         >
           <CircularProgress />
-          <Typography>Checking for adverse side effects...</Typography>
+          {/* <Typography>Checking for adverse side effects...</Typography> */}
         </Paper>
       </Box>
     )
@@ -475,7 +475,7 @@ export default function ScheduleMedicine({
                     label='Quantity*'
                     placeholder='Enter quantity'
                     type='number'
-                    selectWidth={{ xs: 80, sm: 80, md: 80, lg: 95 }}
+                    selectWidth={{ xs: 80, sm: 100, md: 100, lg: 120 }}
                     getOptionLabel={option => option.label}
                     getOptionValue={option => option.value}
                     sx={commonFieldStyles}

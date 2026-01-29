@@ -66,7 +66,9 @@ const EditTreatmentDrawer = ({
   const activeActivity = activityList.find(a => a.id === formData.activeActivityId)
   const originalStartDate = activeActivity ? activeActivity.treatment_start_date_time : null
   const dateHasChanged = originalStartDate ? !dayjs(originalStartDate).isSame(dayjs(formData.startDate), 'day') : false
-  const isUpdateDisabled = isSubmitting || (!formData.notes && !dateHasChanged)
+  const trimmedNotes = (formData.notes || '').trim()
+  const isUpdateDisabled = isSubmitting || (!trimmedNotes && !dateHasChanged)
+  const isAddDisabled = isAdding || isSubmitting || !trimmedNotes
 
   const formatTreatmentName = name => {
     if (!name || typeof name !== 'string') return ''
@@ -468,7 +470,7 @@ const EditTreatmentDrawer = ({
               variant='contained'
               fullWidth
               onClick={onAdd}
-              disabled={isAdding || isSubmitting || !formData.notes}
+              disabled={isAddDisabled}
               sx={{
                 height: '56px',
                 borderRadius: '8px',
