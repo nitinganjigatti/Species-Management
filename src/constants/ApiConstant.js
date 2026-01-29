@@ -962,3 +962,11 @@ export const DELETE_ANESTHESIA_MEDICATION = `v1/hospital/anaesthesia/medication/
 export const DELETE_VITAL_MONITORING = `v1/hospital/anaesthesia/vital-monitoring-time-slot/delete`
 
 export const GET_UPCOMING_VACCINATION_RECORDS = 'v1/vaccination/deworming/animal/pending/report'
+
+// Necropsy
+
+export const GET_ANIMAL_WISE_NECROPSY_LIST = `v2/species-wise-necropsy-list`
+
+export const GET_SPECIES_WISE_NECROPSY_LIST = `v2/species-wise-necropsy`
+
+export const GET_NECROPSY_STATS = `v2/necropsy/stats`

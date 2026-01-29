@@ -4,7 +4,7 @@ const composeNecropsyNavigation = hasPermissionToAddNecropsyCenter => {
   }
 
   const necropsyListing = {
-    title: 'Necropsies',
+    title: 'Necropsy',
     path: '/necropsy/',
     icon: 'tabler:align-box-top-left'
   }
