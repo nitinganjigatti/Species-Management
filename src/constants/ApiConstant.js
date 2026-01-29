@@ -807,6 +807,10 @@ export const HOSPITAL_BED_STATS = 'v1/hospital/hospital-bed-stat/'
 
 export const HOSPITAL_DETAIL = 'v1/entity/types/details/'
 
+// Necropsy Analytics
+
+export const NECROPSY_LISTING = 'v1/entity/types/withUserPermission'
+
 //Hospital prescription monitoring
 
 export const MEDICINE_LIST = 'medical/medicine-search'
