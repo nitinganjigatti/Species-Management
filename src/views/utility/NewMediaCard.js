@@ -225,7 +225,7 @@ const FilePreviewCard = ({
         label: <Typography>Download</Typography>,
 
         // icon: <Icon icon='mdi:download' fontSize={20} />,
-        action: () => Utility.downloadFileFromURL(fileUrl, derivedFileName())
+        action: () => Utility.downloadFileFromURLWithBlob(fileUrl, derivedFileName())
       })
     }
 
