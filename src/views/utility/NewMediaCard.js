@@ -123,7 +123,7 @@ const FilePreviewCard = ({
       }
 
       return (
-        <Box {...commonProps}>
+        <Box {...commonProps} sx={{ ...commonProps.sx, maxHeight: '144px' }}>
           <img
             src={fileUrl}
             alt={derivedFileName()}
@@ -225,7 +225,7 @@ const FilePreviewCard = ({
         label: <Typography>Download</Typography>,
 
         // icon: <Icon icon='mdi:download' fontSize={20} />,
-        action: () => (ondownloadaction ? ondownloadaction() : Utility.downloadFile(fileUrl, derivedFileName()))
+        action: () => Utility.downloadFileFromURL(fileUrl, derivedFileName())
       })
     }
 
@@ -337,4 +337,3 @@ const FilePreviewCard = ({
 }
 
 export default FilePreviewCard
-         

@@ -1,5 +1,6 @@
 import {
   ADD_HOSPITAL_PATIENT,
+  DELETE_CLINICAL_NOTES,
   EDIT_PATIENT_DETAILS,
   GET_ALL_SITE_LIST_WITHOUT_PERMISSION,
   GET_ANIMAL_TOTAL_HOSPITAL_VISIT,
@@ -95,6 +96,20 @@ export async function uploadPatientMedia(payload) {
     }
 
     return error
+  }
+}
+
+export async function deletePatientMedia(mediaId) {
+  try {
+    if (!mediaId) throw new Error('Media ID is required')
+
+    const url = `${DELETE_CLINICAL_NOTES}${mediaId}`
+    const response = await axiosPost({ url })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error deleting patient media:', error?.message || error)
+    throw error
   }
 }
 

@@ -12,7 +12,7 @@ import NoDataFound from 'src/views/utility/NoDataFound'
 import Search from 'src/views/utility/Search'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import PatientMediaFilterDrawer from 'src/components/hospital/drawer/PatientMediaFilterDrawer'
-import { getPatientMedia, uploadPatientMedia } from 'src/lib/api/hospital/inpatient'
+import { getPatientMedia, uploadPatientMedia, deletePatientMedia } from 'src/lib/api/hospital/inpatient'
 import Toaster from 'src/components/Toaster'
 
 const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
@@ -23,6 +23,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
   const [filterCount, setFilterCount] = useState(1) // Start with 1 because "Current Medical Record" is default
   const [uploadLoading, setUploadLoading] = useState(false)
+  const [deletingMediaId, setDeletingMediaId] = useState(null)
 
   const [filters, setFilters] = useState({
     'Media Type': [],
@@ -121,6 +122,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
 
         const params = {
           medical_record_id: filters['Medical Record'].includes('current') ? medicalRecordId : undefined,
+          current_medical_record_id: medicalRecordId,
           file_type: fileType,
           module: moduleParam,
           page: pageParam,
@@ -224,6 +226,28 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
     })
   }
 
+  const handleDeleteMedia = async mediaId => {
+    try {
+      setDeletingMediaId(mediaId)
+
+      const response = await deletePatientMedia(mediaId)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Media deleted successfully' })
+
+        // Refetch the media list after successful deletion
+        await refetch()
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to delete media' })
+      }
+    } catch (error) {
+      console.error('Error deleting media:', error)
+      Toaster({ type: 'error', message: 'Failed to delete media' })
+    } finally {
+      setDeletingMediaId(null)
+    }
+  }
+
   // Use filterCount from state (managed by drawer)
 
   // Get display labels for filter values
@@ -233,7 +257,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
       document: 'Documents',
       video: 'Videos',
       audio: 'Audio',
-      current: 'Current Record',
+      current: 'Current medical record',
       all: 'All Records',
       surgery: 'Surgery',
       discharge: 'Discharge',
@@ -376,6 +400,9 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
                 width='100%'
                 height='100%'
                 showTitle={true}
+                ondownloadaction={() => {}}
+                onDeleteaction={file.is_created_for_medical_record === '1' ? () => handleDeleteMedia(file.id) : undefined}
+                isDeleteLoading={deletingMediaId === file.id}
               />
             </Grid>
           ))}

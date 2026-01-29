@@ -24,6 +24,10 @@ The Patient Media Tab is a comprehensive media management system integrated into
   - File name
   - Upload date
   - Uploader information (name and profile picture)
+- **Media Actions**:
+  - Three-dot menu on each card with action options
+  - Download media files
+  - Delete media files with confirmation dialog
 
 ### 2. File Upload
 - **Drag & Drop Support**: Users can drag and drop files directly onto the upload button
@@ -91,6 +95,7 @@ Main component that orchestrates the media display and management.
 - filterDrawerOpen: Boolean for filter drawer visibility
 - filterCount: Number of active filters
 - uploadLoading: Boolean for upload state
+- deletingMediaId: ID of media currently being deleted (for loading state)
 - filters: Object containing all filter selections
 - localSearch: Local search input value
 - search: Debounced search value
@@ -168,6 +173,20 @@ Reusable component for rendering filter options.
 }
 ```
 
+### Delete Patient Media
+**Function**: `handleDeleteMedia(mediaId)` *(Placeholder - API implementation pending)*
+
+**Parameters:**
+- `mediaId`: ID of the media file to delete
+
+**Behavior:**
+- Sets loading state for the specific media being deleted
+- Shows confirmation dialog before deletion
+- Displays success/error toast notifications
+- Refreshes media list after successful deletion
+
+**Note**: API endpoint implementation is pending. The handler is ready to integrate with the delete API once available.
+
 ## User Interface
 
 ### Layout Structure
@@ -177,17 +196,20 @@ Reusable component for rendering filter options.
 ├─────────────────────────────────────────────────────────┤
 │ [Active Filter Chips - removable]                       │
 ├─────────────────────────────────────────────────────────┤
-│  ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐       │
-│  │ Media  │  │ Media  │  │ Media  │  │ Media  │       │
-│  │ Card 1 │  │ Card 2 │  │ Card 3 │  │ Card 4 │       │
-│  └────────┘  └────────┘  └────────┘  └────────┘       │
-│  ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐       │
-│  │ Media  │  │ Media  │  │ Media  │  │ Media  │       │
-│  │ Card 5 │  │ Card 6 │  │ Card 7 │  │ Card 8 │       │
-│  └────────┘  └────────┘  └────────┘  └────────┘       │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐│
+│  │FileName ⋮│  │FileName ⋮│  │FileName ⋮│  │FileName ⋮││
+│  │┌────────┐│  │┌────────┐│  │┌────────┐│  │┌────────┐││
+│  ││Preview ││  ││Preview ││  ││Preview ││  ││Preview │││
+│  │└────────┘│  │└────────┘│  │└────────┘│  │└────────┘││
+│  │👤 User   │  │👤 User   │  │👤 User   │  │👤 User   ││
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘│
 │                                                          │
 │                    [Loading More...]                     │
 └─────────────────────────────────────────────────────────┘
+
+Media Card Actions Menu (⋮):
+├─ Download
+└─ Delete
 ```
 
 ### Filter Drawer Structure
@@ -281,6 +303,42 @@ Reusable component for rendering filter options.
 - Multi-file upload with mixed file types
 - Filter combination scenarios
 
+## Media Actions
+
+### Download Functionality
+- **Location**: Three-dot menu on media card
+- **Implementation**: Uses `Utility.downloadFileFromURL()` utility function
+- **Behavior**:
+  - Downloads file directly to user's device
+  - Preserves original filename
+  - Works for all supported file types
+- **Component**: `NewMediaCard.js`
+
+### Delete Functionality
+- **Location**: Three-dot menu on media card
+- **Implementation**: Handler function in `PatientMedia.js`
+- **Behavior**:
+  - Shows confirmation dialog before deletion
+  - Displays loading state on the specific card being deleted
+  - Shows success/error notifications
+  - Automatically refreshes media list after successful deletion
+- **Confirmation Dialog**:
+  - Title: "Delete Media"
+  - Message: "Are you sure you want to delete this media?"
+  - Actions: Cancel / Delete (red button)
+  - Image: Warning icon with tertiary light background
+- **Component**: `NewMediaCard.js` with `ConfirmationDialog` component
+
+### Filter Checkbox Interaction
+- **Location**: Filter drawer (side sheet)
+- **Behavior**:
+  - Checkboxes are fully clickable
+  - Clicking checkbox directly toggles selection
+  - Clicking label/row also toggles selection
+  - Prevents double-toggling using `stopPropagation`
+- **Select All**: Available for Media Type and Feature filters
+- **Single Selection**: Medical Record filter uses radio button behavior
+
 ## Future Enhancements
 
 1. **Bulk Actions**
@@ -298,15 +356,15 @@ Reusable component for rendering filter options.
    - Sort by file type
    - Sort by name (A-Z)
 
-4. **Preview Modal**
+4. **Preview Modal Enhancement**
    - Full-screen media preview
    - Navigation between files
-   - Download option
+   - Enhanced download options
 
 5. **File Management**
    - Rename files
-   - Delete files
    - Move files between records
+   - Add tags/categories
 
 ## Dependencies
 
@@ -316,6 +374,107 @@ Reusable component for rendering filter options.
 - **react-intersection-observer**: Infinite scroll detection
 - **lodash**: Utility functions (debounce)
 
+## Hardcoded Values
+
+### PatientMedia Component (`PatientMedia.js`)
+
+**Business Logic Values:**
+- `'1'` (Line 404): String value for `is_created_for_medical_record` check to enable delete action
+- `'current'` (Lines 30, 124): Medical record filter value for current record
+- `'all'`: Medical record filter value for all records
+
+**Configuration Values:**
+- `12` (Line 36): PAGE_SIZE for pagination
+- `500` (Line 38): Debounce delay in milliseconds for search
+- `240` (Line 279): MediaCardSkeleton height in pixels
+
+**File Type Extensions (Lines 50-58):**
+- Images: `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.bmp`, `.webp`
+- Documents: `.pdf`, `.doc`, `.docx`, `.xls`, `.xlsx`, `.csv`
+- Videos: `.mp4`, `.avi`, `.mov`, `.wmv`, `.flv`, `.webm`
+- Audio: `.mp3`, `.wav`, `.ogg`, `.m4a`, `.aac`
+
+**Filter Values (Lines 254-273):**
+```javascript
+{
+  // Media Types
+  image: 'Images',
+  document: 'Documents',
+  video: 'Videos',
+  audio: 'Audio',
+
+  // Medical Record
+  current: 'Current medical record',
+  all: 'All Records',
+
+  // Features/Modules
+  surgery: 'Surgery',
+  discharge: 'Discharge',
+  mortality: 'Mortality',
+  clinical_assessment: 'Clinical Assessment',
+  symptoms: 'Symptoms',
+  prescription: 'Prescription',
+  anesthesia: 'Anesthesia',
+  treatment: 'Treatment'
+}
+```
+
+### PatientMediaFilterDrawer Component (`PatientMediaFilterDrawer.js`)
+
+**Menu Categories (Line 15):**
+```javascript
+['Media Type', 'Medical Record', 'Feature']
+```
+
+**Filter Options (Lines 18-39):**
+```javascript
+{
+  'Media Type': [
+    { label: 'Images', value: 'image' },
+    { label: 'Documents', value: 'document' },
+    { label: 'Videos', value: 'video' },
+    { label: 'Audio', value: 'audio' }
+  ],
+  'Medical Record': [
+    { label: 'Current Medical Record', value: 'current' },
+    { label: 'All Medical Records', value: 'all' }
+  ],
+  Feature: [
+    { label: 'Surgery', value: 'surgery' },
+    { label: 'Discharge', value: 'discharge' },
+    { label: 'Mortality', value: 'mortality' },
+    { label: 'Clinical Assessment', value: 'clinical_assessment' },
+    { label: 'Symptoms', value: 'symptoms' },
+    { label: 'Prescription', value: 'prescription' },
+    { label: 'Anesthesia', value: 'anesthesia' },
+    { label: 'Treatment', value: 'treatment' }
+  ]
+}
+```
+
+### API Integration
+
+**Delete Media API:**
+- **Endpoint**: `medical/attachment-remove/{mediaId}`
+- **Method**: POST
+- **Constant**: `DELETE_CLINICAL_NOTES` (from `ApiConstant.js`)
+- **Function**: `deletePatientMedia(mediaId)` in `src/lib/api/hospital/inpatient.js`
+- **Delete Permission**: Only media with `is_created_for_medical_record === '1'` can be deleted
+
+**Get Media API Parameters:**
+```javascript
+{
+  medical_record_id: number | undefined,  // Set when filtering by current record
+  current_medical_record_id: number,      // Always sent with current record ID
+  file_type: string,                      // 'all' or comma-separated types
+  module: string,                         // 'all' or comma-separated features
+  page: number,                           // Page number
+  limit: number,                          // Items per page (12)
+  animal_id: number,                      // Patient/animal ID
+  q: string                               // Optional search query
+}
+```
+
 ## Notes
 
 - The search functionality is implemented but currently hidden (display: none)
@@ -323,3 +482,8 @@ Reusable component for rendering filter options.
 - Default filter is set to "Current Medical Record" for focused viewing
 - All file uploads are associated with the current medical record
 - Media files maintain metadata including uploader and timestamp
+- Download functionality uses the existing `Utility.downloadFileFromURL()` method
+- Each media card shows a three-dot menu (⋮) when both download and delete actions are available
+- Filter checkboxes are designed to be clickable both on the checkbox and the label text
+- Delete action only appears for media where `is_created_for_medical_record === '1'`
+- The `current_medical_record_id` parameter is always sent to the API regardless of filter selection

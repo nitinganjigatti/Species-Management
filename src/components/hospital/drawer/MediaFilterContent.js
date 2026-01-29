@@ -77,6 +77,7 @@ const MediaFilterContent = ({
                 checked={selectedOptions?.includes(item.value)}
                 onChange={() => onOptionChange(item.value, menuName)}
                 sx={{ p: 1 }}
+                onClick={e => e.stopPropagation()}
               />
               <Typography
                 sx={{
