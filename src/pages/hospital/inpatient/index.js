@@ -31,6 +31,9 @@ const HospitalInpatient = () => {
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
   const [filterDate, setFilterDate] = useState({})
+  const [rows, setRows] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -70,10 +73,13 @@ const HospitalInpatient = () => {
     return new Date(dateString).toISOString().split('T')[0]
   }
 
-  const { data, isFetching, refetch } = useQuery({
-    queryKey: ['inpatients-listings', filters, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions],
-    queryFn: () =>
-      getIncomingPatients({
+  const fetchIncomingPatients = async () => {
+    if (!isHospitalAccessChecked || !selectedHospital?.id) return
+
+    try {
+      setLoading(true)
+
+      const res = await getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
         q: filters?.q,
@@ -84,16 +90,29 @@ const HospitalInpatient = () => {
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('Chief Veterinarian'),
         origin_site: prepareFilterParams('Origin Site')
-      }),
-    enabled: !!(isHospitalAccessChecked && selectedHospital?.id)
-  })
+      })
 
-  const total = data?.data?.total || 0
-  const rows = data?.data?.records || []
+      setRows(res?.data?.records || [])
+      setTotal(res?.data?.total || 0)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  // useEffect(() => {
-  //   refetch()
-  // }, [refetch, selectedHospital?.id])
+  useEffect(() => {
+    fetchIncomingPatients()
+  }, [
+    filters.page,
+    filters.limit,
+    filters.q,
+    selectedVisitType,
+    selectedHospital?.id,
+    filterDate,
+    selectedOptions,
+    isHospitalAccessChecked
+  ])
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -387,7 +406,7 @@ const HospitalInpatient = () => {
                 columns={columns}
                 indexedRows={indexedRows}
                 total={total}
-                loading={isFetching}
+                loading={loading}
                 paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
                 setPaginationModel={handlePaginationModelChange}
                 searchValue=''
