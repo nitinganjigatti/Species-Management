@@ -31,101 +31,8 @@ import UploadDiet from '../../../components/diet/species-diet/uploadDiet'
 import SpeciesDietFilterDrawer from 'src/views/pages/diet/species/SpeciesDietFilterDrawer'
 import { FilterButton } from '../../../views/utility/render-snippets'
 
-import { getSpeciesList } from 'src/lib/api/diet/speciesDiet'
+import { getSpeciesList, getAnimalList } from 'src/lib/api/diet/speciesDiet'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
-
-const ANIMAL_DUMMY_DATA = [
-  {
-    animal_id: 1001,
-    common_name: 'African Lion',
-    scientific_name: 'Panthera leo',
-    genus_name: 'Panthera',
-    attachment_count: 2,
-    class_name: 'Mammalia',
-    default_icon: '/images/housing/species-icon-colored.svg'
-  },
-  {
-    animal_id: 1002,
-    common_name: 'Bengal Tiger',
-    scientific_name: 'Panthera tigris',
-    genus_name: 'Panthera',
-    attachment_count: 1,
-    class_name: 'Mammalia',
-    default_icon: '/images/housing/species-icon-colored.svg'
-  },
-  {
-    animal_id: 1003,
-    common_name: 'Giraffe',
-    scientific_name: 'Giraffa camelopardalis',
-    genus_name: 'Giraffa',
-    attachment_count: 0,
-    class_name: 'Mammalia',
-    default_icon: '/images/housing/species-icon-colored.svg'
-  },
-  {
-    animal_id: 1004,
-    common_name: 'Asian Elephant',
-    scientific_name: 'Elephas maximus',
-    genus_name: 'Elephas',
-    attachment_count: 3,
-    class_name: 'Mammalia',
-    default_icon: '/images/housing/species-icon-colored.svg'
-  },
-  {
-    animal_id: 1005,
-    common_name: 'Red Panda',
-    scientific_name: 'Ailurus fulgens',
-    genus_name: 'Ailurus',
-    attachment_count: 0,
-    class_name: 'Mammalia',
-    default_icon: '/images/housing/species-icon-colored.svg'
-  },
-  {
-    animal_id: 1006,
-    common_name: 'Zebra',
-    scientific_name: 'Equus quagga',
-    genus_name: 'Equus',
-    attachment_count: 1,
-    class_name: 'Mammalia',
-    default_icon: '/images/housing/species-icon-colored.svg'
-  },
-  {
-    animal_id: 1007,
-    common_name: 'Snow Leopard',
-    scientific_name: 'Panthera uncia',
-    genus_name: 'Panthera',
-    attachment_count: 0,
-    class_name: 'Mammalia',
-    default_icon: '/images/housing/species-icon-colored.svg'
-  },
-  {
-    animal_id: 1008,
-    common_name: 'Red Kangaroo',
-    scientific_name: 'Macropus rufus',
-    genus_name: 'Macropus',
-    attachment_count: 2,
-    class_name: 'Mammalia',
-    default_icon: '/images/housing/species-icon-colored.svg'
-  },
-  {
-    animal_id: 1009,
-    common_name: 'Hippopotamus',
-    scientific_name: 'Hippopotamus amphibius',
-    genus_name: 'Hippopotamus',
-    attachment_count: 0,
-    class_name: 'Mammalia',
-    default_icon: '/images/housing/species-icon-colored.svg'
-  },
-  {
-    animal_id: 1010,
-    common_name: 'Okapi',
-    scientific_name: 'Okapia johnstoni',
-    genus_name: 'Okapia',
-    attachment_count: 1,
-    class_name: 'Mammalia',
-    default_icon: '/images/housing/species-icon-colored.svg'
-  }
-]
 
 const TAB_VALUES = {
   SPECIES: 'species',
@@ -296,70 +203,72 @@ const SpeciesDietList = () => {
     searchTableData(value)
   }
 
-  const getFilteredAnimalData = useCallback(
-    queryValue => {
-      const searchText = (queryValue ?? '').toString().trim().toLowerCase()
-      const classNames = animalSelectedFiltersOptions?.Class?.map(option => option.name) || []
-      const normalizedClassNames = classNames.map(name => name.toString().toLowerCase())
-      let filteredData = [...ANIMAL_DUMMY_DATA]
+  const mapAnimalRow = (el, fallbackId) => {
+    const scientificName = el?.scientific_name || el?.complete_name || ''
+    const genusName = el?.genus_name || scientificName.split(' ')[0] || ''
 
-      if (searchText) {
-        filteredData = filteredData.filter(row => {
-          const commonName = (row.common_name || '').toString().toLowerCase()
-          const scientificName = (row.scientific_name || '').toString().toLowerCase()
-          const genusName = (row.genus_name || '').toString().toLowerCase()
+    return {
+      ...el,
+      id: el?.animal_id ?? fallbackId,
+      common_name: el?.default_common_name || el?.common_name || el?.complete_name || el?.scientific_name,
+      scientific_name: scientificName,
+      complete_name: el?.complete_name || scientificName,
+      genus_name: genusName,
+      attachment_count:
+        typeof el?.attachment_count === 'number' ? el.attachment_count : el?.mapped_to_diet ? 1 : 0,
+      primary_identifier_type: el?.primary_identifier_type || el?.local_id_type || el?.local_identifier_name || null,
+      primary_identifier_value:
+        el?.primary_identifier_value || el?.local_identifier_value || el?.local_id || el?.identifier || null
+    }
+  }
 
-          return (
-            commonName.includes(searchText) || scientificName.includes(searchText) || genusName.includes(searchText)
-          )
-        })
-      }
-
-      if (animalFilterByDiet !== '-1') {
-        const hasDiet = animalFilterByDiet === '1'
-        filteredData = filteredData.filter(row => (hasDiet ? row.attachment_count > 0 : row.attachment_count === 0))
-      }
-
-      if (normalizedClassNames.length > 0) {
-        filteredData = filteredData.filter(row =>
-          normalizedClassNames.some(name => name.includes((row.class_name || '').toString().toLowerCase()))
-        )
-      }
-
-      return filteredData
-    },
-    [animalFilterByDiet, animalSelectedFiltersOptions]
-  )
+  const downloadCsvFile = (fileName, csvRows) => {
+    const csvContent = csvRows.join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  }
 
   const fetchAnimalTableData = useCallback(
-    async q => {
+    async (q, newModel) => {
       try {
+        const classIds = animalSelectedFiltersOptions?.Class?.map(option => option.id) || []
         setAnimalLoading(true)
-        const queryValue = q?.q ?? q
-        const filteredData = getFilteredAnimalData(queryValue)
-        const start = animalPaginationModel.page * animalPaginationModel.pageSize
-        const end = start + animalPaginationModel.pageSize
-        const pageRows = filteredData.slice(start, end).map(row => ({
-          ...row,
-          id: row.animal_id
-        }))
 
-        setAnimalTotal(filteredData.length)
-        setAnimalRows(pageRows)
+        const params = {
+          q: q?.q ? q?.q : animalSearchValue,
+          page_no: animalPaginationModel.page + 1,
+          limit: animalPaginationModel.pageSize,
+          with_diet: animalFilterByDiet,
+          sort_order: newModel?.sort?.toUpperCase(),
+          class_ids: classIds?.length > 0 ? classIds.toString() : ''
+        }
+
+        const res = await getAnimalList(params)
+        const listWithId = res?.data?.result?.map((el, i) => mapAnimalRow(el, i + 1))
+
+        setAnimalTotal(parseInt(res?.data?.count || 0))
+        setAnimalRows(loadServerRows(animalPaginationModel.page, listWithId || []))
+        setAnimalLoading(false)
       } catch (error) {
         console.log(error)
-      } finally {
         setAnimalLoading(false)
       }
     },
-    [animalPaginationModel, getFilteredAnimalData]
+    [animalPaginationModel, animalFilterByDiet, animalSelectedFiltersOptions]
   )
 
   useEffect(() => {
     if (activeTab === TAB_VALUES.ANIMAL) {
       fetchAnimalTableData(animalSearchValue)
     }
-  }, [fetchAnimalTableData, animalSelectedFiltersOptions, activeTab])
+  }, [fetchAnimalTableData, activeTab])
 
   const getAnimalSlNo = index => (animalPaginationModel.page + 1 - 1) * animalPaginationModel.pageSize + index + 1
 
@@ -367,6 +276,11 @@ const SpeciesDietList = () => {
     ...row,
     sl_no: getAnimalSlNo(index)
   }))
+
+  const handleAnimalSortModel = newModel => {
+    setAnimalSortModel(newModel)
+    fetchAnimalTableData(animalSearchValue, newModel[0])
+  }
 
   const searchAnimalTableData = useCallback(
     debounce(async q => {
@@ -385,34 +299,48 @@ const SpeciesDietList = () => {
     searchAnimalTableData(value)
   }
 
-  const downloadCsvFile = (fileName, csvRows) => {
-    const csvContent = csvRows.join('\n')
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', fileName)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
-  }
-
   const handleAnimalExport = async () => {
     try {
       setAnimalExportLoading(true)
-      const filteredData = getFilteredAnimalData(animalSearchValue)
-      const headers = ['Common Name', 'Scientific Name', 'Genus', 'Active Diets']
-      const rowsData = filteredData.map(row => [
-        row.common_name || '',
-        row.scientific_name || '',
-        row.genus_name || '',
-        row.attachment_count || 0
-      ])
-      const csvRows = [headers, ...rowsData].map(row =>
-        row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
-      )
-      downloadCsvFile('animal-diet-list.csv', csvRows)
+      const classIds = animalSelectedFiltersOptions?.Class?.map(option => option.id) || []
+      const params = {
+        q: animalSearchValue,
+        page_no: animalPaginationModel.page + 1,
+        limit: animalPaginationModel.pageSize,
+        with_diet: animalFilterByDiet,
+        sort_order: animalSortModel?.[0]?.sort?.toUpperCase(),
+        class_ids: classIds?.length > 0 ? classIds.toString() : ''
+      }
+      const response = await getAnimalList(params)
+      if (response?.success && response?.data) {
+        if (Array.isArray(response?.data?.result)) {
+          const headers = ['Common Name', 'Scientific Name', 'Genus', 'Active Diets']
+          const rowsData = response.data.result.map((item, index) => {
+            const row = mapAnimalRow(item, index + 1)
+
+            return [row.common_name || '', row.scientific_name || '', row.genus_name || '', row.attachment_count || 0]
+          })
+          const csvRows = [headers, ...rowsData].map(row =>
+            row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+          )
+          downloadCsvFile('animal-diet-list.csv', csvRows)
+
+          return
+        }
+        if (typeof response.data === 'string') {
+          const csvFile = response.data.split('/')
+          const fileName = csvFile[csvFile.length - 1]
+          Utility.downloadFileFromURL(response.data, `${fileName}`)
+
+          return
+        }
+        const downloadUrl = response?.data?.download_url || response?.data?.file_url || response?.data?.url
+        if (downloadUrl) {
+          const csvFile = downloadUrl.split('/')
+          const fileName = csvFile[csvFile.length - 1]
+          Utility.downloadFileFromURL(downloadUrl, `${fileName}`)
+        }
+      }
     } catch (error) {
       console.error('Error downloading Excel:', error)
     } finally {
@@ -885,7 +813,7 @@ const SpeciesDietList = () => {
               paginationMode='server'
               pageSizeOptions={[7, 10, 25, 50, 100]}
               paginationModel={activePaginationModel}
-              onSortModelChange={isAnimalTab ? setAnimalSortModel : handleSortModel}
+              onSortModelChange={isAnimalTab ? handleAnimalSortModel : handleSortModel}
               sortModel={activeSortModel}
               onPaginationModelChange={isAnimalTab ? setAnimalPaginationModel : setPaginationModel}
               loading={activeLoading}

@@ -7,6 +7,12 @@ export async function getSpeciesList(params) {
   return response.data
 }
 
+export async function getAnimalList(params) {
+  const response = await axiosGet({ url: `${DIET}/animal-list`, params })
+
+  return response.data
+}
+
 export async function getSpecieDetailById(id, params) {
   return await axiosGet({ url: `${DIET}/get-species-detail/${id}`, params })
 }
