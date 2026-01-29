@@ -1549,7 +1549,7 @@ export default function AddMedicineToPrescription() {
       )
 
       const scheduleDoses = data.schedules.map((schedule, index) => ({
-        id: schedule?.scheduled_dose_id,
+        id: schedule?.scheduled_dose_id ?? null,
         time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
         quantity: schedule.quantity,
         unit_id: getUnitIdFromName(schedule?.unit, medicalMasterData),
@@ -1558,8 +1558,6 @@ export default function AddMedicineToPrescription() {
         string_id: getStringIdFromUnitName(schedule?.unit, medicalMasterData),
         created_at: schedule?.createdAt
       }))
-
-      // console.log('scheduleDoses', scheduleDoses)
 
       const payload = {
         medical_record_id: medicineDetail?.medical_record_id,
@@ -1651,7 +1649,6 @@ export default function AddMedicineToPrescription() {
         ])
       }
 
-      // console.log('payload', payload)
       const response = await updatePrescription(payload)
 
       if (response?.success) {
@@ -1667,132 +1664,288 @@ export default function AddMedicineToPrescription() {
     }
   }
 
-  const prescriptionSubmitHandler = handleSubmit(async data => {
-    const interval = medicalMasterData?.intervalList?.find(item => item?.value === data?.interval)
-    const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
+  const scrollToFirstError = errors => {
+    if (!errors || Object.keys(errors).length === 0) return
 
-    const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
-      item => item?.route_abbr === data.deliveryRoute
-    )
-
-    const prescriptionDuration = medicalMasterData?.prescriptionDuration?.find(
-      item => item?.value === data.dosageDuration?.unit
-    )
-
-    // Prepare schedule doses array
-    const scheduleDoses = data.schedules.map((schedule, index) => ({
-      id: '',
-      time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
-      quantity: schedule.quantity,
-      unit_id: getUnitIdFromName(schedule?.unit, medicalMasterData),
-      unit_name: schedule.unit,
-      string_id: getStringIdFromUnitName(schedule?.unit, medicalMasterData)
-    }))
-
-    const payload = {
-      medical_record_id: medical_record_id,
-      request_from: 'hospital',
-      hospital_case_id: id,
-      data: [
-        {
-          id: temporarilySelectedMedicine?.id, // Prescription id
-          label: temporarilySelectedMedicine?.name,
-          name: temporarilySelectedMedicine?.name,
-          generic_name: temporarilySelectedMedicine?.generic_name, //new added
-          total_qty: temporarilySelectedMedicine?.total_qty || 0,
-          total_central_store_qty: temporarilySelectedMedicine?.total_central_store_qty || 0,
-          total_local_store_qty: temporarilySelectedMedicine?.total_local_store_qty || 0,
-
-          frequency_key: frequency?.string_id || '',
-          frequency_id: frequency?.id || '',
-          frequency: data?.frequency,
-          frequency_string_id: frequency?.translation_string_id || '',
-          frequency_name: frequency?.label, //new added
-
-          schedule_doses: scheduleDoses,
-
-          interval: interval?.label || '',
-          interval_id: interval?.id || '',
-          interval_string_id: interval?.interval_string_id || '',
-
-          duration_qty: frequency?.string_id === 'at_regular_intervals' ? data.dosageDuration?.value?.toString() : 0,
-          duration_id: frequency?.string_id === 'at_regular_intervals' ? prescriptionDuration?.id : '2',
-          duration: data.dosageDuration?.value
-            ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
-            : '0 days',
-          duration_string_id:
-            frequency?.string_id === 'at_regular_intervals'
-              ? prescriptionDuration?.string_id
-              : 'antz-prescription.days',
-          duration_type: data.dosageDuration?.unit
-            ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
-            : 'Days',
-
-          //   duration_type: data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1),
-          duration_type: data.dosageDuration?.unit
-            ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
-            : 'Days',
-
-          notes: data?.notes || '',
-
-          delivery_route_name: data?.deliveryRoute || '',
-          delivery_route_id: deliveryRoute?.id || '',
-          delivery_route_string_id: deliveryRoute?.string_id || '',
-          delivery_route_label: deliveryRoute?.label, //new added
-
-          start_date: toISTISOString(data.prescriptionStartDate),
-
-          //  end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
-          end_date: isOneTimeFrequency
-            ? toISTISOString(data.prescriptionStartDate)
-            : calculateEndDate(data.prescriptionStartDate, data.dosageDuration, intervalItem),
-
-          restart_reason: '',
-          stop_reason: '',
-          will_restart: false,
-          side_effect: false,
-          created_for: 'SINGLE',
-
-          administer_date: toISTISOString(data.prescriptionStartDate),
-
-          batch_list: [],
-
-          //     dose_type: data.doseType,
-          dose_type: 'fixed_dose',
-          selectMedicineType: 'Schedule'
+    const findFirstErrorField = (errorObj, path = '') => {
+      // Check if this is an array (like schedules)
+      if (Array.isArray(errorObj)) {
+        for (let i = 0; i < errorObj.length; i++) {
+          if (errorObj[i]) {
+            const result = findFirstErrorField(errorObj[i], `${path}[${i}]`)
+            if (result) return result
+          }
         }
+      }
+
+      // Check if this is an object
+      else if (typeof errorObj === 'object' && errorObj !== null) {
+        // First check if there's a message at this level
+        if (errorObj.message && path) {
+          // This is a leaf error node
+          return { path, message: errorObj.message }
+        }
+
+        // Otherwise recurse into the object
+        for (const key in errorObj) {
+          const newPath = path ? `${path}.${key}` : key
+          const result = findFirstErrorField(errorObj[key], newPath)
+          if (result) return result
+        }
+      }
+
+      // This is a leaf with a message but no path (shouldn't happen)
+      else if (errorObj?.message) {
+        return { path, message: errorObj.message }
+      }
+
+      return null
+    }
+
+    const firstError = findFirstErrorField(errors)
+
+    if (!firstError) return
+
+    const { path, message } = firstError
+
+    // Convert path to selector-friendly format
+    let selectorPath = path
+      .replace(/\[(\d+)\]/g, '.$1') // Convert [0] to .0
+      .replace(/^\./, '') // Remove leading dot if present
+
+    let element = null
+    let attempts = []
+
+    // Try different selector strategies
+    if (selectorPath.includes('schedules.')) {
+      const parts = selectorPath.split('.')
+      const index = parts[1]
+      const field = parts[2]
+
+      attempts = [
+        `[name="schedules.${index}.${field}"]`,
+        `input[name*="schedules.${index}.${field}"]`,
+        `select[name*="schedules.${index}.${field}"]`,
+        `[data-error-field="schedules.${index}.${field}"]`,
+        `.schedule-field-${index}-${field}`
       ]
-    }
 
-    if (discharge_tab === 'TransferHospital' || discharge_tab === 'TransferEnclosure') {
-      const newMedicine = payload.data[0]
+      for (const attempt of attempts) {
+        element = document.querySelector(attempt)
+        if (element) break
+      }
+    } else if (selectorPath.includes('dosageDuration')) {
+      // If it's just 'dosageDuration', check both value and unit
+      if (selectorPath === 'dosageDuration') {
+        // Try to find which subfield has the error by checking the message
+        if (message.includes('value') || message.includes('Duration must')) {
+          attempts = [
+            'input[name*="dosageDuration.value"]',
+            '[name="dosageDuration.value"]',
+            '[data-error-field="dosageDuration.value"]'
+          ]
+        } else if (message.includes('unit') || message.includes('select duration')) {
+          attempts = [
+            'select[name*="dosageDuration.unit"]',
+            '[name="dosageDuration.unit"]',
+            '[data-error-field="dosageDuration.unit"]'
+          ]
+        } else {
+          // Try both
+          attempts = [
+            'input[name*="dosageDuration.value"]',
+            'select[name*="dosageDuration.unit"]',
+            '[name*="dosageDuration"]',
+            '[data-error-field*="dosageDuration"]'
+          ]
+        }
+      } else {
+        // It has the full path like dosageDuration.value
+        const field = selectorPath.split('.')[1]
+        attempts = [
+          `[name="dosageDuration.${field}"]`,
+          `${field === 'value' ? 'input' : 'select'}[name*="dosageDuration.${field}"]`,
+          `[data-error-field="dosageDuration.${field}"]`
+        ]
+      }
 
-      // Determine which context key to use
-      const tempKey = discharge_tab === 'TransferHospital' ? 'transfer_temp_medicines' : 'enclosure_temp_medicines'
-
-      // Get the existing array from context
-      const existing = data[tempKey] || []
-      const alreadyExists = existing.some(med => med.id === newMedicine.id)
-
-      // Merge new medicine into list (avoid duplicates)
-      const updatedList = alreadyExists
-        ? existing.map(med => (med.id === newMedicine.id ? newMedicine : med))
-        : [newMedicine, ...existing]
-
-      // Save to context under the correct key
-      updateState(tempKey, updatedList)
-      router.back()
-
-      return
-    } else if (fromPage === 'editPrescription') {
-      // If coming from editPrescription page, call update function
-      validatePrescriptionBeforeUpdate(data)
-    } else if (fromPage === 'prescriptionDetail') {
-      handleRestartMedicine(data)
+      for (const attempt of attempts) {
+        element = document.querySelector(attempt)
+        if (element) break
+      }
     } else {
-      submitHandler(data)
+      // Simple field
+      attempts = [
+        `[name="${selectorPath}"]`,
+        `[data-error-field="${selectorPath}"]`,
+        `input[name*="${selectorPath}"]`,
+        `select[name*="${selectorPath}"]`
+      ]
+
+      for (const attempt of attempts) {
+        element = document.querySelector(attempt)
+        if (element) break
+      }
     }
-  })
+
+    if (element) {
+      // Scroll to the element
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest'
+      })
+    } else {
+      // Fallback: Try to scroll to the form section
+
+      // Add data attributes to your form fields for better targeting
+      const formContainer =
+        document.querySelector('.schedule-medicine-form') ||
+        document.querySelector('form') ||
+        document.querySelector('.MuiBox-root')
+
+      if (formContainer) {
+        formContainer.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        })
+
+        console.error('Validation error:', message)
+      }
+    }
+  }
+
+  const prescriptionSubmitHandler = handleSubmit(
+    async data => {
+      const interval = medicalMasterData?.intervalList?.find(item => item?.value === data?.interval)
+      const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
+
+      const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
+        item => item?.route_abbr === data.deliveryRoute
+      )
+
+      const prescriptionDuration = medicalMasterData?.prescriptionDuration?.find(
+        item => item?.value === data.dosageDuration?.unit
+      )
+
+      // Prepare schedule doses array
+      const scheduleDoses = data.schedules.map((schedule, index) => ({
+        id: '',
+        time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
+        quantity: schedule.quantity,
+        unit_id: getUnitIdFromName(schedule?.unit, medicalMasterData),
+        unit_name: schedule.unit,
+        string_id: getStringIdFromUnitName(schedule?.unit, medicalMasterData)
+      }))
+
+      const payload = {
+        medical_record_id: medical_record_id,
+        request_from: 'hospital',
+        hospital_case_id: id,
+        data: [
+          {
+            id: temporarilySelectedMedicine?.id, // Prescription id
+            label: temporarilySelectedMedicine?.name,
+            name: temporarilySelectedMedicine?.name,
+            generic_name: temporarilySelectedMedicine?.generic_name, //new added
+            total_qty: temporarilySelectedMedicine?.total_qty || 0,
+            total_central_store_qty: temporarilySelectedMedicine?.total_central_store_qty || 0,
+            total_local_store_qty: temporarilySelectedMedicine?.total_local_store_qty || 0,
+
+            frequency_key: frequency?.string_id || '',
+            frequency_id: frequency?.id || '',
+            frequency: data?.frequency,
+            frequency_string_id: frequency?.translation_string_id || '',
+            frequency_name: frequency?.label, //new added
+
+            schedule_doses: scheduleDoses,
+
+            interval: interval?.label || '',
+            interval_id: interval?.id || '',
+            interval_string_id: interval?.interval_string_id || '',
+
+            duration_qty: frequency?.string_id === 'at_regular_intervals' ? data.dosageDuration?.value?.toString() : 0,
+            duration_id: frequency?.string_id === 'at_regular_intervals' ? prescriptionDuration?.id : '2',
+            duration: data.dosageDuration?.value
+              ? `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`
+              : '0 days',
+            duration_string_id:
+              frequency?.string_id === 'at_regular_intervals'
+                ? prescriptionDuration?.string_id
+                : 'antz-prescription.days',
+            duration_type: data.dosageDuration?.unit
+              ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
+              : 'Days',
+
+            //   duration_type: data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1),
+            duration_type: data.dosageDuration?.unit
+              ? data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1)
+              : 'Days',
+
+            notes: data?.notes || '',
+
+            delivery_route_name: data?.deliveryRoute || '',
+            delivery_route_id: deliveryRoute?.id || '',
+            delivery_route_string_id: deliveryRoute?.string_id || '',
+            delivery_route_label: deliveryRoute?.label, //new added
+
+            start_date: toISTISOString(data.prescriptionStartDate),
+
+            //  end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
+            end_date: isOneTimeFrequency
+              ? toISTISOString(data.prescriptionStartDate)
+              : calculateEndDate(data.prescriptionStartDate, data.dosageDuration, intervalItem),
+
+            restart_reason: '',
+            stop_reason: '',
+            will_restart: false,
+            side_effect: false,
+            created_for: 'SINGLE',
+
+            administer_date: toISTISOString(data.prescriptionStartDate),
+
+            batch_list: [],
+
+            //     dose_type: data.doseType,
+            dose_type: 'fixed_dose',
+            selectMedicineType: 'Schedule'
+          }
+        ]
+      }
+
+      if (discharge_tab === 'TransferHospital' || discharge_tab === 'TransferEnclosure') {
+        const newMedicine = payload.data[0]
+
+        // Determine which context key to use
+        const tempKey = discharge_tab === 'TransferHospital' ? 'transfer_temp_medicines' : 'enclosure_temp_medicines'
+
+        // Get the existing array from context
+        const existing = data[tempKey] || []
+        const alreadyExists = existing.some(med => med.id === newMedicine.id)
+
+        // Merge new medicine into list (avoid duplicates)
+        const updatedList = alreadyExists
+          ? existing.map(med => (med.id === newMedicine.id ? newMedicine : med))
+          : [newMedicine, ...existing]
+
+        // Save to context under the correct key
+        updateState(tempKey, updatedList)
+        router.back()
+
+        return
+      } else if (fromPage === 'editPrescription') {
+        // If coming from editPrescription page, call update function
+        validatePrescriptionBeforeUpdate(data)
+      } else if (fromPage === 'prescriptionDetail') {
+        handleRestartMedicine(data)
+      } else {
+        submitHandler(data)
+      }
+    },
+    errors => {
+      scrollToFirstError(errors)
+    }
+  )
 
   // Prefill form when editing a medicine from discharge
   useEffect(() => {
@@ -1943,6 +2096,7 @@ export default function AddMedicineToPrescription() {
             <PrescriptionMedicineList
               medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
               temporarilySelectedMedicine={temporarilySelectedMedicine}
+
               // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
               selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
               onSelect={handleMedicineSelect}

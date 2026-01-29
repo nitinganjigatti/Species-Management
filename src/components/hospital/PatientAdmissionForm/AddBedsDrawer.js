@@ -412,7 +412,7 @@ const AddBedsDrawer = ({
                 </Typography>
                 <ControlledAutocomplete
                   name='room'
-                  label='Select Room'
+                  label='Select Room*'
                   control={control}
                   errors={errors}
                   options={rooms}
@@ -436,7 +436,7 @@ const AddBedsDrawer = ({
                 </Typography>
                 <ControlledTextField
                   name='bed'
-                  label='Enter Enclosure Name'
+                  label='Enter Enclosure Name*'
                   control={control}
                   errors={errors}
                   required

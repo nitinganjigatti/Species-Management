@@ -1,11 +1,14 @@
 import React, { useState, useMemo } from 'react'
-import { Box, IconButton, useTheme } from '@mui/material'
+import { Box, IconButton, useTheme, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import UserAvatarDetails from './UserAvatarDetails'
 import FileDialog from 'src/components/utility/FileDialog'
 import { useAuth } from 'src/hooks/useAuth'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import SignedMediaPlayer from 'src/components/utility/SignedMediaPlayer'
+import MenuWithDots from 'src/components/MenuWithDots'
+import Utility from 'src/utility'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 
 // File type mapping to extensions
 const EXT_ICON_MAP = {
@@ -45,13 +48,18 @@ const FilePreviewCard = ({
   showTitle = false,
   showTitleIcon = false,
   onTitleIconClick,
-  cardStyle = {}
+  cardStyle = {},
+  actions = null,
+  onDeleteaction,
+  ondownloadaction,
+  isDeleteLoading = false
 }) => {
   const theme = useTheme()
   const { userData } = useAuth()
   const imgPath = userData?.settings?.DEFAULT_IMAGE_MASTER || {}
   const [previewFile, setPreviewFile] = useState(null)
   const [isImageError, setIsImageError] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
   // Derive file name safely
   const derivedFileName = () => {
@@ -115,11 +123,11 @@ const FilePreviewCard = ({
       }
 
       return (
-        <Box {...commonProps}>
+        <Box {...commonProps} sx={{ ...commonProps.sx, maxHeight: '144px' }}>
           <img
             src={fileUrl}
             alt={derivedFileName()}
-            style={{ width: '100%', height: '133px', objectFit: 'cover' }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             onError={() => setIsImageError(true)}
           />
         </Box>
@@ -209,8 +217,54 @@ const FilePreviewCard = ({
     )
   }
 
+  const menuOptions = useMemo(() => {
+    const opts = []
+
+    if (ondownloadaction) {
+      opts.push({
+        label: <Typography>Download</Typography>,
+
+        // icon: <Icon icon='mdi:download' fontSize={20} />,
+        action: () => Utility.downloadFileFromURLWithBlob(fileUrl, derivedFileName())
+      })
+    }
+
+    if (onDeleteaction) {
+      opts.push({
+        label: <Typography>Delete</Typography>,
+
+        // icon: <Icon icon='mdi:delete-outline' fontSize={20} />,
+        action: () => setIsDeleteModalOpen(true)
+      })
+    }
+
+    if (actions && Array.isArray(actions)) {
+      opts.push(...actions)
+    }
+
+    return opts
+  }, [actions, onDeleteaction, ondownloadaction, fileUrl])
+
   return (
     <>
+      {isDeleteModalOpen && (
+        <ConfirmationDialog
+          dialogBoxStatus={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          title={'Delete Media'}
+          cancelText={'CANCEL'}
+          confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2 }}
+          image={'/images/warning-icon.svg'}
+          imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
+          confirmAction={async () => {
+            await onDeleteaction()
+            setIsDeleteModalOpen(false)
+          }}
+          loading={isDeleteLoading}
+          ConfirmationText={'DELETE'}
+          description={' Are you sure you want to delete this media?'}
+        />
+      )}
       {previewFile && (
         <FileDialog
           open={!!previewFile}
@@ -252,16 +306,17 @@ const FilePreviewCard = ({
               />
             )}
 
-            {showTitleIcon && (
-              <IconButton
-                onClick={e => {
-                  onTitleIconClick?.()
-                }}
-                sx={{ padding: 0, color: theme.palette.customColors.neutralSecondary }}
-              >
-                <Icon icon='mdi:close-circle' fontSize={22} />
-              </IconButton>
-            )}
+            {/* {showTitleIcon && (
+                <IconButton
+                  onClick={e => {
+                    onTitleIconClick?.()
+                  }}
+                  sx={{ padding: 0, color: theme.palette.customColors.neutralSecondary }}
+                >
+                  <Icon icon='mdi:close-circle' fontSize={22} />
+                </IconButton>
+              )} */}
+            {menuOptions.length > 0 && <MenuWithDots options={menuOptions} iconSx={{ p: 0 }} />}
           </Box>
         )}
 

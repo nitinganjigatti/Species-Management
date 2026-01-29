@@ -76,6 +76,8 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
 
   const [securityCheck, setSecurityCheck] = useState(null)
   const [isSecurityCheckLoading, setIsSecurityCheckLoading] = useState(false)
+  const [dischargeConfirmOpen, setDischargeConfirmOpen] = useState(false)
+  const [pendingDischargeData, setPendingDischargeData] = useState(null)
 
   const {
     causeOfDeath,
@@ -572,7 +574,60 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     setIsTransferEnclosureDirty(false)
   }
 
-  // Confirm dialog handlers
+  // Discharge confirmation handlers
+const handleMortalitySubmitWithConfirmation = async (payload) => {
+  return new Promise((resolve) => {
+    setPendingDischargeData({
+      title: 'Are you sure you want to discharge this animal as Mortality?',
+      onConfirm: async () => {
+        const success = await handleMortalitySubmitData(payload)
+        setDischargeConfirmOpen(false)
+        setPendingDischargeData(null)
+        resolve(success)
+        return success
+      }
+    })
+    setDischargeConfirmOpen(true)
+  })
+}
+
+const handleEnclosureSubmitWithConfirmation = async (payload) => {  
+  return new Promise((resolve) => {
+    setPendingDischargeData({
+      title: 'Are you sure you want to discharge this animal to enclosure?',
+      onConfirm: async () => {
+        const success = await handleTransferEnclosureSubmitData(payload)
+        setDischargeConfirmOpen(false)
+        setPendingDischargeData(null)
+        resolve(success)
+        return success
+      }
+    })
+    setDischargeConfirmOpen(true)
+  })
+}
+
+  const handleDischargeConfirm = async () => {
+    if (pendingDischargeData) {
+      const success = await pendingDischargeData.onConfirm()
+      if (success) {
+        setDischargeConfirmOpen(false)
+        setPendingDischargeData(null)
+      }
+    }
+  }
+
+  const handleDischargeCancel = () => {
+    setDischargeConfirmOpen(false)
+    setPendingDischargeData(null)
+  }
+
+  const openDischargeConfirmation = confirmData => {
+    setPendingDischargeData(confirmData)
+    setDischargeConfirmOpen(true)
+  }
+
+  // Tab confirmation handlers
   const handleConfirm = () => {
     if (selectedTab === 'TransferHospital') {
       clearTransferHospitalData()
@@ -654,6 +709,20 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
 
     return () => {
       window.removeEventListener('beforeunload', handleRefresh)
+    }
+  }, [])
+
+  useEffect(() => {
+    // Cleanup on unmount (Route change / Unmounting the tab)
+    return () => {
+      resetState('transfer_medicines')
+      resetState('transfer_temp_medicines')
+      resetState('enclosure_medicines')
+      resetState('enclosure_temp_medicines')
+      sessionStorage.removeItem(STORAGE_KEY_FORM)
+      setIsTransferHospitalDirty(false)
+      setIsTransferEnclosureDirty(false)
+      setIsMortalityDirty(false)
     }
   }, [])
 
@@ -758,7 +827,8 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
             handleDispositionSearch={handleDispositionSearch}
             handleNecropsyCenterSearch={handleNecropsyCenterSearch}
             submitLoader={mortalitySubmitLoader}
-            handleSubmitData={handleMortalitySubmitData}
+            // handleSubmitData={handleMortalitySubmitData}
+            handleSubmitData={handleMortalitySubmitWithConfirmation}
             onDirtyChange={setIsMortalityDirty}
             refetchPatient={refetchPatient}
           />
@@ -788,7 +858,8 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
             patientData={patientData}
             watchDischargeType={watchDischargeType}
             submitLoader={transferEnclosureSubmitLoader}
-            handleSubmitData={handleTransferEnclosureSubmitData}
+            // handleSubmitData={handleTransferEnclosureSubmitData}
+            handleSubmitData={handleEnclosureSubmitWithConfirmation}
             medicationsColumns={medicationsColumns}
             medicationData={enclosureMedicines}
             clearData={clearEnclosureData}
@@ -811,6 +882,20 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
             ConfirmationText={'Yes'}
           />
         )}
+        {dischargeConfirmOpen && (
+          <ConfirmationDialog
+            dialogBoxStatus={dischargeConfirmOpen}
+            onClose={handleDischargeCancel}
+            loading={watchDischargeType === 'Mortality' ? mortalitySubmitLoader : transferEnclosureSubmitLoader}
+            title={pendingDischargeData?.title || 'Are you sure you want to discharge this animal?'}
+            cancelText={'Cancel'}
+            confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 2 }}
+            confirmAction={handleDischargeConfirm}
+            ConfirmationText={'Yes, Discharge'}
+            image={'/images/warning-icon.svg'}
+            imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
+          />
+        )}
       </Box>
     </>
   )
@@ -823,3 +908,4 @@ const StyledTypography = styled(Typography)(({ theme, fontWeight, fontSize, colo
   fontWeight: fontWeight || 500,
   color: color || theme.palette.customColors.OnSurfaceVariant
 }))
+ 

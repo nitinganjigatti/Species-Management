@@ -5,8 +5,7 @@ import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import FilterContent from 'src/components/drawers/FilterContent'
 import Toaster from 'src/components/Toaster'
 import { AuthContext } from 'src/context/AuthContext'
-import { getMasterImports } from 'src/lib/api/compliance/masters'
-import { getAllSites } from 'src/lib/api/housing'
+import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
 
@@ -76,7 +75,7 @@ const IncomingFilterDrawer = ({
               params.q = query
             }
 
-            const res = await getAllSites(params)
+            const res = await getZooWiseSiteLists(params)
 
             data =
               res?.data?.result?.length > 0

@@ -153,7 +153,8 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
           room_id: selectedRoom.value,
           status: 'active',
           page: 1,
-          is_occupied: 'available',
+
+          // is_occupied: 'available',
           q: searchEnclosure
         })
         if (res?.success === true) {
