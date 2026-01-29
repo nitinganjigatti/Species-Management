@@ -15,10 +15,11 @@ The Patient Media Tab is a comprehensive media management system integrated into
 ### 1. Media Display
 - **Grid Layout**: Responsive grid displaying media files in cards
 - **Media Types Supported**:
-  - Images: `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.bmp`, `.webp`
-  - Documents: `.pdf`, `.doc`, `.docx`, `.xls`, `.xlsx`, `.csv`
-  - Videos: `.mp4`, `.avi`, `.mov`, `.wmv`, `.flv`, `.webm`
-  - Audio: `.mp3`, `.wav`, `.ogg`, `.m4a`, `.aac`
+  - Images: `.png`, `.jpg`, `.jpeg`, `.svg`, `.heic`, `.webp`
+  - Documents: `.pdf`, `.doc`, `.docx`, `.xls`, `.xlsx`, `.csv`, `.ppt`, `.pptx`, `.txt`
+  - Videos: `.mp4`, `.webm`, `.ogv`
+  - Audio: `.mp3`, `.wav`
+  - Archives: `.zip`, `.rar`
 - **Card Information**:
   - File thumbnail/preview
   - File name
@@ -26,16 +27,25 @@ The Patient Media Tab is a comprehensive media management system integrated into
   - Uploader information (name and profile picture)
 - **Media Actions**:
   - Three-dot menu on each card with action options
-  - Download media files
+  - Download media files (supports both direct URL and blob-based downloads)
   - Delete media files with confirmation dialog
 
 ### 2. File Upload
 - **Drag & Drop Support**: Users can drag and drop files directly onto the upload button
 - **Multi-file Upload**: Support for uploading multiple files simultaneously
 - **Upload Progress**: Loading indicator during file upload
-- **File Validation**: Automatic validation based on accepted file types
-- **Success/Error Feedback**: Toast notifications for upload status
+- **File Validation**:
+  - Automatic validation based on accepted file types
+  - Enforced file extension validation (cannot be bypassed)
+  - File size limit: 2 MB per file
+  - Validation occurs before upload to prevent invalid files
+- **Success/Error Feedback**: Toast notifications for upload status with detailed error messages
 - **Auto-refresh**: Media list automatically refreshes after successful upload
+- **Allowed File Types**:
+  - Images: `.png`, `.jpg`, `.jpeg`, `.svg`, `.heic`
+  - Documents: `.pdf`, `.doc`, `.docx`, `.xls`, `.xlsx`
+  - Videos: `.mp4`
+  - Audio: `.mp3`, `.ogg`, `.m4a`
 
 ### 3. Advanced Filtering
 The filter system provides three main categories:
@@ -274,6 +284,9 @@ Media Card Actions Menu (⋮):
    - Individual file error notifications
    - Partial success handling (some files succeed, others fail)
    - Error messages displayed via toast notifications
+   - **File Type Validation Errors**: Shows list of allowed file types
+   - **File Size Validation Errors**: Shows current file size and 2 MB limit
+   - Validation errors appear before upload attempt
 
 2. **Load Errors**
    - Error state managed by React Query
@@ -307,12 +320,19 @@ Media Card Actions Menu (⋮):
 
 ### Download Functionality
 - **Location**: Three-dot menu on media card
-- **Implementation**: Uses `Utility.downloadFileFromURL()` utility function
+- **Implementation**: Smart download method selection in `NewMediaCard.js`
+- **Download Methods**:
+  - If `downloadUrl` is provided: Uses `Utility.downloadFileFromURL()` for direct download
+  - If `downloadUrl` is not provided: Uses `Utility.downloadFileFromURLWithBlob()` for blob-based download
 - **Behavior**:
   - Downloads file directly to user's device
   - Preserves original filename
   - Works for all supported file types
+  - Automatically selects the appropriate download method based on available URLs
 - **Component**: `NewMediaCard.js`
+- **Props**:
+  - `fileUrl`: Primary file URL for display and fallback download
+  - `downloadUrl`: Optional URL specifically for downloading (uses direct download method)
 
 ### Delete Functionality
 - **Location**: Three-dot menu on media card
@@ -388,11 +408,20 @@ Media Card Actions Menu (⋮):
 - `500` (Line 38): Debounce delay in milliseconds for search
 - `240` (Line 279): MediaCardSkeleton height in pixels
 
-**File Type Extensions (Lines 50-58):**
-- Images: `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.bmp`, `.webp`
-- Documents: `.pdf`, `.doc`, `.docx`, `.xls`, `.xlsx`, `.csv`
-- Videos: `.mp4`, `.avi`, `.mov`, `.wmv`, `.flv`, `.webm`
-- Audio: `.mp3`, `.wav`, `.ogg`, `.m4a`, `.aac`
+**File Type Extensions for Upload Validation (Lines 62-77):**
+- Images: `.png`, `.jpg`, `.jpeg`, `.heic`, `.svg`
+- Documents: `.pdf`, `.doc`, `.docx`, `.xls`, `.xlsx`
+- Videos: `.mp4`
+- Audio: `.mp3`, `.ogg`, `.m4a`
+
+**File Size Restriction (Line 79):**
+- Maximum file size: 2 MB (2 * 1024 * 1024 bytes)
+
+**File Validation (Lines 61-104):**
+- Custom validator function checks file extension against allowed list
+- File size validation with descriptive error messages
+- Rejected files show error toast with filename and reason
+- Validation occurs before network upload to save bandwidth
 
 **Filter Values (Lines 254-273):**
 ```javascript
@@ -475,6 +504,75 @@ Media Card Actions Menu (⋮):
 }
 ```
 
+## NewMediaCard Component
+
+### File: `src/views/utility/NewMediaCard.js`
+
+**Purpose**: Reusable component for displaying media files with preview, download, and delete actions.
+
+**Props:**
+- `fileUrl` (string, required): Primary file URL for display
+- `fileName` (string, optional): File name to display
+- `fileType` (string, optional): Type hint from API
+- `user` (object, optional): User information for uploader details
+- `width` (string/number): Card width
+- `height` (string/number): Card height
+- `showTitle` (boolean, default: false): Show file name as title
+- `showTitleIcon` (boolean, default: false): Show title icon
+- `onTitleIconClick` (function): Callback for title icon click
+- `cardStyle` (object): Custom card styles
+- `actions` (array, optional): Additional custom actions
+- `onDeleteaction` (function, optional): Delete handler (shows delete option if provided)
+- `ondownloadaction` (function, optional): Download handler (shows download option if provided)
+- `isDeleteLoading` (boolean, default: false): Loading state for delete action
+- `downloadUrl` (string, optional, default: null): **Optional download URL for direct downloads**
+
+**Key Features:**
+- **Smart Download Method Selection**:
+  - If `downloadUrl` is provided → uses `Utility.downloadFileFromURL()` for direct download
+  - If `downloadUrl` is not provided → uses `Utility.downloadFileFromURLWithBlob()` for blob-based download
+- **File Type Detection**: Automatically detects file type from extension
+- **Preview Support**: Click to preview images, videos, PDFs, and audio files
+- **Responsive Design**: Adapts to different screen sizes
+- **Error Handling**: Fallback icons for broken images or unsupported types
+- **Memoized File Name**: Uses `useMemo` for optimized performance
+
+**Supported File Type Icons:**
+```javascript
+const EXT_ICON_MAP = {
+  image: ['jpeg', 'jpg', 'png', 'webp', 'heic'],
+  pdf: ['pdf'],
+  xls: ['xls', 'xlsx'],
+  document: ['doc', 'docx'],
+  audio: ['mp3', 'wav'],
+  video: ['mp4', 'webm', 'ogv'],
+  ppt: ['ppt', 'pptx'],
+  text: ['txt'],
+  csv: ['csv'],
+  zip: ['zip', 'rar']
+}
+```
+
+**Usage Example:**
+```javascript
+<NewMediaCard
+  fileUrl={file.file}
+  fileName={file.file_original_name}
+  fileType={file.type}
+  downloadUrl={file.download_url}  // Optional: for direct downloads
+  user={{
+    created_at: file.created_at,
+    user_profile: file.user_profile
+  }}
+  width='100%'
+  height='100%'
+  showTitle={true}
+  ondownloadaction={() => {}}
+  onDeleteaction={() => handleDeleteMedia(file.id)}
+  isDeleteLoading={deletingMediaId === file.id}
+/>
+```
+
 ## Notes
 
 - The search functionality is implemented but currently hidden (display: none)
@@ -482,8 +580,10 @@ Media Card Actions Menu (⋮):
 - Default filter is set to "Current Medical Record" for focused viewing
 - All file uploads are associated with the current medical record
 - Media files maintain metadata including uploader and timestamp
-- Download functionality uses the existing `Utility.downloadFileFromURL()` method
+- Download functionality intelligently switches between direct URL and blob-based methods
 - Each media card shows a three-dot menu (⋮) when both download and delete actions are available
 - Filter checkboxes are designed to be clickable both on the checkbox and the label text
 - Delete action only appears for media where `is_created_for_medical_record === '1'`
 - The `current_medical_record_id` parameter is always sent to the API regardless of filter selection
+- **File validation enforces 2 MB size limit and specific file type restrictions**
+- **Upload validation cannot be bypassed** - occurs before file upload attempt
