@@ -353,7 +353,7 @@ const HospitalFollowUp = () => {
       renderCell: params => {
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.due_in_days} {params?.row?.due_in_days > 1 ? 'Days' : 'Day'}
+            {params?.row?.due_in_days}
           </Typography>
         )
       }

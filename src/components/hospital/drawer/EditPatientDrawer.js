@@ -17,8 +17,8 @@ import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
 
 const defaultValues = {
   holdingEnclosure: null,
-  selectedDoctor: null,
-  patient_status: false
+  selectedDoctor: null
+  // patient_status: false
 }
 
 const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
@@ -111,7 +111,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
   }, [selectedHospital, search, hospitalStats?.available_rooms])
 
   const selectedRoom = watch('room')
-  const watchPatientStatus = watch('patient_status')
+  // const watchPatientStatus = watch('patient_status')
 
   useEffect(() => {
     const getHospitalBeds = async () => {
@@ -368,7 +368,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
               }
             />
           </Box>
-          <Box
+          {/* <Box
             sx={{
               display: 'none',
               justifyContent: 'space-between',
@@ -391,7 +391,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
               labelPosition='start'
               spaceBetween
             />
-          </Box>
+          </Box> */}
         </Box>
         <Box
           sx={{

@@ -32,8 +32,8 @@ const defaultValues = {
   admission_date: dayjs(),
   admission_time: dayjs(),
   room: null,
-  reason: '',
-  patient_status: false
+  reason: ''
+  // patient_status: false
 }
 
 const schema = yup.object().shape({
@@ -42,8 +42,8 @@ const schema = yup.object().shape({
   selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
   admission_date: yup.date().required('Admission date is required'),
   admission_time: yup.string().required('Admission time is required'),
-  reason: yup.string().required('Reason for admission is required'),
-  patient_status: yup.boolean().required('Patient status is required')
+  reason: yup.string().required('Reason for admission is required')
+  // patient_status: yup.boolean().required('Patient status is required')
 })
 
 const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) => {
@@ -141,7 +141,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
   }, [selectedHospital, searchRoom, hospitalStats?.available_rooms])
 
   const selectedRoom = watch('room')
-  const watchPatientStatus = watch('patient_status')
+  // const watchPatientStatus = watch('patient_status')
 
   useEffect(() => {
     const getHospitalBeds = async () => {
@@ -413,7 +413,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
                   </Grid>
                 </Grid>
               </Box>
-              <Box
+              {/* <Box
                 sx={{
                   display: 'none',
                   justifyContent: 'space-between',
@@ -438,7 +438,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
                   labelPosition='start'
                   spaceBetween
                 />
-              </Box>
+              </Box> */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <Typography
                   sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
