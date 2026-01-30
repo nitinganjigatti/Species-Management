@@ -1,9 +1,10 @@
 import React from 'react'
-import { Box, Card, CardContent, Grid, useTheme, Button } from '@mui/material'
+import { Box, Card, CardContent, Grid, useTheme, Button, IconButton, Badge, Typography } from '@mui/material'
 import NecropsyDropdown from 'src/components/necropsy/NecropsyDropdown'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import { AirportShuttle } from '@mui/icons-material'
 
-const NecropsyAnalytics = ({ disabled = false, filterDate, setFilterDate }) => {
+const NecropsyAnalytics = ({ disabled = false, filterDate, setFilterDate, badgeCount = 1 }) => {
   const theme = useTheme()
 
   return (
@@ -15,38 +16,99 @@ const NecropsyAnalytics = ({ disabled = false, filterDate, setFilterDate }) => {
         }}
       >
         <CardContent sx={{ p: 4 }}>
-          <Grid container spacing={4} alignItems='center' justifyContent='space-between'>
-            {/* Necropsy Info Section */}
-            <Grid item xs={12} md={5}>
-              <Box
-                sx={{
-                  textAlign: { md: 'left' }
+          <Grid container alignItems='center' rowSpacing={1}>
+            <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'end' }}>
+              <Button
+                onClick={() => {
+                  alert('its working fine')
                 }}
-              >
-                <NecropsyDropdown disabled={disabled} />
-              </Box>
-            </Grid>
-
-            {/* Metrics Section / Actions */}
-            <Grid item xs={12} md={7}>
-              <Box
                 sx={{
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: { xs: 'flex-start', md: 'flex-end' },
-                  gap: 4
+                  gap: '8px'
                 }}
               >
-                <Box sx={{ width: '300px' }}>
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  CARCASS TRANSFER
+                </Typography>
+                <Badge badgeContent={badgeCount} color='error'>
+                  <AirportShuttle sx={{ color: theme.palette.customColors.OnSurfaceVariant }} />
+                </Badge>
+              </Button>
+            </Grid>
+            <Grid
+              item
+              size={{ xs: 12 }}
+              container
+              justifyContent='space-between'
+              rowSpacing={4}
+              sx={{
+                display: 'flex',
+                flexDirection: {
+                  xs: 'column-reverse',
+                  sm: 'row ',
+                  alignItems: 'center'
+                }
+              }}
+            >
+              {/* Necropsy Info Section */}
+              <Grid
+                item
+                size={{ xs: 12, sm: 6 }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center'
+                }}
+              >
+                <Typography
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'start',
+                    fontSize: '14px',
+                    color: theme.palette.customColors.secondaryBg
+                  }}
+                >
+                  Necropsy Center
+                </Typography>
+                <Box
+                  sx={{
+                    textAlign: { md: 'left' }
+                  }}
+                >
+                  <NecropsyDropdown disabled={disabled} />
+                </Box>
+              </Grid>
+              <Grid
+                item
+                size={{ xs: 12, sm: 'auto' }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >
+                <Typography sx={{ display: 'flex', fontSize: '14px', color: theme.palette.customColors.secondaryBg }}>
+                  Date Range
+                </Typography>
+                <Box
+                  sx={{
+                    width: '100%',
+                    minWidth: { xs: 0, sm: '300px' },
+                    alignItems: 'center',
+                    py: '6px'
+                  }}
+                >
                   <CommonDateRangePickers
                     filterDates={filterDate}
                     onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
                   />
                 </Box>
-                <Button variant='contained' onClick={() => {}}>
-                  CARCASS TRANSFER
-                </Button>
-              </Box>
+              </Grid>
             </Grid>
           </Grid>
         </CardContent>
