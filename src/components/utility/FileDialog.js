@@ -253,7 +253,11 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
           padding: '6px 24px'
         }}
       >
-        <Grid container spacing={2} sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
+        <Grid
+          container
+          spacing={2}
+          sx={{ mr: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'nowrap' }}
+        >
           <Grid
             size={{ sm: type == 'pdf' ? 8 : 11, md: type == 'pdf' ? 9 : 11 }}
             sx={{ display: 'flex', justifyContent: 'center' }}
