@@ -1,6 +1,7 @@
 import {
   ADD_HOSPITAL_PATIENT,
   EDIT_PATIENT_DETAILS,
+  GET_ALL_SITE_LIST_WITHOUT_PERMISSION,
   GET_ANIMAL_TOTAL_HOSPITAL_VISIT,
   GET_FOLLOWUP_PATIENTS_LISTS,
   GET_MORTALITY_PATIENTS_LISTS,
@@ -68,6 +69,12 @@ export async function getPatientDischargeSummary(params) {
 
 export async function getPatientVisitSummary(params) {
   const response = await axiosGet({ url: `${GET_PATIENT_VISIT_SUMMARY}`, params })
+
+  return response?.data
+}
+
+export async function getZooWiseSiteLists(params) {
+  const response = await axiosGet({ url: `${GET_ALL_SITE_LIST_WITHOUT_PERMISSION}`, params: params })
 
   return response?.data
 }

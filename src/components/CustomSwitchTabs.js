@@ -1,18 +1,9 @@
 import React, { useState } from 'react'
-import { Box, ToggleButtonGroup, ToggleButton } from '@mui/material'
+import { Box, ToggleButtonGroup, ToggleButton, useTheme } from '@mui/material'
 import PropTypes from 'prop-types'
 
-const CustomSwitchTabs = ({ options = [], defaultValue, onChange, className = '' }) => {
-  const [selected, setSelected] = useState(defaultValue || (options.length > 0 ? options[0].value : ''))
-
-  const handleChange = (event, newValue) => {
-    if (newValue !== null) {
-      setSelected(newValue)
-      if (onChange) {
-        onChange(newValue)
-      }
-    }
-  }
+const CustomSwitchTabs = ({ options = [], value, onChange, className = '' }) => {
+  const theme = useTheme()
 
   if (options.length === 0) {
     return null
@@ -21,40 +12,43 @@ const CustomSwitchTabs = ({ options = [], defaultValue, onChange, className = ''
   return (
     <Box className={className} sx={{ display: 'inline-block' }}>
       <ToggleButtonGroup
-        value={selected}
+        value={value}
         exclusive
-        onChange={handleChange}
+        onChange={onChange}
         aria-label='switch tabs'
         sx={{
-          bgcolor: '#F1F3F5',
-          borderRadius: '16px',
-          p: 1,
+          bgcolor: theme.palette.customColors.Background,
+          borderRadius: 0.8,
+          p: 1.5,
           border: 'none',
           gap: '4px',
           '& .MuiToggleButtonGroup-grouped': {
             border: 'none',
-            borderRadius: '12px !important',
+            borderRadius: '8px !important',
             textTransform: 'none',
             fontSize: '0.875rem',
             fontWeight: 600,
             px: 0,
-            py: 0.25,
-            color: '#A0A4A8',
+            py: 0.5,
+
+            // color: '#A0A4A8',
             transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
             margin: 0,
             minWidth: '120px',
             '&.Mui-selected': {
-              bgcolor: 'white',
-              color: '#0F9D8E',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+              bgcolor: theme.palette.customColors.OnPrimary,
+              color: theme.palette.primary.main,
+
+              // boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
               '&:hover': {
-                bgcolor: 'white',
-                color: '#0F9D8E'
+                bgcolor: theme.palette.customColors.OnPrimary,
+                color: theme.palette.primary.main
               }
             },
             '&:not(.Mui-selected):hover': {
-              bgcolor: 'transparent',
-              color: '#6B7280'
+              bgcolor: 'transparent'
+
+              // color: theme.palette.customColors.gray10
             },
             '&:focus': {
               outline: 'none'
@@ -73,15 +67,9 @@ const CustomSwitchTabs = ({ options = [], defaultValue, onChange, className = ''
 }
 
 CustomSwitchTabs.propTypes = {
-  options: PropTypes.arrayOf(
-    PropTypes.shape({
-      value: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired
-    })
-  ).isRequired,
-  defaultValue: PropTypes.string,
-  onChange: PropTypes.func,
-  className: PropTypes.string
+  options: PropTypes.array.isRequired,
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func
 }
 
 export default CustomSwitchTabs
