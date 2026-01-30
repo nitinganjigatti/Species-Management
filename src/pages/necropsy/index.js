@@ -48,29 +48,29 @@ const getDefaultStatCards = theme => [
     id: 'INCOMING',
     label: 'INCOMING TRANSFERS',
     icon: <InboxIcon sx={{ fontSize: 24 }} />,
-    color: theme.palette.customColors.OnPrimaryContainer,
-    bgColor: theme.palette.customColors.OnPrimarycontainer10
+    color: theme.palette.customColors.addPrimary,
+    bgColor: theme.palette.customColors.bodyBg
   },
   {
     id: 'PENDING',
     label: 'PENDING APPROVAL',
     icon: <ClockIcon sx={{ fontSize: 24 }} />,
-    color: theme.palette.customColors.moderateSecondary,
-    bgColor: theme.palette.customColors.antzNotes40
+    color: theme.palette.primary.dark,
+    bgColor: theme.palette.customColors.antzNotesLight
   },
   {
     id: 'DRAFT',
     label: 'DRAFT REPORTS',
     icon: <DocumentIcon sx={{ fontSize: 24 }} />,
     color: theme.palette.customColors.Error,
-    bgColor: theme.palette.customColors.TertiaryLight
+    bgColor: theme.palette.customColors.avatarBackground
   },
   {
     id: 'COMPLETED',
     label: 'COMPLETED CASES',
     icon: <CheckIcon sx={{ fontSize: 24 }} />,
-    color: theme.palette.primary.dark,
-    bgColor: theme.palette.background.OnBackground
+    color: theme.palette.primary.main,
+    bgColor: theme.palette.customColors.OnBackground
   }
 ]
 
@@ -524,7 +524,7 @@ const Necropsy = () => {
     },
     {
       minWidth: 20,
-      width: 300,
+      width: 350,
       sortable: false,
       field: 'species_name',
       headerName: 'Species',
@@ -539,9 +539,19 @@ const Necropsy = () => {
       )
     },
     {
+      width: 120,
+      minWidth: 20,
+      sortable: false,
       field: 'count',
       headerName: 'Count',
-      width: 120
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant, px: 2 }}
+        >
+          {params.row.count}
+        </Typography>
+      )
     }
   ]
 
