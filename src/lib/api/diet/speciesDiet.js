@@ -13,6 +13,26 @@ export async function getAnimalList(params) {
   return response.data
 }
 
+export async function getAnimalDetailUploadedDiet(id, params) {
+  const response = await axiosGet({ url: `${DIET}/get-animal-detail-uploaded-diet/${id}`, params })
+
+  return response.data
+}
+
+export async function animalDietAttachmentStatus(payload) {
+  try {
+    const response = await axiosPost({ url: `${DIET}/animal-diet-attachments-status`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
 export async function getSpecieDetailById(id, params) {
   return await axiosGet({ url: `${DIET}/get-species-detail/${id}`, params })
 }

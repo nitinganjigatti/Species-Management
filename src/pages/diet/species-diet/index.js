@@ -27,12 +27,14 @@ import Utility from 'src/utility'
 import Error404 from 'src/pages/404'
 
 import SpeciesDetails from '../../../components/diet/species-diet/speciesDetails'
+import AnimalDetails from '../../../components/diet/species-diet/animalDetails'
 import UploadDiet from '../../../components/diet/species-diet/uploadDiet'
 import SpeciesDietFilterDrawer from 'src/views/pages/diet/species/SpeciesDietFilterDrawer'
 import { FilterButton } from '../../../views/utility/render-snippets'
 
 import { getSpeciesList, getAnimalList } from 'src/lib/api/diet/speciesDiet'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import AnimalCard from 'src/views/utility/AnimalCard'
 
 const TAB_VALUES = {
   SPECIES: 'species',
@@ -77,6 +79,7 @@ const SpeciesDietList = () => {
   const [animalLoading, setAnimalLoading] = useState(false)
 
   const [animalUploadDietDrawer, setAnimalUploadDietDrawer] = useState(false)
+  const [animalDetailsDrawer, setAnimalDetailsDrawer] = useState(false)
   const [animalFilterByDiet, setAnimalFilterByDiet] = useState('-1')
   const [animalExportLoading, setAnimalExportLoading] = useState(false)
 
@@ -129,6 +132,7 @@ const SpeciesDietList = () => {
     setOpenFilterDrawer(false)
     setAnimalUploadDietDrawer(false)
     setAnimalOpenFilterDrawer(false)
+    setAnimalDetailsDrawer(false)
   }
 
   function loadServerRows(currentPage, data) {
@@ -366,7 +370,7 @@ const SpeciesDietList = () => {
     setAnimalUploadDietDrawer(true)
   }
 
-  const buildColumns = ({ nameHeader, onRowClick, onUploadClick }) => [
+  const buildColumns = ({ nameHeader, onRowClick, onUploadClick, renderCard }) => [
     {
       width: colWidths[0],
       field: 'id',
@@ -398,7 +402,7 @@ const SpeciesDietList = () => {
           onClick={onRowClick ? () => onRowClick(params) : undefined}
           sx={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: onRowClick ? 'pointer' : 'default' }}
         >
-          <SpeciesCard species={params?.row} />
+          {renderCard ? renderCard(params?.row) : <SpeciesCard species={params?.row} />}
         </Box>
       )
     },
@@ -500,12 +504,15 @@ const SpeciesDietList = () => {
   const speciesColumns = buildColumns({
     nameHeader: 'SPECIES',
     onRowClick: () => setSpeciesDetailsDrawer(true),
-    onUploadClick: handleSpeciesUploadClick
+    onUploadClick: handleSpeciesUploadClick,
+    renderCard: row => <SpeciesCard species={row} />
   })
 
   const animalColumns = buildColumns({
     nameHeader: 'ANIMAL',
-    onUploadClick: handleAnimalUploadClick
+    onRowClick: () => setAnimalDetailsDrawer(true),
+    onUploadClick: handleAnimalUploadClick,
+    renderCard: row => <AnimalCard data={row} />
   })
 
   const handleExport = async () => {
@@ -805,7 +812,7 @@ const SpeciesDietList = () => {
               pagination
               rows={activeRows === undefined ? [] : activeRows}
               rowCount={activeTotal}
-              rowHeight={64}
+              rowHeight={isAnimalTab ? 140 : 64}
               disableRowSelectionOnClick
               disableColumnMenu
               columns={activeColumns}
@@ -845,6 +852,15 @@ const SpeciesDietList = () => {
               setspeciesId={setspeciesId}
               speciesDetailsDrawer={speciesDetailsDrawer}
               setSpeciesDetailsDrawer={setSpeciesDetailsDrawer}
+            />
+          )}
+          {isAnimalTab && animalDetailsDrawer && (
+            <AnimalDetails
+              fetchTableData={fetchAnimalTableData}
+              animalId={animalId}
+              setAnimalId={setAnimalId}
+              animalDetailsDrawer={animalDetailsDrawer}
+              setAnimalDetailsDrawer={setAnimalDetailsDrawer}
             />
           )}
           {!isAnimalTab && uploadDietDrawer && (
