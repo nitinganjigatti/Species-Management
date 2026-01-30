@@ -158,7 +158,7 @@ const NecropsyDropdown = ({ disabled = false }) => {
           cursor: disabled ? 'default' : 'pointer',
           border: Boolean(anchorEl) ? `1px solid ${theme.palette.customColors.OnSurface}` : 'none',
           borderRadius: '4px',
-          backgroundColor: Boolean(anchorEl) ? theme.palette.customColors.Surface : 'transparent',
+          backgroundColor: Boolean(anchorEl) ? theme.palette.customColors.Surface : theme.palette.customColors.Surface,
           px: '16px',
           py: '6px',
           '&:hover': {
