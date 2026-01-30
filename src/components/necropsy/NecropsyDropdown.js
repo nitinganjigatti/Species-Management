@@ -1,7 +1,7 @@
 // components/NecropsyDropdown.jsx
 import React, { useState, useEffect, useCallback, useRef, useMemo, useContext } from 'react'
-import { Box, Typography, Menu, MenuItem, useTheme, Tooltip } from '@mui/material'
-import { KeyboardArrowDown } from '@mui/icons-material'
+import { Box, Typography, Menu, MenuItem, useTheme, Tooltip, Avatar } from '@mui/material'
+import { KeyboardArrowDown, Biotech } from '@mui/icons-material'
 import { useNecropsy } from 'src/context/NecropsyContext'
 import Search from 'src/views/utility/Search'
 import debounce from 'lodash/debounce'
@@ -167,39 +167,59 @@ const NecropsyDropdown = ({ disabled = false }) => {
         }}
       >
         <Box sx={{ maxWidth: 400, display: 'flex', alignItems: 'center' }}>
-          {(isLoadingNecropsies || isCheckingNecropsyAccess) ? (
+          {isLoadingNecropsies || isCheckingNecropsyAccess ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
               <ShimmerBox width='160px' height='24px' mb={0} />
               <ShimmerBox width='120px' height='16px' mb={0} />
             </Box>
           ) : selectedNecropsy?.name ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', maxWidth: 400 }}>
-              <Tooltip title={selectedNecropsy?.name}>
-                <Typography
-                  sx={{
-                    fontWeight: 500,
-                    fontSize: '20px',
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {selectedNecropsy.name}
-                </Typography>
-              </Tooltip>
-              {selectedNecropsy?.site_name && (
-                <Tooltip title={selectedNecropsy?.site_name || '-'}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                maxWidth: 400,
+                backgroundColor: theme.palette.customColors.background
+              }}
+            >
+              <Avatar
+                sx={{
+                  width: 56,
+                  height: 56,
+                  backgroundColor: theme.palette.customColors.antzNotes80,
+                  borderRadius: '8px',
+                  p: '8px'
+                }}
+              >
+                <Biotech sx={{ fontSize: 32, color: theme.palette.customColors.OnSurfaceVariant }} />
+              </Avatar>
+              <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2 }}>
+                <Tooltip title={selectedNecropsy?.name}>
                   <Typography
                     sx={{
+                      fontWeight: 500,
+                      fontSize: '20px',
                       color: theme.palette.customColors.OnSurfaceVariant,
-                      fontSize: '14px'
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
                     }}
                   >
-                    {selectedNecropsy?.site_name || '-'}
+                    {selectedNecropsy.name}
                   </Typography>
                 </Tooltip>
-              )}
+                {selectedNecropsy?.site_name && (
+                  <Tooltip title={selectedNecropsy?.site_name || '-'}>
+                    <Typography
+                      sx={{
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        fontSize: '14px'
+                      }}
+                    >
+                      {selectedNecropsy?.site_name || '-'}
+                    </Typography>
+                  </Tooltip>
+                )}
+              </Box>
             </Box>
           ) : (
             <Box>No necropsy centers found</Box>
@@ -254,7 +274,9 @@ const NecropsyDropdown = ({ disabled = false }) => {
                 ))}
               </Box>
             ) : necropsies.length === 0 ? (
-              <MenuItem disabled>{localSearch ? 'No necropsy centers found' : 'No necropsy centers available'}</MenuItem>
+              <MenuItem disabled>
+                {localSearch ? 'No necropsy centers found' : 'No necropsy centers available'}
+              </MenuItem>
             ) : (
               necropsies.map(necropsy => (
                 <MenuItem

@@ -231,7 +231,8 @@ const Necropsy = () => {
           INCOMING: Number(stats.incoming_count || 0),
           PENDING: Number(stats.pending_count || 0),
           DRAFT: Number(stats.draft_count || 0),
-          COMPLETED: Number(stats.completed_count || 0)
+          COMPLETED: Number(stats.completed_count || 0),
+          CARCASS_TRANSFER: Number(stats.transfer_count || 0)
         })
       }
     } catch (error) {
@@ -558,7 +559,11 @@ const Necropsy = () => {
   return (
     <Box>
       <Breadcrumbs></Breadcrumbs>
-      <NecropsyAnalytics filterDate={filterDate} setFilterDate={setFilterDate} />
+      <NecropsyAnalytics
+        filterDate={filterDate}
+        setFilterDate={setFilterDate}
+        badgeCount={statsData?.CARCASS_TRANSFER}
+      />
       <Box sx={{ mt: 6 }}>
         <Card
           sx={{

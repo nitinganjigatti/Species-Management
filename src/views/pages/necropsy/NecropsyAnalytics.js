@@ -1,8 +1,9 @@
 import React from 'react'
-import { Box, Card, CardContent, Grid, useTheme, Button, IconButton, Badge, Typography } from '@mui/material'
+import { Box, Card, CardContent, Divider, Grid, useTheme, Button, Badge, Typography, Avatar } from '@mui/material'
 import NecropsyDropdown from 'src/components/necropsy/NecropsyDropdown'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { AirportShuttle } from '@mui/icons-material'
+import RenderUtility from 'src/utility/render'
 
 const NecropsyAnalytics = ({ disabled = false, filterDate, setFilterDate, badgeCount = 1 }) => {
   const theme = useTheme()
@@ -17,7 +18,8 @@ const NecropsyAnalytics = ({ disabled = false, filterDate, setFilterDate, badgeC
       >
         <CardContent sx={{ p: 4 }}>
           <Grid container alignItems='center' rowSpacing={1}>
-            <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'end' }}>
+            <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              {RenderUtility.pageTitle('Necropsy')}
               <Button
                 onClick={() => {
                   alert('its working fine')
@@ -41,72 +43,55 @@ const NecropsyAnalytics = ({ disabled = false, filterDate, setFilterDate, badgeC
                 </Badge>
               </Button>
             </Grid>
-            <Grid
-              item
-              size={{ xs: 12 }}
-              container
-              justifyContent='space-between'
-              rowSpacing={4}
-              sx={{
-                display: 'flex',
-                flexDirection: {
-                  xs: 'column-reverse',
-                  sm: 'row ',
-                  alignItems: 'center'
-                }
-              }}
-            >
-              {/* Necropsy Info Section */}
-              <Grid
-                item
-                size={{ xs: 12, sm: 6 }}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center'
-                }}
-              >
-                <Typography
+            <Grid size={{ xs: 12 }}>
+              <Divider sx={{ my: 2 }} />
+            </Grid>
+            <Grid size={{ xs: 12 }} container spacing={4} alignItems='center' justifyContent='space-between'>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Box
                   sx={{
                     display: 'flex',
-                    alignItems: 'start',
-                    fontSize: '14px',
-                    color: theme.palette.customColors.secondaryBg
+                    alignItems: 'center',
+                    gap: 1
                   }}
                 >
-                  Necropsy Center
-                </Typography>
-                <Box
-                  sx={{
-                    textAlign: { md: 'left' }
-                  }}
-                >
-                  <NecropsyDropdown disabled={disabled} />
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontSize: '14px',
+                        color: theme.palette.customColors.neutralSecondary
+                      }}
+                    >
+                      Necropsy Center
+                    </Typography>
+                    <NecropsyDropdown disabled={disabled} />
+                  </Box>
                 </Box>
               </Grid>
-              <Grid
-                item
-                size={{ xs: 12, sm: 'auto' }}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}
-              >
-                <Typography sx={{ display: 'flex', fontSize: '14px', color: theme.palette.customColors.secondaryBg }}>
-                  Date Range
-                </Typography>
-                <Box
-                  sx={{
-                    width: '100%',
-                    minWidth: { xs: 0, sm: '300px' },
-                    alignItems: 'center',
-                    py: '6px'
-                  }}
-                >
-                  <CommonDateRangePickers
-                    filterDates={filterDate}
-                    onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
-                  />
+
+              {/* Right: Date Range Picker */}
+              <Grid size={{ xs: 12, sm: 'auto' }}>
+                <Box>
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      color: theme.palette.customColors.neutralSecondary
+                    }}
+                  >
+                    Date Range
+                  </Typography>
+                  <Box
+                    sx={{
+                      width: '100%',
+                      minWidth: { xs: 0, sm: '300px' },
+                      py: '6px'
+                    }}
+                  >
+                    <CommonDateRangePickers
+                      filterDates={filterDate}
+                      onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
+                    />
+                  </Box>
                 </Box>
               </Grid>
             </Grid>
