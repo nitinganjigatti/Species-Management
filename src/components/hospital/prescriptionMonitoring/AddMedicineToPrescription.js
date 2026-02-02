@@ -1561,6 +1561,8 @@ export default function AddMedicineToPrescription() {
 
       const payload = {
         medical_record_id: medicineDetail?.medical_record_id,
+        request_from: 'hospital',
+        hospital_case_id: id,
         data: JSON.stringify([
           {
             prescription_id: medicineDetail?.prescription_id,
@@ -2096,7 +2098,6 @@ export default function AddMedicineToPrescription() {
             <PrescriptionMedicineList
               medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
               temporarilySelectedMedicine={temporarilySelectedMedicine}
-
               // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
               selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
               onSelect={handleMedicineSelect}

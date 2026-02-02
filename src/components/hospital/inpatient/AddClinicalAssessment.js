@@ -331,7 +331,8 @@ function AddClinicalAssessment() {
 
     const payload = {
       medical_record_id: medicalRecordId,
-      diagnosis: JSON.stringify(diagnosis)
+      diagnosis: JSON.stringify(diagnosis),
+      hospital_case_id: id
     }
 
     try {

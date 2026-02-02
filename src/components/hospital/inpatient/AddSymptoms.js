@@ -357,6 +357,7 @@ function AddSymptoms() {
       formData.append('medical_record_id', patientData?.medical_record_id)
       formData.append('animal_id', JSON.stringify([Number(patientData?.animal_detail?.animal_id)]))
       formData.append('complaints', JSON.stringify(complaints))
+      formData.append('hospital_case_id', id)
 
       const response = await addSymptoms(formData)
 

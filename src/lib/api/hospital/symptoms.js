@@ -3,7 +3,7 @@ import {
   ANIMAL_MEDICAL_ID_LIST,
   GET_SYMPTOM_LISTING,
   ADD_HOSPITAL_SYMPTOMS,
-  UPDATE_HOSPITAL_SYMPTOMS,
+  UPDATE_NOTES,
   GET_ACTIVITY_LIST,
   DELETE_NOTE_SYMPTOM
 } from 'src/constants/ApiConstant'
@@ -28,7 +28,7 @@ export const addSymptoms = async payload => {
 }
 
 export const updateSymptoms = async payload => {
-  const response = await axiosFormPost({ url: `${ANIMAL_MEDICAL_ID_LIST}${UPDATE_HOSPITAL_SYMPTOMS}`, body: payload })
+  const response = await axiosFormPost({ url: `${UPDATE_NOTES}`, body: payload })
 
   return response?.data
 }
