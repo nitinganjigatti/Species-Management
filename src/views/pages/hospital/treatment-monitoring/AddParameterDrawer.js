@@ -566,50 +566,48 @@ const AddParameterDrawer = ({
                 gap: 0.1
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <FormLabel
-                  component='legend'
-                  sx={{
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                >
-                  Select parameter frequency
-                </FormLabel>
+              <FormLabel
+                component='legend'
+                sx={{
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                Select Parameter Frequency
+              </FormLabel>
 
-                <RadioGroup
-                  row
-                  value={todayOnly !== null ? String(todayOnly) : ''}
-                  onChange={e => {
-                    setTodayOnly(Number(e.target.value))
-                    setTodayOnlyError(false)
+              <RadioGroup
+                row
+                value={todayOnly !== null ? String(todayOnly) : ''}
+                onChange={e => {
+                  setTodayOnly(Number(e.target.value))
+                  setTodayOnlyError(false)
+                }}
+              >
+                <FormControlLabel
+                  value='1'
+                  control={<Radio />}
+                  label='Only for today'
+                  sx={{
+                    '& .MuiTypography-root': {
+                      fontSize: '0.95rem',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }
                   }}
-                >
-                  <FormControlLabel
-                    value='1'
-                    control={<Radio />}
-                    label='Today'
-                    sx={{
-                      '& .MuiTypography-root': {
-                        fontSize: '0.95rem',
-                        color: theme.palette.customColors.OnSurfaceVariant
-                      }
-                    }}
-                  />
-                  <FormControlLabel
-                    value='0'
-                    control={<Radio />}
-                    label='All days'
-                    sx={{
-                      '& .MuiTypography-root': {
-                        fontSize: '0.95rem',
-                        color: theme.palette.customColors.OnSurfaceVariant
-                      }
-                    }}
-                  />
-                </RadioGroup>
-              </Box>
+                />
+                <FormControlLabel
+                  value='0'
+                  control={<Radio />}
+                  label='Set For all days'
+                  sx={{
+                    '& .MuiTypography-root': {
+                      fontSize: '0.95rem',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }
+                  }}
+                />
+              </RadioGroup>
 
               {todayOnlyError && (
                 <FormHelperText
