@@ -83,14 +83,14 @@ const Listing = ({
   const total = data?.data?.total_count || 0
   const siteList = data?.data?.result || []
 
-  useEffect(() => {
-    if (siteList.length === 1) {
-      router.replace({
-        pathname: `/housing/sites/${siteList[0].site_id}`,
-        query: { ...filters }
-      })
-    }
-  }, [siteList, router])
+  // useEffect(() => {
+  //   if (siteList.length === 1) {
+  //     router.replace({
+  //       pathname: `/housing/sites/${siteList[0].site_id}`,
+  //       query: { ...filters }
+  //     })
+  //   }
+  // }, [siteList, router])
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -505,14 +505,14 @@ const Listing = ({
     }
   ]
 
-  if (siteList.length === 1) {
-    // Loader while redirecting to details page
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
-        <CircularProgress />
-      </Box>
-    )
-  }
+  // if (siteList.length === 1) {
+  //   // Loader while redirecting to details page
+  //   return (
+  //     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
+  //       <CircularProgress />
+  //     </Box>
+  //   )
+  // }
 
   return (
     <>
