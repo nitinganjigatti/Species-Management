@@ -424,6 +424,27 @@ const MortalityDischargeForm = props => {
                       color: priorityColor
                     }
                   }}
+                  formControlSx={{
+                    // normal
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: `${priorityColor} !important`
+                    },
+                    // hover
+                    '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: `${priorityColor} !important`
+                    },
+                    // focused
+                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: `${priorityColor} !important`
+                    },
+                    // label
+                    '& .MuiInputLabel-root': {
+                      color: priorityColor
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': {
+                      color: priorityColor
+                    }
+                  }}
                 />
               ) : (
                 <ControlledTextField
