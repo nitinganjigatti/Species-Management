@@ -130,7 +130,8 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
         duration: pendingDetails?.durationValue || 0,
         duration_unit: pendingDetails?.durationUnit,
         status: pendingDetails?.status,
-        note: pendingDetails?.notes
+        note: pendingDetails?.notes,
+        hospital_case_id: id
       }
 
       const response = await updateSymptoms(payload)

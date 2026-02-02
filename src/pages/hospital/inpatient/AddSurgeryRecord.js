@@ -220,7 +220,7 @@ const schema = yup.object().shape({
   endTime: yup
     .mixed()
     .test('end-required', 'End time is required', value => Boolean(value))
-    .test('end-after-start', 'End time must be after start time', function (value) {
+    .test('end-after-start', 'End time must be at least 1 hour after start time', function (value) {
       const { startTime, date } = this?.parent || {}
       if (!value || !startTime || !date) return true
 
@@ -229,7 +229,7 @@ const schema = yup.object().shape({
 
       if (!startDateTime || !endDateTime) return true
 
-      return endDateTime.isAfter(startDateTime)
+      return endDateTime.diff(startDateTime, 'minute') >= 60
     }),
   procedure: yup
     .mixed()
@@ -277,7 +277,7 @@ const AddSurgeryRecord = () => {
     () => ({
       date: dayjs(),
       startTime: dayjs(),
-      endTime: null,
+      endTime: dayjs().add(1, 'hour'),
       procedure: null,
       surgeon: null,
       typeOfSurgery: '',
@@ -331,6 +331,11 @@ const AddSurgeryRecord = () => {
   const endTimeValue = watch('endTime')
   const durationValue = watch('duration')
   const selectedAnesthesia = selectedAnesthesiaRecord
+  const minEndTime = useMemo(() => {
+    if (!startTimeValue || !dayjs(startTimeValue).isValid()) return null
+
+    return dayjs(startTimeValue).add(1, 'hour')
+  }, [startTimeValue])
   const parseUtcDateToLocalDayjs = useCallback(value => {
     if (!value) return null
 
@@ -721,6 +726,15 @@ const AddSurgeryRecord = () => {
       setValue('duration', label, { shouldValidate: true, shouldDirty: true })
     }
   }, [selectedDate, startTimeValue, endTimeValue, durationValue, setValue])
+
+  useEffect(() => {
+    if (!minEndTime) return
+
+    const currentEnd = endTimeValue && dayjs(endTimeValue).isValid() ? dayjs(endTimeValue) : null
+    if (!currentEnd || currentEnd.isBefore(minEndTime)) {
+      setValue('endTime', minEndTime, { shouldValidate: true, shouldDirty: false, shouldTouch: false })
+    }
+  }, [minEndTime, endTimeValue, setValue])
 
   const handleClearSelectedAnesthesia = useCallback(() => {
     setSelectedAnesthesiaRecord(null)
@@ -1117,6 +1131,7 @@ const AddSurgeryRecord = () => {
                 name={'endTime'}
                 control={control}
                 label='End Time'
+                minTime={minEndTime}
                 renderInput={params => (
                   <ControlledTextField
                     {...params}

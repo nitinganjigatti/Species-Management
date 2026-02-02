@@ -78,8 +78,8 @@ const schema = yup.object().shape({
   holdingEnclosure: yup.object().required('Holding Enclosure is required'),
   selectedAnimal: yup.mixed().nullable().required('Animal is required'),
   selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
-  room: yup.object().required('Room is required'),
-  patient_status: yup.boolean().required('Patient Status is Required')
+  room: yup.object().required('Room is required')
+  // patient_status: yup.boolean().required('Patient Status is Required')
 })
 
 const AddPatientForm = ({ defaultTreatmentType }) => {
@@ -100,8 +100,8 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
     selectedDoctor: null,
     admission_date: dayjs(),
     admission_time: dayjs(),
-    room: null,
-    patient_status: false
+    room: null
+    // patient_status: false
   }
 
   const { selectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } = useHospital()
@@ -165,7 +165,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
 
   const watchMedicalChoice = watch('medicalRecordChoice')
   const watchTreatmentType = watch('treatmentType')
-  const watchPatientStatus = watch('patient_status')
+  // const watchPatientStatus = watch('patient_status')
 
   useEffect(() => {
     const getHospitalRooms = async () => {
@@ -741,7 +741,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                     disabled={submitLoader}
                   />
                 </Grid>
-                <Grid
+                {/* <Grid
                   size={{ xs: 12 }}
                   sx={{
                     display: 'none',
@@ -768,7 +768,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                     labelPosition='start'
                     spaceBetween
                   />
-                </Grid>
+                </Grid> */}
                 <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
