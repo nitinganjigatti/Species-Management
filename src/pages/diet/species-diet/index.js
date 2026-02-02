@@ -306,14 +306,28 @@ const SpeciesDietList = () => {
       const classIds = animalSelectedFiltersOptions?.Class?.map(option => option.id) || []
       const params = {
         q: animalSearchValue,
-        page_no: animalPaginationModel.page + 1,
-        limit: animalPaginationModel.pageSize,
+        response_type: 'csv',
         with_diet: animalFilterByDiet,
         sort_order: animalSortModel?.[0]?.sort?.toUpperCase(),
         class_ids: classIds?.length > 0 ? classIds.toString() : ''
       }
       const response = await getAnimalList(params)
       if (response?.success && response?.data) {
+        if (typeof response.data === 'string') {
+          const csvFile = response.data.split('/')
+          const fileName = csvFile[csvFile.length - 1]
+          Utility.downloadFileFromURL(response.data, `${fileName}`)
+
+          return
+        }
+        const downloadUrl = response?.data?.download_url || response?.data?.file_url || response?.data?.url
+        if (downloadUrl) {
+          const csvFile = downloadUrl.split('/')
+          const fileName = csvFile[csvFile.length - 1]
+          Utility.downloadFileFromURL(downloadUrl, `${fileName}`)
+
+          return
+        }
         if (Array.isArray(response?.data?.result)) {
           const headers = ['Common Name', 'Scientific Name', 'Active Diets']
           const rowsData = response.data.result.map((item, index) => {
@@ -327,19 +341,6 @@ const SpeciesDietList = () => {
           downloadCsvFile('animal-diet-list.csv', csvRows)
 
           return
-        }
-        if (typeof response.data === 'string') {
-          const csvFile = response.data.split('/')
-          const fileName = csvFile[csvFile.length - 1]
-          Utility.downloadFileFromURL(response.data, `${fileName}`)
-
-          return
-        }
-        const downloadUrl = response?.data?.download_url || response?.data?.file_url || response?.data?.url
-        if (downloadUrl) {
-          const csvFile = downloadUrl.split('/')
-          const fileName = csvFile[csvFile.length - 1]
-          Utility.downloadFileFromURL(downloadUrl, `${fileName}`)
         }
       }
     } catch (error) {
