@@ -204,6 +204,10 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
   const selectedRoom = watch('room')
 
   useEffect(() => {
+    // Reset holding enclosure when room changes
+    setValue('holdingEnclosure', null)
+    setHoldingEnclosures([])
+
     const getHospitalBeds = async () => {
       if (!selectedRoom?.value) return
       setBedsLoading(true)
@@ -359,9 +363,9 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
       keepTouched: false
     })
     setSelectedAnimal(null)
-    setValue('selectedAnimal', null)
+    setSelectedDoctor(null)
     setMedicalId([])
-    setValue('medicalRecordChoice', 'new')
+    setHoldingEnclosures([])
   }
 
   const handleRemoveDoctor = () => {
