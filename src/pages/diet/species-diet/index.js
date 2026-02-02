@@ -209,15 +209,12 @@ const SpeciesDietList = () => {
 
   const mapAnimalRow = (el, fallbackId) => {
     const scientificName = el?.scientific_name || el?.complete_name || ''
-    const genusName = el?.genus_name || scientificName.split(' ')[0] || ''
-
     return {
       ...el,
       id: el?.animal_id ?? fallbackId,
       common_name: el?.default_common_name || el?.common_name || el?.complete_name || el?.scientific_name,
       scientific_name: scientificName,
       complete_name: el?.complete_name || scientificName,
-      genus_name: genusName,
       attachment_count:
         typeof el?.attachment_count === 'number' ? el.attachment_count : el?.mapped_to_diet ? 1 : 0,
       primary_identifier_type: el?.primary_identifier_type || el?.local_id_type || el?.local_identifier_name || null,
@@ -318,11 +315,11 @@ const SpeciesDietList = () => {
       const response = await getAnimalList(params)
       if (response?.success && response?.data) {
         if (Array.isArray(response?.data?.result)) {
-          const headers = ['Common Name', 'Scientific Name', 'Genus', 'Active Diets']
+          const headers = ['Common Name', 'Scientific Name', 'Active Diets']
           const rowsData = response.data.result.map((item, index) => {
             const row = mapAnimalRow(item, index + 1)
 
-            return [row.common_name || '', row.scientific_name || '', row.genus_name || '', row.attachment_count || 0]
+            return [row.common_name || '', row.scientific_name || '', row.attachment_count || 0]
           })
           const csvRows = [headers, ...rowsData].map(row =>
             row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
@@ -370,6 +367,8 @@ const SpeciesDietList = () => {
     setAnimalUploadDietDrawer(true)
   }
 
+  const hasActiveDiet = row => Number(row?.attachment_count || 0) > 0
+
   const buildColumns = ({ nameHeader, onRowClick, onUploadClick, renderCard }) => [
     {
       width: colWidths[0],
@@ -379,13 +378,13 @@ const SpeciesDietList = () => {
       sortable: false,
       renderCell: params => (
         <Typography
-          onClick={onRowClick ? () => onRowClick(params) : undefined}
+          onClick={onRowClick && hasActiveDiet(params?.row) ? () => onRowClick(params) : undefined}
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontWeight: '400',
             lineHeight: '14.52px',
             fontSize: '12px',
-            cursor: onRowClick ? 'pointer' : 'default'
+            cursor: onRowClick && hasActiveDiet(params?.row) ? 'pointer' : 'default'
           }}
         >
           {params.row.sl_no}
@@ -399,8 +398,13 @@ const SpeciesDietList = () => {
       headerName: nameHeader,
       renderCell: params => (
         <Box
-          onClick={onRowClick ? () => onRowClick(params) : undefined}
-          sx={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: onRowClick ? 'pointer' : 'default' }}
+          onClick={onRowClick && hasActiveDiet(params?.row) ? () => onRowClick(params) : undefined}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: onRowClick && hasActiveDiet(params?.row) ? 'pointer' : 'default'
+          }}
         >
           {renderCard ? renderCard(params?.row) : <SpeciesCard species={params?.row} />}
         </Box>
@@ -426,30 +430,6 @@ const SpeciesDietList = () => {
             }}
           >
             {params.row.attachment_count ? params.row.attachment_count : 0}
-          </Typography>
-        </Tooltip>
-      )
-    },
-    {
-      width: colWidths[2],
-      sortable: false,
-      field: 'genus_name',
-      headerName: 'Genus',
-      renderCell: params => (
-        <Tooltip title={params.row.genus_name ? params.row.genus_name : ''}>
-          <Typography
-            noWrap
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              ml: 2
-            }}
-          >
-            {params.row.genus_name ? params.row.genus_name : ''}
           </Typography>
         </Tooltip>
       )
@@ -801,8 +781,12 @@ const SpeciesDietList = () => {
 
                 '& .MuiDataGrid-row:hover': {
                   cursor: 'pointer'
+                },
+                '& .no-diet-row:hover': {
+                  cursor: 'default'
                 }
               }}
+              getRowClassName={params => (hasActiveDiet(params.row) ? '' : 'no-diet-row')}
               columnVisibilityModel={{
                 sl_no: false
               }}
