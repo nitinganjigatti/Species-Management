@@ -384,20 +384,6 @@ const DailyReport = () => {
     selectedSubObservations.map(item => item?.id).join(',')
   ])
 
-  useEffect(() => {
-    const options = Array.isArray(defaultObservationType?.child_observation)
-      ? defaultObservationType.child_observation
-      : []
-    const normalized = options
-      .map(item => ({
-        id: String(item?.id ?? item?.value ?? item?.key ?? item?.type_name ?? ''),
-        type_name: item?.type_name || item?.name || item?.label || item?.key || ''
-      }))
-      .filter(item => item.type_name)
-    setSubObservationOptions(normalized)
-    setSelectedSubObservations([])
-  }, [defaultObservationType])
-
   const downloadDailyReport = async () => {
     const ids = Array.isArray(selectedSiteIds) ? selectedSiteIds : []
     if (!ids.length) return
@@ -656,6 +642,15 @@ const DailyReport = () => {
                   isOptionEqualToValue={(option, value) => option?.id === value?.id}
                   onChange={(e, val) => {
                     setDefaultObservationType(val ?? null)
+                    const options = Array.isArray(val?.child_observation) ? val.child_observation : []
+                    const normalized = options
+                      .map(item => ({
+                        id: String(item?.id ?? item?.value ?? item?.key ?? item?.type_name ?? ''),
+                        type_name: item?.type_name || item?.name || item?.label || item?.key || ''
+                      }))
+                      .filter(item => item.type_name)
+                    setSubObservationOptions(normalized)
+                    setSelectedSubObservations([])
                     setPaginationModel(prev => ({ ...prev, page: 0 }))
                   }}
                   clearOnEscape
