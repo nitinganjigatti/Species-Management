@@ -215,8 +215,7 @@ const SpeciesDietList = () => {
       common_name: el?.default_common_name || el?.common_name || el?.complete_name || el?.scientific_name,
       scientific_name: scientificName,
       complete_name: el?.complete_name || scientificName,
-      attachment_count:
-        typeof el?.attachment_count === 'number' ? el.attachment_count : el?.mapped_to_diet ? 1 : 0,
+      attachment_count: typeof el?.attachment_count === 'number' ? el.attachment_count : el?.mapped_to_diet ? 1 : 0,
       primary_identifier_type: el?.primary_identifier_type || el?.local_id_type || el?.local_identifier_name || null,
       primary_identifier_value:
         el?.primary_identifier_value || el?.local_identifier_value || el?.local_id || el?.identifier || null
@@ -397,6 +396,7 @@ const SpeciesDietList = () => {
       sortable: false,
       field: 'scientific_name',
       headerName: nameHeader,
+      cellClassName: 'diet-name-cell',
       renderCell: params => (
         <Box
           onClick={onRowClick && hasActiveDiet(params?.row) ? () => onRowClick(params) : undefined}
@@ -785,7 +785,22 @@ const SpeciesDietList = () => {
                 },
                 '& .no-diet-row:hover': {
                   cursor: 'default'
-                }
+                },
+                ...(isAnimalTab
+                  ? {
+                      '& .MuiDataGrid-row': {
+                        maxHeight: 'none !important'
+                      },
+                      '& .MuiDataGrid-cell': {
+                        alignItems: 'center',
+                        whiteSpace: 'normal',
+                        py: 2.5
+                      },
+                      '& .MuiDataGrid-cell.diet-name-cell': {
+                        alignItems: 'flex-start'
+                      }
+                    }
+                  : {})
               }}
               getRowClassName={params => (hasActiveDiet(params.row) ? '' : 'no-diet-row')}
               columnVisibilityModel={{
@@ -798,6 +813,8 @@ const SpeciesDietList = () => {
               rows={activeRows === undefined ? [] : activeRows}
               rowCount={activeTotal}
               rowHeight={isAnimalTab ? 140 : 64}
+              getRowHeight={isAnimalTab ? () => 'auto' : undefined}
+              getEstimatedRowHeight={isAnimalTab ? () => 140 : undefined}
               disableRowSelectionOnClick
               disableColumnMenu
               columns={activeColumns}
