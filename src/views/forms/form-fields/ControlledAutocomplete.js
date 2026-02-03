@@ -1,6 +1,6 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
-import { Autocomplete, TextField, FormControl, FormHelperText } from '@mui/material'
+import { Autocomplete, TextField, FormControl, FormHelperText, CircularProgress } from '@mui/material'
 import get from 'lodash/get'
 
 const ControlledAutocomplete = ({
@@ -33,7 +33,8 @@ const ControlledAutocomplete = ({
   sx = {},
   showIcons = true,
   disabled = false,
-  endAdornment = null
+  endAdornment = null,
+  showLoader = false
 }) => {
   if (!options) return null
 
@@ -118,13 +119,24 @@ const ControlledAutocomplete = ({
             renderInput={params => {
               const additionalEndAdornment = typeof endAdornment === 'function' ? endAdornment(params) : endAdornment
               const externalEndAdornment = textFieldProps?.slotProps?.input?.endAdornment
-              const combinedEndAdornment = (
+
+              const defaultAdornment = (
                 <>
                   {params.InputProps?.endAdornment}
                   {externalEndAdornment}
                   {additionalEndAdornment}
                 </>
               )
+
+              const combinedEndAdornment =
+                showLoader && loading ? (
+                  <>
+                    <CircularProgress size={18} />
+                    {defaultAdornment}
+                  </>
+                ) : (
+                  defaultAdornment
+                )
 
               const inputSlotProps = {
                 ...params.InputProps, // ensures dropdown arrow and anchor remain
