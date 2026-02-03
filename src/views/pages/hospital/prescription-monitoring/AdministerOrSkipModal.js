@@ -251,7 +251,6 @@ const AdministerOrSkipSidesheet = ({
       }
 
       if (medicineData?.dosage) {
-        console.log('medicineData?.dosage', medicineData?.dosage)
 
         // Split only on the first space to handle cases like "6 today tesr"
         const firstSpaceIndex = medicineData.dosage.indexOf(' ')

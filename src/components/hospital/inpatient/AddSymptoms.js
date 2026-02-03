@@ -395,6 +395,14 @@ function AddSymptoms() {
     router.back()
   }
 
+  const handleAIDDisplay = () => {
+    if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
+      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+    } else {
+      return patientData?.animal_detail?.animal_id
+    }
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       <AnimalInfoCard
@@ -404,7 +412,7 @@ function AddSymptoms() {
         age={`${patientData?.animal_detail?.age}`}
         gender={`${patientData?.animal_detail?.sex}`}
         additionalFields={[
-          { label: 'AID', value: patientData?.animal_detail?.animal_id },
+          { label: 'AID', value: handleAIDDisplay() },
           { label: 'Admitted days', value: patientData?.admitted_for_day },
           { label: 'Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
           { label: 'Consulting Veterinarian', value: patientData?.attend_by_full_name }

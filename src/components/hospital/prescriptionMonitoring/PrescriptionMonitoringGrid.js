@@ -131,6 +131,7 @@ const TimeSlot = styled(Box, {
   backgroundColor: config?.backgroundColor,
   color: config?.color,
   border: config?.border,
+  opacity: disabled ? 0.5 : 1,
   borderColor: config?.borderColor,
   padding: '8px',
   borderRadius: '8px',
@@ -982,6 +983,7 @@ const PrescriptionMonitoringGrid = ({
                               scheduledTime={scheduledTime}
                               administeredTime={timeSlot?.value?.administered_time}
                               dosage={dosage}
+                              disabled={metric?.status === 'stopped'}
                               config={timeSlotGridConfig(status)}
                               theme={theme}
                             />

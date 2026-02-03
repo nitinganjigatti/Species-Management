@@ -1889,6 +1889,14 @@ export default function AddAnesthesiaRecord() {
   const lastUpdatedValue =
     anesthesiaDetail?.updated_at !== undefined ? formatDateTime(anesthesiaDetail.updated_at) : '-'
 
+  const handleAIDDisplay = () => {
+    if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
+      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+    } else {
+      return patientData?.animal_detail?.animal_id
+    }
+  }
+
   return (
     <FormProvider {...methods}>
       <Box display='flex' flexDirection='column' gap={3} sx={{ p: 3 }}>
@@ -1977,7 +1985,7 @@ export default function AddAnesthesiaRecord() {
                 age={`${patientData?.animal_detail?.age}`}
                 gender={`${patientData?.animal_detail?.sex}`}
                 additionalFields={[
-                  { label: 'AID', value: patientData?.animal_detail?.animal_id },
+                  { label: 'AID', value: handleAIDDisplay() },
                   { label: 'Admitted days', value: patientData?.admitted_for_day },
                   { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
                   { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }
