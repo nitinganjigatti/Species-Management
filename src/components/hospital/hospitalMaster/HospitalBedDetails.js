@@ -42,7 +42,7 @@ import { useHospital } from 'src/context/HospitalContext'
 import EnclosureOccupantsDrawer from 'src/views/pages/hospital/masters/hospital/EnclosureOccupantsDrawer'
 
 const statusOptions = [
-  { label: 'Enclosure Status', value: 'all' },
+  { label: 'All Status', value: 'all' },
   { label: 'Active', value: 'active' },
   { label: 'Inactive', value: 'inactive' }
 ]

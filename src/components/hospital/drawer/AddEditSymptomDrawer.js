@@ -82,7 +82,7 @@ const AddEditSymptomDrawer = ({
       formattedTime: `${Utility.formatDisplayDate(activity?.created_at)} • ${Utility.convertUTCToLocaltime(
         activity?.created_at
       )}`,
-      note: activity.note || 'N/A'
+      note: activity.note || ''
     })) ||
     // .sort((a, b) => {
     //   return b.isSystemGenerated - a.isSystemGenerated

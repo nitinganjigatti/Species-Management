@@ -53,11 +53,6 @@ const treatmentType = [
   { label: 'Hospital Admission(inpatient)', value: 'inpatient' }
 ]
 
-const medicalRecordType = [
-  { label: 'Create a new ID', value: 'new' },
-  { label: 'Add to existing ID', value: 'existing' }
-]
-
 const visitTypes = [
   { label: 'Check Up', value: 'checkup' },
   { label: 'Emergency', value: 'emergency' },
@@ -134,6 +129,11 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
     Section: [],
     Enclosure: []
   })
+
+  const medicalRecordType = [
+    { label: 'Create a new ID', value: 'new', disabled: false },
+    { label: 'Add to existing ID', value: 'existing', disabled: medicalId.length === 0 }
+  ]
 
   const applyFilters = selectedOptions => {
     setSelectedOptions(selectedOptions)
@@ -575,7 +575,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                               selectedBackgroundColor={theme.palette.customColors.OnPrimaryContainer}
                               selectedFontColor={theme.palette.customColors.OnPrimary}
                               selectedBorderColor='none'
-                              disabled={submitLoader}
+                              disabled={submitLoader || item.disabled}
                             />
                           </Grid>
                         ))}
