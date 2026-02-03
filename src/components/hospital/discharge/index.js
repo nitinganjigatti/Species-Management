@@ -157,6 +157,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
         medical_record_id: row?.medical_record_id,
         prescription_id: row?.id,
         type: 'prescription',
+        request_from: 'hospital_module',
         status: 'stop',
         note: row?.notes,
         side_effect: row?.side_effect,
