@@ -197,20 +197,24 @@ const DailyReport = () => {
     )
   }, [rawRows, searchValue, selectedSubObservations])
 
-  // index + slice for current page (StickyTable can also take all rows and handle; here we keep total)
+  // index rows; slice locally only when API doesn't return total
   useEffect(() => {
     const start = paginationModel.page * paginationModel.pageSize
-    const end = start + paginationModel.pageSize
-    const pageRows = filteredRows.slice(start, end).map((r, idx) => ({
+    const shouldSlice = total <= filteredRows.length
+    const visibleRows = shouldSlice ? filteredRows.slice(start, start + paginationModel.pageSize) : filteredRows
+    const pageRows = visibleRows.map((r, idx) => ({
       ...r,
       sl_no: String(start + idx + 1).padStart(2, '0')
     }))
     setIndexedRows(pageRows)
-    setTotal(filteredRows.length)
-  }, [filteredRows, paginationModel])
 
-  // Fetch nursery list with debouncing
-  const fetchObservationMasterType = async () => {
+    if (shouldSlice && total !== filteredRows.length) {
+      setTotal(filteredRows.length)
+    }
+  }, [filteredRows, paginationModel.page, paginationModel.pageSize, total])
+
+  // Fetch observation master list
+  const fetchObservationMasterType = useCallback(async () => {
     try {
       setObservationListLoader(true)
       const params = {
@@ -228,7 +232,11 @@ const DailyReport = () => {
     } finally {
       // setObservationListLoader(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchObservationMasterType()
+  }, [fetchObservationMasterType])
 
   const clearSiteSelection = () => {
     // koi pending debounced apply ho to cancel
@@ -284,14 +292,6 @@ const DailyReport = () => {
     setSearchInput('') // UI clear
     setSearchValue('') // q='' -> server will ignore
     setPaginationModel(p => ({ ...p, page: 0 }))
-
-    // fetchDailyReport()
-    fetchDailyReport({
-      ids: selectedSiteIds,
-      range: dateRange,
-      q: '', // clear search
-      obsTypeId: defaultObservationType?.id
-    })
   }
 
   const handleDateRangeChange = (startDate, endDate) => {
@@ -316,13 +316,19 @@ const DailyReport = () => {
         setTotal(0)
         return
       }
+      const childObservationIds = selectedSubObservations
+        .map(item => item?.id)
+        .filter(item => item !== undefined && item !== null && item !== '')
       const params = {
         report_type: 'json',
         site_id: siteIds.join(','),
         start_date: range?.start_date || '',
         end_date: range?.end_date || '',
+        page_no: paginationModel.page + 1,
+        limit: paginationModel.pageSize,
         ...(q && { q }),
-        ...(obsTypeId && { observation_type: obsTypeId })
+        ...(obsTypeId && { observation_type: obsTypeId }),
+        ...(childObservationIds.length && { 'child_observation_ids[]': childObservationIds })
       }
       setLoading(true)
       try {
@@ -330,14 +336,25 @@ const DailyReport = () => {
         const payload = res?.data?.data || res?.data || res
         const rows = transformApiToRows(payload)
         setRawRows(rows)
+
+        const totalValue =
+          payload?.total ??
+          payload?.total_count ??
+          payload?.total_records ??
+          payload?.data?.total ??
+          payload?.data?.total_count ??
+          payload?.data?.total_records
+        const parsedTotal = Number(totalValue)
+        setTotal(Number.isFinite(parsedTotal) ? parsedTotal : rows.length)
       } catch (e) {
         console.error('Error fetching daily report:', e)
         setRawRows([])
+        setTotal(0)
       } finally {
         setLoading(false)
       }
     },
-    [transformApiToRows]
+    [transformApiToRows, paginationModel.page, paginationModel.pageSize, selectedSubObservations]
   )
 
   // Centralized trigger: sites / dates / search / obsType pe 1 hi call
@@ -354,7 +371,6 @@ const DailyReport = () => {
       setIndexedRows([])
       setTotal(0)
     }
-    fetchObservationMasterType()
   }, [
     fetchDailyReport,
     // explicit deps to trigger once per change:
@@ -362,7 +378,10 @@ const DailyReport = () => {
     dateRange.start_date,
     dateRange.end_date,
     searchValue,
-    defaultObservationType?.id
+    defaultObservationType?.id,
+    paginationModel.page,
+    paginationModel.pageSize,
+    selectedSubObservations.map(item => item?.id).join(',')
   ])
 
   useEffect(() => {
@@ -382,6 +401,9 @@ const DailyReport = () => {
   const downloadDailyReport = async () => {
     const ids = Array.isArray(selectedSiteIds) ? selectedSiteIds : []
     if (!ids.length) return
+    const childObservationIds = selectedSubObservations
+      .map(item => item?.id)
+      .filter(item => item !== undefined && item !== null && item !== '')
 
     const params = {
       report_type: 'pdf', // 👈 daily report API expects this
@@ -389,7 +411,8 @@ const DailyReport = () => {
       start_date: dateRange.start_date || '',
       end_date: dateRange.end_date || '',
       ...(searchValue && { q: searchValue }), // include server-side search if any
-      ...(defaultObservationType?.id && { observation_type: defaultObservationType.id })
+      ...(defaultObservationType?.id && { observation_type: defaultObservationType.id }),
+      ...(childObservationIds.length && { 'child_observation_ids[]': childObservationIds })
     }
     try {
       setIsDownloading(true)
@@ -633,6 +656,7 @@ const DailyReport = () => {
                   isOptionEqualToValue={(option, value) => option?.id === value?.id}
                   onChange={(e, val) => {
                     setDefaultObservationType(val ?? null)
+                    setPaginationModel(prev => ({ ...prev, page: 0 }))
                   }}
                   clearOnEscape
                   disableClearable={false}
@@ -696,6 +720,7 @@ const DailyReport = () => {
                   isOptionEqualToValue={(option, value) => option?.id === value?.id}
                   onChange={(e, val) => {
                     setSelectedSubObservations(val || [])
+                    setPaginationModel(prev => ({ ...prev, page: 0 }))
                   }}
                   renderTags={(value, getTagProps) => {
                     if (!value.length) return null
