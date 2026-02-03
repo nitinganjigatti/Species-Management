@@ -59,7 +59,9 @@ const ListOfSpeciesMapped = ({
   setTempSelectedSpecies,
   setIsOpen,
   selectionType,
-  setapplyfilterCheck
+  setapplyfilterCheck,
+  siteId,
+  setSiteListDrawer
 }) => {
   const theme = useTheme()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
@@ -136,6 +138,7 @@ const ListOfSpeciesMapped = ({
     setspeciesview('')
     setStartDate(null)
     setEndDate(null)
+    setTempSelectedSpecies([])
   }
 
   const searchClose = () => {
@@ -165,7 +168,8 @@ const ListOfSpeciesMapped = ({
       diet_id: dietId,
       start_date: formatDisplayDate(startDate),
       end_date: formatDisplayDate(endDate),
-      [selectionType === 'species' ? 'species_ids' : 'animal_ids']: JSON.stringify(payloadData)
+      [selectionType === 'species' ? 'species_ids' : 'animal_ids']: JSON.stringify(payloadData),
+      ...(siteId && { site_id: siteId })
     }
 
     try {
@@ -190,6 +194,7 @@ const ListOfSpeciesMapped = ({
         setOpenModal(false)
         setStartDate(null)
         setEndDate(null)
+        setSiteListDrawer(false)
       } else {
         Toaster({
           type: 'error',
@@ -260,7 +265,7 @@ const ListOfSpeciesMapped = ({
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-            {speciesview === 'details' ? 'Species assigned' : 'Assign Diet'}
+            {speciesview === 'details' ? 'Species assigned' : siteId ? 'Assign Site' : 'Assign Diet'}
           </Typography>
         </Box>
 
@@ -800,13 +805,13 @@ const ListOfSpeciesMapped = ({
             loadingIndicator={
               !openModal && (
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  ASSIGN DIET
+                  {siteId ? 'ASSIGN SITE' : 'ASSIGN DIET'}
                   <CircularProgress size={20} sx={{ color: '#ccc' }} />
                 </span>
               )
             }
           >
-            {!loader && 'ASSIGN DIET'}
+            {!loader && (siteId ? 'ASSIGN SITE' : 'ASSIGN DIET')}
           </LoadingButton>
         </Box>
       </Box>

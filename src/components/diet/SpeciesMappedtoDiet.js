@@ -52,7 +52,12 @@ const SpeciesMappedtoDiet = ({
   setSelectedEnclosures,
   setSelectedSpeciesIds,
   setSelectedTaxonomyIds,
-  speciesview
+  speciesview,
+  checkForSite,
+  setSelectionType,
+  authData,
+  setPrimaryStatus,
+  setIsOpenTabsEdit
 }) => {
   const listInnerRef = useRef(null)
   const theme = useTheme()
@@ -95,13 +100,15 @@ const SpeciesMappedtoDiet = ({
     setSelectedEnclosures([])
     setSelectedSpeciesIds([])
     setSelectedTaxonomyIds([])
+    if (checkForSite === 'site_species') {
+      setSelectionType('site_species')
+    }
   }
 
   const handleSelectedclick = val => {
     if (val === 'select') {
       setIsOpennew(true)
 
-      // setIsOpen(false)
       setspeciesview(val)
     } else {
       setIsOpennew(true)
@@ -158,6 +165,13 @@ const SpeciesMappedtoDiet = ({
     setSelectedSections([])
   }
 
+  const handleEditclick = () => {
+    setIsOpenTabsEdit(true)
+    setPrimaryStatus({})
+    setspeciesview('details')
+    setSelectionType('species')
+  }
+
   // useEffect(() => {
   //   if (speciesData.length > 0 && tempSelectedSpecies.length > 0) {
   //     const idField = selectionType === 'species' ? 'species_id' : 'animal_id'
@@ -174,6 +188,8 @@ const SpeciesMappedtoDiet = ({
   //     }
   //   }
   // }, [speciesData])
+
+  const hasMappedSpecies = speciesData?.some(item => item.mapped_to_diet === true)
 
   return (
     <Drawer
@@ -211,12 +227,19 @@ const SpeciesMappedtoDiet = ({
           </Typography>
         </Box>
 
-        <Box
-          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mr: '14px', mt: '4px' }}
-          onClick={handelClose}
-        >
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mr: '14px', mt: '4px' }}>
+          {authData?.userData?.roles?.settings?.assign_diet === true &&
+          checkForSite === 'site_species' &&
+          hasMappedSpecies &&
+          !loading ? (
+            <IconButton size='small' sx={{ color: theme.palette.primary.light, mr: 5 }}>
+              <Icon icon='mdi:pencil-outline' fontSize={24} onClick={handleEditclick} />
+            </IconButton>
+          ) : (
+            ''
+          )}
           <IconButton size='small' sx={{ color: theme.palette.primary.light }}>
-            <Icon icon='mdi:close' fontSize={24} />
+            <Icon icon='mdi:close' fontSize={24} onClick={handelClose} />
           </IconButton>
         </Box>
       </Box>

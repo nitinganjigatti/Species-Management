@@ -27,14 +27,26 @@ const SelectSiteList = ({
   tempSelectedItems,
   setTempSelectedItems,
   setSelectionType,
-  selectionType
+  selectionType,
+  onSingleSelectClose,
+  setCheckForSite,
+  setTempSelectedSpecies
 }) => {
   const theme = useTheme()
   const [pendingSelections, setPendingSelections] = useState({ Site: [] })
 
   const handleCloseDrawer = () => {
-    setSiteListDrawer(false)
-    setTempSelectedItems(pendingSelections)
+    if (selectionType === 'site_species') {
+      const selectedSiteId = pendingSelections?.Site[0]
+      onSingleSelectClose?.(selectedSiteId)
+      setSelectionType('species')
+      setCheckForSite('site_species')
+    } else {
+      setSiteListDrawer(false)
+      setTempSelectedItems(pendingSelections)
+      setCheckForSite('')
+    }
+
     setSearchTerm('')
   }
 
@@ -44,17 +56,13 @@ const SelectSiteList = ({
   }
 
   const handleSiteCheckboxChange = site => {
-    console.log(selectionType, 'selectionType')
     if (selectionType == 'site_species') {
-      alert('kkk')
-      // SINGLE SELECT
       setPendingSelections({
         ...pendingSelections,
         Site: [site.site_id]
       })
+      setTempSelectedSpecies([])
     } else {
-      alert('ooo')
-      // MULTI SELECT (existing behavior)
       const isSelected = pendingSelections.Site.includes(site.site_id)
 
       const updatedSelection = isSelected
@@ -67,19 +75,6 @@ const SelectSiteList = ({
       })
     }
   }
-
-  // const handleSiteCheckboxChange = site => {
-  //   const isSelected = pendingSelections?.Site?.includes(site.site_id)
-
-  //   const updatedSelection = isSelected
-  //     ? pendingSelections?.Site?.filter(id => id !== site?.site_id)
-  //     : [...pendingSelections?.Site, site?.site_id]
-
-  //   setPendingSelections({
-  //     ...pendingSelections,
-  //     Site: updatedSelection
-  //   })
-  // }
 
   useEffect(() => {
     if (openSiteListDrawer) {
@@ -109,7 +104,7 @@ const SelectSiteList = ({
   }
 
   const filteredSites = items.Site.filter(site => site.site_name.toLowerCase().includes(searchTerm.toLowerCase()))
-
+  console.log(pendingSelections, 'pendingSelections')
   return (
     <Drawer
       anchor='right'
@@ -160,7 +155,7 @@ const SelectSiteList = ({
         </Box>
 
         {/* Search */}
-        <Box sx={{ p: 2, borderBottom: '1px solid #E0E0E0' }}>
+        <Box sx={{ p: 2, borderBottom: selectionType !== 'site_species' ? '1px solid #E0E0E0' : 'none' }}>
           <TextField
             fullWidth
             placeholder='Search'
@@ -200,7 +195,6 @@ const SelectSiteList = ({
           />
         </Box>
 
-        {/* Selected Count */}
         {selectionType !== 'site_species' && (
           <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
@@ -226,7 +220,6 @@ const SelectSiteList = ({
                 }}
                 onClick={handleSelectAllSites}
               >
-                {/* {tempSelectedSpecies?.length === speciesData.length ? 'Select all' : 'Select all'} */}
                 Select all
               </Button>
 
@@ -275,62 +268,66 @@ const SelectSiteList = ({
           }}
         >
           {filteredSites?.length > 0 ? (
-            filteredSites.map(site => (
-              <ListItem
-                key={site.site_id}
-                sx={{
-                  pr: 1.5,
-                  pl: 3,
-                  mb: 4,
-                  border: '1px solid',
-                  borderColor: pendingSelections?.Site?.includes(site.site_id)
-                    ? '#80E0A3'
-                    : theme.palette.customColors.OutlineVariant,
-                  borderRadius: '8px',
-                  bgcolor: pendingSelections?.Site?.includes(site.site_id)
-                    ? theme.palette.customColors.OnBackground
-                    : 'transparent',
-                  height: '70px'
-                }}
-              >
-                <ListItemAvatar>
-                  {/* <Avatar src={site?.site_image || '/icons/antz.svg'} variant='rounded' /> */}
-                  <FallbackAvatar
-                    src={site?.site_image}
-                    fallback='/images/housing/site-icon-colored.svg'
-                    variant='rounded'
-                    sx={{
-                      backgroundColor: theme.palette.customColors.displaybgPrimary,
-                      p: site?.site_image ? 0 : 2,
-                      height: '40px',
-                      width: '40px',
-                      borderRadius: '8px'
+            filteredSites.map(site => {
+              const isChecked =
+                selectionType === 'site_species'
+                  ? pendingSelections?.Site?.[0] === site.site_id
+                  : pendingSelections?.Site?.includes(site.site_id)
+
+              return (
+                <ListItem
+                  key={site.site_id}
+                  sx={{
+                    pr: 1.5,
+                    pl: 3,
+                    mb: 4,
+                    border: '1px solid',
+                    borderColor: pendingSelections?.Site?.includes(site.site_id)
+                      ? '#80E0A3'
+                      : theme.palette.customColors.OutlineVariant,
+                    borderRadius: '8px',
+                    bgcolor: pendingSelections?.Site?.includes(site.site_id)
+                      ? theme.palette.customColors.OnBackground
+                      : 'transparent',
+                    height: '70px'
+                  }}
+                >
+                  <ListItemAvatar>
+                    {/* <Avatar src={site?.site_image || '/icons/antz.svg'} variant='rounded' /> */}
+                    <FallbackAvatar
+                      src={site?.site_image}
+                      fallback='/images/housing/site-icon-colored.svg'
+                      variant='rounded'
+                      sx={{
+                        backgroundColor: theme.palette.customColors.displaybgPrimary,
+                        p: site?.site_image ? 0 : 2,
+                        height: '40px',
+                        width: '40px',
+                        borderRadius: '8px'
+                      }}
+                    />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={site?.site_name}
+                    //secondary={site.location || '-'}
+                    slotProps={{
+                      secondary: {
+                        sx: {
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }
+                      },
+                      primary: {
+                        sx: {
+                          fontWeight: 'bold',
+                          color: theme.palette.customColors.OnPrimaryContainer
+                        }
+                      }
                     }}
                   />
-                </ListItemAvatar>
-                <ListItemText
-                  primary={site?.site_name}
-                  //secondary={site.location || '-'}
-                  slotProps={{
-                    secondary: {
-                      sx: {
-                        color: theme.palette.customColors.OnSurfaceVariant
-                      }
-                    },
-                    primary: {
-                      sx: {
-                        fontWeight: 'bold',
-                        color: theme.palette.customColors.OnPrimaryContainer
-                      }
-                    }
-                  }}
-                />
-                <Checkbox
-                  checked={pendingSelections?.Site?.includes(site.site_id)}
-                  onChange={() => handleSiteCheckboxChange(site)}
-                />
-              </ListItem>
-            ))
+                  <Checkbox checked={isChecked} onChange={() => handleSiteCheckboxChange(site)} />
+                </ListItem>
+              )
+            })
           ) : (
             <Typography sx={{ textAlign: 'center', mt: 15 }}>No Site's found</Typography>
           )}
@@ -359,7 +356,9 @@ const SelectSiteList = ({
               '&:hover': { bgcolor: '#218838' }
             }}
             onClick={handleCloseDrawer}
-            disabled={pendingSelections?.Site?.length === 0}
+            disabled={
+              !pendingSelections || Object.keys(pendingSelections).length === 0 || pendingSelections?.Site?.length === 0
+            }
           >
             CONTINUE
           </Button>

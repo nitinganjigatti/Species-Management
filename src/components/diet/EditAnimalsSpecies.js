@@ -55,7 +55,11 @@ const EditAnimalSpeciesMapped = ({
   setAllFetchedData,
   allFetchedData,
   setspeciestotalcount,
-  debouncedFetchList
+  debouncedFetchList,
+  checkForSite,
+  siteId,
+  setIsOpen,
+  setSiteListDrawer
 }) => {
   const theme = useTheme()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
@@ -114,7 +118,6 @@ const EditAnimalSpeciesMapped = ({
         initialPrimaryStatus[id] = item.is_primary || '0'
       })
 
-      // Only update if there are new species not already in primaryStatus
       setPrimaryStatus(prev => {
         const newStatus = { ...prev }
         let needsUpdate = false
@@ -166,7 +169,8 @@ const EditAnimalSpeciesMapped = ({
 
     const payload = {
       edit_data: JSON.stringify(editData),
-      remove_ids: JSON.stringify(numericRemovedIds)
+      remove_ids: JSON.stringify(numericRemovedIds),
+      ...(siteId && { site_id: siteId })
     }
 
     setLoader(true)
@@ -178,6 +182,8 @@ const EditAnimalSpeciesMapped = ({
         setRemovedIds([])
         setspeciesview('')
         refreshDietDetails()
+        setIsOpen(false)
+        setSiteListDrawer(false)
         Toaster({
           type: 'success',
           message: 'Primary diet successfully updated'
@@ -199,8 +205,10 @@ const EditAnimalSpeciesMapped = ({
   const handelClose = () => {
     setIsOpenTabsEdit(false)
     refreshDietDetails()
-
     setSearchQuery('')
+    if (checkForSite === 'site_species') {
+      setspeciesview('select')
+    }
   }
 
   const searchClose = () => {
@@ -267,26 +275,30 @@ const EditAnimalSpeciesMapped = ({
       </Box>
       <Grid item size={{ md: 8, xs: 12 }} sx={{ mb: 14 }}>
         <TabContext value={selectionType}>
-          <TabList onChange={handleChange} aria-label='customized tabs example' sx={{ background: '#fff' }}>
-            <Tab
-              style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, width: '50%' }}
-              value='species'
-              label={`SPECIES - ${selectionType === 'species' && !loading ? speciestotalcount || '' : '0'}`}
-            />
-            <Tab
-              style={{ borderRadius: 0, width: '50%' }}
-              value='animals'
-              label={`ANIMALS - ${selectionType === 'animals' && !loading ? speciestotalcount || '' : '0'}`}
-            />
-          </TabList>
+          {checkForSite !== 'site_species' ? (
+            <TabList onChange={handleChange} aria-label='customized tabs example' sx={{ background: '#fff' }}>
+              <Tab
+                style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, width: '50%' }}
+                value='species'
+                label={`SPECIES - ${selectionType === 'species' && !loading ? speciestotalcount || '' : '0'}`}
+              />
+              <Tab
+                style={{ borderRadius: 0, width: '50%' }}
+                value='animals'
+                label={`ANIMALS - ${selectionType === 'animals' && !loading ? speciestotalcount || '' : '0'}`}
+              />
+            </TabList>
+          ) : (
+            ''
+          )}
           {speciesview === 'details' ? (
             <Grid item size={{ md: 8, sm: 8, xs: 8 }}>
               <Box
                 sx={{
                   bgcolor: 'background.default',
                   p: '16px',
-                  borderRadius: '8px',
-                  width: '555px',
+                  borderRadius: '0px',
+                  width: '100%',
                   overflowY: 'auto',
                   '&::-webkit-scrollbar': {
                     width: 0,
@@ -347,7 +359,7 @@ const EditAnimalSpeciesMapped = ({
               sx={{
                 backgroundColor: theme.palette.background.default,
                 overflowY: 'auto',
-                height: 'calc(100vh - 23rem)',
+                height: checkForSite === 'site_species' ? 'calc(100vh - 18rem)' : 'calc(100vh - 23rem)',
                 px: 4,
                 pb: 4
               }}
@@ -826,7 +838,7 @@ const EditAnimalSpeciesMapped = ({
         sx={{
           width: '100%',
           maxWidth: '562px',
-          height: isSmallDevice ? '90px' : '150px',
+          height: isSmallDevice ? '90px' : checkForSite === 'site_species' ? '120px' : '150px',
           position: isSmallDevice ? 'absolute' : 'fixed',
           bottom: isSmallDevice ? 75 : 0,
           px: 4,
@@ -836,48 +848,52 @@ const EditAnimalSpeciesMapped = ({
           alignItems: 'center',
           boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
           zIndex: 123,
-          py: 2
+          py: checkForSite === 'site_species' ? 10 : 2
         }}
       >
         {/* Informational Text */}
-        <Box
-          sx={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            textAlign: 'left',
-            fontSize: '14px',
-            fontWeight: 500,
-            color: theme.palette.customColors.OnTertiaryContainer,
-            mb: 3,
-            mt: 2,
-            pt: 2,
-            pb: 2,
-            background: '#FFBDA833',
-            borderRadius: '6px',
-            px: 2
-          }}
-        >
-          {/* Icon */}
-          <Icon
-            icon='material-symbols:warning-outline-rounded'
-            fontSize={24}
-            color={theme.palette.customColors.Tertiary}
-            style={{ marginRight: '4px', position: 'relative', top: '-12px' }}
-          />
-
-          {/* Text */}
-          <Typography
+        {checkForSite !== 'site_species' ? (
+          <Box
             sx={{
-              fontSize: '16px',
-              fontWeight: 400,
-              color: theme.palette.customColors.OnTertiaryContainer
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+              textAlign: 'left',
+              fontSize: '14px',
+              fontWeight: 500,
+              color: theme.palette.customColors.OnTertiaryContainer,
+              mb: 3,
+              mt: 2,
+              pt: 2,
+              pb: 2,
+              background: '#FFBDA833',
+              borderRadius: '6px',
+              px: 2
             }}
           >
-            This diet will override any previously set primary diet for the selected species
-          </Typography>
-        </Box>
+            {/* Icon */}
+            <Icon
+              icon='material-symbols:warning-outline-rounded'
+              fontSize={24}
+              color={theme.palette.customColors.Tertiary}
+              style={{ marginRight: '4px', position: 'relative', top: '-12px' }}
+            />
+
+            {/* Text */}
+            <Typography
+              sx={{
+                fontSize: '16px',
+                fontWeight: 400,
+                color: theme.palette.customColors.OnTertiaryContainer
+              }}
+            >
+              This diet will override any previously set primary diet for the selected species
+            </Typography>
+          </Box>
+        ) : (
+          ''
+        )}
 
         {/* Buttons Container */}
         <Box

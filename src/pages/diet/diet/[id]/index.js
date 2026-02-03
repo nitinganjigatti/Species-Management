@@ -102,6 +102,8 @@ const DietDetail = () => {
   const [selectedSections, setSelectedSections] = useState([])
   const [taxonomyLoading, setTaxonomyLoading] = useState(false)
   const [speciesFilterLoading, setSpeciesFilterLoading] = useState(false)
+  const [checkForSite, setCheckForSite] = useState('')
+  const [siteId, setSiteID] = useState(null)
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -114,19 +116,30 @@ const DietDetail = () => {
   }
 
   const handleSpeciesClick = value => {
-    setSelectionType(value)
     setPageNo(1)
     if (value === 'site_species') {
       setSiteListDrawer(true)
+      setSelectionType(value)
     } else {
       setIsOpen(true)
+      setSelectionType(value)
+      setCheckForSite('')
+      setSiteID('')
     }
+  }
+
+  const handleSingleSiteSelect = selectedSiteId => {
+    setSiteID(selectedSiteId)
+    setIsOpen(true)
+    setPageNo(1)
   }
 
   const handleSpeciesClicknew = (val, type) => {
     setIsOpenTabs(true)
     setspeciesview(val)
     setSelectionType(type)
+    setCheckForSite('')
+    setSiteID('')
   }
 
   const handleSelectedSpeciesChange = updatedSelectedSpecies => {
@@ -190,7 +203,16 @@ const DietDetail = () => {
         diet_id: id,
         ...(searchQuery && { q: searchQuery }),
         ...(type && { type }),
-        ...(selectedItems?.Site?.length > 0 && { site_ids: `[${selectedItems?.Site.join(',')}]` }),
+
+        ...(selectionType === 'species' &&
+          checkForSite === 'site_species' &&
+          siteId && {
+            site_id: siteId
+          }),
+
+        ...(selectedItems?.Site?.length > 0 && {
+          site_ids: `[${selectedItems.Site.join(',')}]`
+        }),
         ...(selectedItems?.Section?.length > 0 && { section_ids: `[${selectedItems?.Section.join(',')}]` }),
         ...(selectedItems?.Enclosure?.length > 0 && { enclosure_ids: `[${selectedItems?.Enclosure.join(',')}]` })
       }
@@ -343,7 +365,18 @@ const DietDetail = () => {
           res = await getSpeciesList(params)
         } else if (selectionType === 'species') {
           // Params for species list
-          const params = { q: search, page_no: pageNo, limit: 20, diet_id: id, ...(type && { type }) }
+          const params = {
+            q: search,
+            page_no: pageNo,
+            limit: 20,
+            diet_id: id,
+            ...(type && { type }),
+            ...(selectionType === 'species' &&
+              checkForSite === 'site_species' &&
+              siteId && {
+                site_id: siteId
+              })
+          }
           res = await getSpeciesList(params)
         } else if (selectionType === 'animals') {
           // Params for animals list
@@ -461,7 +494,8 @@ const DietDetail = () => {
   useEffect(() => {
     if (speciesview !== '' && speciesview !== 'select' && filterState !== 'species') {
       fetchList(searchQuery, 'mapped')
-    } else if (speciesview === 'select') {
+    } else if (speciesview === 'select' && checkForSite === 'site_species') {
+      fetchList(searchQuery)
     } else {
       fetchList(searchQuery)
     }
@@ -791,8 +825,6 @@ const DietDetail = () => {
                                               position: isSmallDevice ? '' : 'sticky ',
                                               left: '160px',
                                               p: 0
-
-                                              // width: '580px'
                                             }}
                                             className='meal_dtl_hd'
                                           >
@@ -1034,9 +1066,6 @@ const DietDetail = () => {
                                                       background: theme.palette.primary.contrastText,
                                                       height: '185px',
                                                       pl: '1rem !important',
-
-                                                      //display: 'flex',
-                                                      //flexDirection: 'column',
                                                       justifyContent: 'center',
                                                       alignItems: 'center',
                                                       overflow: 'hidden'
@@ -3732,23 +3761,7 @@ const DietDetail = () => {
               </Box>
             </Box>
           )}
-          <SelectSiteList
-            setSiteListDrawer={setSiteListDrawer}
-            openSiteListDrawer={openSiteListDrawer}
-            tabsforfilter={tabsforfilter}
-            setActiveTab={setActiveTab}
-            activeTab={activeTab}
-            setSearchTerm={setSearchTerm}
-            searchTerm={searchTerm}
-            setSelectedItems={setSelectedItems}
-            selectedItems={selectedItems}
-            items={items}
-            //filteredItems={filteredItems}
-            tempSelectedItems={tempSelectedItems}
-            setTempSelectedItems={setTempSelectedItems}
-            setSelectionType={setSelectionType}
-            selectionType={selectionType}
-          />
+
           <SpeciesMappedtoDiet
             isOpen={isOpen}
             setIsOpen={setIsOpen}
@@ -3782,6 +3795,11 @@ const DietDetail = () => {
             setSelectedSections={setSelectedSections}
             setSelectedSpeciesIds={setSelectedSpeciesIds}
             setSelectedTaxonomyIds={setSelectedTaxonomyIds}
+            checkForSite={checkForSite}
+            setSelectionType={setSelectionType}
+            authData={authData}
+            setIsOpenTabsEdit={setIsOpenTabsEdit}
+            setPrimaryStatus={setPrimaryStatus}
           />
           <ListOfSpeciesMapped
             isOpennew={isOpennew}
@@ -3811,6 +3829,8 @@ const DietDetail = () => {
             setSelectedSpecies={setSelectedSpecies}
             selectionType={selectionType}
             setapplyfilterCheck={setapplyfilterCheck}
+            siteId={siteId}
+            setSiteListDrawer={setSiteListDrawer}
           />
           <SpeciesAnimalsMapped
             setIsOpenTabs={setIsOpenTabs}
@@ -3876,6 +3896,10 @@ const DietDetail = () => {
             allFetchedData={allFetchedData}
             setspeciestotalcount={setspeciestotalcount}
             debouncedFetchList={debouncedFetchList}
+            checkForSite={checkForSite}
+            siteId={siteId}
+            setIsOpen={setIsOpen}
+            setSiteListDrawer={setSiteListDrawer}
           />
           <SpeciesMappedtoDietFilter
             setOpenFilterDrawer={setOpenFilterDrawer}
@@ -3926,6 +3950,26 @@ const DietDetail = () => {
             selectedSections={selectedSections}
             loadingTaxonomy={loadingTaxonomy}
             loadingSpecies={loadingSpecies}
+            checkForSite={checkForSite}
+          />
+          <SelectSiteList
+            setSiteListDrawer={setSiteListDrawer}
+            openSiteListDrawer={openSiteListDrawer}
+            tabsforfilter={tabsforfilter}
+            setActiveTab={setActiveTab}
+            activeTab={activeTab}
+            setSearchTerm={setSearchTerm}
+            searchTerm={searchTerm}
+            setSelectedItems={setSelectedItems}
+            selectedItems={selectedItems}
+            items={items}
+            tempSelectedItems={tempSelectedItems}
+            setTempSelectedItems={setTempSelectedItems}
+            setSelectionType={setSelectionType}
+            selectionType={selectionType}
+            onSingleSelectClose={handleSingleSiteSelect}
+            setCheckForSite={setCheckForSite}
+            setTempSelectedSpecies={setTempSelectedSpecies}
           />
         </>
       ) : (

@@ -78,7 +78,8 @@ const SpeciesMappedtoDietFilter = ({
   setSelectedSections,
   selectedSections,
   loadingTaxonomy,
-  loadingSpecies
+  loadingSpecies,
+  checkForSite
 }) => {
   const theme = useTheme()
 
@@ -129,6 +130,9 @@ const SpeciesMappedtoDietFilter = ({
   useEffect(() => {
     setActiveTab('Site')
     setSearchQuery('')
+    if (checkForSite === 'site_species') {
+      setActiveTab('Taxonomy')
+    }
   }, [openFilterDrawer])
 
   const handleApplyFilter = () => {
@@ -337,11 +341,16 @@ const SpeciesMappedtoDietFilter = ({
           <Grid container sx={{ px: 5 }}>
             <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
               {tabsforfilter
-                .filter(
-                  tab =>
-                    !(selectionType === 'species' && tab === 'Species') &&
-                    !(selectionType === 'animals' && tab === 'Taxonomy')
-                )
+                .filter(tab => {
+                  if (selectionType === 'species' && tab === 'Species') return false
+                  if (selectionType === 'animals' && tab === 'Taxonomy') return false
+
+                  if (selectionType === 'species' && checkForSite === 'site_species') {
+                    return tab === 'Taxonomy'
+                  }
+
+                  return true
+                })
                 .map(tab => {
                   const tabCount = getTabSelectionCount(tab)
                   return (
@@ -779,7 +788,7 @@ const SpeciesMappedtoDietFilter = ({
                                 flexDirection: 'column',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                height: '70%',
+                                //height: '70%',
                                 textAlign: 'center'
                               }}
                             >
@@ -840,7 +849,6 @@ const SpeciesMappedtoDietFilter = ({
                         width: '100%',
                         '& .MuiDrawer-paper': { width: ['100%', '562px'] },
 
-                        // backgroundColor: 'background.default',
                         overflowY: 'auto',
                         height: '100vh'
                       }}
@@ -894,7 +902,19 @@ const SpeciesMappedtoDietFilter = ({
                               )
                             })
                           ) : !loadingTaxonomy ? (
-                            <Typography sx={{ textAlign: 'center', mt: 10 }}>No Taxonomy found</Typography>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                //height: '70%',
+                                textAlign: 'center'
+                              }}
+                            >
+                              <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                              <Typography sx={{ textAlign: 'center', mt: 10 }}>No Taxonomy found</Typography>
+                            </Box>
                           ) : (
                             ''
                           )}
@@ -1005,7 +1025,7 @@ const SpeciesMappedtoDietFilter = ({
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         onClose={() => setOpenSectionListDrawer(false)}
-        siteId={tempSelectedItems?.Site?.[0]} // Pass the single selected site
+        siteId={tempSelectedItems?.Site?.[0]}
         setSelectedSections={setSelectedSections}
         selectedSections={selectedSections}
         tempSelectedItems={tempSelectedItems}
