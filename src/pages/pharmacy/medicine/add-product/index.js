@@ -1450,7 +1450,7 @@ const AddMedicine = () => {
                                   </Grid>
                                 </Grid>
                                 {fields.map((field, index) => (
-                                  <Grid container spacing={5} key={field.id} style={{ marginTop: '0px' }}>
+                                  <Grid container spacing={5} key={field.id} sx={{ marginBottom: 2 }}>
                                     <Grid item size={{ xs: 4 }}>
                                       <FormControl fullWidth>
                                         <Controller
