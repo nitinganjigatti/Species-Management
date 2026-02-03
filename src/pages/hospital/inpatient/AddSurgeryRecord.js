@@ -229,7 +229,10 @@ const schema = yup.object().shape({
 
       if (!startDateTime || !endDateTime) return true
 
-      return endDateTime.diff(startDateTime, 'minute') >= 60
+      const diffSeconds = endDateTime.diff(startDateTime, 'second')
+      const diffMinutes = Math.ceil(diffSeconds / 60)
+
+      return diffMinutes >= 60
     }),
   procedure: yup
     .mixed()
@@ -709,7 +712,8 @@ const AddSurgeryRecord = () => {
       return
     }
 
-    const diffMinutes = endDateTime.diff(startDateTime, 'minute')
+    const diffSeconds = endDateTime.diff(startDateTime, 'second')
+    const diffMinutes = Math.ceil(diffSeconds / 60)
     if (diffMinutes <= 0) {
       if (durationValue) {
         setValue('duration', '', { shouldValidate: true, shouldDirty: true })
