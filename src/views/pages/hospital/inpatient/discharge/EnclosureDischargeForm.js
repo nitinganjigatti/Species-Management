@@ -39,9 +39,6 @@ const EnclosureDischargeForm = props => {
     prescriptionsColumns,
     prescriptionData,
     isPrescriptionLoading,
-
-    // check,
-    // setCheck,
     sites,
     fetchLoading,
     handleSiteSearch,
@@ -172,6 +169,7 @@ const EnclosureDischargeForm = props => {
   })
 
   const defaultValues = {
+    returnToOriginal: true,
     discharge_type: 'TransferEnclosure',
     site_name: patientDetails?.site_id ? { label: patientDetails?.site_name, value: patientDetails?.site_id } : null,
     section_name: patientDetails?.section_id
@@ -270,6 +268,7 @@ const EnclosureDischargeForm = props => {
   }
 
   const followUp = watch('follow_up_required')
+  const returnToOriginal = watch('returnToOriginal')
 
   useEffect(() => {
     onDirtyChange?.(isDirty)
@@ -343,11 +342,6 @@ const EnclosureDischargeForm = props => {
       follow_up_date: formData.follow_up_date ? moment(formData.follow_up_date).format('YYYY-MM-DD') : null,
       attachments: formData.attachments.length > 0 ? formData.attachments : null,
       medications: medicationData.length > 0 ? JSON.stringify(medicationData) : null,
-
-      // transfer_back_to_original_location: 1,
-      // transfer_to_site_id: check ? patientDetails?.site_id : formData?.site_name?.value,
-      // transfer_to_section_id: check ? patientDetails?.section_id : formData?.section_name?.value,
-      // transfer_to_enclosure_id: check ? patientDetails?.user_enclosure_id : formData?.user_enclosure_name?.value,
       transfer_to_site_id: returnToOriginal ? patientDetails?.site_id : formData?.site_name?.value,
       transfer_to_section_id: returnToOriginal ? patientDetails?.section_id : formData?.section_name?.value,
       transfer_to_enclosure_id: returnToOriginal
@@ -376,8 +370,6 @@ const EnclosureDischargeForm = props => {
       }
     }
   }, [])
-  
-const returnToOriginal = watch('returnToOriginal')
 
   return (
     <>
@@ -387,7 +379,6 @@ const returnToOriginal = watch('returnToOriginal')
             <Controller
               name='returnToOriginal'
               control={control}
-              defaultValue={true}
               render={({ field }) => (
                 <MUICheckbox
                   {...field}
@@ -409,7 +400,7 @@ const returnToOriginal = watch('returnToOriginal')
                           label: patientDetails?.site_name,
                           value: patientDetails?.site_id
                         },
-                        { shouldDirty: false }
+                        { shouldDirty: true, shouldDirty: false }
                       )
 
                       setValue(
@@ -418,7 +409,7 @@ const returnToOriginal = watch('returnToOriginal')
                           label: patientDetails?.section_name,
                           value: patientDetails?.section_id
                         },
-                        { shouldDirty: false }
+                        { shouldDirty: true, shouldDirty: false }
                       )
 
                       setValue(
@@ -427,7 +418,7 @@ const returnToOriginal = watch('returnToOriginal')
                           label: patientDetails?.user_enclosure_name,
                           value: patientDetails?.user_enclosure_id
                         },
-                        { shouldDirty: false }
+                        { shouldDirty: true, shouldDirty: false }
                       )
                     }
                   }}
@@ -442,10 +433,10 @@ const returnToOriginal = watch('returnToOriginal')
                   control={control}
                   name={'site_name'}
                   errors={errors}
-                  label={'Site'}
+                  label={'Site*'}
                   options={sites}
-                  getOptionLabel={option => option?.label}
-                  getOptionValue={option => option?.value}
+                  getOptionLabel={option => option?.label || ''}
+                  getOptionValue={option => option?.value || ''}
                   onInputChange={value => handleSiteSearch(value)}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => {
@@ -456,9 +447,9 @@ const returnToOriginal = watch('returnToOriginal')
                     clearEnclosures()
                   }}
                   loading={fetchLoading}
+                  showLoader={true}
                   required
                   showIcons={false}
-                  // disabled={check}
                   disabled={returnToOriginal}
                   onChangeOverride={val => {
                     setValue('site_name', val)
@@ -479,7 +470,7 @@ const returnToOriginal = watch('returnToOriginal')
                   control={control}
                   name={'section_name'}
                   errors={errors}
-                  label={'Section'}
+                  label={'Section*'}
                   options={sections}
                   getOptionLabel={option => option?.label || ''}
                   getOptionValue={option => option?.value || ''}
@@ -491,9 +482,9 @@ const returnToOriginal = watch('returnToOriginal')
                     clearEnclosures()
                   }}
                   loading={sectionLoading}
+                  showLoader={true}
                   required
                   showIcons={false}
-                  // disabled={check}
                   disabled={returnToOriginal}
                   onChangeOverride={val => {
                     setValue('section_name', val)
@@ -512,7 +503,7 @@ const returnToOriginal = watch('returnToOriginal')
                   control={control}
                   name={'user_enclosure_name'}
                   errors={errors}
-                  label={'Enclosure'}
+                  label={'Enclosure*'}
                   options={enclosures}
                   getOptionLabel={option => option?.label}
                   getOptionValue={option => option?.value}
@@ -520,9 +511,9 @@ const returnToOriginal = watch('returnToOriginal')
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => handleEnclosureSearch(watch('section_name')?.value, '')}
                   loading={enclosureLoading}
+                  showLoader={true}
                   required
                   showIcons={false}
-                  // disabled={check}
                   disabled={returnToOriginal}
                 />
               </Grid>
@@ -535,7 +526,7 @@ const returnToOriginal = watch('returnToOriginal')
                   <ControlledDatePicker
                     control={control}
                     name='discharge_date'
-                    label='Date'
+                    label='Date*'
                     errors={errors}
                     minDate={dayjs(patientData?.admitted_at)}
                     maxDate={dayjs(new Date())}
@@ -545,7 +536,7 @@ const returnToOriginal = watch('returnToOriginal')
                   <ControlledTimePicker
                     control={control}
                     name='discharge_time'
-                    label='Time'
+                    label='Time*'
                     errors={errors}
                     minTime={minTime}
                     maxTime={maxTime}

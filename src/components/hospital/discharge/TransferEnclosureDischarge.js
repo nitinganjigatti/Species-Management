@@ -149,7 +149,13 @@ function TransferEnclosureDischarge(initialData) {
     if (initialData?.section_id) {
       fetchEnclosures(initialData.section_id)
     }
-  }, [initialData])
+
+    return () => {
+      debouncedFetchSites.cancel()
+      debouncedFetchSections.cancel()
+      debouncedFetchEnclosures.cancel()
+    }
+  }, [initialData, debouncedFetchSites, debouncedFetchSections, debouncedFetchEnclosures])
 
   const clearSections = () => {
     setSections([])
