@@ -124,7 +124,11 @@ const EnclosureOccupantsDrawer = ({ open, onClose, selectedEnclosure }) => {
                       animal_id: occupant?.animal_id,
                       common_name: occupant?.default_common_name,
                       scientific_name: occupant?.scientific_name,
-                      age: occupant?.age
+                      age: occupant?.age,
+                      site_name: occupant?.site_name,
+                      user_enclosure_name: occupant?.enclosure_name,
+                      section_name: occupant?.section_name,
+                      weight: occupant?.weight
                     }}
                   />
                 </Box>

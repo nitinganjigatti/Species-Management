@@ -400,12 +400,17 @@ const HospitalBedDetails = () => {
       renderCell: params => {
         const animalData = {
           animal_id: params?.row?.animal_id,
+          local_identifier_name: params?.row?.local_identifier_name,
+          local_identifier_value: params?.row?.local_identifier_value,
           common_name: params?.row?.default_common_name,
           scientific_name: params?.row?.scientific_name,
           age: params?.row?.age,
           site_name: params?.row?.site_name,
           sex: params?.row?.sex,
-          default_icon: params?.row?.occupant_icon
+          default_icon: params?.row?.occupant_icon,
+          user_enclosure_name: params?.row?.enclosure_name,
+          section_name: params?.row?.section_name,
+          weight: params?.row?.weight
         }
 
         const isOccupied = String(params?.row?.is_occupied) === '1'
@@ -638,6 +643,15 @@ const HospitalBedDetails = () => {
               '&:hover': {
                 backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.3)
               }
+            },
+            '& .MuiDataGrid-cell': {
+              padding: 4
+            },
+            '& .MuiDataGrid-cell:focus': {
+              outline: 'none'
+            },
+            '& .MuiDataGrid-cell:focus-within': {
+              outline: 'none'
             }
           }}
         />

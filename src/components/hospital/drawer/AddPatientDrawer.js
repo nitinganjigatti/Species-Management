@@ -33,6 +33,7 @@ const defaultValues = {
   admission_time: dayjs(),
   room: null,
   reason: ''
+
   // patient_status: false
 }
 
@@ -43,6 +44,7 @@ const schema = yup.object().shape({
   admission_date: yup.date().required('Admission date is required'),
   admission_time: yup.string().required('Admission time is required'),
   reason: yup.string().required('Reason for admission is required')
+
   // patient_status: yup.boolean().required('Patient status is required')
 })
 
@@ -141,9 +143,14 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
   }, [selectedHospital, searchRoom, hospitalStats?.available_rooms])
 
   const selectedRoom = watch('room')
+
   // const watchPatientStatus = watch('patient_status')
 
   useEffect(() => {
+    // Reset holding enclosure when room changes
+    // setValue('holdingEnclosure', null)
+    // setHoldingEnclosures([])
+
     const getHospitalBeds = async () => {
       if (!selectedRoom?.value) return
       setEnclosureLoading(true)
@@ -510,6 +517,19 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
                     )
                   }
                 />
+                {selectedRoom?.value && !enclosureLoading && holdingEnclosures.length === 0 && (
+                  <Typography
+                    sx={{
+                      color: theme.palette.error.main,
+                      mt: '0px',
+                      mx: '4px',
+                      fontSize: '0.75rem',
+                      fontWeight: 400
+                    }}
+                  >
+                    No active enclosures available for this room
+                  </Typography>
+                )}
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <Typography

@@ -79,6 +79,7 @@ const schema = yup.object().shape({
   selectedAnimal: yup.mixed().nullable().required('Animal is required'),
   selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
   room: yup.object().required('Room is required')
+
   // patient_status: yup.boolean().required('Patient Status is Required')
 })
 
@@ -101,6 +102,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
     admission_date: dayjs(),
     admission_time: dayjs(),
     room: null
+
     // patient_status: false
   }
 
@@ -165,6 +167,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
 
   const watchMedicalChoice = watch('medicalRecordChoice')
   const watchTreatmentType = watch('treatmentType')
+
   // const watchPatientStatus = watch('patient_status')
 
   useEffect(() => {
@@ -859,6 +862,19 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                       )
                     }
                   />
+                  {selectedRoom?.value && !bedsLoading && holdingEnclosures.length === 0 && (
+                    <Typography
+                      sx={{
+                        color: theme.palette.error.main,
+                        mt: '0px',
+                        mx: '4px',
+                        fontSize: '0.75rem',
+                        fontWeight: 400
+                      }}
+                    >
+                      No active enclosures available for this room
+                    </Typography>
+                  )}
                 </Grid>
               </Grid>
             </form>

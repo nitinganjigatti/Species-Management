@@ -18,6 +18,7 @@ import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
 const defaultValues = {
   holdingEnclosure: null,
   selectedDoctor: null
+
   // patient_status: false
 }
 
@@ -38,6 +39,8 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
   const [enclosureLoading, setEnclosureLoading] = useState(false)
   const [openAddRoomDrawer, setOpenAddRoomDrawer] = useState(false)
   const [openAddBedsDrawer, setOpenAddBedsDrawer] = useState(false)
+  const [previousRoomId, setPreviousRoomId] = useState(null)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
 
   const {
     control,
@@ -73,6 +76,8 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
         selectedDoctor: doctorData
       })
       setSelectedDoctor(doctorData)
+      setPreviousRoomId(patientData?.room_id)
+      setIsInitialLoad(true)
     }
   }, [patientData, reset])
 
@@ -111,9 +116,14 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
   }, [selectedHospital, search, hospitalStats?.available_rooms])
 
   const selectedRoom = watch('room')
+
   // const watchPatientStatus = watch('patient_status')
 
   useEffect(() => {
+    // Reset holding enclosure when room changes
+    // setValue('holdingEnclosure', null)
+    // setHoldingEnclosures([])
+
     const getHospitalBeds = async () => {
       if (!selectedRoom?.value) return
       setEnclosureLoading(true)
@@ -367,6 +377,19 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
                 )
               }
             />
+            {selectedRoom?.value && !enclosureLoading && holdingEnclosures.length === 0 && (
+              <Typography
+                sx={{
+                  color: theme.palette.error.main,
+                  mt: '0px',
+                  mx: '4px',
+                  fontSize: '0.75rem',
+                  fontWeight: 400
+                }}
+              >
+                No active enclosures available for this room
+              </Typography>
+            )}
           </Box>
           {/* <Box
             sx={{
