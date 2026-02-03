@@ -66,6 +66,8 @@ const DailyReport = () => {
   const [defaultObservationType, setDefaultObservationType] = useState(null)
   const [observationListLoader, setObservationListLoader] = useState(false)
   const [observationList, setObservationList] = useState([])
+  const [subObservationOptions, setSubObservationOptions] = useState([])
+  const [selectedSubObservations, setSelectedSubObservations] = useState([])
 
   const title = (
     <Typography
@@ -133,7 +135,15 @@ const DailyReport = () => {
 
       for (const d of detailsArr) {
         i += 1
-        const child = Array.isArray(d.child_observation) ? d.child_observation.join('• ') : ''
+        const childItems = Array.isArray(d.child_observation) ? d.child_observation : []
+        const childLabels = childItems
+          .map(item => {
+            if (typeof item === 'string' || typeof item === 'number') return String(item)
+
+            return item?.type_name || item?.name || item?.label || item?.key || ''
+          })
+          .filter(Boolean)
+        const child = childLabels.length ? childLabels.join('• ') : ''
 
         rows.push({
           id: d.observation_id || `${ref_type}-${ref_id}-${i}`,
@@ -146,6 +156,7 @@ const DailyReport = () => {
           user_enclosure_name: enclosure || '-',
           observation_type: d.master_enrichment_type || '-',
           observation_details: child || '-',
+          observation_details_list: childLabels,
           observation: d.details || d.observation || '-',
           site_name: site || '-',
           sex: sex || '-'
@@ -158,16 +169,33 @@ const DailyReport = () => {
 
   // -------- Client search filter (date or observation type or details) --------
   const filteredRows = useMemo(() => {
-    if (!searchValue.trim()) return rawRows
+    let rows = rawRows
+    if (selectedSubObservations.length > 0) {
+      const selectedNames = selectedSubObservations
+        .map(item => (item?.type_name || item?.name || item?.label || '').toString().toLowerCase())
+        .filter(Boolean)
+      rows = rows.filter(row => {
+        const detailList = Array.isArray(row.observation_details_list)
+          ? row.observation_details_list.map(item => String(item).toLowerCase())
+          : []
+        if (detailList.length) {
+          return selectedNames.some(name => detailList.includes(name))
+        }
+
+        return selectedNames.some(name => (row.observation_details || '').toLowerCase().includes(name))
+      })
+    }
+
+    if (!searchValue.trim()) return rows
     const q = searchValue.toLowerCase()
-    return rawRows.filter(
+    return rows.filter(
       r =>
         (r.date || '').toLowerCase().includes(q) ||
         (r.observation_type || '').toLowerCase().includes(q) ||
         (r.observation_details || '').toLowerCase().includes(q) ||
         (r.observation || '').toLowerCase().includes(q)
     )
-  }, [rawRows, searchValue])
+  }, [rawRows, searchValue, selectedSubObservations])
 
   // index + slice for current page (StickyTable can also take all rows and handle; here we keep total)
   useEffect(() => {
@@ -213,6 +241,8 @@ const DailyReport = () => {
     setSelectedSiteIds([])
 
     setDefaultObservationType(null)
+    setSelectedSubObservations([])
+    setSubObservationOptions([])
 
     // table/search state reset
     setRawRows([])
@@ -334,6 +364,20 @@ const DailyReport = () => {
     searchValue,
     defaultObservationType?.id
   ])
+
+  useEffect(() => {
+    const options = Array.isArray(defaultObservationType?.child_observation)
+      ? defaultObservationType.child_observation
+      : []
+    const normalized = options
+      .map(item => ({
+        id: String(item?.id ?? item?.value ?? item?.key ?? item?.type_name ?? ''),
+        type_name: item?.type_name || item?.name || item?.label || item?.key || ''
+      }))
+      .filter(item => item.type_name)
+    setSubObservationOptions(normalized)
+    setSelectedSubObservations([])
+  }, [defaultObservationType])
 
   const downloadDailyReport = async () => {
     const ids = Array.isArray(selectedSiteIds) ? selectedSiteIds : []
@@ -638,6 +682,92 @@ const DailyReport = () => {
                       }}
 
                       // error={Boolean(errors.nursery)}
+                    />
+                  )}
+                />
+                <Autocomplete
+                  multiple
+                  value={selectedSubObservations}
+                  disablePortal
+                  id='sub-observation-type'
+                  loading={observationListLoader}
+                  options={subObservationOptions}
+                  getOptionLabel={option => option.type_name}
+                  isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                  onChange={(e, val) => {
+                    setSelectedSubObservations(val || [])
+                  }}
+                  renderTags={(value, getTagProps) => {
+                    if (!value.length) return null
+                    const names = value.map(item => item?.type_name).filter(Boolean)
+                    const label = names.join(', ')
+
+                    return (
+                      <Typography
+                        component='span'
+                        sx={{
+                          fontSize: 14,
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          pointerEvents: 'none'
+                        }}
+                      >
+                        {label}
+                      </Typography>
+                    )
+                  }}
+                  clearOnEscape
+                  disableClearable={false}
+                  disabled={!defaultObservationType || subObservationOptions.length === 0}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      label='Sub-Observation Types'
+                      placeholder={selectedSubObservations.length ? '' : 'Search & Select'}
+                      sx={{
+                        width: 240,
+                        '& .MuiOutlinedInput-root': {
+                          height: 40,
+                          padding: '0 8px',
+                          borderRadius: '4px',
+                          alignItems: 'center',
+                          flexWrap: 'nowrap',
+                          overflow: 'hidden',
+                          cursor: 'text',
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#C3CEC7'
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#C3CEC7'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme.palette.primary.main
+                          },
+                          '& .MuiAutocomplete-input': {
+                            padding: '8px 4px',
+                            fontSize: 14,
+                            minWidth: 0,
+                            width: selectedSubObservations.length ? 0 : 'auto'
+                          },
+                          '& .MuiAutocomplete-input::placeholder': {
+                            opacity: selectedSubObservations.length ? 0 : 1
+                          },
+                          '& .MuiAutocomplete-endAdornment': {
+                            top: '50%',
+                            transform: 'translateY(-50%)'
+                          }
+                        },
+                        '& .MuiInputLabel-root': {
+                          top: '50%',
+                          transform: 'translate(14px, -50%) scale(1)'
+                        },
+                        '& .MuiInputLabel-shrink': {
+                          top: 0,
+                          transform: 'translate(14px, -9px) scale(0.75)'
+                        }
+                      }}
                     />
                   )}
                 />
