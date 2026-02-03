@@ -531,7 +531,7 @@ export default function AddMedicineToPrescription() {
           createdAt: schedule.created_at,
           time: schedule.scheduled_time ? getTimeDayjs(schedule.scheduled_time) : dayjs(),
           quantity: schedule.scheduled_quantity || '',
-          unit: schedule.scheduled_unit_name?.toLowerCase() || '',
+          unit: getUnitFromLabel(schedule.scheduled_unit_name, medicalMasterData) || '',
           scheduled_dose_id: schedule?.scheduled_dose_id
         })) || [],
       selectMedicineType: 'Schedule'
@@ -1448,6 +1448,7 @@ export default function AddMedicineToPrescription() {
         prescription_id: medicineDetail?.medicine_id,
         type: 'prescription',
         status: 'restart',
+        request_from: 'hospital_module',
         note: data?.notes,
         medicine_details: {
           id: medicineDetail?.medicine_id,
@@ -1966,6 +1967,14 @@ export default function AddMedicineToPrescription() {
     )
 
     return unit?.id || ''
+  }
+
+  const getUnitFromLabel = (unitName, medicalMasterData) => {
+    const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
+      item => item?.label === unitName
+    )
+
+    return unit?.key || ''
   }
 
   const getStringIdFromUnitName = (unitName, medicalMasterData) => {
