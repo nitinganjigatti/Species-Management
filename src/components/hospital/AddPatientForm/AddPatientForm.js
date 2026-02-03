@@ -208,7 +208,10 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
 
   useEffect(() => {
     // Reset holding enclosure when room changes
-    setValue('holdingEnclosure', null)
+    setValue('holdingEnclosure', {
+      label: '',
+      value: ''
+    })
     setHoldingEnclosures([])
 
     const getHospitalBeds = async () => {
