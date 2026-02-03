@@ -13,6 +13,7 @@ import {
   CircularProgress
 } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
+import { Router, useRouter } from 'next/router'
 import { useFormContext, Controller, useFieldArray } from 'react-hook-form'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
@@ -39,10 +40,11 @@ export default function BasicDetails({
     setValue,
     formState: { errors }
   } = useFormContext()
+  const router = useRouter()
   const theme = useTheme()
   const [newPurpose, setNewPurpose] = useState('')
   const [newPurposeError, setNewPurposeError] = useState('')
-
+  const { id, anaesthesia_id } = router.query
   const timeUnits = [
     { label: 'hr', value: 'hr' },
     { label: 'min', value: 'min' }
@@ -56,7 +58,9 @@ export default function BasicDetails({
         shouldValidate: true
       })
     }
-    // setValue('basicDetails.location', selectedHospital?.name)
+    if (!anaesthesia_id) {
+      setValue('basicDetails.location', selectedHospital?.name)
+    }
   }, [anaesthesiaDateTimeValue, setValue])
 
   const commonTextFieldSx = {
