@@ -48,7 +48,8 @@ const ComposeNavigation = () => {
 
   const userRole = authData?.userData?.roles?.role_name
 
-  const necropsyModule = authData?.userData?.roles?.settings?.enable_add_necropsy_report
+  const enableAddNecropsyReport = authData?.userData?.roles?.settings?.enable_add_necropsy_report
+  const allowCarcassCollection = authData?.userData?.roles?.settings?.allow_carcass_collection
   const hasPermissionToAddNecropsyCenter = authData?.userData?.permission?.user_settings?.add_necropsy_center
 
   // console.log('labList', labList)
@@ -115,7 +116,7 @@ const ComposeNavigation = () => {
     navigationArray.push(...complianceNav)
   }
 
-  if (necropsyModule) {
+  if (enableAddNecropsyReport || allowCarcassCollection) {
     const necropsyNav = necropsyNavigation(hasPermissionToAddNecropsyCenter)
     navigationArray.push(...necropsyNav)
   }

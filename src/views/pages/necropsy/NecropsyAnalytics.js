@@ -5,7 +5,7 @@ import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDate
 import { AirportShuttle } from '@mui/icons-material'
 import RenderUtility from 'src/utility/render'
 
-const NecropsyAnalytics = ({ disabled = false, filterDate, setFilterDate, badgeCount = 1, onCarcassTransfer }) => {
+const NecropsyAnalytics = ({ disabled = false, filterDate, setFilterDate, badgeCount = 1, onCarcassTransfer, allowCarcassCollection }) => {
   const theme = useTheme()
 
   return (
@@ -20,26 +20,28 @@ const NecropsyAnalytics = ({ disabled = false, filterDate, setFilterDate, badgeC
           <Grid container alignItems='center' rowSpacing={1}>
             <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               {RenderUtility.pageTitle('Necropsy')}
-              <Button
-                onClick={onCarcassTransfer}
-                sx={{
-                  display: 'flex',
-                  gap: '8px'
-                }}
-              >
-                <Typography
+              {allowCarcassCollection && (
+                <Button
+                  onClick={onCarcassTransfer}
                   sx={{
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    color: theme.palette.customColors.OnSurfaceVariant
+                    display: 'flex',
+                    gap: '8px'
                   }}
                 >
-                  CARCASS TRANSFER
-                </Typography>
-                <Badge badgeContent={badgeCount} color='error'>
-                  <AirportShuttle sx={{ color: theme.palette.customColors.OnSurfaceVariant }} />
-                </Badge>
-              </Button>
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    CARCASS TRANSFER
+                  </Typography>
+                  <Badge badgeContent={badgeCount} color='error'>
+                    <AirportShuttle sx={{ color: theme.palette.customColors.OnSurfaceVariant }} />
+                  </Badge>
+                </Button>
+              )}
             </Grid>
             <Grid size={{ xs: 12 }}>
               <Divider sx={{ my: 2 }} />

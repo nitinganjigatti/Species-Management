@@ -1,11 +1,14 @@
 import {
   NECROPSY_LISTING,
-  NECROPSY_DETAIL,
   GET_ANIMAL_WISE_NECROPSY_LIST,
   GET_SPECIES_WISE_NECROPSY_LIST,
-  GET_NECROPSY_STATS
+  GET_NECROPSY_STATS,
+  GET_INCOMING_NECROPSY_CHECKLIST_DETAILS,
+  GET_INCOMING_NECROPSY_TRANSFER_SUMMARY,
+  CREATE_INCOMING_NECROPSY_SUMMARY_COMMENT,
+  GET_INCOMING_NECROPSY_BTN_STATUS
 } from 'src/constants/ApiConstant'
-import { axiosGet } from '../utility'
+import { axiosFormPost, axiosGet } from '../utility'
 
 export async function getNecropsyListing(params, userId) {
   try {
@@ -32,6 +35,31 @@ export async function getSpeciesWiseNecropsyList(params) {
 
 export async function getNecropsyStats(params) {
   const response = await axiosGet({ url: `${GET_NECROPSY_STATS}`, params: params })
+
+  return response?.data
+}
+
+export async function getIncomingNecropsyTransferSummary(params) {
+  const response = await axiosGet({ url: `${GET_INCOMING_NECROPSY_TRANSFER_SUMMARY}`, params: params })
+
+  return response?.data
+}
+
+export async function getIncomingNecropsyChecklistDetails(params, transferId) {
+  const url = `${GET_INCOMING_NECROPSY_CHECKLIST_DETAILS}/${transferId}/activity`
+  const response = await axiosGet({ url: url, params: params })
+
+  return response?.data
+}
+
+export async function createIncomingNecropsySummaryComment(params) {
+  const response = await axiosFormPost({ url: `${CREATE_INCOMING_NECROPSY_SUMMARY_COMMENT}`, body: params })
+
+  return response?.data
+}
+
+export async function getIncomingNecropsyBtnStatus(transferId) {
+  const response = await axiosGet({ url: `${GET_INCOMING_NECROPSY_BTN_STATUS}/${transferId}/button-status` })
 
   return response?.data
 }

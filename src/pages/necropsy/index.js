@@ -1,6 +1,6 @@
 import { Box, Breadcrumbs, Card, CardContent, Grid, Paper, Typography, useTheme } from '@mui/material'
 import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import {
   Inbox as InboxIcon,
   AccessTime as ClockIcon,
@@ -20,7 +20,9 @@ import SpeciesCard from 'src/views/utility/SpeciesCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import NecropsyFilterDrawer from 'src/components/necropsy/NecropsyFilterDrawer'
 import SpeciesFilterDrawer from 'src/components/necropsy/SpeciesFilterDrawer'
+import IncomingNecropsyDrawer from 'src/components/necropsy/IncomingNecropsyDrawer'
 import Utility from 'src/utility'
+import { AuthContext } from 'src/context/AuthContext'
 
 const getTransferStatus = item => {
   if (item?.transfer_status === 'CANCELED') return 'Cancelled'
@@ -80,6 +82,10 @@ const Necropsy = () => {
 
   const { selectedNecropsy } = useNecropsy()
 
+  const authData = useContext(AuthContext)
+  const enableAddNecropsyReport = authData?.userData?.roles?.settings?.enable_add_necropsy_report
+  const allowCarcassCollection = authData?.userData?.roles?.settings?.allow_carcass_collection
+
   const [activeCard, setActiveCard] = useState('INCOMING')
   const [selected, setSelected] = useState('animals')
   const [filterDate, setFilterDate] = useState({})
@@ -119,6 +125,9 @@ const Necropsy = () => {
     limit: 50,
     q: ''
   })
+
+  const [openIncomingDrawer, setOpenIncomingDrawer] = useState(false)
+  const [selectedNecropsyRow, setSelectedNecropsyRow] = useState(null)
 
   const applyFilters = selectedOptions => {
     setSelectedOptions(selectedOptions)
@@ -308,6 +317,13 @@ const Necropsy = () => {
   const handleChange = (event, newValue) => {
     if (newValue !== null) {
       setSelected(newValue)
+    }
+  }
+
+  const handleRowClick = params => {
+    if (activeCard === 'INCOMING' && selected === 'animals') {
+      setSelectedNecropsyRow(params.row)
+      setOpenIncomingDrawer(true)
     }
   }
 
@@ -563,6 +579,7 @@ const Necropsy = () => {
         filterDate={filterDate}
         setFilterDate={setFilterDate}
         badgeCount={statsData?.CARCASS_TRANSFER}
+        allowCarcassCollection={allowCarcassCollection}
       />
       <Box sx={{ mt: 6 }}>
         <Card
@@ -751,6 +768,7 @@ const Necropsy = () => {
                     setPaginationModel={handlePaginationModelChange}
                     searchValue=''
                     getRowHeight={() => 'auto'}
+                    onRowClick={handleRowClick}
                     externalTableStyle={{
                       '& .MuiDataGrid-cell': {
                         padding: 4
@@ -801,6 +819,16 @@ const Necropsy = () => {
           onApplyFilters={applySpeciesFilters}
           setFilterCount={setSpeciesFilterCount}
           initialSelectedOptions={speciesSelectedOptions}
+        />
+      )}
+      {openIncomingDrawer && (
+        <IncomingNecropsyDrawer
+          open={openIncomingDrawer}
+          onClose={() => {
+            setOpenIncomingDrawer(false)
+            setSelectedNecropsyRow(null)
+          }}
+          transferId={selectedNecropsyRow?.transfer_id}
         />
       )}
     </Box>

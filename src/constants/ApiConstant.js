@@ -972,3 +972,11 @@ export const GET_ANIMAL_WISE_NECROPSY_LIST = `v2/species-wise-necropsy-list`
 export const GET_SPECIES_WISE_NECROPSY_LIST = `v2/species-wise-necropsy`
 
 export const GET_NECROPSY_STATS = `v2/necropsy/stats`
+
+export const GET_INCOMING_NECROPSY_TRANSFER_SUMMARY = `v1/get-transfer-summary`
+
+export const GET_INCOMING_NECROPSY_CHECKLIST_DETAILS = `v1/request`
+
+export const CREATE_INCOMING_NECROPSY_SUMMARY_COMMENT = `v1/request/comment/create`
+
+export const GET_INCOMING_NECROPSY_BTN_STATUS = `v1/transfer`
