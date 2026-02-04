@@ -16,6 +16,7 @@ import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import ReportsPageSkeleton from 'src/views/utility/SkeletonLoading/ReportsPageSkeleton'
 
 const productTypes = [
   { id: 'allopathy', name: 'Allopathy' },
@@ -46,6 +47,7 @@ const ConsumptionReport = () => {
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
   const [selectAllProductTypes, setSelectAllProductTypes] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
 
   const [filteredData, setFilteredData] = useState({
     pharmacy: []
@@ -171,9 +173,13 @@ const ConsumptionReport = () => {
           }
         })
         setLoading(false)
+        setPageLoading(false)
       } catch (e) {
         console.log(e)
         setLoading(false)
+        setPageLoading(false)
+      } finally {
+        setPageLoading(false)
       }
     },
     [paginationModel, filterDates, filteredData]
@@ -616,85 +622,89 @@ const ConsumptionReport = () => {
 
   return (
     <>
-      <PageCardLayout title={'Consumption Report'}>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'space-between',
-            alignItems: { xs: 'stretch', sm: 'center' },
-            gap: { xs: 2, sm: 0 },
-            width: '100%'
-          }}
-        >
-          <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Grid item size={{ xs: 12, sm: 5, md: 5 }}>
-              <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
-            </Grid>
+      {pageLoading ? (
+        <ReportsPageSkeleton />
+      ) : (
+        <PageCardLayout title={'Consumption Report'}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'space-between',
+              alignItems: { xs: 'stretch', sm: 'center' },
+              gap: { xs: 2, sm: 0 },
+              width: '100%'
+            }}
+          >
+            <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Grid item size={{ xs: 12, sm: 5, md: 5 }}>
+                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+              </Grid>
 
-            <Grid item size={{ xs: 12, sm: 7 }}>
-              <Grid
-                container
-                spacing={2}
-                sx={{
-                  justifyContent: { xs: 'flex-end' }
-                }}
-              >
-                <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
-                  <MUISearch
-                    onChange={e => handleSearch(e.target.value)}
-                    onClear={() => handleSearch('')}
-                    value={searchValue}
-                  />
-                </Grid>
-
+              <Grid item size={{ xs: 12, sm: 7 }}>
                 <Grid
-                  item
+                  container
+                  spacing={2}
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2,
-                    justifyContent: { sm: 'flex-end', xs: 'flex-end' }
+                    justifyContent: { xs: 'flex-end' }
                   }}
                 >
-                  <ExportButton
-                    loading={loading || exportLoading}
-                    onClick={handleExport}
-                    disabled={total === 0 ? true : false}
-                  />
-                  <FilterButton onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={appliedFiltersCount} />
+                  <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
+                    <MUISearch
+                      onChange={e => handleSearch(e.target.value)}
+                      onClear={() => handleSearch('')}
+                      value={searchValue}
+                    />
+                  </Grid>
+
+                  <Grid
+                    item
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                      justifyContent: { sm: 'flex-end', xs: 'flex-end' }
+                    }}
+                  >
+                    <ExportButton
+                      loading={loading || exportLoading}
+                      onClick={handleExport}
+                      disabled={total === 0 ? true : false}
+                    />
+                    <FilterButton onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={appliedFiltersCount} />
+                  </Grid>
                 </Grid>
               </Grid>
             </Grid>
+          </Box>
+          <Grid>
+            <CommonTable
+              columns={columns}
+              indexedRows={indexedRows}
+              total={total}
+              paginationModel={paginationModel}
+              loading={loading}
+              setPaginationModel={setPaginationModel}
+              searchValue={searchValue}
+              onPaginationModelChange={model => {
+                setPaginationModel(model)
+                router.replace({
+                  pathname: router.pathname,
+                  query: {
+                    ...router.query,
+                    page: model.page + 1,
+                    pageSize: model.pageSize,
+                    searchValue,
+                    sort,
+                    sortColumn
+                  }
+                })
+              }}
+              handleSortModel={handleSortModel}
+            />
           </Grid>
-        </Box>
-        <Grid>
-          <CommonTable
-            columns={columns}
-            indexedRows={indexedRows}
-            total={total}
-            paginationModel={paginationModel}
-            loading={loading}
-            setPaginationModel={setPaginationModel}
-            searchValue={searchValue}
-            onPaginationModelChange={model => {
-              setPaginationModel(model)
-              router.replace({
-                pathname: router.pathname,
-                query: {
-                  ...router.query,
-                  page: model.page + 1,
-                  pageSize: model.pageSize,
-                  searchValue,
-                  sort,
-                  sortColumn
-                }
-              })
-            }}
-            handleSortModel={handleSortModel}
-          />
-        </Grid>
-      </PageCardLayout>
+        </PageCardLayout>
+      )}
       {openFilterDrawer && (
         <ConsumptionReportDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}

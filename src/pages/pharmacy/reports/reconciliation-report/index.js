@@ -17,6 +17,7 @@ import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import MUISelect from 'src/views/forms/form-fields/MUISelect'
 import { statusOptions } from 'src/constants/PharmacyConstants'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import ReportsPageSkeleton from 'src/views/utility/SkeletonLoading/ReportsPageSkeleton'
 
 const ReconciliationReport = () => {
   const router = useRouter()
@@ -46,6 +47,7 @@ const ReconciliationReport = () => {
   const [activeStatus, setActiveStatus] = useState('all')
   const [filterSwitch, setFilterSwitch] = useState(false)
   const [excelExportLoader, setExcelExportLoader] = useState(false)
+  const [PageLoading, setPageLoading] = useState(true)
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -84,10 +86,14 @@ const ReconciliationReport = () => {
           }
         })
         setLoading(false)
+        setPageLoading(false)
       } catch (e) {
         console.log(e)
         setTotal(parseInt(0))
         setLoading(false)
+        setPageLoading(false)
+      } finally {
+        setPageLoading(false)
       }
     },
     [monthAndYear, filterSwitch, activeStatus, paginationModel?.page]
@@ -760,7 +766,9 @@ const ReconciliationReport = () => {
     }
   }
 
-  return (
+  return PageLoading ? (
+    <ReportsPageSkeleton ReconciliationReport />
+  ) : (
     <PageCardLayout title={'Reconciliation Report'}>
       <Grid container spacing={4}>
         <Grid item size={{ xs: 12, sm: 3 }}>
