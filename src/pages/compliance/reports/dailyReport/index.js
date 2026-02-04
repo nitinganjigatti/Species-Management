@@ -354,7 +354,8 @@ const DailyReport = () => {
         limit: resolvedLimit,
         ...(q && { q }),
         ...(obsTypeId && { observation_type: obsTypeId }),
-        ...(childObservationIds.length && { 'child_observation_ids[]': childObservationIds })
+        // ...(childObservationIds.length && { 'child_observation_ids[]': childObservationIds })
+        ...(childObservationIds.length && { child_observation_ids: childObservationIds })
       }
       setLoading(true)
       try {
@@ -425,7 +426,8 @@ const DailyReport = () => {
       end_date: endDateForApi,
       ...(searchQuery && { q: searchQuery }), // include server-side search if any
       ...(defaultObservationType?.id && { observation_type: defaultObservationType?.id }),
-      ...(childObservationIds.length && { 'child_observation_ids[]': childObservationIds })
+      // ...(childObservationIds.length && { 'child_observation_ids[]': childObservationIds })
+      ...(childObservationIds.length && { child_observation_ids: childObservationIds })
     }
     try {
       setIsDownloading(true)
