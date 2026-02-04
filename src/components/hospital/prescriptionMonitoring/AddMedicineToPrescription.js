@@ -24,7 +24,6 @@ import {
   getPrescriptions,
   getSideEffectMedicines,
   stopPrescription,
-  updatePrescription,
   validatePrescriptionUpdate
 } from 'src/lib/api/hospital/prescription'
 import Utility from 'src/utility'
@@ -1652,7 +1651,7 @@ export default function AddMedicineToPrescription() {
         ])
       }
 
-      const response = await updatePrescription(payload)
+      const response = await addPrescription(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message })

@@ -265,16 +265,11 @@ const AdministerOrSkipSidesheet = ({
           unitRaw = ''
         }
 
-        console.log('value, unitRaw', value, unitRaw)
-
         updatedQuantity = value
-        console.log('foundUnit', unitRaw)
-        console.log('foundUnit', medicalMasterData?.prescriptionDosageMeasurementType)
 
         const foundUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
           item => item?.unit_name?.toLowerCase() === unitRaw.toLowerCase()
         )
-        console.log('foundUnit', foundUnit)
 
         // Ensure the unit object has the expected structure
         updatedQuantityUnit = foundUnit ? { ...foundUnit, value: foundUnit.key, label: foundUnit.unit_name } : null
