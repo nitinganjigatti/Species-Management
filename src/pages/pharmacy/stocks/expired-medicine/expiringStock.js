@@ -16,6 +16,7 @@ import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import StockReportSkeleton from 'src/views/utility/SkeletonLoading/StockReportSkeleton'
 
 const ExpiringMedicine = () => {
   const theme = useTheme()
@@ -30,7 +31,6 @@ const ExpiringMedicine = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [searchTriggered, setSearchTriggered] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
-  const [loading, setLoading] = useState(false)
 
   const [filterDates, setFilterDates] = useState({
     startDate: Utility?.formattedPresentDate(),
@@ -39,7 +39,7 @@ const ExpiringMedicine = () => {
   const [selectDays, setSelectDays] = useState(7)
 
   const [excelLoader, setExcelLoader] = useState(false)
-  const [tableLoader, setTableloader] = useState(false)
+  const [tableLoader, setTableLoader] = useState(false)
 
   const [stores, setStores] = useState([])
   const [errors, setErrors] = useState('')
@@ -49,59 +49,6 @@ const ExpiringMedicine = () => {
     return data
   }
 
-  // const handleDateRangeChange = (startDate, endDate) => {
-  //   if (startDate && endDate) {
-  //     const formattedStartDate = Utility.formatDate(startDate)
-  //     const formattedEndDate = Utility.formatDate(endDate)
-  //     setFilterDates({
-  //       startDate: formattedStartDate,
-  //       endDate: formattedEndDate
-  //     })
-
-  //     console.log('Date range selected:', { startDate, endDate })
-  //   } else {
-  //     setFilterDates({
-  //       startDate: '',
-  //       endDate: ''
-  //     })
-
-  //     console.log('Empty date range selected,', { startDate, endDate })
-  //   }
-  // }
-
-  // const fetchTableData = useCallback(
-  //   async (sort, q, column, startDate, endDate, id) => {
-  //     try {
-  //       setLoading(true)
-
-  //       const params = {
-  //         sort,
-  //         q,
-  //         column,
-  //         page: paginationModel.page + 1,
-  //         limit: paginationModel.pageSize,
-  //         pending_days_start: startDate ? startDate : filterDates?.startDate,
-  //         pending_days_end: endDate ? endDate : filterDates?.endDate
-  //       }
-  //       await aboutExpiringProduct(id, params).then(res => {
-  //         if (res?.data?.length > 0) {
-  //           setTotal(parseInt(res?.count))
-  //           setRows(loadServerRows(paginationModel.page, res?.data))
-  //         } else {
-  //           setTotal(0)
-  //           setRows([])
-  //         }
-  //       })
-  //       setLoading(false)
-  //     } catch (error) {
-  //       console.log('error', error)
-  //       setTotal(0)
-  //       setRows([])
-  //       setLoading(false)
-  //     }
-  //   },
-  //   [paginationModel]
-  // )
   const getStoresLists = async () => {
     try {
       setLoader(true)
@@ -125,8 +72,7 @@ const ExpiringMedicine = () => {
     async (sort, q, column, startDate, endDate, id) => {
       if (!searchTriggered && q) return
       try {
-        // setLoading(true)
-        setTableloader(true)
+        setTableLoader(true)
         let selectedStorePharmacy = selectedPharmacy?.type === 'local' ? selectedPharmacy?.id : id
 
         const params = {
@@ -149,14 +95,12 @@ const ExpiringMedicine = () => {
           setTotal(0)
           setRows([])
         }
-        setLoading(false)
-        setTableloader(false)
+        setTableLoader(false)
       } catch (error) {
         console.error('Error fetching table data:', error)
         setTotal(0)
         setRows([])
-        setLoading(false)
-        setTableloader(false)
+        setTableLoader(false)
       }
     },
     [paginationModel, filterDates, searchTriggered, selectedPharmacy.id, storeId]
@@ -175,22 +119,6 @@ const ExpiringMedicine = () => {
     ...row,
     id: getSlNo(index)
   }))
-
-  // const handleSortModel = newModel => {
-  //   if (newModel.length) {
-  //     setSort(newModel[0].sort)
-  //     setSortColumn(newModel[0].field)
-  //     fetchTableData(
-  //       newModel[0].sort,
-  //       searchValue,
-  //       newModel[0].field,
-  //       filterDates.startDate,
-  //       filterDates.endDate,
-  //       selectedPharmacy.id
-  //     )
-  //   } else {
-  //   }
-  // }
 
   const handleSortModel = newModel => {
     if (newModel.length) {
@@ -225,23 +153,6 @@ const ExpiringMedicine = () => {
       debouncedSearch(value)
     }
   }
-
-  // const searchTableData = useCallback(
-  //   debounce(async (sort, q, column, startDate, endDate, id) => {
-  //     try {
-  //       await fetchTableData(sort, q, column, startDate, endDate, id)
-  //     } catch (error) {
-  //       console.error('Error in searchTableData:', error)
-  //     }
-  //   }, 1000),
-  //   [] // Include fetchTableData as a dependency
-  // )
-
-  // const handleSearch = value => {
-  //   setSearchValue(value)
-  //   setPaginationModel(prev => ({ ...prev, page: 0 })) // Reset to first page
-  //   searchTableData(sort, value, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
-  // }
 
   const columns = [
     // {
@@ -380,39 +291,18 @@ const ExpiringMedicine = () => {
         ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy }),
         type: 'csv'
       }
-      const response = await aboutExpiringProduct({params})
-      if(response?.success && response?.data){
-        Utility.downloadFileFromURL(response?.data);
-        setExcelLoader(false);
+      const response = await aboutExpiringProduct({ params })
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response?.data)
+        setExcelLoader(false)
       } else {
-        setExcelLoader(false);
+        setExcelLoader(false)
       }
     } catch (error) {
       setExcelLoader(false)
 
       console.log('error', error)
     }
-
-    // if (indexedRows?.length > 0) {
-    //   const data = indexedRows?.map(el => {
-    //     return {
-    //       ['Medicine Name']: el?.stock_items_name,
-    //       ['Stock Quantity']: el?.stock_qty,
-    //       ['Batch Number']: el?.batch_no,
-    //       ['Expiry Date']: el?.expiry_date
-    //     }
-    //   })
-
-    //   Utility.exportToCSV(data, 'Expiring Products')
-    //   setExcelLoader(false)
-    // } else {
-    //   setExcelLoader(false)
-    // }
-  }
-
-  const handleHeaderAction = () => {}
-  if (loading) {
-    return <FallbackSpinner />
   }
 
   const formatDate = dateString => {
@@ -443,7 +333,7 @@ const ExpiringMedicine = () => {
   return (
     <>
       {loader ? (
-        <FallbackSpinner />
+        <StockReportSkeleton AboutToExpire />
       ) : (
         <>
           <PageCardLayout title={'About To Expire'}>
@@ -453,7 +343,7 @@ const ExpiringMedicine = () => {
                   onChange={e => handleSearch(e.target.value)}
                   onClear={() => handleSearch('')}
                   value={searchValue}
-                ></MUISearch>
+                />
               </Grid>
 
               <Grid item size={{ xs: 12, sm: 12, md: 9 }}>
@@ -467,37 +357,6 @@ const ExpiringMedicine = () => {
                 >
                   {selectedPharmacy.type === 'central' && (
                     <Grid item size={{ xs: 12, sm: 12, md: 4, lg: 3 }} sx={{ display: 'flex', alignItems: 'center' }}>
-                      {/* <FormControl
-                        sx={{
-                          width: { xs: 'stretch' },
-                          mt: '3px'
-                        }}
-                      >
-                        <InputLabel id='controlled-select-label'>Stores</InputLabel>
-                        <Select
-                          onChange={e => {
-                            let id = e.target.value
-                            setStoreId(id)
-                          }}
-                          label='Stores'
-                          value={storeId}
-                          id='controlled-select'
-                          labelId='controlled-select-label'
-                          size='small'
-                        >
-                          <MenuItem value='all'>All</MenuItem>
-                          {stores.length > 0
-                            ? stores.map(el => {
-                                return (
-                                  <MenuItem key={el.id} value={el.id}>
-                                    {el.name}
-                                  </MenuItem>
-                                )
-                              })
-                            : null}
-                        </Select>
-                        <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
-                      </FormControl> */}
                       <MUIAutocomplete
                         label='Stores'
                         value={storeId}
@@ -542,20 +401,6 @@ const ExpiringMedicine = () => {
                 </Grid>
               </Grid>
             </Grid>
-            {/*
-              <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-                {status === 'all' || status === 'completed' ? (
-                  <Box sx={{ float: 'right', mt: 1 }}>
-                    <FormControlLabel
-                      control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                      label='Completed'
-                      labelPlacement='end'
-                    />
-                  </Box>
-                ) : null}
-              </Grid>
-            </Box> */}
-
             <Grid>
               <CommonTable
                 onRowClick={''}
@@ -569,71 +414,6 @@ const ExpiringMedicine = () => {
                 searchValue={searchValue}
               />
             </Grid>
-
-            {/* <Grid container sx={{ display: 'flex' }}>
-              <Grid item xs={12} sm={3} md={3} sx={{ ml: 4 }}>
-                <FormControl fullWidth size='small'>
-                  <InputLabel id='demo-simple-select-label'>Filter by days</InputLabel>
-                  <Select
-                    size='small'
-                    value={selectDays}
-                    label='Filter by days'
-                    onChange={e => {
-                      filterByDays(e.target.value)
-                      setSelectDays(e.target.value)
-                    }}
-                  >
-                    <MenuItem value='7'>7 Days</MenuItem>
-                    <MenuItem value='15'>7 to 15 Days </MenuItem>
-                    <MenuItem value='30'>15 to 30 Days</MenuItem>
-                    <MenuItem value='60'>30 to 60 Days</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid> */}
-            {/* <DataGrid
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
-              columnVisibilityModel={{
-                id: false
-              }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              total
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              disableColumnMenu
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-
-              // onRowClick={onRowClick}
-            /> */}
           </PageCardLayout>
         </>
       )}

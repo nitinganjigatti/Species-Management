@@ -3,7 +3,6 @@ import { Avatar, Box, Card, CardContent, CardHeader, Grid, Icon, Tooltip, Typogr
 import Router from 'next/router'
 import { debounce } from 'lodash'
 import React, { useCallback, useEffect, useState } from 'react'
-import FallbackSpinner from 'src/@core/components/spinner'
 import { getScrewList } from 'src/lib/api/pharmacy/escrow'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { useRouter } from 'next/router'
@@ -15,13 +14,12 @@ import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 import MUISelect from 'src/views/forms/form-fields/MUISelect'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import StockReportSkeleton from 'src/views/utility/SkeletonLoading/StockReportSkeleton'
 
 function Escrow({ value }) {
   const router = useRouter()
 
   const theme = useTheme()
-
-  const [loader, setLoader] = useState(false)
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
@@ -29,6 +27,7 @@ function Escrow({ value }) {
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
   const [sortColumn, setSortColumn] = useState(router.query.sortColumn || 'name')
   const [total, setTotal] = useState(0)
+  const [PageLoading, setPageLoading] = useState(true)
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page, 10) - 1 || 0,
@@ -299,6 +298,7 @@ function Escrow({ value }) {
       console.error(e)
     } finally {
       setLoading(false)
+      setPageLoading(false)
     }
   }, [])
 
@@ -329,35 +329,6 @@ function Escrow({ value }) {
     })
   }, [stockType, paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn])
 
-  // const handleSearch = useCallback(
-  //   debounce(value => {
-  //     setSearchValue(value)
-  //     setPaginationModel(prevModel => ({
-  //       ...prevModel,
-  //       page: 0
-  //     }))
-
-  //     router.replace({
-  //       pathname: router.pathname,
-  //       query: {
-  //         ...router.query,
-  //         searchValue: value,
-  //         page: 1 // Update to 1-indexed for the URL
-  //       }
-  //     })
-  //   }, 300), // Adjust debounce delay to a reasonable value (e.g., 300ms)
-  //   [router]
-  // )
-
-  // const handleSortModel = useCallback(newModel => {
-  //   if (newModel.length) {
-  //     setSort(newModel[0].sort)
-  //     setSortColumn(newModel[0].field)
-
-  //     // Reset to the first page (0) on new sort
-  //   }
-  // }, [])
-
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -369,38 +340,6 @@ function Escrow({ value }) {
   const filterByStockType = useCallback(type => {
     setStockType(type)
   }, [])
-
-  // const handleSearch = useCallback(
-  //   debounce(value => {
-  //     setSearchValue(value)
-
-  //     // Reset to the first page (0) on new search
-  //     setPaginationModel(prevModel => ({ ...prevModel, page: 0 }))
-  //   }, 500),
-  //   []
-  // )
-  // const handleSearch = useCallback(
-  //   debounce(value => {
-  //     setSearchValue(value)
-
-  //     // Reset to the first page (page 0 in your `paginationModel`)
-  //     setPaginationModel(prevModel => ({
-  //       ...prevModel,
-  //       page: 0
-  //     }))
-
-  //     // Update the URL query parameters
-  //     router.replace({
-  //       pathname: router.pathname,
-  //       query: {
-  //         ...router.query,
-  //         searchValue: value,
-  //         page: 1 // Update to 1-indexed for the URL
-  //       }
-  //     })
-  //   }, 300), // Adjust debounce delay to a reasonable value (e.g., 300ms)
-  //   [router]
-  // )
 
   const handleSearch = useCallback(
     debounce(value => {
@@ -432,8 +371,8 @@ function Escrow({ value }) {
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
+      {PageLoading ? (
+        <StockReportSkeleton Escrow />
       ) : (
         <>
           <PageCardLayout title={'Escrow List'}>
@@ -504,38 +443,6 @@ function Escrow({ value }) {
                 searchValue={searchValue}
               />
             </Grid>
-            {/*
-            <DataGrid
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              disableColumnMenu
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => {
-                    setSearchValue(event.target.value)
-
-                    return handleSearch(event.target.value)
-                  }
-                }
-              }}
-              onRowClick={onRowClick}
-            /> */}
           </PageCardLayout>
         </>
       )}

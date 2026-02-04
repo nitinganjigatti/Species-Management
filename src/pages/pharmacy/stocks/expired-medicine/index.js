@@ -17,7 +17,7 @@ import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
-
+import StockReportSkeleton from 'src/views/utility/SkeletonLoading/StockReportSkeleton'
 
 const ExpiredMedicine = () => {
   const theme = useTheme()
@@ -31,7 +31,6 @@ const ExpiredMedicine = () => {
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
-  const [loading, setLoading] = useState(false)
 
   const [excelLoader, setExcelLoader] = useState(false)
   const [tableLoader, setTableLoader] = useState(false)
@@ -67,7 +66,6 @@ const ExpiredMedicine = () => {
     async (sort, q, column, selectedStoreId) => {
       let selectedStorePharmacy = selectedPharmacy.type === 'local' ? selectedPharmacy.id : selectedStoreId
       try {
-        // setLoading(true)
         setTableLoader(true)
 
         const params = {
@@ -76,31 +74,22 @@ const ExpiredMedicine = () => {
           column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy }),
-
-      
+          ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy })
         }
 
         await getExpiredMedicine({ params }).then(res => {
           if (res?.list_items?.length > 0) {
             setTotal(parseInt(res?.total_count))
-            setRows(
-              loadServerRows(
-                paginationModel.page,
-                res.list_items
-              )
-            )
+            setRows(loadServerRows(paginationModel.page, res.list_items))
             setTableLoader(true)
           } else {
             setTotal(0)
             setRows([])
           }
         })
-        setLoading(false)
         setTableLoader(false)
       } catch (error) {
         console.log('error', error)
-        setLoading(false)
         setTotal(0)
         setRows([])
         setTableLoader(false)
@@ -288,32 +277,22 @@ const ExpiredMedicine = () => {
       }
       const response = await getExpiredMedicine({ params })
       if (response) {
-      Utility.downloadFileFromURL(response);
-      setExcelLoader(false);
-    }
-    else {
-      setExcelLoader(false);
-    }
-
-
-    } catch(error){
+        Utility.downloadFileFromURL(response)
+        setExcelLoader(false)
+      } else {
+        setExcelLoader(false)
+      }
+    } catch (error) {
       setExcelLoader(false)
 
-      console.log('error', error);
-      }
+      console.log('error', error)
     }
-
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
-  }
-  if (loading) {
-    return <FallbackSpinner />
   }
 
   return (
     <>
       {loader ? (
-        <FallbackSpinner />
+        <StockReportSkeleton ExpiredProducts />
       ) : (
         <>
           <PageCardLayout title={'Expired Products'}>

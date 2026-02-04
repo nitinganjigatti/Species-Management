@@ -2,11 +2,10 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { getStockOutItems } from 'src/lib/api/pharmacy/getStocksReportById'
-import FallbackSpinner from 'src/@core/components/spinner'
 import { debounce } from 'lodash'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
-import { CardContent, Grid, Card, CardHeader, Typography } from '@mui/material'
+import { Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
@@ -16,10 +15,11 @@ import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import StockReportSkeleton from 'src/views/utility/SkeletonLoading/StockReportSkeleton'
 
 const StockOut = () => {
   const theme = useTheme()
-  const [loader, setLoader] = useState(false)
+  const [PageLoading, setPageLoading] = useState(true)
 
   /***** Server side pagination */
 
@@ -29,7 +29,6 @@ const StockOut = () => {
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
-  const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('low_stock')
   const [changeSwitch, setChangeSwitch] = useState()
   const [excelLoader, setExcelLoader] = useState(false)
@@ -44,7 +43,6 @@ const StockOut = () => {
   const fetchTableData = useCallback(
     async (sort, q, column, status) => {
       try {
-        // setLoading(true)
         setTableLoader(true)
 
         const params = {
@@ -68,8 +66,8 @@ const StockOut = () => {
         setTotal(0)
         setRows([])
       } finally {
-        setLoading(false)
         setTableLoader(false)
+        setPageLoading(false)
       }
     },
     [paginationModel]
@@ -312,8 +310,8 @@ const StockOut = () => {
     }
   ]
 
-  if (loading) {
-    return <FallbackSpinner />
+  if (PageLoading) {
+    return <StockReportSkeleton LowStock />
   }
 
   const handleSwitchChange = event => {
@@ -362,8 +360,8 @@ const StockOut = () => {
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
+      {PageLoading ? (
+        <StockReportSkeleton LowStock />
       ) : (
         <PageCardLayout title={changeSwitch ? 'Out of Stock' : 'Low Stock'}>
           <Grid container spacing={3} justifyContent={'space-between'}>
@@ -390,13 +388,6 @@ const StockOut = () => {
                 justifyContent: { xs: 'start', sm: 'end ' }
               }}
             >
-              {/* <FormControlLabel
-                sx={{ m: 0 }}
-                control={<Switch defaultChecked={changeSwitch} onChange={handleSwitchChange} />}
-                label='Out Of Stock'
-                labelPlacement='end'
-              /> */}
-
               <MUISwitch
                 label='Out Of Stock'
                 labelStyle={{
