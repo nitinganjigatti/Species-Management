@@ -5,6 +5,7 @@ import {
   Box,
   Card,
   CardHeader,
+  Checkbox,
   CircularProgress,
   IconButton,
   TextField,
@@ -712,11 +713,29 @@ const DailyReport = () => {
                 multiple
                 value={selectedSubObservations}
                 disablePortal
+                disableCloseOnSelect
                 id='sub-observation-type'
                 loading={observationListLoader}
                 options={subObservationOptions}
                 getOptionLabel={option => option.type_name}
                 isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                renderOption={(props, option, { selected }) => (
+                  <li {...props}>
+                    <Checkbox
+                      checked={selected}
+                      sx={{
+                        mr: 1,
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        '&.Mui-checked': {
+                          color: theme.palette.primary.main
+                        }
+                      }}
+                    />
+                    <Typography sx={{ fontSize: 14, color: theme.palette.customColors.OnSurfaceVariant }}>
+                      {option?.type_name}
+                    </Typography>
+                  </li>
+                )}
                 onChange={(e, val) => {
                   setSelectedSubObservations(val || [])
                   setPaginationModel(prev => ({ ...prev, page: 0 }))
