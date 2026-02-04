@@ -321,18 +321,6 @@ const ListOfDiscardProducts = () => {
             date={params?.row?.created_at}
           />
         </>
-
-        // <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        //   {Utility.renderUserAvatar(params.row.user_profile_pic)}
-        //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-        //     <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-        //       {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-        //     </Typography>
-        //     <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-        //       {Utility.formatDisplayDate(params.row.created_at)}
-        //     </Typography>
-        //   </Box>
-        // </Box>
       )
     }
   ]
@@ -353,23 +341,14 @@ const ListOfDiscardProducts = () => {
         q: searchValue,
         column: sortColumn,
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+        type: 'csv'
       }
 
       const response = await getDiscardList({ params })
       setExcelLoader(false)
-      if (response?.success === true && response?.data?.list_items?.length > 0) {
-        const data = response?.data?.list_items?.map(el => ({
-          ['Request Number']: el?.req_no,
-          ['Supplier Name']: el?.supplier_name,
-          ['Quantity']: el?.total_qty,
-          ['Discarded Date']: Utility.formatDisplayDate(el?.discarded_date)
-            ? Utility.formatDisplayDate(el?.discarded_date)
-            : 'NA',
-          ['Discarded By']: el?.created_by_user_name ? el?.created_by_user_name : 'NA'
-        }))
-
-        Utility.exportToCSV(data, `Return_Supplier_List ${timestamp}`)
+      if (response?.success === true && response?.data) {
+        Utility.downloadFileFromURL(response?.data)
       } else {
         console.log('No data available for export.')
       }
@@ -377,45 +356,6 @@ const ListOfDiscardProducts = () => {
       console.log('Error >>', error)
     }
   }
-
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
-  }
-
-  // const headerAction = (
-  //   <Grid
-  //     sx={{
-  //       display: 'flex',
-  //       flexDirection: 'row', // Ensure buttons stay inline
-  //       alignItems: 'center', // Align buttons parallel to the title
-  //       gap: 4,
-  //       mt: { xs: 0 }
-  //     }}
-  //   >
-  //     <ExcelExportButton
-  //       disabled={total === 0}
-  //       action={() => {
-  //         getSupplierDataToExport()
-  //       }}
-  //       loader={excelLoader}
-  //       title='download'
-  //       sx={{
-  //         minWidth: 120, // Set a minimum width for smaller buttons
-  //         maxWidth: 160, // Limit button expansion
-  //         padding: '6px 12px' // Adjust padding for better size
-  //       }}
-  //     />
-  //     <AddButtonContained
-  //       title='Return to Supplier'
-  //       action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })}
-  //       sx={{
-  //         // minWidth: { xs: 100, sm: 0 },
-  //         // maxWidth: { xs: 100, sm: 0 },
-  //         // padding: '6px 12px'
-  //       }}
-  //     />
-  //   </Grid>
-  // )
 
   const headerAction = (
     <Grid
@@ -426,17 +366,6 @@ const ListOfDiscardProducts = () => {
         width: '100%'
       }}
     >
-      {/* <ExcelExportButton
-        disabled={total === 0}
-        action={() => {
-          getSupplierDataToExport()
-        }}
-        loader={excelLoader}
-        title='Download'
-        sx={{
-          width: '100%' // Make button full-width
-        }}
-      /> */}
       {selectedPharmacy.type === 'central' &&
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
         <AddButtonContained
@@ -498,61 +427,8 @@ const ListOfDiscardProducts = () => {
                   flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
                   justifyContent: 'space-between'
                 }}
-              >
-                {/* Left Box (Search Field) */}
-                {/* <Grid item xs={8}>
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                border: '1px solid #C3CEC7',
-                                borderRadius: '8px',
-                                padding: '0 8px',
-                                ml: 5,
-                                height: '40px',
-                                width: '250px' // Set a fixed width for all status
-                              }}
-                            >
-                              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                              <TextField
-                                variant='outlined'
-                                placeholder='Search...'
-                                value={searchValue}
-                                onChange={e => handleSearch(e.target.value)}
-                                fullWidth
-                                sx={{
-                                  '& .MuiOutlinedInput-root': {
-                                    border: 'none',
-                                    padding: '0',
-                                    '& fieldset': {
-                                      border: 'none'
-                                    }
-                                  }
-                                }}
-                              />
-                                 </Box>
-                                 </Grid> */}
+              ></Box>
 
-                {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-                             {status === 'all' || status === 'completed' ? (
-                                <Box sx={{ float: 'right', mt: 1 }}>
-                            <FormControlLabel
-                              control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                              label='Completed'
-                              labelPlacement='end'
-                            />
-                              </Box>
-                               ) : null}
-                                 </Grid> */}
-              </Box>
-              {/* <Grid
-                          sx={{
-                            display: 'flex',
-                            flexDirection: { xs: 'column', sm: 'row' },
-                            justifyContent: 'flex-start', // Align content to the left
-                            alignItems: 'flex-start' // Align items to the top left
-                          }}
-                        /> */}
               <Box
                 sx={{
                   display: 'flex',
@@ -601,58 +477,10 @@ const ListOfDiscardProducts = () => {
                           onClick={getSupplierDataToExport}
                           disabled={total === 0 ? true : false}
                         />
-                        {/* <Tooltip title='Export'>
-                          <>
-                            {excelLoader ? (
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  justifyContent: 'center',
-                                  width: '40px',
-                                  height: '40px',
-                                  borderRadius: '4px',
-                                  bgcolor: theme?.palette.customColors?.lightBg,
-                                  alignItems: 'center',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                <CircularProgress color='success' size={30} />
-                              </Box>
-                            ) : (
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  justifyContent: 'center',
-                                  width: '40px',
-                                  height: '40px',
-                                  borderRadius: '4px',
-                                  bgcolor: theme?.palette.customColors?.lightBg,
-                                  alignItems: 'center',
-                                  cursor: 'pointer'
-                                }}
-                                onClick={getSupplierDataToExport}
-                              >
-                                <Icon icon='ic:round-download' fontSize={20} />
-                              </Box>
-                            )}
-                          </>
-                        </Tooltip> */}
                       </Grid>
                     </Grid>
                   </Grid>
                 </Grid>
-                {/* <Grid
-                            item
-                            xs={12}
-                            sm='auto'
-                            sx={{
-                              mx: { xs: 0, sm: 1 },
-                              mt: { xs: 3, sm: 2 },
-                              width: { xs: '100%', sm: 'auto' } // Full width on small screens
-                            }}
-                          >
-                            <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
-                          </Grid> */}
               </Box>
               <Grid>
                 <CommonTable

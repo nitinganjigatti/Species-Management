@@ -28,6 +28,7 @@ import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import MenuWithDots from 'src/components/MenuWithDots'
 import AddReOrderDialog from 'src/components/pharmacy/stockLocation/AddReOrderDialog'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const ListOfMedicine = () => {
   const theme = useTheme()
@@ -372,6 +373,7 @@ const ListOfMedicine = () => {
   })
 
   const [loading, setLoading] = useState(false)
+  const [excelLoader, setExcelLoader] = useState(false)
 
   const [statusFilter, setStatusFilter] = useState(router.query.status || 'all')
   function loadServerRows(currentPage, data) {
@@ -384,23 +386,14 @@ const ListOfMedicine = () => {
       const activeStatus = status ?? statusFilter
       try {
         setLoading(true)
-        if (activeStatus === 'all') {
-          params = {
-            sort,
-            q,
-            column,
-            page: paginationModel?.page + 1,
-            limit: paginationModel?.pageSize
-          }
-        } else {
-          params = {
-            sort,
-            q,
-            column,
-            page: paginationModel?.page + 1,
-            limit: paginationModel?.pageSize,
-            active: activeStatus
-          }
+
+        let params = {
+          sort,
+          q,
+          column,
+          page: paginationModel?.page + 1,
+          limit: paginationModel?.pageSize,
+          ...(activeStatus !== 'all' && { active: activeStatus })
         }
 
         await getMedicineList({ params: params }).then(res => {
@@ -429,6 +422,36 @@ const ListOfMedicine = () => {
     },
     [paginationModel, statusFilter, dialogCheck]
   )
+
+  const ExportExcel = async ({ status }) => {
+    // let params = {}
+    const activeStatus = status ?? statusFilter
+    try {
+      setExcelLoader(true)
+
+      let params = {
+        sort: sort,
+        q: searchValue,
+        column: sortColumn,
+        ...(activeStatus !== 'all' && { active: activeStatus }),
+        response_type: 'csv'
+      }
+
+      console.log('aaaa', params)
+      const response = await getMedicineList({ params })
+      if (response?.success === true && response?.data) {
+        Utility.downloadFileFromURL(response?.data)
+        setExcelLoader(false)
+      } else {
+        setExcelLoader(false)
+      }
+    } catch (error) {
+      console.log('Error', error)
+      setExcelLoader(false)
+    } finally {
+      setExcelLoader(false)
+    }
+  }
 
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
@@ -569,76 +592,6 @@ const ListOfMedicine = () => {
                 show={showDialog}
               />
               <PageCardLayout title={'Product List'} action={headerAction}>
-                {/* <Box
-                  display='flex'
-                  // justifyContent='space-between'
-                  flexDirection={{ xs: 'column', sm: 'row' }} // Adjust direction based on screen size
-                  gap={6} // Gap between items on smaller screens
-                  sx={{ mx: { xs: 3, md: 5 } }}
-                  mt={3}
-                > */}
-                {/* Left Box (Search Field) */}
-                {/* <Grid item xs={12} sm={8} md={7}> */}
-                {/* <Box sx={{ ml: 'auto' }}>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                        borderRadius: '8px',
-                        padding: '0 8px',
-                        height: '40px'
-                      }}
-                    >
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      <TextField
-                        variant='outlined'
-                        value={searchValue}
-                        placeholder='Search...'
-                        onChange={e => handleSearch(e.target.value)}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            border: 'none',
-                            padding: '0',
-                            '& fieldset': {
-                              border: 'none'
-                            }
-                          }
-                        }}
-                      />
-                    </Box>
-                  </Box> */}
-
-                {/* </Grid> */}
-
-                {/* Right Box (Filter by Status) */}
-                {/* <Grid
-                    item
-                    xs={12}
-                    sm={4}
-                    md={4}
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <FormControl fullWidth size='small'>
-                      <InputLabel id='status-filter-label'>Filter by Status</InputLabel>
-                      <Select
-                        size='small'
-                        value={statusFilter}
-                        label='Filter by Status'
-                        onChange={e => handleStatusFilterChange(e.target.value)}
-                      >
-                        <MenuItem value='all'>All</MenuItem>
-                        <MenuItem value={true}>Active</MenuItem>
-                        <MenuItem value={false}>In-Active</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid> */}
-                {/* </Box> */}
                 <Grid
                   container
                   spacing={3}
@@ -657,13 +610,23 @@ const ListOfMedicine = () => {
                       </TabList>
                     </TabContext>
                   </Grid>
-                  <Grid item size={{ xs: 12, sm: 4, md: 4 }}>
+                  <Grid
+                    item
+                    size={{ xs: 12, sm: 4, md: 4 }}
+                    sx={{
+                      display: 'flex',
+                      gap: '6px'
+                    }}
+                  >
                     <MUISearch
                       onChange={e => handleSearch(e.target.value)}
                       onClear={() => handleSearch('')}
                       placeholder='Search...'
                       value={searchValue}
                     />
+                    <Box>
+                      <ExportButton onClick={ExportExcel} loading={excelLoader} disabled={total === 0 ? true : false} />
+                    </Box>
                   </Grid>
                 </Grid>
 
