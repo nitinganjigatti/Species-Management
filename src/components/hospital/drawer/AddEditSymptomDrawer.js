@@ -9,6 +9,7 @@ import {
   Drawer,
   Divider,
   InputAdornment,
+  FormControl,
   alpha
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
@@ -51,12 +52,14 @@ const AddEditSymptomDrawer = ({
   setIsDeleting,
   isDeleting,
   setActivityListData,
-  isChanged
+  isChanged,
+  isResolved
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
   const router = useRouter()
   const { id } = router.query
+
 
   const handleSave = () => {
     onSave({
@@ -82,7 +85,7 @@ const AddEditSymptomDrawer = ({
       formattedTime: `${Utility.formatDisplayDate(activity?.created_at)} • ${Utility.convertUTCToLocaltime(
         activity?.created_at
       )}`,
-      note: activity.note || 'N/A'
+      note: activity.note || ''
     })) ||
     // .sort((a, b) => {
     //   return b.isSystemGenerated - a.isSystemGenerated
@@ -212,7 +215,7 @@ const AddEditSymptomDrawer = ({
             </IconButton>
           </Box>
         </Box>
-
+          
         <Box
           sx={{
             pb: 22,
@@ -296,9 +299,9 @@ const AddEditSymptomDrawer = ({
                 <Select
                   value={severity}
                   onChange={e => setSeverity(e.target.value)}
+                  disabled={status === 'closed'}
                   sx={{
                     backgroundColor: getSymptomsSeverityColor(severity).bgColor,
-
                     fontWeight: 500,
                     height: 56,
                     borderRadius: '4px',
@@ -338,6 +341,7 @@ const AddEditSymptomDrawer = ({
                 <TextField
                   type='number'
                   value={durationValue}
+                  disabled={status === 'closed'}
                   onChange={e => {
                     const val = e.target.value
                     if (val === '' || Number(val) >= 0) {
@@ -354,6 +358,7 @@ const AddEditSymptomDrawer = ({
                             value={durationUnit}
                             onChange={e => setDurationUnit(e.target.value)}
                             variant='standard'
+                            disabled={status === 'closed'}
                             disableUnderline
                             sx={{
                               fontSize: 14,
@@ -384,6 +389,7 @@ const AddEditSymptomDrawer = ({
             </Typography>
             <TextField
               placeholder='Add notes'
+              disabled={status === 'closed'}
               fullWidth
               multiline
               rows={3}

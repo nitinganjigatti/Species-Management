@@ -1,7 +1,7 @@
 /* eslint-disable lines-around-comment */
 import React from 'react'
 import { Controller } from 'react-hook-form'
-import { Autocomplete, TextField, FormControl, Checkbox, FormHelperText } from '@mui/material'
+import { Autocomplete, TextField, FormControl, Checkbox, FormHelperText, CircularProgress } from '@mui/material'
 import get from 'lodash/get'
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank'
 import CheckBoxIcon from '@mui/icons-material/CheckBox'
@@ -38,7 +38,8 @@ const ControlledAutocomplete = ({
   sx = {},
   showIcons = true,
   disabled = false,
-  endAdornment = null
+  endAdornment = null,
+  showLoader = false
 }) => {
   if (!options) return null
 
@@ -141,13 +142,23 @@ const ControlledAutocomplete = ({
               const additionalEndAdornment = typeof endAdornment === 'function' ? endAdornment(params) : endAdornment
               const externalEndAdornment = textFieldProps?.slotProps?.input?.endAdornment
 
-              const combinedEndAdornment = (
+              const defaultAdornment = (
                 <>
                   {params.InputProps?.endAdornment}
                   {externalEndAdornment}
                   {additionalEndAdornment}
                 </>
               )
+
+              const combinedEndAdornment =
+                showLoader && loading ? (
+                  <>
+                    <CircularProgress size={18} />
+                    {defaultAdornment}
+                  </>
+                ) : (
+                  defaultAdornment
+                )
 
               const inputSlotProps = {
                 ...params.InputProps, // ensures dropdown arrow and anchor remain

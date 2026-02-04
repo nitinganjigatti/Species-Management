@@ -229,7 +229,10 @@ const schema = yup.object().shape({
 
       if (!startDateTime || !endDateTime) return true
 
-      return endDateTime.diff(startDateTime, 'minute') >= 60
+      const diffSeconds = endDateTime.diff(startDateTime, 'second')
+      const diffMinutes = Math.ceil(diffSeconds / 60)
+
+      return diffMinutes >= 60
     }),
   procedure: yup
     .mixed()
@@ -709,7 +712,8 @@ const AddSurgeryRecord = () => {
       return
     }
 
-    const diffMinutes = endDateTime.diff(startDateTime, 'minute')
+    const diffSeconds = endDateTime.diff(startDateTime, 'second')
+    const diffMinutes = Math.ceil(diffSeconds / 60)
     if (diffMinutes <= 0) {
       if (durationValue) {
         setValue('duration', '', { shouldValidate: true, shouldDirty: true })
@@ -978,6 +982,14 @@ const AddSurgeryRecord = () => {
     }
   }
 
+  const handleAIDDisplay = () => {
+    if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
+      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+    } else {
+      return patientData?.animal_detail?.animal_id
+    }
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <Breadcrumbs aria-label='breadcrumb'>
@@ -1043,7 +1055,7 @@ const AddSurgeryRecord = () => {
           age={`${patientData?.animal_detail?.age}`}
           gender={`${patientData?.animal_detail?.sex}`}
           additionalFields={[
-            { label: 'AID', value: patientData?.animal_detail?.animal_id },
+            { label: 'AID', value: handleAIDDisplay() },
             { label: 'Admitted days', value: patientData?.admitted_for_day },
             { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
             { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }

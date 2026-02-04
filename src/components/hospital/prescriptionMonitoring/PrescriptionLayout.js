@@ -132,6 +132,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         medical_record_id: medicineDetails?.medical_record_id,
         prescription_id: medicineDetails?.medicine_id, // medicine_id
         type: 'prescription',
+        request_from: 'hospital_module',
         status: 'stop',
         note: data.note,
         side_effect: data.hasAdverseEffects === 'yes',

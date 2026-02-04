@@ -823,8 +823,6 @@ export const ADD_PRESCRIPTION = 'medical/v2/prescription-update'
 
 export const SCHEDULE_PRESCRIPTION = 'v1/hospital/add-additional-dosage-timing'
 
-export const UPDATE_PRESCRIPTION = 'medical/v2/prescription-update'
-
 export const STOP_PRESCRIPTION = 'medical/v2/restart-stop-medicine'
 
 export const UNDO_PRESCRIPTION = 'administer/reset'

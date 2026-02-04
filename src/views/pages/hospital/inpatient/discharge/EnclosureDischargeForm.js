@@ -21,6 +21,7 @@ import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMul
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 
 const EnclosureDischargeForm = props => {
   const {
@@ -37,7 +38,20 @@ const EnclosureDischargeForm = props => {
     medicalRecordId,
     prescriptionsColumns,
     prescriptionData,
-    isPrescriptionLoading
+    isPrescriptionLoading,
+    sites,
+    fetchLoading,
+    handleSiteSearch,
+    sections,
+    sectionLoading,
+    handleSectionSearch,
+    enclosures,
+    enclosureLoading,
+    handleEnclosureSearch,
+    fetchSections,
+    fetchEnclosures,
+    clearSections,
+    clearEnclosures
   } = props
 
   const STORAGE_KEY_FORM = 'transfer_enclosure_form'
@@ -61,6 +75,24 @@ const EnclosureDischargeForm = props => {
   )
 
   const transferEnclosureSchema = yup.object({
+    site_name: yup
+      .object()
+      .nullable()
+      .test('has-value', 'Site is required', value => {
+        return value && value.value && value.value !== ''
+      }),
+    section_name: yup
+      .object()
+      .nullable()
+      .test('has-value', 'Section is required', value => {
+        return value && value.value && value.value !== ''
+      }),
+    user_enclosure_name: yup
+      .object()
+      .nullable()
+      .test('has-value', 'Enclosure is required', value => {
+        return value && value.value && value.value !== ''
+      }),
     discharge_date: yup
       .date()
       .typeError('Invalid Date')
@@ -137,10 +169,15 @@ const EnclosureDischargeForm = props => {
   })
 
   const defaultValues = {
+    returnToOriginal: true,
     discharge_type: 'TransferEnclosure',
-    site_name: patientDetails?.site_name || '',
-    section_name: patientDetails?.section_name || '',
-    user_enclosure_name: patientDetails?.user_enclosure_name || '',
+    site_name: patientDetails?.site_id ? { label: patientDetails?.site_name, value: patientDetails?.site_id } : null,
+    section_name: patientDetails?.section_id
+      ? { label: patientDetails?.section_name, value: patientDetails?.section_id }
+      : null,
+    user_enclosure_name: patientDetails?.user_enclosure_id
+      ? { label: patientDetails?.user_enclosure_name, value: patientDetails?.user_enclosure_id }
+      : null,
     discharge_date: dayjs(),
     discharge_time: dayjs(),
     reason: '',
@@ -231,6 +268,7 @@ const EnclosureDischargeForm = props => {
   }
 
   const followUp = watch('follow_up_required')
+  const returnToOriginal = watch('returnToOriginal')
 
   useEffect(() => {
     onDirtyChange?.(isDirty)
@@ -304,9 +342,11 @@ const EnclosureDischargeForm = props => {
       follow_up_date: formData.follow_up_date ? moment(formData.follow_up_date).format('YYYY-MM-DD') : null,
       attachments: formData.attachments.length > 0 ? formData.attachments : null,
       medications: medicationData.length > 0 ? JSON.stringify(medicationData) : null,
-      transfer_back_to_original_location: 1,
-      transfer_to_site_id: patientDetails?.site_id,
-      transfer_to_enclosure_id: patientDetails?.user_enclosure_id,
+      transfer_to_site_id: returnToOriginal ? patientDetails?.site_id : formData?.site_name?.value,
+      transfer_to_section_id: returnToOriginal ? patientDetails?.section_id : formData?.section_name?.value,
+      transfer_to_enclosure_id: returnToOriginal
+        ? patientDetails?.user_enclosure_id
+        : formData?.user_enclosure_name?.value,
       request_from: 'web'
     }
 
@@ -336,45 +376,145 @@ const EnclosureDischargeForm = props => {
       <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : undefined}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mb: 6 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <MUICheckbox
+            <Controller
               name='returnToOriginal'
               control={control}
-              label='Transfer back to animal’s original location'
-              labelStyle={{
-                fontSize: '1rem',
-                fontWeight: '400',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-              checked={true}
-              disabled={true}
+              render={({ field }) => (
+                <MUICheckbox
+                  {...field}
+                  label='Transfer back to animal’s original location'
+                  labelStyle={{
+                    fontSize: '1rem',
+                    fontWeight: '400',
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                  checked={field.value}
+                  onChange={e => {
+                    const checked = e.target.checked
+                    field.onChange(checked)
+
+                    if (checked) {
+                      setValue(
+                        'site_name',
+                        {
+                          label: patientDetails?.site_name,
+                          value: patientDetails?.site_id
+                        },
+                        { shouldDirty: true, shouldDirty: false }
+                      )
+
+                      setValue(
+                        'section_name',
+                        {
+                          label: patientDetails?.section_name,
+                          value: patientDetails?.section_id
+                        },
+                        { shouldDirty: true, shouldDirty: false }
+                      )
+
+                      setValue(
+                        'user_enclosure_name',
+                        {
+                          label: patientDetails?.user_enclosure_name,
+                          value: patientDetails?.user_enclosure_id
+                        },
+                        { shouldDirty: true, shouldDirty: false }
+                      )
+                    }
+                  }}
+                />
+              )}
             />
+
             <StyledTypography>Select location to transfer</StyledTypography>
             <Grid container spacing={6}>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <ControlledTextField
+                <ControlledAutocomplete
                   control={control}
                   name={'site_name'}
-                  label='Site'
-                  disabled={true}
                   errors={errors}
+                  label={'Site*'}
+                  options={sites}
+                  getOptionLabel={option => option?.label || ''}
+                  getOptionValue={option => option?.value || ''}
+                  onInputChange={value => handleSiteSearch(value)}
+                  isOptionEqualToValue={(option, value) => option?.value === value?.value}
+                  onItemClear={() => {
+                    handleSiteSearch('')
+                    setValue('section_name', { label: '', value: '' })
+                    setValue('user_enclosure_name', { label: '', value: '' })
+                    clearSections()
+                    clearEnclosures()
+                  }}
+                  loading={fetchLoading}
+                  showLoader={true}
+                  required
+                  showIcons={false}
+                  disabled={returnToOriginal}
+                  onChangeOverride={val => {
+                    setValue('site_name', val)
+                    setValue('section_name', { label: '', value: '' })
+                    setValue('user_enclosure_name', { label: '', value: '' })
+
+                    // Clear sections and enclosures when site changes
+                    clearSections()
+                    clearEnclosures()
+                    if (val?.value) {
+                      fetchSections(val?.value)
+                    }
+                  }}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <ControlledTextField
+                <ControlledAutocomplete
                   control={control}
                   name={'section_name'}
-                  label='Section'
-                  disabled={true}
                   errors={errors}
+                  label={'Section*'}
+                  options={sections}
+                  getOptionLabel={option => option?.label || ''}
+                  getOptionValue={option => option?.value || ''}
+                  onInputChange={value => handleSectionSearch(watch('site_name')?.value, value)}
+                  isOptionEqualToValue={(option, value) => option?.value === value?.value}
+                  onItemClear={() => {
+                    handleSectionSearch(watch('site_name')?.value, '')
+                    setValue('user_enclosure_name', { label: '', value: '' })
+                    clearEnclosures()
+                  }}
+                  loading={sectionLoading}
+                  showLoader={true}
+                  required
+                  showIcons={false}
+                  disabled={returnToOriginal}
+                  onChangeOverride={val => {
+                    setValue('section_name', val)
+                    setValue('user_enclosure_name', { label: '', value: '' })
+
+                    // Clear enclosures when section changes
+                    clearEnclosures()
+                    if (val?.value) {
+                      fetchEnclosures(val?.value)
+                    }
+                  }}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <ControlledTextField
+                <ControlledAutocomplete
                   control={control}
                   name={'user_enclosure_name'}
-                  label='Enclosure'
-                  disabled={true}
                   errors={errors}
+                  label={'Enclosure*'}
+                  options={enclosures}
+                  getOptionLabel={option => option?.label}
+                  getOptionValue={option => option?.value}
+                  onInputChange={value => handleEnclosureSearch(watch('section_name')?.value, value)}
+                  isOptionEqualToValue={(option, value) => option?.value === value?.value}
+                  onItemClear={() => handleEnclosureSearch(watch('section_name')?.value, '')}
+                  loading={enclosureLoading}
+                  showLoader={true}
+                  required
+                  showIcons={false}
+                  disabled={returnToOriginal}
                 />
               </Grid>
             </Grid>
@@ -386,7 +526,7 @@ const EnclosureDischargeForm = props => {
                   <ControlledDatePicker
                     control={control}
                     name='discharge_date'
-                    label='Date'
+                    label='Date*'
                     errors={errors}
                     minDate={dayjs(patientData?.admitted_at)}
                     maxDate={dayjs(new Date())}
@@ -396,7 +536,7 @@ const EnclosureDischargeForm = props => {
                   <ControlledTimePicker
                     control={control}
                     name='discharge_time'
-                    label='Time'
+                    label='Time*'
                     errors={errors}
                     minTime={minTime}
                     maxTime={maxTime}

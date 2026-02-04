@@ -59,6 +59,7 @@ const defaultValues = {
   room: null,
   admission_date: dayjs(),
   admission_time: dayjs()
+
   // patient_status: false
 }
 
@@ -69,6 +70,7 @@ const schema = yup.object().shape({
   room: yup.object().required('Room is required'),
   admission_date: yup.date().required('Admission date is required'),
   admission_time: yup.string().required('Admission time is required')
+
   // patient_status: yup.boolean().required('Patient Status is Required')
 })
 
@@ -178,9 +180,17 @@ const PatientAdmitForm = () => {
 
   const selectedRoom = watch('room')
   const watchTreatmentType = watch('treatmentType')
+
   // const watchPatientStatus = watch('patient_status')
 
   useEffect(() => {
+    // Reset holding enclosure when room changes
+    setValue('holdingEnclosure', {
+      label: '',
+      value: ''
+    })
+    setHoldingEnclosures([])
+
     const getHospitalBeds = async () => {
       if (!selectedRoom?.value) return
       setBedsLoading(true)
@@ -765,6 +775,19 @@ const PatientAdmitForm = () => {
                           )
                         }
                       />
+                      {selectedRoom?.value && !bedsLoading && holdingEnclosures.length === 0 && (
+                        <Typography
+                          sx={{
+                            color: theme.palette.error.main,
+                            mt: '0px',
+                            mx: '4px',
+                            fontSize: '0.75rem',
+                            fontWeight: 400
+                          }}
+                        >
+                          No active enclosures available for this room
+                        </Typography>
+                      )}
                     </Grid>
                   </Grid>
                 </Box>
