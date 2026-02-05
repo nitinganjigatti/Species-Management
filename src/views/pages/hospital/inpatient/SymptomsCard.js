@@ -101,7 +101,8 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
 
   const addSymptomDetails = details => {
     setPendingDetails(details)
-    setIsDeleteDialogOpen(true)
+    // setIsDeleteDialogOpen(true)
+    handleConfirmAddSymptom(details)
   }
 
   const isChanged =
@@ -112,7 +113,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
 
   const canEnableButton = isChanged || notes?.trim()?.length > 0
 
-  const handleConfirmAddSymptom = async () => {
+  const handleConfirmAddSymptom = async (pendingDetails) => {
     if (!pendingDetails) return
 
     try {
@@ -418,6 +419,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
           setNoteId={setNoteId}
           noteId={noteId}
           onSave={addSymptomDetails}
+          isSubmitLoading={deleteLoading}
           activityListData={activityListData}
           activityLoader={activityLoader}
           temporarilySelected={temporarilySelected}
