@@ -49,7 +49,7 @@ export async function getEnclosureCountRegister(params) {
 }
 
 export async function getComplianceDailyReport(params) {
-  const response = await axiosGet({ url: `${COMPLIANCE_DAILY_REPORT}`, params })
+  const response = await axiosPost({ url: `${COMPLIANCE_DAILY_REPORT}`, body: params })
 
   return response?.data
 }
