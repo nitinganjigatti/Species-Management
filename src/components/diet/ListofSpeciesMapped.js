@@ -61,7 +61,8 @@ const ListOfSpeciesMapped = ({
   selectionType,
   setapplyfilterCheck,
   siteId,
-  setSiteListDrawer
+  setSiteListDrawer,
+  setCheckForSite
 }) => {
   const theme = useTheme()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
@@ -134,11 +135,15 @@ const ListOfSpeciesMapped = ({
 
   const handelClose = () => {
     setIsOpennew(false)
-
     setspeciesview('')
     setStartDate(null)
     setEndDate(null)
     setTempSelectedSpecies([])
+    if (siteId) {
+      setCheckForSite('site_species')
+    } else {
+      setCheckForSite('')
+    }
   }
 
   const searchClose = () => {

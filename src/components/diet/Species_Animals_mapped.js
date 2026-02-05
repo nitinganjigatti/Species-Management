@@ -506,7 +506,7 @@ const SpeciesAnimalsMapped = ({
 
           <TabPanel value='animals' sx={{ background: theme.palette.customColors.tableHeaderBg }}>
             {speciesview === 'details' ? (
-              <Grid item size={{ md: 8, sm: 8, xs: 8 }} sx={{ background: 'background.default' }}>
+              <Grid item size={{ md: 8, sm: 8, xs: 8 }} sx={{ background: 'background.default', mb: '5%' }}>
                 <Box
                   sx={{
                     bgcolor: 'background.default',

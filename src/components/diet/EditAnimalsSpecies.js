@@ -59,7 +59,9 @@ const EditAnimalSpeciesMapped = ({
   checkForSite,
   siteId,
   setIsOpen,
-  setSiteListDrawer
+  setCheckForSite,
+  setSiteListDrawer,
+  setFilterState
 }) => {
   const theme = useTheme()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
@@ -208,6 +210,9 @@ const EditAnimalSpeciesMapped = ({
     setSearchQuery('')
     if (checkForSite === 'site_species') {
       setspeciesview('select')
+      setCheckForSite('site_species')
+      //setFilterState('species')
+      setPageNo(1)
     }
   }
 

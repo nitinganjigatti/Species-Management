@@ -57,7 +57,9 @@ const SpeciesMappedtoDiet = ({
   setSelectionType,
   authData,
   setPrimaryStatus,
-  setIsOpenTabsEdit
+  setIsOpenTabsEdit,
+  setSelectedSpecies,
+  setCheckForSite
 }) => {
   const listInnerRef = useRef(null)
   const theme = useTheme()
@@ -100,15 +102,18 @@ const SpeciesMappedtoDiet = ({
     setSelectedEnclosures([])
     setSelectedSpeciesIds([])
     setSelectedTaxonomyIds([])
+
     if (checkForSite === 'site_species') {
       setSelectionType('site_species')
+      setSelectedSpecies([])
+      setTempSelectedSpecies([])
     }
   }
 
   const handleSelectedclick = val => {
     if (val === 'select') {
       setIsOpennew(true)
-
+      setCheckForSite('')
       setspeciesview(val)
     } else {
       setIsOpennew(true)

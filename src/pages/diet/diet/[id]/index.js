@@ -496,6 +496,10 @@ const DietDetail = () => {
       fetchList(searchQuery, 'mapped')
     } else if (speciesview === 'select' && checkForSite === 'site_species') {
       fetchList(searchQuery)
+    } else if (checkForSite === '' && speciesview === '') {
+      fetchList(searchQuery)
+    } else if (speciesview === 'select') {
+      //fetchList(searchQuery)
     } else {
       fetchList(searchQuery)
     }
@@ -3800,6 +3804,8 @@ const DietDetail = () => {
             authData={authData}
             setIsOpenTabsEdit={setIsOpenTabsEdit}
             setPrimaryStatus={setPrimaryStatus}
+            setSelectedSpecies={setSelectedSpecies}
+            setCheckForSite={setCheckForSite}
           />
           <ListOfSpeciesMapped
             isOpennew={isOpennew}
@@ -3831,6 +3837,7 @@ const DietDetail = () => {
             setapplyfilterCheck={setapplyfilterCheck}
             siteId={siteId}
             setSiteListDrawer={setSiteListDrawer}
+            setCheckForSite={setCheckForSite}
           />
           <SpeciesAnimalsMapped
             setIsOpenTabs={setIsOpenTabs}
@@ -3900,6 +3907,8 @@ const DietDetail = () => {
             siteId={siteId}
             setIsOpen={setIsOpen}
             setSiteListDrawer={setSiteListDrawer}
+            setCheckForSite={setCheckForSite}
+            setFilterState={setFilterState}
           />
           <SpeciesMappedtoDietFilter
             setOpenFilterDrawer={setOpenFilterDrawer}
@@ -3970,6 +3979,8 @@ const DietDetail = () => {
             onSingleSelectClose={handleSingleSiteSelect}
             setCheckForSite={setCheckForSite}
             setTempSelectedSpecies={setTempSelectedSpecies}
+            setspeciesview={setspeciesview}
+            checkForSite={checkForSite}
           />
         </>
       ) : (

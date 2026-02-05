@@ -30,7 +30,9 @@ const SelectSiteList = ({
   selectionType,
   onSingleSelectClose,
   setCheckForSite,
-  setTempSelectedSpecies
+  setTempSelectedSpecies,
+  setspeciesview,
+  checkForSite
 }) => {
   const theme = useTheme()
   const [pendingSelections, setPendingSelections] = useState({ Site: [] })
@@ -51,6 +53,9 @@ const SelectSiteList = ({
   }
 
   const handleCloseDrawericon = () => {
+    if (checkForSite === 'site_species') {
+      setspeciesview('')
+    }
     setSiteListDrawer(false)
     setSearchTerm('')
   }
@@ -104,7 +109,7 @@ const SelectSiteList = ({
   }
 
   const filteredSites = items.Site.filter(site => site.site_name.toLowerCase().includes(searchTerm.toLowerCase()))
-  console.log(pendingSelections, 'pendingSelections')
+
   return (
     <Drawer
       anchor='right'
