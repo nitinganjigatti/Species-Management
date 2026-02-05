@@ -35,6 +35,9 @@ import Icon from 'src/@core/components/icon'
 import { getPatientDischargeSummary } from 'src/lib/api/hospital/inpatient'
 import Toaster from 'src/components/Toaster'
 
+// import extractTextFromHtml from 'src/utility/extractTextFromHtml'
+import { extractTextFromHtml } from 'src/utility'
+
 const HospitalDischarged = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -247,15 +250,7 @@ const HospitalDischarged = () => {
       headerName: 'Discharge Summary',
       renderCell: params => (
         <>
-          <Tooltip
-            title={
-              <span
-                dangerouslySetInnerHTML={{
-                  __html: params?.row?.notes || 'NA'
-                }}
-              />
-            }
-          >
+          <Tooltip title={extractTextFromHtml(params?.row?.discharge_reason || 'NA')}>
             <Box
               sx={{
                 fontSize: '14px',
@@ -267,13 +262,11 @@ const HospitalDischarged = () => {
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                whiteSpace: 'normal',
-                py: 4
+                whiteSpace: 'normal'
               }}
-              dangerouslySetInnerHTML={{
-                __html: params?.row?.discharge_reason || 'NA'
-              }}
-            />
+            >
+              {extractTextFromHtml(params?.row?.discharge_reason || 'NA')}
+            </Box>
           </Tooltip>
         </>
       )
