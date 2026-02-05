@@ -101,8 +101,23 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   //   handleSubmitData: handleTransferHospitalSubmitData
   // } = TransferHospitalDischarge()
 
-  const { submitLoader: transferEnclosureSubmitLoader, handleSubmitData: handleTransferEnclosureSubmitData } =
-    TransferEnclosureDischarge()
+  const {
+    submitLoader: transferEnclosureSubmitLoader,
+    handleSubmitData: handleTransferEnclosureSubmitData,
+    sites,
+    fetchLoading,
+    handleSiteSearch,
+    sections,
+    sectionLoading,
+    handleSectionSearch,
+    enclosures,
+    enclosureLoading,
+    handleEnclosureSearch,
+    fetchSections,
+    fetchEnclosures,
+    clearSections,
+    clearEnclosures
+  } = TransferEnclosureDischarge(patientData?.animal_detail)
 
   const { control, watch, setValue } = useForm({
     defaultValues: { discharge_type: 'TransferEnclosure' }
@@ -157,6 +172,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
         medical_record_id: row?.medical_record_id,
         prescription_id: row?.id,
         type: 'prescription',
+        request_from: 'hospital_module',
         status: 'stop',
         note: row?.notes,
         side_effect: row?.side_effect,
@@ -575,37 +591,53 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   }
 
   // Discharge confirmation handlers
-const handleMortalitySubmitWithConfirmation = async (payload) => {
-  return new Promise((resolve) => {
-    setPendingDischargeData({
-      title: 'Are you sure you want to discharge this animal as Mortality?',
-      onConfirm: async () => {
-        const success = await handleMortalitySubmitData(payload)
-        setDischargeConfirmOpen(false)
-        setPendingDischargeData(null)
-        resolve(success)
-        return success
-      }
-    })
-    setDischargeConfirmOpen(true)
-  })
-}
+  const handleMortalitySubmitWithConfirmation = async payload => {
+    return new Promise(resolve => {
+      setPendingDischargeData({
+        title: 'Are you sure you want to discharge this animal as Mortality?',
+        onConfirm: async () => {
+          const success = await handleMortalitySubmitData(payload)
+          setDischargeConfirmOpen(false)
+          setPendingDischargeData(null)
+          resolve(success)
 
-const handleEnclosureSubmitWithConfirmation = async (payload) => {  
-  return new Promise((resolve) => {
-    setPendingDischargeData({
-      title: 'Are you sure you want to discharge this animal to enclosure?',
-      onConfirm: async () => {
-        const success = await handleTransferEnclosureSubmitData(payload)
-        setDischargeConfirmOpen(false)
-        setPendingDischargeData(null)
-        resolve(success)
-        return success
-      }
+          return success
+        }
+      })
+      setDischargeConfirmOpen(true)
     })
-    setDischargeConfirmOpen(true)
-  })
-}
+  }
+
+  const handleEnclosureSubmitWithConfirmation = async payload => {
+    return new Promise(resolve => {
+      const originalSite = patientData?.animal_detail?.site_id
+      const originalSection = patientData?.animal_detail?.section_id
+      const originalEnclosure = patientData?.animal_detail?.user_enclosure_id
+
+      const isLocationChanged =
+        Number(payload.transfer_to_site_id) !== Number(originalSite) ||
+        Number(payload.transfer_to_section_id) !== Number(originalSection) ||
+        Number(payload.transfer_to_enclosure_id) !== Number(originalEnclosure)
+
+      const titleMessage = isLocationChanged
+        ? `This animal will be transferred to a different location than its original one.
+          Please confirm the selected Site, Section, and Enclosure carefully.`
+        : 'Are you sure you want to discharge this animal to enclosure?'
+
+      setPendingDischargeData({
+        title: titleMessage,
+        onConfirm: async () => {
+          const success = await handleTransferEnclosureSubmitData(payload)
+          setDischargeConfirmOpen(false)
+          setPendingDischargeData(null)
+          resolve(success)
+
+          return success
+        }
+      })
+      setDischargeConfirmOpen(true)
+    })
+  }
 
   const handleDischargeConfirm = async () => {
     if (pendingDischargeData) {
@@ -869,6 +901,19 @@ const handleEnclosureSubmitWithConfirmation = async (payload) => {
             prescriptionsColumns={prescriptionsColumns}
             prescriptionData={prescriptionIndexedRows}
             isPrescriptionLoading={isPrescriptionLoading}
+            sites={sites}
+            fetchLoading={fetchLoading}
+            handleSiteSearch={handleSiteSearch}
+            sections={sections}
+            sectionLoading={sectionLoading}
+            handleSectionSearch={handleSectionSearch}
+            enclosures={enclosures}
+            enclosureLoading={enclosureLoading}
+            handleEnclosureSearch={handleEnclosureSearch}
+            fetchSections={fetchSections}
+            fetchEnclosures={fetchEnclosures}
+            clearSections={clearSections}
+            clearEnclosures={clearEnclosures}
           />
         )}
         {confirmOpen && (

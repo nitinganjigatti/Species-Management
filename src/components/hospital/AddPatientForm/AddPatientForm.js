@@ -53,11 +53,6 @@ const treatmentType = [
   { label: 'Hospital Admission(inpatient)', value: 'inpatient' }
 ]
 
-const medicalRecordType = [
-  { label: 'Create a new ID', value: 'new' },
-  { label: 'Add to existing ID', value: 'existing' }
-]
-
 const visitTypes = [
   { label: 'Check Up', value: 'checkup' },
   { label: 'Emergency', value: 'emergency' },
@@ -78,8 +73,9 @@ const schema = yup.object().shape({
   holdingEnclosure: yup.object().required('Holding Enclosure is required'),
   selectedAnimal: yup.mixed().nullable().required('Animal is required'),
   selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
-  room: yup.object().required('Room is required'),
-  patient_status: yup.boolean().required('Patient Status is Required')
+  room: yup.object().required('Room is required')
+
+  // patient_status: yup.boolean().required('Patient Status is Required')
 })
 
 const AddPatientForm = ({ defaultTreatmentType }) => {
@@ -100,8 +96,9 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
     selectedDoctor: null,
     admission_date: dayjs(),
     admission_time: dayjs(),
-    room: null,
-    patient_status: false
+    room: null
+
+    // patient_status: false
   }
 
   const { selectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } = useHospital()
@@ -132,6 +129,11 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
     Section: [],
     Enclosure: []
   })
+
+  const medicalRecordType = [
+    { label: 'Create a new ID', value: 'new', disabled: false },
+    { label: 'Add to existing ID', value: 'existing', disabled: medicalId.length === 0 }
+  ]
 
   const applyFilters = selectedOptions => {
     setSelectedOptions(selectedOptions)
@@ -165,7 +167,8 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
 
   const watchMedicalChoice = watch('medicalRecordChoice')
   const watchTreatmentType = watch('treatmentType')
-  const watchPatientStatus = watch('patient_status')
+
+  // const watchPatientStatus = watch('patient_status')
 
   useEffect(() => {
     const getHospitalRooms = async () => {
@@ -204,6 +207,13 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
   const selectedRoom = watch('room')
 
   useEffect(() => {
+    // Reset holding enclosure when room changes
+    setValue('holdingEnclosure', {
+      label: '',
+      value: ''
+    })
+    setHoldingEnclosures([])
+
     const getHospitalBeds = async () => {
       if (!selectedRoom?.value) return
       setBedsLoading(true)
@@ -359,9 +369,9 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
       keepTouched: false
     })
     setSelectedAnimal(null)
-    setValue('selectedAnimal', null)
+    setSelectedDoctor(null)
     setMedicalId([])
-    setValue('medicalRecordChoice', 'new')
+    setHoldingEnclosures([])
   }
 
   const handleRemoveDoctor = () => {
@@ -565,7 +575,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                               selectedBackgroundColor={theme.palette.customColors.OnPrimaryContainer}
                               selectedFontColor={theme.palette.customColors.OnPrimary}
                               selectedBorderColor='none'
-                              disabled={submitLoader}
+                              disabled={submitLoader || item.disabled}
                             />
                           </Grid>
                         ))}
@@ -741,7 +751,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                     disabled={submitLoader}
                   />
                 </Grid>
-                <Grid
+                {/* <Grid
                   size={{ xs: 12 }}
                   sx={{
                     display: 'none',
@@ -768,7 +778,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                     labelPosition='start'
                     spaceBetween
                   />
-                </Grid>
+                </Grid> */}
                 <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
@@ -855,6 +865,19 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                       )
                     }
                   />
+                  {selectedRoom?.value && !bedsLoading && holdingEnclosures.length === 0 && (
+                    <Typography
+                      sx={{
+                        color: theme.palette.error.main,
+                        mt: '0px',
+                        mx: '4px',
+                        fontSize: '0.75rem',
+                        fontWeight: 400
+                      }}
+                    >
+                      No active enclosures available for this room
+                    </Typography>
+                  )}
                 </Grid>
               </Grid>
             </form>

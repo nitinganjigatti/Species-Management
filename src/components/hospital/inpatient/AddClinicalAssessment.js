@@ -331,7 +331,8 @@ function AddClinicalAssessment() {
 
     const payload = {
       medical_record_id: medicalRecordId,
-      diagnosis: JSON.stringify(diagnosis)
+      diagnosis: JSON.stringify(diagnosis),
+      hospital_case_id: id
     }
 
     try {
@@ -431,6 +432,14 @@ function AddClinicalAssessment() {
     }
   }, [id])
 
+  const handleAIDDisplay = () => {
+    if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
+      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+    } else {
+      return patientData?.animal_detail?.animal_id
+    }
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       {breadcrumbs}
@@ -441,7 +450,7 @@ function AddClinicalAssessment() {
         age={`${patientData?.animal_detail?.age}`}
         gender={`${patientData?.animal_detail?.sex}`}
         additionalFields={[
-          { label: 'AID', value: patientData?.animal_detail?.animal_id },
+          { label: 'AID', value: handleAIDDisplay() },
           { label: 'Admitted days', value: patientData?.admitted_for_day },
           { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
           { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }

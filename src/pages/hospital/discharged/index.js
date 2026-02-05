@@ -13,7 +13,6 @@ import {
   CircularProgress
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
-import { differenceInDays } from 'date-fns'
 import { debounce, set } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
@@ -33,7 +32,6 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
 import { getPatientDischargeSummary } from 'src/lib/api/hospital/inpatient'
-import Toaster from 'src/components/Toaster'
 
 // import extractTextFromHtml from 'src/utility/extractTextFromHtml'
 import { extractTextFromHtml } from 'src/utility'
@@ -50,6 +48,9 @@ const HospitalDischarged = () => {
   const [filterCount, setFilterCount] = useState(0)
   const [filterDate, setFilterDate] = useState({})
   const [downloadingRowId, setDownloadingRowId] = useState(null)
+  const [rows, setRows] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -89,10 +90,13 @@ const HospitalDischarged = () => {
     return new Date(dateString).toISOString().split('T')[0]
   }
 
-  const { data, isFetching, refetch } = useQuery({
-    queryKey: ['outpatients-listings', filters, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions],
-    queryFn: () =>
-      getIncomingPatients({
+  const fetchDischargedPatients = async () => {
+    if (!selectedHospital?.id) return
+
+    try {
+      setLoading(true)
+
+      const res = await getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
         q: filters?.q,
@@ -103,16 +107,45 @@ const HospitalDischarged = () => {
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('Chief Veterinarian'),
         origin_site: prepareFilterParams('Origin Site')
-      }),
-    enabled: !!selectedHospital?.id
-  })
+      })
 
-  const total = data?.data?.total || 0
-  const rows = data?.data?.records || []
+      setRows(res?.data?.records || [])
+      setTotal(res?.data?.total || 0)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    refetch()
-  }, [refetch])
+    fetchDischargedPatients()
+  }, [filters?.page, filters?.limit, filters?.q, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions])
+
+  // const { data, isFetching, refetch } = useQuery({
+  //   queryKey: ['outpatients-listings', filters, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions],
+  //   queryFn: () =>
+  //     getIncomingPatients({
+  //       page_no: filters?.page,
+  //       limit: filters?.limit,
+  //       q: filters?.q,
+  //       hospital_id: selectedHospital?.id,
+  //       visit_type: selectedVisitType,
+  //       patient_category: 'discharge',
+  //       from_date: formatDate(filterDate.startDate),
+  //       to_date: formatDate(filterDate.endDate),
+  //       users: prepareFilterParams('Chief Veterinarian'),
+  //       origin_site: prepareFilterParams('Origin Site')
+  //     }),
+  //   enabled: !!selectedHospital?.id
+  // })
+
+  // const total = data?.data?.total || 0
+  // const rows = data?.data?.records || []
+
+  // useEffect(() => {
+  //   refetch()
+  // }, [refetch])
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -484,7 +517,7 @@ const HospitalDischarged = () => {
                 columns={columns}
                 indexedRows={indexedRows}
                 total={total}
-                loading={isFetching}
+                loading={loading}
                 paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
                 setPaginationModel={handlePaginationModelChange}
                 searchValue=''

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 
-import { Breadcrumbs, Typography, Card, Box, Button, IconButton, Grid } from '@mui/material'
+import { Breadcrumbs, Typography, Card, Box, Button, IconButton, Grid, Tooltip, Collapse } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import { Icon } from '@iconify/react'
 
@@ -220,7 +220,7 @@ const schema = yup.object().shape({
   endTime: yup
     .mixed()
     .test('end-required', 'End time is required', value => Boolean(value))
-    .test('end-after-start', 'End time must be after start time', function (value) {
+    .test('end-after-start', 'End time must be at least 1 hour after start time', function (value) {
       const { startTime, date } = this?.parent || {}
       if (!value || !startTime || !date) return true
 
@@ -229,7 +229,10 @@ const schema = yup.object().shape({
 
       if (!startDateTime || !endDateTime) return true
 
-      return endDateTime.isAfter(startDateTime)
+      const diffSeconds = endDateTime.diff(startDateTime, 'second')
+      const diffMinutes = Math.ceil(diffSeconds / 60)
+
+      return diffMinutes >= 60
     }),
   procedure: yup
     .mixed()
@@ -277,7 +280,7 @@ const AddSurgeryRecord = () => {
     () => ({
       date: dayjs(),
       startTime: dayjs(),
-      endTime: null,
+      endTime: dayjs().add(1, 'hour'),
       procedure: null,
       surgeon: null,
       typeOfSurgery: '',
@@ -325,12 +328,18 @@ const AddSurgeryRecord = () => {
   const [doctorsPage, setDoctorsPage] = useState(1)
   const [hasMoreDoctors, setHasMoreDoctors] = useState(true)
   const [doctorsLoading, setDoctorsLoading] = useState(false)
+  const [careInstructionsExpanded, setCareInstructionsExpanded] = useState(false)
   const [formResetKey, setFormResetKey] = useState(0)
   const selectedDate = watch('date')
   const startTimeValue = watch('startTime')
   const endTimeValue = watch('endTime')
   const durationValue = watch('duration')
   const selectedAnesthesia = selectedAnesthesiaRecord
+  const minEndTime = useMemo(() => {
+    if (!startTimeValue || !dayjs(startTimeValue).isValid()) return null
+
+    return dayjs(startTimeValue).add(1, 'hour')
+  }, [startTimeValue])
   const parseUtcDateToLocalDayjs = useCallback(value => {
     if (!value) return null
 
@@ -704,7 +713,8 @@ const AddSurgeryRecord = () => {
       return
     }
 
-    const diffMinutes = endDateTime.diff(startDateTime, 'minute')
+    const diffSeconds = endDateTime.diff(startDateTime, 'second')
+    const diffMinutes = Math.ceil(diffSeconds / 60)
     if (diffMinutes <= 0) {
       if (durationValue) {
         setValue('duration', '', { shouldValidate: true, shouldDirty: true })
@@ -721,6 +731,15 @@ const AddSurgeryRecord = () => {
       setValue('duration', label, { shouldValidate: true, shouldDirty: true })
     }
   }, [selectedDate, startTimeValue, endTimeValue, durationValue, setValue])
+
+  useEffect(() => {
+    if (!minEndTime) return
+
+    const currentEnd = endTimeValue && dayjs(endTimeValue).isValid() ? dayjs(endTimeValue) : null
+    if (!currentEnd || currentEnd.isBefore(minEndTime)) {
+      setValue('endTime', minEndTime, { shouldValidate: true, shouldDirty: false, shouldTouch: false })
+    }
+  }, [minEndTime, endTimeValue, setValue])
 
   const handleClearSelectedAnesthesia = useCallback(() => {
     setSelectedAnesthesiaRecord(null)
@@ -964,6 +983,14 @@ const AddSurgeryRecord = () => {
     }
   }
 
+  const handleAIDDisplay = () => {
+    if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
+      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+    } else {
+      return patientData?.animal_detail?.animal_id
+    }
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <Breadcrumbs aria-label='breadcrumb'>
@@ -1029,7 +1056,7 @@ const AddSurgeryRecord = () => {
           age={`${patientData?.animal_detail?.age}`}
           gender={`${patientData?.animal_detail?.sex}`}
           additionalFields={[
-            { label: 'AID', value: patientData?.animal_detail?.animal_id },
+            { label: 'AID', value: handleAIDDisplay() },
             { label: 'Admitted days', value: patientData?.admitted_for_day },
             { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
             { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }
@@ -1117,6 +1144,7 @@ const AddSurgeryRecord = () => {
                 name={'endTime'}
                 control={control}
                 label='End Time'
+                minTime={minEndTime}
                 renderInput={params => (
                   <ControlledTextField
                     {...params}
@@ -1186,36 +1214,86 @@ const AddSurgeryRecord = () => {
                 />
               </Grid>
               <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
-                <ControlledAutocomplete
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '4px',
-                      height: '56px'
+                <Tooltip
+                  title={(() => {
+                    // Get the selected value from the form
+                    const selectedValue = watch('procedure');
+                    // Find the selected option
+                    const selectedOption = procedureOptions.find(
+                      option => procedureIsOptionEqualToValue(option, selectedValue)
+                    );
+                    // Return the description
+                    return selectedOption?.description || '';
+                  })()}
+                  placement="top"
+                  arrow
+                  enterDelay={500}
+                  slotProps={{
+                    popper: {
+                      sx: {
+                        zIndex: 1300
+                      }
+                    },
+                    tooltip: {
+                      enterDelay: 500,
+                      leaveDelay: 200
                     }
                   }}
-                  control={control}
-                  errors={errors}
-                  name={'procedure'}
-                  key={`procedure-${formResetKey}`}
-                  label='Name of Procedure'
-                  options={procedureOptions}
-                  loading={isProceduresLoading}
-                  onInputChange={handleProcedureInputChange}
-                  onItemClear={handleProcedureClear}
-                  getOptionLabel={procedureGetOptionLabel}
-                  isOptionEqualToValue={procedureIsOptionEqualToValue}
-                  onChangeOverride={() => clearErrors?.('procedure')}
-                  endAdornment={() => (
-                    <IconButton
-                      size='small'
-                      onMouseDown={e => e.preventDefault()}
-                      onClick={() => setOpenAddSurgeryDrawer(true)}
-                      sx={{ ml: 1, fontSize: 28 }}
-                    >
-                      <Icon icon='mdi:plus' color={theme.palette.primary.main} />
-                    </IconButton>
-                  )}
-                />
+                >
+                  <Box>
+
+                    <ControlledAutocomplete
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '4px',
+                          height: '56px'
+                        },
+                        '& .MuiAutocomplete-popper': {
+                          zIndex: 1400 // Higher than tooltip
+                        },
+                        '& .MuiAutocomplete-listbox': {
+                          zIndex: 1400
+                        },
+                        '& .MuiPaper-root': {
+                          zIndex: 1400
+                        }
+                      }}
+                      control={control}
+                      errors={errors}
+                      name={'procedure'}
+                      key={`procedure-${formResetKey}`}
+                      label='Name of Procedure'
+                      options={procedureOptions}
+                      loading={isProceduresLoading}
+                      onInputChange={handleProcedureInputChange}
+                      onItemClear={handleProcedureClear}
+                      getOptionLabel={procedureGetOptionLabel}
+                      isOptionEqualToValue={procedureIsOptionEqualToValue}
+                      onChangeOverride={() => clearErrors?.('procedure')}
+                      renderOption={(props, option) => (
+                        <Tooltip
+                          title={option.description || 'No description available'}
+                          placement="right"
+                          arrow
+                        >
+                          <li {...props}>
+                            {procedureGetOptionLabel(option)}
+                          </li>
+                        </Tooltip>
+                      )}
+                      endAdornment={() => (
+                        <IconButton
+                          size='small'
+                          onMouseDown={e => e.preventDefault()}
+                          onClick={() => setOpenAddSurgeryDrawer(true)}
+                          sx={{ ml: 1, fontSize: 28 }}
+                        >
+                          <Icon icon='mdi:plus' color={theme.palette.primary.main} />
+                        </IconButton>
+                      )}
+                    />
+                  </Box>
+                </Tooltip>
               </Grid>
               <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
                 <ControlledTextField
@@ -1486,97 +1564,121 @@ const AddSurgeryRecord = () => {
           padding: '24px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '24px',
+          gap: careInstructionsExpanded ? '24px' : '0',
           boxShadow: 'none'
         }}
       >
-        <Typography
+        <Box
           sx={{
-            fontWeight: 500,
-            fontSize: '24px',
-            letterSpacing: 0,
-            color: theme.palette.customColors.OnSurfaceVariant
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            cursor: 'pointer',
+            width: '100%'
           }}
+          onClick={() => setCareInstructionsExpanded(!careInstructionsExpanded)}
         >
-          Care Instructions
-        </Typography>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: '24px',
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Care Instructions
+          </Typography>
+          <IconButton
+            size="small"
+            sx={{
+              transform: careInstructionsExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.2s ease-in-out'
+            }}
+          >
+            <Icon icon="mdi:chevron-down" fontSize={24} />
+          </IconButton>
+        </Box>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: '16px',
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Enter diet instructions
-          </Typography>
-          <ControlledTextField
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '8px',
-                height: '63px'
-              }
-            }}
-            control={control}
-            name={'dietInstructions'}
-            errors={errors}
-            borderRadius='4px'
-            placeholder={'Enter text'}
-          />
-        </Box>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: '16px',
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Enter restriction activities with duration
-          </Typography>
-          <ControlledTextField
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '8px',
-                height: '63px'
-              }
-            }}
-            control={control}
-            name={'restrictions'}
-            errors={errors}
-            borderRadius='4px'
-            placeholder={'Enter text'}
-          />
-        </Box>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: '16px',
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Additional notes
-          </Typography>
-          <ControlledTextField
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '8px',
-                height: '63px'
-              },
-              backgroundColor: alpha(theme.palette.customColors.Notes, 153 / 255)
-            }}
-            placeholder={'Enter text'}
-            control={control}
-            name={'additionalNotes'}
-            errors={errors}
-            borderRadius='4px'
-          />
-        </Box>
+        <Collapse in={careInstructionsExpanded}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: '16px',
+                  letterSpacing: 0,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                Enter diet instructions
+              </Typography>
+              <ControlledTextField
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px',
+                    height: '63px'
+                  }
+                }}
+                control={control}
+                name={'dietInstructions'}
+                errors={errors}
+                borderRadius='4px'
+                placeholder={'Enter text'}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: '16px',
+                  letterSpacing: 0,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                Enter restriction activities with duration
+              </Typography>
+              <ControlledTextField
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px',
+                    height: '63px'
+                  }
+                }}
+                control={control}
+                name={'restrictions'}
+                errors={errors}
+                borderRadius='4px'
+                placeholder={'Enter text'}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: '16px',
+                  letterSpacing: 0,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                Additional notes
+              </Typography>
+              <ControlledTextField
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px',
+                    height: '63px'
+                  },
+                  backgroundColor: alpha(theme.palette.customColors.Notes, 153 / 255)
+                }}
+                placeholder={'Enter text'}
+                control={control}
+                name={'additionalNotes'}
+                errors={errors}
+                borderRadius='4px'
+              />
+            </Box>
+          </Box>
+        </Collapse>
       </Card>
 
       <Card

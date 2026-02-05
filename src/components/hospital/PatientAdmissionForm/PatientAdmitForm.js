@@ -58,8 +58,9 @@ const defaultValues = {
   holdingEnclosure: null,
   room: null,
   admission_date: dayjs(),
-  admission_time: dayjs(),
-  patient_status: false
+  admission_time: dayjs()
+
+  // patient_status: false
 }
 
 const schema = yup.object().shape({
@@ -68,8 +69,9 @@ const schema = yup.object().shape({
   holdingEnclosure: yup.object().required('Holding Enclosure is required'),
   room: yup.object().required('Room is required'),
   admission_date: yup.date().required('Admission date is required'),
-  admission_time: yup.string().required('Admission time is required'),
-  patient_status: yup.boolean().required('Patient Status is Required')
+  admission_time: yup.string().required('Admission time is required')
+
+  // patient_status: yup.boolean().required('Patient Status is Required')
 })
 
 const PatientAdmitForm = () => {
@@ -178,9 +180,17 @@ const PatientAdmitForm = () => {
 
   const selectedRoom = watch('room')
   const watchTreatmentType = watch('treatmentType')
-  const watchPatientStatus = watch('patient_status')
+
+  // const watchPatientStatus = watch('patient_status')
 
   useEffect(() => {
+    // Reset holding enclosure when room changes
+    setValue('holdingEnclosure', {
+      label: '',
+      value: ''
+    })
+    setHoldingEnclosures([])
+
     const getHospitalBeds = async () => {
       if (!selectedRoom?.value) return
       setBedsLoading(true)
@@ -647,7 +657,7 @@ const PatientAdmitForm = () => {
                       )}
                     </Grid>
                   </Grid>
-                  <Grid
+                  {/* <Grid
                     size={{ xs: 12 }}
                     sx={{
                       display: 'none',
@@ -674,7 +684,7 @@ const PatientAdmitForm = () => {
                       labelPosition='start'
                       spaceBetween
                     />
-                  </Grid>
+                  </Grid> */}
                   <Grid container spacing={6}>
                     <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       <Typography
@@ -765,6 +775,19 @@ const PatientAdmitForm = () => {
                           )
                         }
                       />
+                      {selectedRoom?.value && !bedsLoading && holdingEnclosures.length === 0 && (
+                        <Typography
+                          sx={{
+                            color: theme.palette.error.main,
+                            mt: '0px',
+                            mx: '4px',
+                            fontSize: '0.75rem',
+                            fontWeight: 400
+                          }}
+                        >
+                          No active enclosures available for this room
+                        </Typography>
+                      )}
                     </Grid>
                   </Grid>
                 </Box>

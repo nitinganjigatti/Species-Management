@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react'
+import React, { useState, useMemo, useCallback, useEffect, useContext } from 'react'
 import { Box, Typography, CircularProgress, Skeleton, Chip, Button } from '@mui/material'
 import { Grid } from '@mui/system'
 import { useTheme } from '@emotion/react'
@@ -14,8 +14,12 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import PatientMediaFilterDrawer from 'src/components/hospital/drawer/PatientMediaFilterDrawer'
 import { getPatientMedia, uploadPatientMedia, deletePatientMedia } from 'src/lib/api/hospital/inpatient'
 import Toaster from 'src/components/Toaster'
+import { AuthContext } from 'src/context/AuthContext'
 
 const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
+  const authData = useContext(AuthContext)
+
+  const uploadSettings = authData?.userData?.settings
   const theme = useTheme()
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
@@ -47,17 +51,133 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
   const { getRootProps, getInputProps } = useDropzone({
     multiple: true,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp', '.webp'],
+      'image/*': ['.png', '.jpg', '.jpeg', '.svg', '.heic'],
       'application/pdf': ['.pdf'],
       'application/msword': ['.doc'],
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
       'application/vnd.ms-excel': ['.xls'],
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-      'text/csv': ['.csv'],
-      'video/*': ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm'],
-      'audio/*': ['.mp3', '.wav', '.ogg', '.m4a', '.aac']
+
+      // 'text/csv': ['.csv'],
+      'video/*': ['.mp4'],
+      'audio/*': ['.mp3', '.ogg', '.m4a']
     },
-    onDrop: async acceptedFiles => {
+    validator: file => {
+      const allowedExtensions = [
+        '.png',
+        '.jpg',
+        '.jpeg',
+        '.heic',
+        '.svg',
+        '.mp4',
+        '.mp3',
+        '.ogg',
+        '.m4a',
+        '.pdf',
+        '.doc',
+        '.docx',
+        '.xls',
+        '.xlsx'
+      ]
+
+      const fileName = file.name.toLowerCase()
+      const isValidType = allowedExtensions.some(ext => fileName.endsWith(ext))
+
+      if (!isValidType) {
+        return {
+          code: 'file-invalid-type',
+          message: `File type not supported. Allowed types: ${allowedExtensions.join(', ')}`
+        }
+      }
+
+      return null
+    },
+    onDrop: async (acceptedFiles, rejectedFiles) => {
+      // Show error for rejected files
+      if (rejectedFiles.length > 0) {
+        rejectedFiles.forEach(({ file, errors }) => {
+          errors.forEach(error => {
+            Toaster({ type: 'error', message: `${file.name}: ${error.message}` })
+          })
+        })
+      }
+
+      // Process accepted files
+      if (acceptedFiles.length === 0) return
+
+      // Categorize files by type
+      const imageExts = ['.png', '.jpg', '.jpeg', '.heic', '.svg']
+      const videoExts = ['.mp4']
+      const audioExts = ['.mp3', '.ogg', '.m4a']
+      const docExts = ['.pdf', '.doc', '.docx', '.xls', '.xlsx']
+
+      const getFileType = fileName => {
+        const name = fileName.toLowerCase()
+        if (imageExts.some(ext => name.endsWith(ext))) return 'image'
+        if (videoExts.some(ext => name.endsWith(ext))) return 'video'
+        if (audioExts.some(ext => name.endsWith(ext))) return 'audio'
+        if (docExts.some(ext => name.endsWith(ext))) return 'document'
+
+        return 'document'
+      }
+
+      const typeStats = {
+        image: { count: 0, totalSize: 0 },
+        video: { count: 0, totalSize: 0 },
+        audio: { count: 0, totalSize: 0 },
+        document: { count: 0, totalSize: 0 }
+      }
+      acceptedFiles.forEach(file => {
+        const type = getFileType(file.name)
+        typeStats[type].count++
+        typeStats[type].totalSize += file.size
+      })
+
+      const maxFileCountMap = {
+        image: uploadSettings?.MAX_NUMBER_IMAGE_FILE,
+        video: uploadSettings?.MAX_NUMBER_VIDEO_FILE,
+        audio: uploadSettings?.MAX_NUMBER_AUDIO_FILE,
+        document: uploadSettings?.MAX_NUMBER_APPLICATION_FILE
+      }
+
+      const maxSizeMap = {
+        image: uploadSettings?.MAX_IMAGE_UPLOAD_SIZE,
+        video: uploadSettings?.MAX_VIDEO_UPLOAD_SIZE,
+        audio: uploadSettings?.MAX_AUDIO_UPLOAD_SIZE,
+        document: uploadSettings?.MAX_APPLICATION_UPLOAD_SIZE
+      }
+
+      let hasValidationError = false
+
+      Object.entries(typeStats).forEach(([type, { count, totalSize }]) => {
+        if (count === 0) return
+
+        // Validate file count
+        const maxCount = maxFileCountMap[type]
+        if (maxCount && count > maxCount) {
+          Toaster({
+            type: 'error',
+            message: `You can upload a maximum of ${maxCount} ${type} file${
+              maxCount > 1 ? 's' : ''
+            } at a time. You selected ${count}.`
+          })
+          hasValidationError = true
+        }
+
+        // Validate total combined size per type
+        const maxSize = maxSizeMap[type]
+        if (maxSize && totalSize > maxSize) {
+          const maxSizeMB = (maxSize / (1024 * 1024)).toFixed(1)
+          const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(2)
+          Toaster({
+            type: 'error',
+            message: `Total ${type} file size exceeds ${maxSizeMB} MB. Your total: ${totalSizeMB} MB`
+          })
+          hasValidationError = true
+        }
+      })
+
+      if (hasValidationError) return
       try {
         setUploadLoading(true)
         let successCount = 0
@@ -405,6 +525,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
                   file.is_created_for_medical_record === '1' ? () => handleDeleteMedia(file.id) : undefined
                 }
                 isDeleteLoading={deletingMediaId === file.id}
+                downloadUrl={file.download_url}
               />
             </Grid>
           ))}

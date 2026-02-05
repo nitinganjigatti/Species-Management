@@ -22,12 +22,13 @@ const ControlledSelect = ({
     '.MuiSelect-select': {
       color: 'text.primary'
     }
-  }
+  },
+  formControlSx = {}
 }) => {
   const fieldError = get(errors, name)
 
   return (
-    <FormControl size={size} fullWidth={fullWidth} error={Boolean(fieldError)}>
+    <FormControl size={size} fullWidth={fullWidth} error={Boolean(fieldError)} sx={formControlSx}>
       <InputLabel
         id={`${name}-label`}
         sx={{

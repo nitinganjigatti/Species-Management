@@ -210,7 +210,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
           setRecords(prev => (pageNum === 1 ? newItems : [...prev, ...newItems]))
           setHasMore(newItems.length === PAGE_SIZE)
         } else {
-          throw new Error(res.message || 'Failed to fetch clinical assessments')
+          console.error(res.message || 'Failed to fetch clinical assessments')
         }
       } catch (error) {
         console.error('Error fetching clinical assessments:', error)
@@ -244,6 +244,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const handleTabChange = newValue => {
     setCurrentTab(newValue)
     setPage(1)
+
     //setRecords([])
   }
 
@@ -579,7 +580,8 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
           status={status}
           setStatus={setStatus}
           setNotes={setNotes}
-          onSave={() => setIsSaveDialogOpen(true)}
+          isSubmitLoading={isSubmitLoading}
+          onSave={updateAssessment}
           activityListData={activityListData}
           activityLoader={activityLoader}
           isDeleting={isDeleting}
