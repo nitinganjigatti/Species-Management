@@ -61,8 +61,14 @@ const visitTypes = [
   { label: 'Planned', value: 'planned' }
 ]
 
+const healthStatusOptions = [
+  { label: 'Stable', value: 'stable' },
+  { label: 'Critical', value: 'critical' }
+]
+
 const schema = yup.object().shape({
   treatmentType: yup.string().required('Treatment Type is Required'),
+  healthStatus: yup.string().notRequired(),
   purposeOfVisit: yup.string().required('Purpose of Visit is Required'),
   visitType: yup.string().required('Visit type is required'),
   medicalRecordId: yup.string().when('medicalRecordChoice', {
@@ -87,6 +93,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
 
   const defaultValues = {
     treatmentType: defaultTreatmentType || 'inpatient',
+    healthStatus: 'stable',
     purposeOfVisit: '',
     visitType: '',
     medicalRecordId: '',
@@ -319,6 +326,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
         visit_type: data?.visitType,
         additional_info: JSON.stringify({
           treatment_type: data?.treatmentType,
+          health_status: data?.healthStatus,
           doctor_id: String(selectedDoctor?.id),
           holding_enclosure_id: String(data?.holdingEnclosure?.value),
           room_id: String(data?.room?.value),
@@ -477,13 +485,14 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 4
+                  gap: 4,
+                  marginBottom: 7
                 }}
               >
                 <Typography
                   sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Select treatment type
+                  Select treatment type*
                 </Typography>
                 <Controller
                   name='treatmentType'
@@ -491,6 +500,43 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                   render={({ field }) => (
                     <Grid container spacing={4}>
                       {treatmentType?.map((item, index) => (
+                        <Grid key={index} size={{ xs: 12, sm: 6, md: 6 }}>
+                          <TreatmentTypeRadioButtons
+                            label={item?.label}
+                            isSelected={field.value === item?.value}
+                            onClick={() => field.onChange(item?.value)}
+                            backgroundColor={theme.palette.customColors.OnPrimary}
+                            borderColor={theme.palette.customColors.OutlineVariant}
+                            selectedBorderColor={theme.palette.primary.main}
+                            selectedBackgroundColor={theme.palette.customColors.OnPrimary}
+                            sx={{ fontSize: '1rem', width: '100%' }}
+                            disabled={submitLoader}
+                          />
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
+                />
+              </Box>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4
+                }}
+              >
+                <Typography
+                  sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  Health Status
+                </Typography>
+                <Controller
+                  name='healthStatus'
+                  control={control}
+                  render={({ field }) => (
+                    <Grid container spacing={4}>
+                      {healthStatusOptions?.map((item, index) => (
                         <Grid key={index} size={{ xs: 12, sm: 6, md: 6 }}>
                           <TreatmentTypeRadioButtons
                             label={item?.label}

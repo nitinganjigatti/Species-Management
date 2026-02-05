@@ -8,7 +8,10 @@ import {
   Skeleton,
   Button,
   Tooltip,
-  CircularProgress
+  CircularProgress,
+  FormControl,
+  Select,
+  MenuItem
 } from '@mui/material'
 import { Grid } from '@mui/material'
 import React, { useState } from 'react'
@@ -19,11 +22,13 @@ import AdmissionStatusCard from '../inpatient/AdmissionStatusCard'
 import MenuWithDots from 'src/components/MenuWithDots'
 import EditPatientDrawer from 'src/components/hospital/drawer/EditPatientDrawer'
 import AddPatientDrawer from 'src/components/hospital/drawer/AddPatientDrawer'
-import { getPatientDischargeSummary } from 'src/lib/api/hospital/inpatient'
+import { getPatientDischargeSummary, updateAnimalHealthStatus } from 'src/lib/api/hospital/inpatient'
 import Utility, { downloadPDF } from 'src/utility'
 import Toaster from 'src/components/Toaster'
 import Icon from 'src/@core/components/icon'
 import PatientVisitSummaryFilterDrawer from 'src/components/hospital/drawer/PatientVisitSummaryFilterDrawer'
+import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
+import { useForm } from 'react-hook-form'
 
 const PatientCard = ({ patientData, animalData, loading, refetch, category, totalVisitCount }) => {
   const theme = useTheme()
@@ -34,6 +39,13 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
   const [openAddAnimalDrawer, setOpenAddAnimalDrawer] = useState(false)
   const [dischargeSummaryLoading, setDischargeSummaryLoading] = useState(false)
   const [openVisitSummaryFilterDrawer, setOpenVisitSummaryFilterDrawer] = useState(false)
+  // Add this state variable inside PatientCard component
+  const [healthStatus, setHealthStatus] = useState(patientData?.health_status || 'stable')
+
+  const healthStatusOptions = [
+    { label: 'Stable', value: 'stable' },
+    { label: 'Critical', value: 'critical' }
+  ]
 
   const admissionData = [
     { type: 'admitted_on', value: patientData?.admitted_at },
@@ -47,6 +59,12 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
       { type: 'discharged_by', value: patientData?.discharge_by_full_name }
     )
   }
+
+  const { control } = useForm({
+    defaultValues: {
+      healthStatus: patientData?.health_status || 'stable'
+    }
+  })
 
   const getDischargeSummary = async () => {
     setDischargeSummaryLoading(true)
@@ -74,6 +92,28 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
       setDischargeSummaryLoading(false)
     } finally {
       setDischargeSummaryLoading(false)
+    }
+  }
+
+  const handleHealthStatusChange = async (e) => {
+    setHealthStatus(e.target.value)
+    const newStatus = e.target.value;
+    try {
+      const payload = {
+        health_status: newStatus,
+        hospital_case_id: patientData?.hospital_case_id
+      }
+      const response = await updateAnimalHealthStatus(payload);
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message });
+        setHealthStatus(newStatus);
+        if (refetch) refetch();
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to update health status' });
+      }
+    } catch (error) {
+      console.error('Error updating health status:', error);
+      Toaster({ type: 'error', message: 'An error occurred while updating health status' });
     }
   }
 
@@ -137,7 +177,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
         >
           <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/* Header Section */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box
                   sx={{
@@ -190,6 +230,35 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
                       </>
                     )}
                   </Box>
+                  {loading ? (
+                    <Skeleton variant='rounded' width={100} height={40} />
+                  ) : (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        p: "4px 8px",
+                        background: theme.palette.customColors.Background,
+                        borderRadius: '4px',
+                        gap: 5
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                        <Typography
+                          sx={{ fontSize: '12px', fontWeight: 600, color: theme.palette.customColors.OnPrimaryContainer }}
+                        >
+                          {patientData?.visit_label}
+                        </Typography>
+                        <Box sx={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: theme.palette.primary.main }} />
+                        {patientData?.is_current_visit === '1' && (
+                          <Typography sx={{ fontSize: '12px', fontWeight: 600, color: theme.palette.primary.main }}>
+                            Current
+                          </Typography>
+                        )}
+                      </Box>
+                      {/* <Icon icon={'mingcute:down-fill'} color={theme.palette.customColors.OnPrimaryContainer} /> */}
+                    </Box>
+                  )}
                 </Box>
 
                 <Box
@@ -244,7 +313,73 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
               <Box
                 sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', justifyContent: 'flex-end', gap: 5 }}
               >
-                {loading ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 150 }}>
+                  <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                    Health Status
+                  </Typography>
+                  <FormControl size='small' sx={{ minWidth: 120 }}>
+                    <Select
+                      value={healthStatus}
+                      onChange={handleHealthStatusChange}
+                      sx={{
+                        borderRadius: '4px',
+                        fontSize: '16px',
+                        color: healthStatus === 'critical'
+                          ? theme.palette.customColors.Tertiary
+                          : theme.palette.customColors.OnSurfaceVariant,
+                        fontWeight: 500,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'transparent'
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.divider
+                        },
+                        '& .MuiSelect-select': {
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }
+                      }}
+                      renderValue={(value) => (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Box
+                            sx={{
+                              width: '20px',
+                              height: '20px',
+                              borderRadius: '50%',
+                              backgroundColor: value === 'critical'
+                                ? alpha(theme.palette.error.main, 0.2)
+                                : theme.palette.customColors.OnBackground,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: '10px',
+                                height: '10px',
+                                borderRadius: '50%',
+                                backgroundColor: value === 'critical'
+                                  ? theme.palette.customColors.Tertiary
+                                  : theme.palette.primary.main
+                              }}
+                            />
+                          </Box>
+                          <span>{value === 'critical' ? 'Critical' : 'Stable'}</span>
+                        </Box>
+                      )}
+                    >
+                      <MenuItem value='stable' sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
+                        Stable
+                      </MenuItem>
+                      <MenuItem value='critical' sx={{ color: theme.palette.customColors.Tertiary, fontWeight: 500 }}>
+                        Critical
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
+                  {loading ? (
                   <Skeleton variant='rounded' width={100} height={40} />
                 ) : category === 'Outpatients' ? (
                   <Button
@@ -261,35 +396,8 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
                     Admit Animal
                   </Button>
                 ) : null}
-                {loading ? (
-                  <Skeleton variant='rounded' width={100} height={40} />
-                ) : (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      p: 3,
-                      background: theme.palette.customColors.Background,
-                      borderRadius: 1,
-                      gap: 5
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
-                      <Typography
-                        sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnPrimaryContainer }}
-                      >
-                        {patientData?.visit_label}
-                      </Typography>
-                      {patientData?.is_current_visit === '1' && (
-                        <Typography sx={{ fontSize: '12px', fontWeight: 600, color: theme.palette.primary.main }}>
-                          {/* hardcoded */}
-                          Current visit
-                        </Typography>
-                      )}
-                    </Box>
-                    {/* <Icon icon={'mingcute:down-fill'} color={theme.palette.customColors.OnPrimaryContainer} /> */}
-                  </Box>
-                )}
+                </Box>
+
                 {loading ? (
                   <Skeleton variant='rounded' width={40} height={40} />
                 ) : (
@@ -332,19 +440,19 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
                 <Grid container spacing={2} columnSpacing={4} rowSpacing={4}>
                   {loading
                     ? Array.from(new Array(4)).map((_, i) => (
-                        <Grid key={i} size={{ xs: 12, sm: 6 }}>
-                          <Skeleton variant='rectangular' width='100%' height={60} sx={{ borderRadius: 1 }} />
-                        </Grid>
-                      ))
+                      <Grid key={i} size={{ xs: 12, sm: 6 }}>
+                        <Skeleton variant='rectangular' width='100%' height={60} sx={{ borderRadius: 1 }} />
+                      </Grid>
+                    ))
                     : admissionData.map((item, index) => (
-                        <Grid key={index} size={{ xs: 12, sm: 6 }}>
-                          <AdmissionStatusCard
-                            type={item?.type}
-                            value={item?.value}
-                            isPatientDischarged={isPatientDischarged}
-                          />
-                        </Grid>
-                      ))}
+                      <Grid key={index} size={{ xs: 12, sm: 6 }}>
+                        <AdmissionStatusCard
+                          type={item?.type}
+                          value={item?.value}
+                          isPatientDischarged={isPatientDischarged}
+                        />
+                      </Grid>
+                    ))}
                 </Grid>
               </Grid>
             </Grid>

@@ -291,7 +291,8 @@ const AddanesthesiaRecordDrawer = ({
                   gender={animalSex}
                   additionalFields={[
                     { label: 'AID', value: handleAIDDisplay() },
-                    { label: 'Admitted days', value: getSafeString(patientData?.admitted_for_day) },
+                    { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
+                    // { label: 'Admitted days', value: getSafeString(patientData?.admitted_for_day) },
                     { label: 'Holding Location', value: holdingLocation },
                     { label: 'Chief Veterinarian', value: getSafeString(chiefVeterinarian) }
                   ]}

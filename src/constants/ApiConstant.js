@@ -960,3 +960,5 @@ export const GET_ANESTHESIA_MEDICATION = `v1/hospital/anaesthesia/medication/upd
 export const DELETE_ANESTHESIA_MEDICATION = `v1/hospital/anaesthesia/medication/delete`
 
 export const DELETE_VITAL_MONITORING = `v1/hospital/anaesthesia/vital-monitoring-time-slot/delete`
+
+export const UPDATE_ANIMAL_HEALTH_STATUS = 'v1/hospital/update-animal-health-status'
