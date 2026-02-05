@@ -32,8 +32,6 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
 import { getPatientDischargeSummary } from 'src/lib/api/hospital/inpatient'
-
-// import extractTextFromHtml from 'src/utility/extractTextFromHtml'
 import { extractTextFromHtml } from 'src/utility'
 
 const HospitalDischarged = () => {
