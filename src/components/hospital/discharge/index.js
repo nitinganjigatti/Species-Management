@@ -79,8 +79,6 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   const [dischargeConfirmOpen, setDischargeConfirmOpen] = useState(false)
   const [pendingDischargeData, setPendingDischargeData] = useState(null)
 
-  // const [check, setCheck] = useState(true)
-
   const {
     causeOfDeath,
     carcassCondition,
@@ -623,7 +621,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
 
       const titleMessage = isLocationChanged
         ? `This animal will be transferred to a different location than its original one.
-Please confirm the selected Site, Section, and Enclosure carefully.`
+          Please confirm the selected Site, Section, and Enclosure carefully.`
         : 'Are you sure you want to discharge this animal to enclosure?'
 
       setPendingDischargeData({
@@ -903,8 +901,6 @@ Please confirm the selected Site, Section, and Enclosure carefully.`
             prescriptionsColumns={prescriptionsColumns}
             prescriptionData={prescriptionIndexedRows}
             isPrescriptionLoading={isPrescriptionLoading}
-            // setCheck={setCheck}
-            // check={check}
             sites={sites}
             fetchLoading={fetchLoading}
             handleSiteSearch={handleSiteSearch}
