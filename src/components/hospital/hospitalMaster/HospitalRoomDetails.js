@@ -47,7 +47,7 @@ const HospitalRoomDetails = () => {
   const theme = useTheme()
   const router = useRouter()
   const queryClient = useQueryClient()
-  const { page, limit, q, availability, status, id } = router.query
+  const { page, limit, q, availability, status, id, sort_by, sort_order } = router.query
 
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -68,7 +68,9 @@ const HospitalRoomDetails = () => {
     limit: Number(limit) || 50,
     q: q || '',
     availability: availability || '',
-    status: status || ''
+    status: status || '',
+    sort_by: sort_by || 'occupants',
+    sort_order: sort_order || 'desc'
   })
 
   const { updateHospitalStats, selectedHospital } = useHospital()
@@ -124,7 +126,9 @@ const HospitalRoomDetails = () => {
         limit: filters.limit,
         q: filters.q,
         availability: filters.availability || undefined,
-        status: filters.status || undefined
+        status: filters.status || undefined,
+        sort_by: filters.sort_by,
+        sort_order: filters.sort_order
       }
 
       return getHospitalRooms({ params: queryParams })
@@ -155,7 +159,8 @@ const HospitalRoomDetails = () => {
   const roomDetails = useMemo(() => roomData?.records || [], [roomData?.records])
   const total = useMemo(() => roomData?.total || 0, [roomData?.total])
   const hospitalDetails = useMemo(() => roomData?.hospital_detail || [], [roomData?.hospital_detail])
-  const occupied = hospitalDetails?.no_of_occupied
+
+  // const occupied = hospitalDetails?.no_of_occupied
 
   // Toggle hospital status
   // const handleHospitalStatus = useCallback(
@@ -292,12 +297,14 @@ const HospitalRoomDetails = () => {
   }
 
   const openEditHospitalDrawer = () => {
-    if (Number(occupied) > 0) {
-      setIsOccupiedRoomWarningOpen(true)
-    } else {
-      setHospitalStatusEdit(true)
-      setOpenDrawer(true)
-    }
+    // if (Number(occupied) > 0) {
+    //   setIsOccupiedRoomWarningOpen(true)
+    // } else {
+    //   setHospitalStatusEdit(true)
+    //   setOpenDrawer(true)
+    // }
+    setHospitalStatusEdit(true)
+    setOpenDrawer(true)
   }
 
   const closeDrawer = () => {
@@ -478,7 +485,7 @@ const HospitalRoomDetails = () => {
       console.error('Error submitting data:', error?.message || error)
     } finally {
       setSubmitLoader(false)
-      setOpenDrawer(false)
+      closeDrawer()
     }
   }
 
@@ -497,6 +504,19 @@ const HospitalRoomDetails = () => {
     ],
     [openEditRoomDrawer]
   )
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      const updated = {
+        ...filters,
+        sort_order: newModel[0].sort,
+        sort_by: newModel[0].field,
+        page: 1
+      }
+      setFilters(updated)
+      updateUrlParams(updated)
+    }
+  }
 
   // Add serial numbers to each row
   const indexedRows = roomDetails?.map((row, index) => ({
@@ -540,16 +560,14 @@ const HospitalRoomDetails = () => {
     },
     {
       minWidth: 160,
-      field: 'no_of_bed',
+      field: 'enclosures',
       headerName: 'Enclosures',
-      sortable: false,
       renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.active_bed_count ?? '-'}</StyledTypography>
     },
     {
       minWidth: 150,
-      field: 'no_of_occupied',
+      field: 'occupants',
       headerName: 'Occupants',
-      sortable: false,
       renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.no_of_occupied ?? '-'}</StyledTypography>
     },
     {
@@ -667,7 +685,7 @@ const HospitalRoomDetails = () => {
                 /> */}
 
               <Tooltip title='Edit'>
-                <IconButton onClick={openEditHospitalDrawer} size='small'>
+                <IconButton onClick={openEditHospitalDrawer} size='small' disabled={isLoadingRooms}>
                   <Icon icon='mdi:pencil-outline' style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
                 </IconButton>
               </Tooltip>
@@ -675,6 +693,7 @@ const HospitalRoomDetails = () => {
                 variant='contained'
                 startIcon={<AddIcon />}
                 sx={{ py: 2, px: 3, borderRadius: '4px' }}
+                disabled={isLoadingRooms}
                 onClick={openAddRoomDrawer}
               >
                 Add Room
@@ -727,6 +746,7 @@ const HospitalRoomDetails = () => {
           paginationModel={{ page: filters?.page - 1, pageSize: filters?.limit }}
           setPaginationModel={handlePaginationChange}
           getRowClassName={getRowClassName}
+          handleSortModel={handleSortModel}
           externalTableStyle={{
             '& .inactive-row': {
               backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.1),
