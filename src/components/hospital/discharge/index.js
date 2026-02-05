@@ -619,13 +619,17 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
         Number(payload.transfer_to_section_id) !== Number(originalSection) ||
         Number(payload.transfer_to_enclosure_id) !== Number(originalEnclosure)
 
+      const isCritical = patientData?.health_status === 'critical'
+      const criticalWarning = isCritical ? ' The animal’s health status is currently marked as critical.' : ''
+
       const titleMessage = isLocationChanged
-        ? `This animal will be transferred to a different location than its original one.
-          Please confirm the selected Site, Section, and Enclosure carefully.`
-        : 'Are you sure you want to discharge this animal to enclosure?'
+        ? `Are you sure you want to proceed with the discharge?`
+        : `Are you sure you want to discharge this animal to enclosure?`
 
       setPendingDischargeData({
         title: titleMessage,
+        description: criticalWarning,
+        additionalDescription: isLocationChanged ? `Transferring animal to a different location.` : '',
         onConfirm: async () => {
           const success = await handleTransferEnclosureSubmitData(payload)
           setDischargeConfirmOpen(false)
@@ -933,6 +937,8 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
             onClose={handleDischargeCancel}
             loading={watchDischargeType === 'Mortality' ? mortalitySubmitLoader : transferEnclosureSubmitLoader}
             title={pendingDischargeData?.title || 'Are you sure you want to discharge this animal?'}
+            description={pendingDischargeData?.description || ""}
+            additionalDescription={pendingDischargeData?.additionalDescription || ""}
             cancelText={'Cancel'}
             confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 2 }}
             confirmAction={handleDischargeConfirm}
