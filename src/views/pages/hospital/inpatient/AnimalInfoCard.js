@@ -9,7 +9,7 @@ const AnimalInfoCard = ({ backgroundColor, additionalFields, image, name, scient
   const theme = useTheme()
 
   const StatBox = ({ label, value, isStatusCard }) => {
-    const isCritical = value?.toLowerCase() === 'critical'
+    const isCritical = (value || "")?.toLowerCase() === 'critical'
     const capitalizedStatus = value ? value.charAt(0).toUpperCase() + value.slice(1) : '-'
 
     return (
