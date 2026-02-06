@@ -89,7 +89,7 @@ export default function PrescriptionMedicineList({
 
     const isPrescribed =
       tab === 'discharge'
-        ? isEnclosureMedicineAdded(medicine.id.toString())
+        ? isEnclosureMedicineAdded(medicine.id.toString()) || isMedicinePrescribed(medicine?.id)
         : isDirectAdminister
         ? isMedicinePrescribed(medicine?.id)
         : // ? false  // Commented for now as per the updated requirement
