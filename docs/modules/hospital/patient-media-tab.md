@@ -76,11 +76,6 @@ Filters media by the module/feature where it was uploaded:
 - Surgery
 - Discharge
 - Mortality
-- Clinical Assessment
-- Symptoms
-- Prescription
-- Anesthesia
-- Treatment
 - Supports multiple selection
 
 ### 4. Search Functionality
@@ -462,12 +457,7 @@ MAX_NUMBER_APPLICATION_FILE: 5
   // Features/Modules
   surgery: 'Surgery',
   discharge: 'Discharge',
-  mortality: 'Mortality',
-  clinical_assessment: 'Clinical Assessment',
-  symptoms: 'Symptoms',
-  prescription: 'Prescription',
-  anesthesia: 'Anesthesia',
-  treatment: 'Treatment'
+  mortality: 'Mortality'
 }
 ```
 
@@ -494,12 +484,7 @@ MAX_NUMBER_APPLICATION_FILE: 5
   Feature: [
     { label: 'Surgery', value: 'surgery' },
     { label: 'Discharge', value: 'discharge' },
-    { label: 'Mortality', value: 'mortality' },
-    { label: 'Clinical Assessment', value: 'clinical_assessment' },
-    { label: 'Symptoms', value: 'symptoms' },
-    { label: 'Prescription', value: 'prescription' },
-    { label: 'Anesthesia', value: 'anesthesia' },
-    { label: 'Treatment', value: 'treatment' }
+    { label: 'Mortality', value: 'mortality' }
   ]
 }
 ```
