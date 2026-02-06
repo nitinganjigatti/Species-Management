@@ -30,7 +30,6 @@ const EnclosureDischargeForm = props => {
     submitLoader,
     handleSubmitData,
     medicationsColumns,
-    isTransferEnclosureMedicationLoading,
     clearData,
     onDirtyChange,
     medicationData,
@@ -737,7 +736,6 @@ const EnclosureDischargeForm = props => {
             {indexedMedicines.length > 0 && (
               <CommonTable
                 columns={medicationColumnsWithActions}
-                loading={isTransferEnclosureMedicationLoading}
                 indexedRows={indexedMedicines || []}
                 rowHeight={64}
                 externalTableStyle={{
