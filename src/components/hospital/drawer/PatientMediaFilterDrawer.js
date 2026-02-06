@@ -29,12 +29,7 @@ const PatientMediaFilterDrawer = ({ open, onClose, onApplyFilters, setFilterCoun
     Feature: [
       { label: 'Surgery', value: 'surgery' },
       { label: 'Discharge', value: 'discharge' },
-      { label: 'Mortality', value: 'mortality' },
-      { label: 'Clinical Assessment', value: 'clinical_assessment' },
-      { label: 'Symptoms', value: 'symptoms' },
-      { label: 'Prescription', value: 'prescription' },
-      { label: 'Anesthesia', value: 'anesthesia' },
-      { label: 'Treatment', value: 'treatment' }
+      { label: 'Mortality', value: 'mortality' }
     ]
   }
 

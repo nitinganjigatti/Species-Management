@@ -9,8 +9,14 @@ const AnimalInfoCard = ({ backgroundColor, additionalFields, image, name, scient
   const theme = useTheme()
 
   const StatBox = ({ label, value, isStatusCard }) => {
-    const isCritical = (value || "")?.toLowerCase() === 'critical'
-    const capitalizedStatus = value ? value.charAt(0).toUpperCase() + value.slice(1) : '-'
+    const isStringValue = typeof value === 'string'
+    const isCritical = isStringValue ? value.toLowerCase() === 'critical' : false
+
+    const capitalizedStatus = isStringValue
+      ? value.charAt(0).toUpperCase() + value.slice(1)
+      : value !== null && value !== undefined
+      ? value
+      : '-'
 
     return (
       <Box sx={{ minWidth: 0 }}>
@@ -61,16 +67,16 @@ const AnimalInfoCard = ({ backgroundColor, additionalFields, image, name, scient
             </Typography>
           </Box>
         ) : (
-            <TextEllipsisWithModal
-              enableDialog={false}
-              text={value || '-'}
-              style={{
-                fontSize: '16px',
-                fontWeight: 500,
-                color: theme.palette.customColors.OnSurfaceVariant,
-                maxWidth: '100%'
-              }}
-            />
+          <TextEllipsisWithModal
+            enableDialog={false}
+            text={value || '-'}
+            style={{
+              fontSize: '16px',
+              fontWeight: 500,
+              color: theme.palette.customColors.OnSurfaceVariant,
+              maxWidth: '100%'
+            }}
+          />
         )}
       </Box>
     )

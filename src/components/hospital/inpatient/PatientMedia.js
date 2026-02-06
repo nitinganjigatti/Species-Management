@@ -381,12 +381,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
       all: 'All Records',
       surgery: 'Surgery',
       discharge: 'Discharge',
-      mortality: 'Mortality',
-      clinical_assessment: 'Clinical Assessment',
-      symptoms: 'Symptoms',
-      prescription: 'Prescription',
-      anesthesia: 'Anesthesia',
-      treatment: 'Treatment'
+      mortality: 'Mortality'
     }
 
     return labels[value] || value
