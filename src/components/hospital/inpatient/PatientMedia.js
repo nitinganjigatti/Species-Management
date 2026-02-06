@@ -530,20 +530,14 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
             </Grid>
           ))}
         </Grid>
-
         {/* Loading skeleton */}
         {isFetching && mediaFiles.length === 0 && <MediaGridSkeleton />}
-
         {/* No data */}
         {mediaFiles.length === 0 && !isFetching && (
           <Box sx={{ py: 8 }}>
             <NoDataFound height={250} width={250} />
-            <Typography align='center' color='text.secondary' sx={{ mt: 2 }}>
-              No media files found
-            </Typography>
           </Box>
         )}
-
         {/* Load more indicator */}
         {(isFetchingNextPage || hasNextPage) && mediaFiles.length > 0 && (
           <Box
@@ -557,7 +551,6 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
             <CircularProgress />
           </Box>
         )}
-
         {/* End of list message */}
         {!hasNextPage && mediaFiles.length > 0 && (
           <Typography align='center' sx={{ mt: 6, color: 'text.disabled' }}>

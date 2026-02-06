@@ -347,7 +347,8 @@ const EnclosureDischargeForm = props => {
       transfer_to_enclosure_id: returnToOriginal
         ? patientDetails?.user_enclosure_id
         : formData?.user_enclosure_name?.value,
-      request_from: 'web'
+      request_from: 'web',
+      transfer_back_to_original_location: returnToOriginal ? '1' : '0'
     }
 
     const success = await handleSubmitData(payload)
@@ -356,6 +357,40 @@ const EnclosureDischargeForm = props => {
       reset(defaultValues)
       clearData() // clear medicines + reset storage after submit
       refetchPatient()
+    }
+  }
+
+  const handleReturnToOriginalToggle = (checked, fieldOnChange) => {
+    fieldOnChange(checked)
+
+    if (checked) {
+      // Apply original values (system action → not dirty)
+      setValue(
+        'site_name',
+        {
+          label: patientDetails?.site_name,
+          value: patientDetails?.site_id
+        },
+        { shouldValidate: true, shouldDirty: false }
+      )
+
+      setValue(
+        'section_name',
+        {
+          label: patientDetails?.section_name,
+          value: patientDetails?.section_id
+        },
+        { shouldValidate: true, shouldDirty: false }
+      )
+
+      setValue(
+        'user_enclosure_name',
+        {
+          label: patientDetails?.user_enclosure_name,
+          value: patientDetails?.user_enclosure_id
+        },
+        { shouldValidate: true, shouldDirty: false }
+      )
     }
   }
 
@@ -389,39 +424,7 @@ const EnclosureDischargeForm = props => {
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                   checked={field.value}
-                  onChange={e => {
-                    const checked = e.target.checked
-                    field.onChange(checked)
-
-                    if (checked) {
-                      setValue(
-                        'site_name',
-                        {
-                          label: patientDetails?.site_name,
-                          value: patientDetails?.site_id
-                        },
-                        { shouldDirty: true, shouldDirty: false }
-                      )
-
-                      setValue(
-                        'section_name',
-                        {
-                          label: patientDetails?.section_name,
-                          value: patientDetails?.section_id
-                        },
-                        { shouldDirty: true, shouldDirty: false }
-                      )
-
-                      setValue(
-                        'user_enclosure_name',
-                        {
-                          label: patientDetails?.user_enclosure_name,
-                          value: patientDetails?.user_enclosure_id
-                        },
-                        { shouldDirty: true, shouldDirty: false }
-                      )
-                    }
-                  }}
+                  onChange={e => handleReturnToOriginalToggle(e.target.checked, field.onChange)}
                 />
               )}
             />
@@ -680,6 +683,7 @@ const EnclosureDischargeForm = props => {
                   }}
                   hideFooterPagination={true}
                   hideFooter={true}
+                  disablePagination={true}
                 />
               </Box>
             </>
@@ -736,7 +740,6 @@ const EnclosureDischargeForm = props => {
                 loading={isTransferEnclosureMedicationLoading}
                 indexedRows={indexedMedicines || []}
                 rowHeight={64}
-                hideFooterPagination
                 externalTableStyle={{
                   '& .MuiDataGrid-columnHeaders': {
                     backgroundColor: theme.palette.customColors.neutral05,
@@ -744,6 +747,9 @@ const EnclosureDischargeForm = props => {
                     color: theme.palette.customColors.OnSurfaceVariant
                   }
                 }}
+                hideFooterPagination={true}
+                hideFooter={true}
+                disablePagination={true}
               />
             )}
           </Box>

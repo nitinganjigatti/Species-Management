@@ -27,7 +27,7 @@ const HospitalDetails = () => {
   const router = useRouter()
   const queryClient = useQueryClient()
 
-  const { page, limit, q, active } = router.query
+  const { page, limit, q, active, sort_order, sort_by } = router.query
 
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -36,8 +36,10 @@ const HospitalDetails = () => {
   const [filters, setFilters] = useState({
     page: page ? Number(page) : 1,
     limit: limit ? Number(limit) : 50,
-    q: q ?? '',
-    active: active !== undefined ? Number(active) : undefined
+    q: q || '',
+    active: active !== undefined ? Number(active) : undefined,
+    sort_order: sort_order || 'desc',
+    sort_by: sort_by || 'occupants'
   })
 
   //  URL update helper function
@@ -70,7 +72,9 @@ const HospitalDetails = () => {
           page: filters.page,
           limit: filters.limit,
           q: filters.q,
-          ...(filters.active !== undefined ? { active: filters.active } : {})
+          ...(filters.active !== undefined ? { active: filters.active } : {}),
+          sort_order: filters.sort_order,
+          sort_by: filters.sort_by
         }
       }),
     onError: error => {
@@ -179,6 +183,19 @@ const HospitalDetails = () => {
     }
   }
 
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      const updated = {
+        ...filters,
+        sort_order: newModel[0].sort,
+        sort_by: newModel[0].field,
+        page: 1
+      }
+      setFilters(updated)
+      updateUrlParams(updated)
+    }
+  }
+
   //  Add serial numbers to each row based on current pagination
   const indexedRows = useMemo(() => {
     return rows.map((row, index) => ({
@@ -219,17 +236,15 @@ const HospitalDetails = () => {
       )
     },
     {
-      minWidth: 100,
-      field: 'total_rooms',
+      minWidth: 120,
+      field: 'rooms',
       headerName: 'Rooms',
-      sortable: false,
       renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.total_rooms ?? '-'}</StyledTypography>
     },
     {
-      minWidth: 120,
-      field: 'total_occupants',
+      minWidth: 150,
+      field: 'occupants',
       headerName: 'Occupants',
-      sortable: false,
       renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.total_occupants ?? '-'}</StyledTypography>
     },
     {
@@ -410,6 +425,7 @@ const HospitalDetails = () => {
           paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
           setPaginationModel={handlePaginationChange}
           getRowClassName={getRowClassName}
+          handleSortModel={handleSortModel}
           externalTableStyle={{
             '& .inactive-row': {
               backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.1),

@@ -580,7 +580,8 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
           status={status}
           setStatus={setStatus}
           setNotes={setNotes}
-          onSave={() => setIsSaveDialogOpen(true)}
+          isSubmitLoading={isSubmitLoading}
+          onSave={updateAssessment}
           activityListData={activityListData}
           activityLoader={activityLoader}
           isDeleting={isDeleting}

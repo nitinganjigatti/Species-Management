@@ -51,6 +51,7 @@ const AddEditSymptomDrawer = ({
   isUpdating,
   setIsDeleting,
   isDeleting,
+  isSubmitLoading,
   setActivityListData,
   isChanged,
   isResolved
@@ -421,6 +422,7 @@ const AddEditSymptomDrawer = ({
             addLabel='UPDATE'
             cancelLabel='CANCEL'
             onAdd={handleSave}
+            isSubmitLoading={isSubmitLoading}
             onCancel={handleCancel}
             width={260}
             height={50}

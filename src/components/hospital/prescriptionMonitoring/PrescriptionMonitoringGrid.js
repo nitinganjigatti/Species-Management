@@ -113,7 +113,7 @@ const MetricLabel = styled(Box, {
 
 const TimeSlot = styled(Box, {
   shouldForwardProp: prop => prop !== 'config'
-})(({ theme, config, disabled }) => ({
+})(({ theme, config, disabled, reduceOpacity }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -131,7 +131,7 @@ const TimeSlot = styled(Box, {
   backgroundColor: config?.backgroundColor,
   color: config?.color,
   border: config?.border,
-  opacity: disabled ? 0.5 : 1,
+  opacity: reduceOpacity ? 0.5 : 1,
   borderColor: config?.borderColor,
   padding: '8px',
   borderRadius: '8px',
@@ -958,6 +958,21 @@ const PrescriptionMonitoringGrid = ({
                               }
                               // handleTimeSlotClick(metric.id, timeSlot)
                             }}
+                            reduceOpacity={
+                              isDischared ||
+                              (metric?.status === 'stopped' &&
+                                !status &&
+                                // isScheduledFuture(selectedDate, scheduledTime)) ||
+                                // this is for allow schedule for same day for fast time and future time and any fast time
+
+                                isScheduledAllowed(selectedDate, scheduledTime))
+                              // ||
+                              // (status?.toLowerCase() === 'pending' &&
+                              //   // isScheduledFuture(selectedDate, scheduledTime)
+                              //   // this is for allow schedule for same day for fast time and future time and any fast time
+
+                              //   isScheduledAllowed(selectedDate, scheduledTime))
+                            }
                             disabled={
                               isDischared ||
                               status === 'administered' ||

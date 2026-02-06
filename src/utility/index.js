@@ -372,6 +372,30 @@ const capitalizeFirstLetter = string => {
   return string.charAt(0).toUpperCase() + string.slice(1)
 }
 
+export const extractTextFromHtml = html => {
+  if (!html) return ''
+
+  const parser = new DOMParser()
+  const doc = parser?.parseFromString(html, 'text/html')
+  doc?.querySelectorAll('script, style, iframe, object, embed')?.forEach(el => {
+    el?.remove()
+  })
+  console.log('doc after remove', doc?.body?.textContent)
+  doc?.querySelectorAll('br')?.forEach(br => {
+    br?.replaceWith(' ')
+  })
+
+  doc?.querySelectorAll('li')?.forEach(li => {
+    li?.appendChild(document.createTextNode(' '))
+  })
+
+  doc?.querySelectorAll('p')?.forEach(p => {
+    p.appendChild(document.createTextNode(' '))
+  })
+
+  return doc?.body?.textContent?.replace(/\s+/g, ' ').trim() || ''
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -402,7 +426,8 @@ const Utility = {
   hexToHex8,
   getUpcomingHours,
   downloadPDF,
-  capitalizeFirstLetter
+  capitalizeFirstLetter,
+  extractTextFromHtml
 }
 
 export default Utility
