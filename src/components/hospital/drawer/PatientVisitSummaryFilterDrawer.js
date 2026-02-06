@@ -59,11 +59,11 @@ const PatientVisitSummaryFilterDrawer = ({ open, onClose, caseId, animalId }) =>
         hospital_case_id: caseId
       }
 
-      await downloadPDF({
-        apiCall: getPatientVisitSummary,
-        params: payload,
-        fileName: `hospital_visit_summary_${Date.now()}.pdf`
-      })
+      const response = await  getPatientVisitSummary(payload)
+      if (response?.success) {
+      Utility.downloadFileFromURL(
+      response?.data?.download_file_url,`hospital_visit_summary_${Date.now()}.pdf`)}
+
 
       // const response = await getPatientVisitSummary(payload)
 
@@ -196,7 +196,7 @@ const PatientVisitSummaryFilterDrawer = ({ open, onClose, caseId, animalId }) =>
           }}
         >
           <Button variant='contained' fullWidth color='primary' sx={{ p: 3, fontWeight: 600 }} onClick={handleDownload}>
-            {submitLoader ? <CircularProgress size={24} /> : 'Download'}
+            {submitLoader ? <CircularProgress size={24} color = 'white'/> : 'Download'}
           </Button>
         </Box>
       </Drawer>
