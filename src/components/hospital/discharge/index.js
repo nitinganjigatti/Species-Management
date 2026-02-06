@@ -343,7 +343,6 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
           <Button
             variant='outlined'
             sx={{
-              // ml: 1.4,
               padding: '8px ',
               color: theme.palette.customColors.OnSurface,
               fontSize: '1rem',
@@ -748,19 +747,19 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     }
   }, [])
 
-  useEffect(() => {
-    // Cleanup on unmount (Route change / Unmounting the tab)
-    return () => {
-      resetState('transfer_medicines')
-      resetState('transfer_temp_medicines')
-      resetState('enclosure_medicines')
-      resetState('enclosure_temp_medicines')
-      sessionStorage.removeItem(STORAGE_KEY_FORM)
-      setIsTransferHospitalDirty(false)
-      setIsTransferEnclosureDirty(false)
-      setIsMortalityDirty(false)
-    }
-  }, [])
+  // useEffect(() => {
+  //   // Cleanup on unmount (Route change / Unmounting the tab)
+  //   return () => {
+  //     resetState('transfer_medicines')
+  //     resetState('transfer_temp_medicines')
+  //     resetState('enclosure_medicines')
+  //     resetState('enclosure_temp_medicines')
+  //     sessionStorage.removeItem(STORAGE_KEY_FORM)
+  //     setIsTransferHospitalDirty(false)
+  //     setIsTransferEnclosureDirty(false)
+  //     setIsMortalityDirty(false)
+  //   }
+  // }, [])
 
   // patient data initial loading
   if (!patientData) {
@@ -937,8 +936,8 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
             onClose={handleDischargeCancel}
             loading={watchDischargeType === 'Mortality' ? mortalitySubmitLoader : transferEnclosureSubmitLoader}
             title={pendingDischargeData?.title || 'Are you sure you want to discharge this animal?'}
-            description={pendingDischargeData?.description || ""}
-            additionalDescription={pendingDischargeData?.additionalDescription || ""}
+            description={pendingDischargeData?.description || ''}
+            additionalDescription={pendingDischargeData?.additionalDescription || ''}
             cancelText={'Cancel'}
             confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 2 }}
             confirmAction={handleDischargeConfirm}
