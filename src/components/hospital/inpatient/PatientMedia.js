@@ -353,7 +353,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
       const response = await deletePatientMedia(mediaId)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Media deleted successfully' })
+        Toaster({ type: 'success', message: 'Medical attachments deleted successfully.' })
 
         // Refetch the media list after successful deletion
         await refetch()

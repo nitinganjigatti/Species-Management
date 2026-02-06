@@ -188,7 +188,7 @@ Reusable component for rendering filter options.
 ```
 
 ### Delete Patient Media
-**Function**: `handleDeleteMedia(mediaId)` *(Placeholder - API implementation pending)*
+**Function**: `handleDeleteMedia(mediaId)`
 
 **Parameters:**
 - `mediaId`: ID of the media file to delete
@@ -197,9 +197,9 @@ Reusable component for rendering filter options.
 - Sets loading state for the specific media being deleted
 - Shows confirmation dialog before deletion
 - Displays success/error toast notifications
+  - Success: "Medical attachments deleted successfully."
+  - Error: "Failed to delete media"
 - Refreshes media list after successful deletion
-
-**Note**: API endpoint implementation is pending. The handler is ready to integrate with the delete API once available.
 
 ## User Interface
 
@@ -293,12 +293,18 @@ Media Card Actions Menu (⋮):
    - **File Count Validation Errors**: Shows max allowed count per type (e.g., "You can upload a maximum of 5 video files at a time. You selected 8.")
    - Validation errors appear before upload attempt
 
-2. **Load Errors**
+2. **Delete Errors**
+   - Success notification: "Medical attachments deleted successfully."
+   - Error notification: "Failed to delete media"
+   - Loading state displayed on card during deletion
+   - Auto-refresh of media list after successful deletion
+
+3. **Load Errors**
    - Error state managed by React Query
    - Retry functionality available
    - Error boundary protection
 
-3. **Empty States**
+4. **Empty States**
    - "No media files found" message when no results
    - "No options available" in empty filter categories
 
@@ -346,6 +352,7 @@ Media Card Actions Menu (⋮):
   - Shows confirmation dialog before deletion
   - Displays loading state on the specific card being deleted
   - Shows success/error notifications
+  - Success message: "Medical attachments deleted successfully."
   - Automatically refreshes media list after successful deletion
 - **Confirmation Dialog**:
   - Title: "Delete Media"
