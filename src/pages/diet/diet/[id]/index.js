@@ -104,6 +104,7 @@ const DietDetail = () => {
   const [speciesFilterLoading, setSpeciesFilterLoading] = useState(false)
   const [checkForSite, setCheckForSite] = useState('')
   const [siteId, setSiteID] = useState(null)
+  const [removeFilterTriggered, setRemoveFilterTriggered] = useState(false)
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -203,7 +204,7 @@ const DietDetail = () => {
         diet_id: id,
         ...(searchQuery && { q: searchQuery }),
         ...(type && { type }),
-
+        group_by_site: selectionType === 'site_species',
         ...(selectionType === 'species' &&
           checkForSite === 'site_species' &&
           siteId && {
@@ -233,7 +234,6 @@ const DietDetail = () => {
         }
       } else if (selectionType === 'species') {
         // Params for species list with taxonomy_ids
-
         const params = {
           ...commonParams,
           ...(selectedItems?.Taxonomy?.length > 0 && { species_ids: `[${selectedItems?.Taxonomy.join(',')}]` })
@@ -241,12 +241,18 @@ const DietDetail = () => {
         res = await getSpeciesList(params)
       } else if (selectionType === 'animals') {
         // Params for animals list
-
         const params = {
           ...commonParams,
           ...(selectedItems?.Species?.length > 0 && { species_ids: `[${selectedItems?.Species.join(',')}]` })
         }
         res = await getAnimalsList(params)
+      } else if (selectionType === 'site_species') {
+        // Params for species list with taxonomy_ids
+        const params = {
+          ...commonParams,
+          ...(selectedItems?.Taxonomy?.length > 0 && { species_ids: `[${selectedItems?.Taxonomy.join(',')}]` })
+        }
+        res = await getSpeciesList(params)
       }
 
       if (res) {
@@ -3806,6 +3812,9 @@ const DietDetail = () => {
             setPrimaryStatus={setPrimaryStatus}
             setSelectedSpecies={setSelectedSpecies}
             setCheckForSite={setCheckForSite}
+            fetchList={fetchList}
+            setRemoveFilterTriggered={setRemoveFilterTriggered}
+            removeFilterTriggered={removeFilterTriggered}
           />
           <ListOfSpeciesMapped
             isOpennew={isOpennew}
@@ -3874,6 +3883,12 @@ const DietDetail = () => {
             setSelectedEnclosures={setSelectedEnclosures}
             setspeciesData={setspeciesData}
             authData={authData}
+            fetchList={fetchList}
+            setRemoveFilterTriggered={setRemoveFilterTriggered}
+            removeFilterTriggered={removeFilterTriggered}
+            refreshSpeciesData={refreshSpeciesData}
+            filterState={filterState}
+            setCheckForSite={setCheckForSite}
           />
           <EditAnimalSpeciesMapped
             setIsOpenTabs={setIsOpenTabs}

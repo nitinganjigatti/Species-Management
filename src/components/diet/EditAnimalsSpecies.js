@@ -15,7 +15,8 @@ import {
   CircularProgress,
   Switch,
   Button,
-  Tab
+  Tab,
+  Chip
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
@@ -108,30 +109,92 @@ const EditAnimalSpeciesMapped = ({
     setspeciestotalcount(prev => prev - 1)
   }
 
+  const handleRemoveSiteSpecies = species => {
+    const id = species.species_id
+
+    setRemovedIds(prev => [...prev, species.assign_id])
+
+    const updatedSiteSpeciesData = speciesData.map(site => ({
+      ...site,
+      species: site.species.filter(sp => sp.assign_id !== species.assign_id)
+    }))
+
+    setspeciesData(updatedSiteSpeciesData)
+    setAllFetchedData(updatedSiteSpeciesData)
+
+    setTempSelectedSpecies(prev => prev.filter(itemId => itemId !== id))
+
+    setPrimaryStatus(prev => {
+      const newStatus = { ...prev }
+      delete newStatus[id]
+      return newStatus
+    })
+
+    setspeciestotalcount(prev => prev - 1)
+  }
+
+  // useEffect(() => {
+  //   if (speciesData && speciesData.length > 0) {
+  //     setOriginalData(speciesData)
+  //     const initialPrimaryStatus = {}
+
+  //     speciesData.forEach(item => {
+  //       const idField = selectionType === 'species' ? 'species_id' : 'animal_id'
+  //       const id = item[idField]
+
+  //       initialPrimaryStatus[id] = item.is_primary || '0'
+  //     })
+
+  //     setPrimaryStatus(prev => {
+  //       const newStatus = { ...prev }
+  //       let needsUpdate = false
+
+  //       speciesData.forEach(item => {
+  //         const idField = selectionType === 'species' ? 'species_id' : 'animal_id'
+  //         const id = item[idField]
+  //         if (newStatus[id] === undefined) {
+  //           newStatus[id] = item.is_primary || '0'
+  //           needsUpdate = true
+  //         }
+  //       })
+
+  //       return needsUpdate ? newStatus : prev
+  //     })
+  //   }
+  // }, [isOpentabEdit, speciesData, selectionType])
+
   useEffect(() => {
     if (speciesData && speciesData.length > 0) {
       setOriginalData(speciesData)
-      const initialPrimaryStatus = {}
-
-      speciesData.forEach(item => {
-        const idField = selectionType === 'species' ? 'species_id' : 'animal_id'
-        const id = item[idField]
-
-        initialPrimaryStatus[id] = item.is_primary || '0'
-      })
 
       setPrimaryStatus(prev => {
         const newStatus = { ...prev }
         let needsUpdate = false
 
-        speciesData.forEach(item => {
-          const idField = selectionType === 'species' ? 'species_id' : 'animal_id'
-          const id = item[idField]
-          if (newStatus[id] === undefined) {
-            newStatus[id] = item.is_primary || '0'
-            needsUpdate = true
-          }
-        })
+        if (selectionType === 'species' || selectionType === 'animals') {
+          speciesData.forEach(item => {
+            const idField = selectionType === 'species' ? 'species_id' : 'animal_id'
+            const id = item[idField]
+
+            if (newStatus[id] === undefined) {
+              newStatus[id] = item.is_primary || '0'
+              needsUpdate = true
+            }
+          })
+        }
+
+        if (selectionType === 'site_species') {
+          speciesData.forEach(site => {
+            site.species?.forEach(species => {
+              const id = species.assign_id
+
+              if (newStatus[id] === undefined) {
+                newStatus[id] = species.is_primary || '0'
+                needsUpdate = true
+              }
+            })
+          })
+        }
 
         return needsUpdate ? newStatus : prev
       })
@@ -158,21 +221,43 @@ const EditAnimalSpeciesMapped = ({
       })
   }
 
+  const getChangedRecordsSiteSpecies = () => {
+    return speciesData
+      .flatMap(site => site.species)
+      .filter(species => {
+        const id = species?.assign_id
+
+        const originalItem = originalData
+          .flatMap(site => site.species)
+          .find(original => original?.assign_id === species?.assign_id)
+
+        return primaryStatus[id] !== undefined && (!originalItem || primaryStatus[id] !== originalItem.is_primary)
+      })
+      .map(species => {
+        const id = species?.assign_id
+
+        return {
+          assign_id: species?.assign_id,
+          is_primary: primaryStatus[id] || '0'
+        }
+      })
+  }
+
   const hasChanges = () => {
-    const editData = getChangedRecords()
+    const editData = selectionType === 'site_species' ? getChangedRecordsSiteSpecies() : getChangedRecords()
 
     return editData.length > 0 || removedIds.length > 0
   }
 
   const handleAdd = async () => {
-    const editData = getChangedRecords()
+    const editData = selectionType === 'site_species' ? getChangedRecordsSiteSpecies() : getChangedRecords()
 
     const numericRemovedIds = removedIds.map(id => Number(id))
 
     const payload = {
       edit_data: JSON.stringify(editData),
-      remove_ids: JSON.stringify(numericRemovedIds),
-      ...(siteId && { site_id: siteId })
+      remove_ids: JSON.stringify(numericRemovedIds)
+      // ...(siteId && { site_id: siteId })
     }
 
     setLoader(true)
@@ -211,7 +296,7 @@ const EditAnimalSpeciesMapped = ({
     if (checkForSite === 'site_species') {
       setspeciesview('select')
       setCheckForSite('site_species')
-      //setFilterState('species')
+
       setPageNo(1)
     }
   }
@@ -222,7 +307,9 @@ const EditAnimalSpeciesMapped = ({
   }
 
   const handleTogglePrimary = item => {
-    const idField = selectionType === 'species' ? 'species_id' : 'animal_id'
+    const idField =
+      selectionType === 'site_species' ? 'assign_id' : selectionType === 'species' ? 'species_id' : 'animal_id'
+
     const id = item[idField]
 
     setPrimaryStatus(prev => ({
@@ -232,7 +319,9 @@ const EditAnimalSpeciesMapped = ({
   }
 
   const mappedSpecies =
-    speciesview === 'select'
+    selectionType === 'site_species'
+      ? speciesData
+      : speciesview === 'select'
       ? speciesData.filter(species => tempSelectedSpecies.includes(species.species_id))
       : speciesData.filter(species => species.mapped_to_diet)
 
@@ -280,17 +369,22 @@ const EditAnimalSpeciesMapped = ({
       </Box>
       <Grid item size={{ md: 8, xs: 12 }} sx={{ mb: 14 }}>
         <TabContext value={selectionType}>
-          {checkForSite !== 'site_species' ? (
+          {checkForSite !== 'site_species' && speciesview === 'details' ? (
             <TabList onChange={handleChange} aria-label='customized tabs example' sx={{ background: '#fff' }}>
               <Tab
-                style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, width: '50%' }}
+                style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, width: '33.33%' }}
                 value='species'
                 label={`SPECIES - ${selectionType === 'species' && !loading ? speciestotalcount || '' : '0'}`}
               />
               <Tab
-                style={{ borderRadius: 0, width: '50%' }}
+                style={{ borderRadius: 0, width: '33.33%' }}
                 value='animals'
                 label={`ANIMALS - ${selectionType === 'animals' && !loading ? speciestotalcount || '' : '0'}`}
+              />
+              <Tab
+                style={{ borderRadius: 0, width: '33.33%' }}
+                value='site_species'
+                label={`SITE SPECIES - ${selectionType === 'site_species' && !loading ? speciestotalcount || '' : '0'}`}
               />
             </TabList>
           ) : (
@@ -836,6 +930,299 @@ const EditAnimalSpeciesMapped = ({
               )}
             </Box>
           </TabPanel>
+
+          <TabPanel value='site_species' sx={{ background: theme.palette.customColors.tableHeaderBg }}>
+            <Box
+              sx={{
+                backgroundColor: theme.palette.background.default,
+                overflowY: 'auto',
+                height: checkForSite === 'site_species' ? 'calc(100vh - 18rem)' : 'calc(100vh - 23rem)',
+                px: 4,
+                pb: 4
+              }}
+              onScroll={handleScroll}
+            >
+              {!loading && speciesData?.length === 0 ? (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '70%',
+                    textAlign: 'center'
+                  }}
+                >
+                  <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: theme.palette.secondary.dark,
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      textAlign: 'center'
+                    }}
+                  >
+                    No Species assigned
+                  </Typography>
+                </Box>
+              ) : (
+                <>
+                  {speciesview === 'select' ? (
+                    <ListItem
+                      sx={{
+                        backgroundColor: theme.palette.background.paper,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mb: 3,
+                        borderRadius: '8px'
+                      }}
+                    >
+                      <ListItemAvatar>
+                        <Avatar
+                          src={dietDetails?.diet_image ? dietDetails?.diet_image : '/icons/icon_diet_fill.png'}
+                          alt={dietDetails.diet_name}
+                        />
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={dietDetails.diet_name}
+                        slotProps={{
+                          primary: {
+                            sx: {
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontSize: '16px',
+                              fontWeight: 600
+                            }
+                          }
+                        }}
+                        secondary={
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontSize: '16px',
+                              fontWeight: 400
+                            }}
+                          >
+                            {dietDetails.diet_no}
+                          </Typography>
+                        }
+                      ></ListItemText>
+                    </ListItem>
+                  ) : (
+                    ''
+                  )}
+                  <>
+                    {!loading ? (
+                      speciesview === 'select' ? (
+                        <Typography
+                          sx={{
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            pb: 1
+                          }}
+                        >
+                          {tempSelectedSpecies?.length} Species Selected
+                        </Typography>
+                      ) : (
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: theme.palette.secondary.dark,
+                            fontSize: '14px',
+                            fontWeight: 600,
+                            pb: 1
+                          }}
+                        >
+                          {speciestotalcount || ''} Species
+                        </Typography>
+                      )
+                    ) : (
+                      <Typography>{''}</Typography>
+                    )}
+                  </>
+                  <List
+                    sx={{
+                      mb: speciesview === 'select' ? '12%' : '0%'
+                    }}
+                  >
+                    {loading && pageNo === 1 ? (
+                      <CardContent>
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+                          <CircularProgress />
+                        </Box>
+                      </CardContent>
+                    ) : (
+                      <Box sx={{ background: theme.palette.customColors.mdAntzNeutral, borderRadius: '4px' }}>
+                        {loading && pageNo === 1 ? (
+                          <CardContent>
+                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+                              <CircularProgress />
+                            </Box>
+                          </CardContent>
+                        ) : (
+                          <>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                p: 3,
+                                borderRadius: '5px'
+                              }}
+                            >
+                              <Typography
+                                variant='body1'
+                                sx={{
+                                  fontWeight: '600',
+                                  fontSize: '14px',
+                                  color: theme.palette.customColors.customTextColorGray2,
+                                  width: '60%',
+                                  pl: 3
+                                }}
+                              >
+                                Species
+                              </Typography>
+                              <Typography
+                                variant='body1'
+                                sx={{
+                                  fontWeight: '600',
+                                  fontSize: '14px',
+                                  color: theme.palette.customColors.customTextColorGray2,
+                                  width: '30%'
+                                }}
+                              >
+                                Mark as Primary
+                              </Typography>
+                              <Typography
+                                variant='body1'
+                                sx={{
+                                  fontWeight: '600',
+                                  fontSize: '14px',
+                                  color: theme.palette.customColors.customTextColorGray2,
+                                  width: '12%'
+                                }}
+                              >
+                                Remove
+                              </Typography>
+                            </Box>
+
+                            {mappedSpecies.map((site, siteIndex) => {
+                              if (!site.species || site.species.length === 0) return null
+
+                              return (
+                                <Box key={siteIndex}>
+                                  <Box
+                                    sx={{
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                      px: 4,
+                                      py: 2,
+                                      background: theme.palette.customColors.Primary10
+                                    }}
+                                  >
+                                    <Typography
+                                      sx={{
+                                        fontWeight: 700,
+                                        fontSize: '15px',
+                                        color: theme.palette.primary.dark
+                                      }}
+                                    >
+                                      Site Name : {site.site_name}
+                                    </Typography>
+
+                                    <Chip
+                                      label={`${
+                                        site.species?.length === 1 ? '1 Specie' : `${site.species?.length || 0} Species`
+                                      }`}
+                                      size='small'
+                                      sx={{
+                                        fontWeight: 700,
+                                        bgcolor: theme.palette.background.paper,
+                                        border: `1px solid ${theme.palette.primary.main}`
+                                      }}
+                                    />
+                                  </Box>
+
+                                  {site.species?.map((species, index) => (
+                                    <ListItem
+                                      key={species.species_id}
+                                      sx={{
+                                        backgroundColor: theme.palette.background.paper,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                        px: 3,
+                                        py: 3.5
+                                      }}
+                                    >
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'flex-start',
+                                          gap: 2,
+                                          width: '60%',
+                                          minHeight: '100%'
+                                        }}
+                                      >
+                                        <SpeciesCard species={species} edit={true} />
+                                      </Box>
+
+                                      <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
+                                        <Switch
+                                          checked={
+                                            primaryStatus[
+                                              selectionType === 'site_species' ? species.assign_id : species.species_id
+                                            ] === '1'
+                                          }
+                                          onChange={() => handleTogglePrimary(species)}
+                                          color='primary'
+                                        />
+                                      </Box>
+
+                                      <Box sx={{ width: '12%', textAlign: 'right' }}>
+                                        <IconButton
+                                          edge='end'
+                                          onClick={() => handleRemoveSiteSpecies(species)}
+                                          sx={{
+                                            color: theme.palette.error.dark,
+                                            mr: 3
+                                          }}
+                                        >
+                                          <Icon icon='carbon:close-outline' fontSize={24} />
+                                        </IconButton>
+                                      </Box>
+                                    </ListItem>
+                                  ))}
+                                </Box>
+                              )
+                            })}
+                          </>
+                        )}
+                      </Box>
+                    )}
+
+                    {!loading && isLoadingMore && (
+                      <Box
+                        sx={{
+                          position: 'fixed',
+                          bottom: '155px',
+                          transform: 'translateX(217px)',
+                          zIndex: 999,
+                          justifyContent: 'center',
+                          display: 'flex'
+                        }}
+                      >
+                        <CircularProgress />
+                      </Box>
+                    )}
+                  </List>
+                </>
+              )}
+            </Box>
+          </TabPanel>
         </TabContext>
       </Grid>
       {/* bottom buttons */}
@@ -923,7 +1310,6 @@ const EditAnimalSpeciesMapped = ({
             CANCEL
           </Button>
 
-          {/* Assign Diet Button */}
           <LoadingButton
             variant='contained'
             size='medium'

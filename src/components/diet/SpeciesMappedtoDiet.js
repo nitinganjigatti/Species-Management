@@ -59,7 +59,10 @@ const SpeciesMappedtoDiet = ({
   setPrimaryStatus,
   setIsOpenTabsEdit,
   setSelectedSpecies,
-  setCheckForSite
+  setCheckForSite,
+  fetchList,
+  removeFilterTriggered,
+  setRemoveFilterTriggered
 }) => {
   const listInnerRef = useRef(null)
   const theme = useTheme()
@@ -165,10 +168,18 @@ const SpeciesMappedtoDiet = ({
         Section: [],
         Enclosure: []
       }))
+      setRemoveFilterTriggered(true)
     }
     setSelectedEnclosures([])
     setSelectedSections([])
   }
+
+  useEffect(() => {
+    if (removeFilterTriggered && isOpen) {
+      fetchList(searchQuery)
+      setRemoveFilterTriggered(false)
+    }
+  }, [removeFilterTriggered])
 
   const handleEditclick = () => {
     setIsOpenTabsEdit(true)

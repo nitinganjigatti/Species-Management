@@ -130,7 +130,7 @@ const SpeciesMappedtoDietFilter = ({
   useEffect(() => {
     setActiveTab('Site')
     setSearchQuery('')
-    if (checkForSite === 'site_species') {
+    if (checkForSite === 'site_species' || selectionType === 'site_species') {
       setActiveTab('Taxonomy')
     }
   }, [openFilterDrawer])
@@ -345,6 +345,12 @@ const SpeciesMappedtoDietFilter = ({
                   if (selectionType === 'species' && tab === 'Species') return false
                   if (selectionType === 'animals' && tab === 'Taxonomy') return false
 
+                  if (selectionType === 'species' && checkForSite === '' && tab === 'Species') return false
+
+                  if (selectionType === 'site_species' && checkForSite === '') {
+                    return tab === 'Taxonomy'
+                  }
+                  if (selectionType === 'site_species' && tab === 'Site') return false
                   if (selectionType === 'species' && checkForSite === 'site_species') {
                     return tab === 'Taxonomy'
                   }

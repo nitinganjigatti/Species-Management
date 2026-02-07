@@ -60,25 +60,48 @@ const SelectSiteList = ({
     setSearchTerm('')
   }
 
+  // const handleSiteCheckboxChange = site => {
+  //   if (selectionType == 'site_species') {
+  //     setPendingSelections({
+  //       ...pendingSelections,
+  //       Site: [site.site_id]
+  //     })
+  //     setTempSelectedSpecies([])
+  //   } else {
+  //     const isSelected = pendingSelections?.Site?.includes(site.site_id)
+
+  //     const updatedSelection = isSelected
+  //       ? pendingSelections?.Site?.filter(id => id !== site.site_id)
+  //       : [...pendingSelections.Site, site.site_id]
+
+  //     setPendingSelections({
+  //       ...pendingSelections,
+  //       Site: updatedSelection
+  //     })
+  //   }
+  // }
+
   const handleSiteCheckboxChange = site => {
-    if (selectionType == 'site_species') {
-      setPendingSelections({
-        ...pendingSelections,
-        Site: [site.site_id]
-      })
-      setTempSelectedSpecies([])
-    } else {
-      const isSelected = pendingSelections.Site.includes(site.site_id)
+    setPendingSelections(prev => {
+      const currentSites = prev?.Site || []
 
-      const updatedSelection = isSelected
-        ? pendingSelections.Site.filter(id => id !== site.site_id)
-        : [...pendingSelections.Site, site.site_id]
+      if (selectionType === 'site_species') {
+        // ✅ Single select
+        setTempSelectedSpecies([])
+        return {
+          ...prev,
+          Site: [site.site_id]
+        }
+      }
 
-      setPendingSelections({
-        ...pendingSelections,
-        Site: updatedSelection
-      })
-    }
+      // ✅ Multi select
+      const isSelected = currentSites.includes(site.site_id)
+
+      return {
+        ...prev,
+        Site: isSelected ? currentSites.filter(id => id !== site.site_id) : [...currentSites, site.site_id]
+      }
+    })
   }
 
   useEffect(() => {

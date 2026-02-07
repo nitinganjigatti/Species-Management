@@ -370,7 +370,7 @@ const DietDetailCard = ({
                           }}
                           sx={{ fontSize: '14px' }}
                         >
-                          Assign Site to Species
+                          Assign to Site Species
                         </MenuItem>
                       </Menu>
                     </div>
@@ -420,7 +420,7 @@ const DietDetailCard = ({
 
                   <Grid size={{ xs: 12 }}>
                     {dietDetails?.total_animals !== '0' ? (
-                      <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ pb: 3 }}>
+                      <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ pb: 0 }}>
                         {/* Label */}
                         <Typography
                           variant='body2'
@@ -451,6 +451,46 @@ const DietDetailCard = ({
                             }}
                           >
                             Primary {dietDetails.total_primary_animals}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ) : (
+                      ''
+                    )}
+                  </Grid>
+
+                  <Grid size={{ xs: 12 }}>
+                    {dietDetails?.total_sites !== '0' ? (
+                      <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ pb: 3 }}>
+                        <Typography
+                          variant='body2'
+                          fontWeight='bold'
+                          sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
+                        >
+                          Site , Species
+                        </Typography>
+
+                        <Box
+                          display='flex'
+                          alignItems='center'
+                          sx={{ cursor: 'pointer' }}
+                          onClick={() => handleSpeciesClicknew('details', 'site_species')}
+                        >
+                          <Typography variant='h6' color={theme.palette.primary.main}>
+                            {dietDetails.total_sites} , {dietDetails.total_site_species}
+                          </Typography>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              background: theme.palette.customColors.bodyBg,
+                              p: '5px',
+                              borderRadius: '3px',
+                              ml: 2,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: '600'
+                            }}
+                          >
+                            Primary {dietDetails.total_site_primary_species}
                           </Typography>
                         </Box>
                       </Box>
