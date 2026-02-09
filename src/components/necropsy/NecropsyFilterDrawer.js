@@ -47,8 +47,8 @@ const NecropsyFilterDrawer = ({
     activeCard === 'INCOMING'
       ? incomingMenus
       : activeCard === 'DRAFT' || activeCard === 'COMPLETED'
-        ? extendedMenus
-        : baseMenus
+      ? extendedMenus
+      : baseMenus
 
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
   const [searchQuery, setSearchQuery] = useState('')

@@ -16,7 +16,6 @@ const CarcassTransferPage = () => {
   return (
     <NecropsyProvider>
       <Box sx={{ p: 4 }}>
-        {/* Breadcrumbs */}
         <Box sx={{ mb: 3 }}>
           <Breadcrumbs>
             <MuiLink component={NextLink} href='/necropsy' underline='hover' color='inherit'>
@@ -28,7 +27,6 @@ const CarcassTransferPage = () => {
           </Breadcrumbs>
         </Box>
 
-        {/* Analytics Header — no carcass transfer button */}
         <NecropsyAnalytics
           filterDate={filterDate}
           setFilterDate={setFilterDate}
@@ -37,7 +35,6 @@ const CarcassTransferPage = () => {
           showCarcassTransferButton={false}
         />
 
-        {/* Carcass Transfer listing */}
         <Box sx={{ mt: 6 }}>
           <CarcassTransferCard filterDate={filterDate} />
         </Box>

@@ -10,10 +10,7 @@ import {
   AccordionDetails,
   useTheme
 } from '@mui/material'
-import {
-  ExpandMore as ExpandMoreIcon,
-  Delete as DeleteIcon
-} from '@mui/icons-material'
+import { ExpandMore as ExpandMoreIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
 import AddOrganDrawer from './AddOrganDrawer'
 
@@ -21,11 +18,11 @@ const NecropsyOrganSection = ({ organs = [], onChange, disabled = false }) => {
   const theme = useTheme()
   const [openAddOrganDrawer, setOpenAddOrganDrawer] = useState(false)
 
-  const handleApplyOrgans = (newOrgans) => {
+  const handleApplyOrgans = newOrgans => {
     onChange(newOrgans)
   }
 
-  const handleRemoveOrgan = (index) => {
+  const handleRemoveOrgan = index => {
     const updated = organs.filter((_, i) => i !== index)
     onChange(updated)
   }
@@ -42,7 +39,6 @@ const NecropsyOrganSection = ({ organs = [], onChange, disabled = false }) => {
 
   return (
     <Box>
-      {/* Add Organ Button */}
       <Box sx={{ mb: 3 }}>
         <Button
           onClick={() => setOpenAddOrganDrawer(true)}
@@ -69,7 +65,6 @@ const NecropsyOrganSection = ({ organs = [], onChange, disabled = false }) => {
         </Button>
       </Box>
 
-      {/* Selected Organs Display */}
       {organs.length > 0 ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {organs.map((organ, organIndex) => (
@@ -107,7 +102,7 @@ const NecropsyOrganSection = ({ organs = [], onChange, disabled = false }) => {
                 {!disabled && (
                   <IconButton
                     size='small'
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation()
                       handleRemoveOrgan(organIndex)
                     }}
@@ -118,7 +113,6 @@ const NecropsyOrganSection = ({ organs = [], onChange, disabled = false }) => {
                 )}
               </AccordionSummary>
               <AccordionDetails sx={{ pt: 0 }}>
-                {/* Parts */}
                 {organ.parts?.map((part, partIndex) => {
                   const partName = part.organ_name || part.label || `Part ${partIndex + 1}`
 
@@ -136,7 +130,7 @@ const NecropsyOrganSection = ({ organs = [], onChange, disabled = false }) => {
                         multiline
                         rows={2}
                         value={part.value || ''}
-                        onChange={(e) => handlePartChange(organIndex, partIndex, 'value', e.target.value)}
+                        onChange={e => handlePartChange(organIndex, partIndex, 'value', e.target.value)}
                         disabled={disabled}
                       />
                     </Box>
@@ -162,7 +156,6 @@ const NecropsyOrganSection = ({ organs = [], onChange, disabled = false }) => {
         </Box>
       )}
 
-      {/* Add Organ Drawer */}
       <AddOrganDrawer
         open={openAddOrganDrawer}
         setOpen={setOpenAddOrganDrawer}

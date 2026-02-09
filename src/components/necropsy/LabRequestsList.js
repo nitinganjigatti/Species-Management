@@ -135,7 +135,6 @@ const LabRequestsList = ({ animalId }) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {/* Sub-tab pills */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box
           sx={{
@@ -160,9 +159,7 @@ const LabRequestsList = ({ animalId }) => {
                   py: '8px',
                   borderRadius: '8px',
                   backgroundColor:
-                    activeSubTab === tab
-                      ? theme.palette.secondary.dark
-                      : theme.palette.customColors.mdAntzNeutral,
+                    activeSubTab === tab ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
                   cursor: 'pointer',
                   transition: 'background-color 0.2s ease'
                 }}
@@ -186,7 +183,6 @@ const LabRequestsList = ({ animalId }) => {
         </Box>
       </Box>
 
-      {/* Content */}
       {loading ? (
         renderShimmer()
       ) : data.length === 0 ? (
@@ -229,7 +225,6 @@ const LabRequestsList = ({ animalId }) => {
                     : 'transparent'
                 }}
               >
-                {/* Header row - 3-column grid */}
                 <Box
                   onClick={() => tests.length > 0 && toggleExpand(groupId)}
                   sx={{
@@ -245,7 +240,6 @@ const LabRequestsList = ({ animalId }) => {
                       alignItems: { xs: 'flex-start', sm: 'center' }
                     }}
                   >
-                    {/* Left: MedicalIdChip + Status + Test count */}
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                       <MedicalIdChip
                         leftImage
@@ -291,7 +285,6 @@ const LabRequestsList = ({ animalId }) => {
                       </Box>
                     </Box>
 
-                    {/* Middle: Date/time */}
                     <Box sx={{ gridColumn: { xs: '1', sm: '2', md: '2' } }}>
                       <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.neutralSecondary }}>
                         {group.created_at && (
@@ -306,7 +299,6 @@ const LabRequestsList = ({ animalId }) => {
                       </Typography>
                     </Box>
 
-                    {/* Right: Expand/Collapse indicator */}
                     {tests.length > 0 && (
                       <Box
                         sx={{
@@ -326,7 +318,6 @@ const LabRequestsList = ({ animalId }) => {
                   </Box>
                 </Box>
 
-                {/* Expandable test list */}
                 {tests.length > 0 && (
                   <Collapse in={isExpanded}>
                     <Box
@@ -345,9 +336,7 @@ const LabRequestsList = ({ animalId }) => {
                             gap: 2.5,
                             py: 2.5,
                             borderBottom:
-                              tIndex < tests.length - 1
-                                ? `1px solid ${alpha(theme.palette.divider, 0.06)}`
-                                : 'none'
+                              tIndex < tests.length - 1 ? `1px solid ${alpha(theme.palette.divider, 0.06)}` : 'none'
                           }}
                         >
                           {getStatusIcon(test.status)}
@@ -364,7 +353,11 @@ const LabRequestsList = ({ animalId }) => {
                             </Typography>
                             {test.created_at && (
                               <Typography
-                                sx={{ fontSize: '0.75rem', color: theme.palette.customColors.neutralSecondary, mt: 0.25 }}
+                                sx={{
+                                  fontSize: '0.75rem',
+                                  color: theme.palette.customColors.neutralSecondary,
+                                  mt: 0.25
+                                }}
                               >
                                 {Utility.convertUtcToLocalReadableDate(test.created_at)}
                               </Typography>
@@ -391,7 +384,6 @@ const LabRequestsList = ({ animalId }) => {
             )
           })}
 
-          {/* Load More */}
           {hasMore && (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
               {loadingMore ? (

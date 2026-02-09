@@ -169,7 +169,7 @@ export async function getMedicalStats(params) {
 }
 
 export async function getNecropsyPdf(params) {
-  const response = await axiosGet({ url: GET_NECROPSY_PDF, params: params})
+  const response = await axiosGet({ url: GET_NECROPSY_PDF, params: params })
 
   return response?.data
 }

@@ -1,20 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import {
-  Drawer,
-  Box,
-  Typography,
-  IconButton,
-  Skeleton,
-  CircularProgress,
-  Avatar,
-  Tooltip
-} from '@mui/material'
+import { Drawer, Box, Typography, IconButton, Skeleton, CircularProgress, Avatar, Tooltip } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
-import {
-  Close as CloseIcon,
-  Person as PersonIcon,
-  CalendarToday as CalendarIcon
-} from '@mui/icons-material'
+import { Close as CloseIcon, Person as PersonIcon, CalendarToday as CalendarIcon } from '@mui/icons-material'
 import { getMedicalJournalLogs } from 'src/lib/api/necropsy/medicalHistory'
 import Utility from 'src/utility'
 
@@ -35,7 +22,7 @@ const MedicalJournalDrawer = ({ open, onClose, animalId, medicalRecordId }) => {
     }
   }, [open, animalId, medicalRecordId])
 
-  const fetchJournalData = async (pageNo) => {
+  const fetchJournalData = async pageNo => {
     try {
       if (pageNo === 1) {
         setLoading(true)
@@ -53,27 +40,23 @@ const MedicalJournalDrawer = ({ open, onClose, animalId, medicalRecordId }) => {
       const res = await getMedicalJournalLogs(params)
 
       if (res?.success) {
-        // API returns pre-grouped data by date
         const newData = res.data?.data || []
         setTotalCount(res.data?.total_count || 0)
 
         if (pageNo === 1) {
           setJournalData(newData)
         } else {
-          // Merge grouped data - combine entries for same dates
           setJournalData(prev => {
             const merged = [...prev]
             newData.forEach(newGroup => {
               const existingIndex = merged.findIndex(g => g.date === newGroup.date)
               if (existingIndex >= 0) {
-                merged[existingIndex].entries = [
-                  ...(merged[existingIndex].entries || []),
-                  ...(newGroup.entries || [])
-                ]
+                merged[existingIndex].entries = [...(merged[existingIndex].entries || []), ...(newGroup.entries || [])]
               } else {
                 merged.push(newGroup)
               }
             })
+
             return merged
           })
         }
@@ -100,7 +83,6 @@ const MedicalJournalDrawer = ({ open, onClose, animalId, medicalRecordId }) => {
     <Box sx={{ p: 3 }}>
       {[1, 2, 3].map(i => (
         <Box key={i} sx={{ mb: 4 }}>
-          {/* Date header skeleton */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, p: 2, bgcolor: theme.palette.grey[200] }}>
             <Skeleton variant='text' width={50} height={40} />
             <Box>
@@ -108,7 +90,6 @@ const MedicalJournalDrawer = ({ open, onClose, animalId, medicalRecordId }) => {
               <Skeleton variant='text' width={100} height={16} />
             </Box>
           </Box>
-          {/* Entry skeleton */}
           <Box sx={{ display: 'flex', gap: 2, p: 2 }}>
             <Skeleton variant='circular' width={32} height={32} />
             <Box sx={{ flex: 1 }}>
@@ -122,7 +103,7 @@ const MedicalJournalDrawer = ({ open, onClose, animalId, medicalRecordId }) => {
     </Box>
   )
 
-  const formatKey = (key) => {
+  const formatKey = key => {
     return key
       .replace(/_/g, ' ')
       .toLowerCase()
@@ -134,12 +115,10 @@ const MedicalJournalDrawer = ({ open, onClose, animalId, medicalRecordId }) => {
       return null
     }
 
-    // Check if array
     if (Array.isArray(value)) {
       return value.length > 0 ? value.join(', ') : null
     }
 
-    // Check if date string (YYYY-MM-DD HH:mm:ss format)
     if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)) {
       return Utility.convertUTCToLocalDate(value)
     }
@@ -166,7 +145,6 @@ const MedicalJournalDrawer = ({ open, onClose, animalId, medicalRecordId }) => {
         }
       }}
     >
-      {/* Header */}
       <Box
         sx={{
           display: 'flex',
@@ -185,7 +163,6 @@ const MedicalJournalDrawer = ({ open, onClose, animalId, medicalRecordId }) => {
         </IconButton>
       </Box>
 
-      {/* Content */}
       <Box sx={{ flex: 1, overflow: 'auto', bgcolor: theme.palette.grey[50] }}>
         {loading ? (
           renderShimmer()
@@ -197,7 +174,6 @@ const MedicalJournalDrawer = ({ open, onClose, animalId, medicalRecordId }) => {
           <Box>
             {journalData.map((group, groupIndex) => (
               <Box key={groupIndex} sx={{ mb: 3 }}>
-                {/* Date Header */}
                 <Box
                   sx={{
                     display: 'flex',
@@ -226,7 +202,8 @@ const MedicalJournalDrawer = ({ open, onClose, animalId, medicalRecordId }) => {
                         color: theme.palette.text.secondary
                       }}
                     >
-                      {group.day || (group.date ? new Date(group.date).toLocaleDateString('en-US', { weekday: 'long' }) : '')}
+                      {group.day ||
+                        (group.date ? new Date(group.date).toLocaleDateString('en-US', { weekday: 'long' }) : '')}
                     </Typography>
                     <Typography
                       sx={{
@@ -234,12 +211,13 @@ const MedicalJournalDrawer = ({ open, onClose, animalId, medicalRecordId }) => {
                         color: theme.palette.text.secondary
                       }}
                     >
-                      {group.date ? new Date(group.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''}
+                      {group.date
+                        ? new Date(group.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                        : ''}
                     </Typography>
                   </Box>
                 </Box>
 
-                {/* Journal Entries */}
                 {group?.entries?.map((entry, entryIdx) => (
                   <JournalCard
                     key={entryIdx}
@@ -253,7 +231,6 @@ const MedicalJournalDrawer = ({ open, onClose, animalId, medicalRecordId }) => {
               </Box>
             ))}
 
-            {/* Load More */}
             {hasMore && (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
                 {loadingMore ? (
@@ -281,11 +258,15 @@ const MedicalJournalDrawer = ({ open, onClose, animalId, medicalRecordId }) => {
   )
 }
 
-// Journal Card Component - Matching AnimalJournals.js design
 const JournalCard = ({ entry, theme, formatKey, formatDetailValue, isLast }) => {
   const [imageError, setImageError] = useState(false)
   const type = entry.type || ''
-  const category = entry.category?.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || ''
+
+  const category =
+    entry.category
+      ?.split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ') || ''
   const title = entry.title ? Utility.toPascalSentenceCase?.(entry.title) || entry.title.replace(/_/g, ' ') : ''
   const time = entry.time ? Utility.convertUTCToLocaltime(entry.time) : ''
   const details = entry.details || {}
@@ -302,7 +283,6 @@ const JournalCard = ({ entry, theme, formatKey, formatDetailValue, isLast }) => 
       }}
     >
       <Box sx={{ display: 'flex', gap: 2 }}>
-        {/* Icon / Avatar */}
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Avatar
             sx={{
@@ -328,7 +308,6 @@ const JournalCard = ({ entry, theme, formatKey, formatDetailValue, isLast }) => 
               />
             )}
           </Avatar>
-          {/* Dashed connector line */}
           {!isLast && (
             <Box
               sx={{
@@ -347,12 +326,9 @@ const JournalCard = ({ entry, theme, formatKey, formatDetailValue, isLast }) => 
           )}
         </Box>
 
-        {/* Content */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          {/* Header Row */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              {/* Type */}
               {type && (
                 <Typography
                   sx={{
@@ -367,7 +343,6 @@ const JournalCard = ({ entry, theme, formatKey, formatDetailValue, isLast }) => 
                   {type}
                 </Typography>
               )}
-              {/* Category */}
               {category && (
                 <Typography
                   sx={{
@@ -382,7 +357,6 @@ const JournalCard = ({ entry, theme, formatKey, formatDetailValue, isLast }) => 
                   {category}
                 </Typography>
               )}
-              {/* Title */}
               {title && (
                 <Tooltip title={title}>
                   <Typography
@@ -399,7 +373,6 @@ const JournalCard = ({ entry, theme, formatKey, formatDetailValue, isLast }) => 
                   </Typography>
                 </Tooltip>
               )}
-              {/* Time */}
               {time && (
                 <Typography
                   sx={{
@@ -414,7 +387,6 @@ const JournalCard = ({ entry, theme, formatKey, formatDetailValue, isLast }) => 
             </Box>
           </Box>
 
-          {/* Details Card */}
           {(Object.keys(details).length > 0 || code || userName) && (
             <Box
               sx={{
@@ -424,15 +396,15 @@ const JournalCard = ({ entry, theme, formatKey, formatDetailValue, isLast }) => 
                 mt: 1
               }}
             >
-              {/* Code / Medical Record Number */}
               {code && (
                 <Typography
                   sx={{
                     fontSize: '14px',
                     fontWeight: 600,
-                    color: type === 'Medical'
-                      ? theme.palette.customColors?.Tertiary || theme.palette.info.main
-                      : type === 'Vaccination'
+                    color:
+                      type === 'Medical'
+                        ? theme.palette.customColors?.Tertiary || theme.palette.info.main
+                        : type === 'Vaccination'
                         ? theme.palette.primary.dark
                         : theme.palette.customColors?.addPrimary || theme.palette.success.main,
                     mb: 1
@@ -442,14 +414,14 @@ const JournalCard = ({ entry, theme, formatKey, formatDetailValue, isLast }) => 
                 </Typography>
               )}
 
-              {/* Details Key-Value Pairs */}
               {Object.entries(details)
-                .filter(([key, value]) =>
-                  key !== 'medical_record_number' &&
-                  value !== null &&
-                  value !== undefined &&
-                  !(Array.isArray(value) && value.length === 0) &&
-                  !(typeof value === 'string' && value.trim() === '')
+                .filter(
+                  ([key, value]) =>
+                    key !== 'medical_record_number' &&
+                    value !== null &&
+                    value !== undefined &&
+                    !(Array.isArray(value) && value.length === 0) &&
+                    !(typeof value === 'string' && value.trim() === '')
                 )
                 .map(([key, value], idx) => {
                   const formattedValue = formatDetailValue(key, value)
@@ -477,7 +449,6 @@ const JournalCard = ({ entry, theme, formatKey, formatDetailValue, isLast }) => 
                   )
                 })}
 
-              {/* User / Created By */}
               {(userName || createdBy) && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1.5 }}>
                   <Avatar sx={{ width: 28, height: 28, bgcolor: theme.palette.grey[300] }}>

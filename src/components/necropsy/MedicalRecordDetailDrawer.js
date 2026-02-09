@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import {
-  Drawer,
-  Box,
-  Typography,
-  IconButton,
-  Chip,
-  Skeleton,
-  Divider,
-  Avatar
-} from '@mui/material'
+import { Drawer, Box, Typography, IconButton, Chip, Skeleton, Divider, Avatar } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import {
   Close as CloseIcon,
@@ -60,7 +51,6 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
 
   useEffect(() => {
     if (data) {
-      // Set initial active tab to first available section
       const availableTabs = getAvailableTabs()
       if (availableTabs.length > 0 && !availableTabs.find(t => t.id === activeTab)) {
         setActiveTab(availableTabs[0].id)
@@ -100,7 +90,9 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
         case 'lab':
           return data?.lab?.length > 0 || data?.lab_data?.length > 0
         case 'attachments':
-          return data?.notes?.images?.length > 0 || data?.notes?.documents?.length > 0 || data?.notes?.videos?.length > 0
+          return (
+            data?.notes?.images?.length > 0 || data?.notes?.documents?.length > 0 || data?.notes?.videos?.length > 0
+          )
         case 'notes':
           return data?.notes?.notes?.length > 0
         case 'followup':
@@ -173,7 +165,9 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
               )}
               {closedComplaints.length > 0 && (
                 <>
-                  <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.text.secondary, mb: 2, mt: 3 }}>
+                  <Typography
+                    sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.text.secondary, mb: 2, mt: 3 }}
+                  >
                     {closedComplaints.length} Closed
                   </Typography>
                   {closedComplaints.map((item, idx) => (
@@ -202,7 +196,9 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
               )}
               {closedDiagnosis.length > 0 && (
                 <>
-                  <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.text.secondary, mb: 2, mt: 3 }}>
+                  <Typography
+                    sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.text.secondary, mb: 2, mt: 3 }}
+                  >
                     {closedDiagnosis.length} Closed
                   </Typography>
                   {closedDiagnosis.map((item, idx) => (
@@ -231,7 +227,9 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
               )}
               {closedPrescription.length > 0 && (
                 <>
-                  <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.text.secondary, mb: 2, mt: 3 }}>
+                  <Typography
+                    sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.text.secondary, mb: 2, mt: 3 }}
+                  >
                     {closedPrescription.length} Stopped
                   </Typography>
                   {closedPrescription.map((item, idx) => (
@@ -288,7 +286,10 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
             <SectionHeader icon={AttachmentIcon} title='Attachments' theme={theme} />
             <Box sx={{ ml: 4 }}>
               <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary, mb: 2 }}>
-                {(data?.notes?.images?.length || 0) + (data?.notes?.documents?.length || 0) + (data?.notes?.videos?.length || 0)} file(s) attached
+                {(data?.notes?.images?.length || 0) +
+                  (data?.notes?.documents?.length || 0) +
+                  (data?.notes?.videos?.length || 0)}{' '}
+                file(s) attached
               </Typography>
               <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
                 {data?.notes?.images?.map((file, idx) => (
@@ -336,7 +337,15 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
                     }}
                   >
                     <RxIcon sx={{ fontSize: 24, color: theme.palette.text.secondary }} />
-                    <Typography sx={{ fontSize: '10px', maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <Typography
+                      sx={{
+                        fontSize: '10px',
+                        maxWidth: 60,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
                       {file.file_original_name || 'Doc'}
                     </Typography>
                   </Box>
@@ -363,7 +372,8 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
                 >
                   {note.created_at && (
                     <Typography sx={{ fontSize: '12px', color: theme.palette.text.secondary, mb: 1 }}>
-                      {Utility.convertUtcToLocalReadableDate(note.created_at)} {Utility.convertUTCToLocaltime(note.created_at)}
+                      {Utility.convertUtcToLocalReadableDate(note.created_at)}{' '}
+                      {Utility.convertUTCToLocaltime(note.created_at)}
                     </Typography>
                   )}
                   <Typography sx={{ fontSize: '14px', color: theme.palette.text.primary, whiteSpace: 'pre-wrap' }}>
@@ -416,7 +426,6 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
         }
       }}
     >
-      {/* Header */}
       <Box
         sx={{
           display: 'flex',
@@ -435,7 +444,6 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
         </IconButton>
       </Box>
 
-      {/* Content */}
       <Box sx={{ flex: 1, overflow: 'auto' }}>
         {loading ? (
           renderShimmer()
@@ -445,9 +453,7 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
           </Box>
         ) : (
           <Box>
-            {/* Medical Record Header */}
             <Box sx={{ p: 3, bgcolor: theme.palette.background.paper }}>
-              {/* Record ID and History Icon */}
               <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1.5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   {data?.case_type?.default_icon ? (
@@ -487,7 +493,6 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
                 </IconButton>
               </Box>
 
-              {/* Case Type + Date */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 {data?.case_type?.label && (
                   <Typography sx={{ fontSize: '13px', fontWeight: 500, color: theme.palette.success.main }}>
@@ -496,15 +501,17 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
                 )}
                 {data?.created_at && (
                   <>
-                    <Box component='span' sx={{ color: theme.palette.text.disabled }}>&bull;</Box>
+                    <Box component='span' sx={{ color: theme.palette.text.disabled }}>
+                      &bull;
+                    </Box>
                     <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>
-                      {Utility.convertUtcToLocalReadableDate(data.created_at)} {Utility.convertUTCToLocaltime(data.created_at)}
+                      {Utility.convertUtcToLocalReadableDate(data.created_at)}{' '}
+                      {Utility.convertUTCToLocaltime(data.created_at)}
                     </Typography>
                   </>
                 )}
               </Box>
 
-              {/* Created By */}
               {data?.user_details && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>By</Typography>
@@ -517,10 +524,16 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
                       '& .MuiChip-label': { fontSize: '13px' }
                     }}
                   />
-                  <IconButton size='small' sx={{ bgcolor: theme.palette.customColors?.surfaceVariant || theme.palette.grey[100] }}>
+                  <IconButton
+                    size='small'
+                    sx={{ bgcolor: theme.palette.customColors?.surfaceVariant || theme.palette.grey[100] }}
+                  >
                     <PhoneIcon sx={{ fontSize: 16 }} />
                   </IconButton>
-                  <IconButton size='small' sx={{ bgcolor: theme.palette.customColors?.surfaceVariant || theme.palette.grey[100] }}>
+                  <IconButton
+                    size='small'
+                    sx={{ bgcolor: theme.palette.customColors?.surfaceVariant || theme.palette.grey[100] }}
+                  >
                     <SmsIcon sx={{ fontSize: 16 }} />
                   </IconButton>
                 </Box>
@@ -529,14 +542,12 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
 
             <Divider />
 
-            {/* Animal Card */}
             {animalData && (
               <Box sx={{ p: 3, bgcolor: theme.palette.background.paper }}>
                 <AnimalCard data={animalData} />
               </Box>
             )}
 
-            {/* Horizontal Scrollable Tab Icons */}
             {availableTabs.length > 0 && (
               <Box
                 sx={{
@@ -576,9 +587,7 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
                       <Icon
                         sx={{
                           fontSize: 22,
-                          color: isActive
-                            ? theme.palette.primary.main
-                            : theme.palette.text.secondary
+                          color: isActive ? theme.palette.primary.main : theme.palette.text.secondary
                         }}
                       />
                     </Box>
@@ -587,15 +596,11 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
               </Box>
             )}
 
-            {/* Tab Content */}
-            <Box sx={{ p: 3, bgcolor: theme.palette.grey[50], minHeight: 300 }}>
-              {renderTabContent()}
-            </Box>
+            <Box sx={{ p: 3, bgcolor: theme.palette.grey[50], minHeight: 300 }}>{renderTabContent()}</Box>
           </Box>
         )}
       </Box>
 
-      {/* Medical Journal Drawer */}
       <MedicalJournalDrawer
         open={journalDrawerOpen}
         onClose={() => setJournalDrawerOpen(false)}
@@ -606,7 +611,6 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
   )
 }
 
-// Helper Components
 const SectionHeader = ({ icon: Icon, title, theme }) => (
   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
     <Icon sx={{ fontSize: 20, color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary }} />
@@ -641,7 +645,6 @@ const ComplaintCard = ({ item, theme, isClosed }) => {
       }}
     >
       <Box sx={{ p: 2 }}>
-        {/* Title */}
         <Typography
           sx={{
             fontSize: '15px',
@@ -653,26 +656,20 @@ const ComplaintCard = ({ item, theme, isClosed }) => {
           {item.complaint || item.name}
         </Typography>
 
-        {/* Severity • Duration row */}
         {(severity || duration) && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
             {severity && (
-              <Typography sx={{ fontSize: '13px', color: '#4DB6AC', fontWeight: 500 }}>
-                {severity}
-              </Typography>
+              <Typography sx={{ fontSize: '13px', color: '#4DB6AC', fontWeight: 500 }}>{severity}</Typography>
             )}
             {severity && duration && (
               <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>&bull;</Typography>
             )}
             {duration && (
-              <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>
-                {duration}
-              </Typography>
+              <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>{duration}</Typography>
             )}
           </Box>
         )}
 
-        {/* Info Box */}
         <Box sx={{ mt: 2, p: 1.5, bgcolor: theme.palette.grey[100], borderRadius: 1 }}>
           {severity && (
             <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary, mb: 0.5 }}>
@@ -687,14 +684,13 @@ const ComplaintCard = ({ item, theme, isClosed }) => {
           {notes && (
             <>
               <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>Notes</Typography>
-              <Typography sx={{ fontSize: '14px', color: theme.palette.text.primary, mb: 1.5 }}>
-                {notes}
-              </Typography>
+              <Typography sx={{ fontSize: '14px', color: theme.palette.text.primary, mb: 1.5 }}>{notes}</Typography>
             </>
           )}
           {item.updated_at && (
             <Typography sx={{ fontSize: '12px', color: theme.palette.text.secondary }}>
-              Last Updated: {Utility.convertUtcToLocalReadableDate(item.updated_at)} &bull; {Utility.convertUTCToLocaltime(item.updated_at)}
+              Last Updated: {Utility.convertUtcToLocalReadableDate(item.updated_at)} &bull;{' '}
+              {Utility.convertUTCToLocaltime(item.updated_at)}
             </Typography>
           )}
         </Box>
@@ -704,8 +700,9 @@ const ComplaintCard = ({ item, theme, isClosed }) => {
 }
 
 const DiagnosisCard = ({ item, theme, isClosed }) => {
-  const isTentative = item?.additional_info?.clinical_assessment === 'tentative' || item?.clinical_assessment === 'tentative'
-  const status = isClosed ? 'Closed' : (item?.additional_info?.status || item?.status || 'Active')
+  const isTentative =
+    item?.additional_info?.clinical_assessment === 'tentative' || item?.clinical_assessment === 'tentative'
+  const status = isClosed ? 'Closed' : item?.additional_info?.status || item?.status || 'Active'
 
   return (
     <Box
@@ -717,7 +714,6 @@ const DiagnosisCard = ({ item, theme, isClosed }) => {
         border: `1px solid ${theme.palette.divider}`
       }}
     >
-      {/* Title */}
       <Typography
         sx={{
           fontSize: '15px',
@@ -730,7 +726,6 @@ const DiagnosisCard = ({ item, theme, isClosed }) => {
         {item.name || item.diagnosis}
       </Typography>
 
-      {/* Tentative Chip */}
       {isTentative && !isClosed && (
         <Chip
           label='Tentative'
@@ -747,14 +742,17 @@ const DiagnosisCard = ({ item, theme, isClosed }) => {
         />
       )}
 
-      {/* Info Box */}
       <Box sx={{ p: 1.5, bgcolor: theme.palette.grey[100], borderRadius: 1 }}>
         <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary, mb: 0.5 }}>
-          Status : <strong style={{ color: theme.palette.text.primary }}>{status.charAt(0).toUpperCase() + status.slice(1)}</strong>
+          Status :{' '}
+          <strong style={{ color: theme.palette.text.primary }}>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </strong>
         </Typography>
         {item.updated_at && (
           <Typography sx={{ fontSize: '12px', color: theme.palette.text.secondary }}>
-            Last Updated: {Utility.convertUtcToLocalReadableDate(item.updated_at)} &bull; {Utility.convertUTCToLocaltime(item.updated_at)}
+            Last Updated: {Utility.convertUtcToLocalReadableDate(item.updated_at)} &bull;{' '}
+            {Utility.convertUTCToLocaltime(item.updated_at)}
           </Typography>
         )}
       </Box>
@@ -832,9 +830,7 @@ const LabCard = ({ item, theme }) => (
       border: `1px solid ${theme.palette.divider}`
     }}
   >
-    <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>
-      {item.test_name || item.name || 'Lab Test'}
-    </Typography>
+    <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>{item.test_name || item.name || 'Lab Test'}</Typography>
     {item.status && (
       <Chip
         label={item.status}
@@ -843,12 +839,11 @@ const LabCard = ({ item, theme }) => (
           mt: 1,
           fontSize: '11px',
           height: 20,
-          bgcolor: item.status?.toLowerCase() === 'completed'
-            ? alpha(theme.palette.success.main, 0.12)
-            : alpha(theme.palette.warning.main, 0.12),
-          color: item.status?.toLowerCase() === 'completed'
-            ? theme.palette.success.main
-            : theme.palette.warning.main
+          bgcolor:
+            item.status?.toLowerCase() === 'completed'
+              ? alpha(theme.palette.success.main, 0.12)
+              : alpha(theme.palette.warning.main, 0.12),
+          color: item.status?.toLowerCase() === 'completed' ? theme.palette.success.main : theme.palette.warning.main
         }}
       />
     )}

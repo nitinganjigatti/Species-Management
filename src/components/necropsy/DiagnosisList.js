@@ -91,7 +91,6 @@ const DiagnosisList = ({ animalId }) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {/* Sub-tab pills */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box
           sx={{
@@ -116,9 +115,7 @@ const DiagnosisList = ({ animalId }) => {
                   py: '8px',
                   borderRadius: '8px',
                   backgroundColor:
-                    activeSubTab === tab
-                      ? theme.palette.secondary.dark
-                      : theme.palette.customColors.mdAntzNeutral,
+                    activeSubTab === tab ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
                   cursor: 'pointer',
                   transition: 'background-color 0.2s ease'
                 }}
@@ -142,7 +139,6 @@ const DiagnosisList = ({ animalId }) => {
         </Box>
       </Box>
 
-      {/* Content */}
       {loading ? (
         <ClinicalAssessmentShimmer count={3} />
       ) : data.length === 0 ? (
@@ -175,7 +171,6 @@ const DiagnosisList = ({ animalId }) => {
             />
           ))}
 
-          {/* Load More / Infinite scroll loader */}
           {hasMore && (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
               {loadingMore ? (
@@ -197,7 +192,6 @@ const DiagnosisList = ({ animalId }) => {
             </Box>
           )}
 
-          {/* End of List */}
           {!hasMore && data.length > 10 && (
             <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled, fontSize: '0.875rem' }}>
               No more assessments to load

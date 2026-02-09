@@ -37,14 +37,16 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
     if (open) {
       fetchTemplates()
       fetchBodyParts()
-      // Initialize with existing organs
+
       if (organs?.length > 0) {
-        setSelectedOrgans(organs.map(o => ({
-          id: String(o.id),
-          label: o.label,
-          parts: o.parts || [],
-          isExisting: true
-        })))
+        setSelectedOrgans(
+          organs.map(o => ({
+            id: String(o.id),
+            label: o.label,
+            parts: o.parts || [],
+            isExisting: true
+          }))
+        )
       } else {
         setSelectedOrgans([])
       }
@@ -86,11 +88,11 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
     setEditingTemplate(null)
   }
 
-  const handleTemplateClick = (template) => {
-    // If in edit mode, open the edit drawer
+  const handleTemplateClick = template => {
     if (editMode) {
       setEditingTemplate(template)
       setOpenEditDrawer(true)
+
       return
     }
 
@@ -98,28 +100,33 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
     const isAlreadySelected = selectedTemplate === templateId
 
     if (isAlreadySelected) {
-      // Deselect template and remove its organs (keep only existing organs)
       setSelectedTemplate(null)
       setSelectedOrgans(prev => prev.filter(o => o.isExisting))
     } else {
-      // Select new template and replace non-existing organs with template organs
       setSelectedTemplate(templateId)
       setLoadingTemplateOrgans(true)
 
       const templateItems = template.organs || template.body_parts || template.template_items || []
+
       const templateOrgans = templateItems.map(organ => {
         const sectionId = organ.id || organ.section_id || organ.body_part_id || organ.body_section_id
 
-        // Try to find section name from bodyPartsData
         const matchingSection = bodyPartsData.find(
           section => String(section.id || section.body_section_id) === String(sectionId)
         )
 
-        // Try to get section/organ label from multiple possible properties
-        const sectionLabel = matchingSection?.label || matchingSection?.name ||
-          organ.label || organ.name || organ.organ_name ||
-          organ.section_name || organ.body_section_name || organ.section_label ||
-          (organ.parts?.[0]?.section_name) || (organ.parts?.[0]?.body_section_name) || ''
+        const sectionLabel =
+          matchingSection?.label ||
+          matchingSection?.name ||
+          organ.label ||
+          organ.name ||
+          organ.organ_name ||
+          organ.section_name ||
+          organ.body_section_name ||
+          organ.section_label ||
+          organ.parts?.[0]?.section_name ||
+          organ.parts?.[0]?.body_section_name ||
+          ''
 
         return {
           id: String(sectionId || `organ_${Date.now()}_${Math.random()}`),
@@ -134,14 +141,11 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
         }
       })
 
-      // Keep existing organs and replace with new template organs
       setSelectedOrgans(prev => {
         const existingOrgans = prev.filter(o => o.isExisting)
         const combined = [...existingOrgans, ...templateOrgans]
-        // Remove duplicates by id
-        return combined.filter((organ, index, self) =>
-          index === self.findIndex(o => o.id === organ.id)
-        )
+
+        return combined.filter((organ, index, self) => index === self.findIndex(o => o.id === organ.id))
       })
 
       setLoadingTemplateOrgans(false)
@@ -149,22 +153,21 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
   }
 
   const handleEditTemplateSave = () => {
-    fetchTemplates() // Refresh templates list
+    fetchTemplates()
     setEditingTemplate(null)
   }
 
   const handleEditTemplateDelete = () => {
-    fetchTemplates() // Refresh templates list
+    fetchTemplates()
     setEditingTemplate(null)
-    // If the deleted template was selected, clear the selection
+
     if (selectedTemplate === (editingTemplate?.id || editingTemplate?.template_id)) {
       setSelectedTemplate(null)
       setSelectedOrgans(prev => prev.filter(o => o.isExisting))
     }
   }
 
-  const handleAddOrgans = (newOrgans) => {
-    // newOrgans comes grouped by category with parts
+  const handleAddOrgans = newOrgans => {
     const organsToAdd = newOrgans.map(o => ({
       id: String(o.id),
       label: o.label,
@@ -178,13 +181,11 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
     }))
 
     setSelectedOrgans(prev => {
-      // Merge with existing - update parts for same category, add new categories
       const merged = [...prev]
 
       organsToAdd.forEach(newOrgan => {
         const existingIndex = merged.findIndex(o => o.id === newOrgan.id)
         if (existingIndex >= 0) {
-          // Merge parts for existing category
           const existingOrgan = merged[existingIndex]
           const existingPartIds = existingOrgan.parts.map(p => p.id)
           const newParts = newOrgan.parts.filter(p => !existingPartIds.includes(p.id))
@@ -202,27 +203,28 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
     })
   }
 
-  const handleRemoveOrgan = (organId) => {
+  const handleRemoveOrgan = organId => {
     setSelectedOrgans(prev => prev.filter(o => o.id !== organId))
   }
 
   const handleRemovePart = (organId, partId) => {
     setSelectedOrgans(prev => {
-      return prev.map(organ => {
-        if (organ.id !== organId) return organ
+      return prev
+        .map(organ => {
+          if (organ.id !== organId) return organ
 
-        const updatedParts = organ.parts.filter(p => p.id !== partId)
+          const updatedParts = organ.parts.filter(p => p.id !== partId)
 
-        // If no parts left, remove the entire organ
-        if (updatedParts.length === 0) {
-          return null
-        }
+          if (updatedParts.length === 0) {
+            return null
+          }
 
-        return {
-          ...organ,
-          parts: updatedParts
-        }
-      }).filter(Boolean) // Remove null entries (organs with no parts)
+          return {
+            ...organ,
+            parts: updatedParts
+          }
+        })
+        .filter(Boolean)
     })
   }
 
@@ -234,17 +236,19 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
   const handleSaveTemplate = async () => {
     if (!templateName.trim()) {
       Toaster({ type: 'error', message: 'Please enter a template name' })
+
       return
     }
 
     setSaveLoading(true)
     try {
-      // Format template items - flatten all parts from all organs
       const templateItems = selectedOrgans.reduce((acc, organ) => {
-        const parts = organ.parts?.map(part => ({
-          id: part.id,
-          desc: part.value || ''
-        })) || []
+        const parts =
+          organ.parts?.map(part => ({
+            id: part.id,
+            desc: part.value || ''
+          })) || []
+
         return [...acc, ...parts]
       }, [])
 
@@ -258,7 +262,7 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
         Toaster({ type: 'success', message: res?.message || 'Template saved successfully' })
         setTemplateName('')
         setSaveTemplate(false)
-        fetchTemplates() // Refresh templates list
+        fetchTemplates()
       } else {
         Toaster({ type: 'error', message: res?.message || 'Failed to save template' })
       }
@@ -271,21 +275,25 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
   }
 
   const handleApply = () => {
-    // Format organs for the form
     const formattedOrgans = selectedOrgans.map(organ => ({
       id: organ.id,
       label: organ.label,
-      parts: organ.parts.length > 0 ? organ.parts.map(p => ({
-        id: p.id,
-        organ_name: p.organ_name || p.label || '',
-        label: p.label || p.organ_name || '',
-        value: p.value || ''
-      })) : [{
-        id: `part_${Date.now()}`,
-        organ_name: '',
-        label: '',
-        value: ''
-      }]
+      parts:
+        organ.parts.length > 0
+          ? organ.parts.map(p => ({
+              id: p.id,
+              organ_name: p.organ_name || p.label || '',
+              label: p.label || p.organ_name || '',
+              value: p.value || ''
+            }))
+          : [
+              {
+                id: `part_${Date.now()}`,
+                organ_name: '',
+                label: '',
+                value: ''
+              }
+            ]
     }))
 
     onApply(formattedOrgans)
@@ -317,7 +325,6 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
             flexDirection: 'column'
           }}
         >
-          {/* Header */}
           <Box
             sx={{
               display: 'flex',
@@ -342,9 +349,7 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
             </IconButton>
           </Box>
 
-          {/* Content */}
           <Box sx={{ flex: 1, overflow: 'auto' }}>
-            {/* Add Organ Button */}
             <Box sx={{ px: 6, pt: 6, pb: 3 }}>
               <Button
                 onClick={() => setOpenSelectOrganDrawer(true)}
@@ -364,14 +369,12 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
               </Button>
             </Box>
 
-            {/* Loading indicator */}
             {loadingTemplateOrgans && (
               <Box display='flex' justifyContent='center' alignItems='center' py={2}>
                 <CircularProgress size={28} />
               </Box>
             )}
 
-            {/* Selected Organs */}
             {selectedOrgans.length > 0 && (
               <Box sx={{ py: 3, px: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <Typography
@@ -404,7 +407,12 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
                     >
                       <Box sx={{ flex: 1 }}>
                         <Typography
-                          sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant, mb: 1 }}
+                          sx={{
+                            fontSize: '1rem',
+                            fontWeight: 600,
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            mb: 1
+                          }}
                         >
                           {organ.label}
                         </Typography>
@@ -444,7 +452,7 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
                                 {!organ.isExisting && (
                                   <IconButton
                                     size='small'
-                                    onClick={(e) => {
+                                    onClick={e => {
                                       e.stopPropagation()
                                       handleRemovePart(organ.id, part.id)
                                     }}
@@ -462,11 +470,7 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
                                       }
                                     }}
                                   >
-                                    <Icon
-                                      icon='mdi:close'
-                                      fontSize={12}
-                                      color={theme.palette.text.secondary}
-                                    />
+                                    <Icon icon='mdi:close' fontSize={12} color={theme.palette.text.secondary} />
                                   </IconButton>
                                 )}
                               </Box>
@@ -489,7 +493,6 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
                   ))}
                 </Box>
 
-                {/* Save as template / Clear all */}
                 {saveTemplate ? (
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 4 }}>
                     <TextField
@@ -582,7 +585,6 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
               </Box>
             )}
 
-            {/* Templates Section */}
             {templates.length > 0 && (
               <Box sx={{ py: 3, px: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -603,9 +605,7 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
                       backgroundColor: editMode ? theme.palette.primary.main : 'transparent',
                       transition: 'all 0.2s ease',
                       '&:hover': {
-                        backgroundColor: editMode
-                          ? theme.palette.primary.dark
-                          : theme.palette.action.hover
+                        backgroundColor: editMode ? theme.palette.primary.dark : theme.palette.action.hover
                       }
                     }}
                     onClick={() => setEditMode(!editMode)}
@@ -657,13 +657,13 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
                             backgroundColor: editMode
                               ? theme.palette.action.hover
                               : isSelected
-                                ? theme.palette.customColors.OnBackground
-                                : theme.palette.customColors.OnPrimary,
+                              ? theme.palette.customColors.OnBackground
+                              : theme.palette.customColors.OnPrimary,
                             border: editMode
                               ? `2px dashed ${theme.palette.primary.main}`
                               : isSelected
-                                ? `2px solid ${theme.palette.primary.main}`
-                                : `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                              ? `2px solid ${theme.palette.primary.main}`
+                              : `1px solid ${theme.palette.customColors.SurfaceVariant}`,
                             borderRadius: 1,
                             color: theme.palette.customColors.OnSurfaceVariant,
                             fontSize: '1rem',
@@ -672,13 +672,7 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
                             transition: 'all 0.2s ease'
                           }}
                         >
-                          {editMode && (
-                            <Icon
-                              icon='mdi:pencil'
-                              fontSize={16}
-                              color={theme.palette.primary.main}
-                            />
-                          )}
+                          {editMode && <Icon icon='mdi:pencil' fontSize={16} color={theme.palette.primary.main} />}
                           {template.name || template.template_name}
                         </Box>
                       )
@@ -689,7 +683,6 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
             )}
           </Box>
 
-          {/* Footer */}
           <Box
             sx={{
               p: 4,
@@ -713,19 +706,13 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
             >
               Cancel
             </Button>
-            <Button
-              variant='contained'
-              fullWidth
-              onClick={handleApply}
-              sx={{ height: '56px' }}
-            >
+            <Button variant='contained' fullWidth onClick={handleApply} sx={{ height: '56px' }}>
               Apply
             </Button>
           </Box>
         </Box>
       </Drawer>
 
-      {/* Select Organ Drawer */}
       {openSelectOrganDrawer && (
         <SelectOrganDrawer
           open={openSelectOrganDrawer}
@@ -735,7 +722,6 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
         />
       )}
 
-      {/* Edit Template Drawer */}
       {openEditDrawer && editingTemplate && (
         <EditTemplateDrawer
           open={openEditDrawer}

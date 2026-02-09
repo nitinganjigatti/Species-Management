@@ -13,15 +13,9 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import Utility from 'src/utility'
 import { useRouter } from 'next/router'
 
-// Skeleton for individual info item
 const InfoItemSkeleton = ({ theme }) => (
   <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-    <Skeleton
-      variant='rectangular'
-      width={48}
-      height={48}
-      sx={{ borderRadius: 1 }}
-    />
+    <Skeleton variant='rectangular' width={48} height={48} sx={{ borderRadius: 1 }} />
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
       <Skeleton variant='text' width={80} height={20} />
       <Skeleton variant='text' width={120} height={22} />
@@ -29,7 +23,6 @@ const InfoItemSkeleton = ({ theme }) => (
   </Box>
 )
 
-// Skeleton for animal card section
 const AnimalCardSkeleton = () => (
   <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, width: '100%' }}>
     <Skeleton variant='circular' width={80} height={80} />
@@ -61,7 +54,13 @@ const InfoItem = ({ label, value, icon, iconBgColor, theme }) => (
       {icon}
     </Box>
     <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-      <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary }}>
+      <Typography
+        sx={{
+          fontSize: '14px',
+          fontWeight: 400,
+          color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+        }}
+      >
         {label}
       </Typography>
       <Tooltip title={value || ''}>
@@ -87,12 +86,10 @@ const NecropsyAnimalInfoCard = ({ mortalityData, loading = false, requestId }) =
   const theme = useTheme()
   const router = useRouter()
 
-  // Show skeleton when loading
   if (loading) {
     return (
       <Card sx={{ boxShadow: 'none' }}>
         <CardContent>
-          {/* Header Skeleton */}
           <Box
             sx={{
               display: 'flex',
@@ -107,17 +104,13 @@ const NecropsyAnimalInfoCard = ({ mortalityData, loading = false, requestId }) =
           </Box>
 
           <Grid container spacing={8} alignItems='stretch'>
-            {/* LEFT: Animal Card Skeleton */}
             <Grid
               size={{ xs: 12, sm: 12, md: 5 }}
               sx={{
                 background: `linear-gradient(90deg, ${alpha(
                   theme.palette.customColors?.SecondaryContainer || theme.palette.primary.light,
                   0.25
-                )}, ${alpha(
-                  theme.palette.customColors?.TertiaryContainer || theme.palette.secondary.light,
-                  0.25
-                )})`,
+                )}, ${alpha(theme.palette.customColors?.TertiaryContainer || theme.palette.secondary.light, 0.25)})`,
                 py: 4,
                 px: 6,
                 borderRadius: 1,
@@ -129,13 +122,12 @@ const NecropsyAnimalInfoCard = ({ mortalityData, loading = false, requestId }) =
               <AnimalCardSkeleton />
             </Grid>
 
-            {/* RIGHT: Info Fields Skeleton */}
             <Grid
               size={{ xs: 12, sm: 12, md: 7 }}
               sx={{ display: 'flex', alignItems: 'center', minHeight: 'fit-content' }}
             >
               <Grid container spacing={2} columnSpacing={4} rowSpacing={4}>
-                {[1, 2, 3, 4, 5, 6].map((item) => (
+                {[1, 2, 3, 4, 5, 6].map(item => (
                   <Grid key={item} size={{ xs: 12, sm: 6 }}>
                     <InfoItemSkeleton theme={theme} />
                   </Grid>
@@ -154,7 +146,9 @@ const NecropsyAnimalInfoCard = ({ mortalityData, loading = false, requestId }) =
     {
       label: 'Discovered Date',
       value: mortalityData.discovered_date
-        ? `${Utility.convertUtcToLocalReadableDate(mortalityData.discovered_date)} \u2022 ${Utility.convertUTCToLocaltime(mortalityData.discovered_date)}`
+        ? `${Utility.convertUtcToLocalReadableDate(
+            mortalityData.discovered_date
+          )} \u2022 ${Utility.convertUTCToLocaltime(mortalityData.discovered_date)}`
         : '-',
       icon: <CalendarIcon sx={{ fontSize: 26, color: theme.palette.success.main }} />,
       iconBgColor: theme.palette.customColors?.OnBackground || alpha(theme.palette.success.main, 0.1)
@@ -182,24 +176,26 @@ const NecropsyAnimalInfoCard = ({ mortalityData, loading = false, requestId }) =
     {
       label: 'Carcass Disposition',
       value: mortalityData.carcass_disposition_name || mortalityData.carcass_disposition || '-',
-      icon: <ShippingIcon sx={{ fontSize: 26, color: theme.palette.customColors?.Tertiary || theme.palette.error.main }} />,
+      icon: (
+        <ShippingIcon sx={{ fontSize: 26, color: theme.palette.customColors?.Tertiary || theme.palette.error.main }} />
+      ),
       iconBgColor: alpha(theme.palette.customColors?.TertiaryContainer || theme.palette.error.light, 0.4)
     },
     {
       label: 'Reported By',
       value: mortalityData.user_full_name || mortalityData.reported_by || '-',
-      icon: <PersonIcon sx={{ fontSize: 26, color: theme.palette.customColors?.Tertiary || theme.palette.error.main }} />,
+      icon: (
+        <PersonIcon sx={{ fontSize: 26, color: theme.palette.customColors?.Tertiary || theme.palette.error.main }} />
+      ),
       iconBgColor: alpha(theme.palette.customColors?.TertiaryContainer || theme.palette.error.light, 0.4)
     }
   ]
 
-  // Get request_id from mortalityData if not passed as prop
   const displayRequestId = requestId || mortalityData?.request_id
 
   return (
     <Card sx={{ boxShadow: 'none' }}>
       <CardContent>
-        {/* Header with Back Button and Request ID */}
         <Box
           sx={{
             display: 'flex',
@@ -209,7 +205,6 @@ const NecropsyAnimalInfoCard = ({ mortalityData, loading = false, requestId }) =
             gap: 4
           }}
         >
-          {/* Back Button - Always visible */}
           <IconButton
             onClick={() => {
               router.back()
@@ -224,40 +219,37 @@ const NecropsyAnimalInfoCard = ({ mortalityData, loading = false, requestId }) =
             <ArrowBackIcon sx={{ fontSize: 28, color: theme.palette.text.primary }} />
           </IconButton>
 
-            {/* Request ID */}
-            {displayRequestId ? (
-                <Typography
-                  sx={{
-                    fontSize: '1.25rem',
-                    fontWeight: 600,
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                >
-                  {displayRequestId}
-                </Typography>
-            ) : <Typography
-                  sx={{
-                    fontSize: '1.25rem',
-                    fontWeight: 600,
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                >
-                  Pending Necropsy Details
-                </Typography> }
-          </Box>
+          {displayRequestId ? (
+            <Typography
+              sx={{
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              {displayRequestId}
+            </Typography>
+          ) : (
+            <Typography
+              sx={{
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              Pending Necropsy Details
+            </Typography>
+          )}
+        </Box>
 
         <Grid container spacing={8} alignItems='stretch'>
-          {/* LEFT: Animal Card */}
           <Grid
             size={{ xs: 12, sm: 12, md: 5 }}
             sx={{
               background: `linear-gradient(90deg, ${alpha(
                 theme.palette.customColors?.SecondaryContainer || theme.palette.primary.light,
                 0.25
-              )}, ${alpha(
-                theme.palette.customColors?.TertiaryContainer || theme.palette.secondary.light,
-                0.25
-              )})`,
+              )}, ${alpha(theme.palette.customColors?.TertiaryContainer || theme.palette.secondary.light, 0.25)})`,
               py: 4,
               px: 6,
               borderRadius: 1,
@@ -269,7 +261,6 @@ const NecropsyAnimalInfoCard = ({ mortalityData, loading = false, requestId }) =
             <AnimalCard data={mortalityData} />
           </Grid>
 
-          {/* RIGHT: Info Fields */}
           <Grid
             size={{ xs: 12, sm: 12, md: 7 }}
             sx={{ display: 'flex', alignItems: 'center', minHeight: 'fit-content' }}

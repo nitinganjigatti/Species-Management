@@ -15,13 +15,22 @@ const NecropsyReport = () => {
   return (
     <NecropsyProvider>
       <Box sx={{ p: 4 }}>
-        {/* Breadcrumbs */}
         <Box sx={{ mb: 3 }}>
           <Breadcrumbs>
-            <MuiLink component={NextLink} href={`/necropsy?status=${status || (necropsy_id ? 'DRAFT' : 'PENDING')}`} underline='hover' color='inherit'>
+            <MuiLink
+              component={NextLink}
+              href={`/necropsy?status=${status || (necropsy_id ? 'DRAFT' : 'PENDING')}`}
+              underline='hover'
+              color='inherit'
+            >
               Necropsy
             </MuiLink>
-            <MuiLink component={NextLink} href={`/necropsy/${id}?status=${status || (necropsy_id ? 'DRAFT' : 'PENDING')}`} underline='hover' color='inherit'>
+            <MuiLink
+              component={NextLink}
+              href={`/necropsy/${id}?status=${status || (necropsy_id ? 'DRAFT' : 'PENDING')}`}
+              underline='hover'
+              color='inherit'
+            >
               Details
             </MuiLink>
             <Typography color='text.primary' sx={{ fontWeight: 500 }}>
@@ -30,7 +39,6 @@ const NecropsyReport = () => {
           </Breadcrumbs>
         </Box>
 
-        {/* Report Form */}
         <NecropsyReportForm mortalityId={id} necropsyId={necropsy_id || null} status={status} />
       </Box>
     </NecropsyProvider>

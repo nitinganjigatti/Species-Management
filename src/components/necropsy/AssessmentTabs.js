@@ -56,7 +56,6 @@ const AssessmentTabs = ({ animalId }) => {
     return { value: 'N/A', unit: '' }
   }
 
-  // Assessment values come embedded in each type from the types API
   const assessmentValues = Array.isArray(activeType?.assessment_values) ? activeType.assessment_values : []
 
   if (loading) {
@@ -121,7 +120,6 @@ const AssessmentTabs = ({ animalId }) => {
           Assessments
         </Typography>
 
-        {/* Tab pills */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box
             sx={{
@@ -175,7 +173,6 @@ const AssessmentTabs = ({ animalId }) => {
           </Box>
         </Box>
 
-        {/* Content */}
         {assessmentValues.length === 0 ? (
           <Box
             sx={{
@@ -208,7 +205,6 @@ const AssessmentTabs = ({ animalId }) => {
                   key={record.assessment_id || record.id || index}
                   sx={{ display: 'flex', alignItems: 'center', gap: 3 }}
                 >
-                  {/* Left: Date + Time stacked */}
                   {dateSource && (
                     <Box sx={{ flexShrink: 0, minWidth: 90, textAlign: 'right' }}>
                       <Typography
@@ -234,14 +230,14 @@ const AssessmentTabs = ({ animalId }) => {
                     </Box>
                   )}
 
-                  {/* Right: Value card */}
                   <Box
                     sx={{
                       flex: 1,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      backgroundColor: theme.palette.customColors.displaybgPrimary || alpha(theme.palette.success.main, 0.06),
+                      backgroundColor:
+                        theme.palette.customColors.displaybgPrimary || alpha(theme.palette.success.main, 0.06),
                       borderRadius: '12px',
                       px: 3,
                       py: 2,

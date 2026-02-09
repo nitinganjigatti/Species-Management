@@ -123,20 +123,17 @@ const SpeciesAnimalFilterDrawer = ({
     [fetchMenuData]
   )
 
-  // Multi-select for Manner of Death and Sex, single-select for Organization
   const handleCheckbox = useCallback((id, menuName) => {
     setSelectedOptions(prevOptions => {
       let newOptions
 
       if (menuName === 'Organization') {
-        // Single select for Organization
         const isSelected = prevOptions[menuName]?.includes(id)
         newOptions = {
           ...prevOptions,
           [menuName]: isSelected ? [] : [id]
         }
       } else {
-        // Multi-select for Manner of Death and Sex
         const isSelected = prevOptions[menuName]?.includes(id)
         newOptions = {
           ...prevOptions,
@@ -155,7 +152,7 @@ const SpeciesAnimalFilterDrawer = ({
 
   const handleSelectAll = useCallback(
     menuName => {
-      if (menuName === 'Organization') return // No select all for single-select
+      if (menuName === 'Organization') return
 
       setSelectedOptions(prevOptions => {
         const allIds = menuData[menuName]?.map(item => item.value) || []
@@ -192,6 +189,7 @@ const SpeciesAnimalFilterDrawer = ({
   const isAllSelected = menuName => {
     if (menuName === 'Organization') return false
     const allIds = menuData[menuName]?.map(item => item.value) || []
+
     return allIds.length > 0 && allIds.every(id => selectedOptions[menuName]?.includes(id))
   }
 

@@ -16,7 +16,14 @@ const staticMenuData = {
   ]
 }
 
-const SpeciesFilterDrawer = ({ open, onClose, onSubmitLoading, onApplyFilters, setFilterCount, initialSelectedOptions }) => {
+const SpeciesFilterDrawer = ({
+  open,
+  onClose,
+  onSubmitLoading,
+  onApplyFilters,
+  setFilterCount,
+  initialSelectedOptions
+}) => {
   const [selectedMenu, setSelectedMenu] = useState('Site')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)
@@ -103,7 +110,6 @@ const SpeciesFilterDrawer = ({ open, onClose, onSubmitLoading, onApplyFilters, s
     [fetchMenuData]
   )
 
-  // Both Site and Priority are single select
   const handleCheckbox = useCallback((id, menuName) => {
     setSelectedOptions(prevOptions => {
       const isSelected = prevOptions[menuName]?.includes(id)

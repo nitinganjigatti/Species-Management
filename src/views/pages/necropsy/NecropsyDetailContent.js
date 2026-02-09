@@ -1,16 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  Grid,
-  Skeleton,
-  Divider,
-  Chip,
-  useTheme
-} from '@mui/material'
+import { Box, Card, CardContent, Typography, Button, Grid, Skeleton, Divider, Chip, useTheme } from '@mui/material'
 import {
   PlayArrow as StartIcon,
   Edit as EditIcon,
@@ -85,6 +74,7 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
 
     try {
       setPdfLoading(true)
+
       const payload = {
         necropsy_id: mortalityData?.necropsy_id
       }
@@ -104,7 +94,6 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {/* Animal Info Card shimmer */}
         <Card sx={{ boxShadow: 'none' }}>
           <CardContent>
             <Grid container spacing={8} alignItems='stretch'>
@@ -124,7 +113,6 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
           </CardContent>
         </Card>
 
-        {/* Mortality Details Card shimmer */}
         <Card>
           <CardContent sx={{ p: 6, '&:last-child': { pb: 6 } }}>
             <Skeleton variant='text' width={140} height={20} sx={{ mb: 1 }} />
@@ -134,7 +122,6 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
           </CardContent>
         </Card>
 
-        {/* Medical History Card shimmer */}
         <Card>
           <CardContent sx={{ p: 6, '&:last-child': { pb: 6 } }}>
             <Skeleton variant='text' width={160} height={24} sx={{ mb: 3 }} />
@@ -149,7 +136,6 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
           </CardContent>
         </Card>
 
-        {/* Assessments Card shimmer */}
         <Card>
           <CardContent sx={{ p: 6, '&:last-child': { pb: 6 } }}>
             <Skeleton variant='text' width={140} height={24} sx={{ mb: 3 }} />
@@ -186,7 +172,6 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
     )
   }
 
-  // For COMPLETED/UNSUITABLE, show the full necropsy summary
   if (isCompleted && necropsyData) {
     return (
       <Box>
@@ -198,11 +183,7 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
             mortalityData={mortalityData}
             actionButtons={
               <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button
-                  variant='outlined'
-                  startIcon={<TimelineIcon />}
-                  onClick={() => setShowTimeline(true)}
-                >
+                <Button variant='outlined' startIcon={<TimelineIcon />} onClick={() => setShowTimeline(true)}>
                   See Timeline
                 </Button>
                 <Button
@@ -213,11 +194,7 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
                 >
                   {pdfLoading ? 'Generating...' : 'Download PDF'}
                 </Button>
-                <Button
-                  variant='outlined'
-                  startIcon={<EditIcon />}
-                  onClick={handleContinueEditing}
-                >
+                <Button variant='outlined' startIcon={<EditIcon />} onClick={handleContinueEditing}>
                   Edit
                 </Button>
               </Box>
@@ -225,29 +202,22 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
           />
         </Box>
 
-        <NecropsyTimelineDrawer
-          open={showTimeline}
-          onClose={() => setShowTimeline(false)}
-          mortalityId={mortalityId}
-        />
+        <NecropsyTimelineDrawer open={showTimeline} onClose={() => setShowTimeline(false)} mortalityId={mortalityId} />
       </Box>
     )
   }
 
-  // For PENDING / DRAFT, show mortality details with action buttons
   return (
     <Box>
       <NecropsyAnimalInfoCard mortalityData={mortalityData} />
 
-      {/* Status indicator for draft */}
       {isDraft && necropsyData && (
         <Card sx={{ mt: 3, bgcolor: theme.palette.customColors?.avatarBackground || '#FFF3E0' }}>
           <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Chip label='DRAFT' color='warning' size='small' sx={{ fontWeight: 600 }} />
               <Typography variant='body2'>
-                Saved as draft by{' '}
-                <strong>{necropsyData?.user_profile?.name || 'Unknown'}</strong>
+                Saved as draft by <strong>{necropsyData?.user_profile?.name || 'Unknown'}</strong>
                 {necropsyData?.modified_at && (
                   <> on {Utility.convertUtcToLocalReadableDate(necropsyData.modified_at)}</>
                 )}
@@ -265,11 +235,9 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
         </Card>
       )}
 
-      {/* Mortality Details Card - Only show if history_of_illness or notes exist */}
       {(mortalityData.history_of_illness || mortalityData.notes) && (
         <Card sx={{ mt: 3, mb: 3 }}>
           <CardContent sx={{ p: 6, '&:last-child': { pb: 6 } }}>
-            {/* History of Illness - Only show if data exists */}
             {mortalityData.history_of_illness && (
               <Box>
                 <Typography
@@ -299,7 +267,6 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
               </Box>
             )}
 
-            {/* Notes - Only show if data exists */}
             {mortalityData.notes && (
               <Box sx={{ mt: mortalityData.history_of_illness ? 5 : 0 }}>
                 <Typography
@@ -328,12 +295,10 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
                 </Typography>
               </Box>
             )}
-
           </CardContent>
         </Card>
       )}
 
-      {/* Medical History & Assessments — each in its own Card */}
       {mortalityData?.animal_id && (
         <>
           <Card sx={{ mt: 3 }}>
@@ -349,7 +314,6 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
         </>
       )}
 
-      {/* Spacer for fixed bottom bar */}
       <Box sx={{ height: 100 }} />
 
       <BottomActionBar
@@ -366,11 +330,7 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
         }}
       />
 
-      <NecropsyTimelineDrawer
-        open={showTimeline}
-        onClose={() => setShowTimeline(false)}
-        mortalityId={mortalityId}
-      />
+      <NecropsyTimelineDrawer open={showTimeline} onClose={() => setShowTimeline(false)} mortalityId={mortalityId} />
     </Box>
   )
 }

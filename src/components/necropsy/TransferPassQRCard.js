@@ -5,30 +5,13 @@ import ShareIcon from '@mui/icons-material/Share'
 import DownloadIcon from '@mui/icons-material/Download'
 import CloseIcon from '@mui/icons-material/Close'
 
-/**
- * TransferPassQRCard - A QR code dialog for security/transfer pass
- *
- * @param {boolean} open - Controls dialog visibility
- * @param {function} handleClose - Function to close the dialog
- * @param {object} transferData - Transfer data object
- * @param {string} transferData.requestId - Transfer request ID (e.g., "CT11-00379")
- * @param {string} transferData.qrCodeUrl - URL of the QR code image
- * @param {string} [transferData.title] - Optional custom title (default: "Transfer Pass")
- * @param {string} [transferData.subtitle] - Optional custom subtitle (default: "Transfer Request number")
- */
 const TransferPassQRCard = ({ open, handleClose, transferData }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const [imageLoaded, setImageLoaded] = useState(false)
 
-  const {
-    requestId,
-    qrCodeUrl,
-    title = 'Transfer Pass',
-    subtitle = 'Transfer Request number'
-  } = transferData || {}
+  const { requestId, qrCodeUrl, title = 'Transfer Pass', subtitle = 'Transfer Request number' } = transferData || {}
 
-  // Reset image loaded state when dialog opens or QR code URL changes
   useEffect(() => {
     if (open) {
       setImageLoaded(false)
@@ -79,7 +62,6 @@ const TransferPassQRCard = ({ open, handleClose, transferData }) => {
           position: 'relative'
         }}
       >
-        {/* Close Button */}
         <IconButton
           onClick={handleClose}
           sx={{
@@ -96,9 +78,7 @@ const TransferPassQRCard = ({ open, handleClose, transferData }) => {
           <CloseIcon />
         </IconButton>
 
-        {/* Content */}
         <Box sx={{ px: 4, py: 6 }}>
-          {/* Title */}
           <Typography
             sx={{
               fontSize: '2rem',
@@ -110,7 +90,6 @@ const TransferPassQRCard = ({ open, handleClose, transferData }) => {
             {title}
           </Typography>
 
-          {/* Subtitle */}
           <Typography
             sx={{
               fontSize: '1rem',
@@ -122,7 +101,6 @@ const TransferPassQRCard = ({ open, handleClose, transferData }) => {
             {subtitle}
           </Typography>
 
-          {/* Request ID */}
           <Typography
             sx={{
               fontSize: '1.5rem',
@@ -134,7 +112,6 @@ const TransferPassQRCard = ({ open, handleClose, transferData }) => {
             {requestId}
           </Typography>
 
-          {/* QR Code */}
           <Box sx={{ position: 'relative', width: '100%', maxWidth: 280, mx: 'auto' }}>
             {!imageLoaded && (
               <Skeleton
@@ -163,7 +140,6 @@ const TransferPassQRCard = ({ open, handleClose, transferData }) => {
             />
           </Box>
 
-          {/* Action Buttons */}
           <Box
             sx={{
               display: 'flex',

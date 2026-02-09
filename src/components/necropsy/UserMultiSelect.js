@@ -27,6 +27,7 @@ const UserMultiSelect = ({ selectedUsers = [], onChange, label = 'Search & Selec
         if (!zoo_id) return
 
         const res = await getUserList({ zoo_id, q: query })
+
         const users =
           res?.data?.map(item => ({
             user_id: item.user_id,
@@ -35,7 +36,6 @@ const UserMultiSelect = ({ selectedUsers = [], onChange, label = 'Search & Selec
             role_name: item.role_name || ''
           })) || []
 
-        // Filter out already selected users
         const selectedIds = selectedUsers.map(u => u.user_id)
         setOptions(users.filter(u => !selectedIds.includes(u.user_id)))
       } catch (error) {

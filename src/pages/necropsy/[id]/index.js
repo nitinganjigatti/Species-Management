@@ -11,19 +11,15 @@ const NecropsyDetails = () => {
   const router = useRouter()
   const { id, status = 'PENDING', view, taxonomy_id, species_name } = router.query
 
-  // Wait for router to be ready (ensures query params are available)
   if (!router.isReady || !id) return null
 
-  // Species view - show list of animals for the species
   const isSpeciesView = view === 'species'
 
-  // For species view, use taxonomy_id from query params, fallback to id from path
-  const effectiveTaxonomyId = isSpeciesView ? (taxonomy_id || id) : null
+  const effectiveTaxonomyId = isSpeciesView ? taxonomy_id || id : null
 
   return (
     <NecropsyProvider>
       <Box sx={{ p: 4 }}>
-        {/* Breadcrumbs */}
         <Box sx={{ mb: 3 }}>
           <Breadcrumbs>
             <MuiLink
@@ -46,7 +42,6 @@ const NecropsyDetails = () => {
           </Breadcrumbs>
         </Box>
 
-        {/* Main Content */}
         {isSpeciesView ? (
           <NecropsySpeciesListContent
             taxonomyId={effectiveTaxonomyId}

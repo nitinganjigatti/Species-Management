@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Box, Typography, Chip, Skeleton, CircularProgress } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
-import {
-  MedicalServices as DxIcon,
-  Pets as CxIcon,
-  Description as RxIcon
-} from '@mui/icons-material'
+import { MedicalServices as DxIcon, Pets as CxIcon, Description as RxIcon } from '@mui/icons-material'
 import Utility from 'src/utility'
 import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import { getMedicalBasicDataList } from 'src/lib/api/necropsy/medicalHistory'
@@ -21,7 +17,7 @@ const MedicalRecordsList = ({ animalId }) => {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [selectedRecordId, setSelectedRecordId] = useState(null)
 
-  const handleRecordClick = (record) => {
+  const handleRecordClick = record => {
     setSelectedRecordId(record.id)
     setDrawerOpen(true)
   }
@@ -133,7 +129,6 @@ const MedicalRecordsList = ({ animalId }) => {
               }
             }}
           >
-            {/* Row 1: MedicalIdChip */}
             <Box sx={{ mb: 1 }}>
               <MedicalIdChip
                 leftImage
@@ -142,7 +137,6 @@ const MedicalRecordsList = ({ animalId }) => {
               />
             </Box>
 
-            {/* Row 2: Type + Date */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
               <Typography
                 sx={{
@@ -177,13 +171,18 @@ const MedicalRecordsList = ({ animalId }) => {
               )}
             </Box>
 
-            {/* Row 3: Count icons */}
             {(dxCount > 0 || cxCount > 0 || rxCount > 0) && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 1.5 }}>
                 {dxCount > 0 && (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <DxIcon sx={{ fontSize: 16, color: theme.palette.customColors.neutralSecondary }} />
-                    <Typography sx={{ fontSize: '0.8125rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVarient }}>
+                    <Typography
+                      sx={{
+                        fontSize: '0.8125rem',
+                        fontWeight: 500,
+                        color: theme.palette.customColors.OnSurfaceVarient
+                      }}
+                    >
                       {dxCount}
                     </Typography>
                   </Box>
@@ -191,7 +190,13 @@ const MedicalRecordsList = ({ animalId }) => {
                 {cxCount > 0 && (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <CxIcon sx={{ fontSize: 16, color: theme.palette.customColors.neutralSecondary }} />
-                    <Typography sx={{ fontSize: '0.8125rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVarient }}>
+                    <Typography
+                      sx={{
+                        fontSize: '0.8125rem',
+                        fontWeight: 500,
+                        color: theme.palette.customColors.OnSurfaceVarient
+                      }}
+                    >
                       {cxCount}
                     </Typography>
                   </Box>
@@ -199,7 +204,13 @@ const MedicalRecordsList = ({ animalId }) => {
                 {rxCount > 0 && (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <RxIcon sx={{ fontSize: 16, color: theme.palette.customColors.neutralSecondary }} />
-                    <Typography sx={{ fontSize: '0.8125rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVarient }}>
+                    <Typography
+                      sx={{
+                        fontSize: '0.8125rem',
+                        fontWeight: 500,
+                        color: theme.palette.customColors.OnSurfaceVarient
+                      }}
+                    >
                       {rxCount}
                     </Typography>
                   </Box>
@@ -207,7 +218,6 @@ const MedicalRecordsList = ({ animalId }) => {
               </Box>
             )}
 
-            {/* Row 4: Diagnosis chips */}
             {diagnoses.length > 0 && (
               <Box sx={{ mt: 0.5 }}>
                 <Typography
@@ -223,7 +233,10 @@ const MedicalRecordsList = ({ animalId }) => {
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   {diagnoses.map((item, idx) => {
                     const isClinicalClosed = item.status === 'closed'
-                    const isTentative = item.additional_info?.clinical_assessment === 'tentative' || item.clinical_assessment === 'tentative'
+
+                    const isTentative =
+                      item.additional_info?.clinical_assessment === 'tentative' ||
+                      item.clinical_assessment === 'tentative'
 
                     return (
                       <Chip
@@ -239,13 +252,13 @@ const MedicalRecordsList = ({ animalId }) => {
                           backgroundColor: isClinicalClosed
                             ? alpha(theme.palette.text.disabled, 0.1)
                             : isTentative
-                              ? alpha(theme.palette.warning.main, 0.12)
-                              : alpha(theme.palette.primary.main, 0.08),
+                            ? alpha(theme.palette.warning.main, 0.12)
+                            : alpha(theme.palette.primary.main, 0.08),
                           color: isClinicalClosed
                             ? theme.palette.text.disabled
                             : isTentative
-                              ? theme.palette.warning.dark
-                              : (theme.palette.customColors.OnSurfaceVarient || theme.palette.text.primary)
+                            ? theme.palette.warning.dark
+                            : theme.palette.customColors.OnSurfaceVarient || theme.palette.text.primary
                         }}
                       />
                     )
@@ -254,7 +267,6 @@ const MedicalRecordsList = ({ animalId }) => {
               </Box>
             )}
 
-            {/* Row 4b: Complaint chips (shown only when no diagnoses) */}
             {diagnoses.length === 0 && complaints.length > 0 && (
               <Box sx={{ mt: 0.5 }}>
                 <Typography
@@ -285,7 +297,7 @@ const MedicalRecordsList = ({ animalId }) => {
                           textDecoration: isComplaintClosed ? 'line-through' : 'none',
                           borderColor: isComplaintClosed
                             ? theme.palette.text.disabled
-                            : (theme.palette.customColors.OnPrimary || theme.palette.divider),
+                            : theme.palette.customColors.OnPrimary || theme.palette.divider,
                           color: theme.palette.customColors.OnSurfaceVarient || theme.palette.text.primary
                         }}
                       />
@@ -298,7 +310,6 @@ const MedicalRecordsList = ({ animalId }) => {
         )
       })}
 
-      {/* Load More */}
       {hasMore && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
           {loadingMore ? (
@@ -326,12 +337,7 @@ const MedicalRecordsList = ({ animalId }) => {
         </Typography>
       )}
 
-      {/* Medical Record Detail Drawer */}
-      <MedicalRecordDetailDrawer
-        open={drawerOpen}
-        onClose={handleDrawerClose}
-        medicalRecordId={selectedRecordId}
-      />
+      <MedicalRecordDetailDrawer open={drawerOpen} onClose={handleDrawerClose} medicalRecordId={selectedRecordId} />
     </Box>
   )
 }

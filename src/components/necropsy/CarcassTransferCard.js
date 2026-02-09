@@ -86,12 +86,10 @@ const CarcassTransferCard = ({ filterDate }) => {
         setTotal(totalCount)
 
         const statsObj = res?.data?.stats || res?.stats || {}
-        const pendingVal = Number(
-          statsObj?.pending_count ?? statsObj?.transfer_pending_count ?? 0
-        )
-        const completedVal = Number(
-          statsObj?.completed_count ?? statsObj?.transfer_completed_count ?? 0
-        )
+
+        const pendingVal = Number(statsObj?.pending_count ?? statsObj?.transfer_pending_count ?? 0)
+
+        const completedVal = Number(statsObj?.completed_count ?? statsObj?.transfer_completed_count ?? 0)
 
         setStats(prev => ({
           pending: pendingVal || (activeTab === 'pending' ? totalCount : prev.pending),
@@ -313,7 +311,6 @@ const CarcassTransferCard = ({ filterDate }) => {
             Carcass Transfer
           </Typography>
 
-          {/* Search on left, Filter on right */}
           <Box
             sx={{
               display: 'flex',
@@ -337,17 +334,13 @@ const CarcassTransferCard = ({ filterDate }) => {
                 placeholder='Search by transfer code, site...'
               />
             </Box>
-            <FilterButtonWithNotification
-              onClick={() => setOpenFilterDrawer(true)}
-              appliedFiltersCount={filterCount}
-            />
+            <FilterButtonWithNotification onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={filterCount} />
           </Box>
         </CardContent>
       </Card>
 
       <Card sx={{ borderTopLeftRadius: 0, borderTopRightRadius: 0, boxShadow: 'none', elevation: 'none' }}>
         <CardContent>
-          {/* Tab pills - just above the table */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
             <Box
               sx={{
@@ -371,9 +364,7 @@ const CarcassTransferCard = ({ filterDate }) => {
                       py: '8px',
                       borderRadius: '8px',
                       backgroundColor:
-                        activeTab === tab.key
-                          ? theme.palette.secondary.dark
-                          : theme.palette.customColors.mdAntzNeutral,
+                        activeTab === tab.key ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
                       cursor: 'pointer',
                       transition: 'background-color 0.2s ease'
                     }}

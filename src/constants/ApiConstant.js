@@ -1017,7 +1017,11 @@ export const DELETE_NECROPSY_ATTACHMENT = `v2/attachment-media-remove`
 
 // Necropsy Medical History
 export const GET_MEDICAL_BASIC_DATA_LIST = 'medical/v2/'
+
 export const GET_MEDICAL_RECORD_DETAILS = 'medical/v2/details'
+
 export const GET_LAB_REQUESTS_BY_ANIMAL = 'medical/get-lab-test-request-status-wise-new'
+
 export const GET_ASSESSMENT_ANIMAL_TYPES = 'v1/assessment/animal/types'
+
 export const GET_ASSESSMENT_ANIMAL_DATA = 'v1/assessment/animal/defaultValue'

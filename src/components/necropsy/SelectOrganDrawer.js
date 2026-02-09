@@ -27,13 +27,11 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
   useEffect(() => {
     if (open) {
       fetchOrgans()
-      // Initialize local selection from already selected organs
       initializeSelection()
     }
   }, [open])
 
   const initializeSelection = () => {
-    // Convert selected organs to a flat list of selected part IDs with their category info
     const selected = []
     selectedOrgans.forEach(organ => {
       if (organ.parts?.length > 0) {
@@ -56,7 +54,6 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
       const res = await getNecropsyBodyParts({})
       if (res?.success && res?.data) {
         setOrganCategories(res.data)
-        // Set first category as active if exists
         if (res.data.length > 0) {
           setActiveCategory('')
         }
@@ -68,7 +65,6 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
     }
   }
 
-  // Get all categories for tabs
   const categoryTabs = useMemo(() => {
     const totalParts = organCategories.reduce((sum, cat) => sum + (cat.parts?.length || 0), 0)
     const tabs = [{ id: '', label: 'All', count: totalParts }]
@@ -84,7 +80,6 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
     return tabs
   }, [organCategories])
 
-  // Get parts for the active category
   const activeParts = useMemo(() => {
     if (activeCategory === '') {
       // "All" selected - show all parts from all categories
@@ -101,13 +96,11 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
           })
         })
       })
+
       return allParts
     }
 
-    // Specific category selected
-    const category = organCategories.find(
-      cat => String(cat.id || cat.body_section_id) === activeCategory
-    )
+    const category = organCategories.find(cat => String(cat.id || cat.body_section_id) === activeCategory)
 
     if (!category) return []
 
@@ -121,31 +114,31 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
     }))
   }, [organCategories, activeCategory])
 
-  // Filter parts by search
   const filteredParts = useMemo(() => {
     if (!search.trim()) return activeParts
 
     const searchLower = search.toLowerCase()
+
     return activeParts.filter(part => {
       const label = part.label || part.name || part.organ_name || ''
+
       return label.toLowerCase().includes(searchLower)
     })
   }, [activeParts, search])
 
-  // Check if a part is selected
-  const isPartSelected = (part) => {
+  const isPartSelected = part => {
     const partId = String(part.id || part.body_part_id)
+
     return localSelected.some(s => s.partId === partId)
   }
 
-  // Check if all parts in current view are selected
   const isAllSelected = useMemo(() => {
     if (filteredParts.length === 0) return false
+
     return filteredParts.every(part => isPartSelected(part))
   }, [filteredParts, localSelected])
 
-  // Toggle a single part selection
-  const handleTogglePart = (part) => {
+  const handleTogglePart = part => {
     const partId = String(part.id || part.body_part_id)
     const partLabel = part.label || part.name || part.organ_name
     const categoryId = part.categoryId
@@ -161,14 +154,11 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
     })
   }
 
-  // Select/Deselect all parts in current view
   const handleToggleAll = () => {
     if (isAllSelected) {
-      // Deselect all in current view
       const partIdsToRemove = filteredParts.map(p => String(p.id || p.body_part_id))
       setLocalSelected(prev => prev.filter(s => !partIdsToRemove.includes(s.partId)))
     } else {
-      // Select all in current view
       const newSelections = filteredParts
         .filter(part => !isPartSelected(part))
         .map(part => ({
@@ -189,8 +179,6 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
   }
 
   const handleAdd = () => {
-    // Convert local selection to organ format
-    // Group parts by category
     const groupedByCategory = {}
     localSelected.forEach(({ partId, partLabel, categoryId, categoryLabel }) => {
       if (!groupedByCategory[categoryId]) {
@@ -237,7 +225,6 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
           flexDirection: 'column'
         }}
       >
-        {/* Header */}
         <Box
           sx={{
             display: 'flex',
@@ -251,9 +238,7 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
         >
           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
             <Icon icon='mdi:human-male' fontSize={32} color={theme.palette.primary.main} />
-            <Typography
-              sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-            >
+            <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
               Select Organs
             </Typography>
           </Box>
@@ -262,19 +247,17 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
           </IconButton>
         </Box>
 
-        {/* Fixed Search Section */}
         <Box sx={{ px: 6, pt: 6, pb: 3, flexShrink: 0 }}>
           <Search
             placeholder='Search Organs'
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
             onClear={() => setSearch('')}
             inputStyle={{ py: '12px', px: '12px' }}
             width='100%'
           />
         </Box>
 
-        {/* Fixed Category Tabs - Horizontal Scrollable */}
         <Box sx={{ px: 6, pb: 3, flexShrink: 0 }}>
           {loading ? (
             <Box display='flex' justifyContent='center' alignItems='center' py={2}>
@@ -292,7 +275,7 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
                 pb: 1
               }}
             >
-              {categoryTabs.map((tab) => {
+              {categoryTabs.map(tab => {
                 const isActive = activeCategory === tab.id
 
                 return (
@@ -329,7 +312,6 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
           )}
         </Box>
 
-        {/* Fixed Select All Option */}
         {!loading && filteredParts.length > 0 && (
           <Box
             sx={{
@@ -343,22 +325,18 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
             }}
             onClick={handleToggleAll}
           >
-            <Typography
-              sx={{ fontSize: '1rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-            >
+            <Typography sx={{ fontSize: '1rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
               {isAllSelected ? 'Deselect all' : 'Select all'}
             </Typography>
             <Checkbox checked={isAllSelected} />
           </Box>
         )}
 
-        {/* Scrollable Content */}
         <Box sx={{ flex: 1, overflow: 'auto' }}>
           <Box sx={{ py: 3, px: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
             {loading ? (
-              /* Skeleton Loading for Parts */
               <>
-                {[1, 2, 3, 4, 5, 6].map((item) => (
+                {[1, 2, 3, 4, 5, 6].map(item => (
                   <Skeleton
                     key={item}
                     variant='rectangular'
@@ -372,7 +350,6 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
               </>
             ) : (
               <>
-                {/* Parts List */}
                 {filteredParts.length === 0 ? (
                   <Box
                     sx={{
@@ -415,7 +392,11 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
                       >
                         <Box>
                           <Typography
-                            sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
+                            sx={{
+                              fontSize: '1rem',
+                              fontWeight: 600,
+                              color: theme.palette.customColors.OnSurfaceVariant
+                            }}
                           >
                             {partLabel}
                           </Typography>
@@ -435,7 +416,6 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
           </Box>
         </Box>
 
-        {/* Footer */}
         <Box
           sx={{
             p: 4,

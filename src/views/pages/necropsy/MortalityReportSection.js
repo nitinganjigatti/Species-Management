@@ -34,6 +34,7 @@ const MortalityReportSection = ({ data }) => {
   const theme = useTheme()
 
   const mortalityDate = data?.mortality_created_at
+
   const dateTimeValue = mortalityDate
     ? `${Utility.convertUtcToLocalReadableDate(mortalityDate)} ${Utility.convertUTCToLocaltime(mortalityDate)}`
     : '--'

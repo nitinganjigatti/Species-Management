@@ -5,7 +5,15 @@ import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDate
 import { AirportShuttle } from '@mui/icons-material'
 import RenderUtility from 'src/utility/render'
 
-const NecropsyAnalytics = ({ disabled = false, filterDate, setFilterDate, badgeCount = 1, onCarcassTransfer, allowCarcassCollection, showCarcassTransferButton = true }) => {
+const NecropsyAnalytics = ({
+  disabled = false,
+  filterDate,
+  setFilterDate,
+  badgeCount = 1,
+  onCarcassTransfer,
+  allowCarcassCollection,
+  showCarcassTransferButton = true
+}) => {
   const theme = useTheme()
 
   return (
@@ -68,8 +76,6 @@ const NecropsyAnalytics = ({ disabled = false, filterDate, setFilterDate, badgeC
                   </Box>
                 </Box>
               </Grid>
-
-              {/* Right: Date Range Picker */}
               {!disabled && (
                 <Grid size={{ xs: 12, sm: 'auto' }}>
                   <Box>

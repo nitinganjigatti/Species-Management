@@ -239,7 +239,6 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
       >
         {loading ? (
           <>
-            {/* Header Skeleton */}
             <Box
               sx={{
                 backgroundColor: theme.palette.customColors?.rusticRed || '#4A0415',
@@ -288,9 +287,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
               </Box>
             </Box>
 
-            {/* Content Skeleton */}
             <Box sx={{ flex: 1, p: 6, display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {/* Selected Animal Card Skeleton */}
               <Card sx={{ overflow: 'visible' }}>
                 <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -308,7 +305,6 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                 </CardContent>
               </Card>
 
-              {/* Transfer Checklist Card Skeleton */}
               <Card sx={{ overflow: 'visible' }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -321,7 +317,6 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                 </CardContent>
               </Card>
 
-              {/* Comments Card Skeleton */}
               <Card sx={{ overflow: 'visible' }}>
                 <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -345,7 +340,6 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
               </Card>
             </Box>
 
-            {/* Bottom Button Skeleton */}
             <Box
               sx={{
                 p: 5,
@@ -422,7 +416,11 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                         }
                       }}
                     >
-                      <Icon icon='mdi:qrcode' fontSize={40} color={theme.palette.customColors?.rusticRed || '#4A0415'} />
+                      <Icon
+                        icon='mdi:qrcode'
+                        fontSize={40}
+                        color={theme.palette.customColors?.rusticRed || '#4A0415'}
+                      />
                     </IconButton>
                   )}
                 </Box>
@@ -496,11 +494,9 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                 p: 6
               }}
             >
-              {/* Transfer / Animal Card */}
               {(() => {
                 const animalCount = necropsyData?.total_animal_count || necropsyData?.entity_details?.length || 0
 
-                // If only 1 animal, show only the animal details without Transfer header
                 if (animalCount === 1 && necropsyData?.entity_details?.[0]) {
                   return (
                     <Card sx={{ overflow: 'visible' }}>
@@ -522,7 +518,6 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                   )
                 }
 
-                // If more than 1 animal, show Transfer header with View button
                 return (
                   <Card sx={{ overflow: 'visible' }}>
                     <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -587,11 +582,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Icon
-                        icon={'uis:check-circle'}
-                        color={theme.palette.success.main}
-                        fontSize={24}
-                      />
+                      <Icon icon={'uis:check-circle'} color={theme.palette.success.main} fontSize={24} />
                       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                         <Typography
                           sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
@@ -875,7 +866,6 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
         />
       )}
 
-      {/* Animal List Drawer */}
       <Modal
         open={showAnimalListDrawer}
         onClose={() => setShowAnimalListDrawer(false)}
@@ -943,9 +933,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
               </Box>
             ) : animalList.length === 0 ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
-                <Typography sx={{ color: theme.palette.text.secondary, fontSize: '14px' }}>
-                  No animals found
-                </Typography>
+                <Typography sx={{ color: theme.palette.text.secondary, fontSize: '14px' }}>No animals found</Typography>
               </Box>
             ) : (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>

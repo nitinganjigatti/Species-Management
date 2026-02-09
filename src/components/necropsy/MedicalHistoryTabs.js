@@ -39,7 +39,6 @@ const MedicalHistoryTabs = ({ animalId }) => {
         Medical History
       </Typography>
 
-      {/* Tab pills - matching ClinicalAssessment.js structure */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box
           sx={{
@@ -64,9 +63,7 @@ const MedicalHistoryTabs = ({ animalId }) => {
                   py: '8px',
                   borderRadius: '8px',
                   backgroundColor:
-                    activeTab === tab
-                      ? theme.palette.secondary.dark
-                      : theme.palette.customColors.mdAntzNeutral,
+                    activeTab === tab ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
                   cursor: 'pointer',
                   transition: 'background-color 0.2s ease'
                 }}
@@ -90,7 +87,6 @@ const MedicalHistoryTabs = ({ animalId }) => {
         </Box>
       </Box>
 
-      {/* Tab content */}
       {renderTabContent()}
     </Box>
   )

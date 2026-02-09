@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Box, Typography, Chip, Skeleton, CircularProgress } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
-import {
-  FiberManualRecord,
-  Timeline as FrequencyIcon,
-  CalendarToday as CalendarIcon
-} from '@mui/icons-material'
+import { FiberManualRecord, Timeline as FrequencyIcon, CalendarToday as CalendarIcon } from '@mui/icons-material'
 import Utility from 'src/utility'
 import { getMedicalCommonData } from 'src/lib/api/necropsy/medicalHistory'
 
@@ -119,12 +115,18 @@ const PrescriptionList = ({ animalId }) => {
   }
 
   const buildDosageChips = item => {
-    // New format: schedule_doses array with { quantity, unit_name, time }
     if (Array.isArray(item.schedule_doses) && item.schedule_doses.length > 0) {
-      return item.schedule_doses.map(dose => ({
-        time: dose.time ? dose.time : null,
-        dosage: dose.quantity && dose.unit_name ? `${dose.quantity} ${dose.unit_name}` : (dose.quantity ? `${dose.quantity}` : null)
-      })).filter(d => d.time || d.dosage)
+      return item.schedule_doses
+        .map(dose => ({
+          time: dose.time ? dose.time : null,
+          dosage:
+            dose.quantity && dose.unit_name
+              ? `${dose.quantity} ${dose.unit_name}`
+              : dose.quantity
+              ? `${dose.quantity}`
+              : null
+        }))
+        .filter(d => d.time || d.dosage)
     }
 
     // Old format: dosage string like "321 pt" + time from created_at
@@ -171,14 +173,11 @@ const PrescriptionList = ({ animalId }) => {
     </Box>
   )
 
-  // Check if data is empty (no groups or all groups have empty data arrays)
-  const hasData = data.length > 0 && data.some(section =>
-    Array.isArray(section.data) ? section.data.length > 0 : true
-  )
+  const hasData =
+    data.length > 0 && data.some(section => (Array.isArray(section.data) ? section.data.length > 0 : true))
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {/* Sub-tab pills */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box
           sx={{
@@ -203,9 +202,7 @@ const PrescriptionList = ({ animalId }) => {
                   py: '8px',
                   borderRadius: '8px',
                   backgroundColor:
-                    activeSubTab === tab
-                      ? theme.palette.secondary.dark
-                      : theme.palette.customColors.mdAntzNeutral,
+                    activeSubTab === tab ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
                   cursor: 'pointer',
                   transition: 'background-color 0.2s ease'
                 }}
@@ -229,7 +226,6 @@ const PrescriptionList = ({ animalId }) => {
         </Box>
       </Box>
 
-      {/* Content */}
       {loading ? (
         renderShimmer()
       ) : !hasData ? (
@@ -255,7 +251,6 @@ const PrescriptionList = ({ animalId }) => {
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
           {data.map((section, sectionIdx) => {
-            // API returns grouped data: { medical_record_id, data: [...prescriptions] }
             const medRecordId = section.medical_record_id || 'N/A'
             const prescriptions = Array.isArray(section.data) ? section.data : []
 
@@ -263,7 +258,6 @@ const PrescriptionList = ({ animalId }) => {
 
             return (
               <Box key={medRecordId + sectionIdx}>
-                {/* Section header: Medical Record ID */}
                 <Typography
                   sx={{
                     fontSize: '1rem',
@@ -275,7 +269,6 @@ const PrescriptionList = ({ animalId }) => {
                   {medRecordId}
                 </Typography>
 
-                {/* Prescription cards in this group */}
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                   {prescriptions.map((item, index) => {
                     const stopped = isStopped(item)
@@ -295,7 +288,6 @@ const PrescriptionList = ({ animalId }) => {
                           backgroundColor: theme.palette.customColors.displaybgPrimary
                         }}
                       >
-                        {/* Medicine name */}
                         <Typography
                           sx={{
                             fontSize: '1rem',
@@ -308,7 +300,6 @@ const PrescriptionList = ({ animalId }) => {
                           {medicineName}
                         </Typography>
 
-                        {/* Frequency */}
                         {frequency && (
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                             <FrequencyIcon
@@ -329,7 +320,6 @@ const PrescriptionList = ({ animalId }) => {
                           </Box>
                         )}
 
-                        {/* Dosage chips: time - dosage */}
                         {dosageChips.length > 0 && (
                           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
                             {dosageChips.map((chip, chipIdx) => (
@@ -343,7 +333,10 @@ const PrescriptionList = ({ animalId }) => {
                                       </Box>
                                     )}
                                     {chip.time && chip.dosage && (
-                                      <Box component='span' sx={{ mx: 0.5 }}> - </Box>
+                                      <Box component='span' sx={{ mx: 0.5 }}>
+                                        {' '}
+                                        -{' '}
+                                      </Box>
                                     )}
                                     {chip.dosage && (
                                       <Box component='span' sx={{ fontWeight: 700 }}>
@@ -369,7 +362,6 @@ const PrescriptionList = ({ animalId }) => {
                           </Box>
                         )}
 
-                        {/* Duration */}
                         {durationText && (
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                             <CalendarIcon
@@ -390,7 +382,6 @@ const PrescriptionList = ({ animalId }) => {
                           </Box>
                         )}
 
-                        {/* Start / End dates */}
                         {(startDate || endDate) && (
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mt: 0.5 }}>
                             {startDate && (
@@ -439,7 +430,6 @@ const PrescriptionList = ({ animalId }) => {
             )
           })}
 
-          {/* Load More */}
           {hasMore && (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
               {loadingMore ? (

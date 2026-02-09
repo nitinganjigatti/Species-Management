@@ -153,7 +153,6 @@ const Necropsy = () => {
       setActiveCard(status)
     }
 
-    // Restore the tab selection (animals/species)
     if (tab && ['animals', 'species'].includes(tab)) {
       setSelected(tab)
     }
@@ -189,7 +188,6 @@ const Necropsy = () => {
       const basePayload = getBasePayload()
 
       if (selected === 'animals') {
-        // CLEAR species table
         setSpeciesRows([])
 
         const res = await getAnimalWiseNecropsyList({
@@ -210,7 +208,6 @@ const Necropsy = () => {
           setTotal(res?.data?.total_count || 0)
         }
       } else {
-        // CLEAR animal table
         setAnimalRows([])
 
         const res = await getSpeciesWiseNecropsyList({
@@ -293,7 +290,7 @@ const Necropsy = () => {
     if (currentStatus) {
       params.set('status', currentStatus)
     }
-    // Persist the tab selection
+
     const currentTab = tab || selected
     if (currentTab) {
       params.set('tab', currentTab)
@@ -341,7 +338,7 @@ const Necropsy = () => {
   const handleChange = (event, newValue) => {
     if (newValue !== null) {
       setSelected(newValue)
-      // Update URL with the new tab selection
+
       updateUrlParams({ ...filters, page: 1 }, activeCard, newValue)
     }
   }
@@ -356,10 +353,11 @@ const Necropsy = () => {
         router.push(`/necropsy/${mortalityId}?status=${activeCard}`)
       }
     } else {
-      // Species row click - navigate with species filter
       const row = params.row
       router.push(
-        `/necropsy/${row.tsn}?view=species&status=${activeCard}&tab=species&taxonomy_id=${row.tsn}&species_name=${encodeURIComponent(row.default_common_name || row.scientific_name || '')}`
+        `/necropsy/${row.tsn}?view=species&status=${activeCard}&tab=species&taxonomy_id=${
+          row.tsn
+        }&species_name=${encodeURIComponent(row.default_common_name || row.scientific_name || '')}`
       )
     }
   }
@@ -671,7 +669,6 @@ const Necropsy = () => {
                           bottom: 0,
                           width: '6px',
 
-                          // bgcolor: card?.color,
                           opacity: activeCard === card?.id ? 1 : 0,
                           transition: 'opacity 0.2s ease-in-out',
 

@@ -32,7 +32,6 @@ const EditTemplateDrawer = ({ open, setOpen, template, onSave, onDelete }) => {
   const [bodyPartsData, setBodyPartsData] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Fetch body parts to get section names
   useEffect(() => {
     const fetchBodyParts = async () => {
       setLoading(true)
@@ -55,21 +54,27 @@ const EditTemplateDrawer = ({ open, setOpen, template, onSave, onDelete }) => {
     if (open && template && bodyPartsData.length > 0) {
       setTemplateName(template.name || template.template_name || '')
 
-      // Parse template items into organ structure
       const items = template.organs || template.body_parts || template.template_items || []
+
       const organData = items.map(organ => {
         const sectionId = organ.id || organ.section_id || organ.body_part_id || organ.body_section_id
 
-        // Try to find section name from bodyPartsData
         const matchingSection = bodyPartsData.find(
           section => String(section.id || section.body_section_id) === String(sectionId)
         )
 
-        // Try to get section/organ label from multiple possible properties
-        const sectionLabel = matchingSection?.label || matchingSection?.name ||
-          organ.label || organ.name || organ.organ_name ||
-          organ.section_name || organ.body_section_name || organ.section_label ||
-          (organ.parts?.[0]?.section_name) || (organ.parts?.[0]?.body_section_name) || ''
+        const sectionLabel =
+          matchingSection?.label ||
+          matchingSection?.name ||
+          organ.label ||
+          organ.name ||
+          organ.organ_name ||
+          organ.section_name ||
+          organ.body_section_name ||
+          organ.section_label ||
+          organ.parts?.[0]?.section_name ||
+          organ.parts?.[0]?.body_section_name ||
+          ''
 
         return {
           id: String(sectionId),
@@ -97,29 +102,30 @@ const EditTemplateDrawer = ({ open, setOpen, template, onSave, onDelete }) => {
 
   const handleRemovePart = (organId, partId) => {
     setTemplateData(prev => {
-      return prev.map(organ => {
-        if (organ.id !== organId) return organ
+      return prev
+        .map(organ => {
+          if (organ.id !== organId) return organ
 
-        const updatedParts = organ.parts.filter(p => p.id !== partId)
+          const updatedParts = organ.parts.filter(p => p.id !== partId)
 
-        // If no parts left, remove the entire organ
-        if (updatedParts.length === 0) {
-          return null
-        }
+          if (updatedParts.length === 0) {
+            return null
+          }
 
-        return {
-          ...organ,
-          parts: updatedParts
-        }
-      }).filter(Boolean)
+          return {
+            ...organ,
+            parts: updatedParts
+          }
+        })
+        .filter(Boolean)
     })
   }
 
-  const handleRemoveOrgan = (organId) => {
+  const handleRemoveOrgan = organId => {
     setTemplateData(prev => prev.filter(o => o.id !== organId))
   }
 
-  const handleAddOrgans = (newOrgans) => {
+  const handleAddOrgans = newOrgans => {
     const organsToAdd = newOrgans.map(o => ({
       id: String(o.id),
       label: o.label,
@@ -156,23 +162,25 @@ const EditTemplateDrawer = ({ open, setOpen, template, onSave, onDelete }) => {
   const handleSave = async () => {
     if (!templateName.trim()) {
       Toaster({ type: 'error', message: 'Please enter a template name' })
+
       return
     }
 
-    // If no items left, show delete confirmation
     if (templateData.length === 0) {
       setShowDeleteConfirm(true)
+
       return
     }
 
     setSaveLoading(true)
     try {
-      // Format template items
       const templateItems = templateData.reduce((acc, organ) => {
-        const parts = organ.parts?.map(part => ({
-          id: part.id,
-          desc: part.description || ''
-        })) || []
+        const parts =
+          organ.parts?.map(part => ({
+            id: part.id,
+            desc: part.description || ''
+          })) || []
+
         return [...acc, ...parts]
       }, [])
 
@@ -245,7 +253,6 @@ const EditTemplateDrawer = ({ open, setOpen, template, onSave, onDelete }) => {
             flexDirection: 'column'
           }}
         >
-          {/* Header */}
           <Box
             sx={{
               display: 'flex',
@@ -279,34 +286,15 @@ const EditTemplateDrawer = ({ open, setOpen, template, onSave, onDelete }) => {
             </Box>
           </Box>
 
-          {/* Content */}
           <Box sx={{ flex: 1, overflow: 'auto' }}>
             {loading ? (
-              /* Skeleton Loading */
               <Box sx={{ px: 6, pt: 6 }}>
-                {/* Template Name Skeleton */}
-                <Skeleton
-                  variant='rectangular'
-                  height={56}
-                  sx={{ borderRadius: 1, mb: 3 }}
-                />
+                <Skeleton variant='rectangular' height={56} sx={{ borderRadius: 1, mb: 3 }} />
 
-                {/* Add Organ Button Skeleton */}
-                <Skeleton
-                  variant='rectangular'
-                  height={52}
-                  sx={{ borderRadius: 1, mb: 4 }}
-                />
+                <Skeleton variant='rectangular' height={52} sx={{ borderRadius: 1, mb: 4 }} />
 
-                {/* Organs Title Skeleton */}
-                <Skeleton
-                  variant='text'
-                  width={200}
-                  height={28}
-                  sx={{ mb: 3 }}
-                />
+                <Skeleton variant='text' width={200} height={28} sx={{ mb: 3 }} />
 
-                {/* Organ Cards Skeleton */}
                 <Box
                   sx={{
                     display: 'flex',
@@ -317,7 +305,7 @@ const EditTemplateDrawer = ({ open, setOpen, template, onSave, onDelete }) => {
                     borderRadius: 1
                   }}
                 >
-                  {[1, 2, 3].map((item) => (
+                  {[1, 2, 3].map(item => (
                     <Box
                       key={item}
                       sx={{
@@ -339,13 +327,12 @@ const EditTemplateDrawer = ({ open, setOpen, template, onSave, onDelete }) => {
               </Box>
             ) : (
               <>
-                {/* Template Name */}
                 <Box sx={{ px: 6, pt: 6, pb: 3 }}>
                   <TextField
                     fullWidth
                     label='Template Name'
                     value={templateName}
-                    onChange={(e) => setTemplateName(e.target.value)}
+                    onChange={e => setTemplateName(e.target.value)}
                     sx={{
                       '& .MuiInputBase-root': {
                         backgroundColor: theme.palette.customColors.Surface
@@ -354,7 +341,6 @@ const EditTemplateDrawer = ({ open, setOpen, template, onSave, onDelete }) => {
                   />
                 </Box>
 
-                {/* Add Organ Button */}
                 <Box sx={{ px: 6, pb: 3 }}>
                   <Button
                     onClick={() => setOpenSelectOrganDrawer(true)}
@@ -374,136 +360,132 @@ const EditTemplateDrawer = ({ open, setOpen, template, onSave, onDelete }) => {
                   </Button>
                 </Box>
 
-                {/* Template Organs */}
                 {templateData.length > 0 ? (
-              <Box sx={{ py: 3, px: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <Typography
-                  sx={{ fontSize: '18px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                >
-                  Organs ({totalParts} parts in {templateData.length} categories)
-                </Typography>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 3,
-                    p: 4,
-                    backgroundColor: theme.palette.customColors.Background,
-                    borderRadius: 1
-                  }}
-                >
-                  {templateData.map(organ => (
+                  <Box sx={{ py: 3, px: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <Typography
+                      sx={{ fontSize: '18px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      Organs ({totalParts} parts in {templateData.length} categories)
+                    </Typography>
                     <Box
-                      key={organ.id}
                       sx={{
                         display: 'flex',
-                        alignItems: 'flex-start',
-                        justifyContent: 'space-between',
+                        flexDirection: 'column',
+                        gap: 3,
                         p: 4,
-                        backgroundColor: theme.palette.customColors.OnPrimary,
-                        border: `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                        backgroundColor: theme.palette.customColors.Background,
                         borderRadius: 1
                       }}
                     >
-                      <Box sx={{ flex: 1 }}>
-                        <Typography
-                          sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant, mb: 1 }}
+                      {templateData.map(organ => (
+                        <Box
+                          key={organ.id}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            justifyContent: 'space-between',
+                            p: 4,
+                            backgroundColor: theme.palette.customColors.OnPrimary,
+                            border: `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                            borderRadius: 1
+                          }}
                         >
-                          {organ.label || `Category ${organ.id}`}
-                        </Typography>
-                        {organ.parts?.length > 0 && (
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 0.5 }}>
-                            {organ.parts.map((part, idx) => (
-                              <Box
-                                key={part.id || idx}
-                                sx={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 1,
-                                  backgroundColor: theme.palette.customColors.Surface || theme.palette.grey[100],
-                                  border: `1px solid ${theme.palette.divider}`,
-                                  px: 2,
-                                  py: 0.75,
-                                  borderRadius: '16px',
-                                  transition: 'all 0.2s ease',
-                                  '&:hover': {
-                                    backgroundColor: theme.palette.action.hover,
-                                    borderColor: theme.palette.primary.light
-                                  }
-                                }}
-                              >
-                                <Typography
-                                  sx={{
-                                    fontSize: '0.8125rem',
-                                    fontWeight: 500,
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    lineHeight: 1.4
-                                  }}
-                                >
-                                  {part.organ_name || part.label || `Part ${idx + 1}`}
-                                </Typography>
-                                <IconButton
-                                  size='small'
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleRemovePart(organ.id, part.id)
-                                  }}
-                                  sx={{
-                                    p: 0.25,
-                                    ml: 0.25,
-                                    backgroundColor: theme.palette.grey[300],
-                                    borderRadius: '50%',
-                                    transition: 'all 0.2s ease',
-                                    '&:hover': {
-                                      backgroundColor: theme.palette.error.light,
-                                      '& svg': {
-                                        color: `${theme.palette.common.white} !important`
+                          <Box sx={{ flex: 1 }}>
+                            <Typography
+                              sx={{
+                                fontSize: '1rem',
+                                fontWeight: 600,
+                                color: theme.palette.customColors.OnSurfaceVariant,
+                                mb: 1
+                              }}
+                            >
+                              {organ.label || `Category ${organ.id}`}
+                            </Typography>
+                            {organ.parts?.length > 0 && (
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 0.5 }}>
+                                {organ.parts.map((part, idx) => (
+                                  <Box
+                                    key={part.id || idx}
+                                    sx={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 1,
+                                      backgroundColor: theme.palette.customColors.Surface || theme.palette.grey[100],
+                                      border: `1px solid ${theme.palette.divider}`,
+                                      px: 2,
+                                      py: 0.75,
+                                      borderRadius: '16px',
+                                      transition: 'all 0.2s ease',
+                                      '&:hover': {
+                                        backgroundColor: theme.palette.action.hover,
+                                        borderColor: theme.palette.primary.light
                                       }
-                                    }
-                                  }}
-                                >
-                                  <Icon
-                                    icon='mdi:close'
-                                    fontSize={12}
-                                    color={theme.palette.text.secondary}
-                                  />
-                                </IconButton>
+                                    }}
+                                  >
+                                    <Typography
+                                      sx={{
+                                        fontSize: '0.8125rem',
+                                        fontWeight: 500,
+                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                        lineHeight: 1.4
+                                      }}
+                                    >
+                                      {part.organ_name || part.label || `Part ${idx + 1}`}
+                                    </Typography>
+                                    <IconButton
+                                      size='small'
+                                      onClick={e => {
+                                        e.stopPropagation()
+                                        handleRemovePart(organ.id, part.id)
+                                      }}
+                                      sx={{
+                                        p: 0.25,
+                                        ml: 0.25,
+                                        backgroundColor: theme.palette.grey[300],
+                                        borderRadius: '50%',
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': {
+                                          backgroundColor: theme.palette.error.light,
+                                          '& svg': {
+                                            color: `${theme.palette.common.white} !important`
+                                          }
+                                        }
+                                      }}
+                                    >
+                                      <Icon icon='mdi:close' fontSize={12} color={theme.palette.text.secondary} />
+                                    </IconButton>
+                                  </Box>
+                                ))}
                               </Box>
-                            ))}
+                            )}
                           </Box>
-                        )}
-                      </Box>
-                      <IconButton
-                        onClick={() => handleRemoveOrgan(organ.id)}
-                        size='small'
-                      >
-                        <Icon icon='zondicons:close-outline' color={theme.palette.customColors.Error} />
-                      </IconButton>
+                          <IconButton onClick={() => handleRemoveOrgan(organ.id)} size='small'>
+                            <Icon icon='zondicons:close-outline' color={theme.palette.customColors.Error} />
+                          </IconButton>
+                        </Box>
+                      ))}
                     </Box>
-                  ))}
-                </Box>
-              </Box>
-            ) : (
-              <Box
-                sx={{
-                  mx: 6,
-                  p: 4,
-                  textAlign: 'center',
-                  border: `1px dashed ${theme.palette.divider}`,
-                  borderRadius: 2,
-                  bgcolor: theme.palette.customColors?.bodyBg || theme.palette.grey[50]
-                }}
-              >
-                <Typography color='text.secondary'>
-                  No organs in this template. Add organs or delete the template.
-                </Typography>
-              </Box>
-            )}
+                  </Box>
+                ) : (
+                  <Box
+                    sx={{
+                      mx: 6,
+                      p: 4,
+                      textAlign: 'center',
+                      border: `1px dashed ${theme.palette.divider}`,
+                      borderRadius: 2,
+                      bgcolor: theme.palette.customColors?.bodyBg || theme.palette.grey[50]
+                    }}
+                  >
+                    <Typography color='text.secondary'>
+                      No organs in this template. Add organs or delete the template.
+                    </Typography>
+                  </Box>
+                )}
               </>
             )}
           </Box>
 
-          {/* Footer */}
           <Box
             sx={{
               p: 4,
@@ -540,7 +522,6 @@ const EditTemplateDrawer = ({ open, setOpen, template, onSave, onDelete }) => {
         </Box>
       </Drawer>
 
-      {/* Select Organ Drawer */}
       {openSelectOrganDrawer && (
         <SelectOrganDrawer
           open={openSelectOrganDrawer}
@@ -550,11 +531,7 @@ const EditTemplateDrawer = ({ open, setOpen, template, onSave, onDelete }) => {
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
-      >
+      <Dialog open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
         <DialogTitle>Delete Template</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -565,12 +542,7 @@ const EditTemplateDrawer = ({ open, setOpen, template, onSave, onDelete }) => {
           <Button onClick={() => setShowDeleteConfirm(false)} disabled={deleteLoading}>
             Cancel
           </Button>
-          <Button
-            onClick={handleDelete}
-            color='error'
-            variant='contained'
-            disabled={deleteLoading}
-          >
+          <Button onClick={handleDelete} color='error' variant='contained' disabled={deleteLoading}>
             {deleteLoading ? <CircularProgress size={20} color='inherit' /> : 'Delete'}
           </Button>
         </DialogActions>

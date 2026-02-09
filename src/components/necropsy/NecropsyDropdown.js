@@ -1,4 +1,3 @@
-// components/NecropsyDropdown.jsx
 import React, { useState, useEffect, useCallback, useRef, useMemo, useContext } from 'react'
 import { Box, Typography, Menu, MenuItem, useTheme, Tooltip, Avatar } from '@mui/material'
 import { KeyboardArrowDown, Biotech } from '@mui/icons-material'
@@ -29,14 +28,12 @@ const NecropsyDropdown = ({ disabled = false }) => {
   const authData = useContext(AuthContext)
   const userId = authData?.userData?.user?.user_id || ''
 
-  // Initial fetch
   useEffect(() => {
     if (userId) {
       fetchNecropsies(userId)
     }
   }, [userId])
 
-  // Validation Flow: Check stored necropsy against fetched list
   useEffect(() => {
     if (necropsies.length > 0 && !hasValidatedAccess) {
       setIsCheckingNecropsyAccess(true)
@@ -48,11 +45,9 @@ const NecropsyDropdown = ({ disabled = false }) => {
         if (isHavingAccess) {
           updateSelectedNecropsy(isHavingAccess)
         } else {
-          // If stored is invalid, pick the first one
           updateSelectedNecropsy(necropsies[0])
         }
       } else {
-        // No stored, pick the first one
         updateSelectedNecropsy(necropsies[0])
       }
       setHasValidatedAccess(true)
@@ -62,14 +57,12 @@ const NecropsyDropdown = ({ disabled = false }) => {
     }
   }, [necropsies, hasCompletedInitialFetch, hasValidatedAccess, updateSelectedNecropsy])
 
-  // Create debounced search function
   const debouncedSearch = useRef(
     debounce(searchValue => {
       fetchNecropsies(userId, searchValue)
     }, 500)
   ).current
 
-  // Cleanup debounce on unmount
   useEffect(() => {
     return () => {
       debouncedSearch.cancel()
@@ -82,7 +75,6 @@ const NecropsyDropdown = ({ disabled = false }) => {
     setAnchorEl(null)
   }
 
-  // Search handler
   const handleSearchChange = useCallback(
     value => {
       if (disabled) return
@@ -97,10 +89,8 @@ const NecropsyDropdown = ({ disabled = false }) => {
     fetchNecropsies(userId, '')
   }, [userId, fetchNecropsies])
 
-  // Reset search when dropdown closes
   useEffect(() => {
     if (!anchorEl && localSearch) {
-      // If we had a search term, reset it when closed
       setLocalSearch('')
       fetchNecropsies(userId, '')
     }
@@ -111,7 +101,6 @@ const NecropsyDropdown = ({ disabled = false }) => {
     setAnchorEl(e.currentTarget)
   }
 
-  // Focus search when menu opens
   useEffect(() => {
     if (anchorEl) {
       const timer = setTimeout(() => {
@@ -128,7 +117,6 @@ const NecropsyDropdown = ({ disabled = false }) => {
     }
   }, [anchorEl])
 
-  // Shimmer component for loading states
   const ShimmerBox = ({ width = '100%', height = '20px', mb = 1 }) => (
     <Box
       sx={{

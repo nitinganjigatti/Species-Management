@@ -1,16 +1,5 @@
 import React from 'react'
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Grid,
-  Divider,
-  Chip,
-  Avatar,
-  Tooltip,
-  useTheme
-} from '@mui/material'
+import { Box, Card, CardContent, Typography, Grid, Divider, Chip, Avatar, Tooltip, useTheme } from '@mui/material'
 import Utility from 'src/utility'
 
 const NecropsySummaryContent = ({ necropsyData, mortalityData, actionButtons }) => {
@@ -31,15 +20,15 @@ const NecropsySummaryContent = ({ necropsyData, mortalityData, actionButtons }) 
     mb: 3
   }
 
-  const formatDate = (date) => {
+  const formatDate = date => {
     if (!date) return 'N/A'
 
     return Utility.formatDisplayDate(date)
   }
 
-  const formatTime = (time) => {
+  const formatTime = time => {
     if (!time) return 'N/A'
-    // If time is already in HH:mm:ss format, parse it
+
     if (typeof time === 'string' && time.includes(':')) {
       const today = new Date()
       const [hours, minutes] = time.split(':')
@@ -151,8 +140,9 @@ const NecropsySummaryContent = ({ necropsyData, mortalityData, actionButtons }) 
   return (
     <Card>
       <CardContent sx={{ p: { xs: 3, sm: 6 }, '&:last-child': { pb: { xs: 3, sm: 6 } } }}>
-        {/* Necropsy Suitability + Action Buttons */}
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+        <Box
+          sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}
+        >
           <Box>
             <Typography sx={sectionTitleSx}>Necropsy Suitability</Typography>
             <Chip
@@ -175,7 +165,6 @@ const NecropsySummaryContent = ({ necropsyData, mortalityData, actionButtons }) 
 
         <Divider sx={{ my: 5 }} />
 
-        {/* Carcass Details */}
         <Typography sx={sectionTitleSx}>Carcass Details</Typography>
         <AlignedFields
           items={[
@@ -187,7 +176,9 @@ const NecropsySummaryContent = ({ necropsyData, mortalityData, actionButtons }) 
             {
               label: 'Carcass Weight',
               value: necropsyData.carcass_weight
-                ? `${necropsyData.carcass_weight} ${necropsyData.carcass_weight_unit_name || necropsyData.carcass_weight_uom || ''}${necropsyData.approximate_weight ? ' (Approx.)' : ''}`
+                ? `${necropsyData.carcass_weight} ${
+                    necropsyData.carcass_weight_unit_name || necropsyData.carcass_weight_uom || ''
+                  }${necropsyData.approximate_weight ? ' (Approx.)' : ''}`
                 : null
             },
             { label: 'Confirmed Sex', value: getSexDisplay() },
@@ -195,7 +186,6 @@ const NecropsySummaryContent = ({ necropsyData, mortalityData, actionButtons }) 
           ]}
         />
 
-        {/* Clinical History */}
         {necropsyData.history_of_illness && (
           <>
             <Divider sx={{ my: 5 }} />
@@ -224,7 +214,6 @@ const NecropsySummaryContent = ({ necropsyData, mortalityData, actionButtons }) 
 
         <Divider sx={{ my: 5 }} />
 
-        {/* Necropsy Details */}
         <Typography sx={sectionTitleSx}>Necropsy Details</Typography>
         <Grid container spacing={0} alignItems='stretch'>
           <Grid item size={{ xs: 12, md: 6 }}>
@@ -324,7 +313,6 @@ const NecropsySummaryContent = ({ necropsyData, mortalityData, actionButtons }) 
           </Box>
         )}
 
-        {/* Conducted By */}
         {necropsyData.necropsy_conducted_by?.length > 0 && (
           <Box sx={{ mt: 3 }}>
             <Typography sx={{ color: labelColor, fontWeight: 400, fontSize: '14px', pl: { xs: 0, sm: 4 }, mb: 1.5 }}>
@@ -359,7 +347,6 @@ const NecropsySummaryContent = ({ necropsyData, mortalityData, actionButtons }) 
           </Box>
         )}
 
-        {/* Examination Findings */}
         {necropsyData.necropsy_organs?.length > 0 && (
           <>
             <Divider sx={{ my: 5 }} />
@@ -395,15 +382,14 @@ const NecropsySummaryContent = ({ necropsyData, mortalityData, actionButtons }) 
           </>
         )}
 
-        {/* Attachments */}
         {necropsyData.attachments?.documents?.length > 0 && (
           <>
             <Divider sx={{ my: 5 }} />
             <Typography sx={sectionTitleSx}>Attachments</Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
               {necropsyData.attachments.documents.map((doc, index) => {
-                const isImage = ['jpeg', 'jpg', 'png', 'gif', 'webp', 'svg'].some(ext =>
-                  doc.file?.toLowerCase()?.endsWith(ext) || doc.file_original_name?.toLowerCase()?.endsWith(ext)
+                const isImage = ['jpeg', 'jpg', 'png', 'gif', 'webp', 'svg'].some(
+                  ext => doc.file?.toLowerCase()?.endsWith(ext) || doc.file_original_name?.toLowerCase()?.endsWith(ext)
                 )
 
                 return (
@@ -445,7 +431,6 @@ const NecropsySummaryContent = ({ necropsyData, mortalityData, actionButtons }) 
 
         <Divider sx={{ my: 5 }} />
 
-        {/* Cause of Death */}
         <Typography sx={sectionTitleSx}>Cause of Death</Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pl: { xs: 0, sm: 4 } }}>
           {[
@@ -490,7 +475,6 @@ const NecropsySummaryContent = ({ necropsyData, mortalityData, actionButtons }) 
           ))}
         </Box>
 
-        {/* Additional Information */}
         {(necropsyData.additional_notes || necropsyData.qr_number) && (
           <>
             <Divider sx={{ my: 5 }} />

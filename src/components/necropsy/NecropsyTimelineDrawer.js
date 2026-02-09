@@ -1,15 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import {
-  Box,
-  Typography,
-  Drawer,
-  IconButton,
-  Divider,
-  Avatar,
-  Skeleton,
-  CircularProgress,
-  Button
-} from '@mui/material'
+import { Box, Typography, Drawer, IconButton, Divider, Avatar, Skeleton, CircularProgress, Button } from '@mui/material'
 import Timeline from '@mui/lab/Timeline'
 import TimelineItem from '@mui/lab/TimelineItem'
 import TimelineSeparator from '@mui/lab/TimelineSeparator'
@@ -17,7 +7,12 @@ import TimelineConnector from '@mui/lab/TimelineConnector'
 import TimelineContent from '@mui/lab/TimelineContent'
 import TimelineOppositeContent, { timelineOppositeContentClasses } from '@mui/lab/TimelineOppositeContent'
 import { useTheme, styled, alpha } from '@mui/material/styles'
-import { Close as CloseIcon, CalendarToday as CalendarIcon, CheckCircle as CheckCircleIcon, Block as BlockIcon } from '@mui/icons-material'
+import {
+  Close as CloseIcon,
+  CalendarToday as CalendarIcon,
+  CheckCircle as CheckCircleIcon,
+  Block as BlockIcon
+} from '@mui/icons-material'
 import Utility from 'src/utility'
 import { getNecropsyTimeline } from 'src/lib/api/necropsy'
 
@@ -33,46 +28,49 @@ const NecropsyTimelineDrawer = ({ open, onClose, mortalityId }) => {
   const [loading, setLoading] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
 
-  const fetchTimeline = useCallback(async (pageNo = 1) => {
-    if (!mortalityId) return
+  const fetchTimeline = useCallback(
+    async (pageNo = 1) => {
+      if (!mortalityId) return
 
-    try {
-      if (pageNo === 1) setLoading(true)
-      else setLoadingMore(true)
+      try {
+        if (pageNo === 1) setLoading(true)
+        else setLoadingMore(true)
 
-      const res = await getNecropsyTimeline({
-        page_no: pageNo,
-        limit: LIMIT,
-        type: 'necropsy',
-        mortality_id: mortalityId
-      })
+        const res = await getNecropsyTimeline({
+          page_no: pageNo,
+          limit: LIMIT,
+          type: 'necropsy',
+          mortality_id: mortalityId
+        })
 
-      if (res?.success && Array.isArray(res.data?.result)) {
-        const totalCount = res.data.total_count || 0
-        setTotalPages(Math.ceil(totalCount / LIMIT))
-        setPage(pageNo)
+        if (res?.success && Array.isArray(res.data?.result)) {
+          const totalCount = res.data.total_count || 0
+          setTotalPages(Math.ceil(totalCount / LIMIT))
+          setPage(pageNo)
 
-        const merged = pageNo === 1 ? res.data.result : [...rawData, ...res.data.result]
-        setRawData(merged)
+          const merged = pageNo === 1 ? res.data.result : [...rawData, ...res.data.result]
+          setRawData(merged)
 
-        const grouped = merged.reduce((acc, item) => {
-          const date = item.created_at?.split(' ')[0]
-          if (!date) return acc
-          if (!acc[date]) acc[date] = { date, entries: [] }
-          acc[date].entries.push(item)
+          const grouped = merged.reduce((acc, item) => {
+            const date = item.created_at?.split(' ')[0]
+            if (!date) return acc
+            if (!acc[date]) acc[date] = { date, entries: [] }
+            acc[date].entries.push(item)
 
-          return acc
-        }, {})
+            return acc
+          }, {})
 
-        setTimelineData(Object.values(grouped))
+          setTimelineData(Object.values(grouped))
+        }
+      } catch (error) {
+        console.error('Error fetching timeline:', error)
+      } finally {
+        setLoading(false)
+        setLoadingMore(false)
       }
-    } catch (error) {
-      console.error('Error fetching timeline:', error)
-    } finally {
-      setLoading(false)
-      setLoadingMore(false)
-    }
-  }, [mortalityId, rawData])
+    },
+    [mortalityId, rawData]
+  )
 
   useEffect(() => {
     if (open && mortalityId) {
@@ -105,9 +103,14 @@ const NecropsyTimelineDrawer = ({ open, onClose, mortalityId }) => {
       }}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 4, flexShrink: 0 }}>
-          <Typography sx={{ fontSize: '20px', fontWeight: 600, color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary }}>
+          <Typography
+            sx={{
+              fontSize: '20px',
+              fontWeight: 600,
+              color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+            }}
+          >
             History
           </Typography>
           <IconButton onClick={onClose} size='small'>
@@ -117,7 +120,6 @@ const NecropsyTimelineDrawer = ({ open, onClose, mortalityId }) => {
 
         <Divider />
 
-        {/* Timeline Content */}
         <Box sx={{ flex: 1, overflow: 'auto', px: 2, py: 3 }}>
           {loading ? (
             <TimelineSkeleton />
@@ -131,9 +133,13 @@ const NecropsyTimelineDrawer = ({ open, onClose, mortalityId }) => {
             <>
               {timelineData.map((section, sIndex) => (
                 <Box key={section.date} sx={{ mb: 2 }}>
-                  {/* Date Header */}
                   <StyledSectionHeader>
-                    <CalendarIcon sx={{ fontSize: 18, color: theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main }} />
+                    <CalendarIcon
+                      sx={{
+                        fontSize: 18,
+                        color: theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main
+                      }}
+                    />
                     <Typography
                       sx={{
                         fontSize: '14px',
@@ -145,7 +151,6 @@ const NecropsyTimelineDrawer = ({ open, onClose, mortalityId }) => {
                     </Typography>
                   </StyledSectionHeader>
 
-                  {/* Timeline Items */}
                   <StyledTimeline>
                     {section.entries.map((entry, eIndex) => {
                       const isUnsuitable = entry.comment === 'Marked as unsuitable'
@@ -173,8 +178,8 @@ const NecropsyTimelineDrawer = ({ open, onClose, mortalityId }) => {
                                 visibility: isFirst ? 'hidden' : 'visible',
                                 minHeight: isFirst ? 0 : '1rem',
                                 backgroundColor: isUnsuitable
-                                  ? (theme.palette.customColors?.Error || theme.palette.error.main)
-                                  : (theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main),
+                                  ? theme.palette.customColors?.Error || theme.palette.error.main
+                                  : theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main,
                                 width: '1.5px'
                               }}
                             />
@@ -183,9 +188,11 @@ const NecropsyTimelineDrawer = ({ open, onClose, mortalityId }) => {
                                 width: '2rem',
                                 height: '2rem',
                                 borderRadius: '50%',
-                                border: `1px solid ${isUnsuitable
-                                  ? (theme.palette.customColors?.Error || theme.palette.error.main)
-                                  : (theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main)}`,
+                                border: `1px solid ${
+                                  isUnsuitable
+                                    ? theme.palette.customColors?.Error || theme.palette.error.main
+                                    : theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main
+                                }`,
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center'
@@ -212,8 +219,8 @@ const NecropsyTimelineDrawer = ({ open, onClose, mortalityId }) => {
                                 visibility: isLast ? 'hidden' : 'visible',
                                 minHeight: isLast ? 0 : '1rem',
                                 backgroundColor: isUnsuitable
-                                  ? (theme.palette.customColors?.Error || theme.palette.error.main)
-                                  : (theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main),
+                                  ? theme.palette.customColors?.Error || theme.palette.error.main
+                                  : theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main,
                                 width: '1.5px'
                               }}
                             />
@@ -223,8 +230,8 @@ const NecropsyTimelineDrawer = ({ open, onClose, mortalityId }) => {
                             <Box
                               sx={{
                                 backgroundColor: isUnsuitable
-                                  ? (theme.palette.customColors?.errorContainer || alpha(theme.palette.error.main, 0.1))
-                                  : (theme.palette.customColors?.Background || theme.palette.grey[100]),
+                                  ? theme.palette.customColors?.errorContainer || alpha(theme.palette.error.main, 0.1)
+                                  : theme.palette.customColors?.Background || theme.palette.grey[100],
                                 borderRadius: 1,
                                 px: 3,
                                 py: 2,
@@ -237,19 +244,15 @@ const NecropsyTimelineDrawer = ({ open, onClose, mortalityId }) => {
                                   fontSize: '0.875rem',
                                   fontWeight: 500,
                                   color: isUnsuitable
-                                    ? (theme.palette.customColors?.Error || theme.palette.error.main)
-                                    : (theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary)
+                                    ? theme.palette.customColors?.Error || theme.palette.error.main
+                                    : theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
                                 }}
                               >
                                 {entry.comment}
                               </Typography>
 
-                              {/* User Info */}
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1.5 }}>
-                                <Avatar
-                                  src={entry.user_profile_pic}
-                                  sx={{ width: 28, height: 28, fontSize: '12px' }}
-                                >
+                                <Avatar src={entry.user_profile_pic} sx={{ width: 28, height: 28, fontSize: '12px' }}>
                                   {entry.user_name?.charAt(0)?.toUpperCase()}
                                 </Avatar>
                                 <Box>
@@ -268,7 +271,7 @@ const NecropsyTimelineDrawer = ({ open, onClose, mortalityId }) => {
                                         fontSize: '0.75rem',
                                         fontWeight: 400,
                                         color: isUnsuitable
-                                          ? (theme.palette.customColors?.Tertiary || theme.palette.error.dark)
+                                          ? theme.palette.customColors?.Tertiary || theme.palette.error.dark
                                           : theme.palette.text.secondary
                                       }}
                                     >
@@ -286,7 +289,6 @@ const NecropsyTimelineDrawer = ({ open, onClose, mortalityId }) => {
                 </Box>
               ))}
 
-              {/* Load More */}
               {hasMore && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
                   <Button
@@ -308,8 +310,6 @@ const NecropsyTimelineDrawer = ({ open, onClose, mortalityId }) => {
 }
 
 export default NecropsyTimelineDrawer
-
-// ── Styled Components ────────────────────────────────
 
 const StyledTimeline = styled(Timeline)(() => ({
   [`& .${timelineOppositeContentClasses.root}`]: {

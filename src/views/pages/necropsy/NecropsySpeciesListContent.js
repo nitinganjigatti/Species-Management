@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react'
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Grid,
-  Skeleton,
-  Avatar,
-  useTheme
-} from '@mui/material'
+import { Box, Card, CardContent, Typography, Grid, Skeleton, Avatar, useTheme } from '@mui/material'
 import { useRouter } from 'next/router'
 import { debounce } from 'lodash'
 import Search from 'src/views/utility/Search'
@@ -58,7 +49,6 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
   }, [])
 
   const fetchAnimalData = async () => {
-    // Wait for both taxonomyId and necropsy center to be available
     if (!taxonomyId || !selectedNecropsy?.id) {
       return
     }
@@ -68,6 +58,7 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
 
       const formatDate = dateString => {
         if (!dateString) return null
+
         return new Date(dateString).toISOString().split('T')[0]
       }
 
@@ -83,11 +74,9 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
         to_date: formatDate(filterDate.endDate)
       }
 
-      // Add filter arrays - Manner of Death, Organization, Sex
       const mannerOfDeathFilter = prepareFilterArray('Manner of Death', selectedOptions)
       if (mannerOfDeathFilter) params.cause_of_death = mannerOfDeathFilter
 
-      // Organization is single select, so just use the first value
       if (selectedOptions['Organization']?.length > 0) {
         params.organization_id = selectedOptions['Organization'][0]
       }
@@ -114,19 +103,17 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
     if (taxonomyId && selectedNecropsy?.id) {
       fetchAnimalData()
     } else if (taxonomyId && !selectedNecropsy?.id) {
-      // Keep loading state while waiting for necropsy center
       setLoading(true)
     }
   }, [filters.page, filters.limit, filters.q, selectedNecropsy?.id, taxonomyId, status, selectedOptions, filterDate])
 
-  // Set a timeout to stop loading if necropsy center doesn't load
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (!selectedNecropsy?.id) {
         setLoading(false)
         setInitialLoadDone(true)
       }
-    }, 3000) // Wait 3 seconds max for necropsy center
+    }, 3000)
 
     return () => clearTimeout(timeout)
   }, [selectedNecropsy?.id])
@@ -337,57 +324,77 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
     }
   ]
 
-  // Show loading skeleton while waiting for data or necropsy center
   if ((loading || !selectedNecropsy?.id) && animalRows.length === 0 && !initialLoadDone) {
     return (
       <Box>
-        <NecropsyAnalytics
-          filterDate={filterDate}
-          setFilterDate={setFilterDate}
-          showCarcassTransferButton={false}
-        />
-        <Card sx={{ mt: 6 }}>
+        <NecropsyAnalytics filterDate={filterDate} setFilterDate={setFilterDate} showCarcassTransferButton={false} />
+
+        <Card sx={{ mb: 3, mt: 6 }}>
+          <CardContent sx={{ p: 4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Skeleton variant='circular' width={48} height={48} />
+                <Box>
+                  <Skeleton variant='text' width={180} height={28} />
+                  <Skeleton variant='text' width={100} height={20} />
+                </Box>
+              </Box>
+              <Skeleton variant='rectangular' width={100} height={32} sx={{ borderRadius: 1 }} />
+            </Box>
+          </CardContent>
+        </Card>
+
+        <Card>
           <CardContent>
-          {/* Species Header Skeleton */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-            <Skeleton variant='circular' width={48} height={48} />
-            <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2, mb: 4 }}>
+              <Skeleton variant='rectangular' width={250} height={40} sx={{ borderRadius: 1 }} />
+              <Skeleton variant='rectangular' width={40} height={40} sx={{ borderRadius: 1 }} />
+            </Box>
+
+            <Box sx={{ display: 'flex', gap: 2, mb: 2, pb: 2, borderBottom: `1px solid ${theme.palette.divider}` }}>
+              <Skeleton variant='text' width={80} height={24} />
               <Skeleton variant='text' width={200} height={24} />
-              <Skeleton variant='text' width={120} height={16} />
+              <Skeleton variant='text' width={150} height={24} />
+              <Skeleton variant='text' width={150} height={24} />
+              <Skeleton variant='text' width={100} height={24} />
+              <Skeleton variant='text' width={180} height={24} />
             </Box>
-          </Box>
 
-          {/* Search and Filter Skeleton */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-            <Skeleton variant='rectangular' width={300} height={40} sx={{ borderRadius: 1 }} />
-            <Skeleton variant='rectangular' width={40} height={40} sx={{ borderRadius: 1 }} />
-          </Box>
-
-          {/* Table Skeleton */}
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Box key={i} sx={{ display: 'flex', gap: 2, mb: 2 }}>
-              <Skeleton variant='text' width={60} height={40} />
-              <Skeleton variant='rectangular' width={250} height={60} sx={{ borderRadius: 1 }} />
-              <Skeleton variant='text' width={150} height={40} />
-              <Skeleton variant='text' width={100} height={40} />
-              <Skeleton variant='rectangular' width={200} height={40} sx={{ borderRadius: 1 }} />
-            </Box>
-          ))}
-        </CardContent>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Box key={i} sx={{ display: 'flex', gap: 2, mb: 3, alignItems: 'center' }}>
+                <Skeleton variant='text' width={80} height={24} />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: 200 }}>
+                  <Skeleton variant='circular' width={40} height={40} />
+                  <Box>
+                    <Skeleton variant='text' width={120} height={20} />
+                    <Skeleton variant='text' width={80} height={16} />
+                  </Box>
+                </Box>
+                <Skeleton variant='text' width={150} height={24} />
+                <Box>
+                  <Skeleton variant='text' width={120} height={20} />
+                  <Skeleton variant='text' width={80} height={16} />
+                </Box>
+                <Skeleton variant='rectangular' width={80} height={28} sx={{ borderRadius: 0.5 }} />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Skeleton variant='circular' width={36} height={36} />
+                  <Box>
+                    <Skeleton variant='text' width={100} height={20} />
+                    <Skeleton variant='text' width={80} height={16} />
+                  </Box>
+                </Box>
+              </Box>
+            ))}
+          </CardContent>
         </Card>
       </Box>
     )
   }
 
-  // Show message if necropsy center is not selected after initial load
   if (!selectedNecropsy?.id && initialLoadDone) {
     return (
       <Box>
-        <NecropsyAnalytics
-          filterDate={filterDate}
-          setFilterDate={setFilterDate}
-          showCarcassTransferButton={false}
-        />
+        <NecropsyAnalytics filterDate={filterDate} setFilterDate={setFilterDate} showCarcassTransferButton={false} />
         <Card sx={{ mt: 6 }}>
           <CardContent sx={{ textAlign: 'center', py: 8 }}>
             <Typography sx={{ color: theme.palette.text.secondary, fontSize: '14px' }}>
@@ -401,14 +408,8 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
 
   return (
     <Box>
-      {/* Necropsy Analytics Card with Center Dropdown */}
-      <NecropsyAnalytics
-        filterDate={filterDate}
-        setFilterDate={setFilterDate}
-        showCarcassTransferButton={false}
-      />
+      <NecropsyAnalytics filterDate={filterDate} setFilterDate={setFilterDate} showCarcassTransferButton={false} />
 
-      {/* Species Header Card */}
       <Card sx={{ mb: 3, mt: 6 }}>
         <CardContent sx={{ p: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -479,10 +480,8 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
         </CardContent>
       </Card>
 
-      {/* Animals List Card */}
       <Card>
         <CardContent>
-          {/* Search and Filter */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2, mb: 4 }}>
             <Search
               borderRadius='4px'
@@ -496,13 +495,9 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
               }}
               placeholder='Search by tag or ID...'
             />
-            <FilterButtonWithNotification
-              onClick={() => setOpenFilterDrawer(true)}
-              appliedFiltersCount={filterCount}
-            />
+            <FilterButtonWithNotification onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={filterCount} />
           </Box>
 
-          {/* Animals Table */}
           <CommonTable
             key='species-animals'
             indexedRows={indexedAnimalRows}
@@ -526,7 +521,6 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
         </CardContent>
       </Card>
 
-      {/* Filter Drawer */}
       <SpeciesAnimalFilterDrawer
         open={openFilterDrawer}
         onClose={() => setOpenFilterDrawer(false)}
@@ -535,7 +529,6 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
         initialSelectedOptions={selectedOptions}
       />
 
-      {/* Incoming Necropsy Drawer */}
       {openIncomingDrawer && (
         <IncomingNecropsyDrawer
           open={openIncomingDrawer}
