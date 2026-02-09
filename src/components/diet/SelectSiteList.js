@@ -11,7 +11,8 @@ import {
   Checkbox,
   Avatar,
   InputAdornment,
-  IconButton
+  IconButton,
+  Radio
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import React, { useState, useEffect } from 'react'
@@ -86,7 +87,6 @@ const SelectSiteList = ({
       const currentSites = prev?.Site || []
 
       if (selectionType === 'site_species') {
-        // ✅ Single select
         setTempSelectedSpecies([])
         return {
           ...prev,
@@ -94,7 +94,6 @@ const SelectSiteList = ({
         }
       }
 
-      // ✅ Multi select
       const isSelected = currentSites.includes(site.site_id)
 
       return {
@@ -352,7 +351,11 @@ const SelectSiteList = ({
                       }
                     }}
                   />
-                  <Checkbox checked={isChecked} onChange={() => handleSiteCheckboxChange(site)} />
+                  {selectionType === 'site_species' ? (
+                    <Radio checked={isChecked} onChange={() => handleSiteCheckboxChange(site)} />
+                  ) : (
+                    <Checkbox checked={isChecked} onChange={() => handleSiteCheckboxChange(site)} />
+                  )}
                 </ListItem>
               )
             })
