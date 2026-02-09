@@ -170,13 +170,15 @@ const EnclosureDischargeForm = props => {
   const defaultValues = {
     returnToOriginal: true,
     discharge_type: 'TransferEnclosure',
-    site_name: patientDetails?.site_id ? { label: patientDetails?.site_name, value: patientDetails?.site_id } : null,
+    site_name: patientDetails?.site_id
+      ? { label: patientDetails?.site_name, value: patientDetails?.site_id }
+      : { label: '', value: '' },
     section_name: patientDetails?.section_id
       ? { label: patientDetails?.section_name, value: patientDetails?.section_id }
-      : null,
+      : { label: '', value: '' },
     user_enclosure_name: patientDetails?.user_enclosure_id
       ? { label: patientDetails?.user_enclosure_name, value: patientDetails?.user_enclosure_id }
-      : null,
+      : { label: '', value: '' },
     discharge_date: dayjs(),
     discharge_time: dayjs(),
     reason: '',
@@ -276,9 +278,14 @@ const EnclosureDischargeForm = props => {
   // Edit medicine – go to schedule-prescription
   const handleEditMedicine = useCallback(
     med => {
+      sessionStorage.setItem(STORAGE_KEY_FORM, JSON.stringify(getValues()))
+
+      window.location.hash = 'medications-section'
+
       router.push({
         pathname: `/hospital/inpatient/${id}/schedule-prescription`,
         query: {
+          tab: 'discharge',
           discharge_tab: 'TransferEnclosure',
           medicine_edit_id: med.id
         }
@@ -443,6 +450,7 @@ const EnclosureDischargeForm = props => {
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => {
                     handleSiteSearch('')
+                    setValue('site_name', { label: '', value: '' })
                     setValue('section_name', { label: '', value: '' })
                     setValue('user_enclosure_name', { label: '', value: '' })
                     clearSections()
@@ -454,7 +462,7 @@ const EnclosureDischargeForm = props => {
                   showIcons={false}
                   disabled={returnToOriginal}
                   onChangeOverride={val => {
-                    setValue('site_name', val)
+                    setValue('site_name', val || { label: '', value: '' })
                     setValue('section_name', { label: '', value: '' })
                     setValue('user_enclosure_name', { label: '', value: '' })
 
@@ -489,7 +497,7 @@ const EnclosureDischargeForm = props => {
                   showIcons={false}
                   disabled={returnToOriginal}
                   onChangeOverride={val => {
-                    setValue('section_name', val)
+                    setValue('section_name', val || { label: '', value: '' })
                     setValue('user_enclosure_name', { label: '', value: '' })
 
                     // Clear enclosures when section changes
@@ -517,6 +525,9 @@ const EnclosureDischargeForm = props => {
                   required
                   showIcons={false}
                   disabled={returnToOriginal}
+                  onChangeOverride={val => {
+                    setValue('user_enclosure_name', val || { label: '', value: '' })
+                  }}
                 />
               </Grid>
             </Grid>

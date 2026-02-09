@@ -62,6 +62,7 @@ function TransferEnclosureDischarge(initialData) {
   }
 
   const fetchSections = async (siteId, q = '') => {
+    if (!siteId) return
     try {
       setSectionLoading(true)
 
@@ -95,6 +96,7 @@ function TransferEnclosureDischarge(initialData) {
   }
 
   const fetchEnclosures = async (sectionId, q = '') => {
+    if (!sectionId) return
     try {
       setEnclosureLoading(true)
 
