@@ -1,0 +1,752 @@
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Drawer,
+  IconButton,
+  Skeleton,
+  TextField,
+  Typography,
+  useTheme
+} from '@mui/material'
+import React, { useEffect, useState } from 'react'
+import Icon from 'src/@core/components/icon'
+import SelectOrganDrawer from './SelectOrganDrawer'
+import EditTemplateDrawer from './EditTemplateDrawer'
+import { getNecropsyTemplate, createNecropsyTemplate, getNecropsyBodyParts } from 'src/lib/api/necropsy'
+import Toaster from 'src/components/Toaster'
+
+const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
+  const theme = useTheme()
+
+  const [selectedTemplate, setSelectedTemplate] = useState(null)
+  const [openSelectOrganDrawer, setOpenSelectOrganDrawer] = useState(false)
+  const [selectedOrgans, setSelectedOrgans] = useState([])
+  const [templates, setTemplates] = useState([])
+  const [templateLoading, setTemplateLoading] = useState(false)
+  const [loadingTemplateOrgans, setLoadingTemplateOrgans] = useState(false)
+  const [saveTemplate, setSaveTemplate] = useState(false)
+  const [templateName, setTemplateName] = useState('')
+  const [saveLoading, setSaveLoading] = useState(false)
+  const [editMode, setEditMode] = useState(false)
+  const [editingTemplate, setEditingTemplate] = useState(null)
+  const [openEditDrawer, setOpenEditDrawer] = useState(false)
+  const [bodyPartsData, setBodyPartsData] = useState([])
+
+  useEffect(() => {
+    if (open) {
+      fetchTemplates()
+      fetchBodyParts()
+      // Initialize with existing organs
+      if (organs?.length > 0) {
+        setSelectedOrgans(organs.map(o => ({
+          id: String(o.id),
+          label: o.label,
+          parts: o.parts || [],
+          isExisting: true
+        })))
+      } else {
+        setSelectedOrgans([])
+      }
+    }
+  }, [open, organs])
+
+  const fetchBodyParts = async () => {
+    try {
+      const res = await getNecropsyBodyParts({})
+      if (res?.success && res?.data) {
+        setBodyPartsData(res.data)
+      }
+    } catch (error) {
+      console.error('Error fetching body parts:', error)
+    }
+  }
+
+  const fetchTemplates = async () => {
+    setTemplateLoading(true)
+    try {
+      const res = await getNecropsyTemplate()
+      if (res?.success) {
+        setTemplates(res?.data || [])
+      }
+    } catch (error) {
+      console.error('Error fetching templates:', error)
+    } finally {
+      setTemplateLoading(false)
+    }
+  }
+
+  const handleDrawerClose = () => {
+    setOpen(false)
+    setSelectedTemplate(null)
+    setSelectedOrgans([])
+    setSaveTemplate(false)
+    setTemplateName('')
+    setEditMode(false)
+    setEditingTemplate(null)
+  }
+
+  const handleTemplateClick = (template) => {
+    // If in edit mode, open the edit drawer
+    if (editMode) {
+      setEditingTemplate(template)
+      setOpenEditDrawer(true)
+      return
+    }
+
+    const templateId = template.id || template.template_id
+    const isAlreadySelected = selectedTemplate === templateId
+
+    if (isAlreadySelected) {
+      // Deselect template and remove its organs (keep only existing organs)
+      setSelectedTemplate(null)
+      setSelectedOrgans(prev => prev.filter(o => o.isExisting))
+    } else {
+      // Select new template and replace non-existing organs with template organs
+      setSelectedTemplate(templateId)
+      setLoadingTemplateOrgans(true)
+
+      const templateItems = template.organs || template.body_parts || template.template_items || []
+      const templateOrgans = templateItems.map(organ => {
+        const sectionId = organ.id || organ.section_id || organ.body_part_id || organ.body_section_id
+
+        // Try to find section name from bodyPartsData
+        const matchingSection = bodyPartsData.find(
+          section => String(section.id || section.body_section_id) === String(sectionId)
+        )
+
+        // Try to get section/organ label from multiple possible properties
+        const sectionLabel = matchingSection?.label || matchingSection?.name ||
+          organ.label || organ.name || organ.organ_name ||
+          organ.section_name || organ.body_section_name || organ.section_label ||
+          (organ.parts?.[0]?.section_name) || (organ.parts?.[0]?.body_section_name) || ''
+
+        return {
+          id: String(sectionId || `organ_${Date.now()}_${Math.random()}`),
+          label: sectionLabel,
+          parts: (organ.parts || []).map((part, idx) => ({
+            id: part.id || part.organ_id || `part_${Date.now()}_${idx}`,
+            organ_name: part.organ_name || part.name || part.label || '',
+            label: part.label || part.name || part.organ_name || '',
+            value: ''
+          })),
+          isExisting: false
+        }
+      })
+
+      // Keep existing organs and replace with new template organs
+      setSelectedOrgans(prev => {
+        const existingOrgans = prev.filter(o => o.isExisting)
+        const combined = [...existingOrgans, ...templateOrgans]
+        // Remove duplicates by id
+        return combined.filter((organ, index, self) =>
+          index === self.findIndex(o => o.id === organ.id)
+        )
+      })
+
+      setLoadingTemplateOrgans(false)
+    }
+  }
+
+  const handleEditTemplateSave = () => {
+    fetchTemplates() // Refresh templates list
+    setEditingTemplate(null)
+  }
+
+  const handleEditTemplateDelete = () => {
+    fetchTemplates() // Refresh templates list
+    setEditingTemplate(null)
+    // If the deleted template was selected, clear the selection
+    if (selectedTemplate === (editingTemplate?.id || editingTemplate?.template_id)) {
+      setSelectedTemplate(null)
+      setSelectedOrgans(prev => prev.filter(o => o.isExisting))
+    }
+  }
+
+  const handleAddOrgans = (newOrgans) => {
+    // newOrgans comes grouped by category with parts
+    const organsToAdd = newOrgans.map(o => ({
+      id: String(o.id),
+      label: o.label,
+      parts: (o.parts || []).map((part, idx) => ({
+        id: part.id || `part_${Date.now()}_${idx}`,
+        organ_name: part.organ_name || part.label || part.name || '',
+        label: part.label || part.organ_name || part.name || '',
+        value: part.value || ''
+      })),
+      isExisting: false
+    }))
+
+    setSelectedOrgans(prev => {
+      // Merge with existing - update parts for same category, add new categories
+      const merged = [...prev]
+
+      organsToAdd.forEach(newOrgan => {
+        const existingIndex = merged.findIndex(o => o.id === newOrgan.id)
+        if (existingIndex >= 0) {
+          // Merge parts for existing category
+          const existingOrgan = merged[existingIndex]
+          const existingPartIds = existingOrgan.parts.map(p => p.id)
+          const newParts = newOrgan.parts.filter(p => !existingPartIds.includes(p.id))
+          merged[existingIndex] = {
+            ...existingOrgan,
+            parts: [...existingOrgan.parts, ...newParts],
+            isExisting: existingOrgan.isExisting
+          }
+        } else {
+          merged.push(newOrgan)
+        }
+      })
+
+      return merged
+    })
+  }
+
+  const handleRemoveOrgan = (organId) => {
+    setSelectedOrgans(prev => prev.filter(o => o.id !== organId))
+  }
+
+  const handleRemovePart = (organId, partId) => {
+    setSelectedOrgans(prev => {
+      return prev.map(organ => {
+        if (organ.id !== organId) return organ
+
+        const updatedParts = organ.parts.filter(p => p.id !== partId)
+
+        // If no parts left, remove the entire organ
+        if (updatedParts.length === 0) {
+          return null
+        }
+
+        return {
+          ...organ,
+          parts: updatedParts
+        }
+      }).filter(Boolean) // Remove null entries (organs with no parts)
+    })
+  }
+
+  const handleClearAll = () => {
+    setSelectedOrgans(prev => prev.filter(o => o.isExisting))
+    setSelectedTemplate(null)
+  }
+
+  const handleSaveTemplate = async () => {
+    if (!templateName.trim()) {
+      Toaster({ type: 'error', message: 'Please enter a template name' })
+      return
+    }
+
+    setSaveLoading(true)
+    try {
+      // Format template items - flatten all parts from all organs
+      const templateItems = selectedOrgans.reduce((acc, organ) => {
+        const parts = organ.parts?.map(part => ({
+          id: part.id,
+          desc: part.value || ''
+        })) || []
+        return [...acc, ...parts]
+      }, [])
+
+      const payload = {
+        template_name: templateName.trim(),
+        template_items: templateItems
+      }
+
+      const res = await createNecropsyTemplate(payload)
+      if (res?.success) {
+        Toaster({ type: 'success', message: res?.message || 'Template saved successfully' })
+        setTemplateName('')
+        setSaveTemplate(false)
+        fetchTemplates() // Refresh templates list
+      } else {
+        Toaster({ type: 'error', message: res?.message || 'Failed to save template' })
+      }
+    } catch (error) {
+      console.error('Error saving template:', error)
+      Toaster({ type: 'error', message: 'Something went wrong while saving template' })
+    } finally {
+      setSaveLoading(false)
+    }
+  }
+
+  const handleApply = () => {
+    // Format organs for the form
+    const formattedOrgans = selectedOrgans.map(organ => ({
+      id: organ.id,
+      label: organ.label,
+      parts: organ.parts.length > 0 ? organ.parts.map(p => ({
+        id: p.id,
+        organ_name: p.organ_name || p.label || '',
+        label: p.label || p.organ_name || '',
+        value: p.value || ''
+      })) : [{
+        id: `part_${Date.now()}`,
+        organ_name: '',
+        label: '',
+        value: ''
+      }]
+    }))
+
+    onApply(formattedOrgans)
+    handleDrawerClose()
+  }
+
+  const hasNewOrgans = selectedOrgans.some(o => !o.isExisting)
+  const totalParts = selectedOrgans.reduce((sum, o) => sum + (o.parts?.length || 0), 0)
+
+  return (
+    <>
+      <Drawer
+        anchor='right'
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: ['100%', '562px'],
+            display: 'flex',
+            flexDirection: 'column'
+          }
+        }}
+        open={open}
+        onClose={handleDrawerClose}
+      >
+        <Box
+          sx={{
+            backgroundColor: theme.palette.customColors.OnPrimary,
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
+          {/* Header */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: theme.palette.customColors.OnPrimary,
+              px: '1.2rem',
+              py: '1rem',
+              borderBottom: `1px solid ${theme.palette.divider}`
+            }}
+          >
+            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+              <Icon icon='mdi:human-male' fontSize={32} color={theme.palette.primary.main} />
+              <Typography
+                sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+              >
+                Add Organs
+              </Typography>
+            </Box>
+            <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
+              <Icon icon='mdi:close' fontSize={30} />
+            </IconButton>
+          </Box>
+
+          {/* Content */}
+          <Box sx={{ flex: 1, overflow: 'auto' }}>
+            {/* Add Organ Button */}
+            <Box sx={{ px: 6, pt: 6, pb: 3 }}>
+              <Button
+                onClick={() => setOpenSelectOrganDrawer(true)}
+                sx={{
+                  width: '100%',
+                  backgroundColor: theme.palette.customColors.SecondaryContainer,
+                  color: theme.palette.customColors.OnSecondaryContainer,
+                  fontSize: '20px',
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  py: 2,
+                  '&:hover': { backgroundColor: theme.palette.customColors.SecondaryContainer }
+                }}
+                startIcon={<Icon icon='mdi:plus' fontSize={30} />}
+              >
+                Add Organ
+              </Button>
+            </Box>
+
+            {/* Loading indicator */}
+            {loadingTemplateOrgans && (
+              <Box display='flex' justifyContent='center' alignItems='center' py={2}>
+                <CircularProgress size={28} />
+              </Box>
+            )}
+
+            {/* Selected Organs */}
+            {selectedOrgans.length > 0 && (
+              <Box sx={{ py: 3, px: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <Typography
+                  sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  Selected ({totalParts} parts in {selectedOrgans.length} categories)
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 3,
+                    p: 4,
+                    backgroundColor: theme.palette.customColors.Background,
+                    borderRadius: 1
+                  }}
+                >
+                  {selectedOrgans.map(organ => (
+                    <Box
+                      key={organ.id}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        justifyContent: 'space-between',
+                        p: 4,
+                        backgroundColor: theme.palette.customColors.OnPrimary,
+                        border: `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                        borderRadius: 1
+                      }}
+                    >
+                      <Box sx={{ flex: 1 }}>
+                        <Typography
+                          sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant, mb: 1 }}
+                        >
+                          {organ.label}
+                        </Typography>
+                        {organ.parts?.length > 0 && (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 0.5 }}>
+                            {organ.parts.map((part, idx) => (
+                              <Box
+                                key={part.id || idx}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 1,
+                                  backgroundColor: theme.palette.customColors.Surface || theme.palette.grey[100],
+                                  border: `1px solid ${theme.palette.divider}`,
+                                  px: 2,
+                                  py: 0.75,
+                                  borderRadius: '16px',
+                                  transition: 'all 0.2s ease',
+                                  ...(!organ.isExisting && {
+                                    '&:hover': {
+                                      backgroundColor: theme.palette.action.hover,
+                                      borderColor: theme.palette.primary.light
+                                    }
+                                  })
+                                }}
+                              >
+                                <Typography
+                                  sx={{
+                                    fontSize: '0.8125rem',
+                                    fontWeight: 500,
+                                    color: theme.palette.customColors.OnSurfaceVariant,
+                                    lineHeight: 1.4
+                                  }}
+                                >
+                                  {part.organ_name || part.label || `Part ${idx + 1}`}
+                                </Typography>
+                                {!organ.isExisting && (
+                                  <IconButton
+                                    size='small'
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleRemovePart(organ.id, part.id)
+                                    }}
+                                    sx={{
+                                      p: 0.25,
+                                      ml: 0.25,
+                                      backgroundColor: theme.palette.grey[300],
+                                      borderRadius: '50%',
+                                      transition: 'all 0.2s ease',
+                                      '&:hover': {
+                                        backgroundColor: theme.palette.error.light,
+                                        '& svg': {
+                                          color: `${theme.palette.common.white} !important`
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    <Icon
+                                      icon='mdi:close'
+                                      fontSize={12}
+                                      color={theme.palette.text.secondary}
+                                    />
+                                  </IconButton>
+                                )}
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
+                      </Box>
+                      <IconButton
+                        onClick={() => handleRemoveOrgan(organ.id)}
+                        disabled={organ.isExisting}
+                        size='small'
+                        sx={{
+                          opacity: organ.isExisting ? 0.5 : 1,
+                          cursor: organ.isExisting ? 'not-allowed' : 'pointer'
+                        }}
+                      >
+                        <Icon icon='zondicons:close-outline' color={theme.palette.customColors.Error} />
+                      </IconButton>
+                    </Box>
+                  ))}
+                </Box>
+
+                {/* Save as template / Clear all */}
+                {saveTemplate ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 4 }}>
+                    <TextField
+                      placeholder='Enter Template Name'
+                      value={templateName}
+                      sx={{
+                        flex: 1,
+                        '& .MuiInputBase-root': {
+                          backgroundColor: theme.palette.customColors.Surface
+                        },
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': {
+                            border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                          }
+                        },
+                        '& .MuiInputBase-input::placeholder': {
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontSize: '1rem',
+                          fontWeight: 400
+                        }
+                      }}
+                      onChange={e => setTemplateName(e.target.value)}
+                    />
+                    <Button
+                      variant='contained'
+                      sx={{ height: '48px' }}
+                      startIcon={<Icon icon='material-symbols:save-outline-rounded' />}
+                      onClick={handleSaveTemplate}
+                      disabled={templateName.trim() === '' || saveLoading}
+                    >
+                      {saveLoading ? <CircularProgress size={24} color='inherit' /> : 'SAVE'}
+                    </Button>
+                    <Button
+                      sx={{
+                        textTransform: 'none',
+                        color: theme.palette.customColors.Error,
+                        fontSize: '1rem',
+                        fontWeight: 600
+                      }}
+                      startIcon={<Icon icon='bitcoin-icons:cross-outline' />}
+                      onClick={() => {
+                        setTemplateName('')
+                        setSaveTemplate(false)
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </Box>
+                ) : (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-start',
+                        gap: '2.5px',
+                        cursor: hasNewOrgans ? 'pointer' : 'not-allowed',
+                        opacity: hasNewOrgans ? 1 : 0.5
+                      }}
+                      onClick={hasNewOrgans ? () => setSaveTemplate(true) : undefined}
+                    >
+                      <Icon
+                        icon='material-symbols:save-outline-rounded'
+                        color={hasNewOrgans ? theme.palette.customColors.OnSurface : theme.palette.text.disabled}
+                      />
+                      <Typography
+                        sx={{
+                          fontSize: '1rem',
+                          fontWeight: 600,
+                          color: hasNewOrgans ? theme.palette.customColors.OnSurface : theme.palette.text.disabled
+                        }}
+                      >
+                        Save as template
+                      </Typography>
+                    </Box>
+                    <Typography
+                      sx={{
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        color: hasNewOrgans ? theme.palette.customColors.Error : theme.palette.text.disabled,
+                        cursor: hasNewOrgans ? 'pointer' : 'not-allowed',
+                        opacity: hasNewOrgans ? 1 : 0.5
+                      }}
+                      onClick={hasNewOrgans ? handleClearAll : undefined}
+                    >
+                      Clear all
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            )}
+
+            {/* Templates Section */}
+            {templates.length > 0 && (
+              <Box sx={{ py: 3, px: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography
+                    sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '1.25rem', fontWeight: 500 }}
+                  >
+                    Templates
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      cursor: 'pointer',
+                      px: 2,
+                      py: 1,
+                      borderRadius: 1,
+                      backgroundColor: editMode ? theme.palette.primary.main : 'transparent',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        backgroundColor: editMode
+                          ? theme.palette.primary.dark
+                          : theme.palette.action.hover
+                      }
+                    }}
+                    onClick={() => setEditMode(!editMode)}
+                  >
+                    <Icon
+                      icon='mdi:pencil-outline'
+                      fontSize={18}
+                      color={editMode ? theme.palette.common.white : theme.palette.customColors.OnSurfaceVariant}
+                    />
+                    <Typography
+                      sx={{
+                        fontSize: '0.875rem',
+                        fontWeight: 500,
+                        color: editMode ? theme.palette.common.white : theme.palette.customColors.OnSurfaceVariant
+                      }}
+                    >
+                      {editMode ? 'Done' : 'Edit'}
+                    </Typography>
+                  </Box>
+                </Box>
+                {templateLoading ? (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4, py: 2 }}>
+                    {Array.from(new Array(6)).map((_, index) => (
+                      <Box key={index} sx={{ width: '45%' }}>
+                        <Skeleton
+                          variant='rectangular'
+                          height={50}
+                          animation='wave'
+                          sx={{ borderRadius: 1, bgcolor: theme.palette.action.hover }}
+                        />
+                      </Box>
+                    ))}
+                  </Box>
+                ) : (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {templates.map((template, index) => {
+                      const templateId = template.id || template.template_id
+                      const isSelected = selectedTemplate === templateId
+
+                      return (
+                        <Box
+                          key={templateId || index}
+                          onClick={() => handleTemplateClick(template)}
+                          sx={{
+                            p: 4,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            backgroundColor: editMode
+                              ? theme.palette.action.hover
+                              : isSelected
+                                ? theme.palette.customColors.OnBackground
+                                : theme.palette.customColors.OnPrimary,
+                            border: editMode
+                              ? `2px dashed ${theme.palette.primary.main}`
+                              : isSelected
+                                ? `2px solid ${theme.palette.primary.main}`
+                                : `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                            borderRadius: 1,
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            fontSize: '1rem',
+                            fontWeight: isSelected ? 600 : 400,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          {editMode && (
+                            <Icon
+                              icon='mdi:pencil'
+                              fontSize={16}
+                              color={theme.palette.primary.main}
+                            />
+                          )}
+                          {template.name || template.template_name}
+                        </Box>
+                      )
+                    })}
+                  </Box>
+                )}
+              </Box>
+            )}
+          </Box>
+
+          {/* Footer */}
+          <Box
+            sx={{
+              p: 4,
+              borderTop: `1px solid ${theme.palette.divider}`,
+              backgroundColor: 'background.paper',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              boxShadow: '0px -1px 30px 0px rgba(0, 0, 0, 0.1)'
+            }}
+          >
+            <Button
+              variant='outlined'
+              fullWidth
+              onClick={handleDrawerClose}
+              sx={{
+                borderColor: theme.palette.customColors.OnPrimaryContainer,
+                color: theme.palette.customColors.OnPrimaryContainer,
+                height: '56px'
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant='contained'
+              fullWidth
+              onClick={handleApply}
+              sx={{ height: '56px' }}
+            >
+              Apply
+            </Button>
+          </Box>
+        </Box>
+      </Drawer>
+
+      {/* Select Organ Drawer */}
+      {openSelectOrganDrawer && (
+        <SelectOrganDrawer
+          open={openSelectOrganDrawer}
+          setOpen={setOpenSelectOrganDrawer}
+          selectedOrgans={selectedOrgans}
+          onAddSelected={handleAddOrgans}
+        />
+      )}
+
+      {/* Edit Template Drawer */}
+      {openEditDrawer && editingTemplate && (
+        <EditTemplateDrawer
+          open={openEditDrawer}
+          setOpen={setOpenEditDrawer}
+          template={editingTemplate}
+          onSave={handleEditTemplateSave}
+          onDelete={handleEditTemplateDelete}
+        />
+      )}
+    </>
+  )
+}
+
+export default AddOrganDrawer

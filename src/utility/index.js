@@ -314,9 +314,14 @@ export const downloadPDF = async ({ apiCall, params, fileName, headers = {} }) =
     // Call the API to get the download URL
     const response = await apiCall(params)
 
-    if (response?.success && response?.data?.download_url) {
+    // Handle both response formats:
+    // 1. response.data.download_url (nested URL)
+    // 2. response.data as direct URL string
+    const downloadUrl = response?.data?.download_url || (typeof response?.data === 'string' ? response.data : null)
+
+    if (response?.success && downloadUrl) {
       // Fetch the file as a blob
-      const fileResponse = await fetch(response.data.download_url, {
+      const fileResponse = await fetch(downloadUrl, {
         method: 'GET',
         headers
       })

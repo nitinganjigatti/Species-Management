@@ -685,6 +685,8 @@ export const CARCASS_CONDITION = `masters/carcassCondition`
 
 export const CARCASS_DEPOSITION = `masters/carcassDisposition`
 
+export const MEASUREMENT_UNITS = `masters/measurement-units`
+
 export const NECROPSY_CENTER = `v1/entity/types/necropsy_centre`
 
 export const ANIMAL_DIET_LIST = `diet/get-species-detail`
@@ -980,3 +982,42 @@ export const GET_INCOMING_NECROPSY_CHECKLIST_DETAILS = `v1/request`
 export const CREATE_INCOMING_NECROPSY_SUMMARY_COMMENT = `v1/request/comment/create`
 
 export const GET_INCOMING_NECROPSY_BTN_STATUS = `v1/transfer`
+
+export const UPDATE_TRANSFER_BTN_STATUS = `v1/transfer/update-btn-status`
+
+export const GET_TRANSFER_ANIMAL_LIST = `v1/transfer/get-animal-list`
+
+export const GET_NECROPSY_SUMMARY = `v2/necropsy/summary`
+
+export const ADD_NECROPSY = `v2/animal/necropsy/add`
+
+export const EDIT_NECROPSY = `v2/animal/necropsy/edit`
+
+export const DELETE_NECROPSY = `v2/delete/animal/necropsy`
+
+export const GET_NECROPSY_BODY_PARTS = `v1/animal/necropsy/bodyparts`
+
+export const GET_NECROPSY_TEMPLATE = `v2/get-template-necropsy`
+
+export const CREATE_NECROPSY_TEMPLATE = `v2/create-necropsy-template`
+
+export const UPDATE_NECROPSY_TEMPLATE = `v2/update-template`
+
+export const DELETE_NECROPSY_TEMPLATE = `v2/delete-necropsy-template`
+
+export const GET_NECROPSY_TIMELINE = `mortality/get-mortality-comments`
+
+export const GET_MORTALITY_SUMMARY = `mortality/summary`
+
+export const GET_MEDICAL_STATS = `medical/get-medical-record-statistics`
+
+export const GET_NECROPSY_PDF = `v2/post-mortem-report-pdf2`
+
+export const DELETE_NECROPSY_ATTACHMENT = `v2/attachment-media-remove`
+
+// Necropsy Medical History
+export const GET_MEDICAL_BASIC_DATA_LIST = 'medical/v2/'
+export const GET_MEDICAL_RECORD_DETAILS = 'medical/v2/details'
+export const GET_LAB_REQUESTS_BY_ANIMAL = 'medical/get-lab-test-request-status-wise-new'
+export const GET_ASSESSMENT_ANIMAL_TYPES = 'v1/assessment/animal/types'
+export const GET_ASSESSMENT_ANIMAL_DATA = 'v1/assessment/animal/defaultValue'

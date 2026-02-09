@@ -5,7 +5,7 @@ import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDate
 import { AirportShuttle } from '@mui/icons-material'
 import RenderUtility from 'src/utility/render'
 
-const NecropsyAnalytics = ({ disabled = false, filterDate, setFilterDate, badgeCount = 1, onCarcassTransfer, allowCarcassCollection }) => {
+const NecropsyAnalytics = ({ disabled = false, filterDate, setFilterDate, badgeCount = 1, onCarcassTransfer, allowCarcassCollection, showCarcassTransferButton = true }) => {
   const theme = useTheme()
 
   return (
@@ -20,7 +20,7 @@ const NecropsyAnalytics = ({ disabled = false, filterDate, setFilterDate, badgeC
           <Grid container alignItems='center' rowSpacing={1}>
             <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               {RenderUtility.pageTitle('Necropsy')}
-              {allowCarcassCollection && (
+              {allowCarcassCollection && showCarcassTransferButton && (
                 <Button
                   onClick={onCarcassTransfer}
                   sx={{
@@ -70,30 +70,32 @@ const NecropsyAnalytics = ({ disabled = false, filterDate, setFilterDate, badgeC
               </Grid>
 
               {/* Right: Date Range Picker */}
-              <Grid size={{ xs: 12, sm: 'auto' }}>
-                <Box>
-                  <Typography
-                    sx={{
-                      fontSize: '14px',
-                      color: theme.palette.customColors.neutralSecondary
-                    }}
-                  >
-                    Date Range
-                  </Typography>
-                  <Box
-                    sx={{
-                      width: '100%',
-                      minWidth: { xs: 0, sm: '300px' },
-                      py: '6px'
-                    }}
-                  >
-                    <CommonDateRangePickers
-                      filterDates={filterDate}
-                      onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
-                    />
+              {!disabled && (
+                <Grid size={{ xs: 12, sm: 'auto' }}>
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontSize: '14px',
+                        color: theme.palette.customColors.neutralSecondary
+                      }}
+                    >
+                      Date Range
+                    </Typography>
+                    <Box
+                      sx={{
+                        width: '100%',
+                        minWidth: { xs: 0, sm: '300px' },
+                        py: '6px'
+                      }}
+                    >
+                      <CommonDateRangePickers
+                        filterDates={filterDate}
+                        onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
+                      />
+                    </Box>
                   </Box>
-                </Box>
-              </Grid>
+                </Grid>
+              )}
             </Grid>
           </Grid>
         </CardContent>

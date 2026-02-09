@@ -1,0 +1,1818 @@
+import React, { useState, useEffect, useContext, useRef } from 'react'
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Grid,
+  Divider,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+  Skeleton,
+  useTheme
+} from '@mui/material'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
+import { useRouter } from 'next/router'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
+import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
+import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
+import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
+import NecropsyAnimalInfoCard from 'src/components/necropsy/NecropsyAnimalInfoCard'
+import UserMultiSelect from 'src/components/necropsy/UserMultiSelect'
+import NecropsyOrganSection from 'src/components/necropsy/NecropsyOrganSection'
+import BottomActionBar from 'src/views/utility/BottomActionBar'
+import Toaster from 'src/components/Toaster'
+import { Close as CloseIcon } from '@mui/icons-material'
+import {
+  addNecropsy,
+  editNecropsy,
+  deleteNecropsy,
+  getNecropsySummary,
+  getMortalitySummary,
+  getMannerOfDeath,
+  getCarcassDisposition,
+  deleteNecropsyAttachment,
+  getMeasurementUnits
+} from 'src/lib/api/necropsy'
+import { AuthContext } from 'src/context/AuthContext'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
+
+// Extend dayjs with plugins for UTC/timezone handling
+dayjs.extend(utc)
+dayjs.extend(timezone)
+
+// Helper function to extract readable error message from API response
+const getErrorMessage = (message, fallback = 'An error occurred') => {
+  if (!message) return fallback
+  if (typeof message === 'string') return message
+
+  // If message is an object (validation errors), extract the first error or join all
+  if (typeof message === 'object') {
+    const errorValues = Object.values(message)
+    if (errorValues.length > 0) {
+      // Return the first error message for brevity
+      return String(errorValues[0])
+    }
+  }
+
+  return fallback
+}
+
+const sexOptions = ['male', 'female', 'indeterminate', 'undetermined']
+const ageUnitOptions = ['day', 'month', 'year']
+
+// ── Submit Validation Schema ───────────────────────────────────────
+const submitSchema = yup.object().shape({
+  is_suitable: yup.boolean(),
+  reason_for_unsuitable: yup.string().when('is_suitable', {
+    is: false,
+    then: schema =>
+      schema.test('not-empty', 'Reason for unsuitable is required', value => value?.trim()?.length > 0),
+    otherwise: schema => schema.notRequired()
+  }),
+  confirmed_cause_of_death: yup
+    .mixed()
+    .nullable()
+    .when('is_suitable', {
+      is: true,
+      then: schema => schema.test('required', 'Confirmed cause of death is required', value => value != null),
+      otherwise: schema => schema.nullable()
+    }),
+  disposal_method: yup
+    .mixed()
+    .nullable()
+    .when('is_suitable', {
+      is: true,
+      then: schema => schema.test('required', 'Disposal method is required', value => value != null),
+      otherwise: schema => schema.nullable()
+    }),
+  weight_unit: yup
+    .mixed()
+    .nullable()
+    .when(['is_suitable', 'carcass_weight'], {
+      is: (suitable, weight) => suitable === true && weight != null && String(weight).trim().length > 0,
+      then: schema => schema.test('required', 'Please select the weight unit', value => value != null),
+      otherwise: schema => schema.nullable()
+    })
+})
+
+const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
+  const theme = useTheme()
+  const router = useRouter()
+  const authData = useContext(AuthContext)
+
+  const [mortalityData, setMortalityData] = useState(null)
+  const [necropsyData, setNecropsyData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [submitLoading, setSubmitLoading] = useState(false)
+  const [draftLoading, setDraftLoading] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [unsuitableDialogOpen, setUnsuitableDialogOpen] = useState(false)
+  const [ageDialogOpen, setAgeDialogOpen] = useState(false)
+  const [animalDOB, setAnimalDOB] = useState(null)
+  const [ageInputs, setAgeInputs] = useState({ years: '', months: '', days: '' })
+  const [dialogApproxAge, setDialogApproxAge] = useState(false)
+
+  const [mannerOfDeathOptions, setMannerOfDeathOptions] = useState([])
+  const [disposalOptions, setDisposalOptions] = useState([])
+  const [weightUnitOptions, setWeightUnitOptions] = useState([])
+  const [weightUomId, setWeightUomId] = useState(null) // Store numeric UOM ID from API
+  const weightUnitsRef = useRef([]) // Ref to store weight units for immediate access
+  const mannerOfDeathOptionsRef = useRef([]) // Ref for immediate access
+  const disposalOptionsRef = useRef([]) // Ref for immediate access
+
+  const [conductedByUsers, setConductedByUsers] = useState([])
+  const [organs, setOrgans] = useState([])
+  const [existingAttachments, setExistingAttachments] = useState([])
+
+  const isEditing = !!necropsyId
+  const isDraftEdit = isEditing && status?.toUpperCase() === 'DRAFT'
+  const isCompletedEdit = isEditing && (status?.toUpperCase() === 'COMPLETED' || status?.toUpperCase() === 'UNSUITABLE')
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setValue
+  } = useForm({
+    defaultValues: {
+      is_suitable: true,
+      reason_for_unsuitable: '',
+      caracass_submission_date: null,
+      caracass_submission_time: null,
+      death_date: null,
+      death_time: null,
+      place_of_death: '',
+      qr_number: '',
+      carcass_weight: '',
+      weight_unit: null,
+      approximate_weight: false,
+      sex: '',
+      age: '',
+      age_unit: 'year',
+      approximate_dob: false,
+      history_of_illness: '',
+      necropsy_date: dayjs(),
+      necropsy_time: dayjs(),
+      general_description: '',
+      manner_of_death: null,
+      opinion: '',
+      confirmed_cause_of_death: null,
+      disposal_method: null,
+      biological_test: '',
+      additional_notes: '',
+      attachments: []
+    },
+    resolver: yupResolver(submitSchema),
+    mode: 'onChange'
+  })
+
+  const isSuitable = watch('is_suitable')
+
+  // ── Auto-add current user as conductor (matching mobile app) ────
+  useEffect(() => {
+    // Only auto-add for new necropsy (not editing) and when no users are selected yet
+    if (!necropsyId && authData?.userData?.user && conductedByUsers.length === 0) {
+      const userDetails = authData.userData.user
+      const userToAdd = {
+        user_id: userDetails.user_id,
+        user_name: `${userDetails.user_first_name || ''} ${userDetails.user_last_name || ''}`.trim(),
+        user_profile_pic: userDetails.profile_pic || '',
+        role_name: authData.userData.roles?.role_name || ''
+      }
+      if (userToAdd.user_id) {
+        setConductedByUsers([userToAdd])
+      }
+    }
+  }, [necropsyId, authData?.userData?.user])
+
+  // ── Data Fetching ──────────────────────────────────────────────
+
+  useEffect(() => {
+    fetchInitialData()
+  }, [mortalityId, necropsyId])
+
+  const fetchInitialData = async () => {
+    try {
+      setLoading(true)
+
+      const [mortalityRes, mannerRes, disposalRes, measurementRes] = await Promise.all([
+        getMortalitySummary({ mortality_id: mortalityId }),
+        getMannerOfDeath(),
+        getCarcassDisposition(),
+        getMeasurementUnits()
+      ])
+
+      if (mannerRes?.data) {
+        // Mobile app maps: key: item?.name (confirmed_cause_of_death from API is the name)
+        const options = (Array.isArray(mannerRes.data) ? mannerRes.data : mannerRes.data?.result || []).map(item => ({
+          label: item.name || item.label,
+          value: item.id || item.string_id || item.value,
+          key: item.name || item.label // Mobile app sets key to item.name for matching
+        }))
+        setMannerOfDeathOptions(options)
+        mannerOfDeathOptionsRef.current = options // Store in ref for immediate access
+      }
+
+      if (disposalRes?.data) {
+        // Mobile app maps: key: item?.name (disposition from API is the name)
+        const options = (Array.isArray(disposalRes.data) ? disposalRes.data : disposalRes.data?.result || []).map(
+          item => ({
+            label: item.name || item.label,
+            value: item.id || item.string_id || item.value,
+            key: item.name || item.label // Mobile app sets key to item.name for matching
+          })
+        )
+        setDisposalOptions(options)
+        disposalOptionsRef.current = options // Store in ref for immediate access
+      }
+
+      // Filter measurement units for weight type (matching mobile app)
+      let weightUnits = []
+      if (measurementRes?.success && Array.isArray(measurementRes.data)) {
+        weightUnits = measurementRes.data
+          .filter(item => item?.measurement_type === 'weight')
+          .map(item => ({
+            id: item.id,
+            label: item.uom_abbr || item.unit_name || item.name,
+            value: item.uom_abbr || item.unit_name || item.name,
+            unit_name: item.unit_name,
+            uom_abbr: item.uom_abbr
+          }))
+        setWeightUnitOptions(weightUnits)
+        weightUnitsRef.current = weightUnits // Store in ref for immediate access
+      }
+
+      if (mortalityRes?.success) {
+        setMortalityData(mortalityRes.data)
+        const mortData = mortalityRes.data
+
+        // Pre-fill form fields from mortality data (matching mobile app behavior)
+        if (!necropsyId) {
+          // Clinical history
+          setValue('history_of_illness', mortData?.history_of_illness || '')
+          setValue('place_of_death', mortData?.place_of_death || '')
+
+          // QR Number
+          if (mortData?.qr_number) {
+            setValue('qr_number', mortData.qr_number)
+          }
+
+          // Carcass weight
+          if (mortData?.carcass_weight) {
+            setValue('carcass_weight', String(mortData.carcass_weight))
+
+            // Store UOM ID first from API if available
+            const uomId = mortData.carcass_weight_uom_id || mortData.carcass_weight_uom || mortData.uom_id
+            if (uomId && !isNaN(Number(uomId))) {
+              setWeightUomId(Number(uomId))
+              // Find unit by ID from fetched options
+              const unitById = weightUnits.find(u => u.id === Number(uomId))
+              if (unitById) {
+                setValue('weight_unit', unitById)
+              }
+            }
+
+            // If no unit found by ID, try matching by name/abbr
+            if (!watch('weight_unit')) {
+              const uomAbbr = mortData.uom_abbr || mortData.carcass_weight_unit_name
+              if (uomAbbr) {
+                const uomAbbrLower = String(uomAbbr).toLowerCase()
+                let unit = weightUnits.find(u => u.value?.toLowerCase() === uomAbbrLower)
+                if (!unit) {
+                  unit = weightUnits.find(u =>
+                    uomAbbrLower.includes(u.value?.toLowerCase()) || u.value?.toLowerCase()?.includes(uomAbbrLower)
+                  )
+                }
+                if (unit) {
+                  setValue('weight_unit', unit)
+                  setWeightUomId(unit.id)
+                }
+              }
+            }
+
+            setValue('approximate_weight', mortData.approximate_weight === 1 || mortData.approximate_weight === '1')
+          }
+
+          // Sex from animal details
+          if (mortData?.sex) {
+            setValue('sex', mortData.sex)
+          }
+
+          // Age and DOB
+          if (mortData?.birth_date) {
+            // If birth_date is available, use it directly
+            const birthDate = dayjs(mortData.birth_date)
+            if (birthDate.isValid()) {
+              setAnimalDOB(birthDate)
+              setValue('approximate_dob', mortData.approximate_dob === 1 || mortData.approximate_dob === '1')
+            }
+          } else if (mortData?.age && mortData?.discovered_date) {
+            // Calculate DOB from age and death date
+            const deathDateValue = typeof mortData.discovered_date === 'number'
+              ? dayjs(mortData.discovered_date)
+              : dayjs.utc(mortData.discovered_date).local()
+
+            if (deathDateValue.isValid()) {
+              const ageUnit = mortData.age_unit || 'day'
+              const calculatedDOB = deathDateValue.subtract(parseInt(mortData.age), ageUnit)
+              if (calculatedDOB.isValid()) {
+                setAnimalDOB(calculatedDOB)
+              }
+            }
+            setValue('age', String(mortData.age))
+            setValue('age_unit', mortData.age_unit || 'day')
+            setValue('approximate_dob', mortData.approximate_dob === 1 || mortData.approximate_dob === '1')
+          }
+
+          // Death date and time from discovered_date (convert UTC to local like mobile app)
+          if (mortData?.discovered_date) {
+            let discoveredDate
+
+            // Handle different formats: timestamp (number) or date string
+            if (typeof mortData.discovered_date === 'number') {
+              // Timestamp in milliseconds
+              discoveredDate = dayjs(mortData.discovered_date)
+            } else {
+              // Date string - parse and convert to local time if UTC
+              discoveredDate = dayjs.utc(mortData.discovered_date).local()
+            }
+
+            // If the date is valid, set both date and time
+            if (discoveredDate.isValid()) {
+              setValue('death_date', discoveredDate)
+              setValue('death_time', discoveredDate)
+            }
+          }
+
+          // Carcass submission date/time (default to current)
+          setValue('caracass_submission_date', dayjs())
+          setValue('caracass_submission_time', dayjs())
+
+          // Necropsy date/time (default to current)
+          setValue('necropsy_date', dayjs())
+          setValue('necropsy_time', dayjs())
+
+          // Pre-fill manner of death from mortality if available
+          if (mortData?.manner_of_death_id && mannerRes?.data) {
+            const options = Array.isArray(mannerRes.data) ? mannerRes.data : mannerRes.data?.result || []
+            const matchingOption = options.find(
+              item => String(item.id) === String(mortData.manner_of_death_id)
+            )
+            if (matchingOption) {
+              setValue('confirmed_cause_of_death', {
+                label: matchingOption.name || matchingOption.label,
+                value: matchingOption.id || matchingOption.string_id
+              })
+            }
+          }
+
+          // Pre-fill disposal method if available
+          if (mortData?.carcass_disposition_id && disposalRes?.data) {
+            const options = Array.isArray(disposalRes.data) ? disposalRes.data : disposalRes.data?.result || []
+            const matchingOption = options.find(
+              item => String(item.id) === String(mortData.carcass_disposition_id)
+            )
+            if (matchingOption) {
+              setValue('disposal_method', {
+                label: matchingOption.name || matchingOption.label,
+                value: matchingOption.id || matchingOption.string_id
+              })
+            }
+          }
+        }
+      }
+
+      if (necropsyId) {
+        const necropsyRes = await getNecropsySummary(necropsyId)
+        if (necropsyRes?.success && necropsyRes.data) {
+          setNecropsyData(necropsyRes.data)
+          populateFormFromNecropsy(necropsyRes.data)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching initial data:', error)
+      Toaster({ type: 'error', message: 'Failed to load form data' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const populateFormFromNecropsy = data => {
+    setValue('is_suitable', data.is_unsuitable !== '1' && data.is_unsuitable !== 1)
+    setValue('reason_for_unsuitable', data.reason_for_unsuitable || '')
+
+    if (data.caracass_submission_date) setValue('caracass_submission_date', dayjs(data.caracass_submission_date))
+    if (data.caracass_submission_time)
+      setValue('caracass_submission_time', dayjs(`2000-01-01 ${data.caracass_submission_time}`))
+    if (data.death_date) setValue('death_date', dayjs(data.death_date))
+    if (data.death_time) setValue('death_time', dayjs(`2000-01-01 ${data.death_time}`))
+
+    setValue('place_of_death', data.place_of_death || '')
+    setValue('carcass_weight', data.carcass_weight || '')
+
+    // Use ref for immediate access to weight units (state might not be updated yet)
+    const availableWeightUnits = weightUnitsRef.current.length > 0 ? weightUnitsRef.current : weightUnitOptions
+
+    // Store UOM ID first if available from necropsy data (matching mobile app pattern)
+    const uomId = data.carcass_weight_uom_id || data.carcass_weight_uom || data.uom_id
+    if (uomId && !isNaN(Number(uomId))) {
+      setWeightUomId(Number(uomId))
+      // Find unit by ID from options
+      const unitById = availableWeightUnits.find(u => u.id === Number(uomId))
+      if (unitById) {
+        setValue('weight_unit', unitById)
+      }
+    }
+
+    // If no unit found by ID, try matching by name/abbr
+    if (!watch('weight_unit')) {
+      const uomAbbr = data.uom_abbr || data.carcass_weight_unit_name
+      if (uomAbbr) {
+        const uomAbbrLower = String(uomAbbr).toLowerCase()
+        let unit = availableWeightUnits.find(u => u.value?.toLowerCase() === uomAbbrLower)
+        if (!unit) {
+          unit = availableWeightUnits.find(u =>
+            uomAbbrLower.includes(u.value?.toLowerCase()) || u.value?.toLowerCase()?.includes(uomAbbrLower)
+          )
+        }
+        if (unit) {
+          setValue('weight_unit', unit)
+          setWeightUomId(unit.id)
+        } else if (uomAbbr) {
+          // Create a custom option if no match found
+          setValue('weight_unit', { label: uomAbbr, value: uomAbbr })
+        }
+      }
+    }
+
+    setValue('approximate_weight', data.approximate_weight === 1 || data.approximate_weight === '1')
+    setValue('sex', data.sex || '')
+    setValue('age', data.age || '')
+    setValue('age_unit', data.age_unit || 'year')
+    setValue('approximate_dob', data.approximate_dob === 1 || data.approximate_dob === '1')
+
+    // Set DOB from necropsy data
+    if (data.birth_date || data.dob) {
+      const birthDate = dayjs(data.birth_date || data.dob)
+      if (birthDate.isValid()) {
+        setAnimalDOB(birthDate)
+      }
+    } else if (data.age && data.death_date) {
+      // Calculate DOB from age and death date
+      const deathDateValue = dayjs(data.death_date)
+      if (deathDateValue.isValid()) {
+        const ageUnit = data.age_unit || 'day'
+        const calculatedDOB = deathDateValue.subtract(parseInt(data.age), ageUnit)
+        if (calculatedDOB.isValid()) {
+          setAnimalDOB(calculatedDOB)
+        }
+      }
+    }
+
+    setValue('history_of_illness', data.history_of_illness || '')
+
+    if (data.necropsy_date) setValue('necropsy_date', dayjs(data.necropsy_date))
+    if (data.necropsy_time) setValue('necropsy_time', dayjs(`2000-01-01 ${data.necropsy_time}`))
+
+    setValue('general_description', data.general_description || '')
+    setValue('opinion', data.opinion || '')
+    setValue('qr_number', data.qr_number || '')
+    setValue('biological_test', data.biological_test || '')
+    setValue('additional_notes', data.additional_notes || '')
+
+    // Use refs for immediate access to options (state might not be updated yet)
+    const availableMannerOptions = mannerOfDeathOptionsRef.current.length > 0 ? mannerOfDeathOptionsRef.current : mannerOfDeathOptions
+    const availableDisposalOptions = disposalOptionsRef.current.length > 0 ? disposalOptionsRef.current : disposalOptions
+
+    if (data.suspected_cause_of_death) {
+      setValue('manner_of_death', {
+        label: data.suspected_cause_of_death,
+        value: data.suspected_cause_of_death_id || data.suspected_cause_of_death_string_id || data.suspected_cause_of_death
+      })
+    }
+
+    // Find matching option from the options array for confirmed cause of death
+    // Mobile app logic: value?.key === confirmed_cause_of_death (confirmed_cause_of_death is the name)
+    if (data.confirmed_cause_of_death || data.confirmed_cause_of_death_id) {
+      let matchingOption = null
+
+      // Try to find by key first (mobile app: value?.key === confirmed_cause_of_death, where key = item.name)
+      if (data.confirmed_cause_of_death) {
+        matchingOption = availableMannerOptions.find(opt =>
+          opt.key === data.confirmed_cause_of_death ||
+          String(opt.key)?.toLowerCase() === String(data.confirmed_cause_of_death)?.toLowerCase()
+        )
+      }
+      // Try to find by ID if key match failed
+      if (!matchingOption && data.confirmed_cause_of_death_id) {
+        matchingOption = availableMannerOptions.find(opt =>
+          String(opt.value) === String(data.confirmed_cause_of_death_id)
+        )
+      }
+      // If not found by key or ID, try to find by label
+      if (!matchingOption && data.confirmed_cause_of_death) {
+        matchingOption = availableMannerOptions.find(opt =>
+          opt.label?.toLowerCase() === data.confirmed_cause_of_death?.toLowerCase()
+        )
+      }
+
+      if (matchingOption) {
+        setValue('confirmed_cause_of_death', matchingOption)
+      } else if (data.confirmed_cause_of_death) {
+        // Fallback: create new object if no match found
+        setValue('confirmed_cause_of_death', {
+          label: data.confirmed_cause_of_death,
+          value: data.confirmed_cause_of_death_id || data.confirmed_cause_of_death,
+          key: data.confirmed_cause_of_death
+        })
+      }
+    }
+
+    // Find matching option from the options array for disposal method
+    // Mobile app uses: disposition and disposition_id fields (not disposal_method)
+    const disposalName = data.disposition || data.disposal_method || data.carcass_disposition
+    const disposalId = data.disposition_id || data.disposal_method_id || data.carcass_disposition_id
+
+    if (disposalName || disposalId) {
+      let matchingOption = null
+
+      // Try to find by ID first
+      if (disposalId) {
+        matchingOption = availableDisposalOptions.find(opt => String(opt.value) === String(disposalId))
+      }
+      // Try to find by key (key = item.name)
+      if (!matchingOption && disposalName) {
+        matchingOption = availableDisposalOptions.find(opt =>
+          opt.key === disposalName ||
+          String(opt.key)?.toLowerCase() === String(disposalName)?.toLowerCase()
+        )
+      }
+      // If not found by ID or key, try to find by label
+      if (!matchingOption && disposalName) {
+        matchingOption = availableDisposalOptions.find(opt =>
+          opt.label?.toLowerCase() === disposalName?.toLowerCase()
+        )
+      }
+
+      if (matchingOption) {
+        setValue('disposal_method', matchingOption)
+      } else if (disposalName) {
+        // Fallback: create new object if no match found
+        setValue('disposal_method', {
+          label: disposalName,
+          value: disposalId || disposalName,
+          key: disposalName
+        })
+      }
+    }
+
+    if (data.necropsy_conducted_by?.length > 0) {
+      setConductedByUsers(
+        data.necropsy_conducted_by.map(u => ({
+          user_id: u.user_id || u.id,
+          user_name: u.user_name || u.name || u.full_name || `${u.first_name || ''} ${u.last_name || ''}`.trim(),
+          user_profile_pic: u.user_profile_pic || u.profile_pic || u.avatar || '',
+          role_name: u.role_name || u.role || u.designation || ''
+        }))
+      )
+    }
+
+    if (data.necropsy_organs?.length > 0) setOrgans(data.necropsy_organs)
+
+    // Handle different attachment formats from API
+    // Could be: data.attachments.documents, data.attachments (array), or data.documents
+    const attachmentDocs = data.attachments?.documents || data.attachments || data.documents || []
+    if (Array.isArray(attachmentDocs) && attachmentDocs.length > 0) {
+      setExistingAttachments(attachmentDocs)
+    }
+  }
+
+  // ── Form Data Builder ──────────────────────────────────────────
+
+  const buildFormData = (formValues, status) => {
+    const fd = new FormData()
+
+    fd.append('mortality_id', mortalityId)
+    fd.append('status', status)
+    if (necropsyId) fd.append('necropsy_id', necropsyId)
+    if (mortalityData?.animal_id) fd.append('animal_id', mortalityData.animal_id)
+
+    const isUnsuitable = !formValues.is_suitable
+    fd.append('is_unsuitable', isUnsuitable ? '1' : '0')
+    fd.append('all_update_action', formValues.is_suitable ? '1' : '0')  // Mobile app sends this
+    if (isUnsuitable && formValues.reason_for_unsuitable) {
+      fd.append('reason_for_unsuitable', formValues.reason_for_unsuitable)
+    }
+
+    if (conductedByUsers.length > 0) {
+      // Match mobile app: Number(item?.user_id ?? item?.id)
+      const userIds = conductedByUsers.map(u => Number(u.user_id || u.id)).filter(id => !isNaN(id) && id > 0)
+      if (userIds.length > 0) {
+        fd.append('necropsy_conducted_by', JSON.stringify(userIds))
+      }
+    }
+
+    // Send discovered_date from mortality data (matching mobile app)
+    if (mortalityData?.discovered_date) {
+      fd.append('discovered_date', dayjs(mortalityData.discovered_date).format('YYYY-MM-DD HH:mm:ss'))
+    }
+
+    if (formValues.caracass_submission_date)
+      fd.append('caracass_submission_date', dayjs(formValues.caracass_submission_date).format('YYYY-MM-DD'))
+    if (formValues.caracass_submission_time)
+      fd.append('caracass_submission_time', dayjs(formValues.caracass_submission_time).format('HH:mm:ss'))
+    if (formValues.death_date) fd.append('death_date', dayjs(formValues.death_date).format('YYYY-MM-DD'))
+    if (formValues.death_time) fd.append('death_time', dayjs(formValues.death_time).format('HH:mm:ss'))
+    if (formValues.place_of_death) fd.append('place_of_death', formValues.place_of_death)
+
+    // Always send carcass_weight (as 0 if empty) - matching mobile app
+    fd.append('carcass_weight', formValues.carcass_weight ? formValues.carcass_weight : 0)
+
+    // Always send carcass_weight_uom (as 0 if empty) - matching mobile app
+    // Priority: form value id (user selection) > stored weightUomId > 0
+    if (formValues.weight_unit?.id && !isNaN(Number(formValues.weight_unit.id))) {
+      fd.append('carcass_weight_uom', formValues.weight_unit.id)
+    } else if (weightUomId && !isNaN(Number(weightUomId))) {
+      fd.append('carcass_weight_uom', weightUomId)
+    } else {
+      fd.append('carcass_weight_uom', 0)
+    }
+    fd.append('approximate_weight', formValues.approximate_weight ? '1' : '0')
+
+    if (formValues.sex) fd.append('sex', formValues.sex)
+
+    // Age and DOB - calculate age in days from DOB like mobile app
+    if (animalDOB && formValues.death_date) {
+      const totalDays = dayjs(formValues.death_date).diff(dayjs(animalDOB), 'day')
+      fd.append('age', String(totalDays))
+      fd.append('age_unit', 'day')
+      fd.append('dob', dayjs(animalDOB).format('YYYY-MM-DD'))
+    } else if (formValues.age) {
+      fd.append('age', formValues.age)
+      if (formValues.age_unit) fd.append('age_unit', formValues.age_unit)
+    }
+    fd.append('approximate_dob', formValues.approximate_dob ? '1' : '0')
+
+    if (formValues.history_of_illness) fd.append('history_of_illness', formValues.history_of_illness)
+
+    if (formValues.necropsy_date) fd.append('necropsy_date', dayjs(formValues.necropsy_date).format('YYYY-MM-DD'))
+    if (formValues.necropsy_time) fd.append('necropsy_time', dayjs(formValues.necropsy_time).format('HH:mm:ss'))
+    if (formValues.general_description) fd.append('general_description', formValues.general_description)
+
+    // Convert organs to body_part_data format (matching mobile app)
+    // Format: [{ body_part_id: <id>, value: "<description>" }]
+    // Always send body_part_data (even if empty array) - matching mobile app
+    const bodyPartData = []
+    organs.forEach(organ => {
+      if (organ.parts?.length > 0) {
+        organ.parts.forEach(part => {
+          bodyPartData.push({
+            body_part_id: part.id || part.body_part_id,
+            value: part.value || part.description || ''
+          })
+        })
+      }
+    })
+    fd.append('body_part_data', JSON.stringify(bodyPartData))
+
+    // Suspected cause of death (from mortality data) - send numeric ID
+    if (mortalityData?.manner_of_death_id) {
+      fd.append('suspected_cause_of_death', mortalityData.manner_of_death_id)
+      fd.append('cause_for_death', mortalityData.manner_of_death_id)
+    } else if (formValues.manner_of_death) {
+      const suspectedId = formValues.manner_of_death.value || formValues.manner_of_death.id
+      fd.append('suspected_cause_of_death', suspectedId)
+      fd.append('cause_for_death', suspectedId)
+    }
+
+    if (formValues.opinion) fd.append('opinion', formValues.opinion)
+
+    // Confirmed cause of death - send numeric ID
+    if (formValues.confirmed_cause_of_death) {
+      const confirmedId = formValues.confirmed_cause_of_death.value || formValues.confirmed_cause_of_death.id
+      fd.append('confirmed_cause_of_death', confirmedId)
+    }
+
+    // Disposal method - send numeric ID
+    if (formValues.disposal_method) {
+      const disposalId = formValues.disposal_method.value || formValues.disposal_method.id
+      fd.append('disposal_method', disposalId)
+    }
+
+    if (formValues.qr_number) fd.append('qr_number', formValues.qr_number)
+    // Always send these fields (matching mobile app behavior)
+    fd.append('special_feature', 'Ok')  // Hardcoded in mobile app
+    fd.append('biological_test', formValues.biological_test || '')
+    fd.append('additional_notes', formValues.additional_notes || '')
+
+    const newFiles = (formValues.attachments || []).filter(f => f instanceof File)
+    newFiles.forEach(file => fd.append('necropsy_attachment[]', file))
+
+    return fd
+  }
+
+  // ── Handlers ───────────────────────────────────────────────────
+
+  const handleSaveAsDraft = async () => {
+    const formValues = watch()
+
+    // Draft validation (matching mobile app rules)
+    if (!formValues.is_suitable) {
+      if (!formValues.reason_for_unsuitable?.trim()) {
+        Toaster({ type: 'error', message: 'Reason for unsuitable is required' })
+
+        return
+      }
+      if (conductedByUsers.length === 0) {
+        Toaster({ type: 'error', message: 'Conducted by field is required' })
+
+        return
+      }
+    } else {
+      if (formValues.carcass_weight && !formValues.weight_unit) {
+        Toaster({ type: 'error', message: 'Please select the weight unit' })
+
+        return
+      }
+      if (!formValues.confirmed_cause_of_death) {
+        Toaster({ type: 'error', message: 'Confirmed cause of death is required' })
+
+        return
+      }
+      if (conductedByUsers.length === 0) {
+        Toaster({ type: 'error', message: 'Conducted by field is required' })
+
+        return
+      }
+      // Note: disposal_method is NOT required for drafts (matching mobile app)
+    }
+
+    try {
+      setDraftLoading(true)
+      const fd = buildFormData(formValues, 'draft')
+      const res = isEditing ? await editNecropsy(fd) : await addNecropsy(fd)
+
+      if (res?.success) {
+        Toaster({ type: 'success', message: res?.message || 'Draft saved successfully' })
+        router.push(`/necropsy/${mortalityId}?status=DRAFT`)
+      } else {
+        Toaster({ type: 'error', message: getErrorMessage(res?.message, 'Failed to save draft') })
+      }
+    } catch (error) {
+      console.error('Error saving draft:', error)
+    } finally {
+      setDraftLoading(false)
+    }
+  }
+
+  const onSubmit = async formValues => {
+    // Yup schema handles form field validation (reason, manner_of_death, disposal_method, weight_unit)
+    // Manual check for conductedByUsers since it's managed as state, not a form field
+    if (conductedByUsers.length === 0) {
+      Toaster({ type: 'error', message: 'Conducted by field is required' })
+
+      return
+    }
+
+    try {
+      setSubmitLoading(true)
+      const submissionStatus = isSuitable ? 'completed' : 'unsuitable'
+      const fd = buildFormData(formValues, submissionStatus)
+      const res = isEditing ? await editNecropsy(fd) : await addNecropsy(fd)
+
+      if (res?.success) {
+        Toaster({ type: 'success', message: res?.message || 'Necropsy submitted successfully' })
+
+        if (isCompletedEdit) {
+          router.push(`/necropsy/${mortalityId}?status=COMPLETED`)
+        } else {
+          router.push('/necropsy?status=COMPLETED')
+        }
+      } else {
+        Toaster({ type: 'error', message: getErrorMessage(res?.message, 'Failed to submit necropsy') })
+      }
+    } catch (error) {
+      console.error('Error submitting necropsy:', error)
+    } finally {
+      setSubmitLoading(false)
+    }
+  }
+
+  const handleDeleteDraft = async () => {
+    if (!necropsyId) return
+
+    try {
+      setDeleteLoading(true)
+      const payload = new FormData()
+      payload.append('necropsy_id', necropsyId)
+      const res = await deleteNecropsy(payload)
+
+      if (res?.success) {
+        Toaster({ type: 'success', message: res?.message || 'Draft deleted successfully' })
+        setDeleteDialogOpen(false)
+        router.push('/necropsy?status=PENDING')
+      } else {
+        Toaster({ type: 'error', message: getErrorMessage(res?.message, 'Failed to delete draft') })
+      }
+    } catch (error) {
+      console.error('Error deleting draft:', error)
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
+  const handleRemoveExistingAttachment = async attachmentId => {
+    try {
+      const payload = new FormData()
+      payload.append('type', 'necropsy')
+      const res = await deleteNecropsyAttachment(attachmentId, payload)
+
+      if (res?.success) {
+        setExistingAttachments(prev => prev.filter(a => a.id !== attachmentId))
+        Toaster({ type: 'success', message: 'Attachment removed' })
+      } else {
+        Toaster({ type: 'error', message: 'Failed to remove attachment' })
+      }
+    } catch (error) {
+      console.error('Error removing attachment:', error)
+    }
+  }
+
+  // ── Unsuitable Toggle Handlers ─────────────────────────────────
+  const handleSuitableToggle = (newValue) => {
+    if (!newValue) {
+      // Switching to unsuitable - show confirmation dialog
+      setUnsuitableDialogOpen(true)
+    }
+    // Switching back to suitable - no confirmation needed, value already updated
+  }
+
+  const handleConfirmUnsuitable = () => {
+    // Value is already set to false by the switch, just close dialog
+    setUnsuitableDialogOpen(false)
+  }
+
+  const handleCancelUnsuitable = () => {
+    // Revert back to suitable
+    setValue('is_suitable', true)
+    setUnsuitableDialogOpen(false)
+  }
+
+  // ── Age/DOB Calculation Functions ──────────────────────────────
+  const deathDate = watch('death_date')
+
+  // Calculate age display from DOB and death date
+  const getAgeDisplay = () => {
+    if (!animalDOB || !deathDate) return null
+
+    const dob = dayjs(animalDOB)
+    const death = dayjs(deathDate)
+
+    if (!dob.isValid() || !death.isValid()) return null
+
+    let years = death.diff(dob, 'year')
+    let tempDate = dob.add(years, 'year')
+
+    let months = death.diff(tempDate, 'month')
+    tempDate = tempDate.add(months, 'month')
+
+    let days = death.diff(tempDate, 'day')
+
+    const parts = []
+    if (years > 0) parts.push(`${years} Year${years > 1 ? 's' : ''}`)
+    if (months > 0) parts.push(`${months} Month${months > 1 ? 's' : ''}`)
+    if (days > 0) parts.push(`${days} Day${days > 1 ? 's' : ''}`)
+
+    return parts.length > 0 ? parts.join(' ') : '0 Days'
+  }
+
+  // Calculate DOB from age inputs (years, months, days) and death date
+  const calculateDOBFromInputs = (inputs = ageInputs) => {
+    if (!deathDate) return null
+
+    const { years, months, days } = inputs
+    if (!years && !months && !days) return null
+
+    let calculatedDOB = dayjs(deathDate)
+
+    if (years) calculatedDOB = calculatedDOB.subtract(parseInt(years) || 0, 'year')
+    if (months) calculatedDOB = calculatedDOB.subtract(parseInt(months) || 0, 'month')
+    if (days) calculatedDOB = calculatedDOB.subtract(parseInt(days) || 0, 'day')
+
+    return calculatedDOB
+  }
+
+  // Get years/months/days from DOB for dialog initialization
+  const getAgeInputsFromDOB = (dob) => {
+    if (!dob || !deathDate) return { years: '', months: '', days: '' }
+
+    const dobDate = dayjs(dob)
+    const death = dayjs(deathDate)
+
+    if (!dobDate.isValid() || !death.isValid()) return { years: '', months: '', days: '' }
+
+    let years = death.diff(dobDate, 'year')
+    let tempDate = dobDate.add(years, 'year')
+
+    let months = death.diff(tempDate, 'month')
+    tempDate = tempDate.add(months, 'month')
+
+    let days = death.diff(tempDate, 'day')
+
+    return {
+      years: years > 0 ? String(years) : '',
+      months: months > 0 ? String(months) : '',
+      days: days > 0 ? String(days) : ''
+    }
+  }
+
+  // Open age dialog
+  const handleOpenAgeDialog = () => {
+    if (animalDOB) {
+      setAgeInputs(getAgeInputsFromDOB(animalDOB))
+    }
+    setDialogApproxAge(watch('approximate_dob'))
+    setAgeDialogOpen(true)
+  }
+
+  // Apply age from dialog
+  const handleApplyAge = () => {
+    const calculatedDOB = calculateDOBFromInputs()
+    if (calculatedDOB) {
+      setAnimalDOB(calculatedDOB)
+
+      // Calculate total days for form submission
+      const totalDays = dayjs(deathDate).diff(calculatedDOB, 'day')
+      setValue('age', String(totalDays))
+      setValue('age_unit', 'day')
+      setValue('approximate_dob', dialogApproxAge)
+    }
+    setAgeDialogOpen(false)
+  }
+
+  // Cancel age dialog
+  const handleCancelAgeDialog = () => {
+    setAgeDialogOpen(false)
+    // Reset inputs to current DOB values
+    if (animalDOB) {
+      setAgeInputs(getAgeInputsFromDOB(animalDOB))
+    } else {
+      setAgeInputs({ years: '', months: '', days: '' })
+    }
+    setDialogApproxAge(watch('approximate_dob'))
+  }
+
+  // Handle age input change
+  const handleAgeInputChange = (field, value) => {
+    // Only allow numbers
+    const numericValue = value.replace(/[^0-9]/g, '')
+    setAgeInputs(prev => ({ ...prev, [field]: numericValue }))
+  }
+
+  const isAnyLoading = submitLoading || draftLoading
+
+  // ── Label style (matching AddPatientDrawer pattern) ────────────
+
+  const labelSx = {
+    fontWeight: 500,
+    fontSize: '16px',
+    color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.secondary
+  }
+
+  // ── Form Field Skeleton Component ─────────────────────────────
+
+  const FormFieldSkeleton = ({ label = true, height = 56 }) => (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      {label && <Skeleton variant='text' width={120} height={24} />}
+      <Skeleton variant='rectangular' height={height} sx={{ borderRadius: 1 }} />
+    </Box>
+  )
+
+  const SectionSkeleton = ({ fields = 2, hasLabel = true }) => (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {hasLabel && <Skeleton variant='text' width={150} height={28} />}
+      <Grid container spacing={3}>
+        {Array.from({ length: fields }).map((_, i) => (
+          <Grid key={i} size={{ xs: 12, sm: fields > 1 ? 6 : 12 }}>
+            <FormFieldSkeleton label={false} />
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
+  )
+
+  // ── Loading State ──────────────────────────────────────────────
+
+  if (loading) {
+    return (
+      <Box>
+        {/* Animal Info Card Skeleton (includes header skeleton) */}
+        <Box sx={{ mb: 3 }}>
+          <NecropsyAnimalInfoCard loading={true} />
+        </Box>
+
+        {/* Form Skeleton */}
+        <Card>
+          <CardContent sx={{ p: 6 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {/* Carcass Suitability Skeleton */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Skeleton variant='text' width={150} height={24} />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Skeleton variant='text' width={250} height={24} />
+                  <Skeleton variant='rectangular' width={50} height={30} sx={{ borderRadius: 3 }} />
+                </Box>
+              </Box>
+
+              <Skeleton variant='rectangular' height={1} />
+
+              {/* Carcass Details Section Skeleton */}
+              <Skeleton variant='text' width={140} height={28} />
+
+              {/* Date/Time Fields Skeleton */}
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, lg: 6 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Skeleton variant='text' width={200} height={24} />
+                    <Grid container spacing={3}>
+                      <Grid size={6}><FormFieldSkeleton label={false} /></Grid>
+                      <Grid size={6}><FormFieldSkeleton label={false} /></Grid>
+                    </Grid>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 12, lg: 6 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Skeleton variant='text' width={180} height={24} />
+                    <Grid container spacing={3}>
+                      <Grid size={6}><FormFieldSkeleton label={false} /></Grid>
+                      <Grid size={6}><FormFieldSkeleton label={false} /></Grid>
+                    </Grid>
+                  </Box>
+                </Grid>
+              </Grid>
+
+              {/* Place & QR Skeleton */}
+              <SectionSkeleton fields={2} />
+
+              {/* Weight Skeleton */}
+              <SectionSkeleton fields={2} />
+
+              {/* Sex Skeleton */}
+              <SectionSkeleton fields={1} />
+
+              {/* Age Skeleton */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Skeleton variant='text' width={50} height={24} />
+                <Skeleton variant='rectangular' height={80} sx={{ borderRadius: 1 }} />
+              </Box>
+
+              <Skeleton variant='rectangular' height={1} />
+
+              {/* Clinical History Skeleton */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Skeleton variant='text' width={130} height={24} />
+                <Skeleton variant='rectangular' height={120} sx={{ borderRadius: 1 }} />
+              </Box>
+
+              <Skeleton variant='rectangular' height={1} />
+
+              {/* Necropsy Details Skeleton */}
+              <Skeleton variant='text' width={140} height={28} />
+              <SectionSkeleton fields={2} />
+
+              {/* Conducted By Skeleton */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Skeleton variant='text' width={180} height={24} />
+                <Skeleton variant='rectangular' height={56} sx={{ borderRadius: 1 }} />
+              </Box>
+
+              <Skeleton variant='rectangular' height={1} />
+
+              {/* Examination Findings Skeleton */}
+              <Skeleton variant='text' width={180} height={28} />
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Skeleton variant='text' width={150} height={24} />
+                <Skeleton variant='rectangular' height={120} sx={{ borderRadius: 1 }} />
+              </Box>
+
+              {/* Organ Section Skeleton */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Skeleton variant='text' width={250} height={24} />
+                <Skeleton variant='rectangular' height={100} sx={{ borderRadius: 1 }} />
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    )
+  }
+
+  // ── Render ─────────────────────────────────────────────────────
+
+  return (
+    <Box>
+      {/* Animal Info Card with Back Button and Request ID */}
+      {mortalityData && (
+        <Box sx={{ mb: 3 }}>
+          <NecropsyAnimalInfoCard
+            mortalityData={mortalityData}
+            loading={false}
+            onBack={() => router.back()}
+            requestId={mortalityData?.request_id || necropsyData?.request_id}
+          />
+        </Box>
+      )}
+
+      <form>
+        <Card>
+          <CardContent sx={{ p: 6 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {/* ── Carcass Suitability ──────────────────────────── */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Typography sx={labelSx}>Carcass Suitability</Typography>
+                <ControlledSwitch
+                  name='is_suitable'
+                  label='Carcass is suitable for necropsy'
+                  control={control}
+                  errors={errors}
+                  labelPosition='start'
+                  spaceBetween
+                  onChangeOverride={handleSuitableToggle}
+                />
+                {!isSuitable && (
+                  <ControlledTextArea
+                    name='reason_for_unsuitable'
+                    control={control}
+                    errors={errors}
+                    rows={3}
+                    placeholder='Describe why the carcass is unsuitable for necropsy...'
+                  />
+                )}
+              </Box>
+
+              {/* Necropsy Conducted By - Always visible for unsuitable case */}
+              {!isSuitable && (
+                <>
+                  <Divider />
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography sx={labelSx}>Necropsy Conducted By</Typography>
+                    <UserMultiSelect
+                      selectedUsers={conductedByUsers}
+                      onChange={setConductedByUsers}
+                      label='Search users by name'
+                    />
+                  </Box>
+                </>
+              )}
+
+              {isSuitable && (
+                <>
+                  <Divider />
+
+                  {/* ── Carcass Details Section ──────────────────── */}
+                  <Typography sx={{ ...labelSx, fontSize: '18px', fontWeight: 600 }}>Carcass Details</Typography>
+
+                  {/* ── Carcass Submission & Death Date/Time ─────── */}
+                  {/* On lg+: all 4 fields in one row with headers above each pair */}
+                  {/* On md and below: 2 separate rows of 2 fields each */}
+                  <Grid container spacing={3}>
+                    {/* Carcass Submission Date & Time */}
+                    <Grid size={{ xs: 12, lg: 6 }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <Typography sx={labelSx}>Carcass Submission Date & Time</Typography>
+                        <Grid container spacing={3}>
+                          <Grid size={6}>
+                            <ControlledDatePicker
+                              name='caracass_submission_date'
+                              control={control}
+                              label='Date'
+                              maxDate={dayjs()}
+                            />
+                          </Grid>
+                          <Grid size={6}>
+                            <ControlledTimePicker name='caracass_submission_time' control={control} label='Time' />
+                          </Grid>
+                        </Grid>
+                      </Box>
+                    </Grid>
+                    {/* Date & Time of Death */}
+                    <Grid size={{ xs: 12, lg: 6 }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <Typography sx={labelSx}>Date & Time of Death</Typography>
+                        <Grid container spacing={3}>
+                          <Grid size={6}>
+                            <ControlledDatePicker name='death_date' control={control} label='Date' maxDate={dayjs()} />
+                          </Grid>
+                          <Grid size={6}>
+                            <ControlledTimePicker name='death_time' control={control} label='Time' />
+                          </Grid>
+                        </Grid>
+                      </Box>
+                    </Grid>
+                  </Grid>
+
+                  {/* ── Place of Death & QR Number (Side by side) ── */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography sx={labelSx}>Place of Death & QR Number</Typography>
+                    <Grid container spacing={6}>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <ControlledTextField
+                          name='place_of_death'
+                          control={control}
+                          errors={errors}
+                          label='Place of Death'
+                          placeholder='E.g. Enclosure A, Holding area...'
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <ControlledTextField
+                          name='qr_number'
+                          control={control}
+                          errors={errors}
+                          label='QR Number'
+                          placeholder='Enter QR number'
+                          disabled={!!necropsyData?.qr_number}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Box>
+
+                  {/* ── Carcass Weight ───────────────────────────── */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography sx={labelSx}>Carcass Weight</Typography>
+                    <Grid container spacing={3}>
+                      <Grid size={6}>
+                        <ControlledTextField
+                          name='carcass_weight'
+                          control={control}
+                          errors={errors}
+                          label='Weight'
+                          type='number'
+                          placeholder='0.00'
+                        />
+                      </Grid>
+                      <Grid size={6}>
+                        <ControlledAutocomplete
+                          name='weight_unit'
+                          control={control}
+                          errors={errors}
+                          label='Unit'
+                          options={weightUnitOptions}
+                        />
+                      </Grid>
+                    </Grid>
+                    <ControlledSwitch
+                      name='approximate_weight'
+                      label='Approximate weight'
+                      control={control}
+                      errors={errors}
+                      size='small'
+                    />
+                  </Box>
+
+                  {/* ── Confirmed Sex ────────────────────────────── */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography sx={labelSx}>Confirmed Sex</Typography>
+                    <Grid container spacing={6}>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <ControlledSelect
+                          name='sex'
+                          control={control}
+                          errors={errors}
+                          label='Sex'
+                          options={sexOptions}
+                          getOptionLabel={o => o.charAt(0).toUpperCase() + o.slice(1)}
+                          getOptionValue={o => o}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Box>
+
+                  {/* ── Age ──────────────────────────────────────── */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography sx={labelSx}>Age</Typography>
+
+                    {/* Age Display with Edit Button */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        p: 3,
+                        backgroundColor: theme.palette.customColors?.Surface || theme.palette.grey[50],
+                        borderRadius: 1,
+                        border: `1px solid ${theme.palette.divider}`
+                      }}
+                    >
+                      <Box>
+                        <Typography
+                          sx={{
+                            fontSize: '1rem',
+                            fontWeight: 500,
+                            color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                          }}
+                        >
+                          {getAgeDisplay() || 'Not set'}
+                          {watch('approximate_dob') && getAgeDisplay() && (
+                            <Typography
+                              component='span'
+                              sx={{
+                                ml: 1,
+                                fontSize: '0.875rem',
+                                color: theme.palette.text.secondary
+                              }}
+                            >
+                              (Approximate)
+                            </Typography>
+                          )}
+                        </Typography>
+
+                        {/* DOB Display Below Age */}
+                        {animalDOB && (
+                          <Typography
+                            sx={{
+                              fontSize: '0.875rem',
+                              color: theme.palette.text.secondary,
+                              mt: 0.5
+                            }}
+                          >
+                            DOB: {dayjs(animalDOB).format('DD MMM YYYY')}
+                          </Typography>
+                        )}
+                      </Box>
+
+                      <Button
+                        variant='text'
+                        size='small'
+                        onClick={handleOpenAgeDialog}
+                        sx={{
+                          textTransform: 'none',
+                          fontWeight: 500,
+                          color: theme.palette.primary.main
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </Box>
+                  </Box>
+
+                  <Divider />
+
+                  {/* ── Clinical History ─────────────────────────── */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography sx={labelSx}>Clinical History</Typography>
+                    <ControlledTextArea
+                      name='history_of_illness'
+                      control={control}
+                      errors={errors}
+                      rows={5}
+                      placeholder='Enter clinical history, symptoms, treatments, and relevant medical background...'
+                    />
+                  </Box>
+
+                  <Divider />
+
+                  {/* ── Necropsy Details Section ─────────────────── */}
+                  <Typography sx={{ ...labelSx, fontSize: '18px', fontWeight: 600 }}>Necropsy Details</Typography>
+
+                  {/* ── Necropsy Date & Time ─────────────────────── */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography sx={labelSx}>Necropsy Date & Time</Typography>
+                    <Grid container spacing={3}>
+                      <Grid size={6}>
+                        <ControlledDatePicker name='necropsy_date' control={control} label='Date' maxDate={dayjs()} />
+                      </Grid>
+                      <Grid size={6}>
+                        <ControlledTimePicker name='necropsy_time' control={control} label='Time' />
+                      </Grid>
+                    </Grid>
+                  </Box>
+
+                  {/* ── Necropsy Conducted By ────────────────────── */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography sx={labelSx}>Necropsy Conducted By</Typography>
+                    <UserMultiSelect
+                      selectedUsers={conductedByUsers}
+                      onChange={setConductedByUsers}
+                      label='Search users by name'
+                    />
+                  </Box>
+
+                  <Divider />
+
+                  {/* ── Examination Findings Section ─────────────── */}
+                  <Typography sx={{ ...labelSx, fontSize: '18px', fontWeight: 600 }}>Examination Findings</Typography>
+
+                  {/* ── General Description ──────────────────────── */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography sx={labelSx}>General Description</Typography>
+                    <ControlledTextArea
+                      name='general_description'
+                      control={control}
+                      errors={errors}
+                      rows={5}
+                      placeholder='Describe the general gross findings, external condition, body condition score...'
+                    />
+                  </Box>
+
+                  {/* ── Organ-wise Description ───────────────────── */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography sx={labelSx}>Organ-wise Description of Lesions</Typography>
+                    <NecropsyOrganSection organs={organs} onChange={setOrgans} />
+                  </Box>
+
+                  <Divider />
+
+                  {/* ── Attachments ──────────────────────────────── */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography sx={labelSx}>Attachments</Typography>
+                    {existingAttachments.length > 0 && (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                        {existingAttachments.map((doc, index) => {
+                          // Handle different field names for file URL
+                          const fileUrl = doc.file || doc.url || doc.file_url || doc.path || ''
+                          const fileName = doc.file_original_name || doc.original_name || doc.name || doc.filename || 'File'
+                          const docId = doc.id || doc.attachment_id || index
+
+                          const isImage = ['jpeg', 'jpg', 'png', 'gif', 'webp'].some(ext =>
+                            fileUrl?.toLowerCase()?.endsWith(ext) || fileName?.toLowerCase()?.endsWith(ext)
+                          )
+
+                          return (
+                            <Box
+                              key={docId}
+                              sx={{
+                                position: 'relative',
+                                width: 100,
+                                height: 100,
+                                borderRadius: 2,
+                                overflow: 'hidden',
+                                border: `1px solid ${theme.palette.divider}`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                bgcolor: theme.palette.customColors?.displaybgPrimary || theme.palette.grey[50]
+                              }}
+                            >
+                              {isImage && fileUrl ? (
+                                <img
+                                  src={fileUrl}
+                                  alt={fileName}
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                              ) : (
+                                <Typography
+                                  variant='caption'
+                                  sx={{ p: 2, wordBreak: 'break-all', fontSize: '11px', textAlign: 'center' }}
+                                >
+                                  {fileName}
+                                </Typography>
+                              )}
+                              <IconButton
+                                size='small'
+                                onClick={() => handleRemoveExistingAttachment(doc.id || doc.attachment_id)}
+                                sx={{
+                                  position: 'absolute',
+                                  top: 4,
+                                  right: 4,
+                                  width: 22,
+                                  height: 22,
+                                  bgcolor: 'rgba(0,0,0,0.55)',
+                                  color: '#fff',
+                                  '&:hover': { bgcolor: 'rgba(0,0,0,0.75)' }
+                                }}
+                              >
+                                <CloseIcon sx={{ fontSize: 14 }} />
+                              </IconButton>
+                            </Box>
+                          )
+                        })}
+                      </Box>
+                    )}
+                    <ControlledMultiFileUpload
+                      name='attachments'
+                      control={control}
+                      label='Drop files here or click to upload'
+                      maxFiles={10}
+                      maxFileSize={10 * 1024 * 1024}
+                      acceptedFileTypes='images,pdf,documents'
+                    />
+                  </Box>
+                </>
+              )}
+
+              <Divider />
+
+              {/* ── Cause of Death Section ───────────────────────── */}
+              <Typography sx={{ ...labelSx, fontSize: '18px', fontWeight: 600 }}>Cause of Death</Typography>
+
+              {/* ── Suspected Cause of Death (Read-only from mortality) ─ */}
+              {mortalityData?.manner_of_death && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Typography sx={labelSx}>Suspected Cause of Death</Typography>
+                  <Typography
+                    sx={{
+                      p: 2,
+                      bgcolor: theme.palette.customColors?.bodyBg || theme.palette.grey[100],
+                      borderRadius: 1,
+                      color: theme.palette.text.secondary
+                    }}
+                  >
+                    {mortalityData.manner_of_death}
+                  </Typography>
+                </Box>
+              )}
+
+              {/* ── Opinion / Death Opinion ──────────────────────── */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Typography sx={labelSx}>Opinion / Death Opinion</Typography>
+                <ControlledTextArea
+                  name='opinion'
+                  control={control}
+                  errors={errors}
+                  rows={3}
+                  placeholder='Enter your professional opinion on the cause of death...'
+                />
+              </Box>
+
+              {/* ── Confirmed Cause & Disposal Method (Side by side) ─ */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Typography sx={labelSx}>Confirmed Cause & Disposal Method</Typography>
+                <Grid container spacing={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <ControlledAutocomplete
+                      name='confirmed_cause_of_death'
+                      control={control}
+                      errors={errors}
+                      label='Confirmed Cause After Necropsy'
+                      options={mannerOfDeathOptions}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <ControlledAutocomplete
+                      name='disposal_method'
+                      control={control}
+                      errors={errors}
+                      label='Disposal Method'
+                      options={disposalOptions}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+
+              <Divider />
+
+              {/* ── Additional Section ───────────────────────────── */}
+              <Typography sx={{ ...labelSx, fontSize: '18px', fontWeight: 600 }}>Additional Information</Typography>
+
+              {/* ── Biological Tests ─────────────────────────────── */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Typography sx={labelSx}>Biological Tests Done (if any)</Typography>
+                <ControlledTextArea
+                  name='biological_test'
+                  control={control}
+                  errors={errors}
+                  rows={3}
+                  placeholder='Enter any biological tests performed...'
+                />
+              </Box>
+
+              {/* ── Additional Notes ─────────────────────────────── */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Typography sx={labelSx}>Notes (Optional)</Typography>
+                <ControlledTextArea
+                  name='additional_notes'
+                  control={control}
+                  errors={errors}
+                  rows={4}
+                  placeholder='Enter any additional notes or observations...'
+                />
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+
+      </form>
+
+      {/* ── Bottom Action Bar ─────────────────────────────────── */}
+      <BottomActionBar
+        onCancel={() => router.push('/necropsy')}
+        onSubmit={handleSubmit(onSubmit)}
+        loading={submitLoading}
+        disabled={isAnyLoading}
+        cancelLabel='Cancel'
+        submitLabel='Submit'
+        showCancel={!isCompletedEdit}
+        cancelBtnStyle={{
+          color: theme.palette.customColors?.OnPrimaryContainer || theme.palette.text.primary,
+          borderColor: theme.palette.customColors?.OnPrimaryContainer || theme.palette.divider
+        }}
+        submitBtnStyle={{
+          backgroundColor: theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main
+        }}
+      >
+        {isDraftEdit && (
+          <Button
+            variant='outlined'
+            color='error'
+            onClick={() => setDeleteDialogOpen(true)}
+            disabled={isAnyLoading}
+            sx={{ fontWeight: 600, minHeight: '56px', minWidth: '160px', borderRadius: 0.5 }}
+          >
+            Delete Draft
+          </Button>
+        )}
+        {!isCompletedEdit && (
+          <Button
+            variant='outlined'
+            onClick={handleSaveAsDraft}
+            disabled={isAnyLoading}
+            sx={{
+              fontWeight: 600,
+              minHeight: '56px',
+              minWidth: '160px',
+              borderRadius: 0.5,
+              color: theme.palette.primary.main,
+              borderColor: theme.palette.primary.main
+            }}
+          >
+            {draftLoading ? <CircularProgress size={22} /> : 'Save as Draft'}
+          </Button>
+        )}
+      </BottomActionBar>
+
+      {/* ── Delete Confirmation Dialog ─────────────────────────── */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        PaperProps={{ sx: { borderRadius: 3, minWidth: 400 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 600, fontSize: '18px', pb: 1 }}>Delete Draft</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: theme.palette.text.secondary, fontSize: '14px' }}>
+            Are you sure you want to delete this draft? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 5, pt: 2 }}>
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            disabled={deleteLoading}
+            sx={{ fontWeight: 600 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteDraft}
+            color='error'
+            variant='contained'
+            disabled={deleteLoading}
+            sx={{ fontWeight: 600 }}
+          >
+            {deleteLoading ? <CircularProgress size={22} color='inherit' /> : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Unsuitable Confirmation Dialog ───────────────────────── */}
+      <ConfirmationDialog
+        dialogBoxStatus={unsuitableDialogOpen}
+        onClose={handleCancelUnsuitable}
+        icon='mdi:alert-circle-outline'
+        title='Mark as Unsuitable?'
+        description='Are you sure you want to mark this carcass as unsuitable for necropsy? You will need to provide a reason.'
+        cancelText='No'
+        ConfirmationText='Yes'
+        confirmAction={handleConfirmUnsuitable}
+      />
+
+      {/* ── Age Edit Dialog ──────────────────────────────────────── */}
+      <Dialog
+        open={ageDialogOpen}
+        onClose={handleCancelAgeDialog}
+        maxWidth='xs'
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
+          <Typography sx={{ fontWeight: 600, fontSize: '18px' }}>Update Age</Typography>
+          <IconButton size='small' onClick={handleCancelAgeDialog}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Age Inputs */}
+            <Grid container spacing={2}>
+              <Grid size={4}>
+                <TextField
+                  fullWidth
+                  label='Years'
+                  type='number'
+                  value={ageInputs.years}
+                  onChange={(e) => handleAgeInputChange('years', e.target.value)}
+                  inputProps={{ min: 0, max: 999 }}
+                  size='small'
+                />
+              </Grid>
+              <Grid size={4}>
+                <TextField
+                  fullWidth
+                  label='Months'
+                  type='number'
+                  value={ageInputs.months}
+                  onChange={(e) => handleAgeInputChange('months', e.target.value)}
+                  inputProps={{ min: 0, max: 11 }}
+                  size='small'
+                />
+              </Grid>
+              <Grid size={4}>
+                <TextField
+                  fullWidth
+                  label='Days'
+                  type='number'
+                  value={ageInputs.days}
+                  onChange={(e) => handleAgeInputChange('days', e.target.value)}
+                  inputProps={{ min: 0, max: 30 }}
+                  size='small'
+                />
+              </Grid>
+            </Grid>
+
+            {/* Calculated DOB Display */}
+            {calculateDOBFromInputs() && (
+              <Box
+                sx={{
+                  p: 2,
+                  backgroundColor: theme.palette.customColors?.Surface || theme.palette.grey[50],
+                  borderRadius: 1,
+                  border: `1px solid ${theme.palette.divider}`
+                }}
+              >
+                <Typography sx={{ fontSize: '0.875rem', color: theme.palette.text.secondary }}>
+                  DOB: {calculateDOBFromInputs().format('DD MMM YYYY')}
+                </Typography>
+              </Box>
+            )}
+
+            {/* Approximate Age Checkbox */}
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={dialogApproxAge}
+                  onChange={(e) => setDialogApproxAge(e.target.checked)}
+                  size='small'
+                />
+              }
+              label='Mark as approximate'
+              sx={{
+                '& .MuiFormControlLabel-label': {
+                  fontSize: '0.875rem',
+                  color: theme.palette.text.secondary
+                }
+              }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 2 }}>
+          <Button
+            variant='outlined'
+            onClick={handleCancelAgeDialog}
+            sx={{ fontWeight: 600 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant='contained'
+            onClick={handleApplyAge}
+            sx={{ fontWeight: 600 }}
+            disabled={!ageInputs.years && !ageInputs.months && !ageInputs.days}
+          >
+            Apply
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  )
+}
+
+export default NecropsyReportForm

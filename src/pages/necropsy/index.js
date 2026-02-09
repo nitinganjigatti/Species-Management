@@ -21,6 +21,7 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import NecropsyFilterDrawer from 'src/components/necropsy/NecropsyFilterDrawer'
 import SpeciesFilterDrawer from 'src/components/necropsy/SpeciesFilterDrawer'
 import IncomingNecropsyDrawer from 'src/components/necropsy/IncomingNecropsyDrawer'
+import CarcassTransferCard from 'src/components/necropsy/CarcassTransferCard'
 import Utility from 'src/utility'
 import { AuthContext } from 'src/context/AuthContext'
 
@@ -55,7 +56,7 @@ const getDefaultStatCards = theme => [
   },
   {
     id: 'PENDING',
-    label: 'PENDING APPROVAL',
+    label: 'PENDING NECROPSY',
     icon: <ClockIcon sx={{ fontSize: 24 }} />,
     color: theme.palette.primary.dark,
     bgColor: theme.palette.customColors.antzNotesLight
@@ -140,13 +141,22 @@ const Necropsy = () => {
   }
 
   useEffect(() => {
-    const { page = '1', limit = '50', q = '' } = router.query
+    const { page = '1', limit = '50', q = '', status, tab } = router.query
 
     setFilters({
       page: parseInt(page),
       limit: parseInt(limit),
       q
     })
+
+    if (status && ['INCOMING', 'PENDING', 'DRAFT', 'COMPLETED'].includes(status)) {
+      setActiveCard(status)
+    }
+
+    // Restore the tab selection (animals/species)
+    if (tab && ['animals', 'species'].includes(tab)) {
+      setSelected(tab)
+    }
 
     setSearchValue(q)
   }, [router.query])
@@ -250,11 +260,15 @@ const Necropsy = () => {
   }
 
   useEffect(() => {
-    fetchNecropsyStats()
-  }, [selectedNecropsy?.id, filterDate, selected, activeCard])
+    if (enableAddNecropsyReport) {
+      fetchNecropsyStats()
+    }
+  }, [selectedNecropsy?.id, filterDate, selected, activeCard, enableAddNecropsyReport])
 
   useEffect(() => {
-    fetchNecropsyData()
+    if (enableAddNecropsyReport) {
+      fetchNecropsyData()
+    }
   }, [
     filters?.page,
     filters?.limit,
@@ -264,16 +278,26 @@ const Necropsy = () => {
     selectedOptions,
     speciesSelectedOptions,
     activeCard,
-    selected
+    selected,
+    enableAddNecropsyReport
   ])
 
-  const updateUrlParams = updatedFilters => {
+  const updateUrlParams = (updatedFilters, status, tab) => {
     const params = new URLSearchParams()
     Object.entries(updatedFilters).forEach(([key, value]) => {
       if (value) {
         params.set(key, value.toString())
       }
     })
+    const currentStatus = status || activeCard
+    if (currentStatus) {
+      params.set('status', currentStatus)
+    }
+    // Persist the tab selection
+    const currentTab = tab || selected
+    if (currentTab) {
+      params.set('tab', currentTab)
+    }
     router.push({ query: params.toString() }, undefined, { shallow: true })
   }
 
@@ -317,13 +341,26 @@ const Necropsy = () => {
   const handleChange = (event, newValue) => {
     if (newValue !== null) {
       setSelected(newValue)
+      // Update URL with the new tab selection
+      updateUrlParams({ ...filters, page: 1 }, activeCard, newValue)
     }
   }
 
   const handleRowClick = params => {
-    if (activeCard === 'INCOMING' && selected === 'animals') {
-      setSelectedNecropsyRow(params.row)
-      setOpenIncomingDrawer(true)
+    if (selected === 'animals') {
+      if (activeCard === 'INCOMING') {
+        setSelectedNecropsyRow(params.row)
+        setOpenIncomingDrawer(true)
+      } else {
+        const mortalityId = params.row.mortality_id
+        router.push(`/necropsy/${mortalityId}?status=${activeCard}`)
+      }
+    } else {
+      // Species row click - navigate with species filter
+      const row = params.row
+      router.push(
+        `/necropsy/${row.tsn}?view=species&status=${activeCard}&tab=species&taxonomy_id=${row.tsn}&species_name=${encodeURIComponent(row.default_common_name || row.scientific_name || '')}`
+      )
     }
   }
 
@@ -344,10 +381,11 @@ const Necropsy = () => {
 
   const indexedSpeciesRows = speciesRows.map((row, index) => ({
     id: row.tsn || index,
+    tsn: row.tsn,
     sl_no: getSlNo(index),
-
     species_name: row.default_common_name || row.scientific_name,
     scientific_name: row.scientific_name,
+    default_common_name: row.default_common_name,
     count: Number(row.count || 0),
     default_icon: row.default_icon
   }))
@@ -580,257 +618,275 @@ const Necropsy = () => {
         setFilterDate={setFilterDate}
         badgeCount={statsData?.CARCASS_TRANSFER}
         allowCarcassCollection={allowCarcassCollection}
+        showCarcassTransferButton={!!enableAddNecropsyReport}
+        onCarcassTransfer={() => router.push('/necropsy/carcass-transfer/')}
       />
-      <Box sx={{ mt: 6 }}>
-        <Card
-          sx={{
-            borderBottomLeftRadius: 0,
-            borderBottomRightRadius: 0,
-            borderBottom: `0.5px solid ${theme.palette.divider}`,
-            elevation: 'none',
-            boxShadow: 'none'
-          }}
-        >
-          <CardContent>
-            <Box
+      {enableAddNecropsyReport ? (
+        <>
+          <Box sx={{ mt: 6 }}>
+            <Card
               sx={{
-                display: 'grid',
-                gridTemplateColumns: {
-                  xs: '1fr',
-                  sm: 'repeat(2, 1fr)',
-                  md: 'repeat(4, 1fr)'
-                },
-                gap: 2,
-                mb: 4
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 0,
+                borderBottom: `0.5px solid ${theme.palette.divider}`,
+                elevation: 'none',
+                boxShadow: 'none'
               }}
             >
-              {statCards.map((card, index) => (
-                <Paper
-                  key={card?.id}
-                  elevation={0}
-                  sx={{
-                    position: 'relative',
-                    border: `${activeCard === card?.id ? '2px' : '0px'} solid ${card.color}`,
-                    p: 3,
-                    borderRadius: '20px',
-                    bgcolor: card.bgColor,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease-in-out',
-                    overflow: 'hidden',
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
-                    },
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: '6px',
-
-                      // bgcolor: card?.color,
-                      opacity: activeCard === card?.id ? 1 : 0,
-                      transition: 'opacity 0.2s ease-in-out',
-
-                      borderTopLeftRadius: '20px',
-                      borderBottomLeftRadius: '20px'
-                    }
-                  }}
-                  onClick={() => setActiveCard(card?.id)}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 2 }}>
-                    <Box
-                      sx={{
-                        color: card?.color,
-                        bgcolor: 'white',
-                        borderRadius: '12px',
-                        p: 1.5,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      {card?.icon}
-                    </Box>
-                    <Typography
-                      variant='h3'
-                      sx={{
-                        fontWeight: 700,
-                        color: card?.color,
-                        fontSize: '2.5rem'
-                      }}
-                    >
-                      {card?.count?.toString()?.padStart(2, '0')}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Typography
-                      variant='caption'
-                      sx={{
-                        fontWeight: 600,
-                        color: card?.color,
-                        letterSpacing: '0.5px',
-                        fontSize: '0.75rem'
-                      }}
-                    >
-                      {card?.label}
-                    </Typography>
-                  </Box>
-                </Paper>
-              ))}
-            </Box>
-            <Grid container spacing={4}>
-              <Grid size={{ xs: 12 }} xs={12}>
-                <Box>
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      color: theme.palette.customColors.neutralSecondary,
-                      display: 'inline',
-                      fontSize: '10px',
-                      fontWeight: 500,
-                      letterSpacing: '0.5px'
-                    }}
-                  >
-                    ACTIVE VIEW:{' '}
-                  </Typography>
-
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      color: statCards.find(c => c.id === activeCard)?.color,
-                      backgroundColor: statCards.find(c => c.id === activeCard)?.bgColor,
-                      border: `1px solid ${statCards.find(c => c.id === activeCard)?.color}`,
-                      borderRadius: 1,
-                      px: 2,
-                      py: 1,
-                      fontWeight: 600,
-                      display: 'inline',
-                      fontSize: '10px',
-                      letterSpacing: '0.5px'
-                    }}
-                  >
-                    • {statCards.find(c => c.id === activeCard)?.label}
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 8 }} order={{ xs: 2, sm: 3 }}>
+              <CardContent>
                 <Box
-                  display='flex'
-                  gap={2}
-                  justifyContent={{ xs: 'space-between', sm: 'flex-end' }}
-                  alignItems='center'
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: {
+                      xs: '1fr',
+                      sm: 'repeat(2, 1fr)',
+                      md: 'repeat(4, 1fr)'
+                    },
+                    gap: 2,
+                    mb: 4
+                  }}
                 >
-                  <Search
-                    borderRadius='4px'
-                    value={searchValue}
-                    onClear={handleSearchClear}
-                    onChange={e => handleSearch(e.target.value)}
-                    textFielsSX={{
-                      '& .MuiInputBase-input::placeholder': {
-                        fontSize: '13px'
-                      }
-                    }}
-                    placeholder='Search by tag, species, or ID...'
-                  />
-                  <FilterButtonWithNotification
-                    onClick={() => setOpenFilterDrawer(true)}
-                    appliedFiltersCount={selected === 'animals' ? filterCount : speciesFilterCount}
-                  />
+                  {statCards.map((card, index) => (
+                    <Paper
+                      key={card?.id}
+                      elevation={0}
+                      sx={{
+                        position: 'relative',
+                        border: `${activeCard === card?.id ? '2px' : '0px'} solid ${card.color}`,
+                        p: 3,
+                        borderRadius: '20px',
+                        bgcolor: card.bgColor,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease-in-out',
+                        overflow: 'hidden',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+                        },
+                        '&::before': {
+                          content: '""',
+                          position: 'absolute',
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: '6px',
+
+                          // bgcolor: card?.color,
+                          opacity: activeCard === card?.id ? 1 : 0,
+                          transition: 'opacity 0.2s ease-in-out',
+
+                          borderTopLeftRadius: '20px',
+                          borderBottomLeftRadius: '20px'
+                        }
+                      }}
+                      onClick={() => {
+                        setActiveCard(card?.id)
+                        updateUrlParams({ ...filters, page: 1 }, card?.id)
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 2 }}>
+                        <Box
+                          sx={{
+                            color: card?.color,
+                            bgcolor: 'white',
+                            borderRadius: '12px',
+                            p: 1.5,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          {card?.icon}
+                        </Box>
+                        <Typography
+                          variant='h3'
+                          sx={{
+                            fontWeight: 700,
+                            color: card?.color,
+                            fontSize: '2.5rem'
+                          }}
+                        >
+                          {card?.count?.toString()?.padStart(2, '0')}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            fontWeight: 600,
+                            color: card?.color,
+                            letterSpacing: '0.5px',
+                            fontSize: '0.75rem'
+                          }}
+                        >
+                          {card?.label}
+                        </Typography>
+                      </Box>
+                    </Paper>
+                  ))}
                 </Box>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 4 }} order={{ xs: 3, sm: 2 }}>
-                <CustomSwitchTabs
-                  options={[
-                    { value: 'animals', label: 'By Animals' },
-                    { value: 'species', label: 'By Species' }
-                  ]}
-                  value={selected}
-                  onChange={handleChange}
-                />
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-        <Card sx={{ borderTopLeftRadius: 0, borderTopRightRadius: 0, boxShadow: 'none', elevation: 'none' }}>
-          <CardContent>
-            <Grid container spacing={4}>
-              <Grid size={{ xs: 12 }}>
-                {selected === 'animals' ? (
-                  <CommonTable
-                    key='animals'
-                    indexedRows={indexedAnimalRows}
-                    columns={animalColumns}
-                    loading={loading}
-                    total={total}
-                    paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
-                    setPaginationModel={handlePaginationModelChange}
-                    searchValue=''
-                    getRowHeight={() => 'auto'}
-                    onRowClick={handleRowClick}
-                    externalTableStyle={{
-                      '& .MuiDataGrid-cell': {
-                        padding: 4
-                      },
-                      '& .MuiDataGrid-row:hover': {
-                        cursor: 'pointer'
-                      }
-                    }}
-                  />
-                ) : (
-                  <CommonTable
-                    key='species'
-                    indexedRows={indexedSpeciesRows}
-                    columns={speciesColumns}
-                    loading={loading}
-                    paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
-                    setPaginationModel={handlePaginationModelChange}
-                    searchValue=''
-                    getRowHeight={() => 'auto'}
-                    externalTableStyle={{
-                      '& .MuiDataGrid-cell': {
-                        padding: 4
-                      },
-                      '& .MuiDataGrid-row:hover': {
-                        cursor: 'pointer'
-                      }
-                    }}
-                  />
-                )}
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      </Box>
-      {selected === 'animals' ? (
-        <NecropsyFilterDrawer
-          open={openFilterDrawer}
-          onClose={() => setOpenFilterDrawer(false)}
-          onApplyFilters={applyFilters}
-          setFilterCount={setFilterCount}
-          initialSelectedOptions={selectedOptions}
-          activeCard={activeCard}
-        />
-      ) : (
-        <SpeciesFilterDrawer
-          open={openFilterDrawer}
-          onClose={() => setOpenFilterDrawer(false)}
-          onApplyFilters={applySpeciesFilters}
-          setFilterCount={setSpeciesFilterCount}
-          initialSelectedOptions={speciesSelectedOptions}
-        />
-      )}
-      {openIncomingDrawer && (
-        <IncomingNecropsyDrawer
-          open={openIncomingDrawer}
-          onClose={() => {
-            setOpenIncomingDrawer(false)
-            setSelectedNecropsyRow(null)
-          }}
-          transferId={selectedNecropsyRow?.transfer_id}
-        />
-      )}
+                <Grid container spacing={4}>
+                  <Grid size={{ xs: 12 }} xs={12}>
+                    <Box>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: theme.palette.customColors.neutralSecondary,
+                          display: 'inline',
+                          fontSize: '10px',
+                          fontWeight: 500,
+                          letterSpacing: '0.5px'
+                        }}
+                      >
+                        ACTIVE STATUS:{' '}
+                      </Typography>
+
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: statCards.find(c => c.id === activeCard)?.color,
+                          backgroundColor: statCards.find(c => c.id === activeCard)?.bgColor,
+                          border: `1px solid ${statCards.find(c => c.id === activeCard)?.color}`,
+                          borderRadius: 1,
+                          px: 2,
+                          py: 1,
+                          fontWeight: 600,
+                          display: 'inline',
+                          fontSize: '10px',
+                          letterSpacing: '0.5px'
+                        }}
+                      >
+                        • {statCards.find(c => c.id === activeCard)?.label}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 8 }} order={{ xs: 2, sm: 3 }}>
+                    <Box
+                      display='flex'
+                      gap={2}
+                      justifyContent={{ xs: 'space-between', sm: 'flex-end' }}
+                      alignItems='center'
+                    >
+                      <Search
+                        borderRadius='4px'
+                        value={searchValue}
+                        onClear={handleSearchClear}
+                        onChange={e => handleSearch(e.target.value)}
+                        textFielsSX={{
+                          '& .MuiInputBase-input::placeholder': {
+                            fontSize: '13px'
+                          }
+                        }}
+                        placeholder='Search by tag, species, or ID...'
+                      />
+                      <FilterButtonWithNotification
+                        onClick={() => setOpenFilterDrawer(true)}
+                        appliedFiltersCount={selected === 'animals' ? filterCount : speciesFilterCount}
+                      />
+                    </Box>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }} order={{ xs: 3, sm: 2 }}>
+                    <CustomSwitchTabs
+                      options={[
+                        { value: 'animals', label: 'By Animals' },
+                        { value: 'species', label: 'By Species' }
+                      ]}
+                      value={selected}
+                      onChange={handleChange}
+                    />
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+            <Card sx={{ borderTopLeftRadius: 0, borderTopRightRadius: 0, boxShadow: 'none', elevation: 'none' }}>
+              <CardContent>
+                <Grid container spacing={4}>
+                  <Grid size={{ xs: 12 }}>
+                    {selected === 'animals' ? (
+                      <CommonTable
+                        key='animals'
+                        indexedRows={indexedAnimalRows}
+                        columns={animalColumns}
+                        loading={loading}
+                        total={total}
+                        paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
+                        setPaginationModel={handlePaginationModelChange}
+                        searchValue=''
+                        getRowHeight={() => 'auto'}
+                        onRowClick={handleRowClick}
+                        externalTableStyle={{
+                          '& .MuiDataGrid-cell': {
+                            padding: 4
+                          },
+                          '& .MuiDataGrid-row:hover': {
+                            cursor: 'pointer'
+                          }
+                        }}
+                      />
+                    ) : (
+                      <CommonTable
+                        key='species'
+                        indexedRows={indexedSpeciesRows}
+                        columns={speciesColumns}
+                        loading={loading}
+                        paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
+                        setPaginationModel={handlePaginationModelChange}
+                        searchValue=''
+                        getRowHeight={() => 'auto'}
+                        onRowClick={handleRowClick}
+                        externalTableStyle={{
+                          '& .MuiDataGrid-cell': {
+                            padding: 4
+                          },
+                          '& .MuiDataGrid-row:hover': {
+                            cursor: 'pointer'
+                          }
+                        }}
+                      />
+                    )}
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Box>
+          {selected === 'animals' ? (
+            <NecropsyFilterDrawer
+              open={openFilterDrawer}
+              onClose={() => setOpenFilterDrawer(false)}
+              onApplyFilters={applyFilters}
+              setFilterCount={setFilterCount}
+              initialSelectedOptions={selectedOptions}
+              activeCard={activeCard}
+            />
+          ) : (
+            <SpeciesFilterDrawer
+              open={openFilterDrawer}
+              onClose={() => setOpenFilterDrawer(false)}
+              onApplyFilters={applySpeciesFilters}
+              setFilterCount={setSpeciesFilterCount}
+              initialSelectedOptions={speciesSelectedOptions}
+            />
+          )}
+          {openIncomingDrawer && (
+            <IncomingNecropsyDrawer
+              open={openIncomingDrawer}
+              onClose={() => {
+                setOpenIncomingDrawer(false)
+                setSelectedNecropsyRow(null)
+              }}
+              transferId={selectedNecropsyRow?.transfer_id}
+              onAcceptSuccess={() => {
+                fetchNecropsyStats()
+                fetchNecropsyData()
+              }}
+            />
+          )}
+        </>
+      ) : allowCarcassCollection ? (
+        <Box sx={{ mt: 6 }}>
+          <CarcassTransferCard filterDate={filterDate} />
+        </Box>
+      ) : null}
     </Box>
   )
 }

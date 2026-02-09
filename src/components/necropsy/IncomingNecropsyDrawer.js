@@ -6,15 +6,18 @@ import {
   CardContent,
   CircularProgress,
   Collapse,
+  Divider,
   Drawer,
   IconButton,
+  Modal,
+  Paper,
   Skeleton,
   TextField,
   Typography,
   useTheme
 } from '@mui/material'
-import React, { useEffect, useState } from 'react'
-import { styled } from '@mui/material/styles'
+import React, { useEffect, useState, useCallback } from 'react'
+import { styled, alpha } from '@mui/material/styles'
 import Timeline from '@mui/lab/Timeline'
 import TimelineItem from '@mui/lab/TimelineItem'
 import { timelineOppositeContentClasses } from '@mui/lab'
@@ -31,10 +34,12 @@ import {
   getIncomingNecropsyTransferSummary,
   createIncomingNecropsySummaryComment,
   getIncomingNecropsyBtnStatus,
-  getIncomingNecropsyChecklistDetails
+  acceptNecropsyTransfer,
+  getIncomingNecropsyChecklistDetails,
+  getTransferAnimalList
 } from 'src/lib/api/necropsy'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-import AnimalQRCard from 'src/views/pages/housing/animals/AnimalQRCard'
+import TransferPassQRCard from 'src/components/necropsy/TransferPassQRCard'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Toaster from '../Toaster'
 
@@ -79,7 +84,7 @@ const StyledSectionHeader = styled(Box)(({ theme }) => ({
   gap: '4px'
 }))
 
-const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
+const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) => {
   const theme = useTheme()
 
   const [necropsyData, setNecropsyData] = useState(null)
@@ -92,6 +97,10 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
   const [btnStatusLoading, setBtnStatusLoading] = useState(false)
   const [checklistComments, setChecklistComments] = useState([])
   const [showChecklistComment, setShowChecklistComment] = useState(false)
+  const [showAnimalListDrawer, setShowAnimalListDrawer] = useState(false)
+  const [animalList, setAnimalList] = useState([])
+  const [animalListLoading, setAnimalListLoading] = useState(false)
+  const [acceptLoading, setAcceptLoading] = useState(false)
 
   const fetchNecropsyDetails = async () => {
     if (!transferId) return
@@ -162,6 +171,46 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
     }
   }
 
+  const handleAcceptNecropsy = async () => {
+    if (!transferId) return
+    setAcceptLoading(true)
+    try {
+      const response = await acceptNecropsyTransfer(transferId, { status: 'COMPLETED' })
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Necropsy accepted successfully' })
+        onAcceptSuccess?.()
+        onClose()
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to accept necropsy' })
+      }
+    } catch (error) {
+      console.error('Error accepting necropsy:', error)
+      Toaster({ type: 'error', message: 'Failed to accept necropsy' })
+    } finally {
+      setAcceptLoading(false)
+    }
+  }
+
+  const fetchAnimalList = useCallback(async () => {
+    if (!transferId) return
+    setAnimalListLoading(true)
+    try {
+      const response = await getTransferAnimalList(transferId, { status: 'ALL' })
+      if (response?.success) {
+        setAnimalList(response?.data?.result || [])
+      }
+    } catch (error) {
+      console.error('Error fetching animal list:', error)
+    } finally {
+      setAnimalListLoading(false)
+    }
+  }, [transferId])
+
+  const handleViewAnimals = () => {
+    setShowAnimalListDrawer(true)
+    fetchAnimalList()
+  }
+
   useEffect(() => {
     if (open && transferId) {
       fetchNecropsyDetails()
@@ -193,7 +242,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
             {/* Header Skeleton */}
             <Box
               sx={{
-                backgroundColor: theme.palette.customColors.OnPrimaryContainer,
+                backgroundColor: theme.palette.customColors?.rusticRed || '#4A0415',
                 p: 6,
                 display: 'flex',
                 flexDirection: 'column',
@@ -314,7 +363,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
                 position: 'sticky',
                 top: 0,
                 zIndex: 1,
-                backgroundColor: theme.palette.customColors.OnPrimaryContainer,
+                backgroundColor: theme.palette.customColors?.rusticRed || '#4A0415',
                 color: theme.palette.customColors.OnPrimary
               }}
             >
@@ -358,10 +407,10 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
                       onClick={() => {
                         setOpenQRDialog(true)
                         setQRDialogData({
-                          imageUrl: necropsyData?.entity_details?.[0]?.default_icon,
-                          speciesName: necropsyData?.entity_details?.[0]?.common_name,
-                          aid: necropsyData?.entity_details?.[0]?.animal_id,
-                          qrCodeUrl: necropsyData?.transfer_details?.qr_code_full_path
+                          requestId: necropsyData?.transfer_details?.transfer_code,
+                          qrCodeUrl: necropsyData?.transfer_details?.qr_code_full_path,
+                          title: 'Transfer Pass',
+                          subtitle: 'Transfer Request number'
                         })
                       }}
                       sx={{
@@ -373,7 +422,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
                         }
                       }}
                     >
-                      <Icon icon='mdi:qrcode' fontSize={40} color={theme.palette.customColors.OnPrimaryContainer} />
+                      <Icon icon='mdi:qrcode' fontSize={40} color={theme.palette.customColors?.rusticRed || '#4A0415'} />
                     </IconButton>
                   )}
                 </Box>
@@ -447,21 +496,82 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
                 p: 6
               }}
             >
-              <Card sx={{ overflow: 'visible' }}>
-                <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Icon icon={'fluent:animal-paw-print-48-regular'} />
-                    <Typography
-                      sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
-                    >
-                      Selected Animal
-                    </Typography>
-                  </Box>
-                  <Box sx={{ background: theme.palette.customColors.displaybgPrimary, borderRadius: 1, p: 3 }}>
-                    <AnimalCard data={necropsyData?.entity_details[0]} />
-                  </Box>
-                </CardContent>
-              </Card>
+              {/* Transfer / Animal Card */}
+              {(() => {
+                const animalCount = necropsyData?.total_animal_count || necropsyData?.entity_details?.length || 0
+
+                // If only 1 animal, show only the animal details without Transfer header
+                if (animalCount === 1 && necropsyData?.entity_details?.[0]) {
+                  return (
+                    <Card sx={{ overflow: 'visible' }}>
+                      <CardContent>
+                        <Box
+                          sx={{
+                            background: alpha(
+                              theme.palette.customColors?.errorContainer || theme.palette.error.light,
+                              0.4
+                            ),
+                            borderRadius: 1,
+                            p: 3
+                          }}
+                        >
+                          <AnimalCard data={necropsyData?.entity_details[0]} />
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  )
+                }
+
+                // If more than 1 animal, show Transfer header with View button
+                return (
+                  <Card sx={{ overflow: 'visible' }}>
+                    <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Icon icon='mdi:arrow-top-right' fontSize={24} />
+                          <Box>
+                            <Typography
+                              sx={{
+                                fontWeight: 400,
+                                fontSize: '14px',
+                                color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+                              }}
+                            >
+                              Transfer
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontWeight: 600,
+                                fontSize: '16px',
+                                color: theme.palette.customColors.OnSurfaceVariant
+                              }}
+                            >
+                              {animalCount} {animalCount === 1 ? 'Carcass' : 'Carcasses'}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Button
+                          variant='text'
+                          onClick={handleViewAnimals}
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: '14px',
+                            color: theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main
+                          }}
+                        >
+                          View
+                        </Button>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                )
+              })()}
 
               <Card sx={{ overflow: 'visible' }}>
                 <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -471,20 +581,30 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
                       alignItems: 'center',
                       gap: 2,
                       justifyContent: 'space-between',
-                      border: '1px solid red',
+                      border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`,
                       p: 2,
                       borderRadius: 1
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Icon icon={'uis:check-circle'} />
+                      <Icon
+                        icon={'uis:check-circle'}
+                        color={theme.palette.success.main}
+                        fontSize={24}
+                      />
                       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                         <Typography
                           sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
                         >
                           Transfer Checklist
                         </Typography>
-                        <Typography>
+                        <Typography
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: '14px',
+                            color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                          }}
+                        >
                           {necropsyData?.transfer_details?.checked_count}/
                           {necropsyData?.transfer_details?.total_checklist_count} Filled
                         </Typography>
@@ -550,7 +670,8 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
                             display: 'flex',
                             flexDirection: 'column',
                             gap: 3,
-                            border: '1px solid red',
+                            border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`,
+                            borderRadius: 1,
                             px: 4,
                             py: 2
                           }}
@@ -603,13 +724,13 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
                         <Box key={`section-${sectionIndex}`}>
                           <StyledSectionHeader>
                             <CalendarTodayIcon
-                              sx={{ color: theme.palette.customColors.OnPrimaryContainer, fontSize: '1.25rem' }}
+                              sx={{ color: theme.palette.customColors?.OnSurfaceVariant, fontSize: '1.25rem' }}
                             />
                             <Typography
                               sx={{
                                 fontSize: '1rem',
                                 fontWeight: 500,
-                                color: theme.palette.customColors.OnPrimaryContainer
+                                color: theme.palette.customColors?.OnSurfaceVariant
                               }}
                             >
                               {Utility.convertUtcToLocalReadableDate(section?.date)}
@@ -634,7 +755,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
                                     sx={{
                                       visibility: index === 0 ? 'hidden' : 'visible',
                                       minHeight: index === 0 ? 0 : '1rem',
-                                      backgroundColor: theme.palette.customColors.OnPrimaryContainer,
+                                      backgroundColor: theme.palette.customColors?.OnPrimaryContainer,
                                       width: '1.5px'
                                     }}
                                   />
@@ -643,7 +764,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
                                       width: '2rem',
                                       height: '2rem',
                                       borderRadius: '50%',
-                                      border: `1px solid ${theme.palette.customColors.OnPrimaryContainer}`,
+                                      border: `1px solid ${theme.palette.customColors?.OnPrimaryContainer}`,
                                       display: 'flex',
                                       justifyContent: 'center',
                                       alignItems: 'center'
@@ -651,7 +772,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
                                   >
                                     <CheckCircleIcon
                                       sx={{
-                                        color: theme.palette.customColors.OnPrimaryContainer,
+                                        color: theme.palette.customColors?.OnPrimaryContainer,
                                         fontSize: '1.5rem'
                                       }}
                                     />
@@ -660,7 +781,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
                                     sx={{
                                       visibility: index === section?.entries?.length - 1 ? 'hidden' : 'visible',
                                       minHeight: index === section?.entries?.length - 1 ? 0 : '1rem',
-                                      backgroundColor: theme.palette.customColors.OnPrimaryContainer,
+                                      backgroundColor: theme.palette.customColors?.OnPrimaryContainer,
                                       width: '1.5px'
                                     }}
                                   />
@@ -668,7 +789,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
                                 <TimelineContent sx={{ py: 1, display: 'flex', alignItems: 'center' }}>
                                   <Box
                                     sx={{
-                                      backgroundColor: '#E8F5E9',
+                                      backgroundColor: theme.palette.customColors.Background,
                                       borderRadius: 1,
                                       px: 3,
                                       py: 2,
@@ -732,10 +853,11 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
                   variant='contained'
                   fullWidth
                   color='primary'
-                  disabled={btnStatusLoading || btnStatusData?.show_accept_button === 0}
-                  sx={{ p: 3, fontWeight: 600, backgroundColor: theme.palette.customColors.OnPrimaryContainer }}
+                  disabled={btnStatusLoading || acceptLoading || btnStatusData?.show_accept_button === 0}
+                  onClick={handleAcceptNecropsy}
+                  sx={{ p: 3, fontWeight: 600, backgroundColor: theme.palette.customColors?.rusticRed || '#4A0415' }}
                 >
-                  {btnStatusLoading ? <CircularProgress size={24} /> : 'ACCEPT NECROPSY'}
+                  {btnStatusLoading || acceptLoading ? <CircularProgress size={24} /> : 'ACCEPT NECROPSY'}
                 </Button>
               )}
             </Box>
@@ -743,15 +865,107 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId }) => {
         )}
       </Drawer>
       {openQRDialog && (
-        <AnimalQRCard
+        <TransferPassQRCard
           open={openQRDialog}
           handleClose={() => {
             setOpenQRDialog(false)
             setQRDialogData(null)
           }}
-          speciesData={qrDialogData}
+          transferData={qrDialogData}
         />
       )}
+
+      {/* Animal List Drawer */}
+      <Modal
+        open={showAnimalListDrawer}
+        onClose={() => setShowAnimalListDrawer(false)}
+        sx={{
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'flex-end'
+        }}
+      >
+        <Paper
+          sx={{
+            width: { xs: '100%', sm: 560 },
+            maxHeight: '80vh',
+            backgroundColor: theme.palette.background.paper,
+            borderTopLeftRadius: '16px',
+            borderTopRightRadius: '16px',
+            borderBottomLeftRadius: '16px',
+            boxShadow: 24,
+            overflow: 'hidden',
+            position: 'absolute',
+            bottom: 0,
+            right: 0,
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              p: 4,
+              flexShrink: 0
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: '20px',
+                fontWeight: 600,
+                color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+              }}
+            >
+              Transfer Carcass List
+            </Typography>
+            <IconButton onClick={() => setShowAnimalListDrawer(false)} size='small'>
+              <Icon icon='mdi:close' />
+            </IconButton>
+          </Box>
+
+          <Divider />
+
+          <Box sx={{ flex: 1, overflow: 'auto', p: 4 }}>
+            {animalListLoading ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 3 }}>
+                    <Skeleton variant='rounded' width={60} height={60} />
+                    <Box sx={{ flex: 1 }}>
+                      <Skeleton variant='text' width='60%' height={20} />
+                      <Skeleton variant='text' width='40%' height={16} />
+                      <Skeleton variant='text' width='30%' height={16} />
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            ) : animalList.length === 0 ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+                <Typography sx={{ color: theme.palette.text.secondary, fontSize: '14px' }}>
+                  No animals found
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {animalList.map((animal, index) => (
+                  <Box
+                    key={animal.animal_id || index}
+                    sx={{
+                      background: theme.palette.customColors?.displaybgPrimary || theme.palette.grey[50],
+                      borderRadius: 1,
+                      p: 3
+                    }}
+                  >
+                    <AnimalCard data={animal} />
+                  </Box>
+                ))}
+              </Box>
+            )}
+          </Box>
+        </Paper>
+      </Modal>
     </>
   )
 }
