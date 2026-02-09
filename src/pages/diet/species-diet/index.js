@@ -367,8 +367,6 @@ const SpeciesDietList = () => {
     setAnimalUploadDietDrawer(true)
   }
 
-  const hasActiveDiet = row => Number(row?.attachment_count || 0) > 0
-
   const buildColumns = ({ nameHeader, onRowClick, onUploadClick, renderCard }) => [
     {
       width: colWidths[0],
@@ -378,13 +376,13 @@ const SpeciesDietList = () => {
       sortable: false,
       renderCell: params => (
         <Typography
-          onClick={onRowClick && hasActiveDiet(params?.row) ? () => onRowClick(params) : undefined}
+          onClick={onRowClick ? () => onRowClick(params) : undefined}
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontWeight: '400',
             lineHeight: '14.52px',
             fontSize: '12px',
-            cursor: onRowClick && hasActiveDiet(params?.row) ? 'pointer' : 'default'
+            cursor: onRowClick ? 'pointer' : 'default'
           }}
         >
           {params.row.sl_no}
@@ -399,12 +397,12 @@ const SpeciesDietList = () => {
       cellClassName: 'diet-name-cell',
       renderCell: params => (
         <Box
-          onClick={onRowClick && hasActiveDiet(params?.row) ? () => onRowClick(params) : undefined}
+          onClick={onRowClick ? () => onRowClick(params) : undefined}
           sx={{
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            cursor: onRowClick && hasActiveDiet(params?.row) ? 'pointer' : 'default'
+            cursor: onRowClick ? 'pointer' : 'default'
           }}
         >
           {renderCard ? renderCard(params?.row) : <SpeciesCard species={params?.row} />}
@@ -774,6 +772,7 @@ const SpeciesDietList = () => {
             </Grid>
 
             <DataGrid
+              key={isAnimalTab ? 'diet-animal-table' : 'diet-species-table'}
               ref={gridRef}
               sx={{
                 '.MuiDataGrid-cell:focus': {
@@ -782,9 +781,6 @@ const SpeciesDietList = () => {
 
                 '& .MuiDataGrid-row:hover': {
                   cursor: 'pointer'
-                },
-                '& .no-diet-row:hover': {
-                  cursor: 'default'
                 },
                 ...(isAnimalTab
                   ? {
@@ -802,7 +798,6 @@ const SpeciesDietList = () => {
                     }
                   : {})
               }}
-              getRowClassName={params => (hasActiveDiet(params.row) ? '' : 'no-diet-row')}
               columnVisibilityModel={{
                 sl_no: false
               }}
