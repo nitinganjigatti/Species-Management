@@ -213,9 +213,14 @@ const MediaScroller = ({ items = [] }) => {
                 fileUrl={item?.file}
                 fileName={item?.file_original_name}
                 fileType={item?.file_type}
-                width={'250px'}
-                height={'220px'}
-                user={item}
+                user={{
+                  created_at: item?.created_at,
+                  modified_at: item?.modified_at,
+                  user_profile: {
+                    user_full_name: item?.user_full_name,
+                    user_profile_pic: item?.user_profile_pic
+                  }
+                }}
                 showTitle={true}
               />
               {/* <MediaCard media={item} isBorderedCard /> */}
