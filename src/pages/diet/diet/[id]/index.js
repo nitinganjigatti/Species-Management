@@ -396,6 +396,7 @@ const DietDetail = () => {
         if (res) {
           const resultData = res?.data?.result
           const totalCount = res?.data?.count
+          const sitespeciestotalCount = res?.data?.total_species_count
 
           if (resultData) {
             setspeciesData(prevData => {
