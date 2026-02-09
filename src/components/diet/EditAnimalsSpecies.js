@@ -384,9 +384,8 @@ const EditAnimalSpeciesMapped = ({
               <Tab
                 style={{ borderRadius: 0, width: '33.33%' }}
                 value='site_species'
-                label={`SITE SPECIES - ${
-                  selectionType === 'site_species' && !loading ? siteSpeciesTotalCount || '' : '0'
-                }`}
+                label={`SITE SPECIES`}
+                //label={`SITE SPECIES - ${selectionType === 'site_species' && !loading ? speciestotalcount || '' : '0'}`}
               />
             </TabList>
           ) : (
@@ -1036,7 +1035,7 @@ const EditAnimalSpeciesMapped = ({
                             pb: 1
                           }}
                         >
-                          {siteSpeciesTotalCount || ''} Species
+                          {speciestotalcount || ''} Sites
                         </Typography>
                       )
                     ) : (

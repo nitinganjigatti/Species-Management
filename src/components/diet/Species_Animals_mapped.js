@@ -61,8 +61,7 @@ const SpeciesAnimalsMapped = ({
   fetchList,
   removeFilterTriggered,
   setRemoveFilterTriggered,
-  setCheckForSite,
-  siteSpeciesTotalCount
+  setCheckForSite
 }) => {
   const theme = useTheme()
 
@@ -251,9 +250,10 @@ const SpeciesAnimalsMapped = ({
               <Tab
                 style={{ borderRadius: 0, width: '33.33%', fontWeight: '600' }}
                 value='site_species'
-                label={`SITE SPECIES ${
-                  selectionType === 'site_species' && !loading ? ' - ' + siteSpeciesTotalCount || ' ' : ' '
-                }`}
+                label={`SITE SPECIES `}
+                // label={`SITE SPECIES ${
+                //   selectionType === 'site_species' && !loading ? ' - ' + speciestotalcount || ' ' : ' '
+                // }`}
               />
             </TabList>
           ) : (
@@ -1073,7 +1073,7 @@ const SpeciesAnimalsMapped = ({
                           pb: 1
                         }}
                       >
-                        Total Species ({siteSpeciesTotalCount || 0})
+                        Total Sites ({speciestotalcount || 0})
                       </Typography>
                     )
                   ) : (

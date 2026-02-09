@@ -467,7 +467,7 @@ const DietDetailCard = ({
                           fontWeight='bold'
                           sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
                         >
-                          Site , Species
+                          Site, Species
                         </Typography>
 
                         <Box
@@ -477,7 +477,7 @@ const DietDetailCard = ({
                           onClick={() => handleSpeciesClicknew('details', 'site_species')}
                         >
                           <Typography variant='h6' color={theme.palette.primary.main}>
-                            {dietDetails.total_sites} , {dietDetails.total_site_species}
+                            {dietDetails.total_sites}, {dietDetails.total_site_species}
                           </Typography>
                           <Typography
                             variant='caption'
