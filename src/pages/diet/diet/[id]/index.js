@@ -105,6 +105,7 @@ const DietDetail = () => {
   const [checkForSite, setCheckForSite] = useState('')
   const [siteId, setSiteID] = useState(null)
   const [removeFilterTriggered, setRemoveFilterTriggered] = useState(false)
+  const [siteSpeciesTotalCount, setSiteSpeciesTotalCount] = useState('')
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -258,6 +259,7 @@ const DietDetail = () => {
       if (res) {
         const resultData = res?.data?.result
         const totalCount = res?.data?.count
+        const sitespeciestotalCount = res?.data?.total_species_count
 
         if (resultData) {
           if (searchQuery && filterState === 'species') {
@@ -337,6 +339,7 @@ const DietDetail = () => {
             setspeciesData([])
           }
           setspeciestotalcount(totalCount)
+          setSiteSpeciesTotalCount(sitespeciestotalCount)
 
           // Check if we've reached the end of available data
           if (resultData.length === 0 || resultData.length < totalCount) {
@@ -423,7 +426,7 @@ const DietDetail = () => {
             })
 
             setspeciestotalcount(totalCount)
-
+            setSiteSpeciesTotalCount(sitespeciestotalCount)
             // Check if we've reached the end of available data
             if (resultData.length === 0 || resultData.length < totalCount) {
               setHasMoreData(false)
@@ -3889,6 +3892,7 @@ const DietDetail = () => {
             refreshSpeciesData={refreshSpeciesData}
             filterState={filterState}
             setCheckForSite={setCheckForSite}
+            siteSpeciesTotalCount={siteSpeciesTotalCount}
           />
           <EditAnimalSpeciesMapped
             setIsOpenTabs={setIsOpenTabs}
@@ -3923,7 +3927,7 @@ const DietDetail = () => {
             setIsOpen={setIsOpen}
             setSiteListDrawer={setSiteListDrawer}
             setCheckForSite={setCheckForSite}
-            setFilterState={setFilterState}
+            siteSpeciesTotalCount={siteSpeciesTotalCount}
           />
           <SpeciesMappedtoDietFilter
             setOpenFilterDrawer={setOpenFilterDrawer}
