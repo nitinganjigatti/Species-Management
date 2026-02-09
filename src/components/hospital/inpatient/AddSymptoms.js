@@ -357,6 +357,7 @@ function AddSymptoms() {
       formData.append('medical_record_id', patientData?.medical_record_id)
       formData.append('animal_id', JSON.stringify([Number(patientData?.animal_detail?.animal_id)]))
       formData.append('complaints', JSON.stringify(complaints))
+      formData.append('hospital_case_id', id)
 
       const response = await addSymptoms(formData)
 
@@ -394,6 +395,14 @@ function AddSymptoms() {
     router.back()
   }
 
+  const handleAIDDisplay = () => {
+    if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
+      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+    } else {
+      return patientData?.animal_detail?.animal_id
+    }
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       <AnimalInfoCard
@@ -403,8 +412,9 @@ function AddSymptoms() {
         age={`${patientData?.animal_detail?.age}`}
         gender={`${patientData?.animal_detail?.sex}`}
         additionalFields={[
-          { label: 'AID', value: patientData?.animal_detail?.animal_id },
-          { label: 'Admitted days', value: patientData?.admitted_for_day },
+          { label: 'AID', value: handleAIDDisplay() },
+          { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
+          // { label: 'Admitted days', value: patientData?.admitted_for_day },
           { label: 'Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
           { label: 'Consulting Veterinarian', value: patientData?.attend_by_full_name }
         ]}

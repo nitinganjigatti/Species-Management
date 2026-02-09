@@ -37,40 +37,37 @@ const AddHospitalRoom = props => {
   const getSitesList = useMemo(() => authData?.userData?.user?.zoos?.[0]?.sites ?? [], [authData?.userData?.user?.zoos])
 
   // Determine mode and Conditional rendering flags
-  const isHospitalEditMode = hospitalStatus
-  const hasOccupants = Number(hospitalDetails?.no_of_occupied) === 0
-  const hasRoomOccupants = Number(editParams?.no_of_occupied ?? 0) === 0 // When adding a new room, no_of_occupied is undefined, so default to 0
+  const isHospitalEditMode = Boolean(hospitalStatus)
+  const isRoomEditMode = !isHospitalEditMode && Boolean(editParams?.id)
+  const isRoomAddMode = !isHospitalEditMode && !isRoomEditMode
+
+  const isHospitalEmpty = Number(hospitalDetails?.no_of_occupied) === 0
+  const isRoomEmpty = Number(editParams?.no_of_occupied ?? 0) === 0
+
+  const showStatusField = (isHospitalEditMode && isHospitalEmpty) || (isRoomEditMode && isRoomEmpty) || isRoomAddMode
+
   const showRoomFields = !isHospitalEditMode
   const hospitalNameDisabled = !isHospitalEditMode
 
   const schema = useMemo(() => {
     if (isHospitalEditMode) {
-      if (hasOccupants) {
-        return yup.object().shape({
-          hospital_id: yup.string().trim().required('Hospital Name is required'),
+      return yup.object().shape({
+        hospital_id: yup.string().trim().required('Hospital Name is required'),
+        ...(isHospitalEmpty && {
           status: yup.boolean().required('Status is required')
         })
-      } else {
-        return yup.object().shape({
-          hospital_id: yup.string().trim().required('Hospital Name is required')
-        })
-      }
+      })
     }
-    if (hasRoomOccupants) {
-      return yup.object().shape({
-        hospital_id: yup.string().trim().required('Hospital Name is required'),
-        room_name: yup.string().trim().required('Room Name is required'),
-        floor_name: yup.string().trim().required('Floor Name is required'),
+
+    return yup.object().shape({
+      hospital_id: yup.string().trim().required('Hospital Name is required'),
+      room_name: yup.string().trim().required('Room Name is required'),
+      floor_name: yup.string().trim().required('Floor Name is required'),
+      ...(showStatusField && {
         status: yup.boolean().required('Status is required')
       })
-    } else {
-      return yup.object().shape({
-        hospital_id: yup.string().trim().required('Hospital Name is required'),
-        room_name: yup.string().trim().required('Room Name is required'),
-        floor_name: yup.string().trim().required('Floor Name is required')
-      })
-    }
-  }, [isHospitalEditMode, hasOccupants, hasRoomOccupants])
+    })
+  }, [isHospitalEditMode, isHospitalEmpty, showStatusField])
 
   const {
     reset,
@@ -92,7 +89,7 @@ const AddHospitalRoom = props => {
         name: formData?.hospital_id,
         description: formData?.description,
         site_id: formData?.site_id?.site_id || null,
-        is_active: formData?.status === true ? '1' : '0',
+        is_active: formData?.status !== undefined ? (formData?.status ? '1' : '0') : '1',
         entity_type: 'hospital',
         is_external: 0
       }
@@ -107,7 +104,7 @@ const AddHospitalRoom = props => {
         hospital_id: hospitalId,
         room_name: formData?.room_name,
         floor_name: formData?.floor_name,
-        status: formData?.status === true ? '1' : '0'
+        status: formData?.status !== undefined ? (formData?.status ? '1' : '0') : '1'
       }
       const success = await handleSubmitData(payload, 'room')
       if (success) {
@@ -216,7 +213,7 @@ const AddHospitalRoom = props => {
                 disabled={hospitalNameDisabled}
               />
 
-              {isHospitalEditMode && (
+              {isHospitalEditMode && (    
                 <>
                   <ControlledTextField
                     control={control}
@@ -261,7 +258,7 @@ const AddHospitalRoom = props => {
                 </>
               )}
 
-              {hasRoomOccupants && (
+              {showStatusField && (
                 <ControlledRadioGroup
                   name='status'
                   control={control}

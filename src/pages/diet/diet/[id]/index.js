@@ -35,6 +35,7 @@ import SpeciesMappedtoDietFilter from './speciesMappedFilter'
 import { useMediaQuery } from '@mui/material'
 import SpeciesAnimalsMapped from 'src/components/diet/Species_Animals_mapped'
 import EditAnimalSpeciesMapped from 'src/components/diet/EditAnimalsSpecies'
+import SelectSiteList from 'src/components/diet/SelectSiteList'
 
 const DietDetail = () => {
   const router = useRouter()
@@ -101,6 +102,10 @@ const DietDetail = () => {
   const [selectedSections, setSelectedSections] = useState([])
   const [taxonomyLoading, setTaxonomyLoading] = useState(false)
   const [speciesFilterLoading, setSpeciesFilterLoading] = useState(false)
+  const [checkForSite, setCheckForSite] = useState('')
+  const [siteId, setSiteID] = useState(null)
+  const [removeFilterTriggered, setRemoveFilterTriggered] = useState(false)
+  const [siteSpeciesTotalCount, setSiteSpeciesTotalCount] = useState('')
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -113,7 +118,20 @@ const DietDetail = () => {
   }
 
   const handleSpeciesClick = value => {
-    setSelectionType(value)
+    setPageNo(1)
+    if (value === 'site_species') {
+      setSiteListDrawer(true)
+      setSelectionType(value)
+    } else {
+      setIsOpen(true)
+      setSelectionType(value)
+      setCheckForSite('')
+      setSiteID('')
+    }
+  }
+
+  const handleSingleSiteSelect = selectedSiteId => {
+    setSiteID(selectedSiteId)
     setIsOpen(true)
     setPageNo(1)
   }
@@ -122,6 +140,8 @@ const DietDetail = () => {
     setIsOpenTabs(true)
     setspeciesview(val)
     setSelectionType(type)
+    setCheckForSite('')
+    setSiteID('')
   }
 
   const handleSelectedSpeciesChange = updatedSelectedSpecies => {
@@ -181,11 +201,20 @@ const DietDetail = () => {
 
       const commonParams = {
         page_no: pageNo,
-        limit: 15,
+        limit: 20,
         diet_id: id,
         ...(searchQuery && { q: searchQuery }),
         ...(type && { type }),
-        ...(selectedItems?.Site?.length > 0 && { site_ids: `[${selectedItems?.Site.join(',')}]` }),
+        group_by_site: selectionType === 'site_species',
+        ...(selectionType === 'species' &&
+          checkForSite === 'site_species' &&
+          siteId && {
+            site_id: siteId
+          }),
+
+        ...(selectedItems?.Site?.length > 0 && {
+          site_ids: `[${selectedItems.Site.join(',')}]`
+        }),
         ...(selectedItems?.Section?.length > 0 && { section_ids: `[${selectedItems?.Section.join(',')}]` }),
         ...(selectedItems?.Enclosure?.length > 0 && { enclosure_ids: `[${selectedItems?.Enclosure.join(',')}]` })
       }
@@ -195,7 +224,7 @@ const DietDetail = () => {
         setLoadingSpecies(true)
         const params = {
           page_no: pageNo,
-          limit: 15,
+          limit: 20,
           diet_id: id,
           ...(searchQuery && { q: searchQuery }),
           ...(selectedItems?.Taxonomy?.length > 0 && { species_ids: `[${selectedItems?.Taxonomy.join(',')}]` })
@@ -206,7 +235,6 @@ const DietDetail = () => {
         }
       } else if (selectionType === 'species') {
         // Params for species list with taxonomy_ids
-
         const params = {
           ...commonParams,
           ...(selectedItems?.Taxonomy?.length > 0 && { species_ids: `[${selectedItems?.Taxonomy.join(',')}]` })
@@ -214,17 +242,24 @@ const DietDetail = () => {
         res = await getSpeciesList(params)
       } else if (selectionType === 'animals') {
         // Params for animals list
-
         const params = {
           ...commonParams,
           ...(selectedItems?.Species?.length > 0 && { species_ids: `[${selectedItems?.Species.join(',')}]` })
         }
         res = await getAnimalsList(params)
+      } else if (selectionType === 'site_species') {
+        // Params for species list with taxonomy_ids
+        const params = {
+          ...commonParams,
+          ...(selectedItems?.Taxonomy?.length > 0 && { species_ids: `[${selectedItems?.Taxonomy.join(',')}]` })
+        }
+        res = await getSpeciesList(params)
       }
 
       if (res) {
         const resultData = res?.data?.result
         const totalCount = res?.data?.count
+        const sitespeciestotalCount = res?.data?.total_species_count
 
         if (resultData) {
           if (searchQuery && filterState === 'species') {
@@ -248,15 +283,17 @@ const DietDetail = () => {
             setsepeciescountforFilter(totalCount)
           }
 
-          if (pageNo === 1 && tempSelectedSpecies.length <= 0) {
+          if (pageNo === 1 || searchQuery !== '') {
             setspeciesData(resultData)
             setAllFetchedData(resultData)
             if (filterState === 'species' && !searchQuery) {
               setspeciesDataforFilter(resultData)
             }
-          } else if (filterState === '' && tempSelectedSpecies.length > 0) {
-            setspeciesData(resultData)
-          } else if (filterState === '') {
+          }
+          // else if (filterState === '' && tempSelectedSpecies.length > 0) {
+          //   setspeciesData(resultData)
+          // }
+          else if (filterState === '') {
             setspeciesData(prevData => {
               const combinedData = [...prevData, ...resultData]
 
@@ -302,6 +339,7 @@ const DietDetail = () => {
             setspeciesData([])
           }
           setspeciestotalcount(totalCount)
+          setSiteSpeciesTotalCount(sitespeciestotalCount)
 
           // Check if we've reached the end of available data
           if (resultData.length === 0 || resultData.length < totalCount) {
@@ -332,21 +370,33 @@ const DietDetail = () => {
         let res
         if (selectionType === 'animals' && filterState === 'species') {
           // Params for animals list
-          const params = { page_no: pageNo, q: search, diet_id: id, limit: 15 }
+          const params = { page_no: pageNo, q: search, diet_id: id, limit: 20 }
           res = await getSpeciesList(params)
         } else if (selectionType === 'species') {
           // Params for species list
-          const params = { q: search, page_no: pageNo, limit: 15, diet_id: id, ...(type && { type }) }
+          const params = {
+            q: search,
+            page_no: pageNo,
+            limit: 20,
+            diet_id: id,
+            ...(type && { type }),
+            ...(selectionType === 'species' &&
+              checkForSite === 'site_species' &&
+              siteId && {
+                site_id: siteId
+              })
+          }
           res = await getSpeciesList(params)
         } else if (selectionType === 'animals') {
           // Params for animals list
-          const params = { page_no: pageNo, q: search, diet_id: id, limit: 15, ...(type && { type }) }
+          const params = { page_no: pageNo, q: search, diet_id: id, limit: 20, ...(type && { type }) }
           res = await getAnimalsList(params)
         }
 
         if (res) {
           const resultData = res?.data?.result
           const totalCount = res?.data?.count
+          const sitespeciestotalCount = res?.data?.total_species_count
 
           if (resultData) {
             setspeciesData(prevData => {
@@ -377,7 +427,7 @@ const DietDetail = () => {
             })
 
             setspeciestotalcount(totalCount)
-
+            setSiteSpeciesTotalCount(sitespeciestotalCount)
             // Check if we've reached the end of available data
             if (resultData.length === 0 || resultData.length < totalCount) {
               setHasMoreData(false)
@@ -409,7 +459,7 @@ const DietDetail = () => {
     setTaxonomyLoading(true)
     try {
       setLoadingTaxonomy(true)
-      const params = { search: searchQuery, page_no: pageNoTaxonomy, limit: 15 }
+      const params = { search: searchQuery, page_no: pageNoTaxonomy, limit: 20 }
       const response = await getTaxonomyList(params)
       if (response?.data) {
         setTaxonomyList(prev => (pageNoTaxonomy === 1 ? response.data.result : [...prev, ...response.data.result]))
@@ -454,7 +504,12 @@ const DietDetail = () => {
   useEffect(() => {
     if (speciesview !== '' && speciesview !== 'select' && filterState !== 'species') {
       fetchList(searchQuery, 'mapped')
+    } else if (speciesview === 'select' && checkForSite === 'site_species') {
+      fetchList(searchQuery)
+    } else if (checkForSite === '' && speciesview === '') {
+      fetchList(searchQuery)
     } else if (speciesview === 'select') {
+      //fetchList(searchQuery)
     } else {
       fetchList(searchQuery)
     }
@@ -784,8 +839,6 @@ const DietDetail = () => {
                                               position: isSmallDevice ? '' : 'sticky ',
                                               left: '160px',
                                               p: 0
-
-                                              // width: '580px'
                                             }}
                                             className='meal_dtl_hd'
                                           >
@@ -1027,9 +1080,6 @@ const DietDetail = () => {
                                                       background: theme.palette.primary.contrastText,
                                                       height: '185px',
                                                       pl: '1rem !important',
-
-                                                      //display: 'flex',
-                                                      //flexDirection: 'column',
                                                       justifyContent: 'center',
                                                       alignItems: 'center',
                                                       overflow: 'hidden'
@@ -1573,6 +1623,7 @@ const DietDetail = () => {
                                                                                   src='/icons/Notes.svg'
                                                                                   alt='Grocery Icon'
                                                                                   width='35px'
+                                                                                  draggable={false}
                                                                                 />
                                                                               </Tooltip>
                                                                             </Typography>
@@ -1691,6 +1742,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -1719,6 +1771,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -1745,6 +1798,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -1771,6 +1825,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -2256,6 +2311,7 @@ const DietDetail = () => {
                                                                                   src='/icons/Notes.svg'
                                                                                   alt='Grocery Icon'
                                                                                   width='35px'
+                                                                                  draggable={false}
                                                                                 />
                                                                               </Tooltip>
                                                                             </Typography>
@@ -2373,6 +2429,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -2401,6 +2458,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -2427,6 +2485,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -2453,6 +2512,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -2860,6 +2920,7 @@ const DietDetail = () => {
                                                                                   src='/icons/Notes.svg'
                                                                                   alt='Grocery Icon'
                                                                                   width='35px'
+                                                                                  draggable={false}
                                                                                 />
                                                                               </Tooltip>
                                                                             </Typography>
@@ -2980,6 +3041,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -3008,6 +3070,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -3034,6 +3097,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -3060,6 +3124,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -3408,6 +3473,7 @@ const DietDetail = () => {
                                                                                 src='/icons/Notes.svg'
                                                                                 alt='Grocery Icon'
                                                                                 width='35px'
+                                                                                draggable={false}
                                                                               />
                                                                             </Tooltip>
                                                                           </Typography>
@@ -3525,6 +3591,7 @@ const DietDetail = () => {
                                                                                             src='/icons/Notes.svg'
                                                                                             alt='Grocery Icon'
                                                                                             width='35px'
+                                                                                            draggable={false}
                                                                                           />
                                                                                         </Tooltip>
                                                                                       </Typography>
@@ -3553,6 +3620,7 @@ const DietDetail = () => {
                                                                                             src='/icons/Notes.svg'
                                                                                             alt='Grocery Icon'
                                                                                             width='35px'
+                                                                                            draggable={false}
                                                                                           />
                                                                                         </Tooltip>
                                                                                       </Typography>
@@ -3579,6 +3647,7 @@ const DietDetail = () => {
                                                                                             src='/icons/Notes.svg'
                                                                                             alt='Grocery Icon'
                                                                                             width='35px'
+                                                                                            draggable={false}
                                                                                           />
                                                                                         </Tooltip>
                                                                                       </Typography>
@@ -3605,6 +3674,7 @@ const DietDetail = () => {
                                                                                             src='/icons/Notes.svg'
                                                                                             alt='Grocery Icon'
                                                                                             width='35px'
+                                                                                            draggable={false}
                                                                                           />
                                                                                         </Tooltip>
                                                                                       </Typography>
@@ -3705,6 +3775,7 @@ const DietDetail = () => {
               </Box>
             </Box>
           )}
+
           <SpeciesMappedtoDiet
             isOpen={isOpen}
             setIsOpen={setIsOpen}
@@ -3738,6 +3809,16 @@ const DietDetail = () => {
             setSelectedSections={setSelectedSections}
             setSelectedSpeciesIds={setSelectedSpeciesIds}
             setSelectedTaxonomyIds={setSelectedTaxonomyIds}
+            checkForSite={checkForSite}
+            setSelectionType={setSelectionType}
+            authData={authData}
+            setIsOpenTabsEdit={setIsOpenTabsEdit}
+            setPrimaryStatus={setPrimaryStatus}
+            setSelectedSpecies={setSelectedSpecies}
+            setCheckForSite={setCheckForSite}
+            fetchList={fetchList}
+            setRemoveFilterTriggered={setRemoveFilterTriggered}
+            removeFilterTriggered={removeFilterTriggered}
           />
           <ListOfSpeciesMapped
             isOpennew={isOpennew}
@@ -3767,6 +3848,9 @@ const DietDetail = () => {
             setSelectedSpecies={setSelectedSpecies}
             selectionType={selectionType}
             setapplyfilterCheck={setapplyfilterCheck}
+            siteId={siteId}
+            setSiteListDrawer={setSiteListDrawer}
+            setCheckForSite={setCheckForSite}
           />
           <SpeciesAnimalsMapped
             setIsOpenTabs={setIsOpenTabs}
@@ -3803,6 +3887,13 @@ const DietDetail = () => {
             setSelectedEnclosures={setSelectedEnclosures}
             setspeciesData={setspeciesData}
             authData={authData}
+            fetchList={fetchList}
+            setRemoveFilterTriggered={setRemoveFilterTriggered}
+            removeFilterTriggered={removeFilterTriggered}
+            refreshSpeciesData={refreshSpeciesData}
+            filterState={filterState}
+            setCheckForSite={setCheckForSite}
+            siteSpeciesTotalCount={siteSpeciesTotalCount}
           />
           <EditAnimalSpeciesMapped
             setIsOpenTabs={setIsOpenTabs}
@@ -3832,6 +3923,12 @@ const DietDetail = () => {
             allFetchedData={allFetchedData}
             setspeciestotalcount={setspeciestotalcount}
             debouncedFetchList={debouncedFetchList}
+            checkForSite={checkForSite}
+            siteId={siteId}
+            setIsOpen={setIsOpen}
+            setSiteListDrawer={setSiteListDrawer}
+            setCheckForSite={setCheckForSite}
+            siteSpeciesTotalCount={siteSpeciesTotalCount}
           />
           <SpeciesMappedtoDietFilter
             setOpenFilterDrawer={setOpenFilterDrawer}
@@ -3882,6 +3979,28 @@ const DietDetail = () => {
             selectedSections={selectedSections}
             loadingTaxonomy={loadingTaxonomy}
             loadingSpecies={loadingSpecies}
+            checkForSite={checkForSite}
+          />
+          <SelectSiteList
+            setSiteListDrawer={setSiteListDrawer}
+            openSiteListDrawer={openSiteListDrawer}
+            tabsforfilter={tabsforfilter}
+            setActiveTab={setActiveTab}
+            activeTab={activeTab}
+            setSearchTerm={setSearchTerm}
+            searchTerm={searchTerm}
+            setSelectedItems={setSelectedItems}
+            selectedItems={selectedItems}
+            items={items}
+            tempSelectedItems={tempSelectedItems}
+            setTempSelectedItems={setTempSelectedItems}
+            setSelectionType={setSelectionType}
+            selectionType={selectionType}
+            onSingleSelectClose={handleSingleSiteSelect}
+            setCheckForSite={setCheckForSite}
+            setTempSelectedSpecies={setTempSelectedSpecies}
+            setspeciesview={setspeciesview}
+            checkForSite={checkForSite}
           />
         </>
       ) : (

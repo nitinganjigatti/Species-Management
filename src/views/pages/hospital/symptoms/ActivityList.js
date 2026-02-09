@@ -17,7 +17,6 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
 
     return Number(value) === 1 || Number(value) === 0 ? unit.replace(/s$/i, '') : unit
   }
-
   return (
     <Box sx={{ px: 5, py: 5 }}>
       {activityLoader ? (

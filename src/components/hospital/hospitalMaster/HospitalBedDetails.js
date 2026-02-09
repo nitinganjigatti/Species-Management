@@ -42,7 +42,7 @@ import { useHospital } from 'src/context/HospitalContext'
 import EnclosureOccupantsDrawer from 'src/views/pages/hospital/masters/hospital/EnclosureOccupantsDrawer'
 
 const statusOptions = [
-  { label: 'Enclosure Status', value: 'all' },
+  { label: 'All Status', value: 'all' },
   { label: 'Active', value: 'active' },
   { label: 'Inactive', value: 'inactive' }
 ]
@@ -247,12 +247,14 @@ const HospitalBedDetails = () => {
   }
 
   const openEditRoomDrawer = () => {
-    if (Number(occupied) > 0) {
-      setIsOccupiedBedWarningOpen(true)
-    } else {
-      setRoomStatusEdit(true)
-      setOpenDrawer(true)
-    }
+    // if (Number(occupied) > 0) {
+    //   setIsOccupiedBedWarningOpen(true)
+    // } else {
+    // setRoomStatusEdit(true)
+    // setOpenDrawer(true)
+    // }
+    setRoomStatusEdit(true)
+    setOpenDrawer(true)
   }
 
   const closeDrawer = () => {
@@ -332,7 +334,7 @@ const HospitalBedDetails = () => {
       console.error('Error submitting data:', error?.message || error)
     } finally {
       setSubmitLoader(false)
-      setOpenDrawer(false)
+      closeDrawer()
     }
   }
 
@@ -400,12 +402,17 @@ const HospitalBedDetails = () => {
       renderCell: params => {
         const animalData = {
           animal_id: params?.row?.animal_id,
+          local_identifier_name: params?.row?.local_identifier_name,
+          local_identifier_value: params?.row?.local_identifier_value,
           common_name: params?.row?.default_common_name,
           scientific_name: params?.row?.scientific_name,
           age: params?.row?.age,
           site_name: params?.row?.site_name,
           sex: params?.row?.sex,
-          default_icon: params?.row?.occupant_icon
+          default_icon: params?.row?.occupant_icon,
+          user_enclosure_name: params?.row?.enclosure_name,
+          section_name: params?.row?.section_name,
+          weight: params?.row?.weight
         }
 
         const isOccupied = String(params?.row?.is_occupied) === '1'
@@ -545,13 +552,18 @@ const HospitalBedDetails = () => {
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
               <FormControlLabel
                 control={
-                  isStatusUpdating ? (
+                  isStatusUpdating || isLoadingBeds ? (
                     <CircularProgress size={20} sx={{ ml: 4 }} />
                   ) : (
-                    <Switch size='small' onChange={handleRoomStatus} checked={Boolean(isActive)} />
+                    <Switch
+                      size='small'
+                      onChange={handleRoomStatus}
+                      checked={Boolean(isActive)}
+                      disabled={isLoadingBeds}
+                    />
                   )
                 }
-                label={isStatusUpdating ? 'Loading...' : isActive ? 'Active' : 'Inactive'}
+                label={isStatusUpdating || isLoadingBeds ? 'Loading...' : isActive ? 'Active' : 'Inactive'}
                 labelPlacement='start'
                 sx={{
                   margin: 0,
@@ -562,7 +574,7 @@ const HospitalBedDetails = () => {
                 }}
               />
               <Tooltip title='Edit'>
-                <IconButton onClick={openEditRoomDrawer} size='small'>
+                <IconButton onClick={openEditRoomDrawer} size='small' disabled={isLoadingBeds}>
                   <Icon icon='mdi:pencil-outline' style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
                 </IconButton>
               </Tooltip>
@@ -570,6 +582,7 @@ const HospitalBedDetails = () => {
                 variant='contained'
                 startIcon={<AddIcon />}
                 sx={{ py: 2, px: 3, borderRadius: '4px' }}
+                disabled={isLoadingBeds}
                 onClick={openAddBedDrawer}
               >
                 Add Enclosure
@@ -638,6 +651,15 @@ const HospitalBedDetails = () => {
               '&:hover': {
                 backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.3)
               }
+            },
+            '& .MuiDataGrid-cell': {
+              padding: 4
+            },
+            '& .MuiDataGrid-cell:focus': {
+              outline: 'none'
+            },
+            '& .MuiDataGrid-cell:focus-within': {
+              outline: 'none'
             }
           }}
         />
@@ -660,7 +682,7 @@ const HospitalBedDetails = () => {
       {isOccupiedBedWarningOpen && (
         <ConfirmationDialog
           dialogBoxStatus={isOccupiedBedWarningOpen}
-          title='The room status cannot be changed because there are patients currently occupying the Enclosures'
+          title='The room status cannot be updated as there are patients currently assigned to the enclosures'
           confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}

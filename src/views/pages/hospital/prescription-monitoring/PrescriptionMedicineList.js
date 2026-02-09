@@ -89,7 +89,7 @@ export default function PrescriptionMedicineList({
 
     const isPrescribed =
       tab === 'discharge'
-        ? isEnclosureMedicineAdded(medicine.id.toString())
+        ? isEnclosureMedicineAdded(medicine.id.toString()) || isMedicinePrescribed(medicine?.id)
         : isDirectAdminister
         ? isMedicinePrescribed(medicine?.id)
         : // ? false  // Commented for now as per the updated requirement
@@ -298,6 +298,7 @@ export default function PrescriptionMedicineList({
             const MedicineRow = (
               <Box
                 key={medicine?.id}
+                onClick={() => !isDisabled && onSelect(medicine)}
                 sx={{
                   background:
                     isSelected || isTemporarilySelected ? theme.palette.customColors.OnBackground : 'transparent',
@@ -309,21 +310,30 @@ export default function PrescriptionMedicineList({
                   borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   opacity: isDisabled ? 0.5 : 1,
                   cursor: isDisabled ? 'not-allowed' : 'pointer',
-                  pointerEvents: isDisabled ? 'none' : 'auto'
+                  pointerEvents: isDisabled ? 'none' : 'auto',
+                  '&:hover': {
+                    backgroundColor: !isDisabled
+                      ? isSelected || isTemporarilySelected
+                        ? theme.palette.customColors.OnBackground
+                        : theme.palette.action.hover
+                      : 'transparent'
+                  },
+                  transition: 'background-color 0.2s ease'
                 }}
               >
                 <FormControlLabel
                   control={
                     <Radio
                       checked={isSelected || isTemporarilySelected}
-                      onChange={() => !isDisabled && onSelect(medicine)}
                       disabled={isDisabled}
                       sx={{
                         transform: 'scale(0.8)',
-                        padding: '4px'
+                        padding: '4px',
+                        pointerEvents: 'none'
                       }}
                     />
                   }
+                  sx={{ pointerEvents: 'none' }}
 
                   // label={medicine?.name}
                   // sx={{

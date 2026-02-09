@@ -1,22 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Dialog, DialogTitle, DialogContent, IconButton, Typography, Box, useTheme, Button } from '@mui/material'
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+  Typography,
+  Box,
+  useTheme,
+  Button,
+  CircularProgress,
+  Grid
+} from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { LoadingButton } from '@mui/lab'
 import SignedMediaPlayer from './SignedMediaPlayer'
 import TextEllipsisWithModal from '../TextEllipsisWithModal'
-import { Grid } from '@mui/system'
 
-const isIOS =
-  typeof window !== 'undefined' &&
-  (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
-    (navigator.userAgent.includes('Mac') && 'ontouchend' in document))
-
-// FileDialog component for previewing and downloading various file types
 const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
   const theme = useTheme()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isError, setIsError] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   const handleDownload = e => {
     e.preventDefault()
@@ -39,58 +43,17 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
     }, 500)
   }
 
-  // const getImages = async src => {
-  //   try {
-  //     const response = await fetch(src)
-
-  //     //  {
-  //     //   method: 'GET',
-
-  //     //   // Important for Safari + signed URLs
-  //     //   headers: {
-  //     //     Range: 'bytes=0-'
-  //     //   },
-  //     //   credentials: 'omit'
-  //     // })
-
-  //     // Accept both 200 and 206
-  //     if (!response.ok && response.status !== 206) {
-  //       throw new Error(`HTTP error! status: ${response.status}`)
-  //     }
-
-  //     const contentType = response.headers.get('content-type')
-
-  //     if (!contentType) {
-  //       throw new Error('Missing Content-Type header')
-  //     }
-
-  //     // Optional: validate media type
-  //     if (!contentType.startsWith('image/') && !contentType.startsWith('video/')) {
-  //       throw new Error(`Unsupported media type: ${contentType}`)
-  //     }
-
-  //     const blob = await response.blob()
-
-  //     // Create a local object URL (Safari-safe)
-  //     return URL.createObjectURL(blob)
-  //   } catch (error) {
-  //     console.error('Error fetching media:', error)
-
-  //     return null
-  //   }
-  // }
-
   const renderFallback = () => {
     return (
       <Box
         sx={{
+          minHeight: '300px',
+          width: '100%',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: fileIcon?.bg_color || theme.palette.action.hover,
-          minHeight: '300px',
-          width: '100%',
           p: 10,
           gap: 4
         }}
@@ -118,6 +81,22 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
     )
   }
 
+  const loadingOverlay = (
+    <Box
+      sx={{
+        position: 'absolute',
+        inset: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1,
+        backgroundColor: theme.palette.background.paper
+      }}
+    >
+      <CircularProgress />
+    </Box>
+  )
+
   // Renders preview content based on file type
   const renderContent = () => {
     if (isError) return renderFallback()
@@ -130,27 +109,25 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
         return (
           <Box
             sx={{
-              height: '70vh',
               width: '100%',
-              overflowY: 'auto',
-              WebkitOverflowScrolling: 'touch'
+              height: '70vh',
+              position: 'relative',
+              overflow: 'hidden'
             }}
           >
+            {isLoading && loadingOverlay}
             <iframe
               src={pdfUrl}
               title={title || 'PDF Preview'}
-              scrolling='yes'
-              width='100%'
-              height='100%'
+              onLoad={() => setIsLoading(false)}
               onError={() => {
                 setIsError(true)
+                setIsLoading(false)
               }}
               style={{
                 border: 'none',
                 width: '100%',
-                height: '100%',
-                minHeight: '70vh',
-                display: 'block'
+                height: '100%'
               }}
             />
           </Box>
@@ -159,22 +136,27 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
         return (
           <Box
             sx={{
+              width: '100%',
+              minHeight: '300px',
+              position: 'relative',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              width: '100%'
+              justifyContent: 'center'
             }}
           >
+            {isLoading && loadingOverlay}
             <img
               src={src}
               alt={title || 'Image Preview'}
-              style={{
-                width: '100%',
-                maxHeight: '70vh',
-                objectFit: 'contain'
-              }}
+              onLoad={() => setIsLoading(false)}
               onError={() => {
                 setIsError(true)
+                setIsLoading(false)
+              }}
+              style={{
+                maxWidth: '100%',
+                maxHeight: '70vh',
+                objectFit: 'contain'
               }}
             />
           </Box>
@@ -183,17 +165,24 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
         return (
           <Box
             sx={{
+              width: '100%',
+              minHeight: '300px',
+              position: 'relative',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              width: '100%'
+              justifyContent: 'center'
             }}
           >
+            {isLoading && loadingOverlay}
             <SignedMediaPlayer
               src={src}
               preload='auto'
               type='video'
-              onError={() => setIsError(true)}
+              onLoad={() => setIsLoading(false)}
+              onError={() => {
+                setIsError(true)
+                setIsLoading(false)
+              }}
               style={{
                 width: '100%',
                 maxHeight: '70vh',
@@ -205,8 +194,19 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
 
       case 'audio':
         return (
-          <Box sx={{ p: 10 }}>
-            <SignedMediaPlayer controls src={src} preload='auto' height='auto' onError={() => setIsError(true)} />
+          <Box sx={{ p: 10, position: 'relative', height: '150px' }}>
+            {isLoading && loadingOverlay}
+            <SignedMediaPlayer
+              controls
+              src={src}
+              preload='auto'
+              height='auto'
+              onLoad={() => setIsLoading(false)}
+              onError={() => {
+                setIsError(true)
+                setIsLoading(false)
+              }}
+            />
           </Box>
         )
       default:
@@ -238,6 +238,7 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
   useEffect(() => {
     if (open) {
       setIsError(false)
+      setIsLoading(true)
     }
   }, [open, src])
 
@@ -252,7 +253,11 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
           padding: '6px 24px'
         }}
       >
-        <Grid container spacing={2} sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
+        <Grid
+          container
+          spacing={2}
+          sx={{ mr: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'nowrap' }}
+        >
           <Grid
             size={{ sm: type == 'pdf' ? 8 : 11, md: type == 'pdf' ? 9 : 11 }}
             sx={{ display: 'flex', justifyContent: 'center' }}

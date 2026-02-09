@@ -1,7 +1,16 @@
 /* eslint-disable lines-around-comment */
 import React from 'react'
 import { Controller } from 'react-hook-form'
-import { Autocomplete, TextField, FormControl, Checkbox, FormHelperText } from '@mui/material'
+import {
+  Autocomplete,
+  TextField,
+  FormControl,
+  Checkbox,
+  FormHelperText,
+  CircularProgress,
+  Chip,
+  Box
+} from '@mui/material'
 import get from 'lodash/get'
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank'
 import CheckBoxIcon from '@mui/icons-material/CheckBox'
@@ -38,7 +47,9 @@ const ControlledAutocomplete = ({
   sx = {},
   showIcons = true,
   disabled = false,
-  endAdornment = null
+  endAdornment = null,
+  showLoader = false,
+  maxTagsHeight = null
 }) => {
   if (!options) return null
 
@@ -64,6 +75,28 @@ const ControlledAutocomplete = ({
   }
   const icon = <CheckBoxOutlineBlankIcon fontSize='small' />
   const checkedIcon = <CheckBoxIcon fontSize='small' />
+
+  const scrollableRenderTags =
+    multiple && maxTagsHeight
+      ? (value, getTagProps) => (
+          <Box
+            sx={{
+              maxHeight: maxTagsHeight,
+              overflowY: 'auto',
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 0.5,
+              py: 0.5
+            }}
+          >
+            {value?.map((option, index) => {
+              const { key, ...tagProps } = getTagProps({ index })
+
+              return <Chip key={key} {...tagProps} label={getOptionLabel(option)} size='small' />
+            })}
+          </Box>
+        )
+      : null
 
   return (
     <FormControl fullWidth={fullWidth} error={Boolean(fieldError)}>
@@ -130,6 +163,7 @@ const ControlledAutocomplete = ({
             }
             multiple={multiple} // ✅ enable multi select
             disableCloseOnSelect={multiple} // ✅ keep list open
+            {...(scrollableRenderTags ? { renderTags: scrollableRenderTags } : {})}
             sx={{
               '& .MuiInputBase-root': {
                 backgroundColor: inputBackgroundColor
@@ -141,13 +175,23 @@ const ControlledAutocomplete = ({
               const additionalEndAdornment = typeof endAdornment === 'function' ? endAdornment(params) : endAdornment
               const externalEndAdornment = textFieldProps?.slotProps?.input?.endAdornment
 
-              const combinedEndAdornment = (
+              const defaultAdornment = (
                 <>
                   {params.InputProps?.endAdornment}
                   {externalEndAdornment}
                   {additionalEndAdornment}
                 </>
               )
+
+              const combinedEndAdornment =
+                showLoader && loading ? (
+                  <>
+                    <CircularProgress size={18} />
+                    {defaultAdornment}
+                  </>
+                ) : (
+                  defaultAdornment
+                )
 
               const inputSlotProps = {
                 ...params.InputProps, // ensures dropdown arrow and anchor remain

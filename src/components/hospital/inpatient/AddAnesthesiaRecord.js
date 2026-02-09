@@ -223,6 +223,14 @@ const AddanesthesiaRecordDrawer = ({
     }
   }, [openAddanesthesiaDrawer])
 
+  const handleAIDDisplay = () => {
+    if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
+      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+    } else {
+      return patientData?.animal_detail?.animal_id
+    }
+  }
+
   return (
     <Drawer
       anchor='right'
@@ -282,8 +290,9 @@ const AddanesthesiaRecordDrawer = ({
                   age={animalAge}
                   gender={animalSex}
                   additionalFields={[
-                    { label: 'AID', value: getSafeString(patientData?.animal_detail?.animal_id) },
-                    { label: 'Admitted days', value: getSafeString(patientData?.admitted_for_day) },
+                    { label: 'AID', value: handleAIDDisplay() },
+                    { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
+                    // { label: 'Admitted days', value: getSafeString(patientData?.admitted_for_day) },
                     { label: 'Holding Location', value: holdingLocation },
                     { label: 'Chief Veterinarian', value: getSafeString(chiefVeterinarian) }
                   ]}

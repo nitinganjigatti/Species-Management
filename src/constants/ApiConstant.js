@@ -823,8 +823,6 @@ export const ADD_PRESCRIPTION = 'medical/v2/prescription-update'
 
 export const SCHEDULE_PRESCRIPTION = 'v1/hospital/add-additional-dosage-timing'
 
-export const UPDATE_PRESCRIPTION = 'medical/v2/prescription-update'
-
 export const STOP_PRESCRIPTION = 'medical/v2/restart-stop-medicine'
 
 export const UNDO_PRESCRIPTION = 'administer/reset'
@@ -964,5 +962,7 @@ export const GET_ANESTHESIA_MEDICATION = `v1/hospital/anaesthesia/medication/upd
 export const DELETE_ANESTHESIA_MEDICATION = `v1/hospital/anaesthesia/medication/delete`
 
 export const DELETE_VITAL_MONITORING = `v1/hospital/anaesthesia/vital-monitoring-time-slot/delete`
+
+export const UPDATE_ANIMAL_HEALTH_STATUS = 'v1/hospital/update-animal-health-status'
 
 export const GET_UPCOMING_VACCINATION_RECORDS = 'v1/vaccination/deworming/animal/pending/report'

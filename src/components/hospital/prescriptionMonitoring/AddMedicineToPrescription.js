@@ -24,7 +24,6 @@ import {
   getPrescriptions,
   getSideEffectMedicines,
   stopPrescription,
-  updatePrescription,
   validatePrescriptionUpdate
 } from 'src/lib/api/hospital/prescription'
 import Utility from 'src/utility'
@@ -531,7 +530,7 @@ export default function AddMedicineToPrescription() {
           createdAt: schedule.created_at,
           time: schedule.scheduled_time ? getTimeDayjs(schedule.scheduled_time) : dayjs(),
           quantity: schedule.scheduled_quantity || '',
-          unit: schedule.scheduled_unit_name?.toLowerCase() || '',
+          unit: getUnitFromLabel(schedule.scheduled_unit_name, medicalMasterData) || '',
           scheduled_dose_id: schedule?.scheduled_dose_id
         })) || [],
       selectMedicineType: 'Schedule'
@@ -1448,6 +1447,7 @@ export default function AddMedicineToPrescription() {
         prescription_id: medicineDetail?.medicine_id,
         type: 'prescription',
         status: 'restart',
+        request_from: 'hospital_module',
         note: data?.notes,
         medicine_details: {
           id: medicineDetail?.medicine_id,
@@ -1561,6 +1561,8 @@ export default function AddMedicineToPrescription() {
 
       const payload = {
         medical_record_id: medicineDetail?.medical_record_id,
+        request_from: 'hospital',
+        hospital_case_id: id,
         data: JSON.stringify([
           {
             prescription_id: medicineDetail?.prescription_id,
@@ -1649,7 +1651,7 @@ export default function AddMedicineToPrescription() {
         ])
       }
 
-      const response = await updatePrescription(payload)
+      const response = await addPrescription(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message })
@@ -1966,6 +1968,14 @@ export default function AddMedicineToPrescription() {
     return unit?.id || ''
   }
 
+  const getUnitFromLabel = (unitName, medicalMasterData) => {
+    const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
+      item => item?.label === unitName
+    )
+
+    return unit?.key || ''
+  }
+
   const getStringIdFromUnitName = (unitName, medicalMasterData) => {
     const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
       item => item.unit_name === unitName || item.uom_abbr === unitName
@@ -2036,6 +2046,14 @@ export default function AddMedicineToPrescription() {
     return startDate.toISOString()
   }
 
+  const handleAIDDisplay = () => {
+    if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
+      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+    } else {
+      return patientData?.animal_detail?.animal_id
+    }
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       <AnimalInfoCard
@@ -2046,8 +2064,9 @@ export default function AddMedicineToPrescription() {
         age={`${patientData?.animal_detail?.age}`}
         gender={`${patientData?.animal_detail?.sex}`}
         additionalFields={[
-          { label: 'AID', value: patientData?.animal_detail?.animal_id },
-          { label: 'Admitted days', value: patientData?.admitted_for_day },
+          { label: 'AID', value: handleAIDDisplay() },
+          { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
+          // { label: 'Admitted days', value: patientData?.admitted_for_day },
           { label: 'Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
           { label: 'Consulting Veterinarian', value: patientData?.attend_by_full_name }
         ]}
@@ -2096,7 +2115,6 @@ export default function AddMedicineToPrescription() {
             <PrescriptionMedicineList
               medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
               temporarilySelectedMedicine={temporarilySelectedMedicine}
-
               // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
               selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
               onSelect={handleMedicineSelect}

@@ -34,10 +34,19 @@ The Patient Media Tab is a comprehensive media management system integrated into
 - **Drag & Drop Support**: Users can drag and drop files directly onto the upload button
 - **Multi-file Upload**: Support for uploading multiple files simultaneously
 - **Upload Progress**: Loading indicator during file upload
-- **File Validation**:
+- **File Validation** (dynamic limits from `authData.userData.settings`):
   - Automatic validation based on accepted file types
   - Enforced file extension validation (cannot be bypassed)
-  - File size limit: 2 MB per file
+  - **Per-type total size limits** (combined size of all files of that type in one upload):
+    - Images: `MAX_IMAGE_UPLOAD_SIZE` (default ~25 MB)
+    - Videos: `MAX_VIDEO_UPLOAD_SIZE` (default ~28 MB)
+    - Audio: `MAX_AUDIO_UPLOAD_SIZE` (default ~50 MB)
+    - Documents: `MAX_APPLICATION_UPLOAD_SIZE` (default ~2 MB)
+  - **Per-type file count limits**:
+    - Images: `MAX_NUMBER_IMAGE_FILE` (default 10)
+    - Videos: `MAX_NUMBER_VIDEO_FILE` (default 5)
+    - Audio: `MAX_NUMBER_AUDIO_FILE` (default 5)
+    - Documents: `MAX_NUMBER_APPLICATION_FILE` (default 5)
   - Validation occurs before upload to prevent invalid files
 - **Success/Error Feedback**: Toast notifications for upload status with detailed error messages
 - **Auto-refresh**: Media list automatically refreshes after successful upload
@@ -67,11 +76,6 @@ Filters media by the module/feature where it was uploaded:
 - Surgery
 - Discharge
 - Mortality
-- Clinical Assessment
-- Symptoms
-- Prescription
-- Anesthesia
-- Treatment
 - Supports multiple selection
 
 ### 4. Search Functionality
@@ -184,7 +188,7 @@ Reusable component for rendering filter options.
 ```
 
 ### Delete Patient Media
-**Function**: `handleDeleteMedia(mediaId)` *(Placeholder - API implementation pending)*
+**Function**: `handleDeleteMedia(mediaId)`
 
 **Parameters:**
 - `mediaId`: ID of the media file to delete
@@ -193,9 +197,9 @@ Reusable component for rendering filter options.
 - Sets loading state for the specific media being deleted
 - Shows confirmation dialog before deletion
 - Displays success/error toast notifications
+  - Success: "Medical attachments deleted successfully."
+  - Error: "Failed to delete media"
 - Refreshes media list after successful deletion
-
-**Note**: API endpoint implementation is pending. The handler is ready to integrate with the delete API once available.
 
 ## User Interface
 
@@ -285,15 +289,22 @@ Media Card Actions Menu (⋮):
    - Partial success handling (some files succeed, others fail)
    - Error messages displayed via toast notifications
    - **File Type Validation Errors**: Shows list of allowed file types
-   - **File Size Validation Errors**: Shows current file size and 2 MB limit
+   - **File Size Validation Errors**: Shows total combined size per type vs the allowed limit (e.g., "Total video file size exceeds 28.0 MB. Your total: 35.42 MB")
+   - **File Count Validation Errors**: Shows max allowed count per type (e.g., "You can upload a maximum of 5 video files at a time. You selected 8.")
    - Validation errors appear before upload attempt
 
-2. **Load Errors**
+2. **Delete Errors**
+   - Success notification: "Medical attachments deleted successfully."
+   - Error notification: "Failed to delete media"
+   - Loading state displayed on card during deletion
+   - Auto-refresh of media list after successful deletion
+
+3. **Load Errors**
    - Error state managed by React Query
    - Retry functionality available
    - Error boundary protection
 
-3. **Empty States**
+4. **Empty States**
    - "No media files found" message when no results
    - "No options available" in empty filter categories
 
@@ -341,6 +352,7 @@ Media Card Actions Menu (⋮):
   - Shows confirmation dialog before deletion
   - Displays loading state on the specific card being deleted
   - Shows success/error notifications
+  - Success message: "Medical attachments deleted successfully."
   - Automatically refreshes media list after successful deletion
 - **Confirmation Dialog**:
   - Title: "Delete Media"
@@ -414,14 +426,27 @@ Media Card Actions Menu (⋮):
 - Videos: `.mp4`
 - Audio: `.mp3`, `.ogg`, `.m4a`
 
-**File Size Restriction (Line 79):**
-- Maximum file size: 2 MB (2 * 1024 * 1024 bytes)
+**File Upload Limits (from `authData.userData.settings`):**
+```javascript
+// Size limits (total combined size per type in one upload)
+MAX_IMAGE_UPLOAD_SIZE: 26214400       // ~25 MB for all image files combined
+MAX_VIDEO_UPLOAD_SIZE: 29360128       // ~28 MB for all video files combined
+MAX_AUDIO_UPLOAD_SIZE: 52428800       // ~50 MB for all audio files combined
+MAX_APPLICATION_UPLOAD_SIZE: 2097152  // ~2 MB for all document files combined
 
-**File Validation (Lines 61-104):**
-- Custom validator function checks file extension against allowed list
-- File size validation with descriptive error messages
+// File count limits (per type in one upload)
+MAX_NUMBER_IMAGE_FILE: 10
+MAX_NUMBER_VIDEO_FILE: 5
+MAX_NUMBER_AUDIO_FILE: 5
+MAX_NUMBER_APPLICATION_FILE: 5
+```
+
+**File Validation:**
+- `validator` function checks file extension against allowed list (runs per file)
+- `onDrop` handler validates total combined size and file count per type (runs on batch)
 - Rejected files show error toast with filename and reason
 - Validation occurs before network upload to save bandwidth
+- Falls back to 2 MB if settings are unavailable
 
 **Filter Values (Lines 254-273):**
 ```javascript
@@ -439,12 +464,7 @@ Media Card Actions Menu (⋮):
   // Features/Modules
   surgery: 'Surgery',
   discharge: 'Discharge',
-  mortality: 'Mortality',
-  clinical_assessment: 'Clinical Assessment',
-  symptoms: 'Symptoms',
-  prescription: 'Prescription',
-  anesthesia: 'Anesthesia',
-  treatment: 'Treatment'
+  mortality: 'Mortality'
 }
 ```
 
@@ -471,12 +491,7 @@ Media Card Actions Menu (⋮):
   Feature: [
     { label: 'Surgery', value: 'surgery' },
     { label: 'Discharge', value: 'discharge' },
-    { label: 'Mortality', value: 'mortality' },
-    { label: 'Clinical Assessment', value: 'clinical_assessment' },
-    { label: 'Symptoms', value: 'symptoms' },
-    { label: 'Prescription', value: 'prescription' },
-    { label: 'Anesthesia', value: 'anesthesia' },
-    { label: 'Treatment', value: 'treatment' }
+    { label: 'Mortality', value: 'mortality' }
   ]
 }
 ```
@@ -585,5 +600,6 @@ const EXT_ICON_MAP = {
 - Filter checkboxes are designed to be clickable both on the checkbox and the label text
 - Delete action only appears for media where `is_created_for_medical_record === '1'`
 - The `current_medical_record_id` parameter is always sent to the API regardless of filter selection
-- **File validation enforces 2 MB size limit and specific file type restrictions**
-- **Upload validation cannot be bypassed** - occurs before file upload attempt
+- **File validation uses dynamic per-type size and count limits from `authData.userData.settings`**
+- **Size limits apply to the total combined size of all files of that type in one upload** (e.g., 10 videos totaling 28 MB, not 28 MB per file)
+- **Upload validation cannot be bypassed** - file type checked in validator, size and count checked in onDrop before upload

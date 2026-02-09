@@ -342,28 +342,6 @@ const ListOfMedicine = () => {
               </>
             )}
         </Box>
-
-        //     // {selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') &&(<Box>
-        //     //   <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
-        //     //     <Icon icon='mdi:pencil-outline' />
-        //     //   </IconButton>
-        //     //   {/* <IconButton
-        //     //     size='small'
-        //     //     onClick={() => {
-        //     //       setConfigureMedId(params.row.id)
-        //     //       showDialog()
-        //     //     }}
-        //     //   >
-        //     //     <Icon icon='grommet-icons:configure' />
-        //     //   </IconButton> */}
-        //     //   {/* <IconButton size='small'>
-        //     //     <Icon icon='mdi:eye-outline' />
-        //     //   </IconButton>
-
-        //     //   <IconButton size='small'>
-        //     //     <Icon icon='mdi:file' />
-        //     //   </IconButton> */}
-        //     // </Box>)}
       )
     }
   ]
@@ -382,34 +360,24 @@ const ListOfMedicine = () => {
 
   const [loading, setLoading] = useState(false)
 
-  const [statusFilter, setStatusFilter] = useState(router.query.status || true)
+  const [statusFilter, setStatusFilter] = useState(router.query.status || 'all')
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, status }) => {
-      let params = {}
       const activeStatus = status ?? statusFilter
       try {
         setLoading(true)
-        if (activeStatus === 'all') {
-          params = {
-            sort,
-            q,
-            column,
-            page: paginationModel?.page + 1,
-            limit: paginationModel?.pageSize
-          }
-        } else {
-          params = {
-            sort,
-            q,
-            column,
-            page: paginationModel?.page + 1,
-            limit: paginationModel?.pageSize,
-            active: activeStatus
-          }
+
+        let params = {
+          sort,
+          q,
+          column,
+          page: paginationModel?.page + 1,
+          limit: paginationModel?.pageSize,
+          ...(activeStatus !== 'all' && { active: activeStatus })
         }
 
         await getMedicineList({ params: params }).then(res => {

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react'
+import React, { useState, useMemo, useCallback, useEffect, useContext } from 'react'
 import { Box, Typography, CircularProgress, Skeleton, Chip, Button } from '@mui/material'
 import { Grid } from '@mui/system'
 import { useTheme } from '@emotion/react'
@@ -14,8 +14,12 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import PatientMediaFilterDrawer from 'src/components/hospital/drawer/PatientMediaFilterDrawer'
 import { getPatientMedia, uploadPatientMedia, deletePatientMedia } from 'src/lib/api/hospital/inpatient'
 import Toaster from 'src/components/Toaster'
+import { AuthContext } from 'src/context/AuthContext'
 
 const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
+  const authData = useContext(AuthContext)
+
+  const uploadSettings = authData?.userData?.settings
   const theme = useTheme()
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
@@ -65,18 +69,16 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
         '.jpeg',
         '.heic',
         '.svg',
+        '.mp4',
+        '.mp3',
+        '.ogg',
+        '.m4a',
         '.pdf',
         '.doc',
         '.docx',
         '.xls',
-        '.xlsx',
-        '.mp4',
-        '.mp3',
-        '.ogg',
-        '.m4a'
+        '.xlsx'
       ]
-
-      const maxSize = 2 * 1024 * 1024 // 2 MB in bytes
 
       const fileName = file.name.toLowerCase()
       const isValidType = allowedExtensions.some(ext => fileName.endsWith(ext))
@@ -85,13 +87,6 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
         return {
           code: 'file-invalid-type',
           message: `File type not supported. Allowed types: ${allowedExtensions.join(', ')}`
-        }
-      }
-
-      if (file.size > maxSize) {
-        return {
-          code: 'file-too-large',
-          message: `File size exceeds 2 MB. Current size: ${(file.size / 1024 / 1024).toFixed(2)} MB`
         }
       }
 
@@ -109,6 +104,80 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
 
       // Process accepted files
       if (acceptedFiles.length === 0) return
+
+      // Categorize files by type
+      const imageExts = ['.png', '.jpg', '.jpeg', '.heic', '.svg']
+      const videoExts = ['.mp4']
+      const audioExts = ['.mp3', '.ogg', '.m4a']
+      const docExts = ['.pdf', '.doc', '.docx', '.xls', '.xlsx']
+
+      const getFileType = fileName => {
+        const name = fileName.toLowerCase()
+        if (imageExts.some(ext => name.endsWith(ext))) return 'image'
+        if (videoExts.some(ext => name.endsWith(ext))) return 'video'
+        if (audioExts.some(ext => name.endsWith(ext))) return 'audio'
+        if (docExts.some(ext => name.endsWith(ext))) return 'document'
+
+        return 'document'
+      }
+
+      const typeStats = {
+        image: { count: 0, totalSize: 0 },
+        video: { count: 0, totalSize: 0 },
+        audio: { count: 0, totalSize: 0 },
+        document: { count: 0, totalSize: 0 }
+      }
+      acceptedFiles.forEach(file => {
+        const type = getFileType(file.name)
+        typeStats[type].count++
+        typeStats[type].totalSize += file.size
+      })
+
+      const maxFileCountMap = {
+        image: uploadSettings?.MAX_NUMBER_IMAGE_FILE,
+        video: uploadSettings?.MAX_NUMBER_VIDEO_FILE,
+        audio: uploadSettings?.MAX_NUMBER_AUDIO_FILE,
+        document: uploadSettings?.MAX_NUMBER_APPLICATION_FILE
+      }
+
+      const maxSizeMap = {
+        image: uploadSettings?.MAX_IMAGE_UPLOAD_SIZE,
+        video: uploadSettings?.MAX_VIDEO_UPLOAD_SIZE,
+        audio: uploadSettings?.MAX_AUDIO_UPLOAD_SIZE,
+        document: uploadSettings?.MAX_APPLICATION_UPLOAD_SIZE
+      }
+
+      let hasValidationError = false
+
+      Object.entries(typeStats).forEach(([type, { count, totalSize }]) => {
+        if (count === 0) return
+
+        // Validate file count
+        const maxCount = maxFileCountMap[type]
+        if (maxCount && count > maxCount) {
+          Toaster({
+            type: 'error',
+            message: `You can upload a maximum of ${maxCount} ${type} file${
+              maxCount > 1 ? 's' : ''
+            } at a time. You selected ${count}.`
+          })
+          hasValidationError = true
+        }
+
+        // Validate total combined size per type
+        const maxSize = maxSizeMap[type]
+        if (maxSize && totalSize > maxSize) {
+          const maxSizeMB = (maxSize / (1024 * 1024)).toFixed(1)
+          const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(2)
+          Toaster({
+            type: 'error',
+            message: `Total ${type} file size exceeds ${maxSizeMB} MB. Your total: ${totalSizeMB} MB`
+          })
+          hasValidationError = true
+        }
+      })
+
+      if (hasValidationError) return
       try {
         setUploadLoading(true)
         let successCount = 0
@@ -284,7 +353,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
       const response = await deletePatientMedia(mediaId)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Media deleted successfully' })
+        Toaster({ type: 'success', message: 'Medical attachments deleted successfully.' })
 
         // Refetch the media list after successful deletion
         await refetch()
@@ -312,12 +381,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
       all: 'All Records',
       surgery: 'Surgery',
       discharge: 'Discharge',
-      mortality: 'Mortality',
-      clinical_assessment: 'Clinical Assessment',
-      symptoms: 'Symptoms',
-      prescription: 'Prescription',
-      anesthesia: 'Anesthesia',
-      treatment: 'Treatment'
+      mortality: 'Mortality'
     }
 
     return labels[value] || value
@@ -461,20 +525,14 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
             </Grid>
           ))}
         </Grid>
-
         {/* Loading skeleton */}
         {isFetching && mediaFiles.length === 0 && <MediaGridSkeleton />}
-
         {/* No data */}
         {mediaFiles.length === 0 && !isFetching && (
           <Box sx={{ py: 8 }}>
             <NoDataFound height={250} width={250} />
-            <Typography align='center' color='text.secondary' sx={{ mt: 2 }}>
-              No media files found
-            </Typography>
           </Box>
         )}
-
         {/* Load more indicator */}
         {(isFetchingNextPage || hasNextPage) && mediaFiles.length > 0 && (
           <Box
@@ -488,7 +546,6 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }) => {
             <CircularProgress />
           </Box>
         )}
-
         {/* End of list message */}
         {!hasNextPage && mediaFiles.length > 0 && (
           <Typography align='center' sx={{ mt: 6, color: 'text.disabled' }}>

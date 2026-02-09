@@ -53,23 +53,28 @@ const treatmentType = [
   { label: 'Hospital Admission (inpatient)', value: 'inpatient' }
 ]
 
+const healthStatusOptions = [
+  { label: 'Stable', value: 'stable' },
+  { label: 'Critical', value: 'critical' }
+]
+
 const defaultValues = {
   treatmentType: 'inpatient',
+  healthStatus: 'stable',
   holdingEnclosure: null,
   room: null,
   admission_date: dayjs(),
-  admission_time: dayjs(),
-  patient_status: false
+  admission_time: dayjs()
 }
 
 const schema = yup.object().shape({
   treatmentType: yup.string().required('Treatment Type is Required'),
+  healthStatus: yup.string().notRequired(),
   selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
   holdingEnclosure: yup.object().required('Holding Enclosure is required'),
   room: yup.object().required('Room is required'),
   admission_date: yup.date().required('Admission date is required'),
-  admission_time: yup.string().required('Admission time is required'),
-  patient_status: yup.boolean().required('Patient Status is Required')
+  admission_time: yup.string().required('Admission time is required')
 })
 
 const PatientAdmitForm = () => {
@@ -178,9 +183,15 @@ const PatientAdmitForm = () => {
 
   const selectedRoom = watch('room')
   const watchTreatmentType = watch('treatmentType')
-  const watchPatientStatus = watch('patient_status')
 
   useEffect(() => {
+    // Reset holding enclosure when room changes
+    setValue('holdingEnclosure', {
+      label: '',
+      value: ''
+    })
+    setHoldingEnclosures([])
+
     const getHospitalBeds = async () => {
       if (!selectedRoom?.value) return
       setBedsLoading(true)
@@ -237,7 +248,9 @@ const PatientAdmitForm = () => {
         holding_enclosure: data?.holdingEnclosure?.value,
         admit_date: moment(data?.admission_date).format('YYYY-MM-DD'),
         admit_time: moment(data?.admission_time).format('HH:mm'),
-        room_id: data?.room?.value
+        room_id: data?.room?.value,
+        health_status: data?.healthStatus,
+        
       }
 
       const res = await admitHospitalPatient(params)
@@ -521,6 +534,41 @@ const PatientAdmitForm = () => {
                       )}
                     />
                   </Box>
+
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 4
+                    }}
+                  >
+                    <Typography
+                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      Health Status
+                    </Typography>
+                    <Controller
+                      name='healthStatus'
+                      control={control}
+                      render={({ field }) => (
+                        <Box sx={{ display: 'flex', flexDirection: { sm: 'row', xs: 'column' }, gap: 6 }}>
+                          {healthStatusOptions?.map((item, index) => (
+                            <TreatmentTypeRadioButtons
+                              key={index}
+                              label={item?.label}
+                              isSelected={field.value === item?.value}
+                              onClick={() => field.onChange(item?.value)}
+                              backgroundColor={theme.palette.customColors.OnPrimary}
+                              borderColor={theme.palette.customColors.OutlineVariant}
+                              selectedBorderColor={theme.palette.primary.main}
+                              selectedBackgroundColor={theme.palette.customColors.OnPrimary}
+                              disabled={submitLoader}
+                            />
+                          ))}
+                        </Box>
+                      )}
+                    />
+                  </Box>
                   <Grid container spacing={6}>
                     <Grid item size={{ sm: 6, xs: 12 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       <Typography
@@ -647,34 +695,6 @@ const PatientAdmitForm = () => {
                       )}
                     </Grid>
                   </Grid>
-                  <Grid
-                    size={{ xs: 12 }}
-                    sx={{
-                      display: 'none',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 3,
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      p: 3,
-                      borderRadius: 1
-                    }}
-                  >
-                    <Typography
-                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                    >
-                      Patient Status
-                    </Typography>
-                    <ControlledSwitch
-                      control={control}
-                      name='patient_status'
-                      errors={errors}
-                      required
-                      disabled={submitLoader}
-                      label={watchPatientStatus ? 'Critical' : 'Normal'}
-                      labelPosition='start'
-                      spaceBetween
-                    />
-                  </Grid>
                   <Grid container spacing={6}>
                     <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       <Typography
@@ -765,6 +785,19 @@ const PatientAdmitForm = () => {
                           )
                         }
                       />
+                      {selectedRoom?.value && !bedsLoading && holdingEnclosures.length === 0 && (
+                        <Typography
+                          sx={{
+                            color: theme.palette.error.main,
+                            mt: '0px',
+                            mx: '4px',
+                            fontSize: '0.75rem',
+                            fontWeight: 400
+                          }}
+                        >
+                          No active enclosures available for this room
+                        </Typography>
+                      )}
                     </Grid>
                   </Grid>
                 </Box>

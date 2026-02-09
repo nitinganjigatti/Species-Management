@@ -12,9 +12,16 @@ import {
   GET_PATIENT_MEDIA,
   GET_PATIENT_VISIT_SUMMARY,
   GET_SPECIES_FOR_HOSPITAL,
-  UPLOAD_PATIENT_MEDIA
+  UPLOAD_PATIENT_MEDIA,
+  UPDATE_ANIMAL_HEALTH_STATUS
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
+
+export const updateAnimalHealthStatus = async payload => {
+  const response = await axiosFormPost({ url: `${UPDATE_ANIMAL_HEALTH_STATUS}`, body: payload })
+
+  return response?.data
+}
 
 export const addHospitalPatient = async payload => {
   const response = await axiosFormPost({ url: `${ADD_HOSPITAL_PATIENT}`, body: payload })

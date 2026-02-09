@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react'
-import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem } from '@mui/material'
+import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem, alpha } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { differenceInDays } from 'date-fns'
 import { debounce } from 'lodash'
@@ -205,6 +205,70 @@ const HospitalInpatient = () => {
             }}
           />
         </>
+      )
+    },
+    {
+      width: 180,
+      minWidth: 120,
+      field: 'health_status',
+      sortable: false,
+      headerName: 'HEALTH STATUS',
+      renderCell: params => {
+        const status = params.row.health_status || 'stable'
+        const isCritical = status === 'critical'
+        const capitalizedStatus = status.charAt(0).toUpperCase() + status.slice(1)
+
+        return (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+
+            }}
+          >
+            <Box sx={{
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              backgroundColor: isCritical ? alpha(theme.palette.error.main, 0.2) : theme.palette.customColors.OnBackground,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <Box sx={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                backgroundColor: isCritical ? theme.palette.customColors.Tertiary : theme.palette.primary.main
+              }}>
+
+              </Box>
+            </Box>
+            <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+
+              {capitalizedStatus}
+            </Typography>
+          </Box>
+        )
+      }
+    },
+    {
+      width: 180,
+      minWidth: 120,
+      field: 'case_code',
+      sortable: false,
+      headerName: 'CASE ID',
+      renderCell: params => (
+        <Typography
+          sx={{
+            fontSize: '14px',
+            color: theme.palette.customColors.OnSurfaceVariant,
+          }}
+        >
+          {params.row.case_code || 'N/A'}
+        </Typography>
       )
     },
     {

@@ -33,43 +33,48 @@ const AddHospitalBed = props => {
   const theme = useTheme()
 
   // Determine mode and Conditional rendering flags
-  const isRoomEditMode = roomStatus
-  const hasOccupants = Number(roomDetails?.no_of_occupied) === 0
-  const hasBedOccupants = Number(editParams?.is_occupied ?? 0) === 0 // When adding a new bed, no_of_occupied is undefined, so default to 0
+  const isRoomEditMode = Boolean(roomStatus)
+  const isBedEditMode = Boolean(editParams?.id)
+  const isBedAddMode = !isRoomEditMode && !isBedEditMode
+
+  const isRoomEmpty = Number(roomDetails?.no_of_occupied) === 0
+  const isBedEmpty = Number(editParams?.is_occupied ?? 0) === 0
+
   const showBedField = !isRoomEditMode
   const hospitalNameDisabled = true
   const roomNameDisabled = !isRoomEditMode
 
+  const showStatusField = (isRoomEditMode && isRoomEmpty) || (isBedEditMode && isBedEmpty) || isBedAddMode
+
   const schema = useMemo(() => {
     if (isRoomEditMode) {
-      if (hasOccupants) {
-        return yup.object().shape({
-          hospital_id: yup.string().trim().required('Hospital Name is required'),
-          room_id: yup.string().trim().required('Room Name is required'),
+      return yup.object().shape({
+        hospital_id: yup.string().trim().required('Hospital Name is required'),
+        room_id: yup.string().trim().required('Room Name is required'),
+        ...(isRoomEmpty && {
           status: yup.boolean().required('Status is required')
         })
-      } else {
-        return yup.object().shape({
-          hospital_id: yup.string().trim().required('Hospital Name is required'),
-          room_id: yup.string().trim().required('Room Name is required')
-        })
-      }
+      })
     }
-    if (hasBedOccupants) {
+
+    if (isBedEditMode) {
+      return yup.object().shape({
+        hospital_id: yup.string().trim().required('Hospital Name is required'),
+        room_id: yup.string().trim().required('Room Name is required'),
+        bed_name: yup.string().trim().required('Cage/Stall/Enclosure Name is required'),
+        ...(isBedEmpty && {
+          status: yup.boolean().required('Status is required')
+        })
+      })
+    } else {
       return yup.object().shape({
         hospital_id: yup.string().trim().required('Hospital Name is required'),
         room_id: yup.string().trim().required('Room Name is required'),
         bed_name: yup.string().trim().required('Cage/Stall/Enclosure Name is required'),
         status: yup.boolean().required('Status is required')
       })
-    } else {
-      return yup.object().shape({
-        hospital_id: yup.string().trim().required('Hospital Name is required'),
-        room_id: yup.string().trim().required('Room Name is required'),
-        bed_name: yup.string().trim().required('Cage/Stall/Enclosure Name is required')
-      })
     }
-  }, [isRoomEditMode, hasOccupants, hasBedOccupants])
+  }, [isRoomEditMode, isBedEditMode, isRoomEmpty, isBedEmpty])
 
   const {
     reset,
@@ -91,7 +96,7 @@ const AddHospitalBed = props => {
         const payload = {
           room_name: formData.room_id,
           floor_name: roomDetails?.floor_name,
-          status: formData.status === true ? '1' : '0'
+          status: formData.status !== undefined ? (formData.status ? '1' : '0') : '1'
         }
         const success = await handleSubmitData(payload, 'room')
         if (success) {
@@ -103,7 +108,7 @@ const AddHospitalBed = props => {
           hospital_id: hospitalId,
           room_id: roomId,
           bed_name: formData.bed_name,
-          status: formData.status === true ? '1' : '0',
+          status: formData.status !== undefined ? (formData.status ? '1' : '0') : '1',
           prefix: hospitalId
         }
         const success = await handleSubmitData(payload, 'bed')
@@ -128,7 +133,7 @@ const AddHospitalBed = props => {
         room_id: roomDetails?.room_name,
         status: Boolean(isActive)
       }
-    } else if (editParams?.id) {
+    } else if (isBedEditMode) {
       prefill = {
         hospital_id: roomDetails?.hospital_name,
         room_id: roomDetails?.room_name,
@@ -163,6 +168,7 @@ const AddHospitalBed = props => {
     <Drawer
       anchor='right'
       open={handleSidebarOpen}
+      onClick={e => e.stopPropagation()}
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: ['100%', 562] } }}
     >
@@ -227,7 +233,7 @@ const AddHospitalBed = props => {
                   fullWidth
                 />
               )}
-              {hasBedOccupants && (
+              {showStatusField && (
                 <ControlledRadioGroup
                   name='status'
                   control={control}

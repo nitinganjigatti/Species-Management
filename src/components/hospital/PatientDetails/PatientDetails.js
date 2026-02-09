@@ -298,7 +298,7 @@ const PatientDetails = ({ category }) => {
       }
 
       // Leaving Discharge Tab  remove discharge_tab and  Update URL with the selected tab parameter
-      if (urlTab === 'discharge' && newValue !== 'discharge' && discharge_tab) {
+      if (urlTab === 'discharge' && newValue !== 'discharge') {
         // Clear discharge-related  context data
         resetState('transfer_medicines')
         resetState('transfer_temp_medicines')
@@ -373,7 +373,7 @@ const PatientDetails = ({ category }) => {
       }
 
       // Leaving Discharge Tab  remove discharge_tab and  Update URL with the selected tab parameter
-      if (urlTab === 'discharge' && newValue !== 'discharge' && discharge_tab) {
+      if (urlTab === 'discharge' && newValue !== 'discharge') {
         // Clear discharge-related  context data
         resetState('transfer_medicines')
         resetState('transfer_temp_medicines')
