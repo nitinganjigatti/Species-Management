@@ -145,9 +145,9 @@ const PharmacySettingsList = () => {
   ]
 
   return (
-    <Grid container spacing={6}>
+    <Grid container spacing={4}>
       <Grid size={12} sx={{ width: '100%' }}>
-        <Card sx={{ width: '100%' }}>
+        <Card sx={{ width: '100%', px: 2 }}>
           <CardHeader
             title='Pharmacy Settings'
             action={
