@@ -477,7 +477,7 @@ const DietDetailCard = ({
                           onClick={() => handleSpeciesClicknew('details', 'site_species')}
                         >
                           <Typography variant='h6' color={theme.palette.primary.main}>
-                            {dietDetails.total_sites}, {dietDetails.total_site_species}
+                            {dietDetails.total_sites}, {dietDetails.total_site_unique_species}
                           </Typography>
                           <Typography
                             variant='caption'
