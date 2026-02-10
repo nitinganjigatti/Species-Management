@@ -25,9 +25,17 @@ import Tab from '@mui/material/Tab'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { getDietDetails, getSpeciesList, getAnimalsList, getTaxonomyList } from 'src/lib/api/diet/dietList'
+import {
+  getDietDetails,
+  getSpeciesList,
+  getAnimalsList,
+  getTaxonomyList,
+  generateDietPdf
+} from 'src/lib/api/diet/dietList'
 import moment from 'moment'
 import { AuthContext } from 'src/context/AuthContext'
+import Toaster from 'src/components/Toaster'
+import Utility from 'src/utility'
 import Error404 from 'src/pages/404'
 import SpeciesMappedtoDiet from 'src/components/diet/SpeciesMappedtoDiet'
 import ListOfSpeciesMapped from 'src/components/diet/ListofSpeciesMapped'
@@ -106,6 +114,7 @@ const DietDetail = () => {
   const [siteId, setSiteID] = useState(null)
   const [removeFilterTriggered, setRemoveFilterTriggered] = useState(false)
   const [siteSpeciesTotalCount, setSiteSpeciesTotalCount] = useState('')
+  const [downloadingPdf, setDownloadingPdf] = useState(false)
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -146,6 +155,34 @@ const DietDetail = () => {
 
   const handleSelectedSpeciesChange = updatedSelectedSpecies => {
     setSelectedSpecies(updatedSelectedSpecies)
+  }
+
+  const handleDownloadPdf = async () => {
+    if (!dietDetails?.id) {
+      Toaster({ type: 'error', message: 'Diet ID not found' })
+      return
+    }
+
+    setDownloadingPdf(true)
+    try {
+      const response = await generateDietPdf(dietDetails.id)
+
+      if (response?.success && response?.data) {
+        // Use utility function to download the PDF
+        Utility.downloadFileFromURLWithBlob(
+          response?.data,
+          `diet_${dietDetails.id}_${dietDetails.diet_name || 'attachment'}`
+        )
+        Toaster({ type: 'success', message: response?.message || 'PDF downloaded successfully' })
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to generate PDF' })
+      }
+    } catch (error) {
+      console.error('Error downloading PDF:', error)
+      Toaster({ type: 'error', message: 'Failed to download PDF. Please try again.' })
+    } finally {
+      setDownloadingPdf(false)
+    }
   }
 
   const siteList = async (q = '') => {
@@ -718,6 +755,8 @@ const DietDetail = () => {
                   handleSpeciesClicknew={handleSpeciesClicknew}
                   setapplyfilterCheck={setapplyfilterCheck}
                   authData={authData}
+                  onDownloadPdf={handleDownloadPdf}
+                  downloadingPdf={downloadingPdf}
                 />
                 <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', mt: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>
