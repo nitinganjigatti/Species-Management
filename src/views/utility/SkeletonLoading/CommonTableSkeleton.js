@@ -1,6 +1,6 @@
 import { Card, Skeleton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 
-function CommonTableSkeleton({ length = 5 }) {
+function CommonTableSkeleton({ length = 5, rowHeight = 50 }) {
   return (
     <Card
       sx={{
@@ -40,7 +40,7 @@ function CommonTableSkeleton({ length = 5 }) {
 
           <TableBody>
             {Array.from({ length: length }).map((_, index) => (
-              <TableRow key={index}>
+              <TableRow key={index} height={rowHeight}>
                 <TableCell>
                   <Skeleton width={30} />
                 </TableCell>
