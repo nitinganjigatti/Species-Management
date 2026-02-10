@@ -392,7 +392,7 @@ const JournalCard = ({ entry, theme, formatKey, formatDetailValue, isLast }) => 
               sx={{
                 p: 2,
                 bgcolor: theme.palette.customColors?.lightBg || theme.palette.grey[100],
-                borderRadius: 2,
+                borderRadius: 1,
                 mt: 1
               }}
             >

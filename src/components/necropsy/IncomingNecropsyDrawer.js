@@ -436,7 +436,14 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                   alignItems: 'center'
                 }}
               >
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    color: `${theme.palette.customColors.OnPrimary} !important`
+                  }}
+                >
                   <Typography sx={{ fontSize: '12px', fontWeight: 400, color: 'rgba(255, 255, 255, 0.7)' }}>
                     Initiated by
                   </Typography>
@@ -576,7 +583,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                       alignItems: 'center',
                       gap: 2,
                       justifyContent: 'space-between',
-                      border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`,
+                      backgroundColor: theme.palette.customColors?.displaybgPrimary,
                       p: 2,
                       borderRadius: 1
                     }}
@@ -661,7 +668,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                             display: 'flex',
                             flexDirection: 'column',
                             gap: 3,
-                            border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`,
+                            backgroundColor: theme.palette.customColors?.displaybgPrimary,
                             borderRadius: 1,
                             px: 4,
                             py: 2
@@ -675,6 +682,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                             profile_image={item?.user_profile_pic}
                             date={item?.commented_on}
                             show_time
+                            size='medium'
                           />
                         </Box>
                       ))

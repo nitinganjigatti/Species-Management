@@ -710,7 +710,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
 
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message || 'Draft saved successfully' })
-        router.push(`/necropsy/${mortalityId}?status=DRAFT`)
+        router.push('/necropsy')
       } else {
         Toaster({ type: 'error', message: getErrorMessage(res?.message, 'Failed to save draft') })
       }
@@ -736,12 +736,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
 
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message || 'Necropsy submitted successfully' })
-
-        if (isCompletedEdit) {
-          router.push(`/necropsy/${mortalityId}?status=COMPLETED`)
-        } else {
-          router.push('/necropsy?status=COMPLETED')
-        }
+        router.push('/necropsy')
       } else {
         Toaster({ type: 'error', message: getErrorMessage(res?.message, 'Failed to submit necropsy') })
       }
@@ -764,7 +759,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message || 'Draft deleted successfully' })
         setDeleteDialogOpen(false)
-        router.push('/necropsy?status=PENDING')
+        router.push('/necropsy')
       } else {
         Toaster({ type: 'error', message: getErrorMessage(res?.message, 'Failed to delete draft') })
       }

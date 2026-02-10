@@ -113,7 +113,7 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
         </Box>
       </Box>
       <Skeleton variant='rectangular' height={80} sx={{ mb: 3, borderRadius: 1 }} />
-      <Skeleton variant='rectangular' height={100} sx={{ mb: 3, borderRadius: 2 }} />
+      <Skeleton variant='rectangular' height={100} sx={{ mb: 3, borderRadius: 1 }} />
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         {[1, 2, 3, 4, 5].map(i => (
           <Skeleton key={i} variant='circular' width={40} height={40} />
@@ -636,7 +636,7 @@ const ComplaintCard = ({ item, theme, isClosed }) => {
       sx={{
         mb: 2,
         borderLeft: `4px solid ${isClosed ? theme.palette.grey[300] : '#4DB6AC'}`,
-        borderRadius: 2,
+        borderRadius: 1,
         bgcolor: theme.palette.background.paper,
         border: `1px solid ${theme.palette.divider}`,
         borderLeftWidth: 4,
@@ -710,7 +710,7 @@ const DiagnosisCard = ({ item, theme, isClosed }) => {
         mb: 2,
         p: 2,
         bgcolor: theme.palette.background.paper,
-        borderRadius: 2,
+        borderRadius: 1,
         border: `1px solid ${theme.palette.divider}`
       }}
     >
@@ -765,7 +765,7 @@ const PrescriptionCard = ({ item, theme, isStopped }) => (
     sx={{
       mb: 2,
       p: 2,
-      borderRadius: 2,
+      borderRadius: 1,
       bgcolor: isStopped
         ? alpha(theme.palette.grey[500], 0.08)
         : theme.palette.customColors?.displaybgPrimary || alpha(theme.palette.primary.main, 0.08)

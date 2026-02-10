@@ -258,7 +258,7 @@ const NecropsyAnimalInfoCard = ({ mortalityData, loading = false, requestId }) =
               minHeight: 'fit-content'
             }}
           >
-            <AnimalCard data={mortalityData} />
+            <AnimalCard data={{ ...mortalityData, age: undefined }} />
           </Grid>
 
           <Grid

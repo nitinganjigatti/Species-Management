@@ -37,6 +37,20 @@ const NecropsyOrganSection = ({ organs = [], onChange, disabled = false }) => {
     onChange(updated)
   }
 
+  const handleRemovePart = (organIndex, partIndex) => {
+    const updated = [...organs]
+    const organ = { ...updated[organIndex] }
+    const parts = organ.parts.filter((_, i) => i !== partIndex)
+
+    if (parts.length === 0) {
+      onChange(updated.filter((_, i) => i !== organIndex))
+    } else {
+      organ.parts = parts
+      updated[organIndex] = organ
+      onChange(updated)
+    }
+  }
+
   return (
     <Box>
       <Box sx={{ mb: 3 }}>
@@ -120,7 +134,10 @@ const NecropsyOrganSection = ({ organs = [], onChange, disabled = false }) => {
                     <Box
                       key={part.id || partIndex}
                       sx={{
-                        mb: 2
+                        mb: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2
                       }}
                     >
                       <TextField
@@ -133,6 +150,21 @@ const NecropsyOrganSection = ({ organs = [], onChange, disabled = false }) => {
                         onChange={e => handlePartChange(organIndex, partIndex, 'value', e.target.value)}
                         disabled={disabled}
                       />
+                      {!disabled && (
+                        <IconButton
+                          size='small'
+                          onClick={() => handleRemovePart(organIndex, partIndex)}
+                          sx={{
+                            color: theme.palette.text.secondary,
+                            '&:hover': {
+                              color: theme.palette.error.main,
+                              backgroundColor: theme.palette.error.light + '20'
+                            }
+                          }}
+                        >
+                          <Icon icon='mdi:close' fontSize={20} />
+                        </IconButton>
+                      )}
                     </Box>
                   )
                 })}

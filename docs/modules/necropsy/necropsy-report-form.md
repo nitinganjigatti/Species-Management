@@ -937,6 +937,99 @@ useEffect(() => {
 
 ---
 
+## Sub-Organ Removal from Main Form
+
+**File:** `src/components/necropsy/NecropsyOrganSection.js`
+
+### Overview
+Users can now remove individual sub-organs (parts) directly from the main necropsy form without opening the Add Organ drawer. Each sub-organ text field has a close (X) button for quick removal.
+
+### Implementation
+
+**New Function:**
+```javascript
+const handleRemovePart = (organIndex, partIndex) => {
+  const updated = [...organs]
+  const organ = { ...updated[organIndex] }
+  const parts = organ.parts.filter((_, i) => i !== partIndex)
+
+  // If all parts are removed, remove the entire organ category
+  if (parts.length === 0) {
+    onChange(updated.filter((_, i) => i !== organIndex))
+  } else {
+    organ.parts = parts
+    updated[organIndex] = organ
+    onChange(updated)
+  }
+}
+```
+
+### Visual Layout
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Head and neck  (2 parts)                                   🗑️ ⌃ │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │ Enter Muzzle Description                                │  ✕ │
+│  │                                                         │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │ Enter Skull Description                                 │  ✕ │
+│  │                                                         │    │
+│  └─────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Behavior
+- Each sub-organ text field has a close (X) button aligned to the right
+- Clicking the X button removes that specific sub-organ
+- If all sub-organs are removed from an organ category, the entire category is automatically removed
+- The remove button is hidden when the form is in disabled state
+
+### Styling
+- Close button is vertically centered with the text field
+- Button uses subtle hover effect (error color on hover)
+- Gap of 2 (16px) between text field and button for proper spacing
+
+---
+
+## AddOrganDrawer - Full Edit Capability for Existing Organs
+
+**File:** `src/components/necropsy/AddOrganDrawer.js`
+
+### Overview
+Previously, organs that were already added to the form (marked as `isExisting`) could not be removed when re-opening the Add Organ drawer. This has been updated to allow full edit capability for all organs.
+
+### Changes Made
+
+1. **Sub-organ removal enabled for all organs:**
+   - Removed the `!organ.isExisting` condition from sub-organ close buttons
+   - All sub-organs can now be removed regardless of when they were added
+
+2. **Organ category removal enabled for all:**
+   - Removed `disabled={organ.isExisting}` from organ removal button
+   - All organ categories can now be removed
+
+3. **Clear All updated:**
+   - `handleClearAll()` now clears all organs, not just newly added ones
+   - Before: `setSelectedOrgans(prev => prev.filter(o => o.isExisting))`
+   - After: `setSelectedOrgans([])`
+
+4. **Button state logic updated:**
+   - Renamed `hasNewOrgans` to `hasOrgans`
+   - "Save as template" and "Clear all" buttons are now enabled when any organs exist
+
+### Before vs After
+
+| Feature | Before | After |
+|---------|--------|-------|
+| Remove existing sub-organ | Not allowed | Allowed |
+| Remove existing organ category | Not allowed | Allowed |
+| Clear all | Only clears new organs | Clears all organs |
+| Save as template | Only enabled with new organs | Enabled with any organs |
+
+---
+
 ## Template API Endpoints
 
 ### New Constants
@@ -2197,6 +2290,126 @@ navigation.pop(
 ```
 
 The web implementation provides equivalent functionality through URL parameters and conditional rendering.
+
+---
+
+## Post-Submission Navigation Behavior
+
+**File:** `src/views/pages/necropsy/NecropsyReportForm.js`
+
+### Overview
+
+After successful form submissions (save as draft, submit, or delete draft), the user is redirected to the main necropsy listing page without forcing a status tab change. This allows the page to retain the previously active status tab.
+
+### Previous Behavior (Removed)
+
+Previously, after successful API submissions, the navigation would force a status change:
+
+| Action | Previous Navigation |
+|--------|---------------------|
+| Save as Draft | `router.push(`/necropsy/${mortalityId}?status=DRAFT`)` |
+| Submit (editing completed) | `router.push(`/necropsy/${mortalityId}?status=COMPLETED`)` |
+| Submit (new submission) | `router.push('/necropsy?status=COMPLETED')` |
+| Delete Draft | `router.push('/necropsy?status=PENDING')` |
+
+### Current Behavior
+
+All successful form submissions now navigate to the main necropsy page without a status parameter:
+
+| Action | Current Navigation |
+|--------|-------------------|
+| Save as Draft | `router.push('/necropsy')` |
+| Submit | `router.push('/necropsy')` |
+| Delete Draft | `router.push('/necropsy')` |
+
+### Implementation
+
+**handleSaveAsDraft:**
+```javascript
+if (res?.success) {
+  Toaster({ type: 'success', message: res?.message || 'Draft saved successfully' })
+  router.push('/necropsy')  // No status parameter
+}
+```
+
+**onSubmit:**
+```javascript
+if (res?.success) {
+  Toaster({ type: 'success', message: res?.message || 'Necropsy submitted successfully' })
+  router.push('/necropsy')  // No status parameter
+}
+```
+
+**handleDeleteDraft:**
+```javascript
+if (res?.success) {
+  Toaster({ type: 'success', message: res?.message || 'Draft deleted successfully' })
+  setDeleteDialogOpen(false)
+  router.push('/necropsy')  // No status parameter
+}
+```
+
+### Rationale
+
+- Prevents automatic status tab switching which could be disorienting for users
+- Allows the necropsy listing page to maintain its previous state
+- Users can manually navigate to the desired status tab if needed
+- Provides a more consistent user experience across form actions
+
+### INCOMING to PENDING Transition
+
+For the INCOMING to PENDING transition (accepting a necropsy via `IncomingNecropsyDrawer`), no status navigation change occurs. When a necropsy is accepted:
+1. The drawer closes
+2. The `onAcceptSuccess` callback triggers a data refresh
+3. The user remains on the same status tab
+4. The accepted item disappears from the list as it's no longer in INCOMING status
+
+---
+
+## NecropsyAnimalInfoCard - Age Hidden
+
+**File:** `src/components/necropsy/NecropsyAnimalInfoCard.js`
+
+### Overview
+The age field has been hidden from the AnimalCard displayed in the NecropsyAnimalInfoCard. This is because the necropsy form has its own age field in the Carcass Details section where the confirmed age at death is recorded.
+
+### Implementation
+
+The age is excluded by passing the data without the age property:
+
+**NecropsyAnimalInfoCard.js:**
+```javascript
+<AnimalCard data={{ ...mortalityData, age: undefined }} />
+```
+
+### Visual Change
+
+**Before:**
+```
+┌─────────────────────────────────────────┐
+│ AID : 239465                            │
+│ reticulate cowrie-helmet                │
+│ Cypraecassis testiculus                 │
+│ Age : 0                                 │  ← Removed
+│ Breed : Test11                          │
+│ Variant : UI issue checking...          │
+│ Sec : 10 Acre                           │
+│ Site : Kc2                              │
+└─────────────────────────────────────────┘
+```
+
+**After:**
+```
+┌─────────────────────────────────────────┐
+│ AID : 239465                            │
+│ reticulate cowrie-helmet                │
+│ Cypraecassis testiculus                 │
+│ Breed : Test11                          │
+│ Variant : UI issue checking...          │
+│ Sec : 10 Acre                           │
+│ Site : Kc2                              │
+└─────────────────────────────────────────┘
+```
 
 ---
 

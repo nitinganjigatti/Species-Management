@@ -229,7 +229,7 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
   }
 
   const handleClearAll = () => {
-    setSelectedOrgans(prev => prev.filter(o => o.isExisting))
+    setSelectedOrgans([])
     setSelectedTemplate(null)
   }
 
@@ -300,7 +300,7 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
     handleDrawerClose()
   }
 
-  const hasNewOrgans = selectedOrgans.some(o => !o.isExisting)
+  const hasOrgans = selectedOrgans.length > 0
   const totalParts = selectedOrgans.reduce((sum, o) => sum + (o.parts?.length || 0), 0)
 
   return (
@@ -431,12 +431,10 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
                                   py: 0.75,
                                   borderRadius: '16px',
                                   transition: 'all 0.2s ease',
-                                  ...(!organ.isExisting && {
-                                    '&:hover': {
-                                      backgroundColor: theme.palette.action.hover,
-                                      borderColor: theme.palette.primary.light
-                                    }
-                                  })
+                                  '&:hover': {
+                                    backgroundColor: theme.palette.action.hover,
+                                    borderColor: theme.palette.primary.light
+                                  }
                                 }}
                               >
                                 <Typography
@@ -449,30 +447,28 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
                                 >
                                   {part.organ_name || part.label || `Part ${idx + 1}`}
                                 </Typography>
-                                {!organ.isExisting && (
-                                  <IconButton
-                                    size='small'
-                                    onClick={e => {
-                                      e.stopPropagation()
-                                      handleRemovePart(organ.id, part.id)
-                                    }}
-                                    sx={{
-                                      p: 0.25,
-                                      ml: 0.25,
-                                      backgroundColor: theme.palette.grey[300],
-                                      borderRadius: '50%',
-                                      transition: 'all 0.2s ease',
-                                      '&:hover': {
-                                        backgroundColor: theme.palette.error.light,
-                                        '& svg': {
-                                          color: `${theme.palette.common.white} !important`
-                                        }
+                                <IconButton
+                                  size='small'
+                                  onClick={e => {
+                                    e.stopPropagation()
+                                    handleRemovePart(organ.id, part.id)
+                                  }}
+                                  sx={{
+                                    p: 0.25,
+                                    ml: 0.25,
+                                    backgroundColor: theme.palette.grey[300],
+                                    borderRadius: '50%',
+                                    transition: 'all 0.2s ease',
+                                    '&:hover': {
+                                      backgroundColor: theme.palette.error.light,
+                                      '& svg': {
+                                        color: `${theme.palette.common.white} !important`
                                       }
-                                    }}
-                                  >
-                                    <Icon icon='mdi:close' fontSize={12} color={theme.palette.text.secondary} />
-                                  </IconButton>
-                                )}
+                                    }
+                                  }}
+                                >
+                                  <Icon icon='mdi:close' fontSize={12} color={theme.palette.text.secondary} />
+                                </IconButton>
                               </Box>
                             ))}
                           </Box>
@@ -480,11 +476,11 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
                       </Box>
                       <IconButton
                         onClick={() => handleRemoveOrgan(organ.id)}
-                        disabled={organ.isExisting}
                         size='small'
                         sx={{
-                          opacity: organ.isExisting ? 0.5 : 1,
-                          cursor: organ.isExisting ? 'not-allowed' : 'pointer'
+                          '&:hover': {
+                            backgroundColor: theme.palette.error.light + '20'
+                          }
                         }}
                       >
                         <Icon icon='zondicons:close-outline' color={theme.palette.customColors.Error} />
@@ -549,20 +545,20 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
                         alignItems: 'center',
                         justifyContent: 'flex-start',
                         gap: '2.5px',
-                        cursor: hasNewOrgans ? 'pointer' : 'not-allowed',
-                        opacity: hasNewOrgans ? 1 : 0.5
+                        cursor: hasOrgans ? 'pointer' : 'not-allowed',
+                        opacity: hasOrgans ? 1 : 0.5
                       }}
-                      onClick={hasNewOrgans ? () => setSaveTemplate(true) : undefined}
+                      onClick={hasOrgans ? () => setSaveTemplate(true) : undefined}
                     >
                       <Icon
                         icon='material-symbols:save-outline-rounded'
-                        color={hasNewOrgans ? theme.palette.customColors.OnSurface : theme.palette.text.disabled}
+                        color={hasOrgans ? theme.palette.customColors.OnSurface : theme.palette.text.disabled}
                       />
                       <Typography
                         sx={{
                           fontSize: '1rem',
                           fontWeight: 600,
-                          color: hasNewOrgans ? theme.palette.customColors.OnSurface : theme.palette.text.disabled
+                          color: hasOrgans ? theme.palette.customColors.OnSurface : theme.palette.text.disabled
                         }}
                       >
                         Save as template
@@ -572,11 +568,11 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply }) => {
                       sx={{
                         fontSize: '1rem',
                         fontWeight: 600,
-                        color: hasNewOrgans ? theme.palette.customColors.Error : theme.palette.text.disabled,
-                        cursor: hasNewOrgans ? 'pointer' : 'not-allowed',
-                        opacity: hasNewOrgans ? 1 : 0.5
+                        color: hasOrgans ? theme.palette.customColors.Error : theme.palette.text.disabled,
+                        cursor: hasOrgans ? 'pointer' : 'not-allowed',
+                        opacity: hasOrgans ? 1 : 0.5
                       }}
-                      onClick={hasNewOrgans ? handleClearAll : undefined}
+                      onClick={hasOrgans ? handleClearAll : undefined}
                     >
                       Clear all
                     </Typography>
