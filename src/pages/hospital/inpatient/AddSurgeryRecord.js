@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { useRouter } from 'next/router'
 
 import { Breadcrumbs, Typography, Card, Box, Button, IconButton, Grid, Tooltip, Collapse } from '@mui/material'
@@ -25,6 +25,7 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import AddEditSurgeryDrawer from 'src/views/pages/hospital/masters/surgery'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
+import ConfirmationDialog from 'src/components/confirmation-dialog/index'
 
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
@@ -304,7 +305,7 @@ const AddSurgeryRecord = () => {
     clearErrors,
     setValue,
     watch,
-    formState: { errors }
+    formState: { errors, isDirty }
   } = useForm({
     resolver: formResolver,
     mode: 'onChange',
@@ -315,8 +316,10 @@ const AddSurgeryRecord = () => {
   const [openAddanesthesiaDrawer, setOpenAddanesthesiaDrawer] = useState(false)
   const [openSelectAnesthesiaDrawer, setOpenSelectAnesthesiaDrawer] = useState(false)
   const [selectedAnesthesiaRecord, setSelectedAnesthesiaRecord] = useState(null)
+  const [initialAnesthesiaRecord, setInitialAnesthesiaRecord] = useState(null)
   const [pendingAnesthesiaRecord, setPendingAnesthesiaRecord] = useState(null)
   const [richNote, setRichNote] = useState('')
+  const [initialRichNote, setInitialRichNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [prefillDetail, setPrefillDetail] = useState(null)
   const [procedureSearchTerm, setProcedureSearchTerm] = useState('')
@@ -330,6 +333,9 @@ const AddSurgeryRecord = () => {
   const [doctorsLoading, setDoctorsLoading] = useState(false)
   const [careInstructionsExpanded, setCareInstructionsExpanded] = useState(false)
   const [formResetKey, setFormResetKey] = useState(0)
+  const [showNavWarning, setShowNavWarning] = useState(false)
+  const [pendingRoute, setPendingRoute] = useState(null)
+  const isNavigatingRef = useRef(false)
   const selectedDate = watch('date')
   const startTimeValue = watch('startTime')
   const endTimeValue = watch('endTime')
@@ -461,7 +467,9 @@ const AddSurgeryRecord = () => {
 
       setValue('attachments', existingAttachments, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
       setSelectedAnesthesiaRecord(anesthesiaDetail || anesthesiaOption)
+      setInitialAnesthesiaRecord(anesthesiaDetail || anesthesiaOption)
       setRichNote(detail?.surgery_notes || '')
+      setInitialRichNote(detail?.surgery_notes || '')
       setFormResetKey(prev => prev + 1)
     },
     [
@@ -487,8 +495,10 @@ const AddSurgeryRecord = () => {
     setValue('surgeon', null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
     setValue('procedure', null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
     setSelectedAnesthesiaRecord(null)
+    setInitialAnesthesiaRecord(null)
     setPendingAnesthesiaRecord(null)
     setRichNote('')
+    setInitialRichNote('')
     setProcedureSearchTerm('')
     setSurgeonSearchTerm('')
     setFormResetKey(prev => prev + 1)
@@ -900,9 +910,63 @@ const AddSurgeryRecord = () => {
     setOpenSelectAnesthesiaDrawer(false)
   }, [])
 
+  const checkIsDirty = useCallback(() => {
+    const isRichNoteDirty = richNote !== initialRichNote
+    const isAnesthesiaDirty = getAnesthesiaIdentifier(selectedAnesthesiaRecord) !== getAnesthesiaIdentifier(initialAnesthesiaRecord)
+
+    return isDirty || isRichNoteDirty || isAnesthesiaDirty
+  }, [isDirty, richNote, initialRichNote, selectedAnesthesiaRecord, initialAnesthesiaRecord])
+
   const handleCancelForm = useCallback(() => {
     resetForm()
   }, [resetForm])
+
+  const handleNavigateBack = useCallback(() => {
+    if (checkIsDirty()) {
+      setShowNavWarning(true)
+      setPendingRoute('BACK')
+    } else {
+      router.back()
+    }
+  }, [checkIsDirty, router])
+
+  const handleConfirmNavigation = useCallback(() => {
+    setShowNavWarning(false)
+    isNavigatingRef.current = true
+    if (pendingRoute === 'BACK') {
+      router.back()
+    } else if (pendingRoute) {
+      router.push(pendingRoute)
+    }
+    setPendingRoute(null)
+  }, [pendingRoute, router])
+
+  useEffect(() => {
+    const handleRouteChange = url => {
+      if (isNavigatingRef.current) return
+      if (checkIsDirty() && !isSubmitting) {
+        setPendingRoute(url)
+        setShowNavWarning(true)
+        router.events.emit('routeChangeError')
+        throw 'routeChange aborted'
+      }
+    }
+
+    const handleBeforeUnload = e => {
+      if (checkIsDirty() && !isSubmitting) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+
+    router.events.on('routeChangeStart', handleRouteChange)
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => {
+      router.events.off('routeChangeStart', handleRouteChange)
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [checkIsDirty, isSubmitting, router])
 
   const onSubmit = async formValues => {
     if (!resolvedHospitalCaseId) {
@@ -1000,7 +1064,7 @@ const AddSurgeryRecord = () => {
         <Typography
           color={theme.palette.customColors.neutralSecondary}
           sx={{ cursor: 'pointer' }}
-          onClick={() => router.back()}
+          onClick={handleNavigateBack}
         >
           Details
         </Typography>
@@ -1034,7 +1098,7 @@ const AddSurgeryRecord = () => {
             cursor: 'pointer',
             width: 'fit-content'
           }}
-          onClick={() => router.back()}
+          onClick={handleNavigateBack}
         >
           <Icon icon='mdi:arrow-left' color={theme.palette.customColors.OnSurfaceVariant} fontSize={24} />
           <Typography
@@ -1736,6 +1800,22 @@ const AddSurgeryRecord = () => {
           letterSpacing: 0,
           px: '24px'
         }}
+      />
+
+      <ConfirmationDialog
+        dialogBoxStatus={showNavWarning}
+        onClose={() => {
+          setShowNavWarning(false)
+          setPendingRoute(null)
+        }}
+        title='Unsaved Changes'
+        description='Please save your changes before navigating back.'
+        confirmAction={handleConfirmNavigation}
+        ConfirmationText='Discard'
+        cancelText='Stay'
+        icon='mdi:alert-circle-outline'
+        iconColor={theme.palette.warning.main}
+        imgStyle={{ backgroundColor: alpha(theme.palette.warning.main, 0.1) }}
       />
 
       <AddEditSurgeryDrawer
