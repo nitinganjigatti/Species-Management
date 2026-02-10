@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from 'react'
+import React, { useState, useEffect, useContext, useRef, useMemo, useCallback, memo } from 'react'
 import {
   Box,
   Card,
@@ -46,13 +46,13 @@ import {
   deleteNecropsy,
   getNecropsySummary,
   getMortalitySummary,
-  getMannerOfDeath,
-  getCarcassDisposition,
-  deleteNecropsyAttachment,
-  getMeasurementUnits
+  deleteNecropsyAttachment
 } from 'src/lib/api/necropsy'
 import { AuthContext } from 'src/context/AuthContext'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+
+// Use cached form options from Redux
+import { useNecropsyFormOptions } from 'src/hooks/necropsy'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -64,7 +64,7 @@ const getErrorMessage = (message, fallback = 'An error occurred') => {
   if (typeof message === 'object') {
     const errorValues = Object.values(message)
     if (errorValues.length > 0) {
-        return String(errorValues[0])
+      return String(errorValues[0])
     }
   }
 
@@ -112,6 +112,18 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
   const router = useRouter()
   const authData = useContext(AuthContext)
 
+  // Use cached form options from Redux (auto-fetches if not loaded)
+  const {
+    mannerOfDeathOptions,
+    disposalOptions,
+    weightUnitOptions,
+    loading: optionsLoading,
+    isLoaded: optionsLoaded,
+    findMannerOfDeathOption,
+    findDisposalOption,
+    findWeightUnitOption
+  } = useNecropsyFormOptions(true)
+
   const [mortalityData, setMortalityData] = useState(null)
   const [necropsyData, setNecropsyData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -125,13 +137,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
   const [ageInputs, setAgeInputs] = useState({ years: '', months: '', days: '' })
   const [dialogApproxAge, setDialogApproxAge] = useState(false)
 
-  const [mannerOfDeathOptions, setMannerOfDeathOptions] = useState([])
-  const [disposalOptions, setDisposalOptions] = useState([])
-  const [weightUnitOptions, setWeightUnitOptions] = useState([])
   const [weightUomId, setWeightUomId] = useState(null)
-  const weightUnitsRef = useRef([])
-  const mannerOfDeathOptionsRef = useRef([])
-  const disposalOptionsRef = useRef([])
 
   const [conductedByUsers, setConductedByUsers] = useState([])
   const [organs, setOrgans] = useState([])
@@ -198,57 +204,19 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
     }
   }, [necropsyId, authData?.userData?.user])
 
+  // Fetch initial data when options are loaded
   useEffect(() => {
-    fetchInitialData()
-  }, [mortalityId, necropsyId])
+    if (optionsLoaded) {
+      fetchInitialData()
+    }
+  }, [mortalityId, necropsyId, optionsLoaded])
 
   const fetchInitialData = async () => {
     try {
       setLoading(true)
 
-      const [mortalityRes, mannerRes, disposalRes, measurementRes] = await Promise.all([
-        getMortalitySummary({ mortality_id: mortalityId }),
-        getMannerOfDeath(),
-        getCarcassDisposition(),
-        getMeasurementUnits()
-      ])
-
-      if (mannerRes?.data) {
-        const options = (Array.isArray(mannerRes.data) ? mannerRes.data : mannerRes.data?.result || []).map(item => ({
-          label: item.name || item.label,
-          value: item.id || item.string_id || item.value,
-          key: item.name || item.label
-        }))
-        setMannerOfDeathOptions(options)
-        mannerOfDeathOptionsRef.current = options
-      }
-
-      if (disposalRes?.data) {
-        const options = (Array.isArray(disposalRes.data) ? disposalRes.data : disposalRes.data?.result || []).map(
-          item => ({
-            label: item.name || item.label,
-            value: item.id || item.string_id || item.value,
-            key: item.name || item.label
-          })
-        )
-        setDisposalOptions(options)
-        disposalOptionsRef.current = options
-      }
-
-      let weightUnits = []
-      if (measurementRes?.success && Array.isArray(measurementRes.data)) {
-        weightUnits = measurementRes.data
-          .filter(item => item?.measurement_type === 'weight')
-          .map(item => ({
-            id: item.id,
-            label: item.uom_abbr || item.unit_name || item.name,
-            value: item.uom_abbr || item.unit_name || item.name,
-            unit_name: item.unit_name,
-            uom_abbr: item.uom_abbr
-          }))
-        setWeightUnitOptions(weightUnits)
-        weightUnitsRef.current = weightUnits
-      }
+      // Only fetch mortality data - dropdown options come from Redux cache
+      const mortalityRes = await getMortalitySummary({ mortality_id: mortalityId })
 
       if (mortalityRes?.success) {
         setMortalityData(mortalityRes.data)
@@ -269,7 +237,8 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
             if (uomId && !isNaN(Number(uomId))) {
               setWeightUomId(Number(uomId))
 
-              const unitById = weightUnits.find(u => u.id === Number(uomId))
+              // Use helper from Redux hook to find weight unit
+              const unitById = findWeightUnitOption(uomId)
               if (unitById) {
                 setValue('weight_unit', unitById)
               }
@@ -278,13 +247,8 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
             if (!watch('weight_unit')) {
               const uomAbbr = mortData.uom_abbr || mortData.carcass_weight_unit_name
               if (uomAbbr) {
-                const uomAbbrLower = String(uomAbbr).toLowerCase()
-                let unit = weightUnits.find(u => u.value?.toLowerCase() === uomAbbrLower)
-                if (!unit) {
-                  unit = weightUnits.find(
-                    u => uomAbbrLower.includes(u.value?.toLowerCase()) || u.value?.toLowerCase()?.includes(uomAbbrLower)
-                  )
-                }
+                // Use helper from Redux hook to find weight unit
+                const unit = findWeightUnitOption(uomAbbr)
                 if (unit) {
                   setValue('weight_unit', unit)
                   setWeightUomId(unit.id)
@@ -344,27 +308,19 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
           setValue('necropsy_date', dayjs())
           setValue('necropsy_time', dayjs())
 
-          if (mortData?.manner_of_death_id && mannerRes?.data) {
-            const options = Array.isArray(mannerRes.data) ? mannerRes.data : mannerRes.data?.result || []
-
-            const matchingOption = options.find(item => String(item.id) === String(mortData.manner_of_death_id))
+          // Use Redux cached options to find matching manner of death
+          if (mortData?.manner_of_death_id) {
+            const matchingOption = findMannerOfDeathOption(mortData.manner_of_death_id)
             if (matchingOption) {
-              setValue('confirmed_cause_of_death', {
-                label: matchingOption.name || matchingOption.label,
-                value: matchingOption.id || matchingOption.string_id
-              })
+              setValue('confirmed_cause_of_death', matchingOption)
             }
           }
 
-          if (mortData?.carcass_disposition_id && disposalRes?.data) {
-            const options = Array.isArray(disposalRes.data) ? disposalRes.data : disposalRes.data?.result || []
-
-            const matchingOption = options.find(item => String(item.id) === String(mortData.carcass_disposition_id))
+          // Use Redux cached options to find matching disposal method
+          if (mortData?.carcass_disposition_id) {
+            const matchingOption = findDisposalOption(mortData.carcass_disposition_id)
             if (matchingOption) {
-              setValue('disposal_method', {
-                label: matchingOption.name || matchingOption.label,
-                value: matchingOption.id || matchingOption.string_id
-              })
+              setValue('disposal_method', matchingOption)
             }
           }
         }
@@ -398,13 +354,11 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
     setValue('place_of_death', data.place_of_death || '')
     setValue('carcass_weight', data.carcass_weight || '')
 
-    const availableWeightUnits = weightUnitsRef.current.length > 0 ? weightUnitsRef.current : weightUnitOptions
-
+    // Use Redux helper to find weight unit
     const uomId = data.carcass_weight_uom_id || data.carcass_weight_uom || data.uom_id
     if (uomId && !isNaN(Number(uomId))) {
       setWeightUomId(Number(uomId))
-
-      const unitById = availableWeightUnits.find(u => u.id === Number(uomId))
+      const unitById = findWeightUnitOption(uomId)
       if (unitById) {
         setValue('weight_unit', unitById)
       }
@@ -413,13 +367,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
     if (!watch('weight_unit')) {
       const uomAbbr = data.uom_abbr || data.carcass_weight_unit_name
       if (uomAbbr) {
-        const uomAbbrLower = String(uomAbbr).toLowerCase()
-        let unit = availableWeightUnits.find(u => u.value?.toLowerCase() === uomAbbrLower)
-        if (!unit) {
-          unit = availableWeightUnits.find(
-            u => uomAbbrLower.includes(u.value?.toLowerCase()) || u.value?.toLowerCase()?.includes(uomAbbrLower)
-          )
-        }
+        const unit = findWeightUnitOption(uomAbbr)
         if (unit) {
           setValue('weight_unit', unit)
           setWeightUomId(unit.id)
@@ -462,12 +410,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
     setValue('biological_test', data.biological_test || '')
     setValue('additional_notes', data.additional_notes || '')
 
-    const availableMannerOptions =
-      mannerOfDeathOptionsRef.current.length > 0 ? mannerOfDeathOptionsRef.current : mannerOfDeathOptions
-
-    const availableDisposalOptions =
-      disposalOptionsRef.current.length > 0 ? disposalOptionsRef.current : disposalOptions
-
+    // Use Redux helpers for finding manner of death and disposal options
     if (data.suspected_cause_of_death) {
       setValue('manner_of_death', {
         label: data.suspected_cause_of_death,
@@ -477,27 +420,8 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
     }
 
     if (data.confirmed_cause_of_death || data.confirmed_cause_of_death_id) {
-      let matchingOption = null
-
-      if (data.confirmed_cause_of_death) {
-        matchingOption = availableMannerOptions.find(
-          opt =>
-            opt.key === data.confirmed_cause_of_death ||
-            String(opt.key)?.toLowerCase() === String(data.confirmed_cause_of_death)?.toLowerCase()
-        )
-      }
-
-      if (!matchingOption && data.confirmed_cause_of_death_id) {
-        matchingOption = availableMannerOptions.find(
-          opt => String(opt.value) === String(data.confirmed_cause_of_death_id)
-        )
-      }
-
-      if (!matchingOption && data.confirmed_cause_of_death) {
-        matchingOption = availableMannerOptions.find(
-          opt => opt.label?.toLowerCase() === data.confirmed_cause_of_death?.toLowerCase()
-        )
-      }
+      // Try to find matching option using Redux helper
+      let matchingOption = findMannerOfDeathOption(data.confirmed_cause_of_death_id || data.confirmed_cause_of_death)
 
       if (matchingOption) {
         setValue('confirmed_cause_of_death', matchingOption)
@@ -514,21 +438,8 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
     const disposalId = data.disposition_id || data.disposal_method_id || data.carcass_disposition_id
 
     if (disposalName || disposalId) {
-      let matchingOption = null
-
-      if (disposalId) {
-        matchingOption = availableDisposalOptions.find(opt => String(opt.value) === String(disposalId))
-      }
-
-      if (!matchingOption && disposalName) {
-        matchingOption = availableDisposalOptions.find(
-          opt => opt.key === disposalName || String(opt.key)?.toLowerCase() === String(disposalName)?.toLowerCase()
-        )
-      }
-
-      if (!matchingOption && disposalName) {
-        matchingOption = availableDisposalOptions.find(opt => opt.label?.toLowerCase() === disposalName?.toLowerCase())
-      }
+      // Try to find matching option using Redux helper
+      let matchingOption = findDisposalOption(disposalId || disposalName)
 
       if (matchingOption) {
         setValue('disposal_method', matchingOption)
@@ -700,7 +611,6 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
 
         return
       }
-
     }
 
     try {
@@ -931,7 +841,8 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
     </Box>
   )
 
-  if (loading) {
+  // Show skeleton while loading data or form options
+  if (loading || optionsLoading) {
     return (
       <Box>
         <Box sx={{ mb: 3 }}>

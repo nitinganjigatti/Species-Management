@@ -16,7 +16,7 @@ import {
   Typography,
   useTheme
 } from '@mui/material'
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useMemo, memo } from 'react'
 import { styled, alpha } from '@mui/material/styles'
 import Timeline from '@mui/lab/Timeline'
 import TimelineItem from '@mui/lab/TimelineItem'
@@ -102,10 +102,43 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
   const [animalListLoading, setAnimalListLoading] = useState(false)
   const [acceptLoading, setAcceptLoading] = useState(false)
 
-  const fetchNecropsyDetails = async () => {
+  // Fetch all drawer data in parallel for better performance
+  const fetchAllDrawerData = useCallback(async () => {
     if (!transferId) return
 
     setLoading(true)
+    setBtnStatusLoading(true)
+
+    try {
+      // Execute all API calls in parallel
+      const [detailsRes, btnStatusRes, checklistRes] = await Promise.all([
+        getIncomingNecropsyTransferSummary({ transfer_id: transferId }),
+        getIncomingNecropsyBtnStatus(transferId),
+        getIncomingNecropsyChecklistDetails({ entity_type: 'carcass_transfer' }, transferId)
+      ])
+
+      if (detailsRes?.success) {
+        setNecropsyData(detailsRes?.data)
+      }
+
+      if (btnStatusRes?.success) {
+        setBtnStatusData(btnStatusRes?.data)
+      }
+
+      if (checklistRes?.success) {
+        setChecklistComments(checklistRes?.data?.comments || [])
+      }
+    } catch (error) {
+      console.error('Error fetching drawer data:', error)
+    } finally {
+      setLoading(false)
+      setBtnStatusLoading(false)
+    }
+  }, [transferId])
+
+  // Individual fetch for necropsy details (used after adding comment)
+  const fetchNecropsyDetails = useCallback(async () => {
+    if (!transferId) return
     try {
       const response = await getIncomingNecropsyTransferSummary({ transfer_id: transferId })
       if (response?.success) {
@@ -113,37 +146,8 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
       }
     } catch (error) {
       console.error('Error fetching incoming necropsy details:', error)
-    } finally {
-      setLoading(false)
     }
-  }
-
-  const fetchBtnStatus = async () => {
-    if (!transferId) return
-    setBtnStatusLoading(true)
-    try {
-      const response = await getIncomingNecropsyBtnStatus(transferId)
-      if (response?.success) {
-        setBtnStatusData(response?.data)
-      }
-    } catch (error) {
-      console.error('Error fetching button status:', error)
-    } finally {
-      setBtnStatusLoading(false)
-    }
-  }
-
-  const fetchChecklistDetails = async () => {
-    if (!transferId) return
-    try {
-      const response = await getIncomingNecropsyChecklistDetails({ entity_type: 'carcass_transfer' }, transferId)
-      if (response?.success) {
-        setChecklistComments(response?.data?.comments || [])
-      }
-    } catch (error) {
-      console.error('Error fetching checklist details:', error)
-    }
-  }
+  }, [transferId])
 
   const handleAddComment = async () => {
     if (!comment.trim()) return
@@ -211,13 +215,18 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
     fetchAnimalList()
   }
 
+  // Fetch all data in parallel when drawer opens
   useEffect(() => {
     if (open && transferId) {
-      fetchNecropsyDetails()
-      fetchBtnStatus()
-      fetchChecklistDetails()
+      fetchAllDrawerData()
     }
-  }, [open, transferId])
+  }, [open, transferId, fetchAllDrawerData])
+
+  // Memoize grouped comments to avoid recalculation on every render
+  const groupedChecklistComments = useMemo(
+    () => groupCommentsByDate(checklistComments),
+    [checklistComments]
+  )
 
   return (
     <>
@@ -719,7 +728,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                 <>
                   <Collapse in={showChecklistComment}>
                     <Box sx={{ maxHeight: 300, overflowY: 'auto', mb: 2 }}>
-                      {groupCommentsByDate(checklistComments)?.map((section, sectionIndex) => (
+                      {groupedChecklistComments?.map((section, sectionIndex) => (
                         <Box key={`section-${sectionIndex}`}>
                           <StyledSectionHeader>
                             <CalendarTodayIcon
@@ -966,4 +975,5 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
   )
 }
 
-export default IncomingNecropsyDrawer
+// Memoize the component to prevent unnecessary re-renders
+export default memo(IncomingNecropsyDrawer)

@@ -1,23 +1,26 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo, useContext } from 'react'
+import React, { useState, useEffect, useCallback, useRef, useContext } from 'react'
 import { Box, Typography, Menu, MenuItem, useTheme, Tooltip, Avatar } from '@mui/material'
 import { KeyboardArrowDown, Biotech } from '@mui/icons-material'
-import { useNecropsy } from 'src/context/NecropsyContext'
 import Search from 'src/views/utility/Search'
 import debounce from 'lodash/debounce'
 import { read } from 'src/lib/windows/utils'
 import { AuthContext } from 'src/context/AuthContext'
+import { useNecropsyCenter } from 'src/hooks/necropsy'
 
 const NecropsyDropdown = ({ disabled = false }) => {
   const theme = useTheme()
 
+  const authData = useContext(AuthContext)
+  const userId = authData?.userData?.user?.user_id || ''
+
+  // Use Redux-based hook for center management
   const {
-    selectedNecropsy,
-    updateSelectedNecropsy,
-    necropsies,
-    isLoadingNecropsies,
-    fetchNecropsies,
-    hasCompletedInitialFetch
-  } = useNecropsy()
+    selectedCenter: selectedNecropsy,
+    centers: necropsies,
+    centersLoading: isLoadingNecropsies,
+    fetchCenters: fetchNecropsies,
+    updateSelectedCenter: updateSelectedNecropsy
+  } = useNecropsyCenter(userId, true)
 
   const [anchorEl, setAnchorEl] = useState(null)
   const [localSearch, setLocalSearch] = useState('')
@@ -25,15 +28,7 @@ const NecropsyDropdown = ({ disabled = false }) => {
   const [hasValidatedAccess, setHasValidatedAccess] = useState(false)
   const searchInputRef = useRef(null)
 
-  const authData = useContext(AuthContext)
-  const userId = authData?.userData?.user?.user_id || ''
-
-  useEffect(() => {
-    if (userId) {
-      fetchNecropsies(userId)
-    }
-  }, [userId])
-
+  // Validate access when centers are loaded
   useEffect(() => {
     if (necropsies.length > 0 && !hasValidatedAccess) {
       setIsCheckingNecropsyAccess(true)
@@ -52,14 +47,14 @@ const NecropsyDropdown = ({ disabled = false }) => {
       }
       setHasValidatedAccess(true)
       setIsCheckingNecropsyAccess(false)
-    } else if (hasCompletedInitialFetch && necropsies.length === 0) {
+    } else if (!isLoadingNecropsies && necropsies.length === 0 && hasValidatedAccess) {
       updateSelectedNecropsy(null)
     }
-  }, [necropsies, hasCompletedInitialFetch, hasValidatedAccess, updateSelectedNecropsy])
+  }, [necropsies, isLoadingNecropsies, hasValidatedAccess, updateSelectedNecropsy])
 
   const debouncedSearch = useRef(
     debounce(searchValue => {
-      fetchNecropsies(userId, searchValue)
+      fetchNecropsies(searchValue)
     }, 500)
   ).current
 
@@ -86,15 +81,15 @@ const NecropsyDropdown = ({ disabled = false }) => {
 
   const handleSearchClear = useCallback(() => {
     setLocalSearch('')
-    fetchNecropsies(userId, '')
-  }, [userId, fetchNecropsies])
+    fetchNecropsies('')
+  }, [fetchNecropsies])
 
   useEffect(() => {
     if (!anchorEl && localSearch) {
       setLocalSearch('')
-      fetchNecropsies(userId, '')
+      fetchNecropsies('')
     }
-  }, [anchorEl, localSearch, userId, fetchNecropsies])
+  }, [anchorEl, localSearch, fetchNecropsies])
 
   const handleDropdownClick = e => {
     if (disabled) return
