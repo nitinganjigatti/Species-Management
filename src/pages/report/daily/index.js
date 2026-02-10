@@ -1,4 +1,4 @@
-import { forwardRef, useState, useRef, useContext, useEffect } from 'react'
+import { useState, useContext, useEffect } from 'react'
 
 import {
   Box,
@@ -12,7 +12,6 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
-  FormHelperText,
   Popover,
   TextField,
   Typography
@@ -22,8 +21,10 @@ import { useTheme } from '@emotion/react'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 import Toaster from 'src/components/Toaster'
+import Utility from 'src/utility'
 
 import {
   getAnimalReport,
@@ -43,7 +44,6 @@ const Animal = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [startDate, setStartDate] = useState(null)
   const [endDate, setEndDate] = useState(null)
-  const [errors, setErrors] = useState({})
   const [reportData, setReportData] = useState([])
   const [downloadingRowId, setDownloadingRowId] = useState(null)
   const [upcomingDialogOpen, setUpcomingDialogOpen] = useState(false)
@@ -54,39 +54,28 @@ const Animal = () => {
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
   const enable_daily_report = authData?.userData?.permission?.user_settings?.enable_daily_report
 
-  const startDateRef = useRef()
-  const endDateRef = useRef()
-
   useEffect(() => {
-    const yesterday = new Date()
-
-    const year = yesterday.getFullYear()
-    const month = String(yesterday.getMonth() + 1).padStart(2, '0') // Months are zero-based
-    const day = String(yesterday.getDate()).padStart(2, '0')
-    const formattedDate = `${year}-${month}-${day}`
+    const today = new Date()
+    const formattedDate = Utility.formatDate(today)
 
     setStartDate(formattedDate)
     setEndDate(formattedDate)
   }, [])
 
-  const CustomInput = forwardRef(({ ...props }, ref) => {
-    return <TextField inputRef={ref} {...props} />
-  })
-
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
-      { label: 'Class', key: 'include_class', checked: false },
-      { label: 'Order', key: 'include_order', checked: false },
-      { label: 'Family', key: 'include_family', checked: false },
-      { label: 'Genus', key: 'include_genus', checked: false }
+      { label: 'Class', key: 'include_class', checked: true },
+      { label: 'Order', key: 'include_order', checked: true },
+      { label: 'Family', key: 'include_family', checked: true },
+      { label: 'Genus', key: 'include_genus', checked: true }
     ]
   })
 
   const [apiFilterParams, setApiFilterParams] = useState({
-    include_class: 0,
-    include_order: 0,
-    include_family: 0,
-    include_genus: 0
+    include_class: 1,
+    include_order: 1,
+    include_family: 1,
+    include_genus: 1
   })
 
   const jsonToCsv = jsonData => {
@@ -194,35 +183,13 @@ const Animal = () => {
     setAnchorEl(null)
   }
 
-  const handleStartDateChange = dateString => {
-    const date = new Date(dateString)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    const formattedDate = `${year}-${month}-${day}`
-
-    setStartDate(formattedDate)
-
-    if (endDate && new Date(formattedDate) > new Date(endDate)) {
-      setErrors(prevErrors => ({ ...prevErrors, startDate: true }))
+  const handleDateRangeChange = (rangeStartDate, rangeEndDate) => {
+    if (rangeStartDate && rangeEndDate) {
+      setStartDate(Utility.formatDate(rangeStartDate))
+      setEndDate(Utility.formatDate(rangeEndDate))
     } else {
-      setErrors(prevErrors => ({ ...prevErrors, startDate: false }))
-    }
-  }
-
-  const handleEndDateChange = dateString => {
-    const date = new Date(dateString)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    const formattedDate = `${year}-${month}-${day}`
-
-    setEndDate(formattedDate)
-
-    if (startDate && new Date(formattedDate) < new Date(startDate)) {
-      setErrors(prevErrors => ({ ...prevErrors, endDate: true }))
-    } else {
-      setErrors(prevErrors => ({ ...prevErrors, endDate: false }))
+      setStartDate('')
+      setEndDate('')
     }
   }
 
@@ -384,59 +351,9 @@ const Animal = () => {
             }}
           >
             <Box sx={{ display: 'flex', gap: 3 }}>
-              <FormControl fullWidth>
-                <SingleDatePicker
-                  value={startDate}
-                  name='FromDate*'
-                  onChange={handleStartDateChange}
-                  customInput={
-                    <TextField
-                      label='Start Date*'
-                      error={Boolean(errors.startDate)}
-                      sx={{
-                        '& .MuiInputBase-input': {
-                          mt: 1,
-                          height: '25px',
-                          padding: '8px'
-                        }
-                      }}
-                    />
-                  }
-                  maxDate={new Date()}
-                  ref={startDateRef}
-                />
-                {errors.startDate && (
-                  <FormHelperText sx={{ color: 'error.main' }}>Start date should be less than end date</FormHelperText>
-                )}
-              </FormControl>
-
-              <FormControl fullWidth>
-                <SingleDatePicker
-                  value={endDate}
-                  name='EndDate*'
-                  onChange={handleEndDateChange}
-                  customInput={
-                    <TextField
-                      label='End Date*'
-                      error={Boolean(errors.endDate)}
-                      sx={{
-                        '& .MuiInputBase-input': {
-                          mt: 1,
-                          height: '25px',
-                          padding: '8px'
-                        }
-                      }}
-                    />
-                  }
-                  maxDate={new Date()}
-                  ref={endDateRef}
-                />
-                {errors.endDate && (
-                  <FormHelperText sx={{ color: 'error.main' }}>
-                    End date should be greater than start date
-                  </FormHelperText>
-                )}
-              </FormControl>
+              <Box sx={{ minWidth: 0 }}>
+                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={{ startDate, endDate }} />
+              </Box>
 
               <Box>
                 <Button
