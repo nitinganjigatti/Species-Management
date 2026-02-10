@@ -28,6 +28,7 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility, { pageTitle } from 'src/utility/render'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const ListOfUOM = () => {
   const theme = useTheme()
@@ -179,14 +180,14 @@ const ListOfUOM = () => {
     <div>
       {pharmacyRole && (
         <Grid item>
-          <AddButtonContained 
-            title='Add UOM ' 
-            action={() => addEventSidebarOpen()} 
+          <AddButtonContained
+            title='Add UOM '
+            action={() => addEventSidebarOpen()}
             fullWidth='fullWidth'
-            styles = {{
+            styles={{
               margin: 0
             }}
-            />
+          />
         </Grid>
       )}
     </div>
@@ -199,6 +200,7 @@ const ListOfUOM = () => {
   const [sortColumn, setSortColumn] = useState('unit_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -299,6 +301,28 @@ const ListOfUOM = () => {
     sl_no: getSlNo(index)
   }))
 
+  const handleExport = async () => {
+    try {
+      setExportLoading(true)
+
+      const params = {
+        sort: sort,
+        q: searchValue,
+        column: sortColumn,
+        response_type: 'csv'
+      }
+      const response = await getUnits({ params })
+
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response?.data)
+      }
+    } catch (error) {
+      console.error('Error downloading Excel:', error)
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
   return (
     <>
       {pharmacyRole ? (
@@ -307,24 +331,26 @@ const ListOfUOM = () => {
             <FallbackSpinner />
           ) : (
             <>
-              <PageCardLayout
-                title='UOM (Unit of Mesurement) List'
-                action={headerAction}
-              >
+              <PageCardLayout title='UOM (Unit of Measurement) List' action={headerAction}>
                 <Grid container>
-                  <Grid size={{ xs: 12, sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
-                    <MUISearch
+                  <Grid item container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                    <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                      <MUISearch
                         sx={{
-                        width: {
-                          xs: '100%',
-                          sm: '250px'
-                        }
-                      }}
-                      placeholder='Search...'
-                      value={searchValue}
-                      onChange={e => handleSearch(e.target.value)}
-                      onClear={() => handleSearch('')}
-                    />
+                          width: {
+                            xs: '100%',
+                            sm: '250px'
+                          }
+                        }}
+                        placeholder='Search...'
+                        value={searchValue}
+                        onChange={e => handleSearch(e.target.value)}
+                        onClear={() => handleSearch('')}
+                      />
+                    </Grid>
+                    <Grid>
+                      <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} />
+                    </Grid>
                   </Grid>
                 </Grid>
                 <Grid>
@@ -356,6 +382,7 @@ const ListOfUOM = () => {
             columns={columns}
             rows={uomList}
           /> */}
+
               <AddUOM
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}

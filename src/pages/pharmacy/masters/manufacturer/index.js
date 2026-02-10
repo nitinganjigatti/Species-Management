@@ -2,8 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { getManufacturers, addManufacturer, updateManufacturer } from 'src/lib/api/pharmacy/manufacturer'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
-
-
 // ** MUI Imports
 import { Box, Grid, Tooltip, Typography, IconButton } from '@mui/material'
 
@@ -27,10 +25,13 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import { ExportButton } from 'src/views/utility/render-snippets'
+
 const ManufacturerList = () => {
   const theme = useTheme()
   const [manufacturers, setManufacturers] = useState({})
   const [loader, setLoader] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
 
   const editParamsInitialState = { id: null, name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
@@ -94,21 +95,20 @@ const ManufacturerList = () => {
       field: 'label',
       headerName: 'Manufacturer',
       renderCell: params => (
-        <Tooltip title =  {params.row.label}>
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            // fontFamily: 'Inter',
-             overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          {params.row.label}
-        </Typography>
+        <Tooltip title={params.row.label}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {params.row.label}
+          </Typography>
         </Tooltip>
       )
     },
@@ -124,8 +124,7 @@ const ManufacturerList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            // fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.active === '1' ? 'Active' : 'Inactive'}
@@ -227,14 +226,14 @@ const ManufacturerList = () => {
     <div>
       {pharmacyRole && (
         <Grid item>
-          <AddButtonContained 
-            title='Add Manufacturer' 
-            action={() => addEventSidebarOpen()} 
-            fullWidth={'fullWidth'} 
-            styles = {{
+          <AddButtonContained
+            title='Add Manufacturer'
+            action={() => addEventSidebarOpen()}
+            fullWidth={'fullWidth'}
+            styles={{
               margin: 0
             }}
-            />
+          />
         </Grid>
       )}
     </div>
@@ -283,6 +282,27 @@ const ManufacturerList = () => {
     sl_no: getSlNo(index)
   }))
 
+  const handleExport = async () => {
+    const params = {
+      q: searchValue,
+      sort: sort,
+      columns: sortColumn,
+      response_type: 'csv'
+    }
+    try {
+      setExportLoading(true)
+      const response = await getManufacturers({ params })
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response?.data)
+        setExportLoading(false)
+      }
+    } catch (error) {
+      setExportLoading(false)
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
   return (
     <>
       {pharmacyRole ? (
@@ -291,40 +311,42 @@ const ManufacturerList = () => {
             <FallbackSpinner />
           ) : (
             <>
-                <PageCardLayout 
-                title = 'Manufacturer'
-                action = {headerAction}
-                  >
-                  <Grid container>
-                    <Grid size={{ xs: 12, sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+              <PageCardLayout title='Manufacturer' action={headerAction}>
+                <Grid container>
+                  <Grid item container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                    <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
                       <MUISearch
-                           sx={{
-                        width: {
-                          xs: '100%',
-                          sm: '250px'
-                        }
-                      }}
+                        sx={{
+                          width: {
+                            xs: '100%',
+                            sm: '250px'
+                          }
+                        }}
                         placeholder='Search...'
                         value={searchValue}
                         onChange={e => handleSearch(e.target.value)}
                         onClear={() => handleSearch('')}
                       />
                     </Grid>
+                    <Grid>
+                      <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} />
+                    </Grid>
                   </Grid>
-                  <Grid>
-                    <CommonTable
-                      onRowClick={''}
-                      indexedRows={indexedRows}
-                      total={total}
-                      columns={columns}
-                      paginationModel={paginationModel}
-                      handleSortModel={handleSortModel}
-                      setPaginationModel={setPaginationModel}
-                      loading={loading}
-                      searchValue={searchValue}
-                    />
-                  </Grid>
-                  </PageCardLayout>
+                </Grid>
+                <Grid>
+                  <CommonTable
+                    onRowClick={''}
+                    indexedRows={indexedRows}
+                    total={total}
+                    columns={columns}
+                    paginationModel={paginationModel}
+                    handleSortModel={handleSortModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={searchValue}
+                  />
+                </Grid>
+              </PageCardLayout>
               <AddManufacturer
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}

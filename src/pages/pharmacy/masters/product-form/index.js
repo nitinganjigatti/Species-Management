@@ -4,7 +4,7 @@ import { addProductForm, getProductFormList, updateProductForm } from 'src/lib/a
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
 // ** MUI Imports
-import { Box, Grid, Typography, IconButton,} from '@mui/material'
+import { Box, Grid, Typography, IconButton } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -27,6 +27,7 @@ import RenderUtility from 'src/utility/render'
 
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const ListOfDosageForms = () => {
   const theme = useTheme()
@@ -45,6 +46,7 @@ const ListOfDosageForms = () => {
   const [severity, setSeverity] = useState('success')
 
   const { selectedPharmacy } = usePharmacyContext()
+  const [exportLoading, setExportLoading] = useState(false)
 
   const authData = useContext(AuthContext)
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
@@ -99,7 +101,7 @@ const ListOfDosageForms = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
+            fontWeight: 500
           }}
         >
           {params.row.label}
@@ -117,7 +119,7 @@ const ListOfDosageForms = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
+            fontWeight: 500
           }}
         >
           {params.row.status}
@@ -219,14 +221,14 @@ const ListOfDosageForms = () => {
     <div>
       {pharmacyRole && (
         <Grid item>
-          <AddButtonContained 
-            title='Add Product Form' 
-            action={() => addEventSidebarOpen()} 
-            fullWidth='fullWidth' 
-            styles = {{
+          <AddButtonContained
+            title='Add Product Form'
+            action={() => addEventSidebarOpen()}
+            fullWidth='fullWidth'
+            styles={{
               margin: 0
             }}
-            />
+          />
         </Grid>
       )}
     </div>
@@ -272,6 +274,27 @@ const ListOfDosageForms = () => {
     sl_no: getSlNo(index)
   }))
 
+  const handleExport = async () => {
+    const params = {
+      q: searchValue,
+      sort: sort,
+      column: sortColumn,
+      response_type: 'csv'
+    }
+    try {
+      setExportLoading(true)
+      const response = await getProductFormList({ params })
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response?.data)
+        setExportLoading(false)
+      }
+    } catch (error) {
+      setExportLoading(false)
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
   return (
     <>
       {pharmacyRole ? (
@@ -280,40 +303,42 @@ const ListOfDosageForms = () => {
             <FallbackSpinner />
           ) : (
             <>
-                <PageCardLayout
-                  title = 
-                  "Product Form List"
-                  action = {headerAction}>
-                  <Grid container>
-                    <Grid size={{ xs: 12, sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+              <PageCardLayout title='Product Form List' action={headerAction}>
+                <Grid container>
+                  <Grid item container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                    <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
                       <MUISearch
-                         sx={{
-                      width: {
-                        xs: '100%',
-                        sm: '250px'
-                      }
-                    }}
+                        sx={{
+                          width: {
+                            xs: '100%',
+                            sm: '250px'
+                          }
+                        }}
                         placeholder='Search...'
                         value={searchValue}
                         onChange={e => handleSearch(e.target.value)}
                         onClear={() => handleSearch('')}
                       />
                     </Grid>
+                    <Grid>
+                      <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} />
+                    </Grid>
                   </Grid>
-                  <Grid>
-                    <CommonTable
-                      onRowClick={''}
-                      indexedRows={indexedRows}
-                      total={total}
-                      columns={columns}
-                      paginationModel={paginationModel}
-                      handleSortModel={handleSortModel}
-                      setPaginationModel={setPaginationModel}
-                      loading={loading}
-                      searchValue={searchValue}
-                    />
-                  </Grid>
-                  </PageCardLayout>
+                </Grid>
+                <Grid>
+                  <CommonTable
+                    onRowClick={''}
+                    indexedRows={indexedRows}
+                    total={total}
+                    columns={columns}
+                    paginationModel={paginationModel}
+                    handleSortModel={handleSortModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={searchValue}
+                  />
+                </Grid>
+              </PageCardLayout>
               <AddProductForm
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}

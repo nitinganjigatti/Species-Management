@@ -4,12 +4,11 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 
 // ** MUI Imports
 
-import {Box, Grid, Typography, IconButton} from '@mui/material'
+import { Box, Grid, Typography, IconButton } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { debounce } from 'lodash'
-
 
 import { useTheme } from '@emotion/react'
 
@@ -30,6 +29,8 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import { ExportButton } from 'src/views/utility/render-snippets'
+
 const ManufacturerList = () => {
   const theme = useTheme()
 
@@ -45,6 +46,7 @@ const ManufacturerList = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [severity, setSeverity] = useState('success')
+  const [exportLoading, setExportLoading] = useState(false)
 
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -103,7 +105,7 @@ const ManufacturerList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
+            fontWeight: 500
           }}
         >
           {params.row.label}
@@ -122,7 +124,7 @@ const ManufacturerList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
+            fontWeight: 500
           }}
         >
           {params.row.active === '1' ? 'Active' : 'Inactive'}
@@ -227,14 +229,14 @@ const ManufacturerList = () => {
       {pharmacyRole && (
         <Grid item>
           {' '}
-          <AddButtonContained 
-            title='Add Package' 
-            action={() => addEventSidebarOpen()} 
+          <AddButtonContained
+            title='Add Package'
+            action={() => addEventSidebarOpen()}
             fullWidth='fullWidth'
-            styles = {{
+            styles={{
               margin: 0
             }}
-            />
+          />
         </Grid>
       )}
     </div>
@@ -278,6 +280,28 @@ const ManufacturerList = () => {
     sl_no: getSlNo(index)
   }))
 
+  const handleExport = async () => {
+    const params = {
+      q: searchValue,
+      sort: sort,
+      column: sortColumn,
+      response_type: 'csv'
+    }
+
+    try {
+      setExportLoading(true)
+      const response = await getPackages({ params })
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response?.data)
+        setExportLoading(false)
+      }
+    } catch (error) {
+      setExportLoading(false)
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
   return (
     <>
       {pharmacyRole ? (
@@ -286,41 +310,42 @@ const ManufacturerList = () => {
             <FallbackSpinner />
           ) : (
             <>
-                <PageCardLayout 
-                title = 'Packages'
-                action = {headerAction}
-                  >
-                  <Grid container>
-                    <Grid size={{ xs: 12, sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
-                      <MUISearch
-                        sx={{
-                      width: {
-                        xs: '100%',
-                        sm: '250px'
-                      }
-                    }}
-                        width={'100%'}
-                        placeholder='Search...'
-                        value={searchValue}
-                        onChange={e => handleSearch(e.target.value)}
-                        onClear={() => handleSearch('')}
-                      />
-                    </Grid>
-                  </Grid>
-                  <Grid>
-                    <CommonTable
-                      onRowClick={''}
-                      indexedRows={indexedRows}
-                      total={total}
-                      columns={columns}
-                      paginationModel={paginationModel}
-                      handleSortModel={handleSortModel}
-                      setPaginationModel={setPaginationModel}
-                      loading={loading}
-                      searchValue={searchValue}
+              <PageCardLayout title='Packages' action={headerAction}>
+                <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                  <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                    <MUISearch
+                      sx={{
+                        width: {
+                          xs: '100%',
+                          sm: '250px'
+                        }
+                      }}
+                      width={'100%'}
+                      placeholder='Search...'
+                      value={searchValue}
+                      onChange={e => handleSearch(e.target.value)}
+                      onClear={() => handleSearch('')}
                     />
                   </Grid>
-                  </PageCardLayout>
+                  <Grid>
+                    <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} />
+                  </Grid>
+                </Grid>
+
+                <Grid>
+                  <CommonTable
+                    onRowClick={''}
+                    indexedRows={indexedRows}
+                    total={total}
+                    columns={columns}
+                    paginationModel={paginationModel}
+                    handleSortModel={handleSortModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={searchValue}
+                  />
+                </Grid>
+              </PageCardLayout>
               <AddPackages
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}
