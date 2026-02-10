@@ -9,12 +9,10 @@ import {
 } from 'src/lib/api/pharmacy/getStoreList'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
-// ** MUI Imports
-import Grid from '@mui/material/Grid'
-
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Tooltip, IconButton, Card, Typography, CardContent, Button, CardHeader } from '@mui/material'
+import { Box, Tooltip, IconButton, Typography, Button, Grid } from '@mui/material'
+
 import { debounce } from 'lodash'
 
 import AddStore from 'src/views/pages/pharmacy/store/store/addStore'
@@ -22,10 +20,8 @@ import AddStore from 'src/views/pages/pharmacy/store/store/addStore'
 import Error404 from 'src/pages/404'
 
 import { useTheme } from '@emotion/react'
-
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
-
 import toast from 'react-hot-toast'
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
