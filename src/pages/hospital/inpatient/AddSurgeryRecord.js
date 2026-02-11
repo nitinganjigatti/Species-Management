@@ -31,6 +31,7 @@ import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import Utility from 'src/utility'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
+import useDebounce from 'src/hooks/useDebounce'
 
 import {
   addSurgeryMaster,
@@ -346,6 +347,8 @@ const AddSurgeryRecord = () => {
 
     return dayjs(startTimeValue).add(1, 'hour')
   }, [startTimeValue])
+  const debouncedProcedureSearchTerm = useDebounce(procedureSearchTerm, 400)
+  const debouncedSurgeonSearchTerm = useDebounce(surgeonSearchTerm, 400)
   const parseUtcDateToLocalDayjs = useCallback(value => {
     if (!value) return null
 
@@ -517,14 +520,14 @@ const AddSurgeryRecord = () => {
   ])
 
   const { data: surgeryMasterResponse, isFetching: isProceduresLoading } = useQuery({
-    queryKey: ['hospital-surgeries', procedureSearchTerm],
+    queryKey: ['hospital-surgeries', debouncedProcedureSearchTerm],
     queryFn: () => {
       const params = {
         page_no: 1,
         limit: 20
       }
 
-      const trimmed = procedureSearchTerm.trim()
+      const trimmed = debouncedProcedureSearchTerm.trim()
       if (trimmed) {
         params.q = trimmed
       }
@@ -615,12 +618,12 @@ const AddSurgeryRecord = () => {
       return
     }
 
-    getDoctorList(hospitalId, 1, surgeonSearchTerm)
-  }, [patientData?.hospital_id, surgeonSearchTerm, getDoctorList])
+    getDoctorList(hospitalId, 1, debouncedSurgeonSearchTerm)
+  }, [patientData?.hospital_id, debouncedSurgeonSearchTerm, getDoctorList])
 
   const loadMoreDoctors = () => {
     if (!hasMoreDoctors || doctorsLoading) return
-    getDoctorList(patientData?.hospital_id, doctorsPage + 1, surgeonSearchTerm)
+    getDoctorList(patientData?.hospital_id, doctorsPage + 1, debouncedSurgeonSearchTerm)
   }
 
   const surgeonOptions = useMemo(
