@@ -16,6 +16,7 @@ import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import Utility from 'src/utility'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const VariantList = () => {
   const theme = useTheme()
@@ -36,6 +37,7 @@ const VariantList = () => {
   const [sortColumn, setSortColumn] = useState('unit_multiplier')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -273,23 +275,50 @@ const VariantList = () => {
     </div>
   )
 
+  const handleExport = async () => {
+    const params = {
+      q: searchValue,
+      sort: sort,
+      column: sortColumn,
+      response_type: 'csv'
+    }
+    try {
+      setExportLoading(true)
+      const response = await getVariants({ params })
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response?.data)
+
+        setExportLoading(false)
+      }
+    } catch (error) {
+      setExportLoading(false)
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
   return (
     <>
       {selectedPharmacy.type === 'central' ? (
         <PageCardLayout title={'Variants'} action={headerAction}>
-          <Grid item>
-            <MUISearch
-              sx={{
-                width: {
-                  xs: '100%',
-                  sm: '250px'
-                }
-              }}
-              placeholder='Search...'
-              onChange={e => handleSearch(e.target.value)}
-              onClear={() => handleSearch('')}
-              value={searchValue}
-            />
+          <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+            <Grid item size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+              <MUISearch
+                sx={{
+                  width: {
+                    xs: '100%',
+                    sm: '250px'
+                  }
+                }}
+                placeholder='Search...'
+                onChange={e => handleSearch(e.target.value)}
+                onClear={() => handleSearch('')}
+                value={searchValue}
+              />
+            </Grid>
+            <Grid item>
+              <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} />
+            </Grid>
           </Grid>
           <Grid>
             <CommonTable
