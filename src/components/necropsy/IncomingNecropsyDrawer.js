@@ -29,6 +29,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import Icon from 'src/@core/components/icon'
 import AnimalCard from 'src/views/utility/AnimalCard'
+import MediaCard from 'src/views/utility/MediaCard'
 import Utility from 'src/utility'
 import {
   getIncomingNecropsyTransferSummary,
@@ -586,6 +587,45 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                 )
               })()}
 
+              {necropsyData?.transfer_details?.reason_for_transfer && (
+                <Card sx={{ overflow: 'visible' }}>
+                  <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 2,
+                        background: theme.palette.customColors.antzNotes,
+                        borderRadius: 1,
+                        p: 3
+                      }}
+                    >
+                      <Icon icon='mdi:note-outline' fontSize={24} />
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Typography
+                          sx={{
+                            fontWeight: 400,
+                            fontSize: '14px',
+                            color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+                          }}
+                        >
+                          Notes
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontWeight: 500,
+                            fontSize: '14px',
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
+                          {necropsyData?.transfer_details?.reason_for_transfer}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              )}
+
               <Card sx={{ overflow: 'visible' }}>
                 <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <Box
@@ -622,6 +662,46 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                   </Box>
                 </CardContent>
               </Card>
+
+              {necropsyData?.transfer_attachment?.length > 0 && (
+                <Card sx={{ overflow: 'visible' }}>
+                  <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Icon icon='mdi:attachment' fontSize={20} />
+                      <Typography
+                        sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
+                      >
+                        Attachments
+                      </Typography>
+                    </Box>
+                    <Box
+                      sx={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gap: 3
+                      }}
+                    >
+                      {necropsyData?.transfer_attachment?.map((attachment, index) => (
+                        <Box
+                          key={attachment?.id || index}
+                          sx={{ cursor: 'pointer' }}
+                          onClick={() => attachment?.file && window.open(attachment.file, '_blank')}
+                        >
+                          <MediaCard
+                            media={{
+                              file: attachment?.file || attachment?.url || attachment?.file_url || '',
+                              file_original_name: attachment?.file_original_name || attachment?.name || 'File',
+                              created_at: attachment?.created_at,
+                              type: attachment?.type || attachment?.file_type
+                            }}
+                            isBorderedCard
+                          />
+                        </Box>
+                      ))}
+                    </Box>
+                  </CardContent>
+                </Card>
+              )}
 
               <Card sx={{ overflow: 'visible' }}>
                 <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -962,10 +1042,39 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                     sx={{
                       background: theme.palette.customColors?.displaybgPrimary || theme.palette.grey[50],
                       borderRadius: 1,
-                      p: 3
+                      p: 3,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
                     }}
                   >
                     <AnimalCard data={animal} />
+                    {animal?.transfer_status === 'PENDING' && (
+                      <Box
+                        sx={{
+                          backgroundColor: alpha(
+                            theme.palette.error.light,
+                            0.4
+                          ),
+                          px: 2,
+                          py: 1,
+                          borderRadius: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            color: theme.palette.error.main
+                          }}
+                        >
+                          Excluded
+                        </Typography>
+                      </Box>
+                    )}
                   </Box>
                 ))}
               </Box>

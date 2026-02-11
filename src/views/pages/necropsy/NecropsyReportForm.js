@@ -640,7 +640,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
 
     try {
       setSubmitLoading(true)
-      const submissionStatus = isSuitable ? 'completed' : 'unsuitable'
+      const submissionStatus = 'completed'
       const fd = buildFormData(formValues, submissionStatus)
       const res = isEditing ? await editNecropsy(fd) : await addNecropsy(fd)
 
