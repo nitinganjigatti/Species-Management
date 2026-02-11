@@ -1168,15 +1168,6 @@ const AddSurgeryRecord = () => {
                 control={control}
                 minDate={minDate}
                 maxDate={maxDate}
-                renderInput={params => (
-                  <ControlledTextField
-                    {...params}
-                    fullWidth
-                    error={!!errors.date}
-                    helperText={errors.date?.message}
-                    borderRadius='4px'
-                  />
-                )}
               />
             </Grid>
             <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
@@ -1190,15 +1181,6 @@ const AddSurgeryRecord = () => {
                 label='Start Time'
                 name={'startTime'}
                 control={control}
-                renderInput={params => (
-                  <ControlledTextField
-                    {...params}
-                    fullWidth
-                    error={!!errors.startTime}
-                    helperText={errors.startTime?.message}
-                    borderRadius='4px'
-                  />
-                )}
               />
             </Grid>
             <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
@@ -1213,15 +1195,6 @@ const AddSurgeryRecord = () => {
                 control={control}
                 label='End Time'
                 minTime={minEndTime}
-                renderInput={params => (
-                  <ControlledTextField
-                    {...params}
-                    fullWidth
-                    error={!!errors.endTime}
-                    helperText={errors.endTime?.message}
-                    borderRadius='4px'
-                  />
-                )}
               />
             </Grid>
             <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
