@@ -94,17 +94,57 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {/* Top Card Skeleton - matches NecropsyAnimalInfoCard */}
         <Card sx={{ boxShadow: 'none' }}>
           <CardContent>
+            {/* Header with back arrow and title */}
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, pb: 2, gap: 4 }}>
+              <Skeleton variant='circular' width={28} height={28} />
+              <Skeleton variant='text' width={180} height={32} />
+            </Box>
+
             <Grid container spacing={8} alignItems='stretch'>
+              {/* Animal Card Section with gradient background */}
               <Grid size={{ xs: 12, sm: 12, md: 5 }}>
-                <Skeleton variant='rectangular' width='100%' height={140} sx={{ borderRadius: 1 }} />
+                <Box
+                  sx={{
+                    background: theme.palette.mode === 'dark'
+                      ? 'linear-gradient(90deg, rgba(100,100,100,0.2), rgba(120,120,120,0.2))'
+                      : 'linear-gradient(90deg, rgba(200,230,200,0.3), rgba(200,200,230,0.3))',
+                    py: 4,
+                    px: 6,
+                    borderRadius: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    minHeight: 140
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, width: '100%' }}>
+                    <Skeleton variant='circular' width={80} height={80} />
+                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Skeleton variant='text' width='60%' height={28} />
+                      <Skeleton variant='text' width='40%' height={20} />
+                      <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                        <Skeleton variant='rounded' width={60} height={24} sx={{ borderRadius: '12px' }} />
+                        <Skeleton variant='rounded' width={80} height={24} sx={{ borderRadius: '12px' }} />
+                      </Box>
+                    </Box>
+                  </Box>
+                </Box>
               </Grid>
-              <Grid size={{ xs: 12, sm: 12, md: 7 }}>
+
+              {/* Info Fields Section */}
+              <Grid size={{ xs: 12, sm: 12, md: 7 }} sx={{ display: 'flex', alignItems: 'center' }}>
                 <Grid container spacing={2} columnSpacing={4} rowSpacing={4}>
                   {Array.from(new Array(6)).map((_, i) => (
                     <Grid key={i} size={{ xs: 12, sm: 6 }}>
-                      <Skeleton variant='rectangular' width='100%' height={60} sx={{ borderRadius: 1 }} />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <Skeleton variant='rectangular' width={48} height={48} sx={{ borderRadius: 1 }} />
+                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                          <Skeleton variant='text' width={80} height={20} />
+                          <Skeleton variant='text' width={120} height={22} />
+                        </Box>
+                      </Box>
                     </Grid>
                   ))}
                 </Grid>
@@ -242,9 +282,9 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
               <Box>
                 <Typography
                   sx={{
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    color: theme.palette.customColors?.OnSurfaceVariant
                   }}
                 >
                   History of Illness
@@ -271,9 +311,9 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
               <Box sx={{ mt: mortalityData.history_of_illness ? 5 : 0 }}>
                 <Typography
                   sx={{
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    color: theme.palette.customColors?.OnSurfaceVariant
                   }}
                 >
                   Notes

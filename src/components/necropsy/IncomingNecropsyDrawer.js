@@ -466,7 +466,8 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                   />
                 </Box>
 
-                <Box sx={{ display: 'flex', gap: 2 }}>
+                {/* Phone and Message icons - only show on smaller screens (xs, sm, md) */}
+                <Box sx={{ display: { xs: 'flex', lg: 'none' }, gap: 2 }}>
                   {necropsyData?.transfer_details?.user_mobile_number && (
                     <IconButton
                       sx={{
@@ -490,6 +491,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                           backgroundColor: 'rgba(0, 0, 0, 0.5)'
                         }
                       }}
+                      onClick={() => window.open(`sms:${necropsyData?.transfer_details?.user_mobile_number}`, '_self')}
                     >
                       <Icon icon='mdi:message-text' fontSize={20} />
                     </IconButton>

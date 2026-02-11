@@ -651,7 +651,7 @@ const Necropsy = () => {
                   ))}
                 </Box>
                 <Grid container spacing={4}>
-                  <Grid size={{ xs: 12 }} xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <Box>
                       <Typography
                         variant='body2'
