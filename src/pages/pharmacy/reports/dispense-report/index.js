@@ -5,15 +5,15 @@ import { Box } from '@mui/system'
 import { format, subMonths } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AuthContext } from 'src/context/AuthContext'
 import { getDispenseReport } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import DispenseReportFilterDrawer from 'src/views/pages/pharmacy/reports/DispenseReportFilterDrawer'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
-import { readAsync } from 'src/lib/windows/utils'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
@@ -26,6 +26,7 @@ const DispenseReport = () => {
   const theme = useTheme()
 
   const { selectedPharmacy } = usePharmacyContext()
+  const authData = useContext(AuthContext)
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
@@ -79,7 +80,7 @@ const DispenseReport = () => {
   useEffect(() => {
     const getUserLists = async () => {
       try {
-        const userDetails = await readAsync('userDetails')
+        const userDetails = authData?.userData
         if (userDetails?.user?.zoos.length > 0) {
           let zoo_id = userDetails?.user?.zoos[0].zoo_id
           await getUserList({ zoo_id }).then(res => {

@@ -4,16 +4,16 @@ import { Box } from '@mui/system'
 import { format, subMonths } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AuthContext } from 'src/context/AuthContext'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getAllRequestedItemsReport } from 'src/lib/api/pharmacy/reports'
 import Error404 from 'src/pages/404'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
@@ -27,6 +27,7 @@ const AllRequestedItemsReport = () => {
   const router = useRouter()
   const theme = useTheme()
   const { selectedPharmacy } = usePharmacyContext()
+  const authData = useContext(AuthContext)
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
@@ -85,8 +86,8 @@ const AllRequestedItemsReport = () => {
 
     const getUserLists = async () => {
       try {
-        const userDetails = await readAsync('userDetails')
-        if (userDetails?.user?.zoos.length > 0) {
+        const userDetails = authData?.userData
+        if (userDetails?.user?.zoos?.length > 0) {
           let zoo_id = userDetails?.user?.zoos[0].zoo_id
           await getUserList({ zoo_id }).then(res => {
             if (res?.data?.length > 0) {

@@ -2,7 +2,7 @@ import { Grid, Tooltip, Typography } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { getPurchaseReport } from 'src/lib/api/pharmacy/reports'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 
@@ -14,8 +14,8 @@ import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import PurchaseFilterDrawer from 'src/views/pages/pharmacy/reports/PurchaseFilterDrawer'
 import { format, subMonths } from 'date-fns'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
-import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
@@ -28,6 +28,7 @@ const PurchaseReport = () => {
   const router = useRouter()
   const theme = useTheme()
   const { selectedPharmacy } = usePharmacyContext()
+  const authData = useContext(AuthContext)
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
@@ -82,8 +83,8 @@ const PurchaseReport = () => {
 
     const getUserLists = async () => {
       try {
-        const userDetails = await readAsync('userDetails')
-        if (userDetails?.user?.zoos.length > 0) {
+        const userDetails = authData?.userData
+        if (userDetails?.user?.zoos?.length > 0) {
           let zoo_id = userDetails?.user?.zoos[0].zoo_id
           await getUserList({ zoo_id }).then(res => {
             if (res?.data?.length > 0) {

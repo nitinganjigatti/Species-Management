@@ -15,11 +15,12 @@ import {
   Badge
 } from '@mui/material'
 import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 
 // ** Icon Imports
 import { getBatchList, getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -32,9 +33,9 @@ import ClearIcon from '@mui/icons-material/Clear'
 import FilterDrawer from 'src/components/FilterDrawer'
 import { getPharmacyTransactionConstants } from 'src/constants/PharmacyConstants'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import { readAsync } from 'src/lib/windows/utils'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+
 const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor, user_profile_pic }) => {
   return (
     <Box
@@ -73,8 +74,11 @@ const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor, user_pr
             src={user_profile_pic}
           />
         </Box>
-        <Box sx = {{width: 'auto'}}>
-          <Typography component='span' sx={{ color: 'primary.light', fontSize: {xs: '12px',sm: '16px'}, fontWeight: 500, }}>
+        <Box sx={{ width: 'auto' }}>
+          <Typography
+            component='span'
+            sx={{ color: 'primary.light', fontSize: { xs: '12px', sm: '16px' }, fontWeight: 500 }}
+          >
             {name || 'NA'}
           </Typography>
           {/* <Typography
@@ -104,6 +108,7 @@ const doctors = [
 function Ledger({ tabValue, updateUrlParams }) {
   const theme = useTheme()
   const router = useRouter()
+  const authData = useContext(AuthContext)
   const { id, batch_no } = router.query
 
   const [loading, setLoading] = useState(false)
@@ -876,12 +881,10 @@ function Ledger({ tabValue, updateUrlParams }) {
 
   const getUserLists = async () => {
     try {
-      const userDetails = await readAsync('userDetails')
-      if (userDetails?.user?.zoos.length > 0) {
+      const userDetails = authData?.userData
+      if (userDetails?.user?.zoos?.length > 0) {
         let zoo_id = userDetails?.user?.zoos[0].zoo_id
         await getUserList({ zoo_id }).then(res => {
-          // console.log(res, 'ressss')
-
           if (res?.data?.length > 0) {
             setCreateByOptions(
               res?.data?.map(item => ({
@@ -928,15 +931,14 @@ function Ledger({ tabValue, updateUrlParams }) {
         }}
       >
         <Grid item size={{ xs: 12, sm: 12, md: 3, lg: 3 }}>
-             <MUISearch
-                   
-                    width={'100%'}
-                    placeholder='Search...'
-                    value={searchValue}
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    onClear={() => handleSearch('')}
-                  />
+          <MUISearch
+            width={'100%'}
+            placeholder='Search...'
+            value={searchValue}
+            onChange={e => handleSearch(e.target.value)}
+            fullWidth
+            onClear={() => handleSearch('')}
+          />
         </Grid>
       </Grid>
       <Box sx={{ mt: 5 }}>
@@ -958,13 +960,14 @@ function Ledger({ tabValue, updateUrlParams }) {
                 gap: 2
               }}
             > */}
-          <Grid 
+          <Grid
             item
-            size = {{
-              xs: 12, sm: 10,
+            size={{
+              xs: 12,
+              sm: 10
             }}
-            sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px',}}
-            >
+            sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}
+          >
             {tabs.map(tab => (
               <Button
                 key={tab}
@@ -998,11 +1001,7 @@ function Ledger({ tabValue, updateUrlParams }) {
           {/* </Box>
           </Grid> */}
           {/* Filter Button */}
-            <Grid 
-            item 
-            size = {{xs: 'auto', sm: 2, md: 'auto'}} 
-          
-            >
+          <Grid item size={{ xs: 'auto', sm: 2, md: 'auto' }}>
             <Button
               variant='outlined'
               startIcon={<FilterListIcon />}
@@ -1013,6 +1012,7 @@ function Ledger({ tabValue, updateUrlParams }) {
                 border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 borderRadius: '8px',
                 height: '40px',
+
                 // textTransform: 'none',
                 width: { xs: '100%', md: 'auto' },
                 color: 'customColors.OnSurfaceVariant'
@@ -1021,7 +1021,7 @@ function Ledger({ tabValue, updateUrlParams }) {
             >
               Filter
             </Button>
-            </Grid>
+          </Grid>
           {/* </Grid> */}
         </Grid>
         {/* Stats Card */}
@@ -1202,7 +1202,6 @@ function Ledger({ tabValue, updateUrlParams }) {
         <Box sx={{ px: 5 }}>
           {selectedItem === 'Batch Details' && (
             <>
-
               <Box
                 sx={{
                   position: 'sticky',
@@ -1210,8 +1209,7 @@ function Ledger({ tabValue, updateUrlParams }) {
                   backgroundColor: 'white',
                   zIndex: 1,
                   paddingTop: 3,
-                  paddingBottom: 2,
-                  
+                  paddingBottom: 2
                 }}
               >
                 <TextField
