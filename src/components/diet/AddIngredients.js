@@ -13,7 +13,9 @@ import {
   CircularProgress,
   Avatar,
   InputAdornment,
-  Tooltip
+  Tooltip,
+  Autocomplete,
+  Paper
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import InputLabel from '@mui/material/InputLabel'
@@ -25,6 +27,22 @@ import ClearIcon from '@mui/icons-material/Clear'
 import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
+import { KeyboardArrowDown } from '@mui/icons-material'
+
+const CustomPaper = props => {
+  const { children, isLoading, ...other } = props
+
+  return (
+    <Paper {...other}>
+      {children}
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+          <CircularProgress size={20} />
+        </Box>
+      )}
+    </Paper>
+  )
+}
 
 const AddIngredients = props => {
   const {
@@ -53,7 +71,8 @@ const AddIngredients = props => {
     sort,
     onLoadMore,
     loadingfeed,
-    feedtotalCount
+    feedtotalCount,
+    handleFeedSearch
   } = props
   const theme = useTheme()
   const [feed, setFeed] = React.useState('')
@@ -130,6 +149,7 @@ const AddIngredients = props => {
     setFeed('')
     debouncedSearch('')
   }
+
 
   const handleChangeTopFeed = async event => {
     setReachedEnd(true)
@@ -625,36 +645,102 @@ const AddIngredients = props => {
               </Box>
               <Box sx={{ width: '184px' }}>
                 <FormControl fullWidth>
-                  <InputLabel id='demo-simple-select-label'>Feed</InputLabel>
-                  <Select
-                    labelId='demo-simple-select-label'
-                    id='demo-simple-select'
-                    value={feed}
-                    label='Feed'
-                    onChange={handleChangeTopFeed}
-                    sx={{
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.customColors.Outline
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.customColors.Outline
-                      },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.primary.main
-                      },
-                      '&.Mui-focused .MuiSelect-select': {
-                        color: theme.palette.primary.main
-                      },
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '0px'
+                  <Autocomplete
+                    id='feed-autocomplete'
+                    options={feedType}
+                    getOptionLabel={option => option?.feed_type_name || ''}
+                    value={feedType.find(option => option?.id === feed) || null}
+                    onChange={(event, newValue) => {
+                      handleChangeTopFeed({ target: { value: newValue?.id || '' } })
+                    }}
+                    onInputChange={(event, newInputValue, reason) => {
+                      if (reason === 'input' || newInputValue === '') {
+                        handleFeedSearch(newInputValue)
                       }
                     }}
-                    MenuProps={{
-                      PaperProps: {
-                        style: {
-                          maxHeight: 300,
-                          width: 184
-                        },
+                    renderInput={params => (
+                      <TextField
+                        {...params}
+                        label='Feed'
+                        variant='outlined'
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: '8px',
+                            '& .MuiAutocomplete-endAdornment': {
+                              right: '16px'
+                            },
+                            '& fieldset': {
+                              borderColor: theme.palette.customColors.Outline
+                            },
+                            '&:hover fieldset': {
+                              borderColor: theme.palette.customColors.Outline
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: theme.palette.primary.main
+                            }
+                          },
+                          '& .MuiInputLabel-root': {
+                            '&.Mui-focused': {
+                              color: theme.palette.primary.main
+                            }
+                          }
+                        }}
+                      />
+                    )}
+                    renderOption={(props, option) => (
+                      <li {...props} key={option?.key}>
+                        <Box
+                          sx={{
+                            display: 'block',
+                            maxWidth: 200,
+                            overflowX: 'auto',
+                            whiteSpace: 'nowrap',
+                            scrollbarWidth: 'thin',
+                            '&::-webkit-scrollbar': {
+                              height: '6px'
+                            },
+                            '&::-webkit-scrollbar-thumb': {
+                              backgroundColor: theme.palette.grey[400],
+                              borderRadius: '3px'
+                            },
+                            '&::-webkit-scrollbar-thumb:hover': {
+                              backgroundColor: theme.palette.grey[600]
+                            }
+                          }}
+                        >
+                          {option?.feed_type_name}
+                        </Box>
+                      </li>
+                    )}
+                    popupIcon={
+                      feed ? (
+                        <IconButton
+                          aria-label='clear feed selection'
+                          onClick={handleClearFeed}
+                          edge='end'
+                          size='small'
+                          sx={{
+                            position: 'absolute',
+                            right: '0px',
+                            '&:hover': {
+                              backgroundColor: 'transparent'
+                            }
+                          }}
+                        >
+                          <ClearIcon />
+                        </IconButton>
+                      ) : (
+                        <KeyboardArrowDown />
+                      )
+                    }
+                    loading={loadingfeed}
+                    loadingText='Loading...'
+                    disableClearable
+                    slots={{
+                      paper: CustomPaper
+                    }}
+                    slotProps={{
+                      listbox: {
                         onScroll: e => {
                           const { scrollTop, scrollHeight, clientHeight } = e.target
                           const nearBottom = scrollHeight - scrollTop - clientHeight < 20
@@ -662,62 +748,19 @@ const AddIngredients = props => {
                           if (nearBottom && !loadingfeed && feedType.length < feedtotalCount) {
                             onLoadMore()
                           }
+                        },
+                        style: {
+                          maxHeight: 300
                         }
                       },
-                      //getContentAnchorEl: null,
-                      anchorOrigin: {
-                        vertical: 'bottom',
-                        horizontal: 'left'
-                      },
-                      transformOrigin: {
-                        vertical: 'top',
-                        horizontal: 'left'
+                      paper: {
+                        isLoading: loadingfeed,
+                        style: {
+                          width: 184
+                        }
                       }
                     }}
-                    endAdornment={
-                      feed ? (
-                        <InputAdornment position='end' sx={{ position: 'absolute', right: '30px' }}>
-                          <IconButton aria-label='clear feed selection' onClick={handleClearFeed} edge='end'>
-                            <ClearIcon />
-                          </IconButton>
-                        </InputAdornment>
-                      ) : (
-                        ''
-                      )
-                    }
-                  >
-                    {feedType?.map(feedList => (
-                      <MenuItem
-                        key={feedList?.key}
-                        value={feedList?.id}
-                        sx={{
-                          display: 'block',
-                          maxWidth: 200,
-                          overflowX: 'auto',
-                          whiteSpace: 'nowrap',
-                          scrollbarWidth: 'thin',
-                          '&::-webkit-scrollbar': {
-                            height: '6px'
-                          },
-                          '&::-webkit-scrollbar-thumb': {
-                            backgroundColor: theme.palette.grey[400],
-                            borderRadius: '3px'
-                          },
-                          '&::-webkit-scrollbar-thumb:hover': {
-                            backgroundColor: theme.palette.grey[600]
-                          }
-                        }}
-                      >
-                        {feedList?.feed_type_name}
-                      </MenuItem>
-                    ))}
-
-                    {loadingfeed && (
-                      <MenuItem disabled sx={{ justifyContent: 'center' }}>
-                        Loading...
-                      </MenuItem>
-                    )}
-                  </Select>
+                  />
                 </FormControl>
               </Box>
             </Box>
