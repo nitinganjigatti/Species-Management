@@ -24,7 +24,7 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
-  styled, 
+  styled,
   useTheme
 } from '@mui/material'
 
@@ -34,7 +34,7 @@ import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
 
 // ** React Imports
-import { forwardRef, useState, useEffect, useCallback } from 'react'
+import { forwardRef, useState, useEffect, useCallback, useContext } from 'react'
 
 import { v4 as uuidv4 } from 'uuid'
 
@@ -59,9 +59,8 @@ import Error404 from 'src/pages/404'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AuthContext } from 'src/context/AuthContext'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
-
-import { readAsync } from 'src/lib/windows/utils'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
@@ -117,7 +116,6 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
 })
 
-
 const AddLocalDispatch = () => {
   // ** Hook
   const [toStocks, setToStocks] = useState([])
@@ -141,6 +139,8 @@ const AddLocalDispatch = () => {
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
   const [users, setUsers] = useState([])
   const [isEdit, setIsEdit] = useState(false)
+
+  const authData = useContext(AuthContext)
 
   const openCancelDialog = () => {
     setCancelRequestDialog(true)
@@ -452,7 +452,7 @@ const AddLocalDispatch = () => {
 
   const getUserLists = async (searchText, limit, page) => {
     try {
-      const userDetails = await readAsync('userDetails')
+      const userDetails = authData?.userData
       if (userDetails?.user?.zoos.length > 0) {
         let zoo_id = userDetails?.user?.zoos[0].zoo_id
 
@@ -692,35 +692,34 @@ const AddLocalDispatch = () => {
               justifyContent: 'space-between',
               alignItems: 'center'
             }}
-          >
+          ></Grid>
+          <Grid container>
+            <CommonDialogBox
+              title={'Add Dispatch Item'}
+              dialogBoxStatus={show}
+              formComponent={
+                <AddProductForm
+                  searchBatchData={searchBatchData}
+                  searchMedicineData={searchMedicineData}
+                  productList={optionsMedicineList}
+                  productLoading={productLoading}
+                  visibleExpiryField={visibleExpiryField}
+                  batchLoading={batchLoading}
+                  onSubmitData={submitItems}
+                  batchList={optionsBatchList}
+                  nestedMedicine={nestedRowMedicine}
+                  error={duplicateMedError}
+                  totalQuantity={totalBatchQuantity}
+                  editParams={editParams}
+                  closeDialog={closeDialog}
+                  isEdit={isEdit}
+                />
+              }
+              close={closeDialog}
+              show={showDialog}
+            />
           </Grid>
-            <Grid container>
-              <CommonDialogBox
-                title={'Add Dispatch Item'}
-                dialogBoxStatus={show}
-                formComponent={
-                  <AddProductForm
-                    searchBatchData={searchBatchData}
-                    searchMedicineData={searchMedicineData}
-                    productList={optionsMedicineList}
-                    productLoading={productLoading}
-                    visibleExpiryField={visibleExpiryField}
-                    batchLoading={batchLoading}
-                    onSubmitData={submitItems}
-                    batchList={optionsBatchList}
-                    nestedMedicine={nestedRowMedicine}
-                    error={duplicateMedError}
-                    totalQuantity={totalBatchQuantity}
-                    editParams={editParams}
-                    closeDialog={closeDialog}
-                    isEdit={isEdit}
-                  />
-                }
-                close={closeDialog}
-                show={showDialog}
-              />
-            </Grid>
- 
+
           <Grid container spacing={5}>
             <Grid item size={{ xs: 12, sm: 12 }}>
               <Typography
@@ -735,7 +734,7 @@ const AddLocalDispatch = () => {
                 Dispatch to :
               </Typography>
             </Grid>
-            <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5,  }}>
+            <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
               <FormControl fullWidth>
                 <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
                   Store*
@@ -826,7 +825,7 @@ const AddLocalDispatch = () => {
           <Grid
             container
             spacing={3}
-            alignItems = "center"
+            alignItems='center'
             sx={{
               py: 5
             }}
@@ -836,33 +835,38 @@ const AddLocalDispatch = () => {
                 Dispatch items
               </Typography>
               <Stack
-                direction={{ xs: 'column',  sm: 'row' }} 
-                spacing = {{xs: 0, sm: 6}}
-                divider={<Divider orientation='vertical' flexItem sx = {{ display: {xs: 'none', sm: 'block'}, height: "20px", } }/>}
-            
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={{ xs: 0, sm: 6 }}
+                divider={
+                  <Divider
+                    orientation='vertical'
+                    flexItem
+                    sx={{ display: { xs: 'none', sm: 'block' }, height: '20px' }}
+                  />
+                }
               >
-                  <Typography
-                    variant='body2'
-                    sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400, }}
-                  >
-                    Total Dispatch Quantity:{' '}
-                    <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
-                      {totalQty ? totalQty : '0'}
-                    </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                >
+                  Total Dispatch Quantity:{' '}
+                  <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                    {totalQty ? totalQty : '0'}
                   </Typography>
+                </Typography>
 
-                  <Typography
-                    variant='body2'
-                    sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
-                  >
-                    Total Dispatch Value:{' '}
-                    <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
-                      {Utility.formatAmountToReadableDigit(totalDispatchValue)}
-                    </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                >
+                  Total Dispatch Value:{' '}
+                  <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                    {Utility.formatAmountToReadableDigit(totalDispatchValue)}
                   </Typography>
+                </Typography>
               </Stack>
             </Grid>
-            <Grid sx = {{marginLeft: 'auto'}} >
+            <Grid sx={{ marginLeft: 'auto' }}>
               <AddButtonContained
                 title='Add Dispatch Item'
                 action={() => {
@@ -1020,7 +1024,7 @@ const AddLocalDispatch = () => {
                 ) : null}
               </CardContent> */}
               <Grid item size={{ xs: 12 }}>
-                <Box sx={{ float: 'right', my: 4,}}>
+                <Box sx={{ float: 'right', my: 4 }}>
                   {id ? (
                     <>
                       <RequestCancelButton

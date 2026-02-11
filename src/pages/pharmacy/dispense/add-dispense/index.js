@@ -18,12 +18,11 @@ import {
   CircularProgress,
   Divider,
   Stack,
-  CardContent,
+  CardContent
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { getUserList, submitDispense } from 'src/lib/api/pharmacy/dispenseProduct'
-import { readAsync } from 'src/lib/windows/utils'
 import * as Yup from 'yup'
 import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -31,6 +30,7 @@ import ProductForm from '../../../../components/pharmacy/dispense/ProductForm'
 import Router from 'next/router'
 import AddAnimals from '../../../../components/pharmacy/dispense/addAnimals'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 import UserSnackbar from 'src/components/utility/snackbar'
 import Utility from 'src/utility'
@@ -39,7 +39,6 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import AnimalLabelCard from 'src/views/utility/AnimalLabelCard'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
-import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 function AddDispense() {
   const theme = useTheme()
@@ -53,6 +52,7 @@ function AddDispense() {
     return `${year}-${month}-${day}`
   })
   const { selectedPharmacy } = usePharmacyContext()
+  const authData = useContext(AuthContext)
   const [users, setUsers] = useState([])
   const [animals_s, setAnimals_s] = useState([])
 
@@ -107,7 +107,7 @@ function AddDispense() {
 
   const getUserLists = async () => {
     try {
-      const userDetails = await readAsync('userDetails')
+      const userDetails = authData?.userData
       if (userDetails?.user?.zoos.length > 0) {
         let zoo_id = userDetails?.user?.zoos[0].zoo_id
         await getUserList({ zoo_id }).then(res => {
@@ -238,7 +238,7 @@ function AddDispense() {
             Router.back()
           }}
           titleStyles={{
-            fontSize: '20px',
+            fontSize: '20px'
           }}
         >
           <Dialog
@@ -279,58 +279,57 @@ function AddDispense() {
             </PageCardLayout>
           </Dialog>
           <form onSubmit={handleSubmit(submitForm, onError)}>
-            <CardContent sx = {{px: 0, py: 4}}> 
-            <Grid container spacing={5}>
-              <Grid item size={{ xs: 12, sm: 12, md: 6 }} >
-                <FormControl fullWidth>
-                  <Controller
-                    name='user_id'
-                    control={control}
-                    render={({ field }) => (
-                      <>
-                        <Autocomplete
-                          forcePopupIcon={false}
-                          disablePortal
-                          value={field?.value}
-                          options={users}
-                          noOptionsText='Type to search'
-                          getOptionLabel={option => option?.label || ''}
-                          isOptionEqualToValue={(option, value) => option.value === value.value}
-                          renderOption={(props, option) => (
-                            <li {...props} key={option.value}>
-                              {option.label}
-                            </li>
+            <CardContent sx={{ px: 0, py: 4 }}>
+              <Grid container spacing={5}>
+                <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
+                  <FormControl fullWidth>
+                    <Controller
+                      name='user_id'
+                      control={control}
+                      render={({ field }) => (
+                        <>
+                          <Autocomplete
+                            forcePopupIcon={false}
+                            disablePortal
+                            value={field?.value}
+                            options={users}
+                            noOptionsText='Type to search'
+                            getOptionLabel={option => option?.label || ''}
+                            isOptionEqualToValue={(option, value) => option.value === value.value}
+                            renderOption={(props, option) => (
+                              <li {...props} key={option.value}>
+                                {option.label}
+                              </li>
+                            )}
+                            renderInput={params => (
+                              <TextField
+                                {...params}
+                                slotProps={{
+                                  ...params.inputProps,
+                                  tabIndex: 6
+                                }}
+                                label='Dispense To*'
+                                placeholder='Search & Select'
+                                error={Boolean(errors.user_id)}
+                              />
+                            )}
+                            onChange={(event, newValue) => {
+                              field.onChange(newValue)
+                            }}
+                          />
+                          {errors.user_id && (
+                            <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                              {errors.user_id?.message === 'user_id cannot be null'
+                                ? 'Select the user'
+                                : errors.user_id?.message || 'Select the user'}
+                            </FormHelperText>
                           )}
-                          renderInput={params => (
-                            <TextField
-                              {...params}
-                              slotProps={{
-                                ...params.inputProps,
-                                tabIndex: 6
-                              }}
-                              label='Dispense To*'
-                              placeholder='Search & Select'
-                              error={Boolean(errors.user_id)}
-                            />
-                          )}
-                          onChange={(event, newValue) => {
-                            field.onChange(newValue)
-                          }}
-                        />
-                        {errors.user_id && (
-                          <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                            {errors.user_id?.message === 'user_id cannot be null'
-                              ? 'Select the user'
-                              : errors.user_id?.message || 'Select the user'}
-                          </FormHelperText>
-                        )}
-                      </>
-                    )}
-                  />
-                </FormControl>
+                        </>
+                      )}
+                    />
+                  </FormControl>
+                </Grid>
               </Grid>
-              
-            </Grid>
             </CardContent>
             {/* <Box
               sx={{
@@ -342,7 +341,7 @@ function AddDispense() {
                 py: 5
               }}
             >
-              <Box> 
+              <Box>
                 <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
                   Add Dispense Item
                 </Typography>
@@ -399,7 +398,7 @@ function AddDispense() {
                 </Typography>
                 <Stack
                   direction='row'
-                  spacing={{xs: 2, sm: 6}}
+                  spacing={{ xs: 2, sm: 6 }}
                   divider={<Divider orientation='vertical' flexItem />}
                   sx={{ textAlign: 'center' }}
                 >

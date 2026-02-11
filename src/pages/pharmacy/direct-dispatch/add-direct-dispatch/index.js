@@ -34,7 +34,7 @@ import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
 
 // ** React Imports
-import { forwardRef, useState, useEffect, useCallback } from 'react'
+import { forwardRef, useState, useEffect, useCallback, useContext } from 'react'
 
 import { v4 as uuidv4 } from 'uuid'
 
@@ -58,6 +58,7 @@ import Error404 from 'src/pages/404'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AuthContext } from 'src/context/AuthContext'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -76,13 +77,10 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import { Stack } from '@mui/system'
 import RenderUtility from 'src/utility/render'
 import EmptyStateBox from 'src/components/EmptyStateBox'
-import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { AddProductForm } from 'src/views/pages/pharmacy/utility/AddProductForm'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
-import CommonTable from 'src/views/table/data-grid/CommonTable'
-// import TableBasic from 'src/views/table/mui/TableBasic'
-import TableBasic from 'src/views/table/data-grid/TableBasic'
+
 const editParamsInitialState = {
   // from_store_type: '',
   to_store_type: '',
@@ -138,6 +136,8 @@ const AddDirectDispatch = () => {
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
   const [users, setUsers] = useState([])
   const [isEdit, setIsEdit] = useState(false)
+
+  const authData = useContext(AuthContext)
 
   const openCancelDialog = () => {
     setCancelRequestDialog(true)
@@ -451,7 +451,7 @@ const AddDirectDispatch = () => {
 
   const getUserLists = async (searchText, limit, page) => {
     try {
-      const userDetails = await readAsync('userDetails')
+      const userDetails = authData?.userData
       if (userDetails?.user?.zoos.length > 0) {
         let zoo_id = userDetails?.user?.zoos[0].zoo_id
 
@@ -896,7 +896,7 @@ const AddDirectDispatch = () => {
 
               <Stack
                 direction={{ xs: 'column', sm: 'row' }}
-                spacing= {{xs: 0, sm: 6}}
+                spacing={{ xs: 0, sm: 6 }}
                 divider={<Divider orientation='vertical' flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />}
               >
                 <Typography
