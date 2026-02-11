@@ -143,11 +143,30 @@ const AddIngredients = props => {
     }
   }, [feedType, loadingfeed])
 
-  const handleSidebarClose = () => {
+  const handleSidebarClose = async () => {
     setSearchValue('')
     parentHandleSidebarClose()
     setFeed('')
-    debouncedSearch('')
+    // debouncedSearch('')
+    setReachedEnd(true)
+    handleFeedSearch('')
+
+    try {
+      const params = { page: 1, q: '', sort, feed_type: '', status: 1, limit: 20 }
+      const res = await getIngredientList({ params })
+      if (res?.data?.result?.length > 0) {
+        setIngredientList(res.data.result)
+        setIngredientPage(1)
+        setTotalCount(res?.data?.total_count)
+        setReachedEnd(false)
+      } else {
+        setIngredientList([])
+        setReachedEnd(false)
+      }
+    } catch (error) {
+      console.error(error)
+      setReachedEnd(false)
+    }
   }
 
 
@@ -390,8 +409,8 @@ const AddIngredients = props => {
         duration: 1000
       })
     } else if (selectedCard?.length > 0) {
-      debouncedSearch('')
       handleSidebarClose()
+      
       setSelectedCard(selectedCard)
       setSearchValue('')
       onChange(selectedCard)
@@ -1204,7 +1223,7 @@ const AddIngredients = props => {
                 {/* ) : null} */}
               </Box>
             ))
-          ) : sortedIngredientList?.length <= 0 && searchValue ? (
+          ) : sortedIngredientList?.length <= 0 ? (
             <Box
               sx={{
                 display: 'flex',
@@ -1245,7 +1264,15 @@ const AddIngredients = props => {
             </Button>
           ) : (
             <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
-              ADD ITEM - {selectedCard?.length} SELECTED
+              {searchValue
+                ? (() => {
+                    const visibleCount = selectedCard.filter(card =>
+                      sortedIngredientList.some(item => String(item.id) === String(card.ingredient_id))
+                    ).length
+
+                    return visibleCount > 0 ? `ADD ITEM - ${visibleCount} SELECTED` : 'ADD ITEM'
+                  })()
+                : `ADD ITEM - ${selectedCard?.length} SELECTED`}
             </Button>
           )}
         </Box>
