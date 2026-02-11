@@ -89,8 +89,9 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
           hospital_id: selectedHospital?.id,
           page: 1,
           per_page: 20,
-          q: search,
-          availability: 'available'
+          q: search
+
+          // availability: 'available'
         }).then(res => {
           if (res?.success === true) {
             const filteredRooms = res?.data?.records
@@ -387,7 +388,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
                   fontWeight: 400
                 }}
               >
-                No active enclosures available for this room
+                No active/available enclosures available for this Room
               </Typography>
             )}
           </Box>

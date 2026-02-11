@@ -33,7 +33,9 @@ const DietDetailCard = ({
   handleSpeciesClick,
   handleSpeciesClicknew,
   setapplyfilterCheck,
-  authData
+  authData,
+  onDownloadPdf,
+  downloadingPdf = false
 }) => {
   const router = useRouter()
   const { source, recipeId, ingId } = router.query
@@ -262,6 +264,25 @@ const DietDetailCard = ({
                   onClick={() => {
                     handlelOpenDelete()
                   }}
+                />
+              </Box>
+            </Tooltip>
+          )}
+
+          {onDownloadPdf && (
+            <Tooltip title='Download PDF' placement='top'>
+              <Box>
+                <Avatar
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: '8px',
+                    cursor: downloadingPdf ? 'not-allowed' : 'pointer',
+                    opacity: downloadingPdf ? 0.6 : 1
+                  }}
+                  src={'/icons/download_outlined.svg'}
+                  variant='square'
+                  onClick={downloadingPdf ? undefined : onDownloadPdf}
                 />
               </Box>
             </Tooltip>

@@ -15,7 +15,8 @@ import {
   ASSIGN_TO_ANIMALS,
   GET_SECTIONS,
   GET_ENCLOSURES,
-  GET_TAXONOMYLIST
+  GET_TAXONOMYLIST,
+  GENERATE_DIET_PDF
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
@@ -187,6 +188,23 @@ export async function addNewDiet(payload) {
 export async function updateDiet(id, payload) {
   try {
     const response = await axiosFormPost({ url: `${DIET}/${UPDATE}/${id}`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
+export async function generateDietPdf(dietId) {
+  try {
+    const formData = new FormData()
+    formData.append('diet_id', dietId)
+
+    const response = await axiosFormPost({ url: GENERATE_DIET_PDF, body: formData })
 
     return response?.data
   } catch (error) {

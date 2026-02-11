@@ -449,30 +449,35 @@ const PrescriptionMonitoringGrid = ({
   // Use medication data if available, otherwise use default metrics
   const displayMetrics = formatMedicationData
 
-  // Select all logic
-  const isAllSelected = displayMetrics?.length > 0 && selectedMetrics?.length === displayMetrics?.length
-  const isIndeterminate = selectedMetrics?.length > 0 && selectedMetrics?.length < displayMetrics?.length
+  // Filter out items that are inherently non-selectable
+  const selectableMetrics = useMemo(() => {
+    return displayMetrics?.filter(
+      metric =>
+        metric.controlled_substance != 1 &&
+        !(
+          Array.isArray(metric.schedule) &&
+          metric.schedule.length > 0 &&
+          metric.schedule.every(
+            s => s.status === 'administrator' || s.status === 'withheld' || s.status === 'stopped'
+          )
+        )
+    )
+  }, [displayMetrics])
+
+  const isAllSelected = selectableMetrics?.length > 0 && selectedMetrics?.length === selectableMetrics?.length
+  const isIndeterminate = selectedMetrics?.length > 0 && selectedMetrics?.length < selectableMetrics?.length
 
   const handleSelectAll = event => {
     if (event.target.checked) {
-      setSelectedMetrics(
-        displayMetrics?.filter(
-          metric =>
-            !(
-              Array.isArray(metric.schedule) &&
-              metric.schedule.length > 0 &&
-              metric.schedule.every(
-                s => s.status === "administrator" || s.status === "withheld" || s.status === 'stopped'
-              )
-            )
-        )
-      )
+      setSelectedMetrics(selectableMetrics)
     } else {
       setSelectedMetrics([])
     }
   }
 
   const handleSelectMetric = metricObj => {
+    if (metricObj.controlled_substance == 1) return // Safety check
+
     setSelectedMetrics(prev => {
       const exists = prev.some(m => m.id === metricObj.id)
       if (exists) {
@@ -800,7 +805,7 @@ const PrescriptionMonitoringGrid = ({
                 labelStyle={isAllSelected && { color: 'green' }}
                 checked={isAllSelected}
                 indeterminate={isIndeterminate}
-                disabled={displayMetrics?.length === 0 || isDischared}
+                disabled={selectableMetrics?.length === 0 || isDischared}
                 onChange={handleSelectAll}
               />
               {selectedMetrics.length > 0 && (
@@ -867,6 +872,7 @@ const PrescriptionMonitoringGrid = ({
                             metric.schedule.length > 0 &&
                             metric.schedule.every(s => s.status === 'administered')) ||
                           isDischared
+                          // metric.controlled_substance == 1
                         }
                         theme={theme}
                         MetricLabel={MetricLabel}
