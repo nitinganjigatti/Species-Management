@@ -278,7 +278,7 @@ const AddSurgeryRecord = () => {
     [patientData?.admitted_at]
   )
 
-  const buildDefaultFormValues = useCallback(
+  const defaultFormValues = useMemo(
     () => ({
       date: dayjs(),
       startTime: dayjs(),
@@ -311,7 +311,7 @@ const AddSurgeryRecord = () => {
     resolver: formResolver,
     mode: 'onChange',
     reValidateMode: 'onChange',
-    defaultValues: buildDefaultFormValues()
+    defaultValues: defaultFormValues
   })
 
   const [openAddanesthesiaDrawer, setOpenAddanesthesiaDrawer] = useState(false)
@@ -493,8 +493,7 @@ const AddSurgeryRecord = () => {
       return
     }
 
-    const defaults = buildDefaultFormValues()
-    reset(defaults)
+    reset(defaultFormValues)
     setValue('surgeon', null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
     setValue('procedure', null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
     setSelectedAnesthesiaRecord(null)
@@ -510,7 +509,7 @@ const AddSurgeryRecord = () => {
     prefillDetail,
     applyPrefillFromRecord,
     reset,
-    buildDefaultFormValues,
+    defaultFormValues,
     setValue,
     setSelectedAnesthesiaRecord,
     setPendingAnesthesiaRecord,
@@ -1033,6 +1032,8 @@ const AddSurgeryRecord = () => {
             (isEditMode ? 'Surgery record updated successfully' : 'Surgery record added successfully')
         })
         resetForm()
+        // Skip route change warning after successful save
+        isNavigatingRef.current = true
         router.back()
       } else {
         Toaster({
