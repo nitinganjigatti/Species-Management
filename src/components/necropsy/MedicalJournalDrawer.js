@@ -135,7 +135,7 @@ const MedicalJournalDrawer = ({ open, onClose, animalId, medicalRecordId }) => {
         sx: {
           height: '85vh',
           maxHeight: '85vh',
-          width: { xs: '100%', sm: 450, md: 520 },
+          width: { xs: '100%', sm: 480, md: 520 },
           maxWidth: '100%',
           position: 'absolute',
           right: 0,
