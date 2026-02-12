@@ -48,13 +48,15 @@ const ControlledAutocomplete = ({
   disabled = false,
   endAdornment = null,
   showLoader = false,
+
   //clearOnBlur = false,
   maxTagsHeight = null
 }) => {
+  const searchInputRef = useRef('') // Store the search input value
+
   if (!options) return null
 
   const fieldError = get(errors, name)
-  const searchInputRef = useRef('') // Store the search input value
 
   const normalizeValue = val => {
     if (!val) return null
@@ -165,6 +167,7 @@ const ControlledAutocomplete = ({
               }
               if (reason === 'clear') {
                 onItemClear()
+
                 // Don't trigger API call on clear - just pass empty string
                 onInputChange('', reason)
               }
