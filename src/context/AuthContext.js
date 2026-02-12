@@ -232,7 +232,12 @@ const AuthProvider = ({ children }) => {
       .post(url, params)
       .then(async response => {
         setLoginLoading(false)
-        if (response?.data?.message !== 'Invalid Username/Email or Password') {
+
+        if (
+          response?.data?.message !== 'Invalid Username/Email or Password' &&
+          response?.data?.message !== 'This Account Has Been Suspended !!' &&
+          response?.data?.success !== false
+        ) {
           console.log('login response', response?.data)
           window.localStorage.setItem(authConfig?.storageTokenKeyName, response?.data?.token)
           const returnUrl = router.query.returnUrl
