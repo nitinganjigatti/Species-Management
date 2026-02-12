@@ -162,7 +162,7 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
       setOpenIncomingDrawer(true)
     } else {
       const mortalityId = params.row.mortality_id
-      router.push(`/necropsy/${mortalityId}?status=${status}`)
+      router.push(`/necropsy/necropsy/${mortalityId}?status=${status}`)
     }
   }
 

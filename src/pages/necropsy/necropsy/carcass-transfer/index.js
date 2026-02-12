@@ -18,7 +18,7 @@ const CarcassTransferPage = () => {
       <Box sx={{ p: 4 }}>
         <Box sx={{ mb: 3 }}>
           <Breadcrumbs>
-            <MuiLink component={NextLink} href='/necropsy' underline='hover' color='inherit'>
+            <MuiLink component={NextLink} href='/necropsy/necropsy' underline='hover' color='inherit'>
               Necropsy
             </MuiLink>
             <Typography color='text.primary' sx={{ fontWeight: 500 }}>

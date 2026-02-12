@@ -24,7 +24,7 @@ const NecropsyDetails = () => {
           <Breadcrumbs>
             <MuiLink
               component={NextLink}
-              href={isSpeciesView ? `/necropsy?status=${status}&tab=species` : `/necropsy?status=${status}`}
+              href={isSpeciesView ? `/necropsy/necropsy?status=${status}&tab=species` : `/necropsy/necropsy?status=${status}`}
               underline='hover'
               color='inherit'
             >

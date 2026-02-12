@@ -620,7 +620,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
 
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message || 'Draft saved successfully' })
-        router.push('/necropsy')
+        router.push('/necropsy/necropsy')
       } else {
         Toaster({ type: 'error', message: getErrorMessage(res?.message, 'Failed to save draft') })
       }
@@ -646,7 +646,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
 
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message || 'Necropsy submitted successfully' })
-        router.push('/necropsy')
+        router.push('/necropsy/necropsy')
       } else {
         Toaster({ type: 'error', message: getErrorMessage(res?.message, 'Failed to submit necropsy') })
       }
@@ -669,7 +669,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message || 'Draft deleted successfully' })
         setDeleteDialogOpen(false)
-        router.push('/necropsy')
+        router.push('/necropsy/necropsy')
       } else {
         Toaster({ type: 'error', message: getErrorMessage(res?.message, 'Failed to delete draft') })
       }
@@ -1396,7 +1396,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
       </form>
 
       <BottomActionBar
-        onCancel={() => router.push('/necropsy')}
+        onCancel={() => router.push('/necropsy/necropsy')}
         onSubmit={handleSubmit(onSubmit)}
         loading={submitLoading}
         disabled={isAnyLoading}

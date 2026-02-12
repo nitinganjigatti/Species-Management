@@ -62,11 +62,11 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
   }
 
   const handleStartNecropsy = () => {
-    router.push(`/necropsy/${mortalityId}/report?status=${status}`)
+    router.push(`/necropsy/necropsy/${mortalityId}/report?status=${status}`)
   }
 
   const handleContinueEditing = () => {
-    router.push(`/necropsy/${mortalityId}/report?necropsy_id=${mortalityData?.necropsy_id}&status=${status}`)
+    router.push(`/necropsy/necropsy/${mortalityId}/report?necropsy_id=${mortalityData?.necropsy_id}&status=${status}`)
   }
 
   const handleDownloadPdf = async () => {

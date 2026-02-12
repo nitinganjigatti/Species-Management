@@ -19,7 +19,7 @@ const NecropsyReport = () => {
           <Breadcrumbs>
             <MuiLink
               component={NextLink}
-              href={`/necropsy?status=${status || (necropsy_id ? 'DRAFT' : 'PENDING')}`}
+              href={`/necropsy/necropsy?status=${status || (necropsy_id ? 'DRAFT' : 'PENDING')}`}
               underline='hover'
               color='inherit'
             >
@@ -27,7 +27,7 @@ const NecropsyReport = () => {
             </MuiLink>
             <MuiLink
               component={NextLink}
-              href={`/necropsy/${id}?status=${status || (necropsy_id ? 'DRAFT' : 'PENDING')}`}
+              href={`/necropsy/necropsy/${id}?status=${status || (necropsy_id ? 'DRAFT' : 'PENDING')}`}
               underline='hover'
               color='inherit'
             >

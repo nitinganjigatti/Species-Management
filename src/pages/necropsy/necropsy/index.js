@@ -306,12 +306,12 @@ const Necropsy = () => {
           setOpenIncomingDrawer(true)
         } else {
           const mortalityId = params.row.mortality_id
-          router.push(`/necropsy/${mortalityId}?status=${activeCard}`)
+          router.push(`/necropsy/necropsy/${mortalityId}?status=${activeCard}`)
         }
       } else {
         const row = params.row
         router.push(
-          `/necropsy/${row.tsn}?view=species&status=${activeCard}&tab=species&taxonomy_id=${
+          `/necropsy/necropsy/${row.tsn}?view=species&status=${activeCard}&tab=species&taxonomy_id=${
             row.tsn
           }&species_name=${encodeURIComponent(row.default_common_name || row.scientific_name || '')}`
         )
@@ -614,7 +614,7 @@ const Necropsy = () => {
         badgeCount={stats?.CARCASS_TRANSFER}
         allowCarcassCollection={allowCarcassCollection}
         showCarcassTransferButton={!!enableAddNecropsyReport}
-        onCarcassTransfer={() => router.push('/necropsy/carcass-transfer/')}
+        onCarcassTransfer={() => router.push('/necropsy/necropsy/carcass-transfer/')}
       />
       {enableAddNecropsyReport ? (
         <>
