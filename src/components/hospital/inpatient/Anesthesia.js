@@ -992,102 +992,6 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
               </Box>
             </Box>
 
-            {setupFieldItems.length || monitoringItems.length ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {setupFieldItems.length ? <DetailsHeader text={'Anesthesia Set Up'} /> : ''}
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {setupFieldItems.length ? (
-                    <Grid container spacing={{ xs: 3, sm: 4 }}>
-                      {setupFieldItems.map(field => (
-                        <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={field.key}>
-                          <Tooltip title={field.label} placement='bottom-start' arrow>
-                            <Typography
-                              sx={{
-                                mb: '6px',
-                                fontWeight: 400,
-                                fontSize: '15px',
-                                letterSpacing: 0,
-                                color: theme.palette.customColors.neutralSecondary,
-                                textTransform: 'capitalize',
-                                textOverflow: 'ellipsis',
-                                overflow: 'hidden',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              {field.label}
-                            </Typography>
-                          </Tooltip>
-                          <Tooltip title={field.value} placement='bottom-start' arrow>
-                            <Typography
-                              sx={{
-                                fontWeight: 600,
-                                fontSize: '18px',
-                                letterSpacing: 0,
-                                color: theme.palette.customColors.OnSurfaceVariant,
-                                textOverflow: 'ellipsis',
-                                overflow: 'hidden',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              {field.value}
-                            </Typography>
-                          </Tooltip>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  ) : (
-                    ''
-                    // <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
-                    //   No anesthesia setup data available.
-                    // </Typography>
-                  )}
-                </Box>
-
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px', mt: 2 }}>
-                  {monitoringItems.length ? (
-                    <Typography
-                      sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
-                    >
-                      Monitoring
-                    </Typography>
-                  ) : (
-                    ''
-                  )}
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                    {
-                      monitoringItems.length
-                        ? monitoringItems.map((item, index) => (
-                            <Tooltip key={`${item}-${index}`} title={item} placement='top'>
-                              <Chip
-                                label={item}
-                                sx={{
-                                  height: '41px',
-                                  backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
-                                  border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
-                                  borderRadius: '6px',
-                                  '& .MuiChip-label': { px: 6, py: 0.5 },
-                                  color: theme.palette.customColors.OnPrimaryContainer,
-                                  fontWeight: 500,
-                                  fontSize: '16px',
-                                  textAlign: 'center'
-                                }}
-                              >
-                                {item}
-                              </Chip>
-                            </Tooltip>
-                          ))
-                        : ''
-                      // <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
-                      //   No monitoring added.
-                      // </Typography>
-                    }
-                  </Box>
-                </Box>
-              </Box>
-            ) : (
-              ''
-            )}
-
             {environmentalDetails.length || examDetails.length || riskOfConcernText || clinPathText ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {environmentalDetails.length ? <DetailsHeader text={'Pre Anesthesia'} /> : ''}
@@ -1829,6 +1733,102 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                 ''
               )}
             </Box>
+
+            {setupFieldItems.length || monitoringItems.length ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {setupFieldItems.length ? <DetailsHeader text={'Anesthesia Set Up'} /> : ''}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {setupFieldItems.length ? (
+                    <Grid container spacing={{ xs: 3, sm: 4 }}>
+                      {setupFieldItems.map(field => (
+                        <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={field.key}>
+                          <Tooltip title={field.label} placement='bottom-start' arrow>
+                            <Typography
+                              sx={{
+                                mb: '6px',
+                                fontWeight: 400,
+                                fontSize: '15px',
+                                letterSpacing: 0,
+                                color: theme.palette.customColors.neutralSecondary,
+                                textTransform: 'capitalize',
+                                textOverflow: 'ellipsis',
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {field.label}
+                            </Typography>
+                          </Tooltip>
+                          <Tooltip title={field.value} placement='bottom-start' arrow>
+                            <Typography
+                              sx={{
+                                fontWeight: 600,
+                                fontSize: '18px',
+                                letterSpacing: 0,
+                                color: theme.palette.customColors.OnSurfaceVariant,
+                                textOverflow: 'ellipsis',
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {field.value}
+                            </Typography>
+                          </Tooltip>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  ) : (
+                    ''
+                    // <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
+                    //   No anesthesia setup data available.
+                    // </Typography>
+                  )}
+                </Box>
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px', mt: 2 }}>
+                  {monitoringItems.length ? (
+                    <Typography
+                      sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }}
+                    >
+                      Monitoring
+                    </Typography>
+                  ) : (
+                    ''
+                  )}
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                    {
+                      monitoringItems.length
+                        ? monitoringItems.map((item, index) => (
+                            <Tooltip key={`${item}-${index}`} title={item} placement='top'>
+                              <Chip
+                                label={item}
+                                sx={{
+                                  height: '41px',
+                                  backgroundColor: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
+                                  border: `1px solid ${theme.palette.customColors.SecondaryContainer}`,
+                                  borderRadius: '6px',
+                                  '& .MuiChip-label': { px: 6, py: 0.5 },
+                                  color: theme.palette.customColors.OnPrimaryContainer,
+                                  fontWeight: 500,
+                                  fontSize: '16px',
+                                  textAlign: 'center'
+                                }}
+                              >
+                                {item}
+                              </Chip>
+                            </Tooltip>
+                          ))
+                        : ''
+                      // <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
+                      //   No monitoring added.
+                      // </Typography>
+                    }
+                  </Box>
+                </Box>
+              </Box>
+            ) : (
+              ''
+            )}
           </Box>
         )}
       </Box>

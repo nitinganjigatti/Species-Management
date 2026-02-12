@@ -185,8 +185,9 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
           hospital_id: selectedHospital?.id,
           page: 1,
           per_page: 20,
-          q: searchRoom,
-          availability: 'available'
+          q: searchRoom
+
+          // availability: 'available'
         }).then(res => {
           if (res?.success === true) {
             const filteredRooms = res?.data?.records
@@ -921,7 +922,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                         fontWeight: 400
                       }}
                     >
-                      No active enclosures available for this room
+                      No active/available enclosures available for this Room
                     </Typography>
                   )}
                 </Grid>

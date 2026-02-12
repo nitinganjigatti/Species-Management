@@ -15,6 +15,7 @@ import AddHospital from 'src/views/pages/hospital/masters/hospital/AddHospital'
 import { StatusChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { addHospitalMaster, getHospitalMaster } from 'src/lib/api/hospital/hospitalMaster'
+import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 
 const statusOptions = [
   { label: 'All Status', value: 'all' },
@@ -32,6 +33,8 @@ const HospitalDetails = () => {
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [searchValue, setSearchValue] = useState(q || '')
+  const [sitesLoading, setSitesLoading] = useState(false)
+  const [sites, setSites] = useState([])
 
   const [filters, setFilters] = useState({
     page: page ? Number(page) : 1,
@@ -59,6 +62,32 @@ const HospitalDetails = () => {
     },
     [router]
   )
+
+  // Fetch sites
+  const fetchSites = useCallback(async (q = '') => {
+    try {
+      setSitesLoading(true)
+      const params = { q, limit: 10, page_no: 1 }
+      const res = await getZooWiseSiteLists(params)
+      if (res?.success) {
+        const formatted = res?.data?.result?.map(item => ({
+          value: item?.site_id,
+          label: item?.site_name
+        }))
+        setSites(formatted)
+      } else {
+        setSites([])
+      }
+    } catch (error) {
+      console.error('Error fetchSites:', error?.message)
+    } finally {
+      setSitesLoading(false)
+    }
+  }, [])
+
+  const debouncedFetchSites = useMemo(() => {
+    return debounce(q => fetchSites(q), 500)
+  }, [fetchSites])
 
   const {
     data: hospitalData,
@@ -339,6 +368,22 @@ const HospitalDetails = () => {
     })
   }
 
+  // Fetch sites when drawer opens
+  useEffect(() => {
+    if (openDrawer) {
+      fetchSites('')
+    }
+  }, [openDrawer, fetchSites])
+
+  // cleanup debounced fetchSites on unmount
+  useEffect(() => {
+    return () => {
+      if (debouncedFetchSites?.cancel) {
+        debouncedFetchSites.cancel()
+      }
+    }
+  }, [debouncedFetchSites])
+
   // refetch on when filters updates
   useEffect(() => {
     if (!router.isReady) return
@@ -442,6 +487,9 @@ const HospitalDetails = () => {
           handleSidebarClose={() => setOpenDrawer(false)}
           handleSubmitData={handleSubmitData}
           submitLoader={submitLoader}
+          sites={sites}
+          sitesLoading={sitesLoading}
+          onSiteSearch={debouncedFetchSites}
         />
       )}
     </>

@@ -418,8 +418,12 @@ const PatientDetails = ({ category }) => {
   )
 
   const handleBack = useCallback(() => {
-    router.push('/hospital/inpatient')
-  }, [router])
+    if (category === 'inpatient') {
+      router.push('/hospital/inpatient')
+    } else {
+      router.push('/hospital/outpatient')
+    }
+  }, [router, category])
 
   // Memoize selected component to avoid recalculation
   const { SelectedComponent, selectedLabel } = useMemo(() => {

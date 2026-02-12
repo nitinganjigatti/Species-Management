@@ -100,7 +100,8 @@ const StepBasicDetails = ({
   loader,
   onLoadMore,
   loadingfeed,
-  feedtotalCount
+  feedtotalCount,
+  handleFeedSearch
 }) => {
   // ** States
   const theme = useTheme()
@@ -2384,6 +2385,7 @@ const StepBasicDetails = ({
             onLoadMore={onLoadMore}
             loadingfeed={loadingfeed}
             feedtotalCount={feedtotalCount}
+            handleFeedSearch={handleFeedSearch}
           />
           <AddIngredients
             open={openIngredient}
@@ -2418,6 +2420,7 @@ const StepBasicDetails = ({
             onLoadMore={onLoadMore}
             loadingfeed={loadingfeed}
             feedtotalCount={feedtotalCount}
+            handleFeedSearch={handleFeedSearch}
           />
           <RecipeList
             recipeList={recipeList}

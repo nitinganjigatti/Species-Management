@@ -29,12 +29,21 @@ const AddHospitalRoom = props => {
     hospitalDetails,
     hospitalId,
     hospitalStatus,
-    isActive
+    isActive,
+    sites,
+    sitesLoading,
+    onSiteSearch
   } = props
 
   const theme = useTheme()
   const authData = useContext(AuthContext)
-  const getSitesList = useMemo(() => authData?.userData?.user?.zoos?.[0]?.sites ?? [], [authData?.userData?.user?.zoos])
+
+  // const getSitesList = useMemo(() => authData?.userData?.user?.zoos?.[0]?.sites ?? [], [authData?.userData?.user?.zoos])
+
+  const matchedSite = useMemo(
+    () => sites?.find(site => Number(site?.value) === Number(hospitalDetails?.site_id)),
+    [sites, hospitalDetails]
+  )
 
   // Determine mode and Conditional rendering flags
   const isHospitalEditMode = Boolean(hospitalStatus)
@@ -73,6 +82,7 @@ const AddHospitalRoom = props => {
     reset,
     control,
     handleSubmit,
+    watch,
     formState: { errors, isValid }
   } = useForm({
     defaultValues,
@@ -82,13 +92,15 @@ const AddHospitalRoom = props => {
     reValidateMode: 'onChange'
   })
 
+  const selectedSite = watch('site_id')
+
   const onSubmit = async formData => {
     if (isHospitalEditMode) {
       // update hospital
       const payload = {
         name: formData?.hospital_id,
         description: formData?.description,
-        site_id: formData?.site_id?.site_id || null,
+        site_id: formData.site_id?.value || null,
         is_active: formData?.status !== undefined ? (formData?.status ? '1' : '0') : '1',
         entity_type: 'hospital',
         is_external: 0
@@ -116,9 +128,9 @@ const AddHospitalRoom = props => {
   // Prefill form based on mode
   useEffect(() => {
     if (!handleSidebarOpen) return
-
     let prefill = { ...defaultValues }
-    const matchedSite = getSitesList?.find(site => Number(site?.site_id) === Number(hospitalDetails?.site_id))
+
+    // const matchedSite = getSitesList?.find(site => Number(site?.site_id) === Number(hospitalDetails?.site_id))
 
     if (isHospitalEditMode) {
       prefill = {
@@ -213,7 +225,7 @@ const AddHospitalRoom = props => {
                 disabled={hospitalNameDisabled}
               />
 
-              {isHospitalEditMode && (    
+              {isHospitalEditMode && (
                 <>
                   <ControlledTextField
                     control={control}
@@ -228,9 +240,14 @@ const AddHospitalRoom = props => {
                     name='site_id'
                     errors={errors}
                     label='Site Name'
-                    options={getSitesList}
-                    getOptionLabel={option => option?.site_name || ''}
-                    isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+                    options={sites}
+                    getOptionLabel={option => option?.label || ''}
+                    getOptionValue={option => option?.value || ''}
+                    onInputChange={value => onSiteSearch(value)}
+                    isOptionEqualToValue={(option, value) => option?.value === value?.value}
+                    onItemClear={() => onSiteSearch('')}
+                    loading={sitesLoading}
+                    showLoader={true}
                     showIcons={false}
                   />
                 </>

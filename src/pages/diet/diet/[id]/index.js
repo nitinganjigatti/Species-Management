@@ -25,9 +25,17 @@ import Tab from '@mui/material/Tab'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { getDietDetails, getSpeciesList, getAnimalsList, getTaxonomyList } from 'src/lib/api/diet/dietList'
+import {
+  getDietDetails,
+  getSpeciesList,
+  getAnimalsList,
+  getTaxonomyList,
+  generateDietPdf
+} from 'src/lib/api/diet/dietList'
 import moment from 'moment'
 import { AuthContext } from 'src/context/AuthContext'
+import Toaster from 'src/components/Toaster'
+import Utility from 'src/utility'
 import Error404 from 'src/pages/404'
 import SpeciesMappedtoDiet from 'src/components/diet/SpeciesMappedtoDiet'
 import ListOfSpeciesMapped from 'src/components/diet/ListofSpeciesMapped'
@@ -106,6 +114,7 @@ const DietDetail = () => {
   const [siteId, setSiteID] = useState(null)
   const [removeFilterTriggered, setRemoveFilterTriggered] = useState(false)
   const [siteSpeciesTotalCount, setSiteSpeciesTotalCount] = useState('')
+  const [downloadingPdf, setDownloadingPdf] = useState(false)
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -119,6 +128,8 @@ const DietDetail = () => {
 
   const handleSpeciesClick = value => {
     setPageNo(1)
+    setTempSelectedSpecies([])
+    setSelectedSpecies([])
     if (value === 'site_species') {
       setSiteListDrawer(true)
       setSelectionType(value)
@@ -142,6 +153,34 @@ const DietDetail = () => {
     setSelectionType(type)
     setCheckForSite('')
     setSiteID('')
+  }
+
+  const handleDownloadPdf = async () => {
+    if (!dietDetails?.id) {
+      Toaster({ type: 'error', message: 'Diet ID not found' })
+      return
+    }
+
+    setDownloadingPdf(true)
+    try {
+      const response = await generateDietPdf(dietDetails.id)
+
+      if (response?.success && response?.data) {
+        // Use utility function to download the PDF
+        Utility.downloadFileFromURLWithBlob(
+          response?.data,
+          `diet_${dietDetails.id}_${dietDetails.diet_name || 'attachment'}`
+        )
+        Toaster({ type: 'success', message: response?.message || 'PDF downloaded successfully' })
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to generate PDF' })
+      }
+    } catch (error) {
+      console.error('Error downloading PDF:', error)
+      Toaster({ type: 'error', message: 'Failed to download PDF. Please try again.' })
+    } finally {
+      setDownloadingPdf(false)
+    }
   }
 
   const handleSelectedSpeciesChange = updatedSelectedSpecies => {
@@ -683,6 +722,136 @@ const DietDetail = () => {
     window.open(url, '_blank')
   }
 
+  const sharedProps = {
+    // State getters
+    speciesData,
+    speciesview,
+    dietDetails,
+    searchQuery,
+    speciestotalcount,
+    loading,
+    isLoadingMore,
+    pageNo,
+    tempSelectedSpecies,
+    selectionType,
+    items,
+    tempSelectedItems,
+    selectedItems,
+    checkForSite,
+    siteId,
+    applyfilterCheck,
+    filterState,
+    siteSpeciesTotalCount,
+    selectedSpecies,
+    removeFilterTriggered,
+    openSiteListDrawer,
+    tabsforfilter,
+    activeTab,
+    searchTerm,
+
+    // State setters
+    setSearchQuery,
+    setPageNo,
+    setTempSelectedSpecies,
+    setSelectionType,
+    setTempSelectedItems,
+    setSelectedItems,
+    setCheckForSite,
+    setFilterState,
+    setapplyfilterCheck,
+    setspeciesview,
+    setspeciesData,
+    setPrimaryStatus,
+    setIsOpen,
+    setIsOpennew,
+    setIsOpenTabsEdit,
+    setOpenFilterDrawer,
+    setRemoveFilterTriggered,
+    setSiteListDrawer,
+    setIsOpenTabs,
+    setSelectedSections,
+    setSelectedEnclosures,
+    setActiveTab,
+    setSearchTerm,
+    refreshDietDetails: getDietDetailsCallback,
+
+    // Functions
+    handleScroll,
+    debouncedSearch,
+    debouncedFetchList,
+    refreshSpeciesData,
+    fetchList,
+
+    // Other values
+    authData,
+    id
+  }
+
+  const speciesFilterProps = {
+    ...sharedProps,
+    openFilterDrawer,
+    sectionsData,
+    setSectionsData,
+    enclosuresData,
+    setEnclosuresData,
+    setSelectedSpeciesIds,
+    selectedSpeciesIds,
+    setSelectedTaxonomyIds,
+    selectedTaxonomyIds,
+    taxonomyList,
+    speciesDataforFilter,
+    handleScrollforFilter,
+    handleScrollforTaxonomy,
+    setFilteredTaxonomyList,
+    filteredTaxonomyList,
+    setTaxonomySearchQuery,
+    taxonomySearchQuery,
+    setItems,
+    debouncedFetchTaxonomyList,
+    selectedEnclosures,
+    selectedSections,
+    loadingTaxonomy,
+    loadingSpecies
+  }
+
+  // Create specific props for each component
+  const speciesMappedProps = {
+    ...sharedProps,
+    ...speciesFilterProps,
+    isOpen,
+    setSelectedSpecies
+  }
+
+  const listOfSpeciesProps = {
+    ...sharedProps,
+    isOpennew,
+    dietid: dietDetails?.id,
+    onSelectedSpeciesChange: handleSelectedSpeciesChange,
+    dietId: id,
+
+    setLoading
+  }
+
+  const speciesAnimalsProps = {
+    ...sharedProps,
+    isOpentab,
+    refreshDietDetails: getDietDetailsCallback
+  }
+
+  const editAnimalSpeciesProps = {
+    ...sharedProps,
+    isOpentabEdit,
+    primaryStatus,
+    setAllFetchedData,
+    allFetchedData,
+    setspeciestotalcount
+  }
+
+  const selectSiteListProps = {
+    ...sharedProps,
+    onSingleSelectClose: handleSingleSiteSelect
+  }
+
   return (
     <>
       {dietModule ? (
@@ -718,6 +887,8 @@ const DietDetail = () => {
                   handleSpeciesClicknew={handleSpeciesClicknew}
                   setapplyfilterCheck={setapplyfilterCheck}
                   authData={authData}
+                  onDownloadPdf={handleDownloadPdf}
+                  downloadingPdf={downloadingPdf}
                 />
                 <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', mt: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>
@@ -3776,232 +3947,12 @@ const DietDetail = () => {
             </Box>
           )}
 
-          <SpeciesMappedtoDiet
-            isOpen={isOpen}
-            setIsOpen={setIsOpen}
-            speciesData={speciesData}
-            selectedSpecies={selectedSpecies}
-            setIsOpennew={setIsOpennew}
-            setspeciesview={setspeciesview}
-            speciesview={speciesview}
-            setOpenFilterDrawer={setOpenFilterDrawer}
-            selectedItems={selectedItems}
-            speciestotalcount={speciestotalcount}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            handleScroll={handleScroll}
-            loading={loading}
-            setPageNo={setPageNo}
-            isLoadingMore={isLoadingMore}
-            pageNo={pageNo}
-            tempSelectedSpecies={tempSelectedSpecies}
-            setTempSelectedSpecies={setTempSelectedSpecies}
-            selectionType={selectionType}
-            items={items}
-            setTempSelectedItems={setTempSelectedItems}
-            tempSelectedItems={tempSelectedItems}
-            setSelectedItems={setSelectedItems}
-            debouncedSearch={debouncedSearch}
-            setFilterState={setFilterState}
-            setActiveTab={setActiveTab}
-            applyfilterCheck={applyfilterCheck}
-            setSelectedEnclosures={setSelectedEnclosures}
-            setSelectedSections={setSelectedSections}
-            setSelectedSpeciesIds={setSelectedSpeciesIds}
-            setSelectedTaxonomyIds={setSelectedTaxonomyIds}
-            checkForSite={checkForSite}
-            setSelectionType={setSelectionType}
-            authData={authData}
-            setIsOpenTabsEdit={setIsOpenTabsEdit}
-            setPrimaryStatus={setPrimaryStatus}
-            setSelectedSpecies={setSelectedSpecies}
-            setCheckForSite={setCheckForSite}
-            fetchList={fetchList}
-            setRemoveFilterTriggered={setRemoveFilterTriggered}
-            removeFilterTriggered={removeFilterTriggered}
-          />
-          <ListOfSpeciesMapped
-            isOpennew={isOpennew}
-            setIsOpennew={setIsOpennew}
-            setIsOpen={setIsOpen}
-            dietid={dietDetails?.id}
-            speciesData={speciesData}
-            onSelectedSpeciesChange={handleSelectedSpeciesChange}
-            selectedSpecies={selectedSpecies}
-            speciesview={speciesview}
-            dietDetails={dietDetails}
-            dietId={id}
-            refreshSpeciesData={refreshSpeciesData}
-            refreshDietDetails={getDietDetailsCallback}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            speciestotalcount={speciestotalcount}
-            setspeciesview={setspeciesview}
-            handleScroll={handleScroll}
-            setLoading={setLoading}
-            loading={loading}
-            setPageNo={setPageNo}
-            isLoadingMore={isLoadingMore}
-            pageNo={pageNo}
-            tempSelectedSpecies={tempSelectedSpecies}
-            setTempSelectedSpecies={setTempSelectedSpecies}
-            setSelectedSpecies={setSelectedSpecies}
-            selectionType={selectionType}
-            setapplyfilterCheck={setapplyfilterCheck}
-            siteId={siteId}
-            setSiteListDrawer={setSiteListDrawer}
-            setCheckForSite={setCheckForSite}
-          />
-          <SpeciesAnimalsMapped
-            setIsOpenTabs={setIsOpenTabs}
-            isOpentab={isOpentab}
-            setIsOpenTabsEdit={setIsOpenTabsEdit}
-            speciesData={speciesData}
-            speciesview={speciesview}
-            dietDetails={dietDetails}
-            refreshDietDetails={getDietDetailsCallback}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            speciestotalcount={speciestotalcount}
-            setspeciesview={setspeciesview}
-            handleScroll={handleScroll}
-            loading={loading}
-            setPageNo={setPageNo}
-            isLoadingMore={isLoadingMore}
-            pageNo={pageNo}
-            tempSelectedSpecies={tempSelectedSpecies}
-            items={items}
-            selectionType={selectionType}
-            setSelectionType={setSelectionType}
-            setPrimaryStatus={setPrimaryStatus}
-            debouncedFetchList={debouncedFetchList}
-            selectedItems={selectedItems}
-            setTempSelectedItems={setTempSelectedItems}
-            tempSelectedItems={tempSelectedItems}
-            setOpenFilterDrawer={setOpenFilterDrawer}
-            applyfilterCheck={applyfilterCheck}
-            setFilterState={setFilterState}
-            setSelectedItems={setSelectedItems}
-            setapplyfilterCheck={setapplyfilterCheck}
-            setSelectedSections={setSelectedSections}
-            setSelectedEnclosures={setSelectedEnclosures}
-            setspeciesData={setspeciesData}
-            authData={authData}
-            fetchList={fetchList}
-            setRemoveFilterTriggered={setRemoveFilterTriggered}
-            removeFilterTriggered={removeFilterTriggered}
-            refreshSpeciesData={refreshSpeciesData}
-            filterState={filterState}
-            setCheckForSite={setCheckForSite}
-            siteSpeciesTotalCount={siteSpeciesTotalCount}
-          />
-          <EditAnimalSpeciesMapped
-            setIsOpenTabs={setIsOpenTabs}
-            setIsOpenTabsEdit={setIsOpenTabsEdit}
-            isOpentabEdit={isOpentabEdit}
-            speciesData={speciesData}
-            speciesview={speciesview}
-            dietDetails={dietDetails}
-            refreshDietDetails={getDietDetailsCallback}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            speciestotalcount={speciestotalcount}
-            setspeciesview={setspeciesview}
-            handleScroll={handleScroll}
-            loading={loading}
-            setPageNo={setPageNo}
-            isLoadingMore={isLoadingMore}
-            pageNo={pageNo}
-            tempSelectedSpecies={tempSelectedSpecies}
-            setTempSelectedSpecies={setTempSelectedSpecies}
-            setspeciesData={setspeciesData}
-            setSelectionType={setSelectionType}
-            selectionType={selectionType}
-            setPrimaryStatus={setPrimaryStatus}
-            primaryStatus={primaryStatus}
-            setAllFetchedData={setAllFetchedData}
-            allFetchedData={allFetchedData}
-            setspeciestotalcount={setspeciestotalcount}
-            debouncedFetchList={debouncedFetchList}
-            checkForSite={checkForSite}
-            siteId={siteId}
-            setIsOpen={setIsOpen}
-            setSiteListDrawer={setSiteListDrawer}
-            setCheckForSite={setCheckForSite}
-            siteSpeciesTotalCount={siteSpeciesTotalCount}
-          />
-          <SpeciesMappedtoDietFilter
-            setOpenFilterDrawer={setOpenFilterDrawer}
-            openFilterDrawer={openFilterDrawer}
-            tabsforfilter={tabsforfilter}
-            setActiveTab={setActiveTab}
-            activeTab={activeTab}
-            setSearchTerm={setSearchTerm}
-            searchTerm={searchTerm}
-            setSelectedItems={setSelectedItems}
-            selectedItems={selectedItems}
-            items={items}
-            setSiteListDrawer={setSiteListDrawer}
-            openSiteListDrawer={openSiteListDrawer}
-            setTempSelectedItems={setTempSelectedItems}
-            tempSelectedItems={tempSelectedItems}
-            sectionsData={sectionsData}
-            setSectionsData={setSectionsData}
-            enclosuresData={enclosuresData}
-            setEnclosuresData={setEnclosuresData}
-            setSelectedSpeciesIds={setSelectedSpeciesIds}
-            selectedSpeciesIds={selectedSpeciesIds}
-            setSelectedTaxonomyIds={setSelectedTaxonomyIds}
-            selectedTaxonomyIds={selectedTaxonomyIds}
-            taxonomyList={taxonomyList}
-            selectionType={selectionType}
-            debouncedSearch={debouncedSearch}
-            setSearchQuery={setSearchQuery}
-            searchQuery={searchQuery}
-            speciesDataforFilter={speciesDataforFilter}
-            handleScrollforFilter={handleScrollforFilter}
-            handleScrollforTaxonomy={handleScrollforTaxonomy}
-            setFilterState={setFilterState}
-            setspeciesData={setspeciesData}
-            setPageNo={setPageNo}
-            refreshSpeciesData={refreshSpeciesData}
-            setFilteredTaxonomyList={setFilteredTaxonomyList}
-            filteredTaxonomyList={filteredTaxonomyList}
-            setTaxonomySearchQuery={setTaxonomySearchQuery}
-            taxonomySearchQuery={taxonomySearchQuery}
-            setItems={setItems}
-            debouncedFetchTaxonomyList={debouncedFetchTaxonomyList}
-            setapplyfilterCheck={setapplyfilterCheck}
-            applyfilterCheck={applyfilterCheck}
-            setSelectedEnclosures={setSelectedEnclosures}
-            selectedEnclosures={selectedEnclosures}
-            setSelectedSections={setSelectedSections}
-            selectedSections={selectedSections}
-            loadingTaxonomy={loadingTaxonomy}
-            loadingSpecies={loadingSpecies}
-            checkForSite={checkForSite}
-          />
-          <SelectSiteList
-            setSiteListDrawer={setSiteListDrawer}
-            openSiteListDrawer={openSiteListDrawer}
-            tabsforfilter={tabsforfilter}
-            setActiveTab={setActiveTab}
-            activeTab={activeTab}
-            setSearchTerm={setSearchTerm}
-            searchTerm={searchTerm}
-            setSelectedItems={setSelectedItems}
-            selectedItems={selectedItems}
-            items={items}
-            tempSelectedItems={tempSelectedItems}
-            setTempSelectedItems={setTempSelectedItems}
-            setSelectionType={setSelectionType}
-            selectionType={selectionType}
-            onSingleSelectClose={handleSingleSiteSelect}
-            setCheckForSite={setCheckForSite}
-            setTempSelectedSpecies={setTempSelectedSpecies}
-            setspeciesview={setspeciesview}
-            checkForSite={checkForSite}
-          />
+          <SpeciesMappedtoDiet {...speciesMappedProps} />
+          <ListOfSpeciesMapped {...listOfSpeciesProps} />
+          <SpeciesAnimalsMapped {...speciesAnimalsProps} />
+          <EditAnimalSpeciesMapped {...editAnimalSpeciesProps} />
+          <SpeciesMappedtoDietFilter {...speciesFilterProps} />
+          <SelectSiteList {...selectSiteListProps} />
         </>
       ) : (
         <>

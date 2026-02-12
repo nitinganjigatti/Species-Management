@@ -319,11 +319,11 @@ export const anesthesiaSchema = yup.object({
 
 const sections = [
   { id: 'basicDetails', label: 'Basic Detail', component: BasicDetails },
-  { id: 'medicationsGas', label: 'Medications & Gas', component: MedicationsGasSection },
-  { id: 'anesthesiaSetUp', label: 'Anesthesia Set Up', component: AnesthesiaSetUpSection },
   { id: 'preAnesthesia', label: 'Pre Anesthesia', component: PreAnesthesia },
+  { id: 'medicationsGas', label: 'Medications & Gas', component: MedicationsGasSection },
   { id: 'vitalMonitoring', label: 'Vital Monitoring', component: VitalMonitoring },
-  { id: 'recoveryAndReversal', label: 'Recovery And Reversal', component: RecoveryAndReversal }
+  { id: 'recoveryAndReversal', label: 'Recovery And Reversal', component: RecoveryAndReversal },
+  { id: 'anesthesiaSetUp', label: 'Anesthesia Set Up', component: AnesthesiaSetUpSection }
 ]
 
 export default function AddAnesthesiaRecord() {

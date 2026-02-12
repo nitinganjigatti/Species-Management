@@ -689,6 +689,8 @@ export const NECROPSY_CENTER = `v1/entity/types/necropsy_centre`
 
 export const ANIMAL_DIET_LIST = `diet/get-species-detail`
 
+export const GENERATE_DIET_PDF = `diet/generate-attachment-by-diet`
+
 export const ANIMAL_JOURNAL_LOGS = `journal/animal-logs`
 
 export const ANIMAL_HISTORY = `animal-log-history`

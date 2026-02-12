@@ -18,9 +18,9 @@ const MetricCard = ({
 }) => (
   <>
     <MUICheckbox
-      checked={metric.canEdit === false || selected}
+      checked={metric.canEdit === false || metric?.controlled_substance == 1 || selected}
       onChange={onSelect}
-      disabled={metric.canEdit === false || disabled}
+      disabled={metric.canEdit === false || metric?.controlled_substance == 1 || disabled}
     />
     <MetricLabel
       onClick={onMedicineNameClick}

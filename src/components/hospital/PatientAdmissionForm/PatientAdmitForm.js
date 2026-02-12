@@ -156,8 +156,9 @@ const PatientAdmitForm = () => {
           hospital_id: selectedHospital?.id,
           page: 1,
           per_page: 20,
-          q: searchRoom,
-          availability: 'available'
+          q: searchRoom
+
+          // availability: 'available'
         }).then(res => {
           if (res?.success === true) {
             const filteredRooms = res?.data?.records
@@ -249,8 +250,7 @@ const PatientAdmitForm = () => {
         admit_date: moment(data?.admission_date).format('YYYY-MM-DD'),
         admit_time: moment(data?.admission_time).format('HH:mm'),
         room_id: data?.room?.value,
-        health_status: data?.healthStatus,
-        
+        health_status: data?.healthStatus
       }
 
       const res = await admitHospitalPatient(params)
@@ -795,7 +795,7 @@ const PatientAdmitForm = () => {
                             fontWeight: 400
                           }}
                         >
-                          No active enclosures available for this room
+                          No active/available enclosures available for this Room
                         </Typography>
                       )}
                     </Grid>

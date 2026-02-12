@@ -176,227 +176,180 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
           }}
         >
           <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {/* Header Section */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    alignItems: { xs: 'flex-start', sm: 'center' },
-                    justifyContent: 'flex-start',
-                    gap: 3
-                  }}
-                >
-                  {loading ? (
-                    <Skeleton variant='text' width={120} height={30} />
-                  ) : (
-                    <StyledTypography fontSize={'20px'} fontWeight={500}>
-                      {patientData?.medical_record_code}
-                    </StyledTypography>
-                  )}
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between', 
+                gap: 2,
+                flexWrap: { xs: 'wrap', md: 'nowrap' }
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 3,
+                  flexWrap: 'wrap',
+                  flex: 1
+                }}
+              >
+                {loading ? (
+                  <Skeleton variant='text' width={120} height={30} />
+                ) : (
+                  <StyledTypography fontSize={'20px'} fontWeight={500}>
+                    {patientData?.medical_record_code}
+                  </StyledTypography>
+                )}
 
-                  <Box sx={{ display: 'flex', gap: 3 }}>
-                    {loading ? (
-                      <>
-                        <Skeleton variant='rounded' width={80} height={30} />
-                        <Skeleton variant='rounded' width={80} height={30} />
-                      </>
+                {loading ? (
+                  <Skeleton variant='rounded' width={100} height={30} />
+                ) : (
+                  <>
+                    {patientData?.status === 'discharge' ? (
+                      <Typography
+                        sx={{
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          color: theme.palette.customColors.Tertiary,
+                          px: 2,
+                          py: 1,
+                          background: alpha(theme.palette.customColors.Tertiary, 0.3),
+                          borderRadius: 0.5,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          textTransform: 'uppercase'
+                        }}
+                      >
+                        DISCHARGED
+                      </Typography>
                     ) : (
-                      <>
-                        {patientData?.status === 'discharge' ? (
-                          <>
-                            <Typography
-                              sx={{
-                                fontSize: '0.75rem',
-                                fontWeight: 600,
-                                color: theme.palette.customColors.Tertiary,
-                                px: 2,
-                                py: 1,
-                                background: alpha(theme.palette.customColors.Tertiary, 0.3),
-                                borderRadius: 0.5,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              DISCHARGED
-                            </Typography>
-                          </>
-                        ) : (
-                          <VisitType title={patientData?.treatment_type} />
-                        )}
-                        {/* <VisitType title={patientData?.visit_type} /> */}
-                      </>
+                      <VisitType title={patientData?.treatment_type} />
                     )}
-                  </Box>
-                  {loading ? (
-                    <Skeleton variant='rounded' width={100} height={40} />
-                  ) : (
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        p: "4px 8px",
-                        background: theme.palette.customColors.Background,
-                        borderRadius: '4px',
-                        gap: 5
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
-                        <Typography
-                          sx={{ fontSize: '12px', fontWeight: 600, color: theme.palette.customColors.OnPrimaryContainer }}
-                        >
-                          {patientData?.visit_label}
-                        </Typography>
-                        <Box sx={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: theme.palette.primary.main }} />
-                        {patientData?.is_current_visit === '1' && (
+                  </>
+                )}
+
+                {loading ? (
+                  <Skeleton variant='rounded' width={100} height={40} />
+                ) : (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      p: "4px 8px",
+                      background: theme.palette.customColors.Background,
+                      borderRadius: '4px'
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                      <Typography
+                        sx={{ fontSize: '12px', fontWeight: 600, color: theme.palette.customColors.OnPrimaryContainer }}
+                      >
+                        {patientData?.visit_label}
+                      </Typography>
+                      {patientData?.is_current_visit === '1' && (
+                        <>
+                          <Box sx={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: theme.palette.primary.main }} />
                           <Typography sx={{ fontSize: '12px', fontWeight: 600, color: theme.palette.primary.main }}>
                             Current
                           </Typography>
-                        )}
-                      </Box>
-                      {/* <Icon icon={'mingcute:down-fill'} color={theme.palette.customColors.OnPrimaryContainer} /> */}
-                    </Box>
-                  )}
-                </Box>
-
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: { md: 'row', sm: 'column', xs: 'column' },
-                    alignItems: { sm: 'flex-start', md: 'center', xs: 'flex-start' },
-                    justifyContent: 'flex-start',
-                    gap: 2
-                  }}
-                >
-                  {loading ? (
-                    <Skeleton variant='text' width={200} />
-                  ) : (
-                    <>
-                      {patientData?.case_code && (
-                        <>
-                          <StyledTypography>Hospital Case Id : {patientData?.case_code}</StyledTypography>
-                          <Box
-                            sx={{
-                              display: { xs: 'none', sm: 'none', md: 'block' },
-                              height: '4px',
-                              width: '4px',
-                              borderRadius: '50%',
-                              background: theme.palette.customColors.OnSurfaceVariant
-                            }}
-                          />
                         </>
                       )}
-                      <Box sx={{ maxWidth: { xs: '400px', sm: '450px', md: '450px', lg: '600px' } }}>
-                        <Tooltip title={patientData?.attend_by_full_name || ''}>
-                          <Typography
-                            sx={{
-                              fontSize: '1rem',
-                              fontWeight: 400,
-                              color: theme.palette.customColors.OnSurfaceVariant,
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            Chief veterinarian : {patientData?.attend_by_full_name}
-                          </Typography>
-                        </Tooltip>
-                      </Box>
-                    </>
-                  )}
-                </Box>
+                    </Box>
+                  </Box>
+                )}
               </Box>
 
+              {/* Right side - Health Status and Menu */}
               <Box
-                sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', justifyContent: 'flex-end', gap: 5 }}
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 2,
+                  flexShrink: 0
+                }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 150 }}>
-                  <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                    Health Status
-                  </Typography>
-                  <FormControl size='small' sx={{ minWidth: 120 }}>
-                    <Select
-                      value={healthStatus}
-                      onChange={handleHealthStatusChange}
-                      sx={{
-                        borderRadius: '4px',
-                        fontSize: '16px',
-                        color: healthStatus === 'critical'
-                          ? theme.palette.customColors.Tertiary
-                          : theme.palette.customColors.OnSurfaceVariant,
-                        fontWeight: 500,
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: 'transparent'
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.divider
-                        },
-                        '& .MuiSelect-select': {
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px'
-                        }
+                {loading ? (
+                  <Skeleton variant='rounded' width={150} height={40} />
+                ) : (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <Typography 
+                      sx={{ 
+                        fontSize: '16px', 
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        display: { xs: 'flex', sm: 'block' },
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        alignItems: { xs: 'center', sm: 'center' },
+                        gap: { xs: '4px', sm: '0' }
                       }}
-                      renderValue={(value) => (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Box
-                            sx={{
-                              width: '20px',
-                              height: '20px',
-                              borderRadius: '50%',
-                              backgroundColor: value === 'critical'
-                                ? alpha(theme.palette.error.main, 0.2)
-                                : theme.palette.customColors.OnBackground,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              flexShrink: 0
-                            }}
-                          >
+                    >
+                      Health Status
+                    </Typography>
+                    <FormControl size='small' sx={{ minWidth: 120 }}>
+                      <Select
+                        value={healthStatus}
+                        onChange={handleHealthStatusChange}
+                        sx={{
+                          borderRadius: '4px',
+                          fontSize: '16px',
+                          color: healthStatus === 'critical'
+                            ? theme.palette.customColors.Tertiary
+                            : theme.palette.customColors.OnSurfaceVariant,
+                          fontWeight: 500,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'transparent'
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme.palette.divider
+                          },
+                          '& .MuiSelect-select': {
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }
+                        }}
+                        renderValue={(value) => (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <Box
                               sx={{
-                                width: '10px',
-                                height: '10px',
+                                width: '20px',
+                                height: '20px',
                                 borderRadius: '50%',
                                 backgroundColor: value === 'critical'
-                                  ? theme.palette.customColors.Tertiary
-                                  : theme.palette.primary.main
+                                  ? alpha(theme.palette.error.main, 0.2)
+                                  : theme.palette.customColors.OnBackground,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0
                               }}
-                            />
+                            >
+                              <Box
+                                sx={{
+                                  width: '10px',
+                                  height: '10px',
+                                  borderRadius: '50%',
+                                  backgroundColor: value === 'critical'
+                                    ? theme.palette.customColors.Tertiary
+                                    : theme.palette.primary.main
+                                }}
+                              />
+                            </Box>
+                            <span>{value === 'critical' ? 'Critical' : 'Stable'}</span>
                           </Box>
-                          <span>{value === 'critical' ? 'Critical' : 'Stable'}</span>
-                        </Box>
-                      )}
-                    >
-                      <MenuItem value='stable' sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
-                        Stable
-                      </MenuItem>
-                      <MenuItem value='critical' sx={{ color: theme.palette.customColors.Tertiary, fontWeight: 500 }}>
-                        Critical
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
-                  {loading ? (
-                  <Skeleton variant='rounded' width={100} height={40} />
-                ) : category === 'Outpatients' ? (
-                  <Button
-                    variant='outlined'
-                    sx={{
-                      border: `1px solid ${theme.palette.primary.main}`,
-                      height: 45,
-                      fontWeight: 600,
-                      fontSize: '16px',
-                      color: theme.palette.primary.main
-                    }}
-                    onClick={() => setOpenAddAnimalDrawer(true)}
-                  >
-                    Admit Animal
-                  </Button>
-                ) : null}
-                </Box>
+                        )}
+                      >
+                        <MenuItem value='stable' sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
+                          Stable
+                        </MenuItem>
+                        <MenuItem value='critical' sx={{ color: theme.palette.customColors.Tertiary, fontWeight: 500 }}>
+                          Critical
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Box>
+                )}
 
                 {loading ? (
                   <Skeleton variant='rounded' width={40} height={40} />
@@ -404,6 +357,86 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
                   getMenuOptions()?.length > 0 && <MenuWithDots options={getMenuOptions()} />
                 )}
               </Box>
+            </Box>
+
+            {/* Second Row: Hospital Case ID, Chief Veterinarian, Admit Button */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 2,
+                flexWrap: { xs: 'wrap', md: 'nowrap' }
+              }}
+            >
+              {/* Left side - Case ID and Veterinarian */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  flexWrap: 'wrap',
+                  flex: 1
+                }}
+              >
+                {loading ? (
+                  <Skeleton variant='text' width={200} />
+                ) : (
+                  <>
+                    {patientData?.case_code && (
+                      <>
+                        <StyledTypography>Hospital Case Id : {patientData?.case_code}</StyledTypography>
+                        <Box
+                          sx={{
+                            display: { xs: 'none', md: 'block' },
+                            height: '4px',
+                            width: '4px',
+                            borderRadius: '50%',
+                            background: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        />
+                      </>
+                    )}
+                    <Box sx={{ maxWidth: { xs: '100%', md: '450px', lg: '600px' } }}>
+                      <Tooltip title={patientData?.attend_by_full_name || ''}>
+                        <Typography
+                          sx={{
+                            fontSize: '1rem',
+                            fontWeight: 400,
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Chief veterinarian : {patientData?.attend_by_full_name}
+                        </Typography>
+                      </Tooltip>
+                    </Box>
+                  </>
+                )}
+              </Box>
+
+              {/* Right side - Admit Button */}
+              {loading ? (
+                <Skeleton variant='rounded' width={120} height={45} />
+              ) : category === 'Outpatients' ? (
+                <Button
+                  variant='outlined'
+                  sx={{
+                    border: `1px solid ${theme.palette.primary.main}`,
+                    height: 45,
+                    fontWeight: 600,
+                    fontSize: '16px',
+                    color: theme.palette.primary.main,
+                    whiteSpace: 'nowrap'
+                  }}
+                  onClick={() => setOpenAddAnimalDrawer(true)}
+                >
+                  Admit Animal
+                </Button>
+              ) : null}
             </Box>
           </CardContent>
         </Card>
