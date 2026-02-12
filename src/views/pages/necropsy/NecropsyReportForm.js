@@ -39,6 +39,7 @@ import UserMultiSelect from 'src/components/necropsy/UserMultiSelect'
 import NecropsyOrganSection from 'src/components/necropsy/NecropsyOrganSection'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import Toaster from 'src/components/Toaster'
+import Utility from 'src/utility'
 import { Close as CloseIcon } from '@mui/icons-material'
 import {
   addNecropsy,
@@ -335,7 +336,6 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
       }
     } catch (error) {
       console.error('Error fetching initial data:', error)
-      Toaster({ type: 'error', message: 'Failed to load form data' })
     } finally {
       setLoading(false)
     }
@@ -586,28 +586,28 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
 
     if (!formValues.is_suitable) {
       if (!formValues.reason_for_unsuitable?.trim()) {
-        Toaster({ type: 'error', message: 'Reason for unsuitable is required' })
+        Utility.scrollToField('reason_for_unsuitable')
 
         return
       }
       if (conductedByUsers.length === 0) {
-        Toaster({ type: 'error', message: 'Conducted by field is required' })
+        Utility.scrollToField('conducted_by')
 
         return
       }
     } else {
       if (formValues.carcass_weight && !formValues.weight_unit) {
-        Toaster({ type: 'error', message: 'Please select the weight unit' })
+        Utility.scrollToField('weight_unit')
 
         return
       }
       if (!formValues.confirmed_cause_of_death) {
-        Toaster({ type: 'error', message: 'Confirmed cause of death is required' })
+        Utility.scrollToField('confirmed_cause_of_death')
 
         return
       }
       if (conductedByUsers.length === 0) {
-        Toaster({ type: 'error', message: 'Conducted by field is required' })
+        Utility.scrollToField('conducted_by')
 
         return
       }
@@ -633,7 +633,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
 
   const onSubmit = async formValues => {
     if (conductedByUsers.length === 0) {
-      Toaster({ type: 'error', message: 'Conducted by field is required' })
+      Utility.scrollToField('conducted_by')
 
       return
     }
@@ -688,9 +688,8 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
 
       if (res?.success) {
         setExistingAttachments(prev => prev.filter(a => a.id !== attachmentId))
-        Toaster({ type: 'success', message: 'Attachment removed' })
       } else {
-        Toaster({ type: 'error', message: 'Failed to remove attachment' })
+        console.error('Failed to remove attachment')
       }
     } catch (error) {
       console.error('Error removing attachment:', error)
@@ -701,6 +700,11 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
     if (!newValue) {
       setUnsuitableDialogOpen(true)
     }
+  }
+
+  // Handle validation errors - scroll to first error field
+  const onValidationError = errors => {
+    Utility.scrollToFirstError(errors)
   }
 
   const handleConfirmUnsuitable = () => {
@@ -982,7 +986,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
               {!isSuitable && (
                 <>
                   <Divider />
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }} data-field='conducted_by'>
                     <Typography sx={labelSx}>Necropsy Conducted By</Typography>
                     <UserMultiSelect
                       selectedUsers={conductedByUsers}
@@ -1201,7 +1205,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                     </Grid>
                   </Box>
 
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }} data-field='conducted_by'>
                     <Typography sx={labelSx}>Necropsy Conducted By</Typography>
                     <UserMultiSelect
                       selectedUsers={conductedByUsers}
@@ -1397,7 +1401,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
 
       <BottomActionBar
         onCancel={() => router.push('/necropsy/necropsy')}
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(onSubmit, onValidationError)}
         loading={submitLoading}
         disabled={isAnyLoading}
         cancelLabel='Cancel'
