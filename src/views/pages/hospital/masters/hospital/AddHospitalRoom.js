@@ -100,8 +100,6 @@ const AddHospitalRoom = props => {
       const payload = {
         name: formData?.hospital_id,
         description: formData?.description,
-
-        // site_id: formData?.site_id?.site_id || null,
         site_id: formData.site_id?.value || null,
         is_active: formData?.status !== undefined ? (formData?.status ? '1' : '0') : '1',
         entity_type: 'hospital',
@@ -251,10 +249,6 @@ const AddHospitalRoom = props => {
                     loading={sitesLoading}
                     showLoader={true}
                     showIcons={false}
-                    onBlur={inputValue => {
-                      if (!selectedSite && (inputValue?.target.value || '')?.trim() !== '') onSiteSearch('')
-                    }}
-                    clearOnBlur={true}
                   />
                 </>
               )}
