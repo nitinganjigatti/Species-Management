@@ -18,10 +18,13 @@ import { getPharmacySettingsList, submitPharmacySettings } from 'src/lib/api/pha
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import toast from 'react-hot-toast'
 import RenderUtility from 'src/utility/render'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const PharmacySettingsList = () => {
   const { userData } = useContext(AuthContext)
-  const pharmacyRole = userData?.roles?.settings?.add_pharmacy
+  const { selectedPharmacy } = usePharmacyContext()
+
+  const pharmacyRole = userData?.roles?.settings?.add_pharmacy && selectedPharmacy?.type === 'central'
 
   const [tableData, setTableData] = useState([])
   const [usersList, setUsersList] = useState([])
