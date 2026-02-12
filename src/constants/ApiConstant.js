@@ -1015,6 +1015,8 @@ export const GET_NECROPSY_PDF = `v2/post-mortem-report-pdf2`
 
 export const DELETE_NECROPSY_ATTACHMENT = `v2/attachment-media-remove`
 
+export const ADD_UPDATE_NECROPSY_CENTER = `v1/entity/types`
+
 // Necropsy Medical History
 export const GET_MEDICAL_BASIC_DATA_LIST = 'medical/v2/'
 

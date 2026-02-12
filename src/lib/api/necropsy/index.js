@@ -26,7 +26,8 @@ import {
   MANNER_OF_DEATH,
   CARCASS_DEPOSITION,
   GET_NEW_INCOMING_PATIENTS_LISTS,
-  MEASUREMENT_UNITS
+  MEASUREMENT_UNITS,
+  ADD_UPDATE_NECROPSY_CENTER
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
@@ -200,6 +201,15 @@ export async function getCarcassTransferList(params) {
 
 export async function getMeasurementUnits() {
   const response = await axiosGet({ url: MEASUREMENT_UNITS })
+
+  return response?.data
+}
+
+export async function addUpdateNecropsyCenter(payload, status, necropsyId) {
+  const url = necropsyId
+    ? `${ADD_UPDATE_NECROPSY_CENTER}/${status}/${necropsyId}`
+    : `${ADD_UPDATE_NECROPSY_CENTER}/${status}`
+  const response = await axiosPost({ url, body: payload })
 
   return response?.data
 }
