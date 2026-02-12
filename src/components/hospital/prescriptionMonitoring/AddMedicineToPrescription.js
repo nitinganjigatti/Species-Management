@@ -355,6 +355,7 @@ export default function AddMedicineToPrescription() {
   const [page, setPage] = useState(1)
 
   const [medicalMasterData, setMedicalMasterData] = useState([])
+  const [medicalMasterDataLoading, setMedicalMasterDataLoading] = useState(true)
   const [frequencyData, setFrequencyData] = useState([])
   const [intervalList, setIntervalList] = useState([])
   const [batchList, setBatchList] = useState([])
@@ -362,6 +363,8 @@ export default function AddMedicineToPrescription() {
   const [batchLoading, setBatchLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPrescriptionListLoading, setIsPrescriptionListLoading] = useState(false)
+  const [frequencyLoading, setFrequencyLoading] = useState(true)
+  const [intervalLoading, setIntervalLoading] = useState(true)
   const [medicationData, setMedicationData] = useState([])
   const [endsOn, setEndsOn] = useState(null)
   const [cancelOrCloseText, setCancelOrCloseText] = useState('CANCEL')
@@ -386,6 +389,11 @@ export default function AddMedicineToPrescription() {
   const selectMedicineType = watch('selectMedicineType')
 
   const isSmallerDevices = useMediaQuery(theme.breakpoints.down('sm'))
+
+  // Combined loading state - medicine list should only show after all API calls complete
+  const isInitialDataLoading = useMemo(() => {
+    return frequencyLoading || intervalLoading || isPrescriptionListLoading || medicalMasterDataLoading
+  }, [frequencyLoading, intervalLoading, isPrescriptionListLoading, medicalMasterDataLoading])
 
   // Helper function to calculate duration dynamically
   function calculateDynamicDuration(startDate, endDate) {
@@ -714,16 +722,17 @@ export default function AddMedicineToPrescription() {
 
   const fetchMedicalMasterData = useCallback(async () => {
     try {
+      setMedicalMasterDataLoading(true)
       const response = await getMedicalMasterData()
       if (response?.success) {
-        fetchFrequencies()
-        fetchIntervals()
-        setMedicalMasterData({
+        // Start both API calls in parallel and wait for both to complete
+        await Promise.all([fetchFrequencies(), fetchIntervals()])
+        
+        setMedicalMasterData(prevData => ({
           ...response?.data,
-
-          // prescriptionFrequency: frequencyData || [],
-          intervalList: [],
-          prescriptionFrequency: [],
+          // Preserve the frequency and interval data that was just fetched
+          prescriptionFrequency: prevData?.prescriptionFrequency || [],
+          intervalList: prevData?.intervalList || [],
           prescriptionDosageMeasurementType:
             response?.data?.prescriptionDosageMeasurementType?.map(item => ({
               ...item,
@@ -744,17 +753,20 @@ export default function AddMedicineToPrescription() {
               label: item.delivery,
               value: item.route_abbr
             })) || []
-        })
+        }))
       } else {
         setMedicalMasterData([])
       }
     } catch (error) {
       console.error('Error fetching medical master data:', error.message)
+    } finally {
+      setMedicalMasterDataLoading(false)
     }
   }, [])
 
   const fetchFrequencies = useCallback(async () => {
     try {
+      setFrequencyLoading(true)
       const response = await getFrequency()
       if (response?.success) {
         setFrequencyData(response?.data?.map(item => ({ ...item, value: item.id })) || [])
@@ -770,11 +782,14 @@ export default function AddMedicineToPrescription() {
       }
     } catch (error) {
       console.error('Error fetching medical master data:', error.message)
+    } finally {
+      setFrequencyLoading(false)
     }
   }, [])
 
   const fetchIntervals = async () => {
     try {
+      setIntervalLoading(true)
       const response = await getIntervalList()
       if (response?.success) {
         setIntervalList(
@@ -795,6 +810,8 @@ export default function AddMedicineToPrescription() {
       }
     } catch (error) {
       console.error('Error fetching medical master data:', error.message)
+    } finally {
+      setIntervalLoading(false)
     }
   }
 
@@ -2127,7 +2144,8 @@ export default function AddMedicineToPrescription() {
               handleClearSearch={handleClearSearch}
               isDirectAdminister={watch('selectMedicineType') === 'Direct Administer'}
               handleScroll={handleScroll}
-              loading={medicineLoading}
+              loading={isInitialDataLoading}
+              paginationLoading={medicineLoading}
               searching={searching}
               error={errors.selectedMedicine?.message || errors.selectedMedicineId?.message}
               prescribedMedicines={medicationData}
