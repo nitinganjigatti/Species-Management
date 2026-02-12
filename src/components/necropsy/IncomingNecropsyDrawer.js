@@ -224,10 +224,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
   }, [open, transferId, fetchAllDrawerData])
 
   // Memoize grouped comments to avoid recalculation on every render
-  const groupedChecklistComments = useMemo(
-    () => groupCommentsByDate(checklistComments),
-    [checklistComments]
-  )
+  const groupedChecklistComments = useMemo(() => groupCommentsByDate(checklistComments), [checklistComments])
 
   return (
     <>
@@ -981,7 +978,8 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
             backgroundColor: theme.palette.background.paper,
             borderTopLeftRadius: '16px',
             borderTopRightRadius: '16px',
-            borderBottomLeftRadius: '16px',
+            borderBottomRightRadius: '0px',
+            borderBottomLeftRadius: '0px',
             boxShadow: 24,
             overflow: 'hidden',
             position: 'absolute',
@@ -1052,10 +1050,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                     {animal?.transfer_status === 'PENDING' && (
                       <Box
                         sx={{
-                          backgroundColor: alpha(
-                            theme.palette.error.light,
-                            0.4
-                          ),
+                          backgroundColor: alpha(theme.palette.error.light, 0.4),
                           px: 2,
                           py: 1,
                           borderRadius: 1,

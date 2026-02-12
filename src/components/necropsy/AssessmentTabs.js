@@ -21,8 +21,12 @@ const AssessmentTabs = ({ animalId }) => {
       const res = await getAssessmentTypes(animalId)
 
       if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
-        setTypes(res.data)
-        setActiveType(res.data[0])
+        // Filter to only show assessment types that have data
+        const typesWithData = res.data.filter(
+          type => Array.isArray(type.assessment_values) && type.assessment_values.length > 0
+        )
+        setTypes(typesWithData)
+        setActiveType(typesWithData[0] || null)
       } else {
         setTypes([])
       }
