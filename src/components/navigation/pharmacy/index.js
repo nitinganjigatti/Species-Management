@@ -296,6 +296,11 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/store/rackList'
   }
 
+  const pharmacySettings = {
+    title: 'Pharmacy Settings',
+    path: '/pharmacy/store/pharmacy-settings'
+  }
+
   const dispense = {
     title: 'Dispense',
     path: '/pharmacy/dispense',
@@ -443,7 +448,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     // directDispatchParent.children.push(directDispatchList)
     // stockParent.children.push(stockReport)
     settingsParent.children.push(
-      rackList
+      rackList,
+      pharmacySettings
 
       // uom,
       // productForm,

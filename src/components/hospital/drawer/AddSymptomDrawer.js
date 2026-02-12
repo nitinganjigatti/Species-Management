@@ -102,7 +102,7 @@ const AddSymptomDrawer = ({
                     width: '260px',
                     '& .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',
-                      borderColor: getSymptomsSeverityColor(severity).color
+                      borderColor: `${getSymptomsSeverityColor(severity).color} !important`
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',

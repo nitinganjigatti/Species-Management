@@ -241,7 +241,7 @@ const AnimalCard = ({ data, size, edit }) => {
           </Typography>
         )}
 
-        {data?.age && (
+        {data?.age?.trim() && (
           <Typography
             sx={{
               fontSize: '14px',
@@ -252,6 +252,20 @@ const AnimalCard = ({ data, size, edit }) => {
           >
             <span>Age : </span>
             {data?.age}
+          </Typography>
+        )}
+
+        {data?.weight?.trim() && (
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 600,
+              lineHeight: '16.94px',
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            <span>Weight : </span>
+            {data?.weight}
           </Typography>
         )}
 

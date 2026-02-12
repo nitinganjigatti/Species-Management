@@ -319,11 +319,11 @@ export const anesthesiaSchema = yup.object({
 
 const sections = [
   { id: 'basicDetails', label: 'Basic Detail', component: BasicDetails },
-  { id: 'medicationsGas', label: 'Medications & Gas', component: MedicationsGasSection },
-  { id: 'anesthesiaSetUp', label: 'Anesthesia Set Up', component: AnesthesiaSetUpSection },
   { id: 'preAnesthesia', label: 'Pre Anesthesia', component: PreAnesthesia },
+  { id: 'medicationsGas', label: 'Medications & Gas', component: MedicationsGasSection },
   { id: 'vitalMonitoring', label: 'Vital Monitoring', component: VitalMonitoring },
-  { id: 'recoveryAndReversal', label: 'Recovery And Reversal', component: RecoveryAndReversal }
+  { id: 'recoveryAndReversal', label: 'Recovery And Reversal', component: RecoveryAndReversal },
+  { id: 'anesthesiaSetUp', label: 'Anesthesia Set Up', component: AnesthesiaSetUpSection }
 ]
 
 export default function AddAnesthesiaRecord() {
@@ -1889,6 +1889,14 @@ export default function AddAnesthesiaRecord() {
   const lastUpdatedValue =
     anesthesiaDetail?.updated_at !== undefined ? formatDateTime(anesthesiaDetail.updated_at) : '-'
 
+  const handleAIDDisplay = () => {
+    if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
+      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+    } else {
+      return patientData?.animal_detail?.animal_id
+    }
+  }
+
   return (
     <FormProvider {...methods}>
       <Box display='flex' flexDirection='column' gap={3} sx={{ p: 3 }}>
@@ -1977,8 +1985,9 @@ export default function AddAnesthesiaRecord() {
                 age={`${patientData?.animal_detail?.age}`}
                 gender={`${patientData?.animal_detail?.sex}`}
                 additionalFields={[
-                  { label: 'AID', value: patientData?.animal_detail?.animal_id },
-                  { label: 'Admitted days', value: patientData?.admitted_for_day },
+                  { label: 'AID', value: handleAIDDisplay() },
+                  { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
+                  // { label: 'Admitted days', value: patientData?.admitted_for_day },
                   { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
                   { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }
                 ]}
@@ -2140,6 +2149,7 @@ export default function AddAnesthesiaRecord() {
                       selectedHospital={selectedHospital}
                       loadMoreDoctors={loadMoreDoctors}
                       loadingDoctors={loading}
+                      patientData={patientData}
                     />
                   </AccordionDetails>
                 </Accordion>

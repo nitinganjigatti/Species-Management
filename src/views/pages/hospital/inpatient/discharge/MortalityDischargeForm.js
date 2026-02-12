@@ -18,56 +18,7 @@ import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMul
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
-
-const mortalitySchema = yup.object({
-  date_of_death: yup.date().nullable().required('Date of death is required'),
-  time_of_death: yup.date().nullable().required('Time of death is required'),
-  manner_of_death: yup
-    .object({
-      value: yup.string().required(),
-      label: yup.string().required()
-    })
-    .required('Cause of death is required'),
-  carcass_condition: yup
-    .object({
-      value: yup.string().required(),
-      label: yup.string().required()
-    })
-    .required('Carcass condition is required'),
-  carcass_disposition: yup
-    .object({
-      value: yup.string().required(),
-      label: yup.string().required()
-    })
-    .required('Carcass disposition is required'),
-  reason: yup.string().optional(),
-  necropsy_requested: yup.boolean().optional(),
-  necropsy_reason: yup
-    .string()
-    .nullable()
-    .when('necropsy_requested', {
-      is: false,
-      then: schema => schema.required('Reason for not performing necropsy is required').trim(),
-      otherwise: schema => schema.notRequired().nullable()
-    }),
-  priority: yup.string().when('necropsy_requested', {
-    is: true,
-    then: schema => schema.required('Priority is required'),
-    otherwise: schema => schema.notRequired()
-  }),
-  necropsy_center_id: yup
-    .object({
-      value: yup.string().required(),
-      label: yup.string().required()
-    })
-    .nullable()
-    .when('necropsy_requested', {
-      is: true,
-      then: schema => schema.required('Necropsy Center is required'),
-      otherwise: schema => schema.notRequired()
-    }),
-  attachments: yup.array().nullable().optional()
-})
+import Utility from 'src/utility'
 
 const MortalityDischargeForm = props => {
   const {
@@ -87,10 +38,117 @@ const MortalityDischargeForm = props => {
     onDirtyChange,
     refetchPatient
   } = props
-
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
+
+  const mortalitySchema = yup.object({
+    date_of_death: yup
+      .date()
+      .typeError('Date of death is invalid')
+      .nullable()
+      .required('Date of death is required')
+      .test('is-valid-date', 'Date of death is invalid', function (value) {
+        if (!value) return true
+
+        const admittedAt = dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)).startOf('day')
+        const now = dayjs().startOf('day')
+        const selectedDate = dayjs(value).startOf('day')
+
+        if (selectedDate.isBefore(admittedAt)) {
+          return this.createError({
+            message: `Date must be on or after (${dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)).format(
+              'DD MMM YYYY'
+            )})`
+          })
+        }
+
+        if (selectedDate.isAfter(now)) {
+          return this.createError({ message: 'Date cannot be in the future' })
+        }
+
+        return true
+      }),
+    time_of_death: yup
+      .date()
+      .typeError('Time of death is invalid')
+      .nullable()
+      .required('Time of death is required')
+      .test('is-valid-time', 'Time of death is invalid', function (value) {
+        const { date_of_death } = this.parent
+        if (!value || !date_of_death) return true
+
+        const admittedAt = dayjs(Utility.convertUTCToLocal(patientData?.admitted_at))
+        const now = dayjs()
+
+        const deathDateTime = dayjs(date_of_death)
+          .startOf('day')
+          .set('hour', dayjs(value).hour())
+          .set('minute', dayjs(value).minute())
+          .set('second', 0)
+
+        if (dayjs(date_of_death).format('YYYY-MM-DD') === admittedAt.format('YYYY-MM-DD')) {
+          if (deathDateTime.isBefore(admittedAt)) {
+            return this.createError({
+              message: `Time must be after admission time (${Utility.convertUTCToLocaltime(patientData?.admitted_at)})`
+            })
+          }
+        }
+
+        if (dayjs(date_of_death).format('YYYY-MM-DD') === now.format('YYYY-MM-DD')) {
+          if (deathDateTime.isAfter(now)) {
+            return this.createError({ message: 'Time cannot be in the future' })
+          }
+        }
+
+        return true
+      }),
+    manner_of_death: yup
+      .object({
+        value: yup.string().required(),
+        label: yup.string().required()
+      })
+      .required('Cause of death is required'),
+    carcass_condition: yup
+      .object({
+        value: yup.string().required(),
+        label: yup.string().required()
+      })
+      .required('Carcass condition is required'),
+    carcass_disposition: yup
+      .object({
+        value: yup.string().required(),
+        label: yup.string().required()
+      })
+      .required('Carcass disposition is required'),
+    reason: yup.string().optional(),
+    necropsy_requested: yup.boolean().optional(),
+    necropsy_reason: yup
+      .string()
+      .nullable()
+      .when('necropsy_requested', {
+        is: false,
+        then: schema => schema.required('Reason for not performing necropsy is required').trim(),
+        otherwise: schema => schema.notRequired().nullable()
+      }),
+    priority: yup.string().when('necropsy_requested', {
+      is: true,
+      then: schema => schema.required('Priority is required'),
+      otherwise: schema => schema.notRequired()
+    }),
+    necropsy_center_id: yup
+      .object({
+        value: yup.string().required(),
+        label: yup.string().required()
+      })
+      .nullable()
+      .when('necropsy_requested', {
+        is: true,
+        then: schema => schema.required('Necropsy Center is required'),
+        otherwise: schema => schema.notRequired()
+      }),
+    attachments: yup.array().nullable().optional()
+  })
 
   const defaultValues = {
     discharge_type: 'Mortality',
@@ -186,8 +244,8 @@ const MortalityDischargeForm = props => {
       hospital_case_id: id,
       animal_id: patientData?.animal_detail?.animal_id,
       discharge_type: watchDischargeType,
-      date_of_death: moment(formData.date_of_death).format('YYYY-MM-DD'),
-      time_of_death: dayjs(formData.time_of_death).set('second', 0).format('HH:mm:ss'),
+      date_of_death: formData.date_of_death ? moment(formData.date_of_death).format('YYYY-MM-DD') : null,
+      time_of_death: formData.time_of_death ? dayjs(formData.time_of_death).set('second', 0).format('HH:mm:ss') : null,
       manner_of_death: formData.manner_of_death.value,
       reason_for_death: formData.manner_of_death.value, // for backend compatibility
       carcass_condition: formData.carcass_condition.value,
@@ -197,7 +255,8 @@ const MortalityDischargeForm = props => {
       priority: formData.necropsy_requested ? formData.priority : null,
       necropsy_center_id: formData.necropsy_center_id ? formData.necropsy_center_id.value : null,
       necropsy_reason: !formData.necropsy_requested ? formData.necropsy_reason : null,
-      attachments: formData.attachments?.length > 0 ? formData.attachments : undefined
+      attachments: formData.attachments?.length > 0 ? formData.attachments : null,
+      request_from: 'web'
     }
 
     const success = await handleSubmitData(payload)
@@ -207,7 +266,6 @@ const MortalityDischargeForm = props => {
     }
   }
 
-  // mark dirty when form changes
   useEffect(() => {
     onDirtyChange?.(isDirty)
   }, [isDirty, onDirtyChange])
@@ -257,7 +315,7 @@ const MortalityDischargeForm = props => {
                   control={control}
                   name={'manner_of_death'}
                   errors={errors}
-                  label={'Cause of Death'}
+                  label={'Cause of Death*'}
                   options={causeOfDeath}
                   getOptionLabel={option => option?.label || ''}
                   getOptionValue={option => option?.value || ''}
@@ -274,7 +332,7 @@ const MortalityDischargeForm = props => {
                   control={control}
                   name={'carcass_condition'}
                   errors={errors}
-                  label={'Carcass Condition'}
+                  label={'Carcass Condition*'}
                   options={carcassCondition}
                   getOptionLabel={option => option?.label || ''}
                   getOptionValue={option => option?.value || ''}
@@ -291,7 +349,7 @@ const MortalityDischargeForm = props => {
                   control={control}
                   name={'carcass_disposition'}
                   errors={errors}
-                  label={'Carcass Deposition'}
+                  label={'Carcass Deposition*'}
                   options={carcassDeposition}
                   getOptionLabel={option => option?.label || ''}
                   getOptionValue={option => option?.value || ''}
@@ -344,6 +402,7 @@ const MortalityDischargeForm = props => {
                 control={control}
                 errors={errors}
                 gap={4}
+                disabled={true}
               />
             </Grid>
 
@@ -362,6 +421,30 @@ const MortalityDischargeForm = props => {
                     backgroundColor: priorityBgColor,
                     color: priorityColor,
                     '& .MuiSelect-icon': {
+                      color: priorityColor
+                    }
+                  }}
+                  formControlSx={{
+                    // normal
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: `${priorityColor} !important`
+                    },
+
+                    // hover
+                    '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: `${priorityColor} !important`
+                    },
+
+                    // focused
+                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: `${priorityColor} !important`
+                    },
+
+                    // label
+                    '& .MuiInputLabel-root': {
+                      color: priorityColor
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': {
                       color: priorityColor
                     }
                   }}
@@ -390,7 +473,7 @@ const MortalityDischargeForm = props => {
                   control={control}
                   name={'necropsy_center_id'}
                   errors={errors}
-                  label={'Necropsy Center'}
+                  label={'Necropsy Center*'}
                   options={necropsyCenter}
                   getOptionLabel={option => option?.label || ''}
                   getOptionValue={option => option?.value || ''}

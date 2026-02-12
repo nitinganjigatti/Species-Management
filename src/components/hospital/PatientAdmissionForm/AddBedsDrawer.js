@@ -125,6 +125,12 @@ const AddBedsDrawer = ({
     })
   }
 
+  useEffect(() => {
+    if (selectedHospital?.id && !hospitalStats) {
+      fetchAndUpdateHospitalStats(selectedHospital?.id)
+    }
+  }, [selectedHospital])
+
   // Hospital stats
   const fetchAndUpdateHospitalStats = async hospitalId => {
     if (!hospitalId) return
@@ -285,8 +291,8 @@ const AddBedsDrawer = ({
                   )}
                 </Box>
               </Box>
-              <Grid container spacing={4} alignItems='center' justifyContent='space-between'>
-                <Grid item xs={3} md={2}>
+              <Grid container spacing={4}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                   <Box>
                     {isHospitalStatsLoading ? (
                       <ShimmerBox width='60px' height='24px' mb={1} />
@@ -313,7 +319,7 @@ const AddBedsDrawer = ({
                   </Box>
                 </Grid>
 
-                <Grid item xs={3} md={2}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                   <Box>
                     {isHospitalStatsLoading ? (
                       <ShimmerBox width='60px' height='24px' mb={1} />
@@ -335,12 +341,12 @@ const AddBedsDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Total beds
+                      Total Enclosures
                     </Typography>
                   </Box>
                 </Grid>
 
-                <Grid item xs={3} md={2}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                   <Box>
                     {isHospitalStatsLoading ? (
                       <ShimmerBox width='60px' height='24px' mb={1} />
@@ -363,12 +369,12 @@ const AddBedsDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Available Beds
+                      Available Enclosures
                     </Typography>
                   </Box>
                 </Grid>
 
-                <Grid item xs={3} md={2}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                   <Box>
                     {isHospitalStatsLoading ? (
                       <ShimmerBox width='60px' height='24px' mb={1} />
@@ -391,7 +397,7 @@ const AddBedsDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Occupied Beds
+                      Occupied Enclosures
                     </Typography>
                   </Box>
                 </Grid>
@@ -406,7 +412,7 @@ const AddBedsDrawer = ({
                 </Typography>
                 <ControlledAutocomplete
                   name='room'
-                  label='Select Room'
+                  label='Select Room*'
                   control={control}
                   errors={errors}
                   options={rooms}
@@ -426,11 +432,11 @@ const AddBedsDrawer = ({
                 <Typography
                   sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Bed
+                  Enclosure
                 </Typography>
                 <ControlledTextField
                   name='bed'
-                  label='Enter Bed Name'
+                  label='Enter Enclosure Name*'
                   control={control}
                   errors={errors}
                   required

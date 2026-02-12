@@ -16,9 +16,11 @@ const SignedMediaPlayer = ({
   playsInline = true,
   muted = false,
   onError,
+  onLoad,
   style = {}
 }) => {
   const [blobUrl, setBlobUrl] = useState(null)
+  const blobRef = useRef(null)
 
   // Signed URL → Blob URL (Safari safe)
   const getSignedMediaBlobUrl = async url => {
@@ -30,11 +32,14 @@ const SignedMediaPlayer = ({
       })
 
       const blob = await response.blob()
-      
-      return URL.createObjectURL(blob)
+      const objectUrl = URL.createObjectURL(blob)
+      blobRef.current = objectUrl
+
+      return objectUrl
     } catch (error) {
       console.error('Failed to load media:', error)
-      
+      onError?.(error)
+
       return null
     }
   }
@@ -45,7 +50,6 @@ const SignedMediaPlayer = ({
 
     let active = true
 
-
     getSignedMediaBlobUrl(src).then(url => {
       if (active && url) {
         setBlobUrl(url)
@@ -55,10 +59,10 @@ const SignedMediaPlayer = ({
     return () => {
       active = false
 
-    //   if (objectUrl) URL.revokeObjectURL(objectUrl)
-      if (blobUrl) URL.revokeObjectURL(blobUrl)
-
-    //   setBlobUrl(null)
+      if (blobRef.current) {
+        URL.revokeObjectURL(blobRef.current)
+        blobRef.current = null
+      }
     }
   }, [src])
 
@@ -78,32 +82,25 @@ const SignedMediaPlayer = ({
   }
 
   return (
-  <Box sx={{ width, height }}>
-    {type === 'video' ? (
-      <video
-        {...commonProps}
-        playsInline={playsInline}
-      />
-    ) : isSafari ? (
-
-      // Safari → blob audio
-      <audio
-        {...commonProps}
-      />
-    ) : (
-
-      // Chrome / others → direct URL audio
-      <audio
-        src={src}
-        controls
-        preload="auto"
-        style={{ width: '100%' }}
-        onError={onError}
-      />
-    )}
-  </Box>
-)
+    <Box sx={{ width, height }}>
+      {type === 'video' ? (
+        <video {...commonProps} playsInline={playsInline} onCanPlay={() => onLoad?.()} />
+      ) : isSafari ? (
+        // Safari → blob audio
+        <audio {...commonProps} onCanPlay={() => onLoad?.()} />
+      ) : (
+        // Chrome / others → direct URL audio
+        <audio
+          src={src}
+          controls
+          preload='auto'
+          style={{ width: '100%' }}
+          onError={onError}
+          onCanPlay={() => onLoad?.()}
+        />
+      )}
+    </Box>
+  )
 }
 
 export default SignedMediaPlayer
-

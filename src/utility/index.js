@@ -228,6 +228,24 @@ const downloadFileFromURL = async (fileUrl, title = '') => {
   }
 }
 
+const downloadFileFromURLWithBlob = async (url, fileName) => {
+  if (!url) return
+  try {
+    const response = await fetch(url)
+    const blob = await response.blob()
+    const blobUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = blobUrl
+    link.download = fileName || 'download'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(blobUrl)
+  } catch (error) {
+    console.error('Download failed:', error)
+  }
+}
+
 const formatText = text => {
   return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
 }
@@ -350,8 +368,38 @@ export const downloadPDF = async ({ apiCall, params, fileName, headers = {} }) =
 
 const capitalizeFirstLetter = string => {
   if (!string) return ''
-  
-return string.charAt(0).toUpperCase() + string.slice(1)
+
+  return string.charAt(0).toUpperCase() + string.slice(1)
+}
+
+export const extractTextFromHtml = html => {
+  if (!html) return ''
+
+  // Pre-strip script/style tags and their content via regex before DOM parsing
+  const sanitized = html.replace(/<script\b[\s\S]*?<\/script\s*>/gi, '').replace(/<style\b[\s\S]*?<\/style\s*>/gi, '')
+
+  const parser = new DOMParser()
+  const doc = parser?.parseFromString(sanitized, 'text/html')
+  doc?.querySelectorAll('script, style, iframe, object, embed')?.forEach(el => {
+    el?.remove()
+  })
+  doc?.querySelectorAll('br')?.forEach(br => {
+    br?.replaceWith(' ')
+  })
+
+  doc?.querySelectorAll('li')?.forEach(li => {
+    li?.appendChild(document.createTextNode(' '))
+  })
+
+  doc?.querySelectorAll('p')?.forEach(p => {
+    p.appendChild(document.createTextNode(' '))
+  })
+
+  // Strip any HTML-encoded tags that became plain text (e.g. &lt;script&gt; → <script>)
+  return (doc?.body?.textContent || '')
+    .replace(/<\/?[^>]+(>|$)/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 const Utility = {
@@ -373,6 +421,7 @@ const Utility = {
   formatNumberToDisplay,
   formatAmountToReadableDigit,
   downloadFileFromURL,
+  downloadFileFromURLWithBlob,
   formatText,
   toPascalSentenceCase,
   renderUserAvatar,
@@ -383,7 +432,8 @@ const Utility = {
   hexToHex8,
   getUpcomingHours,
   downloadPDF,
-  capitalizeFirstLetter
+  capitalizeFirstLetter,
+  extractTextFromHtml
 }
 
 export default Utility

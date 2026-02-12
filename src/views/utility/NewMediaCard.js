@@ -1,11 +1,14 @@
 import React, { useState, useMemo } from 'react'
-import { Box, IconButton, useTheme } from '@mui/material'
+import { Box, IconButton, useTheme, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import UserAvatarDetails from './UserAvatarDetails'
 import FileDialog from 'src/components/utility/FileDialog'
 import { useAuth } from 'src/hooks/useAuth'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import SignedMediaPlayer from 'src/components/utility/SignedMediaPlayer'
+import MenuWithDots from 'src/components/MenuWithDots'
+import Utility from 'src/utility'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 
 // File type mapping to extensions
 const EXT_ICON_MAP = {
@@ -45,16 +48,22 @@ const FilePreviewCard = ({
   showTitle = false,
   showTitleIcon = false,
   onTitleIconClick,
-  cardStyle = {}
+  cardStyle = {},
+  actions = null,
+  onDeleteaction,
+  ondownloadaction,
+  isDeleteLoading = false,
+  downloadUrl = null
 }) => {
   const theme = useTheme()
   const { userData } = useAuth()
   const imgPath = userData?.settings?.DEFAULT_IMAGE_MASTER || {}
   const [previewFile, setPreviewFile] = useState(null)
   const [isImageError, setIsImageError] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
   // Derive file name safely
-  const derivedFileName = () => {
+  const derivedFileName = useMemo(() => {
     if (fileName) return fileName.trim()
 
     try {
@@ -64,10 +73,10 @@ const FilePreviewCard = ({
     } catch {
       return 'unknown'
     }
-  }
+  }, [fileName, fileUrl])
 
   // Determine file type and icon
-  const fileType = getFileType(derivedFileName(), fileTypeFromApi)
+  const fileType = getFileType(derivedFileName, fileTypeFromApi)
   const fileIcon = getFileIcon(fileType, imgPath)
 
   // Handle preview click
@@ -77,7 +86,7 @@ const FilePreviewCard = ({
     setPreviewFile({
       src: fileUrl,
       type: typeMap[fileType] || 'other',
-      name: derivedFileName(),
+      name: derivedFileName,
       fileIcon: fileIcon
     })
   }
@@ -104,6 +113,7 @@ const FilePreviewCard = ({
             {...commonProps}
             sx={{
               ...commonProps.sx,
+              height: '120px',
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: fileIcon?.bg_color || theme.palette.action.hover
@@ -115,11 +125,11 @@ const FilePreviewCard = ({
       }
 
       return (
-        <Box {...commonProps}>
+        <Box {...commonProps} sx={{ ...commonProps.sx, height: '120px' }}>
           <img
             src={fileUrl}
-            alt={derivedFileName()}
-            style={{ width: '100%', height: '133px', objectFit: 'cover' }}
+            alt={derivedFileName}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             onError={() => setIsImageError(true)}
           />
         </Box>
@@ -133,7 +143,8 @@ const FilePreviewCard = ({
           sx={{
             ...commonProps.sx,
             position: 'relative', // needed for overlay
-            overflow: 'hidden'
+            overflow: 'hidden',
+            height: '120px'
           }}
         >
           {/* <video src={fileUrl}  muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> */}
@@ -186,6 +197,7 @@ const FilePreviewCard = ({
         {...commonProps}
         sx={{
           ...commonProps.sx,
+          height: '120px',
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: fileIcon?.bg_color || theme.palette.action.hover
@@ -209,8 +221,62 @@ const FilePreviewCard = ({
     )
   }
 
+  const menuOptions = useMemo(() => {
+    const opts = []
+
+    if (ondownloadaction) {
+      opts.push({
+        label: <Typography>Download</Typography>,
+
+        // icon: <Icon icon='mdi:download' fontSize={20} />,
+        action: () => {
+          if (downloadUrl) {
+            // Use direct download when downloadUrl is provided
+            Utility.downloadFileFromURL(downloadUrl, derivedFileName)
+          } else {
+            // Use blob-based download for regular fileUrl
+            Utility.downloadFileFromURLWithBlob(fileUrl, derivedFileName)
+          }
+        }
+      })
+    }
+
+    if (onDeleteaction) {
+      opts.push({
+        label: <Typography>Delete</Typography>,
+
+        // icon: <Icon icon='mdi:delete-outline' fontSize={20} />,
+        action: () => setIsDeleteModalOpen(true)
+      })
+    }
+
+    if (actions && Array.isArray(actions)) {
+      opts.push(...actions)
+    }
+
+    return opts
+  }, [actions, onDeleteaction, ondownloadaction, fileUrl, downloadUrl, derivedFileName])
+
   return (
     <>
+      {isDeleteModalOpen && (
+        <ConfirmationDialog
+          dialogBoxStatus={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          title={'Delete Media'}
+          cancelText={'CANCEL'}
+          confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2 }}
+          image={'/images/warning-icon.svg'}
+          imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
+          confirmAction={async () => {
+            await onDeleteaction()
+            setIsDeleteModalOpen(false)
+          }}
+          loading={isDeleteLoading}
+          ConfirmationText={'DELETE'}
+          description={' Are you sure you want to delete this media?'}
+        />
+      )}
       {previewFile && (
         <FileDialog
           open={!!previewFile}
@@ -242,7 +308,7 @@ const FilePreviewCard = ({
             {showTitle && (
               <TextEllipsisWithModal
                 enableDialog={false}
-                text={derivedFileName()}
+                text={derivedFileName}
                 style={{
                   color: theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '0.875rem',
@@ -252,16 +318,17 @@ const FilePreviewCard = ({
               />
             )}
 
-            {showTitleIcon && (
-              <IconButton
-                onClick={e => {
-                  onTitleIconClick?.()
-                }}
-                sx={{ padding: 0, color: theme.palette.customColors.neutralSecondary }}
-              >
-                <Icon icon='mdi:close-circle' fontSize={22} />
-              </IconButton>
-            )}
+            {/* {showTitleIcon && (
+                <IconButton
+                  onClick={e => {
+                    onTitleIconClick?.()
+                  }}
+                  sx={{ padding: 0, color: theme.palette.customColors.neutralSecondary }}
+                >
+                  <Icon icon='mdi:close-circle' fontSize={22} />
+                </IconButton>
+              )} */}
+            {menuOptions.length > 0 && <MenuWithDots options={menuOptions} iconSx={{ p: 0 }} />}
           </Box>
         )}
 

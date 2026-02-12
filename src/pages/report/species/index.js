@@ -64,10 +64,10 @@ const SpeciesReport = () => {
 
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
-      { label: 'Class', key: 'include_class', checked: false },
-      { label: 'Order', key: 'include_order', checked: false },
-      { label: 'Family', key: 'include_family', checked: false },
-      { label: 'Genus', key: 'include_genus', checked: false }
+      { label: 'Class', key: 'include_class', checked: true },
+      { label: 'Order', key: 'include_order', checked: true },
+      { label: 'Family', key: 'include_family', checked: true },
+      { label: 'Genus', key: 'include_genus', checked: true }
     ],
     Housing: [
       { label: 'Site', key: 'include_site', checked: false },
@@ -83,11 +83,11 @@ const SpeciesReport = () => {
     include_enclosure: 0,
     include_section: 0,
     include_cluster: 0,
-    include_class: 0,
+    include_class: 1,
     include_organization: 0,
-    include_order: 0,
-    include_family: 0,
-    include_genus: 0,
+    include_order: 1,
+    include_family: 1,
+    include_genus: 1,
     include_site: 0
   }
 

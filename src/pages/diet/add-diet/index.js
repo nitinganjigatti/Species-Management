@@ -157,9 +157,11 @@ const AddDiet = () => {
     }
   }
 
+  const [feedSearchValue, setFeedSearchValue] = useState('')
+
   const fetchData = useCallback(async (pageNum = 1) => {
     setLoadingFeed(true)
-    const params = { page: pageNum, limit: 20, status: 1 }
+    const params = { page: pageNum, limit: 20, status: 1, q: feedSearchValue }
 
     try {
       const response = await getFeedTypeList(params)
@@ -173,7 +175,15 @@ const AddDiet = () => {
     } finally {
       setLoadingFeed(false)
     }
-  }, [])
+  }, [feedSearchValue])
+
+  const handleFeedSearch = useCallback(
+    debounce(val => {
+      setFeedSearchValue(val)
+      setPage(1)
+    }, 500),
+    []
+  )
 
   const IngredientTypeListSearch = debounce(async value => {
     try {
@@ -629,6 +639,7 @@ const AddDiet = () => {
             onLoadMore={handleLoadMore}
             loadingfeed={loadingfeed}
             feedtotalCount={feedtotalCount}
+            handleFeedSearch={handleFeedSearch}
           />
         )
       case 1:

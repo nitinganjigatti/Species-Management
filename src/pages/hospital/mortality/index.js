@@ -26,13 +26,12 @@ import { getPatientDischargeSummary, getPatientsMortalityListings } from 'src/li
 import Utility, { downloadPDF } from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
-import { VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
+import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
-import Toaster from 'src/components/Toaster'
 
 const HospitalMortality = () => {
   const theme = useTheme()
@@ -46,6 +45,9 @@ const HospitalMortality = () => {
   const [filterCount, setFilterCount] = useState(0)
   const [filterDate, setFilterDate] = useState({})
   const [downloadingRowId, setDownloadingRowId] = useState(null)
+  const [rows, setRows] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -85,37 +87,68 @@ const HospitalMortality = () => {
     return new Date(dateString).toISOString().split('T')[0]
   }
 
-  const { data, isFetching, refetch } = useQuery({
-    queryKey: [
-      'patients-mortality-listings',
-      filters,
-      selectedVisitType,
-      selectedHospital?.id,
-      filterDate,
-      selectedOptions
-    ],
-    queryFn: () =>
-      getPatientsMortalityListings({
+  const fetchPatientsMortality = async () => {
+    if (!selectedHospital?.id) return
+
+    try {
+      setLoading(true)
+
+      const res = await getPatientsMortalityListings({
         page_no: filters?.page,
         limit: filters?.limit,
         q: filters?.q,
-        hospital_id: 1,
-        visit_type: selectedVisitType,
         hospital_id: selectedHospital?.id,
+        visit_type: selectedVisitType,
         from_date: formatDate(filterDate.startDate),
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('Chief Veterinarian'),
         origin_site: prepareFilterParams('Origin Site')
-      }),
-    enabled: !!selectedHospital?.id
-  })
+      })
 
-  const total = data?.data?.total || 0
-  const rows = data?.data?.records || []
+      setRows(res?.data?.records || [])
+      setTotal(res?.data?.total || 0)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    refetch()
-  }, [refetch])
+    fetchPatientsMortality()
+  }, [filters?.page, filters?.limit, filters?.q, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions])
+
+  // const { data, isFetching, refetch } = useQuery({
+  //   queryKey: [
+  //     'patients-mortality-listings',
+  //     filters,
+  //     selectedVisitType,
+  //     selectedHospital?.id,
+  //     filterDate,
+  //     selectedOptions
+  //   ],
+  //   queryFn: () =>
+  //     getPatientsMortalityListings({
+  //       page_no: filters?.page,
+  //       limit: filters?.limit,
+  //       q: filters?.q,
+  //       hospital_id: 1,
+  //       visit_type: selectedVisitType,
+  //       hospital_id: selectedHospital?.id,
+  //       from_date: formatDate(filterDate.startDate),
+  //       to_date: formatDate(filterDate.endDate),
+  //       users: prepareFilterParams('Chief Veterinarian'),
+  //       origin_site: prepareFilterParams('Origin Site')
+  //     }),
+  //   enabled: !!selectedHospital?.id
+  // })
+
+  // const total = data?.data?.total || 0
+  // const rows = data?.data?.records || []
+
+  // useEffect(() => {
+  //   refetch()
+  // }, [refetch])
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -231,6 +264,18 @@ const HospitalMortality = () => {
             }}
           />
         </>
+      )
+    },
+    {
+      width: 200,
+      minWidth: 20,
+      field: 'medical_record_code',
+      headerName: 'Medical Record ID',
+      renderCell: params => (
+        <MedicalIdChip
+          medId={params?.row?.medical_record_code}
+          backgroundColor={theme.palette.customColors.mdAntzNeutral}
+        />
       )
     },
     {
@@ -525,7 +570,7 @@ const HospitalMortality = () => {
                 columns={columns}
                 indexedRows={indexedRows}
                 total={total}
-                loading={isFetching}
+                loading={loading}
                 paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
                 setPaginationModel={handlePaginationModelChange}
                 searchValue=''

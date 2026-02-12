@@ -1,5 +1,5 @@
 /* eslint-disable lines-around-comment */
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   Box,
   Typography,
@@ -162,7 +162,8 @@ const MedicinePrescriptionCard = ({
   handleBatchSearch,
   isControlledSubstance = false,
   medicalMasterData,
-  mastersDataLoading
+  mastersDataLoading,
+  onUpdateMedicine
 }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -288,6 +289,33 @@ const MedicinePrescriptionCard = ({
       reset(defaultValues)
     }
   }, [isSingleSelection, reset])
+
+  const autoSelectSinglePendingMedication = useCallback(() => {
+    if (!open || isDetailLoading || isDatesLoading) return;
+
+    const pendingMedications = dosageEntries?.filter(
+      item => !item?.status || item?.status?.toLowerCase() === 'pending'
+    );
+
+    if (pendingMedications?.length === 1) {
+      const singlePendingId = pendingMedications[0]?.administritive_id;
+      if (!selectedMedications.includes(singlePendingId)) {
+        const isControlledSubstance = pendingMedications[0]?.controlled_substance == 1;
+
+        setSelectedMedications(prev => {
+          if (isControlledSubstance) {
+            return [singlePendingId];
+          } else {
+            return [...prev, singlePendingId];
+          }
+        });
+      }
+    }
+  }, [open, dosageEntries, isDetailLoading, isDatesLoading, selectedMedications]);
+
+  useEffect(() => {
+    autoSelectSinglePendingMedication();
+  }, [autoSelectSinglePendingMedication]);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue)
@@ -565,6 +593,10 @@ const MedicinePrescriptionCard = ({
     onRestartMedicine()
   }
 
+  const handleUpdateMedicine = async () => {
+    onUpdateMedicine()
+  }
+
   const renderDosageEntry = entry => (
     <DosageSection key={entry.id} variant={entry.variant}>
       <DosageHeader variant={entry.status}>
@@ -796,9 +828,16 @@ const MedicinePrescriptionCard = ({
                     {RenderUtility?.renderPrescriptionLabel(medicine?.prescription_required, 'PR')} {medicine?.name}
                   </Typography>
                 </Box>
-                <IconButton onClick={handleClose}>
-                  <Icon icon='mdi:close' fontSize='24px' color={theme.palette.customColors.OnPrimaryContainer} />
-                </IconButton>
+                <Box>
+                  {!medicineData?.stop_date && (
+                    <IconButton onClick={handleUpdateMedicine}>
+                      <Icon icon='mdi:edit' fontSize='24px' color={theme.palette.customColors.OnPrimaryContainer} />
+                    </IconButton>
+                  )}
+                  <IconButton onClick={handleClose}>
+                    <Icon icon='mdi:close' fontSize='24px' color={theme.palette.customColors.OnPrimaryContainer} />
+                  </IconButton>
+                </Box>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flex: '1 0 0' }}>

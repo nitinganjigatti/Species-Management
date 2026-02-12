@@ -13,10 +13,13 @@ import Toaster from 'src/components/Toaster'
 import AddRoomDrawer from '../PatientAdmissionForm/AddRoomDrawer'
 import AddBedsDrawer from '../PatientAdmissionForm/AddBedsDrawer'
 import { AuthContext } from 'src/context/AuthContext'
+import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
 
 const defaultValues = {
   holdingEnclosure: null,
   selectedDoctor: null
+
+  // patient_status: false
 }
 
 const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
@@ -36,6 +39,8 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
   const [enclosureLoading, setEnclosureLoading] = useState(false)
   const [openAddRoomDrawer, setOpenAddRoomDrawer] = useState(false)
   const [openAddBedsDrawer, setOpenAddBedsDrawer] = useState(false)
+  const [previousRoomId, setPreviousRoomId] = useState(null)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
 
   const {
     control,
@@ -71,6 +76,8 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
         selectedDoctor: doctorData
       })
       setSelectedDoctor(doctorData)
+      setPreviousRoomId(patientData?.room_id)
+      setIsInitialLoad(true)
     }
   }, [patientData, reset])
 
@@ -82,8 +89,9 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
           hospital_id: selectedHospital?.id,
           page: 1,
           per_page: 20,
-          q: search,
-          availability: 'available'
+          q: search
+
+          // availability: 'available'
         }).then(res => {
           if (res?.success === true) {
             const filteredRooms = res?.data?.records
@@ -110,7 +118,13 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
 
   const selectedRoom = watch('room')
 
+  // const watchPatientStatus = watch('patient_status')
+
   useEffect(() => {
+    // Reset holding enclosure when room changes
+    // setValue('holdingEnclosure', null)
+    // setHoldingEnclosures([])
+
     const getHospitalBeds = async () => {
       if (!selectedRoom?.value) return
       setEnclosureLoading(true)
@@ -120,7 +134,8 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
           status: 'active',
           room_id: selectedRoom.value,
           page: 1,
-          is_occupied: 'available',
+
+          // is_occupied: 'available',
           q: searchEnclosure
         })
         if (res?.success === true) {
@@ -363,7 +378,44 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
                 )
               }
             />
+            {selectedRoom?.value && !enclosureLoading && holdingEnclosures.length === 0 && (
+              <Typography
+                sx={{
+                  color: theme.palette.error.main,
+                  mt: '0px',
+                  mx: '4px',
+                  fontSize: '0.75rem',
+                  fontWeight: 400
+                }}
+              >
+                No active/available enclosures available for this Room
+              </Typography>
+            )}
           </Box>
+          {/* <Box
+            sx={{
+              display: 'none',
+              justifyContent: 'space-between',
+              alignItem: 'center',
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+              borderRadius: 1,
+              p: 3
+            }}
+          >
+            <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+              Patient Status
+            </Typography>
+            <ControlledSwitch
+              control={control}
+              name='patient_status'
+              errors={errors}
+              required
+              disabled={submitLoader}
+              label={watchPatientStatus ? 'Critical' : 'Normal'}
+              labelPosition='start'
+              spaceBetween
+            />
+          </Box> */}
         </Box>
         <Box
           sx={{

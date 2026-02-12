@@ -1,5 +1,5 @@
 /* eslint-disable lines-around-comment */
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   Box,
   Typography,
@@ -308,6 +308,31 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
       onRefreshEntry(entryId, medicine)
     }
   }
+
+  const autoSelectSinglePendingMedication = useCallback(() => {
+    if (!open || isDetailLoading) return;
+
+    const pendingMedications = dosageEntries?.filter(
+      item => !item?.status || item?.status?.toLowerCase() === 'pending'
+    );
+
+    if (pendingMedications?.length === 1) {
+      const singlePendingId = pendingMedications[0]?.administritive_id;
+      if (!selectedMedications.includes(singlePendingId)) {
+        setSelectedMedications(prev => {
+          if (isControlledSubstance) {
+            return [singlePendingId];
+          } else {
+            return [...prev, singlePendingId];
+          }
+        });
+      }
+    }
+  }, [open, dosageEntries, isDetailLoading, selectedMedications, isControlledSubstance]);
+
+  useEffect(() => {
+    autoSelectSinglePendingMedication();
+  }, [autoSelectSinglePendingMedication]);
 
   // Handle individual medication selection
   const handleMedicationSelect = (medicationId, checked) => {

@@ -4,6 +4,7 @@ import { useTheme } from '@mui/material/styles'
 import ClinicalAssessmentList from 'src/components/hospital/ClinicalAssessment/ClinicalAssessmentList'
 import SelectedClinicalAssessment from 'src/components/hospital/ClinicalAssessment/SelectedClinicalAssessment'
 import AddClinicalAsmntDrawer from 'src/components/hospital/drawer/AddClinicalAsmntDrawer'
+import AddDiagnosisDrawer from 'src/components/hospital/drawer/AddDiagnosisDrawer'
 import debounce from 'lodash/debounce'
 import {
   addClinicalAssessment,
@@ -30,6 +31,7 @@ function AddClinicalAssessment() {
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [clinicalDrawerOpen, setClinicalDrawerOpen] = useState(false)
+  const [addDiagnosisDrawerOpen, setAddDiagnosisDrawerOpen] = useState(false)
   const [clinicalAsmnt, setClinicalAsmnt] = useState('')
   const [prognosisVal, setPrognosisValue] = useState('')
   const [chronicVal, setChronicVal] = useState('No')
@@ -279,7 +281,7 @@ function AddClinicalAssessment() {
         master_ids: JSON.stringify(selectedSymptoms.map(s => s.id))
       }
       const response = await checkAnimalStatusByType(payload)
-      
+
       if (response?.success) {
         setDuplicateAssessments(response?.data)
 
@@ -298,15 +300,16 @@ function AddClinicalAssessment() {
 
     if (selectedSymptoms.length === 0) {
       Toaster({ type: 'error', message: 'Please select at least one Assessment' })
+      setIsSubmitLoading(false)
 
       return
     }
     if (duplicatesData?.length > 0) {
       setDuplicatesErrorModelOpen(true)
+      setIsSubmitLoading(false)
 
       return
     }
-    setIsSubmitLoading(true)
 
     const diagnosis = selectedSymptoms.map(symptom => ({
       id: symptom?.id,
@@ -328,7 +331,8 @@ function AddClinicalAssessment() {
 
     const payload = {
       medical_record_id: medicalRecordId,
-      diagnosis: JSON.stringify(diagnosis)
+      diagnosis: JSON.stringify(diagnosis),
+      hospital_case_id: id
     }
 
     try {
@@ -406,11 +410,35 @@ function AddClinicalAssessment() {
     setClinicalDrawerOpen(true)
   }
 
+  const handleAddNewClick = () => {
+    setAddDiagnosisDrawerOpen(true)
+  }
+
+  const handleDiagnosisAdded = async assessment => {
+    handleSymptomSelect(assessment)
+
+    // Refetch categories and diagnosis items
+    await fetchDiagnosisTypes()
+    if (currentTabId) {
+      setAllAssessments([])
+      setPage(1)
+      await fetchDiagnosisItems(1, searchTerm, currentTabId)
+    }
+  }
+
   useEffect(() => {
     if (id) {
       getPatientInfo()
     }
   }, [id])
+
+  const handleAIDDisplay = () => {
+    if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
+      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+    } else {
+      return patientData?.animal_detail?.animal_id
+    }
+  }
 
   return (
     <Box sx={{ p: 3 }}>
@@ -422,8 +450,9 @@ function AddClinicalAssessment() {
         age={`${patientData?.animal_detail?.age}`}
         gender={`${patientData?.animal_detail?.sex}`}
         additionalFields={[
-          { label: 'AID', value: patientData?.animal_detail?.animal_id },
-          { label: 'Admitted days', value: patientData?.admitted_for_day },
+          { label: 'AID', value: handleAIDDisplay() },
+          { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
+          // { label: 'Admitted days', value: patientData?.admitted_for_day },
           { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
           { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }
         ]}
@@ -462,6 +491,7 @@ function AddClinicalAssessment() {
             isTabsLoading={isTabsLoading}
             isListLoading={isLoading}
             isInitialLoading={isInitialLoading}
+            handleAddNewClick={handleAddNewClick}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
@@ -530,6 +560,16 @@ function AddClinicalAssessment() {
           setNotes={setNotes}
           onSave={addSymptomDetails}
           isSubmitLoading={isSubmitLoading}
+        />
+      )}
+
+      {addDiagnosisDrawerOpen && (
+        <AddDiagnosisDrawer
+          open={addDiagnosisDrawerOpen}
+          onClose={() => setAddDiagnosisDrawerOpen(false)}
+          onSuccess={handleDiagnosisAdded}
+          categoryOptions={tabOptions}
+          medicalRecordId={medicalRecordId}
         />
       )}
     </Box>

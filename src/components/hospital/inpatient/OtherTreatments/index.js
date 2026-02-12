@@ -11,7 +11,6 @@ import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import AddTreatmentDrawer from './AddTreatmentDrawer'
 import EditTreatmentDrawer from './EditTreatmentDrawer'
-import NoDataFound from 'src/views/utility/NoDataFound'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 import {
@@ -96,14 +95,18 @@ const mapTreatmentEntry = (entry, index = 0) => {
     clinician: {
       name: entry.created_by_name || '—',
       avatarUrl: entry.profile_pic || '',
-      createdAt: entry.created_at || ''
+      createdAt: entry.created_at || '',
+      updatedAt: entry.updated_at || ''
     },
     animalId: entry.animal_id || null,
     medicalRecordId: entry.medical_record_id || null,
     medicalRecordCode: entry.medical_record_code || '',
     treatmentMasterId: entry.treatment_master_id || null,
     hospitalCaseId: entry.hospital_case_id || null,
-    notes_count: notesCount
+    notes_count: notesCount,
+    isModified: entry.is_modified,
+    record: { ...entry },
+    updatedAt: entry.update_at
   }
 }
 
@@ -204,6 +207,8 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     })
     setIsUpdatingTreatment(false)
     setIsDeletingTreatment(false)
+    setIsAddingTreatmentNote(false)
+    setTreatmentActivitiesLoading(false)
   }, [])
 
   const totalTreatments = useMemo(
@@ -256,6 +261,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
       if (!finalAnimalId || !finalMedicalRecordId || !finalTreatmentMasterId) {
         setSelectedTreatmentActivities([])
+        setTreatmentActivitiesLoading(false)
 
         return
       }
@@ -866,13 +872,26 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
                           sx={{
                             flexShrink: 0,
                             minWidth: '220px',
-                            width: { xs: '100%', sm: 'auto' }
+                            width: { xs: '100%', sm: 'auto' },
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px'
                           }}
                         >
+                          <Typography
+                            sx={{
+                              mb: { xs: 1 },
+                              color: theme.palette.customColors.neutralSecondary,
+                              fontSize: '0.75rem',
+                              ml: { xs: 0, md: 1 }
+                            }}
+                          >
+                            {treatment?.isModified == 1 ? 'Updated by' : 'Created by'}
+                          </Typography>
                           <UserInfoCard
-                            avatarUrl={treatment.clinician.avatarUrl}
-                            name={treatment.clinician.name}
-                            description={formatClinicianTimestamp(treatment.clinician.createdAt)}
+                            avatarUrl={treatment?.record?.profile_pic || ''}
+                            name={treatment?.record?.created_by_name || '—'}
+                            description={formatClinicianTimestamp(treatment?.clinician?.updatedAt ? treatment?.clinician?.updatedAt : treatment?.clinician?.createdAt)}
                             textColor={theme.palette.customColors.OnSurfaceVariant}
                           />
                         </Box>

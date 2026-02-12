@@ -32,12 +32,10 @@ import { getAnimalMedicalIds } from 'src/lib/api/hospital/hospitalMaster'
 import { addHospitalPatient } from 'src/lib/api/hospital/inpatient'
 import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
-import { LoadingButton } from '@mui/lab'
 import { useHospital } from 'src/context/HospitalContext'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import dayjs from 'dayjs'
-import moment from 'moment'
 import AddPatientFiltersDrawer from '../inpatient/AddPatientFiltersDrawer'
 import SortBottomSheet from '../inpatient/SortBottomSheet'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
@@ -45,31 +43,14 @@ import AddRoomDrawer from '../PatientAdmissionForm/AddRoomDrawer'
 import AddBedsDrawer from '../PatientAdmissionForm/AddBedsDrawer'
 import { AuthContext } from 'src/context/AuthContext'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
+import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
+import Utility from 'src/utility'
 
 // import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
-
-const defaultValues = {
-  treatmentType: 'inpatient',
-  purposeOfVisit: '',
-  visitType: '',
-  medicalRecordId: '',
-  holdingEnclosure: null,
-  medicalRecordChoice: 'new',
-  selectedAnimal: null,
-  selectedDoctor: null,
-  admission_date: dayjs(),
-  admission_time: dayjs(),
-  room: null
-}
 
 const treatmentType = [
   { label: 'OPD(outpatient)', value: 'opd' },
   { label: 'Hospital Admission(inpatient)', value: 'inpatient' }
-]
-
-const medicalRecordType = [
-  { label: 'Create a new ID', value: 'new' },
-  { label: 'Add to existing ID', value: 'existing' }
 ]
 
 const visitTypes = [
@@ -80,9 +61,14 @@ const visitTypes = [
   { label: 'Planned', value: 'planned' }
 ]
 
-// Updated schema to validate form fields directly
+const healthStatusOptions = [
+  { label: 'Stable', value: 'stable' },
+  { label: 'Critical', value: 'critical' }
+]
+
 const schema = yup.object().shape({
   treatmentType: yup.string().required('Treatment Type is Required'),
+  healthStatus: yup.string().notRequired(),
   purposeOfVisit: yup.string().required('Purpose of Visit is Required'),
   visitType: yup.string().required('Visit type is required'),
   medicalRecordId: yup.string().when('medicalRecordChoice', {
@@ -94,13 +80,33 @@ const schema = yup.object().shape({
   selectedAnimal: yup.mixed().nullable().required('Animal is required'),
   selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
   room: yup.object().required('Room is required')
+
+  // patient_status: yup.boolean().required('Patient Status is Required')
 })
 
-const AddPatientForm = () => {
+const AddPatientForm = ({ defaultTreatmentType }) => {
   const theme = useTheme()
+
   const router = useRouter()
   const authData = useContext(AuthContext)
   const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
+
+  const defaultValues = {
+    treatmentType: defaultTreatmentType || 'inpatient',
+    healthStatus: 'stable',
+    purposeOfVisit: '',
+    visitType: '',
+    medicalRecordId: '',
+    holdingEnclosure: null,
+    medicalRecordChoice: 'new',
+    selectedAnimal: null,
+    selectedDoctor: null,
+    admission_date: dayjs(),
+    admission_time: dayjs(),
+    room: null
+
+    // patient_status: false
+  }
 
   const { selectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } = useHospital()
   const [medicalId, setMedicalId] = useState([])
@@ -130,6 +136,11 @@ const AddPatientForm = () => {
     Section: [],
     Enclosure: []
   })
+
+  const medicalRecordType = [
+    { label: 'Create a new ID', value: 'new', disabled: false },
+    { label: 'Add to existing ID', value: 'existing', disabled: medicalId.length === 0 }
+  ]
 
   const applyFilters = selectedOptions => {
     setSelectedOptions(selectedOptions)
@@ -164,6 +175,8 @@ const AddPatientForm = () => {
   const watchMedicalChoice = watch('medicalRecordChoice')
   const watchTreatmentType = watch('treatmentType')
 
+  // const watchPatientStatus = watch('patient_status')
+
   useEffect(() => {
     const getHospitalRooms = async () => {
       setRoomsLoading(true)
@@ -172,8 +185,9 @@ const AddPatientForm = () => {
           hospital_id: selectedHospital?.id,
           page: 1,
           per_page: 20,
-          q: searchRoom,
-          availability: 'available'
+          q: searchRoom
+
+          // availability: 'available'
         }).then(res => {
           if (res?.success === true) {
             const filteredRooms = res?.data?.records
@@ -201,6 +215,13 @@ const AddPatientForm = () => {
   const selectedRoom = watch('room')
 
   useEffect(() => {
+    // Reset holding enclosure when room changes
+    setValue('holdingEnclosure', {
+      label: '',
+      value: ''
+    })
+    setHoldingEnclosures([])
+
     const getHospitalBeds = async () => {
       if (!selectedRoom?.value) return
       setBedsLoading(true)
@@ -210,7 +231,8 @@ const AddPatientForm = () => {
           status: 'active',
           room_id: selectedRoom.value,
           page: 1,
-          is_occupied: 'available',
+
+          // is_occupied: 'available',
           q: searchEnclosure
         })
         if (res?.success === true) {
@@ -244,7 +266,8 @@ const AddPatientForm = () => {
             setMedicalId(
               res?.data?.result?.map(item => ({
                 label: item?.medical_record_code,
-                value: item?.id
+                value: item?.id,
+                createAt: item?.created_at
               }))
             )
           }
@@ -304,6 +327,7 @@ const AddPatientForm = () => {
         visit_type: data?.visitType,
         additional_info: JSON.stringify({
           treatment_type: data?.treatmentType,
+          health_status: data?.healthStatus,
           doctor_id: String(selectedDoctor?.id),
           holding_enclosure_id: String(data?.holdingEnclosure?.value),
           room_id: String(data?.room?.value),
@@ -354,9 +378,9 @@ const AddPatientForm = () => {
       keepTouched: false
     })
     setSelectedAnimal(null)
-    setValue('selectedAnimal', null)
+    setSelectedDoctor(null)
     setMedicalId([])
-    setValue('medicalRecordChoice', 'new')
+    setHoldingEnclosures([])
   }
 
   const handleRemoveDoctor = () => {
@@ -404,7 +428,7 @@ const AddPatientForm = () => {
                 <Typography
                   sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Select Patient
+                  Select Patient*
                 </Typography>
                 {selectedAnimal !== null ? (
                   <>
@@ -452,12 +476,50 @@ const AddPatientForm = () => {
                           : theme.palette.customColors.OnPrimaryContainer
                       }}
                     >
-                      Select Animal
+                      Select Animal*
                     </Typography>
                     <Icon icon={'simple-line-icons:plus'} color={theme.palette.customColors.addPrimary} />
                   </Box>
                 )}
               </Box>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                  marginBottom: 7
+                }}
+              >
+                <Typography
+                  sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  Select treatment type*
+                </Typography>
+                <Controller
+                  name='treatmentType'
+                  control={control}
+                  render={({ field }) => (
+                    <Grid container spacing={4}>
+                      {treatmentType?.map((item, index) => (
+                        <Grid key={index} size={{ xs: 12, sm: 6, md: 6 }}>
+                          <TreatmentTypeRadioButtons
+                            label={item?.label}
+                            isSelected={field.value === item?.value}
+                            onClick={() => field.onChange(item?.value)}
+                            backgroundColor={theme.palette.customColors.OnPrimary}
+                            borderColor={theme.palette.customColors.OutlineVariant}
+                            selectedBorderColor={theme.palette.primary.main}
+                            selectedBackgroundColor={theme.palette.customColors.OnPrimary}
+                            sx={{ fontSize: '1rem', width: '100%' }}
+                            disabled={submitLoader}
+                          />
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
+                />
+              </Box>
+
               <Box
                 sx={{
                   display: 'flex',
@@ -468,14 +530,14 @@ const AddPatientForm = () => {
                 <Typography
                   sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Select treatment type
+                  Health Status
                 </Typography>
                 <Controller
-                  name='treatmentType'
+                  name='healthStatus'
                   control={control}
                   render={({ field }) => (
                     <Grid container spacing={4}>
-                      {treatmentType?.map((item, index) => (
+                      {healthStatusOptions?.map((item, index) => (
                         <Grid key={index} size={{ xs: 12, sm: 6, md: 6 }}>
                           <TreatmentTypeRadioButtons
                             label={item?.label}
@@ -509,7 +571,7 @@ const AddPatientForm = () => {
                     <ControlledDatePicker
                       control={control}
                       name={'admission_date'}
-                      label='Date'
+                      label='Date*'
                       defaultValue={dayjs()}
                       disabled={submitLoader}
                     />
@@ -518,7 +580,7 @@ const AddPatientForm = () => {
                     <ControlledTimePicker
                       control={control}
                       name={'admission_time'}
-                      label='Time'
+                      label='Time*'
                       disabled={submitLoader}
                     />
                   </Grid>
@@ -560,7 +622,7 @@ const AddPatientForm = () => {
                               selectedBackgroundColor={theme.palette.customColors.OnPrimaryContainer}
                               selectedFontColor={theme.palette.customColors.OnPrimary}
                               selectedBorderColor='none'
-                              disabled={submitLoader}
+                              disabled={submitLoader || item.disabled}
                             />
                           </Grid>
                         ))}
@@ -587,7 +649,19 @@ const AddPatientForm = () => {
                                   ? medicalId
                                   : [{ label: 'No medical IDs available', value: '' }]
                               }
-                              getOptionLabel={option => option.label}
+                              getOptionLabel={option => (
+                                <>
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                    <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>{option?.label}</Typography>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                      <Icon icon={'uim:calender'} fontSize={'16px'} />
+                                      <Typography sx={{ fontSize: '12px', fontWeight: 400 }}>
+                                        {Utility.convertUtcToLocalReadableDate(option?.createAt)}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+                                </>
+                              )}
                               getOptionValue={option => option.value}
                               sx={{ background: theme.palette.customColors.Surface }}
                               disabled={!selectedAnimal || submitLoader}
@@ -608,7 +682,7 @@ const AddPatientForm = () => {
                     control={control}
                     name={'visitType'}
                     errors={errors}
-                    label={'Select Visit Type'}
+                    label={'Select Visit Type*'}
                     options={visitTypes}
                     getOptionLabel={option => option.label}
                     getOptionValue={option => option.value}
@@ -648,7 +722,7 @@ const AddPatientForm = () => {
                               : theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                          Select chief Veterinarian
+                          Select chief Veterinarian*
                         </Typography>
                         <Icon
                           icon='mdi:chevron-down'
@@ -713,7 +787,7 @@ const AddPatientForm = () => {
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Purpose of visit
+                    Purpose of visit*
                   </Typography>
                   <ControlledTextArea
                     control={control}
@@ -724,6 +798,34 @@ const AddPatientForm = () => {
                     disabled={submitLoader}
                   />
                 </Grid>
+                {/* <Grid
+                  size={{ xs: 12 }}
+                  sx={{
+                    display: 'none',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 3,
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    p: 3,
+                    borderRadius: 1
+                  }}
+                >
+                  <Typography
+                    sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    Patient Status
+                  </Typography>
+                  <ControlledSwitch
+                    control={control}
+                    name='patient_status'
+                    errors={errors}
+                    required
+                    disabled={submitLoader}
+                    label={watchPatientStatus ? 'Critical' : 'Normal'}
+                    labelPosition='start'
+                    spaceBetween
+                  />
+                </Grid> */}
                 <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
@@ -732,7 +834,7 @@ const AddPatientForm = () => {
                   </Typography>
                   <ControlledAutocomplete
                     name='room'
-                    label='Select Room'
+                    label='Select Room*'
                     control={control}
                     errors={errors}
                     options={rooms}
@@ -770,7 +872,7 @@ const AddPatientForm = () => {
                         fontWeight: 400
                       }}
                     >
-                      No available beds, All beds are occupied
+                      No available Enclosures, All Enclosures are occupied
                     </Typography>
                   )}
                 </Grid>
@@ -782,7 +884,7 @@ const AddPatientForm = () => {
                   </Typography>
                   <ControlledAutocomplete
                     name='holdingEnclosure'
-                    label='Select Holding Enclosure'
+                    label='Select Holding Enclosure*'
                     control={control}
                     errors={errors}
                     options={holdingEnclosures}
@@ -810,6 +912,19 @@ const AddPatientForm = () => {
                       )
                     }
                   />
+                  {selectedRoom?.value && !bedsLoading && holdingEnclosures.length === 0 && (
+                    <Typography
+                      sx={{
+                        color: theme.palette.error.main,
+                        mt: '0px',
+                        mx: '4px',
+                        fontSize: '0.75rem',
+                        fontWeight: 400
+                      }}
+                    >
+                      No active/available enclosures available for this Room
+                    </Typography>
+                  )}
                 </Grid>
               </Grid>
             </form>

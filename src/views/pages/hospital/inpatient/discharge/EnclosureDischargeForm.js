@@ -9,6 +9,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import moment from 'moment'
+import Utility from 'src/utility'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
@@ -20,24 +21,7 @@ import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMul
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
-
-const transferEnclosureSchema = yup.object({
-  discharge_date: yup.date().nullable().required('Date of discharge is required'),
-  discharge_time: yup.date().nullable().required('Time of discharge is required'),
-  follow_up_required: yup.boolean().optional(),
-  follow_up_date: yup
-    .date()
-    .nullable()
-    .when('follow_up_required', {
-      is: true,
-      then: schema => schema.required('Follow up date required')
-    }),
-  reason: yup.string().optional(),
-  care_diet_instruction: yup.string().trim().optional(),
-  care_restriction: yup.string().trim().optional(),
-  care_notes: yup.string().trim().optional(),
-  attachments: yup.array().nullable().optional()
-})
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 
 const EnclosureDischargeForm = props => {
   const {
@@ -46,7 +30,6 @@ const EnclosureDischargeForm = props => {
     submitLoader,
     handleSubmitData,
     medicationsColumns,
-    isTransferEnclosureMedicationLoading,
     clearData,
     onDirtyChange,
     medicationData,
@@ -54,7 +37,20 @@ const EnclosureDischargeForm = props => {
     medicalRecordId,
     prescriptionsColumns,
     prescriptionData,
-    isPrescriptionLoading
+    isPrescriptionLoading,
+    sites,
+    fetchLoading,
+    handleSiteSearch,
+    sections,
+    sectionLoading,
+    handleSectionSearch,
+    enclosures,
+    enclosureLoading,
+    handleEnclosureSearch,
+    fetchSections,
+    fetchEnclosures,
+    clearSections,
+    clearEnclosures
   } = props
 
   const STORAGE_KEY_FORM = 'transfer_enclosure_form'
@@ -77,11 +73,112 @@ const EnclosureDischargeForm = props => {
     [medicationData]
   )
 
+  const transferEnclosureSchema = yup.object({
+    site_name: yup
+      .object()
+      .nullable()
+      .test('has-value', 'Site is required', value => {
+        return value && value.value && value.value !== ''
+      }),
+    section_name: yup
+      .object()
+      .nullable()
+      .test('has-value', 'Section is required', value => {
+        return value && value.value && value.value !== ''
+      }),
+    user_enclosure_name: yup
+      .object()
+      .nullable()
+      .test('has-value', 'Enclosure is required', value => {
+        return value && value.value && value.value !== ''
+      }),
+    discharge_date: yup
+      .date()
+      .typeError('Invalid Date')
+      .nullable()
+      .required('Date of discharge is required')
+      .test('is-valid-date', 'Discharge date is invalid', function (value) {
+        if (!value) return true
+
+        const admittedAt = dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)).startOf('day')
+        const now = dayjs().startOf('day')
+        const selectedDate = dayjs(value).startOf('day')
+
+        if (selectedDate.isBefore(admittedAt)) {
+          return this.createError({
+            message: `Date must be on or after (${dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)).format(
+              'DD MMM YYYY'
+            )})`
+          })
+        }
+
+        if (selectedDate.isAfter(now)) {
+          return this.createError({ message: 'Discharge date cannot be in the future' })
+        }
+
+        return true
+      }),
+    discharge_time: yup
+      .date()
+      .typeError('Invalid Date')
+      .nullable()
+      .required('Time of discharge is required')
+      .test('is-valid-time', 'Discharge time is invalid', function (value) {
+        const { discharge_date } = this.parent
+        if (!value || !discharge_date) return true
+
+        const admittedAt = dayjs(Utility.convertUTCToLocal(patientData?.admitted_at))
+        const now = dayjs()
+
+        const dischargeDateTime = dayjs(discharge_date)
+          .startOf('day')
+          .set('hour', dayjs(value).hour())
+          .set('minute', dayjs(value).minute())
+          .set('second', 0)
+
+        if (dayjs(discharge_date).format('YYYY-MM-DD') === admittedAt.format('YYYY-MM-DD')) {
+          if (dischargeDateTime.isBefore(admittedAt)) {
+            return this.createError({
+              message: `Time must be after admission time (${Utility.convertUTCToLocaltime(patientData?.admitted_at)})`
+            })
+          }
+        }
+
+        if (dayjs(discharge_date).format('YYYY-MM-DD') === now.format('YYYY-MM-DD')) {
+          if (dischargeDateTime.isAfter(now)) {
+            return this.createError({ message: 'Time cannot be in the future' })
+          }
+        }
+
+        return true
+      }),
+    follow_up_required: yup.boolean().optional(),
+    follow_up_date: yup
+      .date()
+      .nullable()
+      .when('follow_up_required', {
+        is: true,
+        then: schema => schema.required('Follow up date required')
+      }),
+    reason: yup.string().optional(),
+    care_diet_instruction: yup.string().trim().optional(),
+    care_restriction: yup.string().trim().optional(),
+    care_notes: yup.string().trim().optional(),
+    attachments: yup.array().nullable().optional()
+  })
+
   const defaultValues = {
+    returnToOriginal: true,
     discharge_type: 'TransferEnclosure',
-    site_name: patientDetails?.site_name || '',
-    section_name: patientDetails?.section_name || '',
-    user_enclosure_name: patientDetails?.user_enclosure_name || '',
+    site_name: patientDetails?.site_id
+      ? { label: patientDetails?.site_name, value: patientDetails?.site_id }
+      : { label: '', value: '' },
+    section_name: patientDetails?.section_id
+      ? { label: patientDetails?.section_name, value: patientDetails?.section_id }
+      : { label: '', value: '' },
+    user_enclosure_name: patientDetails?.user_enclosure_id
+      ? { label: patientDetails?.user_enclosure_name, value: patientDetails?.user_enclosure_id }
+      : { label: '', value: '' },
     discharge_date: dayjs(),
     discharge_time: dayjs(),
     reason: '',
@@ -139,7 +236,7 @@ const EnclosureDischargeForm = props => {
 
   // time limits for discharge time
   const selectedDischargeDate = watch('discharge_date')
-  const admittedAtLocal = dayjs(patientData?.admitted_at)
+  const admittedAt = dayjs(patientData?.admitted_at)
   const now = dayjs()
 
   let minTime = null
@@ -149,8 +246,8 @@ const EnclosureDischargeForm = props => {
     const selectedDay = dayjs(selectedDischargeDate)
 
     // If discharge day is same as admission date  cannot select a time before admission
-    if (selectedDay.isSame(admittedAtLocal, 'day')) {
-      minTime = admittedAtLocal
+    if (selectedDay.isSame(admittedAt, 'day')) {
+      minTime = admittedAt
     }
 
     // If discharge day is today  cannot pick time after current time
@@ -163,17 +260,17 @@ const EnclosureDischargeForm = props => {
   const shouldDisableDischargeTime = (timeValue, clockType) => {
     if (timeValue == null) return false
 
-    const t = dayjs(selectedDischargeDate).set(clockType, timeValue)
+    const base = dayjs(selectedDischargeDate).set(clockType, timeValue)
 
-    if (minTime && t.isBefore(minTime)) return true
-    if (maxTime && t.isAfter(maxTime)) return true
+    if (minTime && base.isBefore(minTime)) return true
+    if (maxTime && base.isAfter(maxTime)) return true
 
     return false
   }
 
   const followUp = watch('follow_up_required')
+  const returnToOriginal = watch('returnToOriginal')
 
-  // mark dirty when form changes
   useEffect(() => {
     onDirtyChange?.(isDirty)
   }, [isDirty, onDirtyChange])
@@ -181,9 +278,14 @@ const EnclosureDischargeForm = props => {
   // Edit medicine – go to schedule-prescription
   const handleEditMedicine = useCallback(
     med => {
+      sessionStorage.setItem(STORAGE_KEY_FORM, JSON.stringify(getValues()))
+
+      window.location.hash = 'medications-section'
+
       router.push({
         pathname: `/hospital/inpatient/${id}/schedule-prescription`,
         query: {
+          tab: 'discharge',
           discharge_tab: 'TransferEnclosure',
           medicine_edit_id: med.id
         }
@@ -234,20 +336,25 @@ const EnclosureDischargeForm = props => {
       hospital_case_id: id,
       animal_id: patientDetails?.animal_id,
       discharge_type: watchDischargeType,
-      discharge_date: moment(formData.discharge_date).format('YYYY-MM-DD'),
-      discharge_time: dayjs(formData.discharge_time).set('second', 0).format('HH:mm:ss'),
+      discharge_date: formData.discharge_date ? moment(formData.discharge_date).format('YYYY-MM-DD') : null,
+      discharge_time: formData.discharge_time
+        ? dayjs(formData.discharge_time).set('second', 0).format('HH:mm:ss')
+        : null,
       reason: formData.reason,
       care_diet_instruction: formData.care_diet_instruction,
       care_restriction: formData.care_restriction,
       care_notes: formData.care_notes,
       follow_up_required: formData.follow_up_required ? '1' : '0',
-      follow_up_date: moment(formData.follow_up_date).format('YYYY-MM-DD'),
-      attachments: formData.attachments.length > 0 ? formData.attachments : undefined,
-      medications: JSON.stringify(medicationData),
-      transfer_back_to_original_location: 1,
-      transfer_to_site_id: patientDetails?.site_id,
-      transfer_to_enclosure_id: patientDetails?.user_enclosure_id,
-      request_from: 'web'
+      follow_up_date: formData.follow_up_date ? moment(formData.follow_up_date).format('YYYY-MM-DD') : null,
+      attachments: formData.attachments.length > 0 ? formData.attachments : null,
+      medications: medicationData.length > 0 ? JSON.stringify(medicationData) : null,
+      transfer_to_site_id: returnToOriginal ? patientDetails?.site_id : formData?.site_name?.value,
+      transfer_to_section_id: returnToOriginal ? patientDetails?.section_id : formData?.section_name?.value,
+      transfer_to_enclosure_id: returnToOriginal
+        ? patientDetails?.user_enclosure_id
+        : formData?.user_enclosure_name?.value,
+      request_from: 'web',
+      transfer_back_to_original_location: returnToOriginal ? '1' : '0'
     }
 
     const success = await handleSubmitData(payload)
@@ -259,11 +366,48 @@ const EnclosureDischargeForm = props => {
     }
   }
 
+  const handleReturnToOriginalToggle = (checked, fieldOnChange) => {
+    fieldOnChange(checked)
+
+    if (checked) {
+      // Apply original values (system action → not dirty)
+      setValue(
+        'site_name',
+        {
+          label: patientDetails?.site_name,
+          value: patientDetails?.site_id
+        },
+        { shouldValidate: true, shouldDirty: false }
+      )
+
+      setValue(
+        'section_name',
+        {
+          label: patientDetails?.section_name,
+          value: patientDetails?.section_id
+        },
+        { shouldValidate: true, shouldDirty: false }
+      )
+
+      setValue(
+        'user_enclosure_name',
+        {
+          label: patientDetails?.user_enclosure_name,
+          value: patientDetails?.user_enclosure_id
+        },
+        { shouldValidate: true, shouldDirty: false }
+      )
+    }
+  }
+
   useEffect(() => {
     if (window.location.hash) {
       const target = document.querySelector(window.location.hash)
       if (target) {
         target.scrollIntoView({ behavior: 'smooth' })
+
+        // Remove the hash from URL after scrolling
+        window.history.replaceState(null, null, ' ')
       }
     }
   }, [])
@@ -273,45 +417,117 @@ const EnclosureDischargeForm = props => {
       <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : undefined}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mb: 6 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <MUICheckbox
+            <Controller
               name='returnToOriginal'
               control={control}
-              label='Transfer back to animal’s original location'
-              labelStyle={{
-                fontSize: '1rem',
-                fontWeight: '400',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-              checked={true}
-              disabled={true}
+              render={({ field }) => (
+                <MUICheckbox
+                  {...field}
+                  label='Transfer back to animal’s original location'
+                  labelStyle={{
+                    fontSize: '1rem',
+                    fontWeight: '400',
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                  checked={field.value}
+                  onChange={e => handleReturnToOriginalToggle(e.target.checked, field.onChange)}
+                />
+              )}
             />
+
             <StyledTypography>Select location to transfer</StyledTypography>
             <Grid container spacing={6}>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <ControlledTextField
+                <ControlledAutocomplete
                   control={control}
                   name={'site_name'}
-                  label='Site'
-                  disabled={true}
                   errors={errors}
+                  label={'Site*'}
+                  options={sites}
+                  getOptionLabel={option => option?.label || ''}
+                  getOptionValue={option => option?.value || ''}
+                  onInputChange={value => handleSiteSearch(value)}
+                  isOptionEqualToValue={(option, value) => option?.value === value?.value}
+                  onItemClear={() => {
+                    handleSiteSearch('')
+                    setValue('site_name', { label: '', value: '' })
+                    setValue('section_name', { label: '', value: '' })
+                    setValue('user_enclosure_name', { label: '', value: '' })
+                    clearSections()
+                    clearEnclosures()
+                  }}
+                  loading={fetchLoading}
+                  showLoader={true}
+                  required
+                  showIcons={false}
+                  disabled={returnToOriginal}
+                  onChangeOverride={val => {
+                    setValue('site_name', val || { label: '', value: '' })
+                    setValue('section_name', { label: '', value: '' })
+                    setValue('user_enclosure_name', { label: '', value: '' })
+
+                    // Clear sections and enclosures when site changes
+                    clearSections()
+                    clearEnclosures()
+                    if (val?.value) {
+                      fetchSections(val?.value)
+                    }
+                  }}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <ControlledTextField
+                <ControlledAutocomplete
                   control={control}
                   name={'section_name'}
-                  label='Section'
-                  disabled={true}
                   errors={errors}
+                  label={'Section*'}
+                  options={sections}
+                  getOptionLabel={option => option?.label || ''}
+                  getOptionValue={option => option?.value || ''}
+                  onInputChange={value => handleSectionSearch(watch('site_name')?.value, value)}
+                  isOptionEqualToValue={(option, value) => option?.value === value?.value}
+                  onItemClear={() => {
+                    handleSectionSearch(watch('site_name')?.value, '')
+                    setValue('user_enclosure_name', { label: '', value: '' })
+                    clearEnclosures()
+                  }}
+                  loading={sectionLoading}
+                  showLoader={true}
+                  required
+                  showIcons={false}
+                  disabled={returnToOriginal}
+                  onChangeOverride={val => {
+                    setValue('section_name', val || { label: '', value: '' })
+                    setValue('user_enclosure_name', { label: '', value: '' })
+
+                    // Clear enclosures when section changes
+                    clearEnclosures()
+                    if (val?.value) {
+                      fetchEnclosures(val?.value)
+                    }
+                  }}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <ControlledTextField
+                <ControlledAutocomplete
                   control={control}
                   name={'user_enclosure_name'}
-                  label='Enclosure'
-                  disabled={true}
                   errors={errors}
+                  label={'Enclosure*'}
+                  options={enclosures}
+                  getOptionLabel={option => option?.label}
+                  getOptionValue={option => option?.value}
+                  onInputChange={value => handleEnclosureSearch(watch('section_name')?.value, value)}
+                  isOptionEqualToValue={(option, value) => option?.value === value?.value}
+                  onItemClear={() => handleEnclosureSearch(watch('section_name')?.value, '')}
+                  loading={enclosureLoading}
+                  showLoader={true}
+                  required
+                  showIcons={false}
+                  disabled={returnToOriginal}
+                  onChangeOverride={val => {
+                    setValue('user_enclosure_name', val || { label: '', value: '' })
+                  }}
                 />
               </Grid>
             </Grid>
@@ -323,7 +539,7 @@ const EnclosureDischargeForm = props => {
                   <ControlledDatePicker
                     control={control}
                     name='discharge_date'
-                    label='Date'
+                    label='Date*'
                     errors={errors}
                     minDate={dayjs(patientData?.admitted_at)}
                     maxDate={dayjs(new Date())}
@@ -333,7 +549,7 @@ const EnclosureDischargeForm = props => {
                   <ControlledTimePicker
                     control={control}
                     name='discharge_time'
-                    label='Time'
+                    label='Time*'
                     errors={errors}
                     minTime={minTime}
                     maxTime={maxTime}
@@ -477,12 +693,13 @@ const EnclosureDischargeForm = props => {
                   }}
                   hideFooterPagination={true}
                   hideFooter={true}
+                  disablePagination={true}
                 />
               </Box>
             </>
           )}
           <Divider />
-          <Box sx={{ display: 'flex', flexDirection: 'column' }} id='medications-section'>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Box
               sx={{
                 display: 'flex',
@@ -503,6 +720,7 @@ const EnclosureDischargeForm = props => {
                   md: 0
                 }
               }}
+              id='medications-section'
             >
               <StyledTypography fontSize='1.25rem'>Medications</StyledTypography>
               <Button
@@ -529,10 +747,8 @@ const EnclosureDischargeForm = props => {
             {indexedMedicines.length > 0 && (
               <CommonTable
                 columns={medicationColumnsWithActions}
-                loading={isTransferEnclosureMedicationLoading}
                 indexedRows={indexedMedicines || []}
                 rowHeight={64}
-                hideFooterPagination
                 externalTableStyle={{
                   '& .MuiDataGrid-columnHeaders': {
                     backgroundColor: theme.palette.customColors.neutral05,
@@ -540,6 +756,9 @@ const EnclosureDischargeForm = props => {
                     color: theme.palette.customColors.OnSurfaceVariant
                   }
                 }}
+                hideFooterPagination={true}
+                hideFooter={true}
+                disablePagination={true}
               />
             )}
           </Box>

@@ -140,7 +140,14 @@ function MortalityDischarge() {
     Promise.all([fetchManner(''), fetchCondition(''), fetchDisposition(''), fetchNecropsyCenter('')])
       .catch(error => console.error('Initial fetch error:', error?.response?.data?.message || error?.message))
       .finally(() => setFetchLoading(false))
-  }, [])
+
+    return () => {
+      debouncedFetchManner.cancel()
+      debouncedFetchCondition.cancel()
+      debouncedFetchDisposition.cancel()
+      debouncedFetchNecropsyCenter.cancel()
+    }
+  }, [debouncedFetchManner, debouncedFetchCondition, debouncedFetchDisposition, debouncedFetchNecropsyCenter])
 
   // Functions to be called when user types in each autocomplete
   const handleMannerSearch = text => debouncedFetchManner(text || '')
