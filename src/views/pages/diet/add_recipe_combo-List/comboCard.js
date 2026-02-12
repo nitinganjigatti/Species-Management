@@ -366,7 +366,7 @@ const ComboCard = ({
 
   const handleSelected = () => {
     if (selectedCardCombo.length === 0) {
-      toast.error('Combos are required.', {
+      toast.error('Mix(s) are required.', {
         duration: 1000
       })
 
@@ -378,7 +378,7 @@ const ComboCard = ({
     )
 
     if (cardsWithMissingCutSize.length > 0) {
-      toast.error('Please select a cut size for all ingredients in the selected combo(s).', {
+      toast.error('Please select a cut size for all ingredients in the selected mix(s).', {
         duration: 1000
       })
       setShowErrors(true)
