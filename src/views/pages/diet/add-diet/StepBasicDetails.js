@@ -2385,6 +2385,7 @@ const StepBasicDetails = ({
             onLoadMore={onLoadMore}
             loadingfeed={loadingfeed}
             feedtotalCount={feedtotalCount}
+            handleFeedSearch={handleFeedSearch}
           />
           <AddIngredients
             open={openIngredient}
