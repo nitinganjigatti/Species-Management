@@ -375,12 +375,14 @@ const capitalizeFirstLetter = string => {
 export const extractTextFromHtml = html => {
   if (!html) return ''
 
+  // Pre-strip script/style tags and their content via regex before DOM parsing
+  const sanitized = html.replace(/<script\b[\s\S]*?<\/script\s*>/gi, '').replace(/<style\b[\s\S]*?<\/style\s*>/gi, '')
+
   const parser = new DOMParser()
-  const doc = parser?.parseFromString(html, 'text/html')
+  const doc = parser?.parseFromString(sanitized, 'text/html')
   doc?.querySelectorAll('script, style, iframe, object, embed')?.forEach(el => {
     el?.remove()
   })
-  console.log('doc after remove', doc?.body?.textContent)
   doc?.querySelectorAll('br')?.forEach(br => {
     br?.replaceWith(' ')
   })
@@ -393,7 +395,11 @@ export const extractTextFromHtml = html => {
     p.appendChild(document.createTextNode(' '))
   })
 
-  return doc?.body?.textContent?.replace(/\s+/g, ' ').trim() || ''
+  // Strip any HTML-encoded tags that became plain text (e.g. &lt;script&gt; → <script>)
+  return (doc?.body?.textContent || '')
+    .replace(/<\/?[^>]+(>|$)/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 const Utility = {
