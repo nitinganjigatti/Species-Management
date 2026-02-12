@@ -34,13 +34,15 @@ const ControlledAutocomplete = ({
   showIcons = true,
   disabled = false,
   endAdornment = null,
-  showLoader = false,
+  showLoader = false
+
   // clearOnBlur = false
 }) => {
+  const searchInputRef = useRef('') // Store the search input value
+
   if (!options) return null
 
   const fieldError = get(errors, name)
-  const searchInputRef = useRef('') // Store the search input value
 
   const normalizeValue = val => {
     if (!val) return null
@@ -62,11 +64,15 @@ const ControlledAutocomplete = ({
   }
 
   const handleOnBlur = (event, item) => {
-    if(!searchInputRef.current) return
+    if (!searchInputRef.current) return
     if (!item?.value && searchInputRef.current) {
       onInputChange('')
-      searchInputRef.current = ""
-    } else if(item?.value && searchInputRef.current && item?.label?.toLowerCase()?.trim() != searchInputRef.current?.toLowerCase()?.trim()) {
+      searchInputRef.current = ''
+    } else if (
+      item?.value &&
+      searchInputRef.current &&
+      item?.label?.toLowerCase()?.trim() != searchInputRef.current?.toLowerCase()?.trim()
+    ) {
       onInputChange(item?.label)
       searchInputRef.current = item?.label?.toLowerCase()?.trim()
     }
@@ -92,7 +98,6 @@ const ControlledAutocomplete = ({
             value={field.value ?? null}
             isOptionEqualToValue={isOptionEqualToValue}
             onChange={(e, value, reason) => {
-
               let normalizedValue = normalizeValue(value)
 
               if (reason === 'clear') {
@@ -101,7 +106,7 @@ const ControlledAutocomplete = ({
               }
 
               field.onChange(normalizedValue)
-              if(reason === 'clear' && !value) return
+              if (reason === 'clear' && !value) return
               onChangeOverride(normalizedValue)
 
               if (reason === 'createOption' && value) {
@@ -109,12 +114,13 @@ const ControlledAutocomplete = ({
               }
             }}
             onInputChange={(e, value, reason) => {
-              if(reason === 'clear' && !value) return
+              if (reason === 'clear' && !value) return
+
               // Store the current search input value only when typing or clearing
               if (reason === 'input' || reason === 'clear') {
                 searchInputRef.current = value || ''
               }
-              
+
               if (reason === 'input') {
                 onInputChange(value, reason)
               }
@@ -123,12 +129,13 @@ const ControlledAutocomplete = ({
               }
               if (reason === 'clear') {
                 onItemClear()
+
                 // Don't trigger API call on clear - just pass empty string
                 onInputChange('', reason)
               }
             }}
             onKeyUp={onKeyUp}
-            onBlur={(e) => handleOnBlur(e, field.value)}
+            onBlur={e => handleOnBlur(e, field.value)}
             loading={loading}
             noOptionsText='Type to search'
             renderOption={renderOption}
