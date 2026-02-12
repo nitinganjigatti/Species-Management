@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Typography, Skeleton, Collapse, CircularProgress } from '@mui/material'
+import { Box, Typography, Skeleton, Collapse, CircularProgress, Chip } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
-import { ExpandMore, ExpandLess, CheckCircle, AccessTime, FiberManualRecord } from '@mui/icons-material'
+import {
+  ExpandMore,
+  ExpandLess,
+  CheckCircle,
+  AccessTime,
+  Science,
+  CalendarToday,
+  KeyboardArrowRight
+} from '@mui/icons-material'
 import Utility from 'src/utility'
-import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import { getLabRequestsByAnimal } from 'src/lib/api/necropsy/medicalHistory'
 
 const SUB_TABS = ['Pending', 'Completed', 'All']
@@ -76,57 +83,55 @@ const LabRequestsList = ({ animalId }) => {
     setExpandedItems(prev => ({ ...prev, [id]: !prev[id] }))
   }
 
-  const getStatusIcon = status => {
+  const getStatusConfig = status => {
     const s = (status || '').toLowerCase()
     if (s === 'completed') {
-      return <CheckCircle sx={{ fontSize: 16, color: theme.palette.success.main }} />
+      return {
+        icon: <CheckCircle sx={{ fontSize: 14 }} />,
+        color: theme.palette.success.main,
+        bgColor: alpha(theme.palette.success.main, 0.1),
+        label: 'Completed'
+      }
     }
     if (s === 'inprogress' || s === 'in_progress') {
-      return <AccessTime sx={{ fontSize: 16, color: theme.palette.warning.main }} />
+      return {
+        icon: <AccessTime sx={{ fontSize: 14 }} />,
+        color: theme.palette.warning.main,
+        bgColor: alpha(theme.palette.warning.main, 0.1),
+        label: 'In Progress'
+      }
     }
 
-    return <FiberManualRecord sx={{ fontSize: 10, color: theme.palette.info.main }} />
-  }
-
-  const getStatusColor = status => {
-    const s = (status || '').toLowerCase()
-    if (s === 'completed') return theme.palette.success.main
-    if (s === 'inprogress' || s === 'in_progress') return theme.palette.warning.main
-
-    return theme.palette.info.main
+    return {
+      icon: <AccessTime sx={{ fontSize: 14 }} />,
+      color: theme.palette.info.main,
+      bgColor: alpha(theme.palette.info.main, 0.1),
+      label: 'Pending'
+    }
   }
 
   const renderShimmer = () => (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {Array.from({ length: 3 }).map((_, i) => (
         <Box
           key={i}
           sx={{
-            border: `1px solid ${theme.palette.customColors.OnPrimary}`,
-            borderRadius: '8px',
-            padding: { xs: '16px', sm: '20px', md: '24px' }
+            backgroundColor: theme.palette.background.paper,
+            borderRadius: '12px',
+            padding: 3,
+            boxShadow: `0 1px 3px ${alpha(theme.palette.common.black, 0.08)}`
           }}
         >
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', sm: '1fr 2fr', md: '1fr 2fr 1fr' },
-              gap: 2
-            }}
-          >
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <Skeleton variant='rounded' width={130} height={22} />
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Skeleton variant='rounded' width={80} height={22} />
-                <Skeleton variant='text' width={60} height={18} />
-              </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              <Skeleton variant='rounded' width={140} height={28} sx={{ borderRadius: '6px' }} />
+              <Skeleton variant='rounded' width={80} height={24} sx={{ borderRadius: '12px' }} />
             </Box>
-            <Box>
-              <Skeleton variant='text' width='50%' height={16} />
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Skeleton variant='circular' width={24} height={24} />
-            </Box>
+            <Skeleton variant='rounded' width={100} height={20} />
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Skeleton variant='rounded' width={60} height={24} sx={{ borderRadius: '12px' }} />
+            <Skeleton variant='rounded' width={90} height={20} />
           </Box>
         </Box>
       ))}
@@ -135,6 +140,7 @@ const LabRequestsList = ({ animalId }) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {/* Sub Tabs */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box
           sx={{
@@ -145,7 +151,7 @@ const LabRequestsList = ({ animalId }) => {
             columnGap: 4
           }}
         >
-          <Box sx={{ display: 'inline-flex', gap: 3, pr: 1, alignItems: 'center' }}>
+          <Box sx={{ display: 'inline-flex', gap: 2, pr: 1, alignItems: 'center' }}>
             {SUB_TABS.map(tab => (
               <Box
                 key={tab}
@@ -155,13 +161,19 @@ const LabRequestsList = ({ animalId }) => {
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  px: '16px',
-                  py: '8px',
+                  px: 3,
+                  py: 1,
                   borderRadius: '8px',
                   backgroundColor:
                     activeSubTab === tab ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
                   cursor: 'pointer',
-                  transition: 'background-color 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    backgroundColor:
+                      activeSubTab === tab
+                        ? theme.palette.secondary.dark
+                        : alpha(theme.palette.customColors.mdAntzNeutral, 0.7)
+                  }
                 }}
               >
                 <Typography
@@ -171,7 +183,7 @@ const LabRequestsList = ({ animalId }) => {
                         ? theme.palette.primary.contrastText
                         : theme.palette.customColors.neutralPrimary,
                     whiteSpace: 'nowrap',
-                    fontSize: { xs: '13px', sm: '14px' },
+                    fontSize: '14px',
                     fontWeight: 500
                   }}
                 >
@@ -183,6 +195,7 @@ const LabRequestsList = ({ animalId }) => {
         </Box>
       </Box>
 
+      {/* Content */}
       {loading ? (
         renderShimmer()
       ) : data.length === 0 ? (
@@ -190,11 +203,14 @@ const LabRequestsList = ({ animalId }) => {
           sx={{
             width: '100%',
             display: 'flex',
+            flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
-            py: 10
+            py: 8,
+            gap: 2
           }}
         >
+          <Science sx={{ fontSize: 48, color: alpha(theme.palette.text.secondary, 0.3) }} />
           <Typography
             sx={{
               fontSize: '0.875rem',
@@ -202,181 +218,244 @@ const LabRequestsList = ({ animalId }) => {
               fontWeight: 400
             }}
           >
-            No Lab Requests Recorded
+            No Lab Requests Found
           </Typography>
         </Box>
       ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {data.map((group, index) => {
             const groupId = group.id || group.lab_test_request_id || index
             const isExpanded = expandedItems[groupId] || false
             const tests = group.lab_tests || group.tests || []
-            const isCompleted = group.status?.toLowerCase() === 'completed'
+            const statusConfig = getStatusConfig(group.status)
 
             return (
               <Box
                 key={groupId}
                 sx={{
-                  border: `1px solid ${theme.palette.customColors.OnPrimary}`,
-                  borderRadius: '8px',
+                  backgroundColor: theme.palette.background.paper,
+                  borderRadius: '12px',
                   overflow: 'hidden',
-                  backgroundColor: isCompleted
-                    ? alpha(theme.palette.customColors.neutralSecondary, 0.05)
-                    : 'transparent'
+                  boxShadow: `0 1px 3px ${alpha(theme.palette.common.black, 0.08)}`,
+                  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    boxShadow: `0 4px 12px ${alpha(theme.palette.common.black, 0.1)}`
+                  }
                 }}
               >
+                {/* Card Header */}
                 <Box
                   onClick={() => tests.length > 0 && toggleExpand(groupId)}
                   sx={{
-                    padding: { xs: '16px', sm: '20px', md: '24px' },
+                    padding: 3,
                     cursor: tests.length > 0 ? 'pointer' : 'default'
                   }}
                 >
+                  {/* Top Row - Request ID and Date */}
                   <Box
                     sx={{
-                      display: 'grid',
-                      gridTemplateColumns: { xs: '1fr', sm: '1fr 2fr', md: '1fr 2fr 1fr' },
-                      gap: { xs: 1.5, sm: 2 },
-                      alignItems: { xs: 'flex-start', sm: 'center' }
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      mb: 2
                     }}
                   >
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <MedicalIdChip
-                        leftImage
-                        medId={group.medical_record_code}
-                        textColor={theme.palette.customColors.OnSurface}
-                      />
-                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
-                        {group.status && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <FiberManualRecord
-                              sx={{
-                                fontSize: 8,
-                                color: isCompleted ? theme.palette.success.main : theme.palette.warning.main
-                              }}
-                            />
-                            <Typography
-                              sx={{
-                                fontSize: '0.8125rem',
-                                fontWeight: 500,
-                                textTransform: 'capitalize',
-                                color: isCompleted ? theme.palette.success.main : theme.palette.warning.main
-                              }}
-                            >
-                              {group.status}
-                            </Typography>
-                          </Box>
-                        )}
-                        {tests.length > 0 && (
-                          <Box
-                            component='span'
-                            sx={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              fontSize: '0.875rem',
-                              fontWeight: 500,
-                              color: theme.palette.customColors.OnSurfaceVariant || theme.palette.text.secondary,
-                              '&:before': { content: '"\\2022"', marginRight: '4px', fontSize: '1rem' }
-                            }}
-                          >
-                            {tests.length} test{tests.length > 1 ? 's' : ''}
-                          </Box>
-                        )}
-                      </Box>
-                    </Box>
-
-                    <Box sx={{ gridColumn: { xs: '1', sm: '2', md: '2' } }}>
-                      <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.neutralSecondary }}>
-                        {group.created_at && (
-                          <>
-                            {Utility.convertUtcToLocalReadableDate(group.created_at)}
-                            <span style={{ margin: '0 6px', color: theme.palette.customColors.neutralSecondary }}>
-                              &bull;
-                            </span>
-                            {Utility.convertUTCToLocaltime(group.created_at)}
-                          </>
-                        )}
+                    {/* Request ID */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                        px: 1.5,
+                        py: 0.75,
+                        borderRadius: '6px'
+                      }}
+                    >
+                      <Science sx={{ fontSize: 16, color: theme.palette.primary.main }} />
+                      <Typography
+                        sx={{
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          color: theme.palette.primary.main,
+                          letterSpacing: '0.3px'
+                        }}
+                      >
+                        {group.medical_record_code || `REQ-${groupId}`}
                       </Typography>
                     </Box>
 
+                    {/* Date & Time */}
+                    {group.created_at && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <CalendarToday sx={{ fontSize: 14, color: theme.palette.text.secondary }} />
+                        <Typography
+                          sx={{
+                            fontSize: '0.75rem',
+                            color: theme.palette.text.secondary,
+                            fontWeight: 500
+                          }}
+                        >
+                          {Utility.convertUtcToLocalReadableDate(group.created_at)} &bull;{' '}
+                          {Utility.convertUTCToLocaltime(group.created_at)}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+
+                  {/* Bottom Row - Status and Tests */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
+                    {/* Status and Test Count */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      {/* Status Chip */}
+                      <Chip
+                        icon={statusConfig.icon}
+                        label={statusConfig.label}
+                        size='small'
+                        sx={{
+                          backgroundColor: statusConfig.bgColor,
+                          color: statusConfig.color,
+                          fontWeight: 600,
+                          fontSize: '0.75rem',
+                          height: 26,
+                          '& .MuiChip-icon': {
+                            color: statusConfig.color
+                          }
+                        }}
+                      />
+
+                      {/* Test Count */}
+                      {tests.length > 0 && (
+                        <Chip
+                          label={`${tests.length} Test${tests.length > 1 ? 's' : ''}`}
+                          size='small'
+                          sx={{
+                            backgroundColor: alpha(theme.palette.text.primary, 0.06),
+                            color: theme.palette.text.secondary,
+                            fontWeight: 500,
+                            fontSize: '0.75rem',
+                            height: 26
+                          }}
+                        />
+                      )}
+                    </Box>
+
+                    {/* View Tests Button */}
                     {tests.length > 0 && (
                       <Box
                         sx={{
-                          gridColumn: { xs: '1', sm: '1 / span 2', md: '3' },
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: { xs: 'flex-start', md: 'flex-end' },
-                          color: theme.palette.customColors.neutralSecondary
+                          gap: 0.5,
+                          color: theme.palette.primary.main,
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            gap: 1
+                          }
                         }}
                       >
-                        <Typography sx={{ fontSize: '0.8125rem', mr: 0.5 }}>
+                        <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
                           {isExpanded ? 'Hide' : 'View'} Tests
                         </Typography>
-                        {isExpanded ? <ExpandLess fontSize='small' /> : <ExpandMore fontSize='small' />}
+                        {isExpanded ? <ExpandLess fontSize='small' /> : <KeyboardArrowRight fontSize='small' />}
                       </Box>
                     )}
                   </Box>
                 </Box>
 
+                {/* Expanded Tests List */}
                 {tests.length > 0 && (
                   <Collapse in={isExpanded}>
                     <Box
                       sx={{
                         borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                        px: { xs: '16px', md: '24px' },
-                        pb: 2
+                        backgroundColor: alpha(theme.palette.background.default, 0.5)
                       }}
                     >
-                      {tests.map((test, tIndex) => (
-                        <Box
-                          key={test.id || test.lab_test_id || tIndex}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 2.5,
-                            py: 2.5,
-                            borderBottom:
-                              tIndex < tests.length - 1 ? `1px solid ${alpha(theme.palette.divider, 0.06)}` : 'none'
-                          }}
-                        >
-                          {getStatusIcon(test.status)}
+                      {tests.map((test, tIndex) => {
+                        const testStatusConfig = getStatusConfig(test.status)
 
-                          <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography
-                              sx={{
-                                fontSize: '0.875rem',
-                                fontWeight: 500,
-                                color: theme.palette.customColors.OnSurfaceVarient
-                              }}
-                            >
-                              {test.test_name || test.name || `Test #${test.lab_test_id || tIndex + 1}`}
-                            </Typography>
-                            {test.created_at && (
-                              <Typography
-                                sx={{
-                                  fontSize: '0.75rem',
-                                  color: theme.palette.customColors.neutralSecondary,
-                                  mt: 0.25
-                                }}
-                              >
-                                {Utility.convertUtcToLocalReadableDate(test.created_at)}
-                              </Typography>
-                            )}
-                          </Box>
-
-                          <Typography
+                        return (
+                          <Box
+                            key={test.id || test.lab_test_id || tIndex}
                             sx={{
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              textTransform: 'capitalize',
-                              color: getStatusColor(test.status),
-                              flexShrink: 0
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              px: 3,
+                              py: 2,
+                              borderBottom:
+                                tIndex < tests.length - 1 ? `1px solid ${alpha(theme.palette.divider, 0.08)}` : 'none',
+                              transition: 'background-color 0.2s ease',
+                              '&:hover': {
+                                backgroundColor: alpha(theme.palette.primary.main, 0.02)
+                              }
                             }}
                           >
-                            {test.status || 'Pending'}
-                          </Typography>
-                        </Box>
-                      ))}
+                            {/* Test Info */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0 }}>
+                              <Box
+                                sx={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: '8px',
+                                  backgroundColor: testStatusConfig.bgColor,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  flexShrink: 0
+                                }}
+                              >
+                                {testStatusConfig.icon}
+                              </Box>
+                              <Box sx={{ minWidth: 0 }}>
+                                <Typography
+                                  sx={{
+                                    fontSize: '0.875rem',
+                                    fontWeight: 500,
+                                    color: theme.palette.text.primary,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap'
+                                  }}
+                                >
+                                  {test.test_name || test.name || `Test #${test.lab_test_id || tIndex + 1}`}
+                                </Typography>
+                                {test.created_at && (
+                                  <Typography
+                                    sx={{
+                                      fontSize: '0.75rem',
+                                      color: theme.palette.text.secondary
+                                    }}
+                                  >
+                                    {Utility.convertUtcToLocalReadableDate(test.created_at)}
+                                  </Typography>
+                                )}
+                              </Box>
+                            </Box>
+
+                            {/* Test Status */}
+                            <Typography
+                              sx={{
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                color: testStatusConfig.color,
+                                flexShrink: 0,
+                                ml: 2
+                              }}
+                            >
+                              {testStatusConfig.label}
+                            </Typography>
+                          </Box>
+                        )
+                      })}
                     </Box>
                   </Collapse>
                 )}
@@ -384,30 +463,40 @@ const LabRequestsList = ({ animalId }) => {
             )
           })}
 
+          {/* Load More */}
           {hasMore && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
               {loadingMore ? (
                 <CircularProgress size={24} />
               ) : (
-                <Typography
+                <Box
                   onClick={handleLoadMore}
                   sx={{
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    px: 3,
+                    py: 1,
+                    borderRadius: '8px',
+                    backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                    color: theme.palette.primary.main,
                     cursor: 'pointer',
-                    '&:hover': { textDecoration: 'underline' }
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.15)
+                    }
                   }}
                 >
-                  Load More
-                </Typography>
+                  <Typography sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Load More</Typography>
+                  <ExpandMore fontSize='small' />
+                </Box>
               )}
             </Box>
           )}
 
           {!hasMore && data.length > 10 && (
-            <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled, fontSize: '0.875rem' }}>
-              No more lab requests to load
+            <Typography sx={{ textAlign: 'center', color: theme.palette.text.disabled, fontSize: '0.8125rem' }}>
+              All lab requests loaded
             </Typography>
           )}
         </Box>
