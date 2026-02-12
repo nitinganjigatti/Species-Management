@@ -35,7 +35,7 @@ const ControlledAutocomplete = ({
   disabled = false,
   endAdornment = null,
   showLoader = false,
-  clearOnBlur = false
+  clearOnBlur = true
 }) => {
   if (!options) return null
 
