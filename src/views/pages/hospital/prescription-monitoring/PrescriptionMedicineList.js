@@ -50,6 +50,7 @@ export default function PrescriptionMedicineList({
   handleClearSearch,
   handleScroll,
   loading,
+  paginationLoading,
   searching,
   error,
   prescribedMedicines = [],
@@ -126,7 +127,7 @@ export default function PrescriptionMedicineList({
           sx={commonFieldStyles}
           showIcons={false}
           onChangeOverride={value => {
-            if (value && !value.disabled) {
+            if (value && !value.disabled && !loading) {
               onSelect(value)
             }
           }}
@@ -138,7 +139,7 @@ export default function PrescriptionMedicineList({
             setValue('selectedMedicine', null)
             setValue('selectedMedicineId', '')
           }}
-          getOptionDisabled={option => option.disabled}
+          getOptionDisabled={option => option.disabled || loading}
           getOptionLabel={option => {
             if (typeof option === 'string') return option
 
@@ -298,7 +299,7 @@ export default function PrescriptionMedicineList({
             const MedicineRow = (
               <Box
                 key={medicine?.id}
-                onClick={() => !isDisabled && onSelect(medicine)}
+                onClick={() => !isDisabled && !loading && onSelect(medicine)}
                 sx={{
                   background:
                     isSelected || isTemporarilySelected ? theme.palette.customColors.OnBackground : 'transparent',
@@ -308,11 +309,11 @@ export default function PrescriptionMedicineList({
                   display: 'flex',
                   alignItems: 'center',
                   borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  opacity: isDisabled ? 0.5 : 1,
-                  cursor: isDisabled ? 'not-allowed' : 'pointer',
-                  pointerEvents: isDisabled ? 'none' : 'auto',
+                  opacity: isDisabled || loading ? 0.5 : 1,
+                  cursor: isDisabled || loading ? 'not-allowed' : 'pointer',
+                  pointerEvents: isDisabled || loading ? 'none' : 'auto',
                   '&:hover': {
-                    backgroundColor: !isDisabled
+                    backgroundColor: !isDisabled && !loading
                       ? isSelected || isTemporarilySelected
                         ? theme.palette.customColors.OnBackground
                         : theme.palette.action.hover
@@ -394,7 +395,7 @@ export default function PrescriptionMedicineList({
           })
         )}
 
-        {loading && !searching && <MedicineShimmer count={8} />}
+        {paginationLoading && !searching && <MedicineShimmer count={8} />}
       </Box>
     </Box>
   )

@@ -17,10 +17,14 @@ import PharmacySettingsDrawer from 'src/views/pages/pharmacy/store/pharmacy-sett
 import { getPharmacySettingsList, submitPharmacySettings } from 'src/lib/api/pharmacy/pharmacySettings'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import toast from 'react-hot-toast'
+import RenderUtility from 'src/utility/render'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const PharmacySettingsList = () => {
   const { userData } = useContext(AuthContext)
-  const pharmacyRole = userData?.roles?.settings?.add_pharmacy
+  const { selectedPharmacy } = usePharmacyContext()
+
+  const pharmacyRole = userData?.roles?.settings?.add_pharmacy && selectedPharmacy?.type === 'central'
 
   const [tableData, setTableData] = useState([])
   const [usersList, setUsersList] = useState([])
@@ -149,14 +153,15 @@ const PharmacySettingsList = () => {
       <Grid size={12} sx={{ width: '100%' }}>
         <Card sx={{ width: '100%', px: 2 }}>
           <CardHeader
-            title='Pharmacy Settings'
+            sx={{ px: 1 }}
+            title={RenderUtility.pageTitle('Pharmacy Settings')}
             action={
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 {pharmacyRole && <AddButtonContained title='Add Setting' action={openDrawer} />}
               </Box>
             }
           />
-          <CardContent sx={{ px: 2 }}>
+          <CardContent sx={{ px: 2, my: 0, py: 0 }}>
             <CommonTable hideFooter disablePagination indexedRows={tableData} columns={columns} loading={loading} />
           </CardContent>
         </Card>

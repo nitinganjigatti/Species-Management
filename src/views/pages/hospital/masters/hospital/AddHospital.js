@@ -55,16 +55,25 @@ const hospitalTypeOptions = [
   { label: 'External Hospital', value: 0 }
 ]
 
-const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, submitLoader }) => {
+const AddHospital = ({
+  handleSidebarOpen,
+  handleSidebarClose,
+  handleSubmitData,
+  submitLoader,
+  sites,
+  sitesLoading,
+  onSiteSearch
+}) => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
 
-  const getSitesList = useMemo(() => authData?.userData?.user?.zoos?.[0]?.sites ?? [], [authData?.userData?.user?.zoos])
+  // const getSitesList = useMemo(() => authData?.userData?.user?.zoos?.[0]?.sites ?? [], [authData?.userData?.user?.zoos])
 
   const {
     reset,
     control,
     handleSubmit,
+    watch,
     formState: { errors, isValid }
   } = useForm({
     defaultValues,
@@ -73,13 +82,16 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
     reValidateMode: 'onChange',
     shouldUnregister: false
   })
+  const selectedSite = watch('site_id')
 
   const onSubmit = useCallback(
     async formData => {
       const payload = {
         name: formData.hospital_name,
         description: formData.description || null,
-        site_id: formData.site_id?.site_id ?? null,
+
+        // site_id: formData.site_id?.site_id ?? null,
+        site_id: formData.site_id?.value || null,
         entity_type: 'hospital',
         is_external: 0
       }
@@ -196,15 +208,19 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
                   name='site_id'
                   errors={errors}
                   label='Site Name'
-                  options={getSitesList}
-                  getOptionLabel={option => option?.site_name || ''}
-                  isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
-                  renderOption={(props, option) => (
-                    <li {...props} key={option.site_id}>
-                      {option.site_name}
-                    </li>
-                  )}
+                  options={sites}
+                  getOptionLabel={option => option?.label || ''}
+                  getOptionValue={option => option?.value || ''}
+                  onInputChange={value => onSiteSearch(value)}
+                  isOptionEqualToValue={(option, value) => option?.value === value?.value}
+                  onItemClear={() => onSiteSearch('')}
+                  loading={sitesLoading}
+                  showLoader={true}
                   showIcons={false}
+                  onBlur={inputValue => {
+                    if (!selectedSite && (inputValue?.target.value || '')?.trim() !== '') onSiteSearch('')
+                  }}
+                  clearOnBlur={true}
                 />
               </Grid>
             </Grid>
