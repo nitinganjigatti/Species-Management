@@ -31,6 +31,7 @@ import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import Utility from 'src/utility'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
+import useDebounce from 'src/hooks/useDebounce'
 
 import {
   addSurgeryMaster,
@@ -277,7 +278,7 @@ const AddSurgeryRecord = () => {
     [patientData?.admitted_at]
   )
 
-  const buildDefaultFormValues = useCallback(
+  const defaultFormValues = useMemo(
     () => ({
       date: dayjs(),
       startTime: dayjs(),
@@ -310,7 +311,7 @@ const AddSurgeryRecord = () => {
     resolver: formResolver,
     mode: 'onChange',
     reValidateMode: 'onChange',
-    defaultValues: buildDefaultFormValues()
+    defaultValues: defaultFormValues
   })
 
   const [openAddanesthesiaDrawer, setOpenAddanesthesiaDrawer] = useState(false)
@@ -346,6 +347,8 @@ const AddSurgeryRecord = () => {
 
     return dayjs(startTimeValue).add(1, 'hour')
   }, [startTimeValue])
+  const debouncedProcedureSearchTerm = useDebounce(procedureSearchTerm, 400)
+  const debouncedSurgeonSearchTerm = useDebounce(surgeonSearchTerm, 400)
   const parseUtcDateToLocalDayjs = useCallback(value => {
     if (!value) return null
 
@@ -490,8 +493,7 @@ const AddSurgeryRecord = () => {
       return
     }
 
-    const defaults = buildDefaultFormValues()
-    reset(defaults)
+    reset(defaultFormValues)
     setValue('surgeon', null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
     setValue('procedure', null, { shouldValidate: false, shouldDirty: false, shouldTouch: false })
     setSelectedAnesthesiaRecord(null)
@@ -507,7 +509,7 @@ const AddSurgeryRecord = () => {
     prefillDetail,
     applyPrefillFromRecord,
     reset,
-    buildDefaultFormValues,
+    defaultFormValues,
     setValue,
     setSelectedAnesthesiaRecord,
     setPendingAnesthesiaRecord,
@@ -517,14 +519,14 @@ const AddSurgeryRecord = () => {
   ])
 
   const { data: surgeryMasterResponse, isFetching: isProceduresLoading } = useQuery({
-    queryKey: ['hospital-surgeries', procedureSearchTerm],
+    queryKey: ['hospital-surgeries', debouncedProcedureSearchTerm],
     queryFn: () => {
       const params = {
         page_no: 1,
         limit: 20
       }
 
-      const trimmed = procedureSearchTerm.trim()
+      const trimmed = debouncedProcedureSearchTerm.trim()
       if (trimmed) {
         params.q = trimmed
       }
@@ -615,12 +617,12 @@ const AddSurgeryRecord = () => {
       return
     }
 
-    getDoctorList(hospitalId, 1, surgeonSearchTerm)
-  }, [patientData?.hospital_id, surgeonSearchTerm, getDoctorList])
+    getDoctorList(hospitalId, 1, debouncedSurgeonSearchTerm)
+  }, [patientData?.hospital_id, debouncedSurgeonSearchTerm, getDoctorList])
 
   const loadMoreDoctors = () => {
     if (!hasMoreDoctors || doctorsLoading) return
-    getDoctorList(patientData?.hospital_id, doctorsPage + 1, surgeonSearchTerm)
+    getDoctorList(patientData?.hospital_id, doctorsPage + 1, debouncedSurgeonSearchTerm)
   }
 
   const surgeonOptions = useMemo(
@@ -1030,6 +1032,8 @@ const AddSurgeryRecord = () => {
             (isEditMode ? 'Surgery record updated successfully' : 'Surgery record added successfully')
         })
         resetForm()
+        // Skip route change warning after successful save
+        isNavigatingRef.current = true
         router.back()
       } else {
         Toaster({
@@ -1165,15 +1169,6 @@ const AddSurgeryRecord = () => {
                 control={control}
                 minDate={minDate}
                 maxDate={maxDate}
-                renderInput={params => (
-                  <ControlledTextField
-                    {...params}
-                    fullWidth
-                    error={!!errors.date}
-                    helperText={errors.date?.message}
-                    borderRadius='4px'
-                  />
-                )}
               />
             </Grid>
             <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
@@ -1187,15 +1182,6 @@ const AddSurgeryRecord = () => {
                 label='Start Time'
                 name={'startTime'}
                 control={control}
-                renderInput={params => (
-                  <ControlledTextField
-                    {...params}
-                    fullWidth
-                    error={!!errors.startTime}
-                    helperText={errors.startTime?.message}
-                    borderRadius='4px'
-                  />
-                )}
               />
             </Grid>
             <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
@@ -1210,15 +1196,6 @@ const AddSurgeryRecord = () => {
                 control={control}
                 label='End Time'
                 minTime={minEndTime}
-                renderInput={params => (
-                  <ControlledTextField
-                    {...params}
-                    fullWidth
-                    error={!!errors.endTime}
-                    helperText={errors.endTime?.message}
-                    borderRadius='4px'
-                  />
-                )}
               />
             </Grid>
             <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
