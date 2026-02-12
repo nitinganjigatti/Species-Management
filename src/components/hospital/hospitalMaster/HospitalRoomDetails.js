@@ -42,6 +42,7 @@ import {
 } from 'src/lib/api/hospital/hospitalRooms'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 import { useHospital } from 'src/context/HospitalContext'
+import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 
 const HospitalRoomDetails = () => {
   const theme = useTheme()
@@ -62,6 +63,9 @@ const HospitalRoomDetails = () => {
   const [appliedFilters, setAppliedFilters] = useState({})
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [isOccupiedRoomWarningOpen, setIsOccupiedRoomWarningOpen] = useState(false)
+
+  const [sitesLoading, setSitesLoading] = useState(false)
+  const [sites, setSites] = useState([])
 
   const [filters, setFilters] = useState({
     page: Number(page) || 1,
@@ -111,6 +115,32 @@ const HospitalRoomDetails = () => {
     const count = Object.values(syncedFilters).reduce((acc, arr) => acc + arr.length, 0)
     setFilterCount(count)
   }, [])
+
+  // Fetch sites
+  const fetchSites = useCallback(async (q = '') => {
+    try {
+      setSitesLoading(true)
+      const params = { q, limit: 10, page_no: 1 }
+      const res = await getZooWiseSiteLists(params)
+      if (res?.success) {
+        const formatted = res?.data?.result?.map(item => ({
+          value: item?.site_id,
+          label: item?.site_name
+        }))
+        setSites(formatted)
+      } else {
+        setSites([])
+      }
+    } catch (error) {
+      console.error('Error fetchSites:', error?.message)
+    } finally {
+      setSitesLoading(false)
+    }
+  }, [])
+
+  const debouncedFetchSites = useMemo(() => {
+    return debounce(q => fetchSites(q), 500)
+  }, [fetchSites])
 
   // Fetch room list - React Query will automatically refetch when filters change
   const {
@@ -630,6 +660,20 @@ const HospitalRoomDetails = () => {
     })
   }
 
+  // Fetch sites when drawer opens
+  useEffect(() => {
+    fetchSites('')
+  }, [fetchSites])
+
+  // cleanup debounced fetchSites on unmount
+  useEffect(() => {
+    return () => {
+      if (debouncedFetchSites?.cancel) {
+        debouncedFetchSites.cancel()
+      }
+    }
+  }, [debouncedFetchSites])
+
   useEffect(() => {
     setIsHospitalActive(Number(roomData?.hospital_detail?.is_active) || 0)
   }, [roomData?.hospital_detail?.is_active])
@@ -769,6 +813,9 @@ const HospitalRoomDetails = () => {
           hospitalId={id}
           isActive={isHospitalActive}
           hospitalStatus={hospitalStatusEdit}
+          sites={sites}
+          sitesLoading={sitesLoading}
+          onSiteSearch={debouncedFetchSites}
         />
       )}
 
