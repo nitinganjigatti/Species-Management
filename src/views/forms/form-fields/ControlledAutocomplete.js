@@ -34,7 +34,8 @@ const ControlledAutocomplete = ({
   showIcons = true,
   disabled = false,
   endAdornment = null,
-  showLoader = false
+  showLoader = false,
+  clearOnBlur = false
 }) => {
   if (!options) return null
 
@@ -71,7 +72,7 @@ const ControlledAutocomplete = ({
             freeSolo={showIcons}
             disabled={disabled}
             selectOnFocus
-            clearOnBlur={false}
+            clearOnBlur={clearOnBlur}
             handleHomeEndKeys
             options={options}
             getOptionLabel={getOptionLabel}
