@@ -18,6 +18,7 @@ import {
 } from '@mui/material'
 import React, { useEffect, useState, useCallback, useMemo, memo } from 'react'
 import { styled, alpha } from '@mui/material/styles'
+import { useRouter } from 'next/router'
 import Timeline from '@mui/lab/Timeline'
 import TimelineItem from '@mui/lab/TimelineItem'
 import { timelineOppositeContentClasses } from '@mui/lab'
@@ -87,6 +88,7 @@ const StyledSectionHeader = styled(Box)(({ theme }) => ({
 
 const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) => {
   const theme = useTheme()
+  const router = useRouter()
 
   const [necropsyData, setNecropsyData] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -214,6 +216,12 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
   const handleViewAnimals = () => {
     setShowAnimalListDrawer(true)
     fetchAnimalList()
+  }
+
+  const handleAnimalClick = animalId => {
+    if (animalId) {
+      router.push(`/housing/animals/${animalId}`)
+    }
   }
 
   // Fetch all data in parallel when drawer opens
@@ -518,13 +526,20 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                     <Card sx={{ overflow: 'visible' }}>
                       <CardContent>
                         <Box
+                          onClick={() => handleAnimalClick(necropsyData?.entity_details[0]?.animal_id)}
                           sx={{
                             background: alpha(
                               theme.palette.customColors?.errorContainer || theme.palette.error.light,
                               0.4
                             ),
                             borderRadius: 1,
-                            p: 3
+                            p: 3,
+                            cursor: necropsyData?.entity_details[0]?.animal_id ? 'pointer' : 'default',
+                            '&:hover': necropsyData?.entity_details[0]?.animal_id
+                              ? {
+                                  opacity: 0.85
+                                }
+                              : {}
                           }}
                         >
                           <AnimalCard data={necropsyData?.entity_details[0]} />
@@ -1037,13 +1052,20 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                 {animalList.map((animal, index) => (
                   <Box
                     key={animal.animal_id || index}
+                    onClick={() => handleAnimalClick(animal?.animal_id)}
                     sx={{
                       background: theme.palette.customColors?.displaybgPrimary || theme.palette.grey[50],
                       borderRadius: 1,
                       p: 3,
                       display: 'flex',
                       justifyContent: 'space-between',
-                      alignItems: 'center'
+                      alignItems: 'center',
+                      cursor: animal?.animal_id ? 'pointer' : 'default',
+                      '&:hover': animal?.animal_id
+                        ? {
+                            opacity: 0.85
+                          }
+                        : {}
                     }}
                   >
                     <AnimalCard data={animal} />
