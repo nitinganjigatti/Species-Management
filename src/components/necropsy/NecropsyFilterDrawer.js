@@ -4,7 +4,7 @@ import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import FilterContent from 'src/components/drawers/FilterContent'
 import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
-import { readAsync } from 'src/lib/windows/utils'
+import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
 
 const incomingMenus = ['Sex', 'Site', 'Priority']
@@ -43,6 +43,9 @@ const NecropsyFilterDrawer = ({
   initialSelectedOptions,
   activeCard
 }) => {
+  const auth = useAuth()
+  const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
+
   const leftMenu =
     activeCard === 'INCOMING'
       ? incomingMenus
@@ -90,11 +93,8 @@ const NecropsyFilterDrawer = ({
 
         case 'Necropsy Conducted By':
         case 'Created By': {
-          const userDetails = await readAsync('userDetails')
-
-          if (userDetails?.user?.zoos?.length > 0) {
-            const zoo_id = userDetails.user.zoos[0].zoo_id
-            params.zoo_id = zoo_id
+          if (zooId) {
+            params.zoo_id = zooId
 
             const res = await getUserList(params)
 
@@ -126,7 +126,7 @@ const NecropsyFilterDrawer = ({
     } finally {
       setSearchLoading(false)
     }
-  }, [])
+  }, [zooId])
 
   const handleClearAll = useCallback(() => {
     setSelectedOptions(getInitialOptions(extendedMenus))

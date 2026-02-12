@@ -3,13 +3,16 @@ import { Box, Typography, Chip, Avatar, CircularProgress, useTheme } from '@mui/
 import { Autocomplete, TextField } from '@mui/material'
 import { debounce } from 'lodash'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
-import { readAsync } from 'src/lib/windows/utils'
+import { useAuth } from 'src/hooks/useAuth'
 
 const UserMultiSelect = ({ selectedUsers = [], onChange, label = 'Search & Select Users', disabled = false }) => {
   const theme = useTheme()
   const [options, setOptions] = useState([])
   const [loading, setLoading] = useState(false)
   const [inputValue, setInputValue] = useState('')
+
+  const auth = useAuth()
+  const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
   const fetchUsers = useCallback(
     debounce(async query => {
@@ -19,14 +22,11 @@ const UserMultiSelect = ({ selectedUsers = [], onChange, label = 'Search & Selec
         return
       }
 
+      if (!zooId) return
+
       try {
         setLoading(true)
-        const userDetails = await readAsync('userDetails')
-        const zoo_id = userDetails?.user?.zoos?.[0]?.zoo_id
-
-        if (!zoo_id) return
-
-        const res = await getUserList({ zoo_id, q: query })
+        const res = await getUserList({ zoo_id: zooId, q: query })
 
         const users =
           res?.data?.map(item => ({
