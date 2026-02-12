@@ -884,7 +884,7 @@ const PatientAdmitForm = () => {
         <ConfirmationDialog
           dialogBoxStatus={isRejecting}
           onClose={() => setIsRejecting(false)}
-          title={'Reject Incoming patient'}
+          title={'Reject Request'}
           cancelText={'CANCEL'}
           cancelBtnStyle={{
             borderColor: theme.palette.customColors.OnPrimaryContainer,
@@ -896,7 +896,7 @@ const PatientAdmitForm = () => {
           confirmAction={handlePatientRejection}
           loading={isRejectLoading}
           ConfirmationText={'SUBMIT'}
-          description={"Once rejected, the animal can't be admitted again."}
+          // description={"Once rejected, the animal can't be admitted again."}
           formComponent={
             <TextField
               label='Enter Rejection Reason*'
@@ -906,6 +906,7 @@ const PatientAdmitForm = () => {
               value={rejectionReason}
               onChange={e => setRejectionReason(e.target.value)}
               sx={{
+                width: { xs: '100%', sm: '400px' },
                 '& .MuiInputBase-root': {
                   backgroundColor: theme.palette.customColors.ErrorContainer
                 },
