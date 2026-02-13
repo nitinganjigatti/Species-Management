@@ -69,6 +69,7 @@ function UserAvatarDetails({
                       color: text_color ?? 'text.primary',
                       maxWidth: '100%',
                       width: crby_width ? crby_width : 'auto',
+
                       // fontSize: fontSize,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -125,7 +126,14 @@ function UserAvatarDetails({
             )}
 
             {date && (
-              <Typography variant='caption' sx={{ lineHeight: 1.6667, ...(selectedAvatarSize?.date || {}) }}>
+              <Typography
+                variant='caption'
+                sx={{
+                  lineHeight: 1.6667,
+                  color: text_color ?? '',
+                  ...(selectedAvatarSize?.date || {})
+                }}
+              >
                 <span>
                   {dateType === 'created' ? (
                     <span style={{ color: theme.palette.customColors.neutralSecondary }}>

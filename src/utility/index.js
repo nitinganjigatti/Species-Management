@@ -332,9 +332,14 @@ export const downloadPDF = async ({ apiCall, params, fileName, headers = {} }) =
     // Call the API to get the download URL
     const response = await apiCall(params)
 
-    if (response?.success && response?.data?.download_url) {
+    // Handle both response formats:
+    // 1. response.data.download_url (nested URL)
+    // 2. response.data as direct URL string
+    const downloadUrl = response?.data?.download_url || (typeof response?.data === 'string' ? response.data : null)
+
+    if (response?.success && downloadUrl) {
       // Fetch the file as a blob
-      const fileResponse = await fetch(response.data.download_url, {
+      const fileResponse = await fetch(downloadUrl, {
         method: 'GET',
         headers
       })
@@ -370,6 +375,55 @@ const capitalizeFirstLetter = string => {
   if (!string) return ''
 
   return string.charAt(0).toUpperCase() + string.slice(1)
+}
+
+/**
+ * Scrolls to a specific form field by name, id, or data-field attribute
+ * @param {string} fieldName - The name/id/data-field of the field to scroll to
+ * @param {Object} options - Scroll options
+ * @param {string} options.behavior - Scroll behavior ('smooth' | 'instant' | 'auto'), default 'smooth'
+ * @param {string} options.block - Vertical alignment ('start' | 'center' | 'end' | 'nearest'), default 'center'
+ * @param {boolean} options.focus - Whether to focus the element after scrolling, default true
+ * @param {number} options.focusDelay - Delay in ms before focusing, default 300
+ */
+const scrollToField = (fieldName, options = {}) => {
+  const { behavior = 'smooth', block = 'center', focus = true, focusDelay = 300 } = options
+
+  const element =
+    document.querySelector(`[name="${fieldName}"]`) ||
+    document.querySelector(`#${fieldName}`) ||
+    document.querySelector(`[data-field="${fieldName}"]`)
+
+  if (element) {
+    element.scrollIntoView({ behavior, block })
+
+    if (focus && typeof element.focus === 'function') {
+      setTimeout(() => element.focus(), focusDelay)
+    }
+
+    return true
+  }
+
+  return false
+}
+
+/**
+ * Scrolls to the first field with a validation error (for react-hook-form)
+ * @param {Object} errors - The errors object from react-hook-form's formState
+ * @param {Object} options - Scroll options (same as scrollToField)
+ * @returns {string|null} - The name of the first error field, or null if no errors
+ */
+const scrollToFirstError = (errors, options = {}) => {
+  const errorFields = Object.keys(errors || {})
+
+  if (errorFields.length > 0) {
+    const firstErrorField = errorFields[0]
+    scrollToField(firstErrorField, options)
+
+    return firstErrorField
+  }
+
+  return null
 }
 
 export const extractTextFromHtml = html => {
@@ -433,6 +487,8 @@ const Utility = {
   getUpcomingHours,
   downloadPDF,
   capitalizeFirstLetter,
+  scrollToField,
+  scrollToFirstError,
   extractTextFromHtml
 }
 
