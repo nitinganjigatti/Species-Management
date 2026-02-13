@@ -509,7 +509,7 @@ export default function BasicDetails({
                   <Box
                     ref={contentRef}
                     sx={{
-                      maxHeight: !expanded? 170: searchValue? 200: fullHeight || 170,
+                      maxHeight: expanded ? fullHeight : 170,
                       transition: 'max-height 0.3s ease',
                       display: 'flex',
                       flexWrap: 'wrap',
