@@ -38,6 +38,7 @@ const MediaFilterContent = ({
                 checked={isAllSelected}
                 indeterminate={selectedOptions?.length > 0 && !isAllSelected}
                 onChange={selectAllHandler}
+                onClick={e => e.stopPropagation()}
                 sx={{ p: 1 }}
               />
               <Typography
