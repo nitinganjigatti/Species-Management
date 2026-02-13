@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef} from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import {
   Box,
   TextField,
@@ -39,6 +39,12 @@ export default function BasicDetails({
   selectedHospital,
   loadMoreDoctors = () => {},
   loadingDoctors = false,
+  loadingVet = false,
+  loadingAnesthetist = false,
+  handleVetSearch = () => {},
+  handleAnesthetistSearch = () => {},
+  handleVetSelect = () => {},
+  handleAnesthetistSelect = () => {},
   patientData = []
 }) {
   const {
@@ -52,7 +58,7 @@ export default function BasicDetails({
   const [newPurpose, setNewPurpose] = useState('')
   const [expanded, setExpanded] = useState(false)
   const [showToggle, setShowToggle] = useState(false)
-  const [fullHeight, setFullHeight] = useState(0 || '') //fullheight - current scroll height for view more placement
+  const [fullHeight, setFullHeight] = useState(0 || '')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchValue, setSearchValue] = useState('')
   const [loading, setLoading] = useState(true)
@@ -97,7 +103,6 @@ export default function BasicDetails({
     }
   }
 
-  // Reusable slotProps for both Autocomplete components
   const autocompleteSlotProps = useMemo(
     () => ({
       tags: options => ({
@@ -201,19 +206,19 @@ export default function BasicDetails({
 
   /*view more button appearance based on height */
   useEffect(() => {
-  if (loading) return          
-  if (filteredPurposeOptions.length === 0) return 
-  if (!contentRef.current) return
+    if (loading) return
+    if (filteredPurposeOptions.length === 0) return
+    if (!contentRef.current) return
 
-  const height = contentRef.current.scrollHeight
-  setFullHeight(height)
-  setShowToggle(height > 170)
-}, [filteredPurposeOptions])
+    const height = contentRef.current.scrollHeight
+    setFullHeight(height)
+    setShowToggle(height > 170)
+  }, [filteredPurposeOptions])
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false)
-  }, 1200)
+    }, 1200)
 
     return () => clearTimeout(timer)
   }, [filteredPurposeOptions, loading])
@@ -337,44 +342,52 @@ export default function BasicDetails({
           <Controller
             name='basicDetails.veterinarian_id'
             control={control}
-            render={({ field }) => (
-              <Autocomplete
-                multiple
-                openOnFocus
-                options={vetOptions}
-                getOptionLabel={option => option?.name || ''}
-                isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
-                loading={loadingDoctors}
-                value={
-                  Array.isArray(field.value)
-                    ? field.value.map(id => vetOptions.find(opt => opt.id === id)).filter(Boolean)
-                    : []
-                }
-                onChange={(_, newValue) => {
-                  const selectedIds = newValue.map(item => item.id)
-                  field.onChange(selectedIds)
-                }}
-                slotProps={{
-                  tags: autocompleteSlotProps.tags(vetOptions),
-                  listbox: autocompleteSlotProps.listbox
-                }}
-                renderOption={(props, option) => (
-                  <li {...props} key={option.id}>
-                    {option.name}
-                  </li>
-                )}
-                renderInput={params => (
-                  <TextField
-                    {...params}
-                    label='Veterinarian*'
-                    fullWidth
-                    error={!!errors?.basicDetails?.veterinarian_id}
-                    helperText={errors?.basicDetails?.veterinarian_id?.message}
-                    sx={commonTextFieldSx}
-                  />
-                )}
-              />
-            )}
+            render={({ field }) => {
+              return (
+                <Autocomplete
+                  multiple
+                  openOnFocus
+                  options={vetOptions}
+                  getOptionLabel={option => option?.name || ''}
+                  isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
+                  loading={loadingVet}
+                  value={field.value || []}
+                  filterOptions={x => x}
+                  onInputChange={(event, newInputValue) => {
+                    handleVetSearch(newInputValue, field.value || [])
+                  }}
+                  onChange={(_, newValue) => {
+                    const previousValue = field.value || []
+                    if (newValue.length > previousValue.length) {
+                      const newItem = newValue.find(
+                        item => !previousValue.some(prev => String(prev.id) === String(item.id))
+                      )
+                      if (newItem) handleVetSelect(newItem)
+                    }
+                    field.onChange(newValue)
+                  }}
+                  slotProps={{
+                    tags: autocompleteSlotProps.tags(vetOptions),
+                    listbox: autocompleteSlotProps.listbox
+                  }}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.id}>
+                      {option.name}
+                    </li>
+                  )}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      label='Veterinarian*'
+                      fullWidth
+                      error={!!errors?.basicDetails?.veterinarian_id}
+                      helperText={errors?.basicDetails?.veterinarian_id?.message}
+                      sx={commonTextFieldSx}
+                    />
+                  )}
+                />
+              )
+            }}
           />
         </Grid>
 
@@ -390,15 +403,21 @@ export default function BasicDetails({
                 options={anesthetistOptions}
                 getOptionLabel={option => option?.name || ''}
                 isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
-                loading={loadingDoctors}
-                value={
-                  Array.isArray(field.value)
-                    ? field.value.map(id => anesthetistOptions.find(opt => opt.id === id)).filter(Boolean)
-                    : []
-                }
+                loading={loadingAnesthetist}
+                value={field.value || []}
+                filterOptions={x => x}
+                onInputChange={(event, newInputValue) => {
+                  handleAnesthetistSearch(newInputValue, field.value || [])
+                }}
                 onChange={(_, newValue) => {
-                  const selectedIds = newValue.map(item => item.id)
-                  field.onChange(selectedIds)
+                  const previousValue = field.value || []
+                  if (newValue.length > previousValue.length) {
+                    const newItem = newValue.find(
+                      item => !previousValue.some(prev => String(prev.id) === String(item.id))
+                    )
+                    if (newItem) handleAnesthetistSelect(newItem)
+                  }
+                  field.onChange(newValue)
                 }}
                 slotProps={{
                   tags: autocompleteSlotProps.tags(anesthetistOptions),
@@ -440,7 +459,6 @@ export default function BasicDetails({
           <Box>
             <Typography
               fontWeight={600}
-              // mb={3}
               sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
             >
               Purpose of Anesthesia*{' '}
@@ -474,7 +492,7 @@ export default function BasicDetails({
           defaultValue={[]}
           render={({ field }) => (
             <>
-              <Collapse in={!expanded || loading ||  showToggle} collapsedSize={showToggle ? 170 : 'auto'}>
+              <Collapse in={!expanded || loading || showToggle} collapsedSize={showToggle ? 170 : 'auto'}>
                 {loading ? (
                   <Grid
                     container
@@ -498,8 +516,7 @@ export default function BasicDetails({
                           height={46}
                           sx={{
                             width: { sm: 200, lg: 240 },
-                            borderRadius: '8px',
-                            
+                            borderRadius: '8px'
                           }}
                         />
                       </Grid>
@@ -509,7 +526,7 @@ export default function BasicDetails({
                   <Box
                     ref={contentRef}
                     sx={{
-                      maxHeight: !expanded? 170: searchValue? 200: fullHeight || 170,
+                      maxHeight: !expanded ? 170 : searchValue ? 200 : fullHeight || 170,
                       transition: 'max-height 0.3s ease',
                       display: 'flex',
                       flexWrap: 'wrap',
@@ -562,9 +579,9 @@ export default function BasicDetails({
                           justifyContent: 'center',
                           width: '100%',
                           height: 200
-                       }}
+                        }}
                       >
-                        <NoDataFound height = {200} width = {200}/>
+                        <NoDataFound height={200} width={200} />
                       </Box>
                     ) : null}
                   </Box>
@@ -582,7 +599,7 @@ export default function BasicDetails({
                           display: 'flex',
                           alignItems: 'center',
                           mt: 3,
-                          color:theme.palette.primary.main 
+                          color: theme.palette.primary.main
                         }}
                       >
                         {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}

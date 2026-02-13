@@ -1,5 +1,7 @@
 import * as React from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { debounce } from 'lodash'
+import { v4 as uuidv4 } from 'uuid'
 import {
   Box,
   Typography,
@@ -287,12 +289,10 @@ export const anesthesiaSchema = yup.object({
       location: yup.string().trim().required('Location is required'),
       anaesthesia_datetime: yup.string().trim().required('Date & time is required'),
       estimated_time_required: yup.string().trim().required('Estimated time is required'),
-      veterinarian_id: yup.array().of(yup.string()).min(1, 'Select at least one veterinarian'),
-      anesthetist_id: yup.array().of(yup.string()).min(1, 'Select at least one anesthetist'),
+      veterinarian_id: yup.array().min(1, 'Select at least one veterinarian'),
+      anesthetist_id: yup.array().min(1, 'Select at least one anesthetist'),
       selected: yup.array().of(yup.string()).default([]),
       custom: yup.array().of(yup.string().trim()).default([])
-
-      // notes: yup.string().trim().required('Notes are required')
     })
     .test('purpose-selected-or-custom', 'Select at least one purpose or add a custom purpose', value => {
       if (!value) return false
@@ -340,9 +340,15 @@ export default function AddAnesthesiaRecord() {
   const [anesthesiaSetupList, setanesthesiaSetupList] = useState([])
   const [clinPathList, setClinPathList] = useState([])
   const [doctors, setDoctors] = useState([])
+  const [vetDoctors, setVetDoctors] = useState([])
+  const [anesthetistDoctors, setAnesthetistDoctors] = useState([])
+  const [masterVetDoctors, setMasterVetDoctors] = useState([])
+  const [masterAnesthetistDoctors, setMasterAnesthetistDoctors] = useState([])
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false)
+  const [loadingVet, setLoadingVet] = useState(false)
+  const [loadingAnesthetist, setLoadingAnesthetist] = useState(false)
   const [patientLoading, setPatientLoading] = useState(false)
   const [patientData, setPatientData] = useState(null)
   const [unitList, setunitList] = useState([])
@@ -354,6 +360,8 @@ export default function AddAnesthesiaRecord() {
   const [deleteLoading, setDeleteLoading] = useState(false)
   const sectionRefs = React.useRef({})
   const scrollContainerRef = React.useRef(null)
+  const vetSearchTimerRef = React.useRef(null)
+  const anesthetistSearchTimerRef = React.useRef(null)
   const theme = useTheme()
   const accordionIconColor = alpha(theme.palette.text.primary, 110 / 255)
 
@@ -407,6 +415,22 @@ export default function AddAnesthesiaRecord() {
         return Array.from(new Map(merged.map(item => [String(item.id), item])).values())
       })
 
+      setVetDoctors(prev => {
+        const merged = [...prev, ...mapped]
+        const unique = Array.from(new Map(merged.map(item => [String(item.id), item])).values())
+        setMasterVetDoctors(unique)
+
+        return unique
+      })
+
+      setAnesthetistDoctors(prev => {
+        const merged = [...prev, ...mapped]
+        const unique = Array.from(new Map(merged.map(item => [String(item.id), item])).values())
+        setMasterAnesthetistDoctors(unique)
+
+        return unique
+      })
+
       setHasMore(data.current_page < data.total_pages)
       setPage(data.current_page)
     } catch (e) {
@@ -415,6 +439,128 @@ export default function AddAnesthesiaRecord() {
       setLoading(false)
     }
   }
+
+  const handleVetSearch = useCallback(
+    debounce(async (search, selectedItems = []) => {
+      if (!patientData?.hospital_id) return
+      if (vetSearchTimerRef.current) clearTimeout(vetSearchTimerRef.current)
+
+      if (!search.trim()) {
+        setVetDoctors(masterVetDoctors)
+
+        return
+      }
+
+      try {
+        setLoadingVet(true)
+        const params = {
+          hospital_id: patientData.hospital_id,
+          page_no: 1,
+          limit: 10,
+          q: search
+        }
+        const res = await getHospitalStaff({ params })
+        const mapped = (res?.data?.records || []).map(item => ({
+          id: String(item.user_id),
+          name: item.user_full_name,
+          default_icon: item.user_profile_pic,
+          role_name: item.role_name
+        }))
+
+        setVetDoctors(mapped)
+
+        vetSearchTimerRef.current = setTimeout(() => {
+          setMasterVetDoctors(prevMaster => {
+            const merged = [...prevMaster, ...mapped]
+            const unique = Array.from(new Map(merged.map(item => [String(item.id), item])).values())
+            setVetDoctors(unique)
+
+            return unique
+          })
+        }, 10000)
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setLoadingVet(false)
+      }
+    }, 500),
+    [patientData?.hospital_id, masterVetDoctors]
+  )
+
+  const handleAnesthetistSearch = useCallback(
+    debounce(async (search, selectedItems = []) => {
+      if (!patientData?.hospital_id) return
+      if (anesthetistSearchTimerRef.current) clearTimeout(anesthetistSearchTimerRef.current)
+
+      if (!search.trim()) {
+        setAnesthetistDoctors(masterAnesthetistDoctors)
+
+        return
+      }
+
+      try {
+        setLoadingAnesthetist(true)
+        const params = {
+          hospital_id: patientData.hospital_id,
+          page_no: 1,
+          limit: 10,
+          q: search
+        }
+        const res = await getHospitalStaff({ params })
+        const mapped = (res?.data?.records || []).map(item => ({
+          id: String(item.user_id),
+          name: item.user_full_name,
+          default_icon: item.user_profile_pic,
+          role_name: item.role_name
+        }))
+
+        setAnesthetistDoctors(mapped)
+
+        anesthetistSearchTimerRef.current = setTimeout(() => {
+          setMasterAnesthetistDoctors(prevMaster => {
+            const merged = [...prevMaster, ...mapped]
+            const unique = Array.from(new Map(merged.map(item => [String(item.id), item])).values())
+            setAnesthetistDoctors(unique)
+
+            return unique
+          })
+        }, 10000)
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setLoadingAnesthetist(false)
+      }
+    }, 500),
+    [patientData?.hospital_id, masterAnesthetistDoctors]
+  )
+
+  const handleVetSelect = useCallback(
+    selectedItem => {
+      if (vetSearchTimerRef.current) clearTimeout(vetSearchTimerRef.current)
+      setMasterVetDoctors(prevMaster => {
+        const merged = [...prevMaster, selectedItem]
+        const unique = Array.from(new Map(merged.map(item => [String(item.id), item])).values())
+        setVetDoctors(unique)
+
+        return unique
+      })
+    },
+    [vetSearchTimerRef]
+  )
+
+  const handleAnesthetistSelect = useCallback(
+    selectedItem => {
+      if (anesthetistSearchTimerRef.current) clearTimeout(anesthetistSearchTimerRef.current)
+      setMasterAnesthetistDoctors(prevMaster => {
+        const merged = [...prevMaster, selectedItem]
+        const unique = Array.from(new Map(merged.map(item => [String(item.id), item])).values())
+        setAnesthetistDoctors(unique)
+
+        return unique
+      })
+    },
+    [anesthetistSearchTimerRef]
+  )
 
   useEffect(() => {
     if (!anesthesiaDetail) return
@@ -1002,7 +1148,6 @@ export default function AddAnesthesiaRecord() {
     const checkBasicDetailsValid = async () => {
       const basicValues = methods.getValues('basicDetails')
       try {
-        // validate only the basicDetails part of schema
         const isValid = await anesthesiaSchema.fields.basicDetails.isValid(basicValues, {
           abortEarly: false
         })
@@ -1075,6 +1220,18 @@ export default function AddAnesthesiaRecord() {
       }
     })
 
+    const veterinarians = (detail.veterinarians || []).map(v => ({
+      id: String(v.user_id),
+      name: v.full_name,
+      role_name: v.role_name
+    }))
+
+    const anesthetists = (detail.anesthetists || []).map(a => ({
+      id: String(a.user_id),
+      name: a.full_name,
+      role_name: a.role_name
+    }))
+
     const basicDetailsForm = {
       location: detail?.location || selectedHospital?.name || '',
       anaesthesia_datetime: detail?.anaesthesia_datetime
@@ -1082,8 +1239,8 @@ export default function AddAnesthesiaRecord() {
         : '',
       estimated_time_required: detail.estimated_time_required || '',
       estimated_time_unit: detail.estimated_time_unit || 'hr',
-      veterinarian_id: (detail.veterinarians || []).map(v => String(v.user_id)),
-      anesthetist_id: (detail.anesthetists || []).map(a => String(a.user_id)),
+      veterinarian_id: veterinarians,
+      anesthetist_id: anesthetists,
 
       selected: selectedPurposeIds,
       custom: customPurposeNames,
@@ -1389,6 +1546,9 @@ export default function AddAnesthesiaRecord() {
         custom: data.basicDetails.custom || []
       }
 
+      const veterinarianIds = (data.basicDetails.veterinarian_id || []).map(v => v.id)
+      const anesthetistIds = (data.basicDetails.anesthetist_id || []).map(a => a.id)
+
       let medsPayload = []
       let gasPayload = []
       let recoveryPayload = null
@@ -1659,8 +1819,8 @@ export default function AddAnesthesiaRecord() {
       )
       formData.append('estimated_time_required', data.basicDetails.estimated_time_required)
       formData.append('estimated_time_unit', data.basicDetails.estimated_time_unit)
-      formData.append('veterinarian_id', JSON.stringify(data.basicDetails.veterinarian_id || []))
-      formData.append('anesthetist_id', JSON.stringify(data.basicDetails.anesthetist_id || []))
+      formData.append('veterinarian_id', JSON.stringify(veterinarianIds || []))
+      formData.append('anesthetist_id', JSON.stringify(anesthetistIds || []))
       formData.append('notes', data.basicDetails.notes)
       formData.append('purpose', JSON.stringify(purposePayload))
 
@@ -1715,9 +1875,8 @@ export default function AddAnesthesiaRecord() {
       if (response?.status === true) {
         setIsApiSuccess(true)
 
-        // setExpanded('medicationsGas')
         if (!hasMedicationsGasData(medsPayload, gasPayload)) {
-          handleChange('medicationsGas')
+          handleChange('preAnesthesia')
         }
         Toaster({ type: 'success', message: response?.message })
         setAnesthesiaDetail(response?.data?.anaesthesia_detail)
@@ -1869,8 +2028,8 @@ export default function AddAnesthesiaRecord() {
 
         return (
           !!rec.recovery_type ||
-          !!rec.recovery_first_effect ||
-          !!rec.recovery_full_effect ||
+          // !!rec.recovery_first_effect ||
+          // !!rec.recovery_full_effect ||
           !!rec.induction ||
           !!rec.tolerance ||
           !!rec.recovery ||
@@ -2122,8 +2281,8 @@ export default function AddAnesthesiaRecord() {
                   <AccordionDetails sx={{ pt: 0 }}>
                     <SectionComponent
                       sectionId={id}
-                      vetOptions={doctors}
-                      anesthetistOptions={doctors}
+                      vetOptions={vetDoctors}
+                      anesthetistOptions={anesthetistDoctors}
                       purposeOptions={assessmentList}
                       purposeStageOptions={purposeStageOptions}
                       unitList={unitList}
@@ -2145,10 +2304,16 @@ export default function AddAnesthesiaRecord() {
                       onDeleteReversalDrug={onDeleteReversalDrug}
                       anesthesiaSetupList={anesthesiaSetupList}
                       clinPathOptions={clinPathList}
+                      handleVetSearch={handleVetSearch}
+                      handleAnesthetistSearch={handleAnesthetistSearch}
+                      handleVetSelect={handleVetSelect}
+                      handleAnesthetistSelect={handleAnesthetistSelect}
                       addLoader={addLoader}
                       selectedHospital={selectedHospital}
                       loadMoreDoctors={loadMoreDoctors}
                       loadingDoctors={loading}
+                      loadingVet={loadingVet}
+                      loadingAnesthetist={loadingAnesthetist}
                       patientData={patientData}
                     />
                   </AccordionDetails>
