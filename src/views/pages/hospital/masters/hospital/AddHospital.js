@@ -89,8 +89,6 @@ const AddHospital = ({
       const payload = {
         name: formData.hospital_name,
         description: formData.description || null,
-
-        // site_id: formData.site_id?.site_id ?? null,
         site_id: formData.site_id?.value || null,
         entity_type: 'hospital',
         is_external: 0
@@ -217,10 +215,6 @@ const AddHospital = ({
                   loading={sitesLoading}
                   showLoader={true}
                   showIcons={false}
-                  onBlur={inputValue => {
-                    if (!selectedSite && (inputValue?.target.value || '')?.trim() !== '') onSiteSearch('')
-                  }}
-                  clearOnBlur={true}
                 />
               </Grid>
             </Grid>

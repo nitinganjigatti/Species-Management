@@ -515,7 +515,7 @@ export default function BasicDetails({
                           animation='wave'
                           height={46}
                           sx={{
-                            width: { sm: 200, lg: 240 },
+                            width: { xs: 200, lg: 240 },
                             borderRadius: '8px'
                           }}
                         />
@@ -526,7 +526,7 @@ export default function BasicDetails({
                   <Box
                     ref={contentRef}
                     sx={{
-                      maxHeight: !expanded ? 170 : searchValue ? 200 : fullHeight || 170,
+                      maxHeight: expanded ? fullHeight : 170,
                       transition: 'max-height 0.3s ease',
                       display: 'flex',
                       flexWrap: 'wrap',
