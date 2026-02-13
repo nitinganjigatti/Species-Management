@@ -125,9 +125,3 @@ export async function deletePatientMedia(mediaId) {
     throw error
   }
 }
-
-export async function getZooWiseSiteLists(params) {
-  const response = await axiosGet({ url: `${GET_ALL_SITE_LIST_WITHOUT_PERMISSION}`, params: params })
-
-  return response?.data
-}
