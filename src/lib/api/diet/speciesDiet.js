@@ -55,12 +55,6 @@ export async function speciesAttachmentUpload(payload) {
   }
 }
 
-export async function getAnimalList(params) {
-  const response = await axiosGet({ url: `${DIET}/get-animal-list-uploaded-diet`, params })
-
-  return response.data
-}
-
 export async function speciesAttachmentRemove(id) {
   try {
     const response = await axiosPost({ url: `${DIET}/species-attachment-remove/${id}` })
@@ -78,26 +72,6 @@ export async function speciesAttachmentRemove(id) {
 export async function speciesAttachmentActive(payload) {
   try {
     const response = await axiosPost({ url: `${DIET}/species-attachment-active`, body: payload })
-
-    return response?.data
-  } catch (error) {
-    if (error.response) {
-      console.error(error.response.data)
-    }
-
-    return error
-  }
-}
-
-export async function getAnimalDetailUploadedDiet(id, params) {
-  const response = await axiosGet({ url: `${DIET}/get-animal-detail-uploaded-diet/${id}`, params })
-
-  return response.data
-}
-
-export async function animalDietAttachmentStatus(payload) {
-  try {
-    const response = await axiosPost({ url: `${DIET}/animal-diet-attachments-status`, body: payload })
 
     return response?.data
   } catch (error) {

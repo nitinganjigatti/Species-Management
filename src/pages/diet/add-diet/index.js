@@ -159,8 +159,6 @@ const AddDiet = () => {
 
   const [feedSearchValue, setFeedSearchValue] = useState('')
 
-  const [feedSearchValue, setFeedSearchValue] = useState('')
-
   const fetchData = useCallback(
     async (pageNum = 1) => {
       setLoadingFeed(true)
