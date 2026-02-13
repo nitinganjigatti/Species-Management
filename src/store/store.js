@@ -10,8 +10,6 @@ import mediaReducer from 'src/store/slices/housing/mediaSlice'
 import sectionInfiniteScrollReducer from 'src/store/slices/housing/sectionInfiniteScrollSlice'
 import speciesInfiniteScrollReducer from 'src/store/slices/housing/speciesInfiniteScrollSlice'
 import animalInfiniteScrollReducer from 'src/store/slices/housing/animalInfiniteScrollSlice'
-
-// Necropsy module reducers
 import necropsyReducer from 'src/store/slices/necropsy/necropsySlice'
 import necropsyFormOptionsReducer from 'src/store/slices/necropsy/necropsyFormOptionsSlice'
 

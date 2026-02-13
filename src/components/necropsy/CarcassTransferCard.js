@@ -1,11 +1,12 @@
 import { Box, Card, CardContent, Typography, useTheme } from '@mui/material'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { debounce } from 'lodash'
 import Search from 'src/views/utility/Search'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-import { useNecropsy } from 'src/context/NecropsyContext'
+import { useNecropsyCenter } from 'src/hooks/necropsy'
+import { AuthContext } from 'src/context/AuthContext'
 import { getCarcassTransferList } from 'src/lib/api/necropsy'
 import CarcassTransferFilterDrawer from 'src/components/necropsy/CarcassTransferFilterDrawer'
 import IncomingNecropsyDrawer from 'src/components/necropsy/IncomingNecropsyDrawer'
@@ -38,7 +39,9 @@ const TABS = [
 
 const CarcassTransferCard = ({ filterDate }) => {
   const theme = useTheme()
-  const { selectedNecropsy } = useNecropsy()
+  const authData = useContext(AuthContext)
+  const userId = authData?.userData?.user?.user_id || ''
+  const { selectedCenter: selectedNecropsy } = useNecropsyCenter(userId, false)
 
   const [activeTab, setActiveTab] = useState('pending')
   const [data, setData] = useState([])

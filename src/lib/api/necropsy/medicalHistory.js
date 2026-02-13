@@ -17,6 +17,8 @@ export async function getMedicalBasicDataList(animalId, params) {
     return response?.data
   } catch (error) {
     console.error('Error fetching medical basic data list:', error.message)
+
+    return { success: false, message: error.message }
   }
 }
 
@@ -28,6 +30,8 @@ export async function getMedicalCommonData(animalId, params) {
     return response?.data
   } catch (error) {
     console.error('Error fetching medical common data:', error.message)
+
+    return { success: false, message: error.message }
   }
 }
 
@@ -39,6 +43,8 @@ export async function getLabRequestsByAnimal(params) {
     return response?.data
   } catch (error) {
     console.error('Error fetching lab requests:', error.message)
+
+    return { success: false, message: error.message }
   }
 }
 
@@ -50,6 +56,8 @@ export async function getAssessmentTypes(animalId) {
     return response?.data
   } catch (error) {
     console.error('Error fetching assessment types:', error.message)
+
+    return { success: false, message: error.message }
   }
 }
 
@@ -61,6 +69,8 @@ export async function getAssessmentData(animalId, params) {
     return response?.data
   } catch (error) {
     console.error('Error fetching assessment data:', error.message)
+
+    return { success: false, message: error.message }
   }
 }
 
@@ -72,6 +82,8 @@ export async function getMedicalRecordDetails(medicalRecordId) {
     return response?.data
   } catch (error) {
     console.error('Error fetching medical record details:', error.message)
+
+    return { success: false, message: error.message }
   }
 }
 
@@ -83,5 +95,7 @@ export async function getMedicalJournalLogs(params) {
     return response?.data
   } catch (error) {
     console.error('Error fetching medical journal logs:', error.message)
+
+    return { success: false, message: error.message }
   }
 }

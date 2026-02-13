@@ -11,14 +11,17 @@ import SpeciesAnimalFilterDrawer from 'src/components/necropsy/SpeciesAnimalFilt
 import IncomingNecropsyDrawer from 'src/components/necropsy/IncomingNecropsyDrawer'
 import NecropsyAnalytics from 'src/views/pages/necropsy/NecropsyAnalytics'
 import { getAnimalWiseNecropsyList } from 'src/lib/api/necropsy'
-import { useNecropsy } from 'src/context/NecropsyContext'
+import { useNecropsyCenter } from 'src/hooks/necropsy'
+import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 
 const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
   const theme = useTheme()
   const router = useRouter()
 
-  const { selectedNecropsy } = useNecropsy()
+  const authData = useContext(AuthContext)
+  const userId = authData?.userData?.user?.user_id || ''
+  const { selectedCenter: selectedNecropsy } = useNecropsyCenter(userId, false)
 
   const [animalRows, setAnimalRows] = useState([])
   const [total, setTotal] = useState(0)
