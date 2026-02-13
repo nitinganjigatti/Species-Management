@@ -497,7 +497,7 @@ export default function BasicDetails({
                           animation='wave'
                           height={46}
                           sx={{
-                            width: { sm: 200, lg: 240 },
+                            width: { xs: 200, lg: 240 },
                             borderRadius: '8px',
                             
                           }}
