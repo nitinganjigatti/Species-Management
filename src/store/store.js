@@ -12,6 +12,7 @@ import speciesInfiniteScrollReducer from 'src/store/slices/housing/speciesInfini
 import animalInfiniteScrollReducer from 'src/store/slices/housing/animalInfiniteScrollSlice'
 import shipmentReducer from 'src/store/slices/pharmacy/request/shipmentSlice'
 import necropsyReducer from 'src/store/slices/necropsy/necropsySlice'
+import necropsyFormOptionsReducer from 'src/store/slices/necropsy/necropsyFormOptionsSlice'
 
 const store = configureStore({
   reducer: {
@@ -27,7 +28,8 @@ const store = configureStore({
     speciesInfiniteScroll: speciesInfiniteScrollReducer,
     animalInfiniteScroll: animalInfiniteScrollReducer,
     shipment: shipmentReducer,
-    necropsy: necropsyReducer
+    necropsy: necropsyReducer,
+    necropsyFormOptions: necropsyFormOptionsReducer
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

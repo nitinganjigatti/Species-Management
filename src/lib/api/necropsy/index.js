@@ -39,6 +39,8 @@ export async function getNecropsyListing(params, userId) {
     return response?.data
   } catch (error) {
     console.error('Error fetching necropsy listing:', error.message)
+
+    return { status: false, message: error.message }
   }
 }
 
