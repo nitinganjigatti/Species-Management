@@ -2071,6 +2071,10 @@ export default function AddMedicineToPrescription() {
     }
   }
 
+  const handleClearMedicine = () => {
+    setTemporarilySelectedMedicine(null)
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       <AnimalInfoCard
@@ -2132,6 +2136,7 @@ export default function AddMedicineToPrescription() {
             <PrescriptionMedicineList
               medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
               temporarilySelectedMedicine={temporarilySelectedMedicine}
+              handleClearMedicine={handleClearMedicine}
               // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
               selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
               onSelect={handleMedicineSelect}
