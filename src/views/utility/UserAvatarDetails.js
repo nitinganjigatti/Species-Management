@@ -67,8 +67,8 @@ function UserAvatarDetails({
                     variant='subtitle2'
                     sx={{
                       color: text_color ?? 'text.primary',
-                      maxWidth: '100%',
                       width: crby_width ? crby_width : 'auto',
+                      maxWidth: '100%',
 
                       // fontSize: fontSize,
                       whiteSpace: 'nowrap',
@@ -77,8 +77,6 @@ function UserAvatarDetails({
                       maxWidth: '100%',
                       ...(selectedAvatarSize?.user_name || {})
                     }}
-
-                    // component={'span'}
                   >
                     {user_name ? user_name : 'NA'}
                   </Typography>
@@ -106,7 +104,14 @@ function UserAvatarDetails({
             )}
 
             {role && (
-              <Box sx={{ display: 'flex', flex: 1, minWidth: 0, flexDirection: 'column' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flex: 1,
+                  minWidth: 0,
+                  flexDirection: 'column'
+                }}
+              >
                 <Tooltip title={role}>
                   <Typography
                     variant='caption'
@@ -116,10 +121,11 @@ function UserAvatarDetails({
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       maxWidth: '100%',
+
                       ...(selectedAvatarSize?.date || {})
                     }}
                   >
-                    <span>{role}</span>
+                    {role}
                   </Typography>
                 </Tooltip>
               </Box>

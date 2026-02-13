@@ -755,19 +755,18 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                 }}
               >
                 <Grid item size={{ xs: 12, sm: 'auto' }}>
-                  <Box>
-                    <Button
-                      variant='outlined'
-                      size='large'
-                      onClick={() => {
-                        reset()
-                        close()
-                        setProductData(null)
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </Box>
+                  <Button
+                    variant='outlined'
+                    size='large'
+                    fullWidth
+                    onClick={() => {
+                      reset()
+                      close()
+                      setProductData(null)
+                    }}
+                  >
+                    Cancel
+                  </Button>
                 </Grid>
                 <Grid item size={{ xs: 12, sm: 'auto' }}>
                   <Button

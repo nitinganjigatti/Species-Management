@@ -6,21 +6,17 @@ import AddRack from 'src/views/pages/pharmacy/store/rack/addRack'
 import toast from 'react-hot-toast'
 import ConfirmDialog from 'src/components/ConfirmationDialog'
 
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
-
 import Icon from 'src/@core/components/icon'
-import { Box, CardHeader, TextField } from '@mui/material'
+import { Box, Tooltip, IconButton, Grid, Typography } from '@mui/material'
 import { useTheme } from '@emotion/react'
 
 import { useRouter } from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
-import RenderUtility from 'src/utility/render'
 import { debounce } from 'lodash'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const ListOfRacks = () => {
   const theme = useTheme()
@@ -184,7 +180,7 @@ const ListOfRacks = () => {
   const columns = [
     {
       flex: 0.1,
-      Width: 40,
+      minWidth: 80,
       field: 'uid',
       headerName: 'SL.NO',
       sortable: false,
@@ -197,7 +193,7 @@ const ListOfRacks = () => {
 
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       field: 'store_name',
       headerName: 'STORE NAME',
       sortable: false,
@@ -207,8 +203,7 @@ const ListOfRacks = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.store_name}
@@ -217,46 +212,53 @@ const ListOfRacks = () => {
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       field: 'name',
       headerName: 'RACK NAME',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.name}
-        </Typography>
+        <Tooltip title={params.row.name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+
+              textOverflow: 'ellipsis',
+              textWrap: 'nowrap'
+            }}
+          >
+            {params.row.name}
+          </Typography>
+        </Tooltip>
       )
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       field: 'shelfs',
       headerName: 'SHELFS',
       sortable: false,
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.shelfs}
-        </Typography>
+        <Tooltip title={params.row.shelfs}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              textOverflow: 'ellipsis',
+              textWrap: 'nowrap'
+            }}
+          >
+            {params.row.shelfs}
+          </Typography>
+        </Tooltip>
       )
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       field: 'position',
       headerName: 'POSITION',
       sortable: false,
@@ -266,8 +268,7 @@ const ListOfRacks = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.position}
@@ -277,7 +278,7 @@ const ListOfRacks = () => {
 
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
@@ -286,8 +287,7 @@ const ListOfRacks = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.status
@@ -300,7 +300,7 @@ const ListOfRacks = () => {
       ? [
           {
             flex: 0.2,
-            minWidth: 20,
+            minWidth: 120,
             field: 'Action',
             sortable: false,
             headerName: 'Action',
@@ -427,16 +427,14 @@ const ListOfRacks = () => {
     <div>
       {(selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
         selectedPharmacy?.permission?.pharmacy_module === 'ADD') && (
-        <AddButtonContained title='Add Rack' action={() => addEventSidebarOpen()} />
+        <AddButtonContained title='Add Rack' styles={{ margin: 0 }} action={() => addEventSidebarOpen()} />
       )}
     </div>
   )
 
   return (
     <>
-      <Card sx={{ cursor: 'pointer' }}>
-        <CardHeader title={RenderUtility?.pageTitle('Rack List')} action={addRackButton} />
-
+      <PageCardLayout title={'Rack List'} action={addRackButton}>
         <Box
           sx={{
             display: 'flex',
@@ -445,43 +443,15 @@ const ListOfRacks = () => {
           }}
         >
           <Grid item size={{ xs: 8 }} sx={{ width: { xs: '100%', sm: '240px' } }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                border: '1px solid #C3CEC7',
-                m: { xs: 3 },
-                marginLeft: { sm: 3, md: 5.5 },
-                borderRadius: '8px',
-                padding: '0 8px',
-
-                height: '40px'
-              }}
-            >
-              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-              <TextField
-                variant='outlined'
-                placeholder='Search...'
-                onChange={e => handleSearch(e.target.value)}
-                fullWidth
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    border: 'none',
-                    padding: '0',
-                    '& fieldset': {
-                      border: 'none'
-                    }
-                  }
-                }}
-              />
-            </Box>
+            <MUISearch
+              placeholder='Search...'
+              onChange={e => handleSearch(e.target.value)}
+              value={searchValue}
+              onClear={() => handleSearch('')}
+            />
           </Grid>
         </Box>
-        <Grid
-          sx={{
-            mx: { xs: 2, sm: 3, md: 5 }
-          }}
-        >
+        <Grid>
           <CommonTable
             indexedRows={indexedRows}
             total={total}
@@ -507,7 +477,7 @@ const ListOfRacks = () => {
             }}
           />
         </Grid>
-      </Card>
+      </PageCardLayout>
 
       <ConfirmDialog
         closeDialog={handleClose}

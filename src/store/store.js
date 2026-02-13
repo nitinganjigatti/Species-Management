@@ -10,10 +10,7 @@ import mediaReducer from 'src/store/slices/housing/mediaSlice'
 import sectionInfiniteScrollReducer from 'src/store/slices/housing/sectionInfiniteScrollSlice'
 import speciesInfiniteScrollReducer from 'src/store/slices/housing/speciesInfiniteScrollSlice'
 import animalInfiniteScrollReducer from 'src/store/slices/housing/animalInfiniteScrollSlice'
-
-// Necropsy module reducers
-import necropsyReducer from 'src/store/slices/necropsy/necropsySlice'
-import necropsyFormOptionsReducer from 'src/store/slices/necropsy/necropsyFormOptionsSlice'
+import shipmentReducer from 'src/store/slices/pharmacy/request/shipmentSlice'
 
 const store = configureStore({
   reducer: {
@@ -28,10 +25,7 @@ const store = configureStore({
     sectionInfiniteScroll: sectionInfiniteScrollReducer,
     speciesInfiniteScroll: speciesInfiniteScrollReducer,
     animalInfiniteScroll: animalInfiniteScrollReducer,
-
-    // Necropsy module
-    necropsy: necropsyReducer,
-    necropsyFormOptions: necropsyFormOptionsReducer
+    shipment: shipmentReducer
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

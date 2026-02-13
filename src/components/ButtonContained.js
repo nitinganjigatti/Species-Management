@@ -17,7 +17,8 @@ function AddButtonContained({ action, title, disabled, styles, fullWidth }) {
       size='large'
       variant='contained'
       startIcon={<Icon icon='material-symbols-light:add' />}
-      sx={{ mr: 1 }}
+      sx={{ mr: 1 , ...styles}}
+
       fullWidth={fullWidth ? fullWidth : null}
 
       // style={{ ...styles }}

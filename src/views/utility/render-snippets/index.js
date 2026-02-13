@@ -11,7 +11,8 @@ export const ExportButton = ({
   icon = 'ic:round-download',
   iconSize = 20,
   disabled = false,
-  bgcolor
+  bgcolor,
+  sx = {}
 }) => {
   const theme = useTheme()
 
@@ -27,7 +28,8 @@ export const ExportButton = ({
           bgcolor: bgcolor ? bgcolor : theme?.palette.customColors?.lightBg,
           alignItems: 'center',
           cursor: disabled ? '' : 'pointer',
-          opacity: disabled ? 0.5 : 1
+          opacity: disabled ? 0.5 : 1,
+          ...sx
         }}
         onClick={disabled ? undefined : onClick}
       >

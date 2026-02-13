@@ -58,22 +58,23 @@ const FilterDrawer = ({
       <Box
         sx={{
           display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
+          flexDirection: { xs: 'row', sm: 'row' },
           flex: 1,
-          overflow: 'hidden' // Prevent overflow,
+          overflow: 'hidden' ,// Prevent overflow,
+          width: 'auto'
         }}
       >
         {/* Filter List Section */}
         <Box
           sx={{
-            flex: { xs: 1, sm: 24 }, // Adjust flex for smaller screens
+            flex: { sm: 24 }, // Adjust flex for smaller screens
             display: 'flex',
-            flexDirection: 'column',
-            width: { xs: '100%', sm: 'auto' },
+            flexDirection: {xs: 'row', sm: 'column'},
+            width: { xs: '55%', sm: 'auto' },
             overflowY: 'auto'
           }}
         >
-          <List sx={{ p: 0, ml: 5 }}>
+          <List sx={{ p: 0, ml: {sm: 5} }}>
             {filterLists.map(item => (
               <ListItemButton
                 key={item}
@@ -94,13 +95,16 @@ const FilterDrawer = ({
                     '& .MuiListItemText-primary': {
                       color: 'customColors.OnPrimaryContainer',
                       fontSize: '16px',
+                      width: '100%',
                       fontWeight: 400
                     }
                   }}
                 />
               </ListItemButton>
             ))}
+            
           </List>
+          
         </Box>
 
         {/* Main Content Section */}
