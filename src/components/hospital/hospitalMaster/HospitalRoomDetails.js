@@ -662,8 +662,15 @@ const HospitalRoomDetails = () => {
 
   // Fetch sites when drawer opens
   useEffect(() => {
-    fetchSites('')
-  }, [fetchSites])
+    if (!roomData?.hospital_detail) return
+
+    if(roomData?.hospital_detail?.site_name){
+      fetchSites(roomData?.hospital_detail?.site_name)
+    }else{
+      fetchSites('')
+      
+    }
+  }, [roomData?.hospital_detail?.site_name])
 
   // cleanup debounced fetchSites on unmount
   useEffect(() => {
@@ -746,7 +753,10 @@ const HospitalRoomDetails = () => {
           }
         />
 
-        <HospitalAnalytics isHospitalStatsLoading={isLoadingRooms} hospitalDetails={hospitalDetails} />
+        <HospitalAnalytics
+          isHospitalStatsLoading={isLoadingRooms}
+          hospitalDetails={hospitalDetails}
+        />
 
         <Box
           sx={{

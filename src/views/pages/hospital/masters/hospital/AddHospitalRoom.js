@@ -40,11 +40,6 @@ const AddHospitalRoom = props => {
 
   // const getSitesList = useMemo(() => authData?.userData?.user?.zoos?.[0]?.sites ?? [], [authData?.userData?.user?.zoos])
 
-  const matchedSite = useMemo(
-    () => sites?.find(site => Number(site?.value) === Number(hospitalDetails?.site_id)),
-    [sites, hospitalDetails]
-  )
-
   // Determine mode and Conditional rendering flags
   const isHospitalEditMode = Boolean(hospitalStatus)
   const isRoomEditMode = !isHospitalEditMode && Boolean(editParams?.id)
@@ -82,7 +77,6 @@ const AddHospitalRoom = props => {
     reset,
     control,
     handleSubmit,
-    watch,
     formState: { errors, isValid }
   } = useForm({
     defaultValues,
@@ -91,8 +85,6 @@ const AddHospitalRoom = props => {
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
-
-  const selectedSite = watch('site_id')
 
   const onSubmit = async formData => {
     if (isHospitalEditMode) {
@@ -130,12 +122,12 @@ const AddHospitalRoom = props => {
     if (!handleSidebarOpen) return
     let prefill = { ...defaultValues }
 
-    // const matchedSite = getSitesList?.find(site => Number(site?.site_id) === Number(hospitalDetails?.site_id))
-
     if (isHospitalEditMode) {
       prefill = {
         hospital_id: hospitalDetails?.hospital_name,
-        site_id: matchedSite || null,
+        site_id: hospitalDetails?.site_id
+          ? { value: hospitalDetails?.site_id, label: hospitalDetails?.site_name }
+          : null, // prevents Autocomplete from treating an empty value as a selected option
         description: hospitalDetails?.description || '',
         status: Boolean(isActive)
       }
@@ -156,7 +148,7 @@ const AddHospitalRoom = props => {
     }
 
     reset(prefill)
-  }, [handleSidebarOpen])
+  }, [])
 
   const handleClose = useCallback(() => {
     reset(defaultValues)
