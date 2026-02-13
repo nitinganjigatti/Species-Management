@@ -83,6 +83,12 @@ export async function getPatientVisitSummary(params) {
   return response?.data
 }
 
+export async function getZooWiseSiteLists(params) {
+  const response = await axiosGet({ url: `${GET_ALL_SITE_LIST_WITHOUT_PERMISSION}`, params: params })
+
+  return response?.data
+}
+
 export async function getPatientMedia(params) {
   const response = await axiosGet({ url: `${GET_PATIENT_MEDIA}`, params })
 
@@ -118,10 +124,4 @@ export async function deletePatientMedia(mediaId) {
     console.error('Error deleting patient media:', error?.message || error)
     throw error
   }
-}
-
-export async function getZooWiseSiteLists(params) {
-  const response = await axiosGet({ url: `${GET_ALL_SITE_LIST_WITHOUT_PERMISSION}`, params: params })
-
-  return response?.data
 }

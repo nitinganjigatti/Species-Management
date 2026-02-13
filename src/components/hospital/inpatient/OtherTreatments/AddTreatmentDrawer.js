@@ -195,6 +195,7 @@ const AddTreatmentDrawer = ({
                 options={treatmentOptions}
                 loading={optionsLoading}
                 fullWidth
+                // clearOnBlur={false}
                 getOptionLabel={option => option?.label || option || ''}
                 isOptionEqualToValue={(option, value) =>
                   (option?.value && option?.value === value?.value) || option === value

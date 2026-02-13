@@ -3,28 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { getPurchaseList, printPurchaseInvoice } from 'src/lib/api/pharmacy/getPurchaseList'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { debounce } from 'lodash'
-import Icon from 'src/@core/components/icon'
 
 // ** MUI Imports
-import {
-  Card,
-  CardHeader,
-  Typography,
-  Grid,
-  TextField,
-  CardContent,
-  InputAdornment,
-  Autocomplete,
-  MenuItem,
-  Switch,
-  FormControl,
-  InputLabel,
-  Tooltip,
-  Select
-} from '@mui/material'
+import { Box, Typography, Grid } from '@mui/material'
 
 // ** Icon Imports
-import { Box } from '@mui/material'
 import { format, subMonths } from 'date-fns'
 
 import Router from 'next/router'
@@ -35,14 +18,15 @@ import { ExcelExportButton } from 'src/components/Buttons'
 
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
-import RenderUtility from 'src/utility/render'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import toast from 'react-hot-toast'
 import Utility, { downloadPDF } from 'src/utility'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 const ListOfPurchase = () => {
   const router = useRouter()
   const theme = useTheme()
@@ -286,8 +270,7 @@ const ListOfPurchase = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params.row.po_date)}
@@ -305,8 +288,7 @@ const ListOfPurchase = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.po_no}
@@ -323,8 +305,7 @@ const ListOfPurchase = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.supplier_name}
@@ -341,8 +322,7 @@ const ListOfPurchase = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params.row.created_at)}
@@ -362,8 +342,7 @@ const ListOfPurchase = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatAmountToReadableDigit(params?.row?.net_amount)}
@@ -439,28 +418,18 @@ const ListOfPurchase = () => {
         q: searchValue,
         column: sortColumn,
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+        type: 'csv'
       }
       const response = await getPurchaseList({ params })
-      setExcelLoader(false)
 
       if (response?.success === true && response?.data?.length > 0) {
-        const data = response.data.map(el => ({
-          ['Invoice No']: el?.po_no,
-          ['Purchase Date']: el?.po_date,
-          ['Supplier Name']: el?.supplier_name,
-          ['Entry Date']: Utility.formatDisplayDate(el?.created_at) ? Utility.formatDisplayDate(el?.created_at) : 'NA',
-          ['Purchase Amount']: Number(el?.net_amount),
-          ['Created By']: el?.created_by_user_name ? el?.created_by_user_name : 'NA',
-          ['Updated By']: el?.updated_by_user_name ? el?.updated_by_user_name : 'NA',
-          ['Created At']: Utility.formatDisplayDate(el?.created_at) ? Utility.formatDisplayDate(el?.created_at) : 'NA',
-          ['Updated At']: Utility.formatDisplayDate(el?.updated_at) ? Utility.formatDisplayDate(el?.updated_at) : 'NA'
-        }))
-
-        Utility.exportToCSV(data, `Purchase_list ${timestamp}`)
-      } else {
-        console.log('No data available for export.')
-      }
+          Utility.downloadFileFromURL(response?.data, Utility.extractHoursAndMinutes)
+          setExcelLoader(false)
+        } else {
+          console.log('No data available for export.')
+        }
+      
     } catch (error) {
       console.log('Error >', error)
       setExcelLoader(false)
@@ -476,7 +445,8 @@ const ListOfPurchase = () => {
             gap: 4,
             flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: { xs: 'center', sm: 'flex-start' },
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            width: { xs: '100%' }
           }}
         >
           {/* <ExcelExportButton
@@ -501,6 +471,9 @@ const ListOfPurchase = () => {
             title='Add Inventory'
             action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })}
             fullWidth='fullWidth'
+            styles={{
+              mr: 0
+            }}
           />
         </Box>
       )}
@@ -518,161 +491,92 @@ const ListOfPurchase = () => {
 
   return (
     <>
-      {selectedPharmacy.type === 'central' ? (
-        loader ? (
+      {selectedPharmacy.type === 'central' &&
+        (loader ? (
           <FallbackSpinner />
         ) : (
-          <Card>
-            <CardHeader
+          <PageCardLayout title='Inventory List' action={headerAction}>
+            <Grid
+              container
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'space-between',
-                alignItems: { xs: 'flex-start', sm: 'center' },
-                width: '100%',
-                '& .MuiCardHeader-content': {
-                  flexGrow: 1
-                },
-                '& .MuiCardHeader-action': {
-                  display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  alignItems: 'stretch',
-                  justifyContent: { xs: 'flex-start', sm: 'flex-end' },
-                  gap: 1,
-                  width: { xs: '100%', sm: 'auto' }
-                }
+                gap: '16px',
+                alignItems: 'center',
+                justifyContent: 'space-between'
               }}
-              title={RenderUtility.pageTitle('Inventory List')}
-              action={headerAction}
-            />
-
-            <CardContent sx={{ paddingTop: '4px' }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  justifyContent: 'space-between',
-                  alignItems: { xs: 'stretch', sm: 'center' },
-                  gap: { xs: 2, sm: 0 },
-                  width: '100%'
-                }}
-              >
-                <Grid
-                  container
-                  spacing={4}
-                  sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                >
-                  <Grid item size={{ xs: 12, sm: 5, md: 5 }}>
-                    <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
-                  </Grid>
-                  <Grid
-                    item
-                    size={{ xs: 12, sm: 7 / 2, md: 7 / 2, lg: 7 / 2 }}
-                    sx={{
-                      my: 0
-                    }}
-                  >
-                    <FormControl fullWidth>
-                      <InputLabel id='controlled-select-label'>Supplier</InputLabel>
-                      <Select
-                        fullWidth
-                        onChange={e => {
-                          let id = e.target.value
-
-                          setSelectedSupplier(id)
-                        }}
-                        label='Supplier'
-                        value={selectedSupplier}
-                        id='controlled-select'
-                        labelId='controlled-select-label'
-                        sx={{ width: '100%' }}
-                        size='small'
-                      >
-                        {suppliers.length > 0 &&
-                          suppliers.map(el => {
-                            return (
-                              <MenuItem key={el.id} value={el.id}>
-                                {el.company_name}
-                              </MenuItem>
-                            )
-                          })}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid
-                    item
-                    size={{ xs: 12, sm: 7 / 2, md: 7 / 2 }}
-                    sx={{
-                      display: 'flex',
-                      gap: 2,
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <TextField
-                      fullWidth
-                      variant='outlined'
-                      size='small'
-                      placeholder='Search...'
-                      value={searchValue}
-                      onChange={e => handleSearch(e.target.value)}
-                      sx={{
-                        borderRadius: '8px'
-                      }}
-                      slotProps={{
-                        input: {
-                          startAdornment: (
-                            <InputAdornment position='start'>
-                              <Icon
-                                icon='mi:search'
-                                fontSize={24}
-                                color={theme.palette.customColors.neutralSecondary}
-                              />
-                            </InputAdornment>
-                          )
-                        }
-                      }}
-                    />
-                    <ExportButton
-                      loading={excelLoader}
-                      onClick={getInventoryDataToExport}
-                      disabled={total === 0 ? true : false}
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
-
-              <Grid>
-                <CommonTable
-                  onRowClick={onRowClick}
-                  indexedRows={indexedRows}
-                  total={total}
-                  columns={columns}
-                  paginationModel={paginationModel}
-                  onPaginationModelChange={model => {
-                    setPaginationModel(model)
-                    router.replace({
-                      pathname: router.pathname,
-                      query: {
-                        ...router.query,
-                        page: model.page + 1,
-                        pageSize: model.pageSize,
-                        searchValue,
-                        sort,
-                        sortColumn
-                      }
-                    })
+            >
+              <Grid item size={{ xs: 12, sm: 12, md: 4.5, lg: 4.5 }}>
+                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 12, md: 4, lg: 3.5 }}>
+                <MUIAutocomplete
+                  value={selectedSupplier}
+                  label='Supplier'
+                  valueType='id'
+                  onChange={newValue => {
+                    setTotal(0)
+                    setPaginationModel({ page: 0, pageSize: 50 })
+                    setSelectedSupplier(newValue)
+                    setSearchValue('')
                   }}
-                  handleSortModel={handleSortModel}
-                  setPaginationModel={setPaginationModel}
-                  loading={loading}
-                  searchValue={searchValue}
+                  getOptionLabel={option => option.company_name}
+                  options={suppliers}
                 />
               </Grid>
-            </CardContent>
-          </Card>
-        )
-      ) : null}
+              <Grid
+                size={{ xs: 12, sm: 12, md: 3, lg: 3.5 }}
+                sx={{
+                  display: 'flex',
+                  gap: '24px'
+                }}
+              >
+                <MUISearch
+                  width={'100%'}
+                  placeholder='Search...'
+                  value={searchValue}
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
+                  onClear={() => handleSearch('')}
+                />
+
+                <Grid size={{ xs: 'auto' }}>
+                  <ExportButton
+                    loading={excelLoader}
+                    onClick={getInventoryDataToExport}
+                    disabled={total === 0 ? true : false}
+                  />
+                </Grid>
+              </Grid>
+            </Grid>
+            <Grid>
+              <CommonTable
+                onRowClick={onRowClick}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                onPaginationModelChange={model => {
+                  setPaginationModel(model)
+                  router.replace({
+                    pathname: router.pathname,
+                    query: {
+                      ...router.query,
+                      page: model.page + 1,
+                      pageSize: model.pageSize,
+                      searchValue,
+                      sort,
+                      sortColumn
+                    }
+                  })
+                }}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
+          </PageCardLayout>
+        ))}
     </>
   )
 }

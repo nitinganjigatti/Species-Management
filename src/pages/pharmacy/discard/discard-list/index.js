@@ -1,28 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import { DataGrid } from '@mui/x-data-grid'
+
 import { debounce } from 'lodash'
 import { getDiscardList } from 'src/lib/api/pharmacy/discard'
 
 // ** MUI Imports
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { Card, CardHeader, Typography, Grid, TextField } from '@mui/material'
+
+import { Box, Typography, Grid, TextField } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
 
 import Router, { useRouter } from 'next/router'
 import Error404 from 'src/pages/404'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { AddButton, ExcelExportButton } from 'src/components/Buttons'
+
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
-import RenderUtility from 'src/utility/render'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const ListOfDiscardProducts = () => {
   const theme = useTheme()
@@ -189,8 +188,7 @@ const ListOfDiscardProducts = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.req_no}
@@ -208,8 +206,7 @@ const ListOfDiscardProducts = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.supplier_name}
@@ -231,8 +228,7 @@ const ListOfDiscardProducts = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.total_qty}
@@ -314,6 +310,7 @@ const ListOfDiscardProducts = () => {
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
         <AddButtonContained
           title='Return to Supplier'
+          styles={{ margin: 0 }}
           action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })}
           fullWidth='fullWidth'
         />
@@ -339,23 +336,7 @@ const ListOfDiscardProducts = () => {
           <FallbackSpinner />
         ) : (
           <>
-            <Card>
-              <CardHeader
-                sx={{
-                  display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  justifyContent: 'flex-start',
-                  alignItems: 'flex-start',
-                  gap: { xs: 3, sm: 0 },
-                  '& .MuiCardHeader-action': {
-                    width: { xs: '100% ', sm: 'auto' }
-                  },
-                  mx: { xs: -1, sm: 1 },
-                  mt: 1
-                }}
-                title={RenderUtility.pageTitle('Return to Supplier List')}
-                action={headerAction}
-              />
+            <PageCardLayout title={'Return to Supplier List'} action={headerAction}>
               <Box
                 sx={{
                   display: 'flex',
@@ -422,8 +403,7 @@ const ListOfDiscardProducts = () => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  flexWrap: 'wrap',
-                  mx: { xs: 3, md: 5 }
+                  flexWrap: 'wrap'
                 }}
               >
                 <Box
@@ -457,11 +437,7 @@ const ListOfDiscardProducts = () => {
                   />
                 </Box>
               </Box>
-              <Grid
-                sx={{
-                  mx: { xs: 3, md: 5 }
-                }}
-              >
+              <Grid>
                 <CommonTable
                   onRowClick={onRowClick}
                   indexedRows={indexedRows}
@@ -474,7 +450,7 @@ const ListOfDiscardProducts = () => {
                   searchValue={searchValue}
                 />
               </Grid>
-            </Card>
+            </PageCardLayout>
           </>
         )
       ) : (

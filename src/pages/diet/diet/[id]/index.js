@@ -723,7 +723,6 @@ const DietDetail = () => {
   }
 
   const sharedProps = {
-    // State getters
     speciesData,
     speciesview,
     dietDetails,
@@ -749,7 +748,6 @@ const DietDetail = () => {
     activeTab,
     searchTerm,
 
-    // State setters
     setSearchQuery,
     setPageNo,
     setTempSelectedSpecies,
@@ -775,14 +773,12 @@ const DietDetail = () => {
     setSearchTerm,
     refreshDietDetails: getDietDetailsCallback,
 
-    // Functions
     handleScroll,
     debouncedSearch,
     debouncedFetchList,
     refreshSpeciesData,
     fetchList,
 
-    // Other values
     authData,
     id
   }

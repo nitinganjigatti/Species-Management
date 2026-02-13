@@ -36,8 +36,5 @@
     "Customizer"
   ],
   "search-node-modules.path": "node_modules",
-  "markdown.extension.toc.updateOnSave": false,
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  "markdown.extension.toc.updateOnSave": false
 }

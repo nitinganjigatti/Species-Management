@@ -6,24 +6,29 @@ import {
   getDispatchItemsByBatchId,
   getShippedItemsByRequestId
 } from 'src/lib/api/pharmacy/getRequestItemsList'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
-import Dialog from '@mui/material/Dialog'
-import CustomChip from 'src/@core/components/mui/chip'
 import { getDisputeItemList, getDispenseItemList } from 'src/lib/api/pharmacy/getShipmentList'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
-import Fade from '@mui/material/Fade'
-
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardContent, CardHeader, Tab, Tooltip, Chip } from '@mui/material'
+import {
+  Box,
+  Grid,
+  Typography,
+  Fade,
+  IconButton,
+  CardHeader,
+  Tab,
+  Tooltip,
+  Chip,
+  Button,
+  Dialog,
+  Alert,
+  AlertTitle,
+  styled
+} from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -33,20 +38,16 @@ import ShipRequest from 'src/components/pharmacy/return/ShipRequestForm'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 
 import OrderReceiveForm from 'src/components/pharmacy/request/OrderReceiveForm'
-
-import DisputeItemView from 'src/components/pharmacy/return/DisputeItemView'
-import DispenseItemView from 'src/components/pharmacy/return/DispenseItemView'
 import Utility from 'src/utility'
 
-import Alert from '@mui/material/Alert'
-import AlertTitle from '@mui/material/AlertTitle'
 import RenderUtility from 'src/utility/render'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
-import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import { useTheme } from '@emotion/react'
-import CustomAvatar from 'src/@core/components/mui/avatar'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import InfoDisplayGrid from 'src/views/utility/InfoDisplayGrid'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -425,7 +426,7 @@ const IndividualReturnRequest = () => {
       width: 200,
       minWidth: 200,
       field: 'unit_price',
-      headerName: 'Net Unit price(₹)',
+      headerName: 'Unit price(₹)',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -964,367 +965,72 @@ const IndividualReturnRequest = () => {
                 show={showOrderFormDialog}
               />
 
-              <Card sx={{ p: 2 }}>
-                <CardHeader
-                  title='Product Returns '
-                  avatar={
-                    <Icon
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        Router.back()
-                      }}
-                      icon='ep:back'
+              <PageCardLayout
+                title='Product Returns'
+                showIcon={true}
+                onIconClick={() => {
+                  Router.back()
+                }}
+                iconStyles={{
+                  cursor: 'pointer'
+                }}
+                titleStyles={{
+                  fontSize: '20px'
+                }}
+              >
+                <InfoDisplayGrid
+                  commonLabelStyle={{
+                    color: 'customColors.neutralSecondary'
+                  }}
+                  commonValueStyle={{
+                    color: 'customColors.OnSurfaceVariant'
+                  }}
+                  cardsData={[
+                    {
+                      label: 'Returned From',
+                      value: requestItems?.from_store
+                    },
+                    {
+                      label: 'Total Items',
+                      value: requestItems?.product_count
+                    },
+                    {
+                      label: 'Shipped Value',
+                      value: `₹ ${Utility.formatNumberToDisplay(requestItems?.shipped_amount)}`,
+                      labelStyle: {
+                        color: 'primary.OnSurface'
+                      },
+                      valueStyle: {
+                        color: 'primary.main'
+                      }
+                    },
+                    {
+                      label: 'Reference ID',
+                      value: requestItems?.request_number
+                    },
+                    {
+                      label: 'Total Items Value',
+                      value: Utility.formatAmountToReadableDigit(requestItems?.requested_amount)
+                    }
+                  ]}
+                  userCard={
+                    <UserAvatarDetails
+                      user_name={requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                      profile_image={requestItems?.user_created_profile_pic}
+                      date={requestItems?.created_at}
                     />
                   }
                 />
-                <CardContent>
-                  <Card
-                    sx={{
-                      backgroundColor: 'customColors.lightBg',
-                      boxShadow: 'none !important',
-                      minHeight: '84px',
-                      display: 'flex',
-                      padding: '16px',
-                      borderRadius: '8px',
-                      alignItems: 'center',
 
-                      justifyContent: 'space-between'
-                    }}
-                  >
-                    <Grid
-                      container
-                      sx={{
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                      <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={6}
-                        lg={3}
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '4px',
-                          height: '46px',
-                          gap: '10px',
-                          mb: {
-                            xs: 5,
-                            sm: 5,
-                            md: 5,
-                            lg: 0
-                          }
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            fontSize: '14px',
-                            fontWeight: '400',
-                            lineHeight: '16.94px',
-                            gpa: '4px',
-                            color: 'customColors.neutralSecondary'
-                          }}
-                        >
-                          Returned From :
-                          <Box
-                            component='span'
-                            sx={{
-                              fontWeight: '500',
-                              fontSize: '16px',
-                              color: 'customColors.OnSurfaceVariant',
-                              lineHeight: '19.36px',
-                              mx: 2,
-                              [theme.breakpoints.up('lg')]: {
-                                ...RenderUtility?.getEllipsisStyleForText('140')
-                              }
-                            }}
-                          >
-                            {RenderUtility?.getToolTipForText(requestItems?.from_store)}
-                          </Box>
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: '14px',
-                            fontWeight: '400',
-                            lineHeight: '16.94px',
-                            color: 'customColors.neutralSecondary'
-                          }}
-                        >
-                          Reference ID:
-                          <Box
-                            component='span'
-                            sx={{
-                              fontWeight: '500',
-                              fontSize: '16px',
-                              color: 'customColors.OnSurfaceVariant',
-                              lineHeight: '19.36px',
-                              mx: 2,
-                              [theme.breakpoints.up('lg')]: {
-                                ...RenderUtility?.getEllipsisStyleForText('140')
-                              }
-                            }}
-                          >
-                            {RenderUtility?.getToolTipForText(requestItems?.request_number)}
-                          </Box>
-                        </Typography>
-                      </Grid>
-
-                      <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={6}
-                        lg={3}
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          height: '46px',
-                          gap: '10px',
-
-                          textAlign: {
-                            xs: 'left',
-                            sm: 'left',
-                            md: 'left',
-                            lg: 'left'
-                          },
-                          mb: {
-                            xs: 5,
-                            sm: 5,
-                            md: 5,
-                            lg: 0
-                          }
-                        }}
-                      >
-                        {requestItems?.product_count && (
-                          <Typography
-                            sx={{
-                              fontSize: '14px',
-                              fontWeight: '400',
-                              lineHeight: '16.94px',
-                              color: 'customColors.neutralSecondary'
-                            }}
-                          >
-                            Total Items:
-                            <Box
-                              component='span'
-                              sx={{
-                                fontWeight: '500',
-                                fontSize: '16px',
-                                color: 'customColors.OnSurfaceVariant',
-                                lineHeight: '19.36px',
-                                mx: 2
-                              }}
-                            >
-                              {requestItems?.product_count}
-                            </Box>
-                          </Typography>
-                        )}
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center'
-                          }}
-                        >
-                          <Typography
-                            component='span'
-                            sx={{
-                              fontSize: '14px',
-                              fontWeight: '400',
-                              lineHeight: '16.94px',
-                              color: 'customColors.neutralSecondary',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            Total Items Value:
-                          </Typography>
-
-                          <Tooltip title={Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}>
-                            <Box
-                              component='span'
-                              sx={{
-                                fontWeight: '500',
-                                fontSize: '16px',
-                                color: 'primary.light',
-                                lineHeight: '19.36px',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                              }}
-                            >
-                              {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
-                            </Box>
-                          </Tooltip>
-                        </Box>
-
-                        {/* <Typography
-                          sx={{
-                            fontSize: '14px',
-                            fontWeight: '400',
-                            lineHeight: '16.94px',
-                            color: 'primary.OnSurface'
-                          }}
-                        >
-                          Shipped Items:
-                          <Box
-                            component='span'
-                            sx={{
-                              fontWeight: '500',
-                          >
-                              fontSize: '16px',
-                              color: 'primary.OnSurface',
-                              lineHeight: '19.36px',
-                              mx: 2
-                            }}
-                            {requestItems?.shipped_qty}
-                          </Box>
-                        </Typography> */}
-                      </Grid>
-
-                      <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={6}
-                        lg={3}
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '4px',
-                          height: '46px',
-                          gap: '10px',
-
-                          mb: {
-                            xs: 5,
-                            sm: 0,
-                            md: 0,
-                            lg: 0
-                          }
-                        }}
-                      >
-                        {/* <Typography
-                          sx={{
-                            fontSize: '14px',
-                            fontWeight: '400',
-                            lineHeight: '16.94px',
-                            color: 'customColors.neutralSecondary'
-                          }}
-                        >
-                          Total Requested Value:
-                          <Box
-                            component='span'
-                            sx={{
-                              fontWeight: '500',
-                              fontSize: '16px',
-                              color: 'primary.light',
-                              lineHeight: '19.36px',
-                              mx: 2
-                            }}
-                          >
-                            ₹{requestItems?.requested_amount}
-                          </Box>
-                        </Typography> */}
-
-                        <Typography
-                          sx={{
-                            fontSize: '14px',
-                            fontWeight: '400',
-                            lineHeight: '16.94px',
-                            color: 'primary.OnSurface'
-                          }}
-                        >
-                          Shipped Value:
-                          <Tooltip title={`₹${Utility.formatNumberToDisplay(requestItems?.shipped_amount)}`}>
-                            <Box
-                              component='span'
-                              sx={{
-                                fontWeight: '500',
-                                fontSize: '16px',
-                                color: 'primary.main',
-                                lineHeight: '19.36px',
-                                mx: 2
-                              }}
-                            >
-                              ₹{Utility.formatNumberToDisplay(requestItems?.shipped_amount)}
-                            </Box>
-                          </Tooltip>
-                        </Typography>
-                      </Grid>
-
-                      <Grid item xs={12} sm={6} md={6} lg={3}>
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            height: '46px',
-
-                            justifyContent: {
-                              xs: 'start',
-                              sm: 'flex-end',
-                              md: 'flex-end',
-                              lg: 'start'
-                            }
-                          }}
-                        >
-                          <Box sx={{ width: '56px' }}>
-                            <CustomAvatar
-                              src={requestItems?.user_created_profile_pic}
-                              sx={{ radius: '64px', width: '40px', height: '40px' }}
-                            />
-                          </Box>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '10px'
-                            }}
-                          >
-                            <Tooltip
-                              title={requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
-                              placement='top'
-                              arrow
-                            >
-                              <Typography
-                                sx={{
-                                  fontSize: '14px',
-                                  fontWeight: '500',
-                                  lineHeight: '16.94px',
-                                  color: 'customColors.OnSurfaceVariant',
-
-                                  ...RenderUtility?.getEllipsisStyleForText(200)
-                                }}
-                              >
-                                {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
-                              </Typography>
-                            </Tooltip>
-
-                            <Typography
-                              sx={{
-                                fontSize: '12px',
-                                fontWeight: '400',
-                                lineHeight: '14.52px',
-                                color: 'customColors.OnSurfaceVariant'
-                              }}
-                            >
-                              {Utility.formatDisplayDate(requestItems?.created_at)}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </Grid>
-                    </Grid>
-                  </Card>
-                  {/* Medicine Listing */}
-                </CardContent>
+                {/* Medicine Listing */}
 
                 <TabContext value={value}>
                   <TabList
                     onChange={handleChange}
                     sx={{
-                      p: 4,
+                      mt: 4,
+                      py: 4,
+
                       '& .MuiTabs-flexContainer': {
                         borderBottom: '1px solid',
                         borderColor: 'customColors.neutral05'
@@ -1334,7 +1040,7 @@ const IndividualReturnRequest = () => {
                     <Tab value='returnItems' label='Return Items' />
                     <Tab value='shipment' label='shipment' />
                   </TabList>
-                  <TabPanel value='returnItems'>
+                  <TabPanel value='returnItems' sx={{ p: 0 }}>
                     <CardHeader
                       sx={{
                         p: 0,
@@ -1376,11 +1082,11 @@ const IndividualReturnRequest = () => {
                       <EmptyStateBox imageSrc='/images/out-of-stock.png' text='No Return items' />
                     )}
                   </TabPanel>
-                  <TabPanel value='shipment'>
+                  <TabPanel value='shipment' sx={{ px: 0 }}>
                     <Grid
                       sx={{
                         width: '100%',
-                        px: '0 !important'
+                        padding: '0 !important'
                       }}
                     >
                       <TabContext value={shipmentTab}>
@@ -1474,7 +1180,7 @@ const IndividualReturnRequest = () => {
                     </Grid>
                   </TabPanel>
                 </TabContext>
-              </Card>
+              </PageCardLayout>
 
               {/* {shippedItems?.length > 0 ? (
                 <>

@@ -1,16 +1,19 @@
 import React from 'react'
-import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
-import FormHelperText from '@mui/material/FormHelperText'
-import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import Autocomplete from '@mui/material/Autocomplete'
+import {
+  Grid,
+  Typography,
+  Box,
+  FormHelperText,
+  TextField,
+  FormControl,
+  Autocomplete,
+  Chip,
+  CardContent,
+  Card
+} from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
-import Chip from '@mui/material/Chip'
 
-import { CardContent, Card } from '@mui/material'
 import Divider from '@mui/material/Divider'
 import Image from 'next/image'
 
@@ -285,7 +288,12 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
   }
 
   return (
-    <form style={{ width: '650px' }}>
+    <Box
+      component='form'
+      sx={{
+        width: { xs: '100%', sm: '500px', md: '650px' }
+      }}
+    >
       <Divider sx={{ mt: -6 }} />
       <Typography sx={{ my: 4, fontSize: '16px', fontWeight: '500' }}>Requested Medicine</Typography>
       <Card
@@ -325,6 +333,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             variant='button'
             onClick={() => setTabStatus('By product')}
             sx={{
+              fontSize: '14px',
               cursor: 'pointer',
               borderBottom: tabStatus === 'By product' ? '5px solid' : '',
 
@@ -339,6 +348,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             variant='button' // Use the button variant for styling
             onClick={() => setTabStatus('By generic')}
             sx={{
+              fontSize: '14px',
               cursor: 'pointer',
               borderBottom: tabStatus === 'By generic' ? '5px solid' : '',
 
@@ -1181,7 +1191,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
           Add
         </LoadingButton>
       </Grid>
-    </form>
+    </Box>
   )
 }
 

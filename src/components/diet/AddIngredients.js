@@ -169,7 +169,6 @@ const AddIngredients = props => {
     }
   }
 
-
   const handleChangeTopFeed = async event => {
     setReachedEnd(true)
     setFeed(event.target.value)
@@ -410,7 +409,7 @@ const AddIngredients = props => {
       })
     } else if (selectedCard?.length > 0) {
       handleSidebarClose()
-      
+
       setSelectedCard(selectedCard)
       setSearchValue('')
       onChange(selectedCard)
