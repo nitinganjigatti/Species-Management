@@ -1858,7 +1858,12 @@ return null
                                                     meal.notes &&
                                                     meal.notes.trim() !== '' ? (
                                                       <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                        <img
+                                                          src='/icons/Notes.svg'
+                                                          alt='Grocery Icon'
+                                                          width='35px'
+                                                          draggable={false}
+                                                        />
                                                       </Typography>
                                                     ) : null
                                                   )
@@ -1972,6 +1977,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -1993,6 +1999,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2014,6 +2021,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2035,6 +2043,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2455,7 +2464,12 @@ return null
                                                     meal.notes &&
                                                     meal.notes.trim() !== '' ? (
                                                       <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                        <img
+                                                          src='/icons/Notes.svg'
+                                                          alt='Grocery Icon'
+                                                          width='35px'
+                                                          draggable={false}
+                                                        />
                                                       </Typography>
                                                     ) : null
                                                   )
@@ -2569,6 +2583,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2590,6 +2605,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2611,6 +2627,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2632,6 +2649,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3012,7 +3030,12 @@ return null
                                                     meal.notes &&
                                                     meal.notes.trim() !== '' ? (
                                                       <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                        <img
+                                                          src='/icons/Notes.svg'
+                                                          alt='Grocery Icon'
+                                                          width='35px'
+                                                          draggable={false}
+                                                        />
                                                       </Typography>
                                                     ) : null
                                                   )
@@ -3126,6 +3149,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3147,6 +3171,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3168,6 +3193,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3189,6 +3215,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3532,7 +3559,12 @@ return null
                                                     meal.notes &&
                                                     meal.notes.trim() !== '' ? (
                                                       <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                        <img
+                                                          src='/icons/Notes.svg'
+                                                          alt='Grocery Icon'
+                                                          width='35px'
+                                                          draggable={false}
+                                                        />
                                                       </Typography>
                                                     ) : null
                                                   )
@@ -3647,6 +3679,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3668,6 +3701,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3689,6 +3723,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3710,6 +3745,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )

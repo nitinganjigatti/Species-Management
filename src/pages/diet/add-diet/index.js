@@ -159,23 +159,28 @@ const AddDiet = () => {
 
   const [feedSearchValue, setFeedSearchValue] = useState('')
 
-  const fetchData = useCallback(async (pageNum = 1) => {
-    setLoadingFeed(true)
-    const params = { page: pageNum, limit: 20, status: 1, q: feedSearchValue }
+  const [feedSearchValue, setFeedSearchValue] = useState('')
 
-    try {
-      const response = await getFeedTypeList(params)
-      const newData = response?.data?.result || []
-      const total = response?.data?.total_count || 0
+  const fetchData = useCallback(
+    async (pageNum = 1) => {
+      setLoadingFeed(true)
+      const params = { page: pageNum, limit: 20, status: 1, q: feedSearchValue }
 
-      setFeedTotalCount(total)
-      setFeedType(prev => (pageNum === 1 ? newData : [...prev, ...newData]))
-    } catch (error) {
-      console.log('error', error)
-    } finally {
-      setLoadingFeed(false)
-    }
-  }, [feedSearchValue])
+      try {
+        const response = await getFeedTypeList(params)
+        const newData = response?.data?.result || []
+        const total = response?.data?.total_count || 0
+
+        setFeedTotalCount(total)
+        setFeedType(prev => (pageNum === 1 ? newData : [...prev, ...newData]))
+      } catch (error) {
+        console.log('error', error)
+      } finally {
+        setLoadingFeed(false)
+      }
+    },
+    [feedSearchValue]
+  )
 
   const handleFeedSearch = useCallback(
     debounce(val => {

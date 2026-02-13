@@ -2030,7 +2030,7 @@ const StepBasicDetails = ({
                                     ))}
                                   </Grid>
                                 </Grid>
-                                <Grid size={{ xs: 12, sm: 3.7, md: 3.6 }}>
+                                <Grid size={{ xs: 12, sm: 3.2, md: 3.6 }}>
                                   <Grid sx={{ pl: 7 }}>
                                     <Tooltip title={all?.remarks} arrow placement='bottom-start'>
                                       <Typography
@@ -2052,7 +2052,7 @@ const StepBasicDetails = ({
                                 </Grid>
 
                                 <Icon
-                                  className='pencil_diet'
+                                  className='pencil_diet_for_choice'
                                   style={{
                                     fontSize: '22px',
                                     cursor: 'pointer'
@@ -2071,7 +2071,7 @@ const StepBasicDetails = ({
                                   icon='bx:pencil'
                                 />
                                 <Icon
-                                  className='del_diet'
+                                  className='del_diet_for_choice'
                                   onClick={() => removeingClicking(index, all.mealid, all)}
                                   style={{ fontSize: '22px', cursor: 'pointer' }}
                                   icon='iconoir:cancel'

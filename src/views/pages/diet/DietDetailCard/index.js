@@ -268,7 +268,6 @@ const DietDetailCard = ({
               </Box>
             </Tooltip>
           )}
-
           {onDownloadPdf && (
             <Tooltip title='Download PDF' placement='top'>
               <Box>
