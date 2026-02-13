@@ -3655,7 +3655,7 @@ const DietDetail = () => {
                                                               </Box>
                                                             </Box>
                                                           </TableCell>
-                                                          {dietDetails?.child?.length &&
+                                                          {dietDetails?.child?.length > 0 &&
                                                             dietDetails.child?.map((all, indexnew) => {
                                                               if (all !== 'Generic') {
                                                                 return (
