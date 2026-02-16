@@ -154,7 +154,7 @@ const AddEditSurgeryDrawer = ({ open, onClose, onSubmit, loading = false, initia
               control={control}
               name='description'
               placeholder='Enter description'
-              rows={1}
+              rows={3}
               errors={errors}
               sx={{
                 '& .MuiOutlinedInput-root': {
