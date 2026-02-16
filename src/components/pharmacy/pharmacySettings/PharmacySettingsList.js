@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useContext } from 'react'
 
 // ** MUI Imports
-import { Grid, Card, CardContent, Box, CardHeader, CircularProgress } from '@mui/material'
+import { Grid, Box, CircularProgress } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -17,7 +17,7 @@ import PharmacySettingsDrawer from 'src/views/pages/pharmacy/store/pharmacy-sett
 import { getPharmacySettingsList, submitPharmacySettings } from 'src/lib/api/pharmacy/pharmacySettings'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import toast from 'react-hot-toast'
-import RenderUtility from 'src/utility/render'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const PharmacySettingsList = () => {
   const { userData } = useContext(AuthContext)
@@ -148,20 +148,23 @@ const PharmacySettingsList = () => {
   return (
     <Grid container spacing={4}>
       <Grid size={12} sx={{ width: '100%' }}>
-        <Card sx={{ width: '100%', px: 2 }}>
-          <CardHeader
-            sx={{ px: 1 }}
-            title={RenderUtility.pageTitle('Pharmacy Settings')}
-            action={
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                {pharmacyRole && <AddButtonContained title='Add Setting' action={openDrawer} />}
-              </Box>
-            }
+        <PageCardLayout
+          title='Pharmacy Settings'
+          action={
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              {pharmacyRole && <AddButtonContained title='Add Setting' action={openDrawer} styles={{ m: 0 }} />}
+            </Box>
+          }
+        >
+          <CommonTable
+            hideFooter
+            disablePagination
+            indexedRows={tableData}
+            columns={columns}
+            loading={loading}
+            externalTableStyle={{ mt: 0 }}
           />
-          <CardContent sx={{ px: 2, my: 0, py: 0 }}>
-            <CommonTable hideFooter disablePagination indexedRows={tableData} columns={columns} loading={loading} />
-          </CardContent>
-        </Card>
+        </PageCardLayout>
       </Grid>
 
       {drawerOpen && (
