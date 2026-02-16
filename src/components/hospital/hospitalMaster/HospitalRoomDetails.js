@@ -662,15 +662,10 @@ const HospitalRoomDetails = () => {
 
   // Fetch sites when drawer opens
   useEffect(() => {
-    if (!roomData?.hospital_detail) return
-
-    if(roomData?.hospital_detail?.site_name){
-      fetchSites(roomData?.hospital_detail?.site_name)
-    }else{
+     if (openDrawer) {
       fetchSites('')
-      
     }
-  }, [roomData?.hospital_detail?.site_name])
+  }, [openDrawer])
 
   // cleanup debounced fetchSites on unmount
   useEffect(() => {
