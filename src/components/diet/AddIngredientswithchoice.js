@@ -678,7 +678,8 @@ const AddIngredientswithChoice = props => {
     }
   }
 
-  let sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+  // let sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+  let sortedIngredientList = [...ingredientList]
 
   if (fromrow !== '' && fromrow === 'rowedit_ingredientwithchoice') {
     sortedIngredientList = sortedIngredientList.filter(
@@ -830,27 +831,37 @@ const AddIngredientswithChoice = props => {
                   )}
                   renderOption={(props, option) => (
                     <li {...props} key={option.id}>
-                      <Box
-                        sx={{
-                          display: 'block',
-                          maxWidth: 200,
-                          overflowX: 'auto',
-                          whiteSpace: 'nowrap',
-                          scrollbarWidth: 'thin',
-                          '&::-webkit-scrollbar': {
-                            height: '6px'
-                          },
-                          '&::-webkit-scrollbar-thumb': {
-                            backgroundColor: theme.palette.grey[400],
-                            borderRadius: '3px'
-                          },
-                          '&::-webkit-scrollbar-thumb:hover': {
-                            backgroundColor: theme.palette.grey[600]
-                          }
-                        }}
-                      >
-                        {option?.feed_type_name}
-                      </Box>
+                      <Tooltip title={option?.feed_type_name || ''} arrow placement='right'>
+                        <Box
+                          // sx={{
+                          //   display: 'block',
+                          //   maxWidth: 200,
+                          //   overflowX: 'auto',
+                          //   whiteSpace: 'nowrap',
+                          //   scrollbarWidth: 'thin',
+                          //   '&::-webkit-scrollbar': {
+                          //     height: '6px'
+                          //   },
+                          //   '&::-webkit-scrollbar-thumb': {
+                          //     backgroundColor: theme.palette.grey[400],
+                          //     borderRadius: '3px'
+                          //   },
+                          //   '&::-webkit-scrollbar-thumb:hover': {
+                          //     backgroundColor: theme.palette.grey[600]
+                          //   }
+                          // }}
+
+                          sx={{
+                            maxWidth: 200,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {option?.feed_type_name}
+                        </Box>
+                      </Tooltip>
                     </li>
                   )}
                   popupIcon={
