@@ -414,6 +414,7 @@ function AddSymptoms() {
         additionalFields={[
           { label: 'AID', value: handleAIDDisplay() },
           { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
+
           // { label: 'Admitted days', value: patientData?.admitted_for_day },
           { label: 'Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
           { label: 'Consulting Veterinarian', value: patientData?.attend_by_full_name }
@@ -480,9 +481,9 @@ function AddSymptoms() {
       />
       <ConfirmationDialog
         dialogBoxStatus={isDuplicatesErrorModelOpen}
-        title={`Clinical assessment${duplicateSymptoms?.length > 1 ? 's' : ''} already exists`}
-        description={`Duplicate assessments: ${duplicateSymptoms?.map(item => item?.diagnosis)?.join(', ')}`}
-        additionalDescription={`To proceed choose a different Clinical Assessment or remove the animal accessed`}
+        title={`Symptoms${duplicateSymptoms?.length > 1 ? 's' : ''} already exists`}
+        description={`Duplicate Symptoms: ${duplicateSymptoms?.map(item => item?.diagnosis)?.join(', ')}`}
+        additionalDescription={`To proceed choose a different Symptoms`}
         confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
         image={'/images/warning-icon.svg'}
         imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}

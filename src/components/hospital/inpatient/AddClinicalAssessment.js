@@ -452,6 +452,7 @@ function AddClinicalAssessment() {
         additionalFields={[
           { label: 'AID', value: handleAIDDisplay() },
           { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
+
           // { label: 'Admitted days', value: patientData?.admitted_for_day },
           { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
           { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }
@@ -530,8 +531,8 @@ function AddClinicalAssessment() {
       <ConfirmationDialog
         dialogBoxStatus={isDuplicatesErrorModelOpen}
         title={`Clinical assessment${duplicateAssessments?.length > 1 ? 's' : ''} already exists`}
-        description={`Duplicate assessments: ${duplicateAssessments?.map(item => item?.diagnosis)?.join(', ')}`}
-        additionalDescription={`To proceed choose a different Clinical Assessment or remove the animal accessed`}
+        description={`Duplicate Clinical Assessment: ${duplicateAssessments?.map(item => item?.diagnosis)?.join(', ')}`}
+        additionalDescription={`To proceed choose a different Clinical Assessment`}
         confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
         image={'/images/warning-icon.svg'}
         imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
