@@ -478,6 +478,7 @@ function AddMedicationDrawer({
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>
+                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>Notes</Typography>
                 <ControlledTextArea
                   control={control}
                   errors={errors}
@@ -485,7 +486,7 @@ function AddMedicationDrawer({
                   placeholder='Enter Notes'
                   fullWidth
                   rows={2}
-                  sx={{ backgroundColor: alpha(theme.palette.customColors.antzNotes, 0.6) }}
+                  inputBackgroundColor={alpha(theme.palette.customColors.antzNotes, 0.6)}
                 />
               </Grid>
             </Grid>

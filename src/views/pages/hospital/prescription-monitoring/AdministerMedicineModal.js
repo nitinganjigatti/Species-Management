@@ -522,6 +522,9 @@ const AdministerMedicineSidesheet = ({
                           </Grid>
 
                           <Grid size={{ xs: 12 }}>
+                            <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>
+                              Notes
+                            </Typography>
                             <ControlledTextArea
                               name='notes'
                               control={control}

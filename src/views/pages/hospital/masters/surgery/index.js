@@ -149,20 +149,22 @@ const AddEditSurgeryDrawer = ({ open, onClose, onSubmit, loading = false, initia
               borderRadius='8px'
               inputBackgroundColor={theme.palette.background.paper}
             />
-
-            <ControlledTextArea
-              control={control}
-              name='description'
-              placeholder='Enter description'
-              rows={3}
-              errors={errors}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '8px',
-                  backgroundColor: theme.palette.background.paper
-                }
-              }}
-            />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>Description</Typography>
+              <ControlledTextArea
+                control={control}
+                name='description'
+                placeholder='Enter description'
+                rows={3}
+                errors={errors}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px',
+                    backgroundColor: theme.palette.background.paper
+                  }
+                }}
+              />
+            </Box>
 
             <Box
               sx={{
