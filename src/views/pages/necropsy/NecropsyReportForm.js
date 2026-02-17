@@ -17,7 +17,8 @@ import {
   FormControlLabel,
   Checkbox,
   Skeleton,
-  useTheme
+  useTheme,
+  FormHelperText
 } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -102,7 +103,13 @@ const submitSchema = yup.object().shape({
     .mixed()
     .nullable()
     .when(['is_suitable', 'carcass_weight'], {
-      is: (suitable, weight) => suitable === true && weight != null && String(weight).trim().length > 0,
+      // Only require weight unit if a meaningful weight value is entered (not 0, empty, or "0.00")
+      is: (suitable, weight) => {
+        if (suitable !== true) return false
+        const weightValue = parseFloat(weight)
+
+        return !isNaN(weightValue) && weightValue > 0
+      },
       then: schema => schema.test('required', 'Please select the weight unit', value => value != null),
       otherwise: schema => schema.nullable()
     })
@@ -141,6 +148,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
   const [weightUomId, setWeightUomId] = useState(null)
 
   const [conductedByUsers, setConductedByUsers] = useState([])
+  const [draftErrors, setDraftErrors] = useState({})
   const [organs, setOrgans] = useState([])
   const [existingAttachments, setExistingAttachments] = useState([])
 
@@ -189,6 +197,9 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
 
   const isSuitable = watch('is_suitable')
 
+  // Merge form errors with draft validation errors
+  const mergedErrors = useMemo(() => ({ ...errors, ...draftErrors }), [errors, draftErrors])
+
   useEffect(() => {
     if (!necropsyId && authData?.userData?.user && conductedByUsers.length === 0) {
       const userDetails = authData.userData.user
@@ -204,6 +215,51 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
       }
     }
   }, [necropsyId, authData?.userData?.user])
+
+  // Clear draft errors when relevant field values change
+  const reasonForUnsuitable = watch('reason_for_unsuitable')
+  const weightUnit = watch('weight_unit')
+  const confirmedCauseOfDeath = watch('confirmed_cause_of_death')
+
+  useEffect(() => {
+    if (draftErrors.reason_for_unsuitable && reasonForUnsuitable?.trim()) {
+      setDraftErrors(prev => {
+        const { reason_for_unsuitable, ...rest } = prev
+
+        return rest
+      })
+    }
+  }, [reasonForUnsuitable, draftErrors.reason_for_unsuitable])
+
+  useEffect(() => {
+    if (draftErrors.weight_unit && weightUnit) {
+      setDraftErrors(prev => {
+        const { weight_unit, ...rest } = prev
+
+        return rest
+      })
+    }
+  }, [weightUnit, draftErrors.weight_unit])
+
+  useEffect(() => {
+    if (draftErrors.confirmed_cause_of_death && confirmedCauseOfDeath) {
+      setDraftErrors(prev => {
+        const { confirmed_cause_of_death, ...rest } = prev
+
+        return rest
+      })
+    }
+  }, [confirmedCauseOfDeath, draftErrors.confirmed_cause_of_death])
+
+  useEffect(() => {
+    if (draftErrors.conducted_by && conductedByUsers.length > 0) {
+      setDraftErrors(prev => {
+        const { conducted_by, ...rest } = prev
+
+        return rest
+      })
+    }
+  }, [conductedByUsers, draftErrors.conducted_by])
 
   // Fetch initial data when options are loaded
   useEffect(() => {
@@ -231,7 +287,9 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
             setValue('qr_number', mortData.qr_number)
           }
 
-          if (mortData?.carcass_weight) {
+          // Only set weight if it's a meaningful value (not 0 or empty)
+          const mortWeightVal = parseFloat(mortData?.carcass_weight)
+          if (!isNaN(mortWeightVal) && mortWeightVal > 0) {
             setValue('carcass_weight', String(mortData.carcass_weight))
 
             const uomId = mortData.carcass_weight_uom_id || mortData.carcass_weight_uom || mortData.uom_id
@@ -352,27 +410,34 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
     if (data.death_time) setValue('death_time', dayjs(`2000-01-01 ${data.death_time}`))
 
     setValue('place_of_death', data.place_of_death || '')
-    setValue('carcass_weight', data.carcass_weight || '')
 
-    // Use Redux helper to find weight unit
-    const uomId = data.carcass_weight_uom_id || data.carcass_weight_uom || data.uom_id
-    if (uomId && !isNaN(Number(uomId))) {
-      setWeightUomId(Number(uomId))
-      const unitById = findWeightUnitOption(uomId)
-      if (unitById) {
-        setValue('weight_unit', unitById)
+    // Only set weight and UOM if weight is a meaningful value (not 0 or empty)
+    const weightVal = parseFloat(data.carcass_weight)
+    const hasMeaningfulWeight = !isNaN(weightVal) && weightVal > 0
+    setValue('carcass_weight', hasMeaningfulWeight ? String(data.carcass_weight) : '')
+
+    // Only set weight unit if weight is meaningful
+    if (hasMeaningfulWeight) {
+      // Use Redux helper to find weight unit
+      const uomId = data.carcass_weight_uom_id || data.carcass_weight_uom || data.uom_id
+      if (uomId && !isNaN(Number(uomId))) {
+        setWeightUomId(Number(uomId))
+        const unitById = findWeightUnitOption(uomId)
+        if (unitById) {
+          setValue('weight_unit', unitById)
+        }
       }
-    }
 
-    if (!watch('weight_unit')) {
-      const uomAbbr = data.uom_abbr || data.carcass_weight_unit_name
-      if (uomAbbr) {
-        const unit = findWeightUnitOption(uomAbbr)
-        if (unit) {
-          setValue('weight_unit', unit)
-          setWeightUomId(unit.id)
-        } else if (uomAbbr) {
-          setValue('weight_unit', { label: uomAbbr, value: uomAbbr })
+      if (!watch('weight_unit')) {
+        const uomAbbr = data.uom_abbr || data.carcass_weight_unit_name
+        if (uomAbbr) {
+          const unit = findWeightUnitOption(uomAbbr)
+          if (unit) {
+            setValue('weight_unit', unit)
+            setWeightUomId(unit.id)
+          } else if (uomAbbr) {
+            setValue('weight_unit', { label: uomAbbr, value: uomAbbr })
+          }
         }
       }
     }
@@ -584,29 +649,39 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
   const handleSaveAsDraft = async () => {
     const formValues = watch()
 
+    // Clear previous draft errors
+    setDraftErrors({})
+
     if (!formValues.is_suitable) {
       if (!formValues.reason_for_unsuitable?.trim()) {
+        setDraftErrors({ reason_for_unsuitable: { message: 'Reason for unsuitable is required' } })
         Utility.scrollToField('reason_for_unsuitable')
 
         return
       }
       if (conductedByUsers.length === 0) {
+        setDraftErrors({ conducted_by: { message: 'At least one user is required' } })
         Utility.scrollToField('conducted_by')
 
         return
       }
     } else {
-      if (formValues.carcass_weight && !formValues.weight_unit) {
+      // Only require weight unit if a meaningful weight value is entered (not 0, empty, or "0.00")
+      const weightValue = parseFloat(formValues.carcass_weight)
+      if (!isNaN(weightValue) && weightValue > 0 && !formValues.weight_unit) {
+        setDraftErrors({ weight_unit: { message: 'Weight unit is required when weight is provided' } })
         Utility.scrollToField('weight_unit')
 
         return
       }
       if (!formValues.confirmed_cause_of_death) {
+        setDraftErrors({ confirmed_cause_of_death: { message: 'Confirmed cause of death is required' } })
         Utility.scrollToField('confirmed_cause_of_death')
 
         return
       }
       if (conductedByUsers.length === 0) {
+        setDraftErrors({ conducted_by: { message: 'At least one user is required' } })
         Utility.scrollToField('conducted_by')
 
         return
@@ -633,6 +708,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
 
   const onSubmit = async formValues => {
     if (conductedByUsers.length === 0) {
+      setDraftErrors({ conducted_by: { message: 'At least one user is required' } })
       Utility.scrollToField('conducted_by')
 
       return
@@ -967,7 +1043,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                   name='is_suitable'
                   label='Carcass is suitable for necropsy'
                   control={control}
-                  errors={errors}
+                  errors={mergedErrors}
                   labelPosition='start'
                   spaceBetween
                   onChangeOverride={handleSuitableToggle}
@@ -976,7 +1052,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                   <ControlledTextArea
                     name='reason_for_unsuitable'
                     control={control}
-                    errors={errors}
+                    errors={mergedErrors}
                     rows={3}
                     placeholder='Describe why the carcass is unsuitable for necropsy...'
                   />
@@ -993,6 +1069,11 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                       onChange={setConductedByUsers}
                       label='Search users by name'
                     />
+                    {mergedErrors.conducted_by && (
+                      <FormHelperText sx={{ color: 'error.main', mt: -2 }}>
+                        {mergedErrors.conducted_by.message}
+                      </FormHelperText>
+                    )}
                   </Box>
                 </>
               )}
@@ -1044,7 +1125,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                         <ControlledTextField
                           name='place_of_death'
                           control={control}
-                          errors={errors}
+                          errors={mergedErrors}
                           label='Place of Death'
                           placeholder='E.g. Enclosure A, Holding area...'
                         />
@@ -1053,7 +1134,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                         <ControlledTextField
                           name='qr_number'
                           control={control}
-                          errors={errors}
+                          errors={mergedErrors}
                           label='QR Number'
                           placeholder='Enter QR number'
                           disabled={!!necropsyData?.qr_number}
@@ -1069,7 +1150,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                         <ControlledTextField
                           name='carcass_weight'
                           control={control}
-                          errors={errors}
+                          errors={mergedErrors}
                           label='Weight'
                           type='number'
                           placeholder='0.00'
@@ -1079,7 +1160,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                         <ControlledAutocomplete
                           name='weight_unit'
                           control={control}
-                          errors={errors}
+                          errors={mergedErrors}
                           label='Unit'
                           options={weightUnitOptions}
                         />
@@ -1089,7 +1170,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                       name='approximate_weight'
                       label='Approximate weight'
                       control={control}
-                      errors={errors}
+                      errors={mergedErrors}
                       size='small'
                     />
                   </Box>
@@ -1101,7 +1182,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                         <ControlledSelect
                           name='sex'
                           control={control}
-                          errors={errors}
+                          errors={mergedErrors}
                           label='Sex'
                           options={sexOptions}
                           getOptionLabel={o => o.charAt(0).toUpperCase() + o.slice(1)}
@@ -1183,7 +1264,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                     <ControlledTextArea
                       name='history_of_illness'
                       control={control}
-                      errors={errors}
+                      errors={mergedErrors}
                       rows={5}
                       placeholder='Enter clinical history, symptoms, treatments, and relevant medical background...'
                     />
@@ -1212,6 +1293,11 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                       onChange={setConductedByUsers}
                       label='Search users by name'
                     />
+                    {mergedErrors.conducted_by && (
+                      <FormHelperText sx={{ color: 'error.main', mt: -2 }}>
+                        {mergedErrors.conducted_by.message}
+                      </FormHelperText>
+                    )}
                   </Box>
 
                   <Divider />
@@ -1223,7 +1309,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                     <ControlledTextArea
                       name='general_description'
                       control={control}
-                      errors={errors}
+                      errors={mergedErrors}
                       rows={5}
                       placeholder='Describe the general gross findings, external condition, body condition score...'
                     />
@@ -1339,7 +1425,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                 <ControlledTextArea
                   name='opinion'
                   control={control}
-                  errors={errors}
+                  errors={mergedErrors}
                   rows={3}
                   placeholder='Enter your professional opinion on the cause of death...'
                 />
@@ -1352,7 +1438,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                     <ControlledAutocomplete
                       name='confirmed_cause_of_death'
                       control={control}
-                      errors={errors}
+                      errors={mergedErrors}
                       label='Confirmed Cause After Necropsy'
                       options={mannerOfDeathOptions}
                     />
@@ -1361,7 +1447,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                     <ControlledAutocomplete
                       name='disposal_method'
                       control={control}
-                      errors={errors}
+                      errors={mergedErrors}
                       label='Disposal Method'
                       options={disposalOptions}
                     />
@@ -1378,7 +1464,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                 <ControlledTextArea
                   name='biological_test'
                   control={control}
-                  errors={errors}
+                  errors={mergedErrors}
                   rows={3}
                   placeholder='Enter any biological tests performed...'
                 />
@@ -1389,7 +1475,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                 <ControlledTextArea
                   name='additional_notes'
                   control={control}
-                  errors={errors}
+                  errors={mergedErrors}
                   rows={4}
                   placeholder='Enter any additional notes or observations...'
                 />
