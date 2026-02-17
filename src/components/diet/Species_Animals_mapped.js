@@ -183,10 +183,15 @@ const SpeciesAnimalsMapped = ({
     <Drawer
       anchor='right'
       open={isOpentab}
+      ModalProps={{
+        keepMounted: true
+      }}
       sx={{
         '& .MuiDrawer-paper': {
           width: ['100%', '562px'],
-          height: '100vh'
+          height: '100vh',
+          position: 'fixed',
+          overflow: 'hidden'
         },
         position: 'relative',
         display: 'flex',

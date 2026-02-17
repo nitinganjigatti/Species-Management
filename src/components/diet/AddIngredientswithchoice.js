@@ -926,7 +926,8 @@ const AddIngredientswithChoice = props => {
             marginTop: 35,
             height: 'calc(100vh - 245px)',
             overflowY: 'auto',
-            bgcolor: theme.palette.customColors.bodyBg
+            bgcolor: theme.palette.customColors.bodyBg,
+            pb: '100px'
           }}
           onScroll={fromrow !== 'rowedit_ingredientwithchoice' ? handleScroll : undefined}
         >

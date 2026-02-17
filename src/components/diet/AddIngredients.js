@@ -790,7 +790,8 @@ const AddIngredients = props => {
 
             height: fromrow !== 'rowedit_ingredient' ? 'calc(100vh - 245px)' : '85%',
             overflowY: 'auto',
-            bgcolor: theme.palette.customColors.bodyBg
+            bgcolor: theme.palette.customColors.bodyBg,
+            pb: '100px'
           }}
           onScroll={fromrow !== 'rowedit_ingredient' ? handleScroll : undefined}
         >
@@ -1238,16 +1239,19 @@ const AddIngredients = props => {
 
         <Box
           sx={{
-            height: '100px',
+            height: { xs: '80px', sm: '90px', md: '100px' },
             width: '100%',
             maxWidth: '562px',
             position: 'fixed',
             bottom: 0,
+            right: 0,
             px: 4,
             bgcolor: 'white',
+            display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            display: 'flex'
+            paddingBottom: 'env(safe-area-inset-bottom)',
+            zIndex: 9999
           }}
         >
           {fromrow === 'rowedit_ingredient' ? (
