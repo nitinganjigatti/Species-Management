@@ -2205,6 +2205,7 @@ export default function AddAnesthesiaRecord() {
             mt={4}
             mb={3}
             sx={{
+              pr: { xs: 2, sm: 2, md: 2 },
               '&::-webkit-scrollbar': {
                 width: '8px'
               },
@@ -2215,7 +2216,11 @@ export default function AddAnesthesiaRecord() {
                 background: '#c1c1c1',
                 borderRadius: '4px'
               },
-              overflowX: 'hidden'
+              overflowX: 'hidden',
+              scrollbarGutter: 'stable',
+              '& .MuiAccordionSummary-root': {
+                pr: 2
+              }
             }}
           >
             {sections.map(({ id, label, component: SectionComponent }) => {
