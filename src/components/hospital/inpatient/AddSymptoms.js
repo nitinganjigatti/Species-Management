@@ -74,6 +74,7 @@ function AddSymptoms() {
   const [currentTabId, setCurrentTabId] = useState('')
   const [isDuplicatesErrorModelOpen, setDuplicatesErrorModelOpen] = useState(false)
   const [duplicateSymptoms, setDuplicateSymptoms] = useState([])
+  const [alreadySelectedIds, setAlreadySelectedIds] = useState([])
   const medicalRecordId = medicalRecordData?.medical_record_id
 
   const initialLoadRef = useRef(false)
@@ -106,7 +107,9 @@ function AddSymptoms() {
     setSelectedSymptoms(prev => prev.filter(s => s.id !== symptomId))
   }
 
-  const availableSymptoms = symptomsList.filter(symptom => !selectedSymptoms.some(s => s.id === symptom.id))
+  const availableSymptoms = symptomsList.filter(
+    symptom => !selectedSymptoms.some(s => s.id === symptom.id) && temporarilySelected?.id !== symptom.id
+  )
 
   const fetchSymptoms = useCallback(
     async (query = '', pageNo = 1, append = false, categoryId = '') => {
@@ -127,7 +130,8 @@ function AddSymptoms() {
           q: query,
           category_id: categoryId || '',
           request_from: 'hospital_module',
-          medical_record_id: patientData?.medical_record_id || '',
+          // medical_record_id: patientData?.medical_record_id || '',
+          animal_id: patientData?.animal_detail?.animal_id || '',
           limit: 20
         }
 
@@ -167,6 +171,10 @@ function AddSymptoms() {
 
           if (newResults.length > 0) {
             setPage(currentPage)
+          }
+
+          if (pageNo === 1 && response?.data?.selected_ids) {
+            setAlreadySelectedIds(response.data.selected_ids)
           }
         }
       } catch (error) {
@@ -451,6 +459,7 @@ function AddSymptoms() {
             symptomsCount={symptomsCount}
             hasMore={hasMore}
             handleAddNewClick={handleAddNewClick}
+            alreadySelectedIds={alreadySelectedIds}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
