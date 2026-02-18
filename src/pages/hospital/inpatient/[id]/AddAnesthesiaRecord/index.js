@@ -2050,7 +2050,7 @@ export default function AddAnesthesiaRecord() {
 
   const handleAIDDisplay = () => {
     if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
-      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+      return patientData?.animal_detail?.local_identifier_value
     } else {
       return patientData?.animal_detail?.animal_id
     }

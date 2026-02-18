@@ -2065,7 +2065,7 @@ export default function AddMedicineToPrescription() {
 
   const handleAIDDisplay = () => {
     if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
-      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+      return patientData?.animal_detail?.local_identifier_value
     } else {
       return patientData?.animal_detail?.animal_id
     }
@@ -2085,7 +2085,13 @@ export default function AddMedicineToPrescription() {
         age={`${patientData?.animal_detail?.age}`}
         gender={`${patientData?.animal_detail?.sex}`}
         additionalFields={[
-          { label: 'AID', value: handleAIDDisplay() },
+          {
+            label:
+              patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value
+                ? patientData?.animal_detail?.local_identifier_name
+                : 'AID',
+            value: handleAIDDisplay()
+          },
           { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
           // { label: 'Admitted days', value: patientData?.admitted_for_day },
           { label: 'Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
