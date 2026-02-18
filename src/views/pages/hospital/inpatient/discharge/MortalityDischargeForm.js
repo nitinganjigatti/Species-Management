@@ -318,13 +318,13 @@ const MortalityDischargeForm = props => {
                   label={'Cause of Death*'}
                   options={causeOfDeath}
                   getOptionLabel={option => option?.label || ''}
-                  getOptionValue={option => option?.value || ''}
                   onInputChange={value => handleMannerSearch(value)}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => handleMannerSearch('')}
                   loading={fetchLoading}
                   required
                   showIcons={false}
+                  showLoader={true}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -335,13 +335,13 @@ const MortalityDischargeForm = props => {
                   label={'Carcass Condition*'}
                   options={carcassCondition}
                   getOptionLabel={option => option?.label || ''}
-                  getOptionValue={option => option?.value || ''}
                   onInputChange={value => handleConditionSearch(value)}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => handleConditionSearch('')}
                   loading={fetchLoading}
                   required
                   showIcons={false}
+                  showLoader={true}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -352,13 +352,13 @@ const MortalityDischargeForm = props => {
                   label={'Carcass Deposition*'}
                   options={carcassDeposition}
                   getOptionLabel={option => option?.label || ''}
-                  getOptionValue={option => option?.value || ''}
                   onInputChange={value => handleDispositionSearch(value)}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => handleDispositionSearch('')}
                   loading={fetchLoading}
                   required
                   showIcons={false}
+                  showLoader={true}
                 />
               </Grid>
             </Grid>

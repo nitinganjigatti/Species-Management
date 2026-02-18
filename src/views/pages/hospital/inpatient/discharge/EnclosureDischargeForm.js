@@ -78,19 +78,19 @@ const EnclosureDischargeForm = props => {
       .object()
       .nullable()
       .test('has-value', 'Site is required', value => {
-        return value && value.value && value.value !== ''
+        return value && value.value && value.value !== null && value.value !== '' // Ensures a valid value is selected from Autocomplete (not null/empty)
       }),
     section_name: yup
       .object()
       .nullable()
       .test('has-value', 'Section is required', value => {
-        return value && value.value && value.value !== ''
+        return value && value.value && value.value !== null && value.value !== ''
       }),
     user_enclosure_name: yup
       .object()
       .nullable()
       .test('has-value', 'Enclosure is required', value => {
-        return value && value.value && value.value !== ''
+        return value && value.value && value.value !== null && value.value !== ''
       }),
     discharge_date: yup
       .date()
@@ -170,15 +170,13 @@ const EnclosureDischargeForm = props => {
   const defaultValues = {
     returnToOriginal: true,
     discharge_type: 'TransferEnclosure',
-    site_name: patientDetails?.site_id
-      ? { label: patientDetails?.site_name, value: patientDetails?.site_id }
-      : { label: '', value: '' },
+    site_name: patientDetails?.site_id ? { label: patientDetails?.site_name, value: patientDetails?.site_id } : null,
     section_name: patientDetails?.section_id
       ? { label: patientDetails?.section_name, value: patientDetails?.section_id }
-      : { label: '', value: '' },
+      : null,
     user_enclosure_name: patientDetails?.user_enclosure_id
       ? { label: patientDetails?.user_enclosure_name, value: patientDetails?.user_enclosure_id }
-      : { label: '', value: '' },
+      : null,
     discharge_date: dayjs(),
     discharge_time: dayjs(),
     reason: '',
@@ -360,7 +358,8 @@ const EnclosureDischargeForm = props => {
     const success = await handleSubmitData(payload)
     if (success) {
       sessionStorage.removeItem(STORAGE_KEY_FORM)
-      reset(defaultValues)
+
+      // reset(defaultValues) // to avoid api call after discharge
       clearData() // clear medicines + reset storage after submit
       refetchPatient()
     }
@@ -445,14 +444,12 @@ const EnclosureDischargeForm = props => {
                   label={'Site*'}
                   options={sites}
                   getOptionLabel={option => option?.label || ''}
-                  getOptionValue={option => option?.value || ''}
                   onInputChange={value => handleSiteSearch(value)}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => {
                     handleSiteSearch('')
-                    setValue('site_name', { label: '', value: '' })
-                    setValue('section_name', { label: '', value: '' })
-                    setValue('user_enclosure_name', { label: '', value: '' })
+                    setValue('section_name', null)
+                    setValue('user_enclosure_name', null)
                     clearSections()
                     clearEnclosures()
                   }}
@@ -462,13 +459,14 @@ const EnclosureDischargeForm = props => {
                   showIcons={false}
                   disabled={returnToOriginal}
                   onChangeOverride={val => {
-                    setValue('site_name', val || { label: '', value: '' })
-                    setValue('section_name', { label: '', value: '' })
-                    setValue('user_enclosure_name', { label: '', value: '' })
+                    setValue('section_name', null) // Reset dependents to null to prevent stale data
+                    setValue('user_enclosure_name', null)
 
-                    // Clear sections and enclosures when site changes
+                    // Clear existing options list to avoid showing stale data
                     clearSections()
                     clearEnclosures()
+
+                    // Fetch new section list for selected site
                     if (val?.value) {
                       fetchSections(val?.value)
                     }
@@ -483,12 +481,11 @@ const EnclosureDischargeForm = props => {
                   label={'Section*'}
                   options={sections}
                   getOptionLabel={option => option?.label || ''}
-                  getOptionValue={option => option?.value || ''}
                   onInputChange={value => handleSectionSearch(watch('site_name')?.value, value)}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => {
                     handleSectionSearch(watch('site_name')?.value, '')
-                    setValue('user_enclosure_name', { label: '', value: '' })
+                    setValue('user_enclosure_name', null)
                     clearEnclosures()
                   }}
                   loading={sectionLoading}
@@ -497,10 +494,7 @@ const EnclosureDischargeForm = props => {
                   showIcons={false}
                   disabled={returnToOriginal}
                   onChangeOverride={val => {
-                    setValue('section_name', val || { label: '', value: '' })
-                    setValue('user_enclosure_name', { label: '', value: '' })
-
-                    // Clear enclosures when section changes
+                    setValue('user_enclosure_name', null)
                     clearEnclosures()
                     if (val?.value) {
                       fetchEnclosures(val?.value)
@@ -516,7 +510,6 @@ const EnclosureDischargeForm = props => {
                   label={'Enclosure*'}
                   options={enclosures}
                   getOptionLabel={option => option?.label}
-                  getOptionValue={option => option?.value}
                   onInputChange={value => handleEnclosureSearch(watch('section_name')?.value, value)}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => handleEnclosureSearch(watch('section_name')?.value, '')}
@@ -525,9 +518,6 @@ const EnclosureDischargeForm = props => {
                   required
                   showIcons={false}
                   disabled={returnToOriginal}
-                  onChangeOverride={val => {
-                    setValue('user_enclosure_name', val || { label: '', value: '' })
-                  }}
                 />
               </Grid>
             </Grid>
