@@ -2,7 +2,9 @@ import { Card, Drawer, IconButton, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { debounce } from 'lodash'
+import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import { useForm, FormProvider } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
@@ -30,8 +32,8 @@ const anesthesiaSchema = yup.object().shape({
       .string()
       .test('required', 'Estimated time is required', value => Boolean(value?.toString().trim())),
     estimated_time_unit: yup.string().trim().required('Time unit is required'),
-    veterinarian_id: yup.array().of(yup.string()).min(1, 'Select at least one veterinarian'),
-    anesthetist_id: yup.array().of(yup.string()).min(1, 'Select at least one anesthetist'),
+    veterinarian_id: yup.array().min(1, 'Select at least one veterinarian'),
+    anesthetist_id: yup.array().min(1, 'Select at least one anesthetist'),
     selected: yup.array().of(yup.string()).min(1, 'Select at least one purpose').default([]),
     custom: yup.array().of(yup.string()).default([])
 
@@ -68,6 +70,151 @@ const AddanesthesiaRecordDrawer = ({
 }) => {
   const theme = useTheme()
   const [purposeOptions, setPurposeOptions] = useState([])
+  const [vetDoctors, setVetDoctors] = useState([])
+  const [anesthetistDoctors, setAnesthetistDoctors] = useState([])
+  const [masterVetDoctors, setMasterVetDoctors] = useState([])
+  const [masterAnesthetistDoctors, setMasterAnesthetistDoctors] = useState([])
+  const [loadingVet, setLoadingVet] = useState(false)
+  const [loadingAnesthetist, setLoadingAnesthetist] = useState(false)
+
+  const vetSearchTimerRef = useRef(null)
+  const anesthetistSearchTimerRef = useRef(null)
+
+  useEffect(() => {
+    if (vetOptions?.length > 0) {
+      setVetDoctors(vetOptions)
+      setMasterVetDoctors(vetOptions)
+    }
+  }, [vetOptions])
+
+  useEffect(() => {
+    if (anesthetistOptions?.length > 0) {
+      setAnesthetistDoctors(anesthetistOptions)
+      setMasterAnesthetistDoctors(anesthetistOptions)
+    }
+  }, [anesthetistOptions])
+
+  const handleVetSearch = useCallback(
+    debounce(async (search, selectedItems = []) => {
+      if (!hospitalCaseId) return
+      if (vetSearchTimerRef.current) clearTimeout(vetSearchTimerRef.current)
+
+      if (!search.trim()) {
+        setVetDoctors(masterVetDoctors)
+
+        return
+      }
+
+      try {
+        setLoadingVet(true)
+        const params = {
+          hospital_id: patientData?.hospital_id,
+          page_no: 1,
+          limit: 10,
+          q: search
+        }
+        const res = await getHospitalStaff({ params })
+        const mapped = (res?.data?.records || []).map(item => ({
+          id: String(item.user_id),
+          name: item.user_full_name,
+          default_icon: item.user_profile_pic,
+          role_name: item.role_name
+        }))
+
+        setVetDoctors(mapped)
+
+        vetSearchTimerRef.current = setTimeout(() => {
+          setMasterVetDoctors(prevMaster => {
+            const merged = [...prevMaster, ...mapped]
+            const unique = Array.from(new Map(merged.map(item => [String(item.id), item])).values())
+            setVetDoctors(unique)
+
+            return unique
+          })
+        }, 10000)
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setLoadingVet(false)
+      }
+    }, 500),
+    [hospitalCaseId, masterVetDoctors, patientData?.hospital_id]
+  )
+
+  const handleAnesthetistSearch = useCallback(
+    debounce(async (search, selectedItems = []) => {
+      if (!hospitalCaseId) return
+      if (anesthetistSearchTimerRef.current) clearTimeout(anesthetistSearchTimerRef.current)
+
+      if (!search.trim()) {
+        setAnesthetistDoctors(masterAnesthetistDoctors)
+
+        return
+      }
+
+      try {
+        setLoadingAnesthetist(true)
+        const params = {
+          hospital_id: patientData?.hospital_id,
+          page_no: 1,
+          limit: 10,
+          q: search
+        }
+        const res = await getHospitalStaff({ params })
+        const mapped = (res?.data?.records || []).map(item => ({
+          id: String(item.user_id),
+          name: item.user_full_name,
+          default_icon: item.user_profile_pic,
+          role_name: item.role_name
+        }))
+
+        setAnesthetistDoctors(mapped)
+
+        anesthetistSearchTimerRef.current = setTimeout(() => {
+          setMasterAnesthetistDoctors(prevMaster => {
+            const merged = [...prevMaster, ...mapped]
+            const unique = Array.from(new Map(merged.map(item => [String(item.id), item])).values())
+            setAnesthetistDoctors(unique)
+
+            return unique
+          })
+        }, 10000)
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setLoadingAnesthetist(false)
+      }
+    }, 500),
+    [hospitalCaseId, masterAnesthetistDoctors, patientData?.hospital_id]
+  )
+
+  const handleVetSelect = useCallback(
+    selectedItem => {
+      if (vetSearchTimerRef.current) clearTimeout(vetSearchTimerRef.current)
+      setMasterVetDoctors(prevMaster => {
+        const merged = [...prevMaster, selectedItem]
+        const unique = Array.from(new Map(merged.map(item => [String(item.id), item])).values())
+        setVetDoctors(unique)
+
+        return unique
+      })
+    },
+    [vetSearchTimerRef]
+  )
+
+  const handleAnesthetistSelect = useCallback(
+    selectedItem => {
+      if (anesthetistSearchTimerRef.current) clearTimeout(anesthetistSearchTimerRef.current)
+      setMasterAnesthetistDoctors(prevMaster => {
+        const merged = [...prevMaster, selectedItem]
+        const unique = Array.from(new Map(merged.map(item => [String(item.id), item])).values())
+        setAnesthetistDoctors(unique)
+
+        return unique
+      })
+    },
+    [anesthetistSearchTimerRef]
+  )
   const holdingLocation = [patientData?.bed_name, patientData?.room_name].filter(Boolean).join(', ')
   const chiefVeterinarian = patientData?.admitted_by_full_name || patientData?.attend_by_full_name
   const animalImage = getSafeString(patientData?.animal_detail?.default_icon)
@@ -95,6 +242,8 @@ const AddanesthesiaRecordDrawer = ({
   const onSubmit = async data => {
     const formData = new FormData()
     const anaesthesiaDateTime = data.basicDetails.anaesthesia_datetime || data.basicDetails.anesthesia_datetime || ''
+    const veterinarianIds = (data?.basicDetails?.veterinarian_id || []).map(v => v.id)
+    const anesthetistIds = (data?.basicDetails?.anesthetist_id || []).map(a => a.id)
 
     formData.append('hospital_case_id', hospitalCaseId || '')
     formData.append('medical_record_id', medicalRecordId || '')
@@ -102,14 +251,8 @@ const AddanesthesiaRecordDrawer = ({
     formData.append('anaesthesia_datetime', anaesthesiaDateTime || '')
     formData.append('estimated_time_required', data.basicDetails.estimated_time_required || '')
     formData.append('estimated_time_unit', data.basicDetails.estimated_time_unit || '')
-    formData.append(
-      'veterinarian_id',
-      JSON.stringify(Array.isArray(data.basicDetails.veterinarian_id) ? data.basicDetails.veterinarian_id : [])
-    )
-    formData.append(
-      'anesthetist_id',
-      JSON.stringify(Array.isArray(data.basicDetails.anesthetist_id) ? data.basicDetails.anesthetist_id : [])
-    )
+    formData.append('veterinarian_id', JSON.stringify(veterinarianIds || []))
+    formData.append('anesthetist_id', JSON.stringify(anesthetistIds || []))
     formData.append('notes', data.basicDetails.notes || '')
 
     const purposePayload = {
@@ -136,7 +279,7 @@ const AddanesthesiaRecordDrawer = ({
 
         const mapPeople = (ids, options) => {
           if (!Array.isArray(ids)) return []
-          const idSet = new Set(ids.map(val => String(val)))
+          const idSet = new Set(ids.map(val => String(val.id || val)))
 
           return options
             .filter(opt => idSet.has(String(opt.id)))
@@ -173,8 +316,8 @@ const AddanesthesiaRecordDrawer = ({
           anesthesia_datetime: anaesthesiaDateTime || '',
           estimated_time_required: data.basicDetails.estimated_time_required || '',
           estimated_time_unit: data.basicDetails.estimated_time_unit || '',
-          veterinarians: mapPeople(data.basicDetails.veterinarian_id, vetOptions),
-          anesthetists: mapPeople(data.basicDetails.anesthetist_id, anesthetistOptions),
+          veterinarians: mapPeople(data.basicDetails.veterinarian_id, masterVetDoctors),
+          anesthetists: mapPeople(data.basicDetails.anesthetist_id, masterAnesthetistDoctors),
           purpose: purposeList,
           notes: data.basicDetails.notes || ''
         }
@@ -363,11 +506,17 @@ const AddanesthesiaRecordDrawer = ({
                 }}
               >
                 <BasicDetails
-                  vetOptions={vetOptions}
-                  anesthetistOptions={anesthetistOptions}
+                  vetOptions={vetDoctors}
+                  anesthetistOptions={anesthetistDoctors}
                   purposeOptions={purposeOptions}
                   loadMoreDoctors={loadMoreDoctors}
                   loadingDoctors={loadingDoctors}
+                  loadingVet={loadingVet}
+                  loadingAnesthetist={loadingAnesthetist}
+                  handleVetSearch={handleVetSearch}
+                  handleAnesthetistSearch={handleAnesthetistSearch}
+                  handleVetSelect={handleVetSelect}
+                  handleAnesthetistSelect={handleAnesthetistSelect}
                   patientData={patientData}
                 />
               </Card>

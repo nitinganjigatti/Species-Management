@@ -113,7 +113,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
 
   const canEnableButton = isChanged || notes?.trim()?.length > 0
 
-  const handleConfirmAddSymptom = async (pendingDetails) => {
+  const handleConfirmAddSymptom = async pendingDetails => {
     if (!pendingDetails) return
 
     try {
@@ -128,7 +128,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
         type: 'COMPLAINT',
         is_system_generated: isSystemGenerated ? 1 : 0,
         severity: pendingDetails?.severity,
-        duration: pendingDetails?.durationValue || 0,
+        duration: pendingDetails?.durationValue == 0 ? '' : pendingDetails?.durationValue || '',
         duration_unit: pendingDetails?.durationUnit,
         status: pendingDetails?.status,
         note: pendingDetails?.notes,

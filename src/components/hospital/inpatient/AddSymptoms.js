@@ -354,7 +354,7 @@ function AddSymptoms() {
           severity: symptom.severity || 'Mild',
           notes: symptom.notes || '',
           active_at: '',
-          duration: String(symptom.durationValue || 0),
+          duration: symptom.durationValue == 0 ? '' : String(symptom.durationValue || ''),
           duration_unit: symptom.durationUnit || 'Days',
           status: 'active',
           comment_list: []
