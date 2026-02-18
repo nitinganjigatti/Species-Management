@@ -176,10 +176,11 @@ const InpatientClinicalNotes = props => {
                       fontSize: '1rem',
                       fontWeight: 400,
                       color: theme.palette.customColors.OnSurfaceVariant,
-                      textAlign: 'justify'
+                      textAlign: 'justify',
+                      whiteSpace: 'pre-wrap'
                     }}
                   >
-                    {data?.note || 'NA'}
+                    {data?.note?.replace(/\\n/g, '\n') || 'NA'}
                   </Typography>
 
                   {status == 'admitted' && (
