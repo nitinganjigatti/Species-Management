@@ -9,27 +9,14 @@ import SignedMediaPlayer from 'src/components/utility/SignedMediaPlayer'
 import MenuWithDots from 'src/components/MenuWithDots'
 import Utility from 'src/utility'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
-
-// File type mapping to extensions
-const EXT_ICON_MAP = {
-  image: ['jpeg', 'jpg', 'png', 'webp', 'heic'],
-  pdf: ['pdf'],
-  xls: ['xls', 'xlsx'],
-  document: ['doc', 'docx'],
-  audio: ['mp3', 'wav'],
-  video: ['mp4', 'webm', 'ogv'],
-  ppt: ['ppt', 'pptx'],
-  text: ['txt'],
-  csv: ['csv'],
-  zip: ['zip', 'rar']
-}
+import { EXTENSION_TYPE_MAP } from 'src/constants/Constants'
 
 // Helper to determine file type based on extension or MIME
-const getFileType = (fileName, fileTypeFromApi) => {
-  if (!fileName) return 'unknown'
+const getFileType = fileName => {
+  if (!fileName) return 'other'
   const ext = fileName?.split('.').pop().toLowerCase() || ''
 
-  return Object.entries(EXT_ICON_MAP).find(([_, exts]) => exts.includes(ext))?.[0] || 'unknown'
+  return EXTENSION_TYPE_MAP[ext] || 'other'
 }
 
 // Get fallback icon if not image/video/audio
@@ -60,32 +47,20 @@ const FilePreviewCard = ({
   const imgPath = userData?.settings?.DEFAULT_IMAGE_MASTER || {}
   const [previewFile, setPreviewFile] = useState(null)
   const [isImageError, setIsImageError] = useState(false)
+  const [isVideoError, setIsVideoError] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
-  // Derive file name safely
-  const derivedFileName = useMemo(() => {
-    if (fileName) return fileName.trim()
-
-    try {
-      const lastSegment = fileUrl?.split('/')?.pop() || ''
-
-      return decodeURIComponent(lastSegment.split('?')[0] || 'unknown')
-    } catch {
-      return 'unknown'
-    }
-  }, [fileName, fileUrl])
-
-  // Determine file type and icon
-  const fileType = getFileType(derivedFileName, fileTypeFromApi)
+  const derivedFileName = fileName?.trim() || ''
+  const fileType = getFileType(derivedFileName)
   const fileIcon = getFileIcon(fileType, imgPath)
 
   // Handle preview click
   const handlePreviewClick = () => {
-    if (!fileUrl || typeof fileUrl !== 'string') return
-    const typeMap = { image: 'image', video: 'video', pdf: 'pdf', audio: 'audio' }
+    if (!fileUrl) return
+
     setPreviewFile({
       src: fileUrl,
-      type: typeMap[fileType] || 'other',
+      type: fileType || 'other',
       name: derivedFileName,
       fileIcon: fileIcon
     })
@@ -136,7 +111,24 @@ const FilePreviewCard = ({
       )
     }
 
-    if (fileType == 'video')
+    if (fileType == 'video') {
+      if (isVideoError || !fileUrl) {
+        return (
+          <Box
+            {...commonProps}
+            sx={{
+              ...commonProps.sx,
+              height: '120px',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: theme.palette.action.hover
+            }}
+          >
+            <Icon icon='mdi:video-off-outline' fontSize={50} color={theme.palette.text.secondary} />
+          </Box>
+        )
+      }
+
       return (
         <Box
           {...commonProps}
@@ -153,6 +145,7 @@ const FilePreviewCard = ({
             preload='auto'
             type='video'
             controls={false}
+            onError={() => setIsVideoError(true)}
             style={{
               width: '100%',
               height: '100%',
@@ -190,6 +183,7 @@ const FilePreviewCard = ({
           </Box>
         </Box>
       )
+    }
 
     // fallback icon for other/unknown types
     return (
