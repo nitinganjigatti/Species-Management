@@ -15,6 +15,7 @@ import Icon from 'src/@core/components/icon'
 import { LoadingButton } from '@mui/lab'
 import SignedMediaPlayer from './SignedMediaPlayer'
 import TextEllipsisWithModal from '../TextEllipsisWithModal'
+import Utility from 'src/utility'
 
 const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
   const theme = useTheme()
@@ -22,25 +23,19 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
   const [isError, setIsError] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  const handleDownload = e => {
+  const handleDownload = async e => {
     e.preventDefault()
     if (!src) return
 
     setIsSubmitting(true)
-
-    // Create a temporary link to trigger download
-    const link = document.createElement('a')
-    link.href = src
-    link.download = title || 'file'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    // Simulate a short loading delay before closing dialog
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      await Utility.downloadFileFromURLWithBlob(src, title)
       onClose()
-    }, 500)
+    } catch (error) {
+      console.error('Download failed:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const renderFallback = () => {
@@ -53,13 +48,15 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: fileIcon?.bg_color || theme.palette.action.hover,
+          backgroundColor: theme.palette.action.hover,
           p: 10,
           gap: 4
         }}
       >
         {type == 'image' ? (
           <Icon icon='mdi:image-off-outline' fontSize={80} color={theme.palette.text.secondary} />
+        ) : type == 'video' ? (
+          <Icon icon='mdi:video-off-outline' fontSize={80} color={theme.palette.text.secondary} />
         ) : fileIcon?.image_path ? (
           <Box
             component='img'
@@ -315,4 +312,5 @@ export default FileDialog
  * - src: string — Source URL of the file to preview or download
  * - title?: string — Optional title shown at the top of the dialog
  * - type: string — File type ('pdf', 'image', 'video', 'audio', or fallback)
+ * - fileIcon: object - containing icon and bg_color for the file
  */
