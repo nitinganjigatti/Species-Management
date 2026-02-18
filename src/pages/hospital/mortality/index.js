@@ -11,7 +11,9 @@ import {
   Tooltip,
   MenuItem,
   IconButton,
-  CircularProgress
+  CircularProgress,
+  Tabs,
+  Tab
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
@@ -60,6 +62,14 @@ const HospitalMortality = () => {
     q: ''
   })
 
+  const [selectedMortalityType, setSelectedMortalityType] = useState('')
+
+  const mortalityTabs = [
+    { label: 'All', value: '' },
+    { label: 'Inpatient', value: 'inpatient' },
+    { label: 'Outpatient', value: 'opd' }
+  ]
+
   const applyFilters = selectedOptions => {
     setSelectedOptions(selectedOptions)
     setOpenFilterDrawer(false)
@@ -102,7 +112,8 @@ const HospitalMortality = () => {
         from_date: formatDate(filterDate.startDate),
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('Chief Veterinarian'),
-        origin_site: prepareFilterParams('Origin Site')
+        origin_site: prepareFilterParams('Origin Site'),
+        discharge_treatment_type: selectedMortalityType || undefined
       })
 
       setRows(res?.data?.records || [])
@@ -116,7 +127,16 @@ const HospitalMortality = () => {
 
   useEffect(() => {
     fetchPatientsMortality()
-  }, [filters?.page, filters?.limit, filters?.q, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions])
+  }, [
+    filters?.page,
+    filters?.limit,
+    filters?.q,
+    selectedVisitType,
+    selectedHospital?.id,
+    filterDate,
+    selectedOptions,
+    selectedMortalityType
+  ])
 
   // const { data, isFetching, refetch } = useQuery({
   //   queryKey: [
@@ -560,6 +580,29 @@ const HospitalMortality = () => {
                   appliedFiltersCount={filterCount}
                 />
               </Box>
+            </Box>
+            <Box sx={{ px: 5, mb: 2, borderBottom: 1, borderColor: 'divider' }}>
+              <Tabs
+                value={selectedMortalityType}
+                onChange={(e, newValue) => {
+                  setSelectedMortalityType(newValue)
+                  setFilters(prev => ({ ...prev, page: 1 }))
+                }}
+                aria-label='mortality treatment type tabs'
+                sx={{
+                  '& .MuiTab-root': {
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    fontSize: '14px',
+                    minWidth: 'auto',
+                    px: 4
+                  }
+                }}
+              >
+                {mortalityTabs.map(tab => (
+                  <Tab key={tab.value} label={tab.label} value={tab.value} />
+                ))}
+              </Tabs>
             </Box>
             <Grid
               sx={{
