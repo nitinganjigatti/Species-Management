@@ -739,7 +739,7 @@ export default function AddMedicineToPrescription() {
               value: item.key,
               unit_name: item.label,
               uom_abbr: item.key
-            })) || [],
+            }))?.sort((a, b) => a.label?.localeCompare(b.label)) || [],
           prescriptionDuration: response?.data?.prescriptionDuration?.map(item => ({ ...item, value: item.key })) || [],
           prescriptionMeasurementType:
             response?.data?.prescriptionMeasurementType?.map(item => ({
@@ -752,7 +752,7 @@ export default function AddMedicineToPrescription() {
               ...item,
               label: item.delivery,
               value: item.route_abbr
-            })) || []
+            }))?.sort((a, b) => a.label?.localeCompare(b.label)) || []
         }))
       } else {
         setMedicalMasterData([])
