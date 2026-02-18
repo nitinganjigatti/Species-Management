@@ -102,6 +102,7 @@ const ControlledAutocomplete = ({
 
               if (reason === 'clear') {
                 onItemClear()
+                searchInputRef.current = ""
                 normalizedValue = null
               }
 
