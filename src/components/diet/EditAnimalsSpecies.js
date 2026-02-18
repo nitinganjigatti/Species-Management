@@ -1035,7 +1035,7 @@ const EditAnimalSpeciesMapped = ({
                             pb: 1
                           }}
                         >
-                          {speciestotalcount || ''} Sites
+                          {speciestotalcount || ''} {speciestotalcount == 1 ? 'Site' : 'Sites'}
                         </Typography>
                       )
                     ) : (
@@ -1135,7 +1135,9 @@ const EditAnimalSpeciesMapped = ({
 
                                     <Chip
                                       label={`${
-                                        site.species?.length === 1 ? '1 Specie' : `${site.species?.length || 0} Species`
+                                        site.species?.length === 1
+                                          ? '1 Species'
+                                          : `${site.species?.length || 0} Species`
                                       }`}
                                       size='small'
                                       sx={{

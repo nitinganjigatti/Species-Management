@@ -1078,7 +1078,7 @@ const SpeciesAnimalsMapped = ({
                           pb: 1
                         }}
                       >
-                        Total Sites ({speciestotalcount || 0})
+                        Total {speciestotalcount == 1 ? 'Site' : 'Sites'} ({speciestotalcount || 0})
                       </Typography>
                     )
                   ) : (
@@ -1121,7 +1121,7 @@ const SpeciesAnimalsMapped = ({
 
                               <Chip
                                 label={`${
-                                  site.species?.length === 1 ? '1 Specie' : `${site.species?.length || 0} Species`
+                                  site.species?.length === 1 ? '1 Species' : `${site.species?.length || 0} Species`
                                 }`}
                                 size='small'
                                 sx={{
@@ -1158,7 +1158,8 @@ const SpeciesAnimalsMapped = ({
                                           date: species?.user_details?.created_at,
                                           text_color: theme.palette.customColors.OnSurfaceVariant,
                                           show_time: true,
-                                          size: 'small'
+                                          size: 'small',
+                                          crby_width: 200
                                         })
                                       : null
                                     : ''}

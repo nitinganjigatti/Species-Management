@@ -193,9 +193,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        width: 'calc(100% - 120px)'
-
-                        // minWidth: 150
+                        // width: 'calc(100% - 120px)'
+                        width: 350
                       }}
                     >
                       {item?.file_original_name}
