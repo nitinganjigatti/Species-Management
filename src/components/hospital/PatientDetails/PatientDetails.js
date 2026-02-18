@@ -418,7 +418,7 @@ const PatientDetails = ({ category }) => {
   )
 
   const handleBack = useCallback(() => {
-    if (category === 'inpatient') {
+    if (category === 'Inpatient') {
       router.push('/hospital/inpatient')
     } else {
       router.push('/hospital/outpatient')
