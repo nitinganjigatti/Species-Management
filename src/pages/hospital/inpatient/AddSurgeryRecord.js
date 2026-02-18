@@ -825,7 +825,7 @@ const AddSurgeryRecord = () => {
 
           Toaster({
             type: 'success',
-            message: response?.message || 'Surgery has been added to the masters list successfully'
+            message: 'Surgery has been added to the masters list successfully'
           })
           setOpenAddSurgeryDrawer(false)
         } else {
@@ -914,7 +914,8 @@ const AddSurgeryRecord = () => {
 
   const checkIsDirty = useCallback(() => {
     const isRichNoteDirty = richNote !== initialRichNote
-    const isAnesthesiaDirty = getAnesthesiaIdentifier(selectedAnesthesiaRecord) !== getAnesthesiaIdentifier(initialAnesthesiaRecord)
+    const isAnesthesiaDirty =
+      getAnesthesiaIdentifier(selectedAnesthesiaRecord) !== getAnesthesiaIdentifier(initialAnesthesiaRecord)
 
     return isDirty || isRichNoteDirty || isAnesthesiaDirty
   }, [isDirty, richNote, initialRichNote, selectedAnesthesiaRecord, initialAnesthesiaRecord])
@@ -1259,15 +1260,15 @@ const AddSurgeryRecord = () => {
                 <Tooltip
                   title={(() => {
                     // Get the selected value from the form
-                    const selectedValue = watch('procedure');
+                    const selectedValue = watch('procedure')
                     // Find the selected option
-                    const selectedOption = procedureOptions.find(
-                      option => procedureIsOptionEqualToValue(option, selectedValue)
-                    );
+                    const selectedOption = procedureOptions.find(option =>
+                      procedureIsOptionEqualToValue(option, selectedValue)
+                    )
                     // Return the description
-                    return selectedOption?.description || '';
+                    return selectedOption?.description || ''
                   })()}
-                  placement="top"
+                  placement='top'
                   arrow
                   enterDelay={500}
                   slotProps={{
@@ -1283,7 +1284,6 @@ const AddSurgeryRecord = () => {
                   }}
                 >
                   <Box>
-
                     <ControlledAutocomplete
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -1313,14 +1313,8 @@ const AddSurgeryRecord = () => {
                       isOptionEqualToValue={procedureIsOptionEqualToValue}
                       onChangeOverride={() => clearErrors?.('procedure')}
                       renderOption={(props, option) => (
-                        <Tooltip
-                          title={option.description || 'No description available'}
-                          placement="right"
-                          arrow
-                        >
-                          <li {...props}>
-                            {procedureGetOptionLabel(option)}
-                          </li>
+                        <Tooltip title={option.description || 'No description available'} placement='right' arrow>
+                          <li {...props}>{procedureGetOptionLabel(option)}</li>
                         </Tooltip>
                       )}
                       endAdornment={() => (
@@ -1631,13 +1625,13 @@ const AddSurgeryRecord = () => {
             Care Instructions
           </Typography>
           <IconButton
-            size="small"
+            size='small'
             sx={{
               transform: careInstructionsExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
               transition: 'transform 0.2s ease-in-out'
             }}
           >
-            <Icon icon="mdi:chevron-down" fontSize={24} />
+            <Icon icon='mdi:chevron-down' fontSize={24} />
           </IconButton>
         </Box>
 

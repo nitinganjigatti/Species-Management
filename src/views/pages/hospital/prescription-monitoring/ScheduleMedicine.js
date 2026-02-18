@@ -651,6 +651,7 @@ export default function ScheduleMedicine({
             )}
 
             <Box sx={{ mb: 3 }}>
+              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 ,textAlign:'left'}}>Notes</Typography>
               <ControlledTextArea
                 fullWidth={true}
                 sx={{
@@ -726,7 +727,8 @@ export default function ScheduleMedicine({
                     />
                   </Grid>
                 </Grid>
-                <Box sx={{ mb: 3 }}>
+                <Box sx={{ mb: 3}}>
+                  <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2,textAlign:'left' }}>Notes</Typography>
                   <ControlledTextArea
                     fullWidth={true}
                     sx={{

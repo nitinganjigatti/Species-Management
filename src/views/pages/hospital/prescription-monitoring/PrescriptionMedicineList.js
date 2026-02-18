@@ -43,6 +43,7 @@ const commonFieldStyles = {
 export default function PrescriptionMedicineList({
   medicineList,
   temporarilySelectedMedicine,
+  handleClearMedicine,
   selectedMedicine,
   onSelect,
   searchQuery,
@@ -136,6 +137,7 @@ export default function PrescriptionMedicineList({
           }}
           onItemClear={() => {
             handleClearSearch()
+            handleClearMedicine()
             setValue('selectedMedicine', null)
             setValue('selectedMedicineId', '')
           }}

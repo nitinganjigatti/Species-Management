@@ -59,6 +59,7 @@ function AddClinicalAssessment() {
   const [isSubmitLoading, setIsSubmitLoading] = useState(false)
   const [isDuplicatesErrorModelOpen, setDuplicatesErrorModelOpen] = useState(false)
   const [duplicateAssessments, setDuplicateAssessments] = useState([])
+  const [alreadySelectedIds, setAlreadySelectedIds] = useState([])
 
   // Refs for intersection observer
   const observerRef = useRef(null)
@@ -122,7 +123,8 @@ function AddClinicalAssessment() {
         limit: PAGE_SIZE,
         q: search,
         category_id: categoryId,
-        type: 'diagnosis'
+        type: 'diagnosis',
+        animal_id: animalId
       }
 
       const res = await getDiagnosysType(params)
@@ -140,6 +142,10 @@ function AddClinicalAssessment() {
 
           return updatedList
         })
+
+        if (pageNum === 1 && res.data?.selected_ids) {
+          setAlreadySelectedIds(res.data.selected_ids)
+        }
       } else {
         throw new Error(res.message || 'Failed to fetch diagnosis list')
       }
@@ -271,7 +277,9 @@ function AddClinicalAssessment() {
     setSelectedSymptoms(prev => prev.filter(s => s.id !== symptom?.id))
   }
 
-  const availableSymptoms = allAssessments?.filter(symptom => !selectedSymptoms.some(s => s.id === symptom.id))
+  const availableSymptoms = allAssessments?.filter(
+    symptom => !selectedSymptoms.some(s => s.id === symptom.id) && temporarilySelected?.id !== symptom.id
+  )
 
   const checkDuplicateAssessments = async () => {
     try {
@@ -332,7 +340,8 @@ function AddClinicalAssessment() {
     const payload = {
       medical_record_id: medicalRecordId,
       diagnosis: JSON.stringify(diagnosis),
-      hospital_case_id: id
+      hospital_case_id: id,
+      animal_id: animalId
     }
 
     try {
@@ -452,6 +461,7 @@ function AddClinicalAssessment() {
         additionalFields={[
           { label: 'AID', value: handleAIDDisplay() },
           { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
+
           // { label: 'Admitted days', value: patientData?.admitted_for_day },
           { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
           { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }
@@ -492,6 +502,7 @@ function AddClinicalAssessment() {
             isListLoading={isLoading}
             isInitialLoading={isInitialLoading}
             handleAddNewClick={handleAddNewClick}
+            alreadySelectedIds={alreadySelectedIds}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
@@ -530,8 +541,8 @@ function AddClinicalAssessment() {
       <ConfirmationDialog
         dialogBoxStatus={isDuplicatesErrorModelOpen}
         title={`Clinical assessment${duplicateAssessments?.length > 1 ? 's' : ''} already exists`}
-        description={`Duplicate assessments: ${duplicateAssessments?.map(item => item?.diagnosis)?.join(', ')}`}
-        additionalDescription={`To proceed choose a different Clinical Assessment or remove the animal accessed`}
+        description={`Duplicate Clinical Assessment: ${duplicateAssessments?.map(item => item?.diagnosis)?.join(', ')}`}
+        additionalDescription={`To proceed choose a different Clinical Assessment`}
         confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
         image={'/images/warning-icon.svg'}
         imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}

@@ -11,7 +11,7 @@ import {
   Button
 } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
-import { useTheme } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
 import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentListShimmer'
 import { AuthContext } from 'src/context/AuthContext'
@@ -32,7 +32,8 @@ export default function ClinicalAssessmentList({
   totalCount,
   isLoading,
   loadMoreTriggerRef,
-  handleAddNewClick
+  handleAddNewClick,
+  alreadySelectedIds = []
 }) {
   const theme = useTheme()
 
@@ -186,6 +187,7 @@ export default function ClinicalAssessmentList({
             {filteredSymptoms.map((symptom, index) => {
               const isSelected = selectedSymptoms.includes(symptom.id)
               const isTemporarilySelected = temporarilySelected?.id === symptom.id
+              const isAlreadyPrescribed = alreadySelectedIds?.includes(symptom.id)
 
               return (
                 <Box
@@ -198,13 +200,17 @@ export default function ClinicalAssessmentList({
                     py: 3.7,
                     display: 'flex',
                     alignItems: 'center',
-                    borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                    borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    // opacity: isAlreadyPrescribed ? 0.5 : 1,
+                    // pointerEvents: isAlreadyPrescribed ? 'none' : 'auto',
+                    // backgroundColor: isAlreadyPrescribed ? alpha(theme.palette.action.disabledBackground, 0.1) : 'inherit'
                   }}
                 >
                   <FormControlLabel
                     control={
                       <Checkbox
-                        checked={isSelected || isTemporarilySelected}
+                        checked={isSelected || isTemporarilySelected || isAlreadyPrescribed}
+                        disabled={isAlreadyPrescribed}
                         onChange={() => onSelect(symptom)}
                         sx={{
                           transform: 'scale(0.8)',

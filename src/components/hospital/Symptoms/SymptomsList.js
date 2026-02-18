@@ -12,7 +12,7 @@ import {
   Button
 } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
-import { useTheme } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
 import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentListShimmer'
@@ -35,7 +35,8 @@ export default function SymptomsList({
   handleTabChange,
   symptomsCount,
   hasMore,
-  handleAddNewClick
+  handleAddNewClick,
+  alreadySelectedIds = []
 }) {
   const theme = useTheme()
   const authData = useContext(AuthContext)
@@ -192,6 +193,7 @@ export default function SymptomsList({
           symptoms.map((symptom, index) => {
             const isSelected = selectedSymptoms.includes(symptom?.id)
             const isTemporarilySelected = temporarilySelected?.id === symptom?.id
+            const isAlreadyPrescribed = alreadySelectedIds?.includes(symptom?.id)
 
             return (
               <Box
@@ -204,13 +206,17 @@ export default function SymptomsList({
                   py: 3.7,
                   display: 'flex',
                   alignItems: 'center',
-                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  // opacity: isAlreadyPrescribed ? 0.9 : 1,
+                  // pointerEvents: isAlreadyPrescribed ? 'none' : 'auto',
+                  // backgroundColor: isAlreadyPrescribed ? alpha(theme.palette.action.disabledBackground, 0.05) : 'inherit'
                 }}
               >
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={isSelected || isTemporarilySelected}
+                      checked={isSelected || isTemporarilySelected || isAlreadyPrescribed}
+                      disabled={isAlreadyPrescribed}
                       onChange={() => onSelect(symptom)}
                       sx={{
                         transform: 'scale(0.8)',

@@ -78,7 +78,7 @@ const ControlledAutocomplete = ({
   }
 
   const handleOnBlur = (event, item) => {
-    if (!searchInputRef.current) return
+    if (!searchInputRef.current || (!item?.value && !searchInputRef.current)) return
     if (!item?.value && searchInputRef.current) {
       onInputChange('')
       searchInputRef.current = ''
@@ -141,6 +141,7 @@ const ControlledAutocomplete = ({
 
               if (reason === 'clear') {
                 onItemClear()
+                searchInputRef.current = ""
                 normalizedValue = null
               }
 

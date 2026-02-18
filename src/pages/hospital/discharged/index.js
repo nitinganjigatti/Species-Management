@@ -10,7 +10,9 @@ import {
   Tooltip,
   MenuItem,
   IconButton,
-  CircularProgress
+  CircularProgress,
+  Tabs,
+  Tab
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { debounce, set } from 'lodash'
@@ -49,6 +51,13 @@ const HospitalDischarged = () => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [selectedDischargeType, setSelectedDischargeType] = useState('')
+
+  const dischargeTabs = [
+    { label: 'All', value: '' },
+    { label: 'Inpatient', value: 'inpatient' },
+    { label: 'Outpatient', value: 'opd' }
+  ]
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -104,7 +113,8 @@ const HospitalDischarged = () => {
         from_date: formatDate(filterDate.startDate),
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('Chief Veterinarian'),
-        origin_site: prepareFilterParams('Origin Site')
+        origin_site: prepareFilterParams('Origin Site'),
+        discharge_treatment_type: selectedDischargeType || undefined
       })
 
       setRows(res?.data?.records || [])
@@ -118,7 +128,16 @@ const HospitalDischarged = () => {
 
   useEffect(() => {
     fetchDischargedPatients()
-  }, [filters?.page, filters?.limit, filters?.q, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions])
+  }, [
+    filters?.page,
+    filters?.limit,
+    filters?.q,
+    selectedVisitType,
+    selectedHospital?.id,
+    filterDate,
+    selectedOptions,
+    selectedDischargeType
+  ])
 
   // const { data, isFetching, refetch } = useQuery({
   //   queryKey: ['outpatients-listings', filters, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions],
@@ -505,6 +524,29 @@ const HospitalDischarged = () => {
                   appliedFiltersCount={filterCount}
                 />
               </Box>
+            </Box>
+            <Box sx={{ px: 5, mb: 2, borderBottom: 1, borderColor: 'divider' }}>
+              <Tabs
+                value={selectedDischargeType}
+                onChange={(e, newValue) => {
+                  setSelectedDischargeType(newValue)
+                  setFilters(prev => ({ ...prev, page: 1 }))
+                }}
+                aria-label='discharge treatment type tabs'
+                sx={{
+                  '& .MuiTab-root': {
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    fontSize: '14px',
+                    minWidth: 'auto',
+                    px: 4
+                  }
+                }}
+              >
+                {dischargeTabs.map(tab => (
+                  <Tab key={tab.value} label={tab.label} value={tab.value} />
+                ))}
+              </Tabs>
             </Box>
             <Grid
               sx={{
