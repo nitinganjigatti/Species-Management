@@ -355,7 +355,7 @@ const HospitalOutPatient = () => {
       renderCell: params => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.bed_name ? params?.row?.bed_name : '-'}
+            {params?.row?.bed_name || params?.row?.room_name ? `${params?.row?.bed_name}, ${params?.row?.room_name}` : '-'}
           </Typography>
         </>
       )
