@@ -5,11 +5,17 @@ import Icon from 'src/@core/components/icon'
 import AnimalMortalityEditDrawer from 'src/views/pages/housing/animals/AnimalMortalityEditDrawer'
 import RenderUtility from 'src/utility/render'
 import { useRouter } from 'next/router'
-import { getAnimalMortalityReport, getCarcassCondition, getCarcassDeposition, getMannerOfDeath, revokeAnimalMortality } from 'src/lib/api/housing'
+import {
+  getAnimalMortalityReport,
+  getCarcassCondition,
+  getCarcassDeposition,
+  getMannerOfDeath,
+  revokeAnimalMortality
+} from 'src/lib/api/housing'
 import Utility from 'src/utility'
 import AnimalRevokeDrawer from 'src/views/pages/housing/animals/AnimalRevokeDrawer'
 
-const AnimalMortality = () => {
+const AnimalMortality = ({ animalDetails }) => {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
@@ -38,14 +44,16 @@ const AnimalMortality = () => {
     try {
       await getMannerOfDeath(params).then(res => {
         if (res?.is_success === true) {
-          setMannerOfDeath(res?.data.map(item => ({
-            value: item?.id,
-            label: item?.name
-          })))
+          setMannerOfDeath(
+            res?.data.map(item => ({
+              value: item?.id,
+              label: item?.name
+            }))
+          )
         }
       })
     } catch (error) {
-      console.error(error, "Cannot fetch manner of death")
+      console.error(error, 'Cannot fetch manner of death')
     }
   }
 
@@ -54,14 +62,16 @@ const AnimalMortality = () => {
     try {
       await getCarcassCondition(params).then(res => {
         if (res?.is_success === true) {
-          setCarcassCondition(res?.data?.map(item => ({
-            value: item?.id,
-            label: item?.name
-          })))
+          setCarcassCondition(
+            res?.data?.map(item => ({
+              value: item?.id,
+              label: item?.name
+            }))
+          )
         }
       })
     } catch (error) {
-      console.error(error, "Canot fetch Carcass Condition")
+      console.error(error, 'Canot fetch Carcass Condition')
     }
   }
 
@@ -70,14 +80,16 @@ const AnimalMortality = () => {
     try {
       await getCarcassDeposition(params).then(res => {
         if (res?.is_success === true) {
-          setCarcassDeposition(res?.data?.map(item => ({
-            value: item?.id,
-            label: item?.name
-          })))
+          setCarcassDeposition(
+            res?.data?.map(item => ({
+              value: item?.id,
+              label: item?.name
+            }))
+          )
         }
       })
     } catch (error) {
-      console.error(error, "Canot fetch Carcass Condition")
+      console.error(error, 'Canot fetch Carcass Condition')
     }
   }
 
@@ -102,9 +114,7 @@ const AnimalMortality = () => {
             setMortality(res?.data[0])
           }
         })
-      } catch (error) {
-
-      }
+      } catch (error) {}
     }
 
     getMortalityData()
@@ -139,13 +149,14 @@ const AnimalMortality = () => {
     },
     {
       label: 'Necropsy Requested',
-      value: `${mortality?.submitted_for_necropsy === "1" ? 'Yes' : 'No'
-        }`
+      value: `${mortality?.submitted_for_necropsy === '1' ? 'Yes' : 'No'}`
     }
   ]
 
   const createdBy = mortality?.reported_by
-  const createdAt = `${Utility?.formatDisplayDate(mortality?.reported_on)} | ${Utility?.convertUTCToLocaltime(mortality?.reported_on)}`
+  const createdAt = `${Utility?.formatDisplayDate(mortality?.reported_on)} | ${Utility?.convertUTCToLocaltime(
+    mortality?.reported_on
+  )}`
 
   const handleMortalityEdit = () => {
     setOpenMortalityDrawer(true)
@@ -159,53 +170,65 @@ const AnimalMortality = () => {
           <Typography sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
             Mortality Report
           </Typography>
-          <IconButton
-            size='small'
-            aria-controls={anchorEl ? 'mortality-menu' : undefined}
-            aria-haspopup='true'
-            onClick={handleMenuOpen}
-          >
-            <Icon icon='mdi:dots-vertical' />
-          </IconButton>
-          <Menu
-            id='mortality-menu'
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            PaperProps={{
-              sx: {
-                border: '1px solid #37BD69',
-                borderRadius: 2,
-                minWidth: 120,
-                boxShadow: 2,
-                px: 1
-              }
-            }}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right'
-            }}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right'
-            }}
-          >
-            <MenuItem
-              onClick={handleMortalityEdit}
-              sx={{ fontWeight: 500, p: 3, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
-            >
-              Edit
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                setOpenRevokeDrawer(true)
-                setAnchorEl(false)
-              }}
-              sx={{ fontWeight: 500, p: 3, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant, display: 'none' }}
-            >
-              Revoke
-            </MenuItem>
-          </Menu>
+          {animalDetails?.is_necropsy ||
+          animalDetails?.is_deleted === '1' ||
+          !animalDetails?.animal_transfered === '1' ? null : (
+            <>
+              <IconButton
+                size='small'
+                aria-controls={anchorEl ? 'mortality-menu' : undefined}
+                aria-haspopup='true'
+                onClick={handleMenuOpen}
+              >
+                <Icon icon='mdi:dots-vertical' />
+              </IconButton>
+              <Menu
+                id='mortality-menu'
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+                PaperProps={{
+                  sx: {
+                    border: '1px solid #37BD69',
+                    borderRadius: 2,
+                    minWidth: 120,
+                    boxShadow: 2,
+                    px: 1
+                  }
+                }}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right'
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right'
+                }}
+              >
+                <MenuItem
+                  onClick={handleMortalityEdit}
+                  sx={{ fontWeight: 500, p: 3, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  Edit
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setOpenRevokeDrawer(true)
+                    setAnchorEl(false)
+                  }}
+                  sx={{
+                    fontWeight: 500,
+                    p: 3,
+                    fontSize: '16px',
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    display: 'none'
+                  }}
+                >
+                  Revoke
+                </MenuItem>
+              </Menu>
+            </>
+          )}
         </Box>
         <Box
           sx={{
@@ -244,7 +267,11 @@ const AnimalMortality = () => {
                 backgroundColor: theme.palette.customColors.displaybgPrimary
               }}
             >
-              <img src={mortality?.reported_by_profile_picture} alt='user-profile' style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img
+                src={mortality?.reported_by_profile_picture}
+                alt='user-profile'
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
             </Avatar>
             <Box>
               <Typography
@@ -269,7 +296,6 @@ const AnimalMortality = () => {
               </Typography>
             </Box>
           </Box>
-
         </Box>
       </Box>
       {openEditMortalityDrawer && (

@@ -87,7 +87,9 @@ const AnimalDetais = () => {
             isGrouped: Number(ad?.total_animal) > 1 ? true : false,
             in_transit: ad?.in_transit,
             animal_transfered: ad?.animal_transfered,
-            institutes_label: ad?.institutes_label
+            institutes_label: ad?.institutes_label,
+            is_necropsy: ad?.is_necropsy,
+            is_deleted: ad?.is_deleted
           })
           setEnclosureDetails({
             enclusreId: ed?.user_enclosure_name,
@@ -223,7 +225,7 @@ const AnimalDetais = () => {
           animalDetails={animalDetails}
           showQr={true}
           onQrClick={handleQrClick}
-          image={data?.data?.animal_details?.banner_images[0]?.image_path}
+          // image={data?.data?.animal_details?.banner_images[0]?.image_path}
           loading={loading}
         />
         <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
