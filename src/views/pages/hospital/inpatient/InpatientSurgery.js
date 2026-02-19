@@ -202,29 +202,22 @@ const MediaScroller = ({ items = [] }) => {
           const key = item?.id ?? `${item?.file || item?.file_original_name || 'attachment'}-${index}`
 
           return (
-            <Box
+            <FilePreviewCard
               key={key}
-              sx={{
-                width: 240
-                // flexShrink: 0
+              width={'240px'}
+              fileUrl={item?.file}
+              fileName={item?.file_original_name}
+              fileType={item?.file_type}
+              user={{
+                created_at: item?.created_at,
+                modified_at: item?.modified_at,
+                user_profile: {
+                  user_full_name: item?.user_full_name,
+                  user_profile_pic: item?.user_profile_pic
+                }
               }}
-            >
-              <FilePreviewCard
-                fileUrl={item?.file}
-                fileName={item?.file_original_name}
-                fileType={item?.file_type}
-                user={{
-                  created_at: item?.created_at,
-                  modified_at: item?.modified_at,
-                  user_profile: {
-                    user_full_name: item?.user_full_name,
-                    user_profile_pic: item?.user_profile_pic
-                  }
-                }}
-                showTitle={true}
-              />
-              {/* <MediaCard media={item} isBorderedCard /> */}
-            </Box>
+              showTitle={true}
+            />
           )
         })}
       </Box>
