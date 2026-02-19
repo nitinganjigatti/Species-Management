@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
-import { Box, Button, Divider, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
+import { Box, Button, Divider, Grid, IconButton, Tooltip, Typography, useTheme, CircularProgress } from '@mui/material'
 import { alpha, styled } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 
@@ -196,12 +196,12 @@ const EnclosureDischargeForm = props => {
     setValue,
     clearErrors,
     getValues,
-    formState: { errors, isDirty }
+    formState: { errors, isDirty, isValid }
   } = useForm({
     defaultValues,
     resolver: yupResolver(transferEnclosureSchema),
     shouldUnregister: false,
-    mode: 'onBlur',
+    mode: 'onChange',
     reValidateMode: 'onChange'
   })
 
@@ -376,7 +376,7 @@ const EnclosureDischargeForm = props => {
           label: patientDetails?.site_name,
           value: patientDetails?.site_id
         },
-        { shouldValidate: true, shouldDirty: false }
+        { shouldValidate: true, shouldDirty: false } // immediately trigger validation and dirty state update
       )
 
       setValue(
@@ -448,8 +448,8 @@ const EnclosureDischargeForm = props => {
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => {
                     handleSiteSearch('')
-                    setValue('section_name', null)
-                    setValue('user_enclosure_name', null)
+                    setValue('section_name', null, { shouldValidate: true, shouldDirty: true })
+                    setValue('user_enclosure_name', null, { shouldValidate: true, shouldDirty: true })
                     clearSections()
                     clearEnclosures()
                   }}
@@ -459,8 +459,14 @@ const EnclosureDischargeForm = props => {
                   showIcons={false}
                   disabled={returnToOriginal}
                   onChangeOverride={val => {
-                    setValue('section_name', null) // Reset dependents to null to prevent stale data
-                    setValue('user_enclosure_name', null)
+                    setValue('section_name', null, {
+                      shouldValidate: true,
+                      shouldDirty: true
+                    }) // Reset dependents to null to prevent stale data
+                    setValue('user_enclosure_name', null, {
+                      shouldValidate: true,
+                      shouldDirty: true
+                    })
 
                     // Clear existing options list to avoid showing stale data
                     clearSections()
@@ -485,7 +491,7 @@ const EnclosureDischargeForm = props => {
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => {
                     handleSectionSearch(watch('site_name')?.value, '')
-                    setValue('user_enclosure_name', null)
+                    setValue('user_enclosure_name', null, { shouldValidate: true, shouldDirty: true })
                     clearEnclosures()
                   }}
                   loading={sectionLoading}
@@ -494,7 +500,10 @@ const EnclosureDischargeForm = props => {
                   showIcons={false}
                   disabled={returnToOriginal}
                   onChangeOverride={val => {
-                    setValue('user_enclosure_name', null)
+                    setValue('user_enclosure_name', null, {
+                      shouldValidate: true,
+                      shouldDirty: true
+                    })
                     clearEnclosures()
                     if (val?.value) {
                       fetchEnclosures(val?.value)
@@ -634,7 +643,11 @@ const EnclosureDischargeForm = props => {
           </Grid>
 
           {/* Prescription table*/}
-          {prescriptionData?.length > 0 && (
+          {isPrescriptionLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 4 }}>
+              <CircularProgress size={30} />
+            </Box>
+          ) : prescriptionData?.length > 0 ? (
             <>
               <Divider />
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -687,7 +700,7 @@ const EnclosureDischargeForm = props => {
                 />
               </Box>
             </>
-          )}
+          ) : null}
           <Divider />
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Box
@@ -729,6 +742,7 @@ const EnclosureDischargeForm = props => {
                   })
                 }}
                 variant='contained'
+                disabled={isPrescriptionLoading}
               >
                 Add New Prescription
               </Button>
@@ -793,7 +807,7 @@ const EnclosureDischargeForm = props => {
           showCancel={false}
           submitBtnStyle={{ px: 12, py: 3 }}
           loading={submitLoader}
-          disabled={submitLoader}
+          disabled={!isValid || submitLoader}
           submitBtnProps={{ type: 'submit' }}
         />
       </form>

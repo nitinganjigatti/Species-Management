@@ -172,12 +172,12 @@ const MortalityDischargeForm = props => {
     reset,
     setValue,
     clearErrors,
-    formState: { errors, isDirty }
+    formState: { errors, isDirty, isValid }
   } = useForm({
     defaultValues,
     resolver: yupResolver(mortalitySchema),
     shouldUnregister: false,
-    mode: 'onBlur',
+    mode: 'onChange',
     reValidateMode: 'onChange'
   })
 
@@ -293,7 +293,7 @@ const MortalityDischargeForm = props => {
                 <ControlledDatePicker
                   control={control}
                   name={'date_of_death'}
-                  label='Date of Death'
+                  label='Date of Death*'
                   errors={errors}
                   minDate={dayjs(patientData?.admitted_at)}
                   maxDate={dayjs(new Date())}
@@ -303,7 +303,7 @@ const MortalityDischargeForm = props => {
                 <ControlledTimePicker
                   control={control}
                   name={'time_of_death'}
-                  label='Time of Death'
+                  label='Time of Death*'
                   errors={errors}
                   minTime={minTime}
                   maxTime={maxTime}
@@ -507,7 +507,7 @@ const MortalityDischargeForm = props => {
           showCancel={false}
           submitBtnStyle={{ px: 12, py: 3 }}
           loading={submitLoader}
-          disabled={submitLoader}
+          disabled={!isValid || submitLoader}
           submitBtnProps={{ type: 'submit' }}
         />
       </form>
