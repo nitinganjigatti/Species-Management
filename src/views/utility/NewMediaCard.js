@@ -286,6 +286,7 @@ const FilePreviewCard = ({
         sx={{
           width,
           height,
+          flexShrink: 0, // to make it non-shrinkable width
           borderRadius: '8px',
           border: `1px solid ${theme.palette?.customColors?.OutlineVariant}`,
           p: showTitle ? '8px' : '4px',
@@ -343,3 +344,55 @@ const FilePreviewCard = ({
 }
 
 export default FilePreviewCard
+
+/**
+ * FilePreviewCard - A reusable component for displaying media previews (images, videos, documents, etc.)
+ *
+ * <FilePreviewCard
+ *   fileUrl={item?.file}                       // (Required)   {string}
+ *   fileName={item?.file_original_name}        // (Required)   {string}
+ *   width={'240px'}                            // (Required)   {string}
+ *   height={'220px'}                           // (Optional)   {string}
+ *   showTitle={true}                           // (Optional)   {boolean}
+ *   showTitleIcon={false}                      // (Optional)   {boolean}
+ *   onTitleIconClick={() => {}}                // (Optional)   {function}
+ *   cardStyle={{}}                             // (Optional)   {object}
+ *   actions={[]}                               // (Optional)   {array}
+ *   user={{                                    // (Optional)   {object}
+ *     created_at: item?.created_at,
+ *     modified_at: item?.modified_at,
+ *     user_profile: {
+ *       user_full_name: item?.user_full_name,
+ *       user_profile_pic: item?.user_profile_pic
+ *     }
+ *   }}
+ *   ondownloadaction={true}                   // (Optional)   {boolean} 
+ *   onDeleteaction={() => {}}                 // (Optional)   {function} 
+ *   isDeleteLoading={false}                   // (Optional)   {boolean} 
+ *   downloadUrl={null}                        // (Optional)   {string}   
+ * />
+ *
+ * PROPS LIST:
+ * fileUrl          - URL of the file
+ * fileName         - Name of the file with extension
+ * width            - Card width (e.g., '240px')
+ * height           - Card total height (e.g., '220px')
+ * showTitle        - Whether to display the file name at the top (default: false)
+ * showTitleIcon    - Whether to display the close icon at the top (default: false)
+ * onTitleIconClick - Callback for close icon click
+ * cardStyle        - Additional MUI 'sx' styles for the container
+ * actions          - Custom menu options [{label: 'View', action: func}]
+ * user             - User object {created_at, modified_at, user_profile: {user_full_name, user_profile_pic}}
+ * ondownloadaction - Pass any truthy value to enable download in menu (logic is handled internally)
+ * onDeleteaction   - Pass delete api callback function for delete action (opens confirmation dialog before calling)
+ * isDeleteLoading  - Shows loader in delete confirmation
+ * downloadUrl      - Specific URL to use for downloading
+ * 
+ * Preview supports:
+ * image → preview
+ * video → preview
+ * audio → preview
+ * pdf   → preview dialog
+ *
+ * other → icon preview
+ */
