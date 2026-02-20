@@ -74,7 +74,12 @@ const ListOfSpeciesMapped = ({
   const [openModal, setOpenModal] = useState(false)
 
   const handleClickOpen = () => {
-    if (dietDetails?.total_animals !== '0' || dietDetails?.total_species !== '0') {
+    console.log(dietDetails, 'dietDetails')
+    if (
+      dietDetails?.total_animals !== '0' ||
+      dietDetails?.total_species !== '0' ||
+      dietDetails?.total_site_species != '0'
+    ) {
       setOpenModal(true)
     } else {
       setOpenModal(false)
