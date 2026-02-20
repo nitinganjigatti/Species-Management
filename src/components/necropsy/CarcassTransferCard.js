@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, Typography, useTheme } from '@mui/material'
+import { Box, Card, CardContent, Typography, Tabs, Tab, useTheme, alpha } from '@mui/material'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { debounce } from 'lodash'
 import Search from 'src/views/utility/Search'
@@ -182,19 +182,65 @@ const CarcassTransferCard = ({ filterDate }) => {
       )
     },
     {
-      width: 180,
+      width: 300,
       minWidth: 20,
       sortable: false,
       field: 'transfer_code',
-      headerName: 'Transfer Code',
+      headerName: 'Transfer ID and Status',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant, px: 2 }}
-        >
-          {params.row.transfer_code}
-        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box
+            sx={{
+              px: 3,
+              py: 2,
+              background: theme.palette.customColors.displaybgPrimary,
+              borderRadius: 0.4
+            }}
+          >
+            <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
+              {params.row.transfer_code}
+            </Typography>
+          </Box>
+          <Typography sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+            {getTransferStatus(params.row)}
+          </Typography>
+        </Box>
       )
+    },
+    {
+      width: 180,
+      minWidth: 20,
+      sortable: false,
+      field: 'mortality_priority',
+      headerName: 'Necropsy Priority',
+      renderCell: params => {
+        const priority = (params.row.mortality_priority || params.row.priority || '')?.toLowerCase()
+
+        if (!priority) return null
+
+        const isHigh = priority === 'high'
+
+        return (
+          <Box
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              px: 2,
+              py: 2,
+              borderRadius: 0.5,
+              bgcolor: isHigh
+                ? theme.palette.customColors.Tertiary30
+                : alpha(theme.palette.customColors.SecondaryContainer, 0.5),
+              color: isHigh ? theme.palette.customColors.Tertiary : theme.palette.customColors.addPrimary,
+              fontWeight: 600,
+              fontSize: '14px'
+            }}
+          >
+            {isHigh ? '!!! ' : '! '}
+            {priority?.charAt(0).toUpperCase() + priority?.slice(1)}
+          </Box>
+        )
+      }
     },
     {
       width: 150,
@@ -220,7 +266,7 @@ const CarcassTransferCard = ({ filterDate }) => {
       renderCell: params => (
         <Typography
           variant='body2'
-          sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant, px: 2 }}
+          sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant, px: 2 }}
         >
           {params.row.source_name}
         </Typography>
@@ -230,78 +276,19 @@ const CarcassTransferCard = ({ filterDate }) => {
       width: 250,
       minWidth: 20,
       sortable: false,
-      field: 'security_status',
-      headerName: 'Security Status',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant, px: 2 }}
-        >
-          {getTransferStatus(params.row)}
-        </Typography>
-      )
-    },
-    {
-      width: 150,
-      minWidth: 20,
-      sortable: false,
-      field: 'mortality_priority',
-      headerName: 'Priority',
-      renderCell: params => {
-        const priority = (params.row.mortality_priority || params.row.priority || '')?.toLowerCase()
-
-        if (!priority) return null
-
-        const isHigh = priority === 'high'
-
-        return (
-          <Box
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              px: 2,
-              py: 0.5,
-              borderRadius: 0.5,
-              bgcolor: isHigh ? theme.palette.customColors.Tertiary30 : theme.palette.customColors.antzInfoLight,
-              color: isHigh ? theme.palette.customColors.Tertiary : theme.palette.customColors.addPrimary,
-              fontWeight: 600,
-              fontSize: '14px'
-            }}
-          >
-            {isHigh ? '!!! ' : '! '}
-            {priority.charAt(0).toUpperCase() + priority.slice(1)}
-          </Box>
-        )
-      }
-    },
-    {
-      width: 250,
-      minWidth: 20,
-      sortable: false,
       field: 'requested_by',
       headerName: 'Requested By',
       renderCell: params => (
-        <UserAvatarDetails
-          user_name={params.row.user_first_name}
-          date={params.row.created_at}
-          show_time
-          size='medium'
-        />
+        <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
+          {params.row.user_first_name} {params?.row?.user_last_name}
+        </Typography>
       )
     }
   ]
 
   return (
     <>
-      <Card
-        sx={{
-          borderBottomLeftRadius: 0,
-          borderBottomRightRadius: 0,
-          borderBottom: `0.5px solid ${theme.palette.divider}`,
-          elevation: 'none',
-          boxShadow: 'none'
-        }}
-      >
+      <Card>
         <CardContent>
           <Typography
             sx={{
@@ -339,56 +326,41 @@ const CarcassTransferCard = ({ filterDate }) => {
             </Box>
             <FilterButtonWithNotification onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={filterCount} />
           </Box>
-        </CardContent>
-      </Card>
-
-      <Card sx={{ borderTopLeftRadius: 0, borderTopRightRadius: 0, boxShadow: 'none', elevation: 'none' }}>
-        <CardContent>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-            <Box
+          <Box sx={{ mb: 3, mt: 3 }}>
+            <Tabs
+              value={activeTab}
+              onChange={(e, newValue) => handleTabChange(newValue)}
               sx={{
-                flex: '1 1 auto',
-                minWidth: 0,
-                overflowX: 'auto',
-                scrollbarColor: 'transparent transparent'
+                minHeight: 'auto',
+                '& .MuiTabs-flexContainer': {
+                  borderBottom: `1px solid ${theme.palette.divider}`,
+                  width: 'fit-content'
+                },
+                '& .MuiTabs-indicator': {
+                  backgroundColor: theme.palette.primary.main
+                }
               }}
             >
-              <Box sx={{ display: 'inline-flex', gap: 3, pr: 1, alignItems: 'center' }}>
-                {TABS.map(tab => (
-                  <Box
-                    key={tab.key}
-                    onClick={() => handleTabChange(tab.key)}
-                    sx={{
-                      flexShrink: 0,
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      px: '16px',
-                      py: '8px',
-                      borderRadius: '8px',
-                      backgroundColor:
-                        activeTab === tab.key ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
-                      cursor: 'pointer',
-                      transition: 'background-color 0.2s ease'
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        color:
-                          activeTab === tab.key
-                            ? theme.palette.primary.contrastText
-                            : theme.palette.customColors.neutralPrimary,
-                        whiteSpace: 'nowrap',
-                        fontSize: { xs: '13px', sm: '14px' },
-                        fontWeight: 500
-                      }}
-                    >
-                      {tab.label} - {tab.key === 'pending' ? stats.pending : stats.completed}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
+              {TABS.map(tab => (
+                <Tab
+                  key={tab.key}
+                  value={tab.key}
+                  label={`${tab.label} (${tab.key === 'pending' ? stats.pending : stats.completed})`}
+                  sx={{
+                    textTransform: 'none',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    minHeight: 'auto',
+                    py: 1.5,
+                    color: theme.palette.customColors?.neutralSecondary,
+                    '&.Mui-selected': {
+                      color: theme.palette.primary.main,
+                      fontWeight: 600
+                    }
+                  }}
+                />
+              ))}
+            </Tabs>
           </Box>
 
           <CommonTable

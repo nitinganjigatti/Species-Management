@@ -142,6 +142,7 @@ const BottomActionBar = ({
         px: 6,
         boxShadow: `0px -2px 8px ${theme.palette.customColors.shadowColor}`,
         display: 'flex',
+        alignItems: 'center',
         justifyContent: 'flex-end',
         zIndex: 100,
         transition:
@@ -150,10 +151,8 @@ const BottomActionBar = ({
         ...layoutStyle
       }}
     >
-      <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', ...childrenStyle }}>
-        {children}
-        {renderButtons()}
-      </Box>
+      {children && <Box sx={{ ...childrenStyle }}>{children}</Box>}
+      <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>{renderButtons()}</Box>
     </Box>
   )
 }

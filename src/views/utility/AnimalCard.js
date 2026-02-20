@@ -2,6 +2,7 @@ import { Avatar, Skeleton, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import React, { useEffect, useState } from 'react'
+import Utility from 'src/utility'
 
 const AnimalCard = ({ data, size, edit }) => {
   const theme = useTheme()
@@ -134,6 +135,20 @@ const AnimalCard = ({ data, size, edit }) => {
           gap: '2px'
         }}
       >
+        {data?.mortality_date && (
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 600,
+              lineHeight: '16.94px',
+              color: theme.palette.customColors.Tertiary
+            }}
+          >
+            <span>Mortality Date : </span>
+            <span>{Utility.convertUtcToLocalReadableDate(data?.mortality_date)}</span>
+            <span> &bull; </span> {Utility.convertUTCToLocaltime(data?.mortality_date)}
+          </Typography>
+        )}
         {data?.local_identifier_name && data?.local_identifier_value && (
           <Box
             sx={{

@@ -141,7 +141,9 @@ const NecropsyDropdown = ({ disabled = false }) => {
           cursor: disabled ? 'default' : 'pointer',
           border: Boolean(anchorEl) ? `1px solid ${theme.palette.customColors.OnSurface}` : 'none',
           borderRadius: '4px',
-          backgroundColor: Boolean(anchorEl) ? theme.palette.customColors.Surface : theme.palette.customColors.Surface,
+          backgroundColor: Boolean(anchorEl)
+            ? theme.palette.customColors.Surface
+            : theme.palette.customColors.OnPrimary,
           px: '16px',
           py: '6px',
           '&:hover': {
@@ -160,36 +162,41 @@ const NecropsyDropdown = ({ disabled = false }) => {
               sx={{
                 display: 'flex',
                 flexDirection: 'row',
-                maxWidth: 400,
-                backgroundColor: theme.palette.customColors.background
+                maxWidth: 400
+
+                // backgroundColor: theme.palette.customColors.background
               }}
             >
               <Avatar
                 sx={{
                   width: 56,
                   height: 56,
-                  backgroundColor: theme.palette.customColors.antzNotes80,
+                  backgroundColor: theme.palette.customColors.TertiaryContainer,
                   borderRadius: '8px',
                   p: '8px'
                 }}
               >
-                <Biotech sx={{ fontSize: 32, color: theme.palette.customColors.OnSurfaceVariant }} />
+                {/* <Biotech sx={{ fontSize: 32, color: theme.palette.customColors.OnSurfaceVariant }} /> */}
+                <img src={'/images/necropsy/necropsy_main.svg'} alt='necropsy' />
               </Avatar>
               <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2 }}>
-                <Tooltip title={selectedNecropsy?.name}>
-                  <Typography
-                    sx={{
-                      fontWeight: 500,
-                      fontSize: '20px',
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}
-                  >
-                    {selectedNecropsy.name}
-                  </Typography>
-                </Tooltip>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Tooltip title={selectedNecropsy?.name}>
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: '20px',
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {selectedNecropsy.name}
+                    </Typography>
+                  </Tooltip>
+                  {!disabled && <KeyboardArrowDown />}
+                </Box>
                 {selectedNecropsy?.site_name && (
                   <Tooltip title={selectedNecropsy?.site_name || '-'}>
                     <Typography
@@ -208,7 +215,6 @@ const NecropsyDropdown = ({ disabled = false }) => {
             <Box>No necropsy centers found</Box>
           )}
         </Box>
-        {!disabled && <KeyboardArrowDown />}
       </Box>
 
       {!disabled && (

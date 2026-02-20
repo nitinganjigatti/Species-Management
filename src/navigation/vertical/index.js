@@ -116,8 +116,8 @@ const ComposeNavigation = () => {
     navigationArray.push(...complianceNav)
   }
 
-  if (enableAddNecropsyReport || allowCarcassCollection) {
-    const necropsyNav = necropsyNavigation(hasPermissionToAddNecropsyCenter)
+  if (enableAddNecropsyReport || allowCarcassCollection || hasPermissionToAddNecropsyCenter) {
+    const necropsyNav = necropsyNavigation(hasPermissionToAddNecropsyCenter, allowCarcassCollection, enableAddNecropsyReport)
     navigationArray.push(...necropsyNav)
   }
 

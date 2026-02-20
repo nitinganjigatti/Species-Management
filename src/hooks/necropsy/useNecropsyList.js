@@ -262,7 +262,8 @@ export const useNecropsyList = () => {
       animalList.map((row, index) => ({
         ...row,
         id: row.mortality_id,
-        sl_no: (filters.page - 1) * filters.limit + index + 1
+        sl_no: (filters.page - 1) * filters.limit + index + 1,
+        mortality_date: row.mortality_created_at
       })),
     [animalList, filters.page, filters.limit]
   )

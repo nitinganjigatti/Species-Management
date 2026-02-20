@@ -5,7 +5,7 @@ import { SmsOutlined as CommentsIcon } from '@mui/icons-material'
 import Utility from 'src/utility'
 import { getAssessmentTypes } from 'src/lib/api/necropsy/medicalHistory'
 
-const AssessmentTabs = ({ animalId }) => {
+const AssessmentTabs = ({ animalId, hideTitle = false }) => {
   const theme = useTheme()
   const [types, setTypes] = useState([])
   const [activeType, setActiveType] = useState(null)
@@ -78,16 +78,18 @@ const AssessmentTabs = ({ animalId }) => {
   if (types.length === 0) {
     return (
       <Box>
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 600,
-            color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary,
-            mb: 4
-          }}
-        >
-          Assessments
-        </Typography>
+        {!hideTitle && (
+          <Typography
+            sx={{
+              fontSize: '16px',
+              fontWeight: 600,
+              color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary,
+              mb: 4
+            }}
+          >
+            Assessments
+          </Typography>
+        )}
         <Box
           sx={{
             width: '100%',
@@ -113,16 +115,18 @@ const AssessmentTabs = ({ animalId }) => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 600,
-            color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
-          }}
-        >
-          Assessments
-        </Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {!hideTitle && (
+          <Typography
+            sx={{
+              fontSize: '16px',
+              fontWeight: 600,
+              color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+            }}
+          >
+            Assessments
+          </Typography>
+        )}
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box

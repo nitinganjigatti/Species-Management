@@ -408,6 +408,68 @@ const scrollToFirstError = (errors, options = {}) => {
   return null
 }
 
+export const AgeConverter = recorded_date_time => {
+  moment.updateLocale('en', {
+    relativeTime: {
+      future: 'in %s',
+      past: '%s',
+      s: 'sec',
+      ss: '%dsec',
+      m: '%dm',
+      mm: '%dm',
+      h: '%dh',
+      hh: '%dh',
+      d: '%dd',
+      dd: '%dd',
+      w: 'a week',
+      ww: '%d weeks',
+      M: '%d months',
+      MM: '%d months',
+      y: 'a year',
+      yy: '%d years'
+    }
+  })
+
+  if (!recorded_date_time) {
+    return ''
+  }
+
+  let recordedAge
+  const now = moment()
+  const recorded = moment(recorded_date_time, 'YYYY-MM-DD HH:mm:ss')
+  if (!recorded.isValid()) {
+    return ''
+  }
+
+  const diffInMinutes = now.diff(recorded, 'minutes')
+  const diffInHours = now.diff(recorded, 'hours')
+  const diffInDays = now.diff(recorded, 'days')
+  const nowYear = now.year()
+  const recordedYear = recorded.year()
+
+  if (diffInMinutes < 1) {
+    return 'Just now'
+  }
+
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes} minute ago`
+  }
+
+  if (diffInHours < 24) {
+    return `${diffInHours} hour ago`
+  }
+
+  if (diffInDays < 30) {
+    return `${diffInDays} day ago`
+  }
+
+  if (nowYear === recordedYear) {
+    return recorded.format('D MMM')
+  }
+
+  return recorded.format('D MMM YYYY')
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -439,7 +501,8 @@ const Utility = {
   downloadPDF,
   capitalizeFirstLetter,
   scrollToField,
-  scrollToFirstError
+  scrollToFirstError,
+  AgeConverter
 }
 
 export default Utility
