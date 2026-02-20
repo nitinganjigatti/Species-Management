@@ -55,14 +55,16 @@ const MortalityDischargeForm = props => {
         const now = dayjs().startOf('day')
         const selectedDate = dayjs(value).startOf('day')
 
+        // Must not be before the admitted date
         if (selectedDate.isBefore(admittedAt)) {
           return this.createError({
-            message: `Date must be on or after (${dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)).format(
-              'DD MMM YYYY'
-            )})`
+            message: `Date cannot be before the admitted date (${dayjs(
+              Utility.convertUTCToLocal(patientData?.admitted_at)
+            ).format('DD MMM YYYY')})`
           })
         }
 
+        // Must not be a future date (after today)
         if (selectedDate.isAfter(now)) {
           return this.createError({ message: 'Date cannot be in the future' })
         }
@@ -87,14 +89,18 @@ const MortalityDischargeForm = props => {
           .set('minute', dayjs(value).minute())
           .set('second', 0)
 
+        // Must not be before the admitted time (on the same day)
         if (dayjs(date_of_death).format('YYYY-MM-DD') === admittedAt.format('YYYY-MM-DD')) {
           if (deathDateTime.isBefore(admittedAt)) {
             return this.createError({
-              message: `Time must be after admission time (${Utility.convertUTCToLocaltime(patientData?.admitted_at)})`
+              message: `Time cannot be before the admitted time (${Utility.convertUTCToLocaltime(
+                patientData?.admitted_at
+              )})`
             })
           }
         }
 
+        // Must not be in the future (on today)
         if (dayjs(date_of_death).format('YYYY-MM-DD') === now.format('YYYY-MM-DD')) {
           if (deathDateTime.isAfter(now)) {
             return this.createError({ message: 'Time cannot be in the future' })
@@ -172,6 +178,7 @@ const MortalityDischargeForm = props => {
     reset,
     setValue,
     clearErrors,
+    trigger,
     formState: { errors, isDirty, isValid }
   } = useForm({
     defaultValues,
@@ -297,6 +304,9 @@ const MortalityDischargeForm = props => {
                   errors={errors}
                   minDate={dayjs(patientData?.admitted_at)}
                   maxDate={dayjs(new Date())}
+                  onChangeOverride={() => {
+                    trigger('time_of_death')
+                  }}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
