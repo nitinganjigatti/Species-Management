@@ -896,7 +896,7 @@ const PatientAdmitForm = () => {
                 color: theme.palette.primary.main
               }}
             />
-            <Typography
+            {/* <Typography
               sx={{
                 fontSize: '16px',
                 fontWeight: 500,
@@ -915,7 +915,7 @@ const PatientAdmitForm = () => {
               }}
             >
               Please wait while we verify your access to admit patients to this hospital
-            </Typography>
+            </Typography> */}
           </Box>
         )}
       </Box>
