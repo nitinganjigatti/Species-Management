@@ -283,14 +283,14 @@ const SpeciesMappedtoDietFilter = ({
 
   const getTabSelectionCount = tab => {
     if (tab === 'Taxonomy') {
-      return selectedTaxonomyIds?.length || tempSelectedItems?.Taxonomy?.length || selectedItems?.Taxonomy?.length || 0
+      return selectedTaxonomyIds?.length ?? tempSelectedItems?.Taxonomy?.length ?? selectedItems?.Taxonomy?.length ?? 0
     }
 
     if (tab === 'Species') {
-      return selectedSpeciesIds?.length || tempSelectedItems?.Species?.length || selectedItems?.Species?.length || 0
+      return selectedSpeciesIds?.length ?? tempSelectedItems?.Species?.length ?? selectedItems?.Species?.length ?? 0
     }
 
-    return tempSelectedItems?.[tab]?.length || selectedItems?.[tab]?.length || 0
+    return tempSelectedItems?.[tab]?.length ?? selectedItems?.[tab]?.length ?? 0
   }
 
   return (
