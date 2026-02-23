@@ -1,18 +1,23 @@
-import { alpha, Box, Breadcrumbs, Card, CardContent, Grid, Paper, Typography, useTheme } from '@mui/material'
+import {
+  alpha,
+  Box,
+  Card,
+  CardContent,
+  Grid,
+  Paper,
+  Tooltip,
+  Typography,
+  useTheme,
+  Select,
+  MenuItem,
+  FormControl
+} from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useCallback, useContext, useEffect, useMemo, useState, memo } from 'react'
 import dynamic from 'next/dynamic'
-import Icon from 'src/@core/components/icon'
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded'
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined'
-import {
-  Inbox as InboxIcon,
-  AccessTime as ClockIcon
-
-  // Description as DocumentIcon
-
-  // CheckCircle as CheckIcon
-} from '@mui/icons-material'
+import { AccessTime as ClockIcon } from '@mui/icons-material'
 import Search from 'src/views/utility/Search'
 import NecropsyAnalytics from 'src/views/pages/necropsy/NecropsyAnalytics'
 import CustomSwitchTabs from 'src/components/CustomSwitchTabs'
@@ -20,7 +25,6 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import AnimalCard from 'src/views/utility/AnimalCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
-import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import Utility from 'src/utility'
 import { AuthContext } from 'src/context/AuthContext'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
@@ -31,7 +35,7 @@ const NecropsyFilterDrawer = dynamic(() => import('src/components/necropsy/Necro
 const SpeciesFilterDrawer = dynamic(() => import('src/components/necropsy/SpeciesFilterDrawer'), { ssr: false })
 const IncomingNecropsyDrawer = dynamic(() => import('src/components/necropsy/IncomingNecropsyDrawer'), { ssr: false })
 
-const getTransferStatus = item => {
+export const getTransferStatus = item => {
   if (item?.transfer_status === 'CANCELED') return 'Cancelled'
 
   switch (item?.activity_status) {
@@ -205,6 +209,7 @@ const Necropsy = () => {
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [openIncomingDrawer, setOpenIncomingDrawer] = useState(false)
   const [selectedNecropsyRow, setSelectedNecropsyRow] = useState(null)
+  const [selectedPriority, setSelectedPriority] = useState('all')
 
   const statCards = useMemo(
     () =>
@@ -219,6 +224,13 @@ const Necropsy = () => {
     const { q = '' } = router.query
     setSearchValue(q)
   }, [router.query])
+
+  // Sync priority state with filters
+  useEffect(() => {
+    const currentFilters = viewType === 'animals' ? animalFilters : speciesFilters
+    const priorityFilter = currentFilters?.Priority
+    setSelectedPriority(priorityFilter || 'all')
+  }, [viewType, animalFilters, speciesFilters])
 
   useEffect(() => {
     if (enableAddNecropsyReport && selectedNecropsy?.id) {
@@ -342,6 +354,22 @@ const Necropsy = () => {
     [applySpeciesFilters]
   )
 
+  const handlePriorityChange = useCallback(
+    event => {
+      const newPriority = event.target.value
+      setSelectedPriority(newPriority)
+
+      const priorityValue = newPriority === 'all' ? '' : newPriority
+
+      if (viewType === 'animals') {
+        applyAnimalFilters({ ...animalFilters, Priority: priorityValue })
+      } else {
+        applySpeciesFilters({ ...speciesFilters, Priority: priorityValue })
+      }
+    },
+    [viewType, animalFilters, speciesFilters, applyAnimalFilters, applySpeciesFilters]
+  )
+
   const handleIncomingDrawerClose = useCallback(() => {
     setOpenIncomingDrawer(false)
     setSelectedNecropsyRow(null)
@@ -416,33 +444,44 @@ const Necropsy = () => {
               minWidth: 20,
               sortable: false,
               field: 'transfer_code',
-              headerName: 'Transfer ID & Code',
+              headerName: 'Transfer ID & Status',
               renderCell: params => (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: theme.palette.customColors.OnPrimaryContainer
-                    }}
+                  <Tooltip title={params.row.transfer_code} placement='top'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        color: theme.palette.customColors.OnPrimaryContainer
+                      }}
+                    >
+                      {params.row.transfer_code}
+                    </Typography>
+                  </Tooltip>
+                  <Tooltip title={getTransferStatus(params.row)} placement='top'>
+                    <Typography
+                      sx={{
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        color: theme.palette.customColors.OnPrimaryContainer,
+                        fontWeight: 500
+                      }}
+                    >
+                      {getTransferStatus(params.row)}
+                    </Typography>
+                  </Tooltip>
+                  <Tooltip
+                    title={Utility.convertUtcToLocalReadableDate(params?.row?.transfer_modified_at)}
+                    placement='top'
                   >
-                    {params.row.transfer_code}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      color: theme.palette.customColors.OnPrimaryContainer,
-                      fontWeight: 500
-                    }}
-                  >
-                    {getTransferStatus(params.row)}
-                  </Typography>
-                  <Typography sx={{ fontSize: '12px', fontWeight: 400, color: theme.palette.customColors.neutral_50 }}>
-                    Since <span>{Utility.convertUtcToLocalReadableDate(params?.row?.mortality_created_at)}</span>
-                    <span> &bull; </span> {Utility.convertUTCToLocaltime(params?.row?.mortality_created_at)}
-                  </Typography>
+                    <Typography
+                      sx={{ fontSize: '12px', fontWeight: 400, color: theme.palette.customColors.neutral_50 }}
+                    >
+                      Since <span>{Utility.convertUtcToLocalReadableDate(params?.row?.transfer_modified_at)}</span>
+                      <span> &bull; </span> {Utility.convertUTCToLocaltime(params?.row?.transfer_modified_at)}
+                    </Typography>
+                  </Tooltip>
                 </Box>
               )
             }
@@ -458,30 +497,34 @@ const Necropsy = () => {
               headerName: 'Request ID',
               renderCell: params => (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      fontSize: '14px',
-                      fontWeight: 400,
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      px: 2
-                    }}
-                  >
-                    {params.row.request_id}
-                  </Typography>
+                  <Tooltip title={params.row.request_id} placement='top'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontSize: '14px',
+                        fontWeight: 400,
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        px: 2
+                      }}
+                    >
+                      {params.row.request_id}
+                    </Typography>
+                  </Tooltip>
                   {params?.row?.is_unsuitable !== '0' && (
                     <Box
                       sx={{ backgroundColor: theme.palette.customColors.Tertiary30, borderRadius: 0.5, px: 2, py: 1 }}
                     >
-                      <Typography
-                        sx={{
-                          fontSize: '14px',
-                          fontWeight: 600,
-                          color: theme.palette.customColors.Tertiary
-                        }}
-                      >
-                        Unsuitable for necropsy
-                      </Typography>
+                      <Tooltip title={params.row.is_unsuitable} placement='top'>
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: 600,
+                            color: theme.palette.customColors.Tertiary
+                          }}
+                        >
+                          Unsuitable for necropsy
+                        </Typography>
+                      </Tooltip>
                     </Box>
                   )}
                 </Box>
@@ -509,12 +552,15 @@ const Necropsy = () => {
           const isIncomingOrPending = activeCard === 'INCOMING' || activeCard === 'PENDING'
 
           const userName = isIncomingOrPending ? row.reported_by : row.user_profile_for_necropsy?.name
-          const date = isIncomingOrPending ? row.mortality_created_at : row.updated_at
 
           return (
-            <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-              {userName}
-            </Typography>
+            <Tooltip title={userName} placement='top'>
+              <Typography
+                sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}
+              >
+                {userName}
+              </Typography>
+            </Tooltip>
           )
         }
       }
@@ -580,7 +626,6 @@ const Necropsy = () => {
 
   return (
     <Box>
-      <Breadcrumbs></Breadcrumbs>
       <NecropsyAnalytics
         filterDate={filterDate}
         setFilterDate={handleDateFilterChange}
@@ -617,20 +662,67 @@ const Necropsy = () => {
           <Box sx={{ mt: 6 }}>
             <Card>
               <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
-                  <Search
-                    borderRadius='4px'
-                    value={searchValue}
-                    onClear={onSearchClear}
-                    onChange={onSearchChange}
-                    textFielsSX={{
-                      '& .MuiInputBase-input::placeholder': {
-                        fontSize: '13px'
-                      }
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 3
                     }}
-                    placeholder='Search by tag, species, or ID...'
-                  />
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                  >
+                    <Search
+                      borderRadius='4px'
+                      value={searchValue}
+                      onClear={onSearchClear}
+                      onChange={onSearchChange}
+                      textFielsSX={{
+                        '& .MuiInputBase-input::placeholder': {
+                          fontSize: '13px'
+                        }
+                      }}
+                      placeholder='Search by tag, species, or ID...'
+                    />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+                        <CustomSwitchTabs
+                          options={[
+                            { value: 'animals', label: 'Animals' },
+                            { value: 'species', label: 'Species' }
+                          ]}
+                          value={viewType}
+                          onChange={handleChange}
+                        />
+                      </Box>
+                      {viewType === 'animals' && (
+                        <FormControl size='small'>
+                          <Select
+                            value={selectedPriority}
+                            onChange={handlePriorityChange}
+                            displayEmpty
+                            sx={{
+                              minWidth: 120,
+                              minHeight: 44,
+                              fontSize: '14px',
+                              '& .MuiSelect-select': {
+                                py: 1,
+                                px: 4
+                              }
+                            }}
+                          >
+                            <MenuItem value='all'>All Priority</MenuItem>
+                            <MenuItem value='low'>Low</MenuItem>
+                            <MenuItem value='high'>High</MenuItem>
+                          </Select>
+                        </FormControl>
+                      )}
+                      <FilterButtonWithNotification
+                        onClick={() => setOpenFilterDrawer(true)}
+                        appliedFiltersCount={viewType === 'animals' ? animalFilterCount : speciesFilterCount}
+                      />
+                    </Box>
+                  </Box>
+                  <Box sx={{ display: { xs: 'block', md: 'none' } }}>
                     <CustomSwitchTabs
                       options={[
                         { value: 'animals', label: 'Animals' },
@@ -638,10 +730,6 @@ const Necropsy = () => {
                       ]}
                       value={viewType}
                       onChange={handleChange}
-                    />
-                    <FilterButtonWithNotification
-                      onClick={() => setOpenFilterDrawer(true)}
-                      appliedFiltersCount={viewType === 'animals' ? animalFilterCount : speciesFilterCount}
                     />
                   </Box>
                 </Box>

@@ -47,7 +47,7 @@ import NecropsyOrganSection from 'src/components/necropsy/NecropsyOrganSection'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
-import { Close as CloseIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material'
+import { Close as CloseIcon, Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material'
 import {
   addNecropsy,
   editNecropsy,
@@ -936,93 +936,46 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
           <NecropsyAnimalInfoCard loading={true} />
         </Box>
 
-        <Card>
-          <CardContent sx={{ p: 6 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Skeleton variant='text' width={150} height={24} />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Skeleton variant='text' width={250} height={24} />
-                  <Skeleton variant='rectangular' width={50} height={30} sx={{ borderRadius: 3 }} />
-                </Box>
+        {/* Accordion Skeletons */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {/* Carcass Details Accordion */}
+          <Card sx={{ borderRadius: 2 }}>
+            <CardContent sx={{ p: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Skeleton variant='text' width={150} height={28} />
+                <Skeleton variant='circular' width={24} height={24} />
               </Box>
+            </CardContent>
+          </Card>
 
-              <Skeleton variant='rectangular' height={1} />
-
-              <Skeleton variant='text' width={140} height={28} />
-
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 12, lg: 6 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Skeleton variant='text' width={200} height={24} />
-                    <Grid container spacing={3}>
-                      <Grid size={6}>
-                        <FormFieldSkeleton label={false} />
-                      </Grid>
-                      <Grid size={6}>
-                        <FormFieldSkeleton label={false} />
-                      </Grid>
-                    </Grid>
-                  </Box>
-                </Grid>
-                <Grid size={{ xs: 12, lg: 6 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Skeleton variant='text' width={180} height={24} />
-                    <Grid container spacing={3}>
-                      <Grid size={6}>
-                        <FormFieldSkeleton label={false} />
-                      </Grid>
-                      <Grid size={6}>
-                        <FormFieldSkeleton label={false} />
-                      </Grid>
-                    </Grid>
-                  </Box>
-                </Grid>
-              </Grid>
-
-              <SectionSkeleton fields={2} />
-
-              <SectionSkeleton fields={2} />
-
-              <SectionSkeleton fields={1} />
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Skeleton variant='text' width={50} height={24} />
-                <Skeleton variant='rectangular' height={80} sx={{ borderRadius: 1 }} />
+          {/* Examination Findings Accordion */}
+          <Card sx={{ borderRadius: 2 }}>
+            <CardContent sx={{ p: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Skeleton variant='text' width={180} height={28} />
+                <Skeleton variant='circular' width={24} height={24} />
               </Box>
+            </CardContent>
+          </Card>
 
-              <Skeleton variant='rectangular' height={1} />
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Skeleton variant='text' width={130} height={24} />
-                <Skeleton variant='rectangular' height={120} sx={{ borderRadius: 1 }} />
+          {/* Conclusion Accordion */}
+          <Card sx={{ borderRadius: 2 }}>
+            <CardContent sx={{ p: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Skeleton variant='text' width={120} height={28} />
+                <Skeleton variant='circular' width={24} height={24} />
               </Box>
+            </CardContent>
+          </Card>
 
-              <Skeleton variant='rectangular' height={1} />
-
-              <Skeleton variant='text' width={140} height={28} />
-              <SectionSkeleton fields={2} />
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Skeleton variant='text' width={180} height={24} />
-                <Skeleton variant='rectangular' height={56} sx={{ borderRadius: 1 }} />
-              </Box>
-
-              <Skeleton variant='rectangular' height={1} />
-
-              <Skeleton variant='text' width={180} height={28} />
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Skeleton variant='text' width={150} height={24} />
-                <Skeleton variant='rectangular' height={120} sx={{ borderRadius: 1 }} />
-              </Box>
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Skeleton variant='text' width={250} height={24} />
-                <Skeleton variant='rectangular' height={100} sx={{ borderRadius: 1 }} />
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
+          {/* Additional Notes Card */}
+          <Card sx={{ borderRadius: 2 }}>
+            <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Skeleton variant='text' width={140} height={24} />
+              <Skeleton variant='rectangular' height={100} sx={{ borderRadius: 1 }} />
+            </CardContent>
+          </Card>
+        </Box>
       </Box>
     )
   }
@@ -1047,9 +1000,12 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
         <Box sx={{ mb: 3 }}>
           <NecropsyAnimalInfoCard
             mortalityData={mortalityData}
+            necropsyData={necropsyData}
+            status={status}
             loading={false}
             onBack={() => router.back()}
-            requestId={mortalityData?.request_id || necropsyData?.request_id}
+            requestId={mortalityData?.request_id || necropsyData?.request_id || necropsyData?.necropsy_code}
+            onDeleteClick={isDraftEdit ? () => setDeleteDialogOpen(true) : undefined}
           />
         </Box>
       )}
@@ -1106,7 +1062,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
             }}
           >
             <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
+              expandIcon={activeTab === 'carcass_details' ? <RemoveIcon /> : <AddIcon />}
               sx={{
                 px: 4,
                 py: 1
@@ -1350,7 +1306,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
             }}
           >
             <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
+              expandIcon={activeTab === 'examination_findings' ? <RemoveIcon /> : <AddIcon />}
               sx={{
                 px: 4,
                 py: 1
@@ -1470,7 +1426,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
             }}
           >
             <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
+              expandIcon={activeTab === 'conclusion' ? <RemoveIcon /> : <AddIcon />}
               sx={{
                 px: 4,
                 py: 1
@@ -1627,7 +1583,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
       </form>
 
       <BottomActionBar
-        onCancel={() => router.push('/necropsy/necropsy')}
+        onCancel={() => router.push(status ? `/necropsy/necropsy?status=${status}` : '/necropsy/necropsy')}
         onSubmit={handleSubmit(onSubmit, onValidationError)}
         loading={submitLoading}
         disabled={isAnyLoading}
@@ -1641,18 +1597,8 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
         submitBtnStyle={{
           backgroundColor: theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main
         }}
+        layoutStyle={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}
       >
-        {isDraftEdit && (
-          <Button
-            variant='outlined'
-            color='error'
-            onClick={() => setDeleteDialogOpen(true)}
-            disabled={isAnyLoading}
-            sx={{ fontWeight: 600, minHeight: '56px', minWidth: '160px', borderRadius: 0.5 }}
-          >
-            Delete Draft
-          </Button>
-        )}
         {!isCompletedEdit && (
           <Button
             variant='outlined'

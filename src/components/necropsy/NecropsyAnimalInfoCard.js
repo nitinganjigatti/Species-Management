@@ -86,6 +86,8 @@ const InfoItem = ({ label, value, icon, iconBgColor, theme }) => (
 
 const NecropsyAnimalInfoCard = ({
   mortalityData,
+  necropsyData,
+  status,
   loading = false,
   requestId,
   onEditClick,
@@ -104,16 +106,44 @@ const NecropsyAnimalInfoCard = ({
       <Card sx={{ boxShadow: 'none', overflow: 'hidden' }}>
         {/* Header Section - Dark */}
         <Box sx={{ backgroundColor: rusticRed, p: 4 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-            <Skeleton variant='circular' width={28} height={28} sx={{ bgcolor: 'rgba(255,255,255,0.15)' }} />
-            <Skeleton variant='text' width={160} height={28} sx={{ bgcolor: 'rgba(255,255,255,0.15)' }} />
+          {/* Title bar with back button */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 2,
+              mb: 4,
+              pb: 3,
+              borderBottom: `1px solid ${alpha('#fff', 0.2)}`
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Skeleton variant='circular' width={24} height={24} sx={{ bgcolor: 'rgba(255,255,255,0.15)' }} />
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Skeleton variant='text' width={140} height={24} sx={{ bgcolor: 'rgba(255,255,255,0.15)' }} />
+                  <Skeleton
+                    variant='rounded'
+                    width={50}
+                    height={22}
+                    sx={{ bgcolor: 'rgba(255,255,255,0.15)', borderRadius: 1 }}
+                  />
+                </Box>
+                <Skeleton variant='text' width={220} height={18} sx={{ bgcolor: 'rgba(255,255,255,0.15)' }} />
+              </Box>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Skeleton variant='circular' width={32} height={32} sx={{ bgcolor: 'rgba(255,255,255,0.15)' }} />
+              <Skeleton variant='circular' width={32} height={32} sx={{ bgcolor: 'rgba(255,255,255,0.15)' }} />
+            </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 4, flexDirection: { xs: 'column', md: 'row' } }}>
             {/* Animal Card Skeleton */}
             <Box
               sx={{
-                flex: '1 1 300px',
+                flex: { md: '1 1 300px' },
                 backgroundColor: alpha('#000', 0.15),
                 borderRadius: 1,
                 p: 3
@@ -123,27 +153,37 @@ const NecropsyAnimalInfoCard = ({
             </Box>
 
             {/* Info Items Skeleton */}
-            <Box sx={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: 3, justifyContent: 'center' }}>
+            <Box
+              sx={{
+                flex: { md: '1 1 200px' },
+                display: 'flex',
+                flexDirection: { xs: 'row', md: 'column' },
+                gap: 3,
+                justifyContent: { xs: 'flex-start', md: 'center' }
+              }}
+            >
               <InfoItemSkeleton />
               <InfoItemSkeleton />
             </Box>
           </Box>
         </Box>
 
-        {/* Footer Section - Light */}
-        <Box sx={{ backgroundColor: alpha(rusticRed, 0.08), p: 4 }}>
-          <Skeleton variant='text' width={80} height={18} />
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Skeleton variant='circular' width={40} height={40} />
-              <Box>
-                <Skeleton variant='text' width={180} height={22} />
-                <Skeleton variant='text' width={120} height={16} />
+        {/* Footer Section */}
+        <Box sx={{ backgroundColor: rusticRed }}>
+          <Box sx={{ background: alpha('#000', 0.15), px: 4, py: 3 }}>
+            <Skeleton variant='text' width={80} height={16} sx={{ bgcolor: 'rgba(255,255,255,0.15)', mb: 1 }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Skeleton variant='circular' width={40} height={40} sx={{ bgcolor: 'rgba(255,255,255,0.15)' }} />
+                <Box>
+                  <Skeleton variant='text' width={150} height={20} sx={{ bgcolor: 'rgba(255,255,255,0.15)' }} />
+                  <Skeleton variant='text' width={100} height={16} sx={{ bgcolor: 'rgba(255,255,255,0.15)' }} />
+                </Box>
               </Box>
-            </Box>
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <Skeleton variant='circular' width={40} height={40} />
-              <Skeleton variant='circular' width={40} height={40} />
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Skeleton variant='circular' width={36} height={36} sx={{ bgcolor: 'rgba(255,255,255,0.15)' }} />
+                <Skeleton variant='circular' width={36} height={36} sx={{ bgcolor: 'rgba(255,255,255,0.15)' }} />
+              </Box>
             </Box>
           </Box>
         </Box>
@@ -199,15 +239,49 @@ const NecropsyAnimalInfoCard = ({
             >
               <ArrowBackIcon sx={{ fontSize: 24 }} />
             </IconButton>
-            <Typography
-              sx={{
-                fontSize: '18px',
-                fontWeight: 600,
-                color: theme.palette.customColors?.OnPrimary
-              }}
-            >
-              {displayRequestId || 'Necropsy Request'}
-            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography
+                  sx={{
+                    fontSize: '18px',
+                    fontWeight: 600,
+                    color: theme.palette.customColors?.OnPrimary
+                  }}
+                >
+                  {displayRequestId || 'Necropsy Request'}
+                </Typography>
+                {status?.toUpperCase() === 'DRAFT' && (
+                  <Box
+                    sx={{
+                      px: 2,
+                      py: 0.5,
+                      borderRadius: 1,
+                      backgroundColor: theme.palette.customColors?.draftChipBg || '#F5E6C8',
+                      color: theme.palette.customColors?.draftChipText || '#8B6914'
+                    }}
+                  >
+                    <Typography sx={{ fontSize: '12px', fontWeight: 600 }}>Draft</Typography>
+                  </Box>
+                )}
+              </Box>
+              {necropsyData?.user_profile &&
+                (status?.toUpperCase() === 'DRAFT' || status?.toUpperCase() === 'COMPLETED') && (
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      fontWeight: 400,
+                      color: alpha(theme.palette.customColors?.OnPrimary || '#fff', 0.8)
+                    }}
+                  >
+                    {status?.toUpperCase() === 'DRAFT' ? 'Saved by ' : 'Updated by '}
+                    {necropsyData?.user_profile?.name || necropsyData?.user_profile?.user_name}
+                    {' • '}
+                    {Utility.formatDisplayDate(necropsyData?.modified_at || necropsyData?.created_at)}
+                    {' • '}
+                    {Utility.convertUTCToLocaltime(necropsyData?.modified_at || necropsyData?.created_at)}
+                  </Typography>
+                )}
+            </Box>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             {onEditClick && (
@@ -300,8 +374,6 @@ const NecropsyAnimalInfoCard = ({
               show_time
               text_color={theme.palette.customColors.OnPrimary}
             />
-
-            {/* Contact Icons */}
             <Box sx={{ display: 'flex', gap: 2 }}>
               {mortalityData?.user_mobile_number && (
                 <IconButton

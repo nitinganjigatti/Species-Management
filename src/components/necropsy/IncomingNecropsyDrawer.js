@@ -88,7 +88,7 @@ const StyledSectionHeader = styled(Box)(({ theme }) => ({
   gap: '4px'
 }))
 
-const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) => {
+const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hideAcceptButton = false }) => {
   const theme = useTheme()
   const router = useRouter()
 
@@ -967,7 +967,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                     Cancelled
                   </Typography>
                 </Box>
-              ) : (
+              ) : !hideAcceptButton ? (
                 <Button
                   variant='contained'
                   fullWidth
@@ -978,7 +978,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                 >
                   {btnStatusLoading || acceptLoading ? <CircularProgress size={24} /> : 'ACCEPT NECROPSY'}
                 </Button>
-              )}
+              ) : null}
             </Box>
           </>
         )}

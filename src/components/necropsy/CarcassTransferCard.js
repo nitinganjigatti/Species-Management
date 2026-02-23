@@ -194,7 +194,8 @@ const CarcassTransferCard = ({ filterDate }) => {
               px: 3,
               py: 2,
               background: theme.palette.customColors.displaybgPrimary,
-              borderRadius: 0.4
+              borderRadius: 0.4,
+              width: 'fit-content'
             }}
           >
             <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
@@ -403,6 +404,7 @@ const CarcassTransferCard = ({ filterDate }) => {
           }}
           transferId={selectedTransferRow?.transfer_id}
           onAcceptSuccess={fetchData}
+          hideAcceptButton={activeTab === 'completed'}
         />
       )}
     </>

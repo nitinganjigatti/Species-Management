@@ -112,103 +112,72 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <Card sx={{ boxShadow: 'none' }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, pb: 2, gap: 4 }}>
-              <Skeleton variant='circular' width={28} height={28} />
-              <Skeleton variant='text' width={180} height={32} />
-            </Box>
+        {/* NecropsyAnimalInfoCard Skeleton */}
+        <NecropsyAnimalInfoCard loading={true} />
 
-            <Grid container spacing={8} alignItems='stretch'>
-              <Grid size={{ xs: 12, sm: 12, md: 5 }}>
-                <Box
-                  sx={{
-                    background:
-                      theme.palette.mode === 'dark'
-                        ? 'linear-gradient(90deg, rgba(100,100,100,0.2), rgba(120,120,120,0.2))'
-                        : 'linear-gradient(90deg, rgba(200,230,200,0.3), rgba(200,200,230,0.3))',
-                    py: 4,
-                    px: 6,
-                    borderRadius: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    minHeight: 140
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, width: '100%' }}>
-                    <Skeleton variant='circular' width={80} height={80} />
-                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <Skeleton variant='text' width='60%' height={28} />
-                      <Skeleton variant='text' width='40%' height={20} />
-                      <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                        <Skeleton variant='rounded' width={60} height={24} sx={{ borderRadius: '12px' }} />
-                        <Skeleton variant='rounded' width={80} height={24} sx={{ borderRadius: '12px' }} />
-                      </Box>
-                    </Box>
+        {/* Content Cards Skeleton */}
+        <Card sx={{ mt: 3 }}>
+          <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {/* Header */}
+            <Skeleton variant='text' width={200} height={28} />
+
+            {/* Grid of info items */}
+            <Grid container spacing={6}>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Skeleton variant='text' width={120} height={16} />
+                    <Skeleton variant='text' width={180} height={20} />
                   </Box>
-                </Box>
-              </Grid>
-
-              {/* Info Fields Section */}
-              <Grid size={{ xs: 12, sm: 12, md: 7 }} sx={{ display: 'flex', alignItems: 'center' }}>
-                <Grid container spacing={2} columnSpacing={4} rowSpacing={4}>
-                  {Array.from(new Array(6)).map((_, i) => (
-                    <Grid key={i} size={{ xs: 12, sm: 6 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                        <Skeleton variant='rectangular' width={48} height={48} sx={{ borderRadius: 1 }} />
-                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                          <Skeleton variant='text' width={80} height={20} />
-                          <Skeleton variant='text' width={120} height={22} />
-                        </Box>
-                      </Box>
-                    </Grid>
-                  ))}
                 </Grid>
-              </Grid>
+              ))}
             </Grid>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent sx={{ p: 6, '&:last-child': { pb: 6 } }}>
-            <Skeleton variant='text' width={140} height={20} sx={{ mb: 1 }} />
-            <Skeleton variant='rounded' width='100%' height={60} sx={{ borderRadius: 2 }} />
-            <Skeleton variant='text' width={80} height={20} sx={{ mt: 4, mb: 1 }} />
-            <Skeleton variant='rounded' width='100%' height={60} sx={{ borderRadius: 2 }} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent sx={{ p: 6, '&:last-child': { pb: 6 } }}>
-            <Skeleton variant='text' width={160} height={24} sx={{ mb: 3 }} />
-            <Box sx={{ display: 'flex', gap: 3, mb: 4 }}>
+          <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <Skeleton variant='text' width={180} height={28} />
+            <Grid container spacing={4}>
               {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} variant='rounded' width={120} height={36} sx={{ borderRadius: '8px' }} />
+                <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Skeleton variant='text' width={140} height={16} />
+                    <Skeleton variant='text' width={200} height={20} />
+                  </Box>
+                </Grid>
               ))}
-            </Box>
-            {Array.from({ length: 2 }).map((_, i) => (
-              <Skeleton key={i} variant='rounded' width='100%' height={100} sx={{ borderRadius: '12px', mb: 2 }} />
-            ))}
+            </Grid>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent sx={{ p: 6, '&:last-child': { pb: 6 } }}>
-            <Skeleton variant='text' width={140} height={24} sx={{ mb: 3 }} />
-            <Box sx={{ display: 'flex', gap: 3, mb: 4 }}>
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} variant='rounded' width={100} height={36} sx={{ borderRadius: '8px' }} />
+          <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Skeleton variant='text' width={220} height={28} />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {Array.from({ length: 2 }).map((_, i) => (
+                <Box
+                  key={i}
+                  sx={{
+                    p: 4,
+                    borderRadius: 1,
+                    backgroundColor: alpha(theme.palette.grey[200], 0.5)
+                  }}
+                >
+                  <Skeleton variant='text' width={150} height={24} sx={{ mb: 2 }} />
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Skeleton variant='text' width={100} height={16} />
+                      <Skeleton variant='text' width='80%' height={18} />
+                    </Box>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Skeleton variant='text' width={100} height={16} />
+                      <Skeleton variant='text' width='60%' height={18} />
+                    </Box>
+                  </Box>
+                </Box>
               ))}
             </Box>
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 2 }}>
-                <Box sx={{ flexShrink: 0, width: 90, textAlign: 'right' }}>
-                  <Skeleton variant='text' width={80} height={18} sx={{ ml: 'auto' }} />
-                  <Skeleton variant='text' width={60} height={16} sx={{ ml: 'auto' }} />
-                </Box>
-                <Skeleton variant='rounded' sx={{ flex: 1, height: 56, borderRadius: '12px' }} />
-              </Box>
-            ))}
           </CardContent>
         </Card>
       </Box>
@@ -233,6 +202,9 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
       <Box>
         <NecropsyAnimalInfoCard
           mortalityData={mortalityData}
+          necropsyData={necropsyData}
+          status={status}
+          requestId={necropsyData?.necropsy_code}
           onDownloadClick={handleDownloadPdf}
           onEditClick={handleContinueEditing}
           onTimelineClick={() => setShowTimeline(true)}
@@ -250,7 +222,12 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
 
   return (
     <Box>
-      <NecropsyAnimalInfoCard mortalityData={mortalityData} />
+      <NecropsyAnimalInfoCard
+        mortalityData={mortalityData}
+        necropsyData={necropsyData}
+        status={status}
+        requestId={necropsyData?.necropsy_code}
+      />
 
       {isDraft && necropsyData && (
         <Card sx={{ mt: 3, bgcolor: alpha(theme.palette.customColors?.antzNotes80, 0.4) }}>
@@ -365,7 +342,7 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
       <Box sx={{ height: 100 }} />
 
       <BottomActionBar
-        onCancel={() => router.push(`/necropsy?status=${status}`)}
+        onCancel={() => router.push(`/necropsy/necropsy?status=${status}`)}
         onSubmit={isDraft ? handleContinueEditing : handleStartNecropsy}
         cancelLabel='CANCEL'
         submitLabel={isDraft ? 'CONTINUE EDITING' : 'ADD NECROPSY'}

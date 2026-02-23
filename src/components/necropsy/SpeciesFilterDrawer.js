@@ -5,16 +5,11 @@ import FilterContent from 'src/components/drawers/FilterContent'
 import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 import Toaster from 'src/components/Toaster'
 
-const leftMenu = ['Site', 'Priority']
+const leftMenu = ['Site']
 
-const getInitialOptions = () => ({ Site: [], Priority: [] })
+const getInitialOptions = () => ({ Site: [] })
 
-const staticMenuData = {
-  Priority: [
-    { label: 'Low', value: 'Low' },
-    { label: 'High', value: 'High' }
-  ]
-}
+const staticMenuData = {}
 
 const SpeciesFilterDrawer = ({
   open,

@@ -170,7 +170,7 @@ const initialState = {
   animalFilters: {
     Sex: [],
     Site: [],
-    Priority: [],
+    Priority: '',
     'Necropsy Location': [],
     'Necropsy Conducted By': [],
     'Created By': []
@@ -179,7 +179,7 @@ const initialState = {
   // Species filters
   speciesFilters: {
     Site: [],
-    Priority: []
+    Priority: ''
   },
 
   // Request tracking for cancellation

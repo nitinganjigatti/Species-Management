@@ -106,7 +106,7 @@ export const useNecropsyList = () => {
           to_date: formatDate(filterDate.endDate),
           use_case: 'necropsy_module',
           site_id: prepareFilterArray(animalFilters, 'Site'),
-          priority: prepareFilterArray(animalFilters, 'Priority'),
+          priority: animalFilters['Priority'] || undefined,
           sex_type: prepareFilterArray(animalFilters, 'Sex'),
           necropsy_on_site:
             animalFilters['Necropsy Location']?.length === 1 ? animalFilters['Necropsy Location'][0] : undefined,
@@ -121,7 +121,7 @@ export const useNecropsyList = () => {
           ...basePayload,
           til_date: formatDate(filterDate.endDate),
           site_id: speciesFilters['Site']?.[0] ?? undefined,
-          priority: speciesFilters['Priority']?.[0]?.toLowerCase() ?? undefined
+          priority: speciesFilters['Priority'] || undefined
         })
       )
     }
@@ -284,13 +284,17 @@ export const useNecropsyList = () => {
     [speciesList, filters.page, filters.limit]
   )
 
-  // Get filter count
+  // Get filter count (excluding Priority since it's shown separately)
   const animalFilterCount = useMemo(() => {
-    return Object.values(animalFilters).filter(arr => arr?.length > 0).length
+    return Object.entries(animalFilters)
+      .filter(([key, arr]) => key !== 'Priority' && arr?.length > 0)
+      .length
   }, [animalFilters])
 
   const speciesFilterCount = useMemo(() => {
-    return Object.values(speciesFilters).filter(arr => arr?.length > 0).length
+    return Object.entries(speciesFilters)
+      .filter(([key, arr]) => key !== 'Priority' && arr?.length > 0)
+      .length
   }, [speciesFilters])
 
   return {

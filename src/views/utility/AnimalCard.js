@@ -135,7 +135,7 @@ const AnimalCard = ({ data, size, edit }) => {
           gap: '2px'
         }}
       >
-        {data?.mortality_date && (
+        {(data?.mortality_date || data?.mortality_created_at) && (
           <Typography
             sx={{
               fontSize: '14px',
@@ -145,8 +145,8 @@ const AnimalCard = ({ data, size, edit }) => {
             }}
           >
             <span>Mortality Date : </span>
-            <span>{Utility.convertUtcToLocalReadableDate(data?.mortality_date)}</span>
-            <span> &bull; </span> {Utility.convertUTCToLocaltime(data?.mortality_date)}
+            <span>{Utility.convertUtcToLocalReadableDate(data?.mortality_date || data?.mortality_created_at)}</span>
+            <span> &bull; </span> {Utility.convertUTCToLocaltime(data?.mortality_date || data?.mortality_created_at)}
           </Typography>
         )}
         {data?.local_identifier_name && data?.local_identifier_value && (

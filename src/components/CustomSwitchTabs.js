@@ -18,7 +18,7 @@ const CustomSwitchTabs = ({ options = [], value, onChange, className = '' }) => 
         aria-label='switch tabs'
         sx={{
           bgcolor: theme.palette.customColors.Background,
-          borderRadius: 1.5,
+          borderRadius: 3,
 
           p: 0,
           height: '48px',
@@ -26,21 +26,19 @@ const CustomSwitchTabs = ({ options = [], value, onChange, className = '' }) => 
           gap: '4px',
           '& .MuiToggleButtonGroup-grouped': {
             border: 'none',
-            borderRadius: 1.5,
+            borderRadius: 3,
             textTransform: 'none',
             fontSize: '0.875rem',
             fontWeight: 600,
             px: 1,
             py: 0.5,
-
-            // color: '#A0A4A8',
             transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
             margin: 0,
             minWidth: '120px',
             '&.Mui-selected': {
               bgcolor: theme.palette.customColors.OnPrimaryContainer,
               color: theme.palette.customColors.OnPrimary,
-              borderRadius: 1.5,
+              borderRadius: 3,
               fontSize: '0.875rem',
               fontWeight: 600
             },
