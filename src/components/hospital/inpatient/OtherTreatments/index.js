@@ -21,6 +21,8 @@ import {
   deleteTreatmentRecord
 } from 'src/lib/api/hospital/treatmentMaster'
 
+const TREATMENT_DATE_TIME_FORMAT = 'DD MMM YYYY HH:mm:ss'
+
 const formatTimestamp = isoString => {
   if (!isoString) return '-'
 
@@ -410,7 +412,13 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
     setSelectedTreatmentActivities([])
 
-    const inferredStartDate = treatment.treatment_start_date_time
+    const localStartDate = treatment.treatment_start_date_time
+      ? dayjs(Utility.convertUTCToLocal(treatment.treatment_start_date_time))
+      : null
+
+    const inferredStartDate = localStartDate?.isValid()
+      ? localStartDate
+      : dayjs(treatment.treatment_start_date_time || undefined)
 
     const prefillNotes = activity ? activity.description || activity.notes || '' : ''
 
@@ -451,9 +459,21 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
       return
     }
 
-    const formattedStartTime = editFormData.startDate
-      ? dayjs(editFormData.startDate).format('DD MMM YYYY HH:mm:ss')
+    const activeActivity = selectedTreatmentActivities.find(activity => activity.id === editFormData.activeActivityId)
+
+    const originalLocalStartTime = activeActivity?.treatment_start_date_time
+      ? dayjs(Utility.convertUTCToLocal(activeActivity.treatment_start_date_time)).format(TREATMENT_DATE_TIME_FORMAT)
       : ''
+
+    const currentLocalStartTime = editFormData.startDate
+      ? dayjs(editFormData.startDate).format(TREATMENT_DATE_TIME_FORMAT)
+      : ''
+
+    const hasDateChanged =
+      activeActivity?.treatment_start_date_time &&
+      !dayjs(Utility.convertUTCToLocal(activeActivity.treatment_start_date_time)).isSame(dayjs(editFormData.startDate), 'day')
+
+    const formattedStartTime = hasDateChanged ? currentLocalStartTime : originalLocalStartTime || currentLocalStartTime
 
     const treatmentMasterId = selectedTreatment?.name || ''
 
@@ -592,7 +612,13 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
   const handlePrefillFromActivity = activity => {
     if (!selectedTreatment || !activity) return
 
-    const inferredStartDate = activity.treatment_start_date_time
+    const localStartDate = activity.treatment_start_date_time
+      ? dayjs(Utility.convertUTCToLocal(activity.treatment_start_date_time))
+      : null
+
+    const inferredStartDate = localStartDate?.isValid()
+      ? localStartDate
+      : dayjs(activity.treatment_start_date_time || undefined)
     const prefillNotes = activity.description || activity.notes || ''
 
     setEditFormData({
