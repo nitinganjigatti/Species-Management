@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import Chip from '@mui/material/Chip'
 import { DataGrid } from '@mui/x-data-grid'
 import CardContent from '@mui/material/CardContent'
+import { useTheme } from '@mui/material/styles'
 
 // ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
@@ -18,6 +19,7 @@ import { bgcolor, maxWidth, width } from '@mui/system'
 import { WidthFull } from '@mui/icons-material'
 
 const StoreWiseNewRequests = () => {
+  const theme = useTheme()
   const [requestList, setRequestList] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -45,6 +47,8 @@ const StoreWiseNewRequests = () => {
       field: 'to_store',
       headerName: 'Pharmacy name',
       Width: '300px',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
         <Tooltip title={params.row?.to_store ? params.row?.to_store : 'NA'}>
           <Typography
@@ -182,6 +186,28 @@ const StoreWiseNewRequests = () => {
               pagination={false}
               hideFooter
               sx={{
+                '& .MuiDataGrid-cell': {
+                  display: 'flex',
+                  alignItems: 'center'
+                },
+                '& .MuiDataGrid-columnHeaders': {
+                  backgroundColor: theme.palette.customColors.customTableHeaderBg
+                },
+                '& .MuiDataGrid-columnHeader': {
+                  backgroundColor: theme.palette.customColors.customTableHeaderBg
+                },
+                '& .MuiDataGrid-filler': {
+                  backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+                },
+                '& .MuiDataGrid-scrollbarFiller': {
+                  backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+                },
+                '& .MuiDataGrid-filler--pinnedColumns': {
+                  backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+                },
+                '& .MuiDataGrid-scrollbarFiller--header': {
+                  backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+                },
                 '& .MuiDataGrid-row:last-of-type': {
                   borderBottom: '1px solid rgba(224, 224, 224, 1)'
                 }

@@ -57,6 +57,18 @@ const CommonTable = ({
           color: theme.palette.customColors.customHeadingTextColor,
           fontWeight: 500
         },
+        '& .MuiDataGrid-filler': {
+          backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+        },
+        '& .MuiDataGrid-scrollbarFiller': {
+          backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+        },
+        '& .MuiDataGrid-filler--pinnedColumns': {
+          backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+        },
+        '& .MuiDataGrid-scrollbarFiller--header': {
+          backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+        },
 
         // Cell alignment - vertically center content
         '& .MuiDataGrid-cell': {
