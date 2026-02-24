@@ -517,7 +517,7 @@ const MortalityDischargeForm = props => {
           showCancel={false}
           submitBtnStyle={{ px: 12, py: 3 }}
           loading={submitLoader}
-          disabled={!isValid || submitLoader}
+          disabled={submitLoader}
           submitBtnProps={{ type: 'submit' }}
         />
       </form>

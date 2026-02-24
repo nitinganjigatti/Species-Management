@@ -55,7 +55,7 @@ const EnclosureDischargeForm = props => {
 
   const STORAGE_KEY_FORM = 'transfer_enclosure_form'
 
-  const isRestoring = useRef(true)
+  const isRestoring = useRef(true) // Flag to prevent Autocomplete search API calls while restoring form values from sessionStorage
 
   const theme = useTheme()
   const router = useRouter()
@@ -161,10 +161,27 @@ const EnclosureDischargeForm = props => {
     follow_up_required: yup.boolean().optional(),
     follow_up_date: yup
       .date()
+      .typeError('Invalid date')
       .nullable()
       .when('follow_up_required', {
         is: true,
-        then: schema => schema.required('Follow up date required')
+        then: schema =>
+          schema
+            .required('Follow up date required')
+            .test('not-in-past', 'Follow up date cannot be in the past', function (value) {
+              if (!value) return true
+
+              const today = dayjs().startOf('day')
+              const selected = dayjs(value).startOf('day')
+
+              if (selected.isBefore(today)) {
+                return this.createError({
+                  message: 'Follow up date cannot be in the past'
+                })
+              }
+
+              return true
+            })
       }),
     reason: yup.string().optional(),
     care_diet_instruction: yup.string().trim().optional(),
@@ -226,6 +243,10 @@ const EnclosureDischargeForm = props => {
 
     if (saved) {
       const parsed = JSON.parse(saved)
+
+      // Enable restore mode to block Autocomplete API calls triggered by reset()
+      isRestoring.current = true
+
       reset({
         ...defaultValues,
         ...parsed,
@@ -235,9 +256,15 @@ const EnclosureDischargeForm = props => {
         follow_up_date: parsed.follow_up_required && parsed.follow_up_date ? dayjs(parsed.follow_up_date) : null
       })
 
+      // Disable restore mode after reset completes to allow normal user search
+      setTimeout(() => {
+        isRestoring.current = false
+      }, 0)
+    } else {
+      // No restore needed, allow normal search immediately
       isRestoring.current = false
     }
-  }, [STORAGE_KEY_FORM])
+  }, [])
 
   // time limits for discharge time
   const selectedDischargeDate = watch('discharge_date')
@@ -451,7 +478,10 @@ const EnclosureDischargeForm = props => {
                   label={'Site*'}
                   options={sites}
                   getOptionLabel={option => option?.label || ''}
-                  onInputChange={value => handleSiteSearch(value)}
+                  onInputChange={value => {
+                    if (isRestoring.current) return // Skip API call if form is restoring from session storage
+                    handleSiteSearch(value)
+                  }}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => {
                     handleSiteSearch('')
@@ -494,7 +524,10 @@ const EnclosureDischargeForm = props => {
                   label={'Section*'}
                   options={sections}
                   getOptionLabel={option => option?.label || ''}
-                  onInputChange={value => handleSectionSearch(watch('site_name')?.value, value)}
+                  onInputChange={value => {
+                    if (isRestoring.current) return
+                    handleSectionSearch(watch('site_name')?.value, value)
+                  }}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => {
                     handleSectionSearch(watch('site_name')?.value, '')
@@ -526,7 +559,10 @@ const EnclosureDischargeForm = props => {
                   label={'Enclosure*'}
                   options={enclosures}
                   getOptionLabel={option => option?.label}
-                  onInputChange={value => handleEnclosureSearch(watch('section_name')?.value, value)}
+                  onInputChange={value => {
+                    if (isRestoring.current) return
+                    handleEnclosureSearch(watch('section_name')?.value, value)
+                  }}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => handleEnclosureSearch(watch('section_name')?.value, '')}
                   loading={enclosureLoading}
@@ -817,7 +853,7 @@ const EnclosureDischargeForm = props => {
           showCancel={false}
           submitBtnStyle={{ px: 12, py: 3 }}
           loading={submitLoader}
-          disabled={!isValid || submitLoader}
+          disabled={submitLoader}
           submitBtnProps={{ type: 'submit' }}
         />
       </form>
