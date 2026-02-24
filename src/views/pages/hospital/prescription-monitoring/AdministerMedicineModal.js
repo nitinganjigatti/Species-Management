@@ -67,8 +67,16 @@ const AdministerMedicineSidesheet = ({
       quantity: yup
         .number()
         .typeError('Quantity must be a number')
+        .test(
+          'quantity-format',
+          'Quantity must have up to 8 digits and up to 4 decimal places',
+          function (value) {
+            if (value === undefined || value === null) return true
+            const rawValue = String(this.originalValue ?? value).trim()
+            return /^\d{1,8}(\.\d{1,4})?$/.test(rawValue)
+          }
+        )
         .moreThan(0, 'Quantity must be greater than 0')
-        .max(100000, 'Quantity cannot exceed 100000')
         .required('Quantity is required'),
       quantityUnit: yup.string().required('Quantity unit is required'),
 
@@ -404,6 +412,7 @@ const AdministerMedicineSidesheet = ({
                           label='Quantity'
                           placeholder='Enter quantity'
                           type='number'
+                          maxDecimals={4}
                           getOptionLabel={option => option.label}
                           getOptionValue={option => option.value}
                           required
@@ -438,6 +447,7 @@ const AdministerMedicineSidesheet = ({
                           label='Quantity'
                           placeholder='Enter quantity'
                           type='number'
+                          maxDecimals={4}
                           getOptionLabel={option => option.label}
                           getOptionValue={option => option.value}
                           required
