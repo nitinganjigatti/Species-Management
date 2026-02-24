@@ -1987,7 +1987,7 @@ export default function AddMedicineToPrescription() {
 
   const getUnitFromLabel = (unitName, medicalMasterData) => {
     const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
-      item => item?.label === unitName
+      item => item?.label?.toLowerCase() == unitName?.toLowerCase()
     )
 
     return unit?.key || ''
