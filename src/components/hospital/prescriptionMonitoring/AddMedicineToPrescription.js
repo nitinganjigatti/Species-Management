@@ -131,8 +131,16 @@ export default function AddMedicineToPrescription() {
           quantity: yup
             .number()
             .typeError('Quantity is required')
+            .test(
+              'quantity-format',
+              'Quantity must have up to 8 digits and up to 4 decimal places',
+              function (value) {
+                if (value === undefined || value === null) return true
+                const rawValue = String(this.originalValue ?? value).trim()
+                return /^\d{1,8}(\.\d{1,4})?$/.test(rawValue)
+              }
+            )
             .moreThan(0, 'Quantity must be greater than 0')
-            .max(100000, 'Quantity cannot exceed 100000')
             .required('Quantity is required'),
           unit: yup.string().required('Please select a unit')
         })
