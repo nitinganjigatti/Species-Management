@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react'
-import { Box, Typography, useTheme } from '@mui/material'
+import { Box, useTheme } from '@mui/material'
 import NecropsyAnalytics from 'src/views/pages/necropsy/NecropsyAnalytics'
 import CarcassTransferCard from 'src/components/necropsy/CarcassTransferCard'
 import { NecropsyProvider } from 'src/context/NecropsyContext'
@@ -16,17 +16,6 @@ const CarcassTransferPage = () => {
   return (
     <NecropsyProvider>
       <Box>
-        <Typography
-          sx={{
-            fontSize: '24px',
-            fontWeight: 600,
-            color: theme.palette.customColors?.OnSurfaceVariant,
-            mb: 4
-          }}
-        >
-          Carcass Transfer
-        </Typography>
-
         <NecropsyAnalytics
           filterDate={filterDate}
           setFilterDate={setFilterDate}

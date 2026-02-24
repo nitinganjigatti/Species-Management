@@ -60,30 +60,48 @@ const getDefaultStatCards = theme => [
   {
     id: 'INCOMING',
     label: 'INCOMING TRANSFERS',
-    icon: <img src={'/images/necropsy/carcass_transfer.svg'} alt='Carcass Transfer icon' height={16} />,
-    iconBg: alpha(theme.palette.customColors.Tertiary, 0.4),
-    activeIconBg: alpha(theme.palette.customColors.OnPrimary, 0.2),
+    getIcon: isActive => (
+      <Box
+        sx={{
+          width: 16,
+          height: 16,
+          maskImage: 'url(/images/necropsy/carcass_transfer.svg)',
+          maskSize: 'contain',
+          maskRepeat: 'no-repeat',
+          maskPosition: 'center',
+          WebkitMaskImage: 'url(/images/necropsy/carcass_transfer.svg)',
+          WebkitMaskSize: 'contain',
+          WebkitMaskRepeat: 'no-repeat',
+          WebkitMaskPosition: 'center',
+          backgroundColor: theme.palette.customColors.Tertiary
+        }}
+      />
+    ),
+    iconBg: alpha(theme.palette.customColors.TertiaryContainer, 0.4),
+    activeIconBg: alpha(theme.palette.customColors.TertiaryContainer, 0.2),
     bgColor: theme.palette.customColors.Tertiary
   },
   {
     id: 'PENDING',
     label: 'PENDING NECROPSY',
-    icon: <ClockIcon sx={{ fontSize: 18, color: theme.palette.customColors.addPrimary }} />,
+    getIcon: () => <ClockIcon sx={{ fontSize: 18, color: theme.palette.customColors.addPrimary }} />,
     iconBg: alpha(theme.palette.customColors.addPrimary, 0.2),
-    activeIconBg: alpha(theme.palette.customColors.OnPrimary, 0.2),
+    activeIconBg: alpha(theme.palette.customColors.addPrimary, 0.2),
     bgColor: theme.palette.customColors.addPrimary
   },
   {
     id: 'DRAFT',
     label: 'DRAFT REPORTS',
-    icon: <DescriptionOutlinedIcon sx={{ fontSize: 18, color: theme.palette.customColors.moderateSecondary }} />,
+    getIcon: () => (
+      <DescriptionOutlinedIcon sx={{ fontSize: 18, color: theme.palette.customColors.moderateSecondary }} />
+    ),
     iconBg: theme.palette.customColors.antzNotes,
     bgColor: theme.palette.customColors.moderateSecondary
   },
   {
     id: 'COMPLETED',
     label: 'COMPLETED CASES',
-    icon: <CheckCircleOutlineRoundedIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurface }} />,
+    getIcon: () => <CheckCircleOutlineRoundedIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurface }} />,
     iconBg: theme.palette.customColors.OnBackground,
     bgColor: theme.palette.customColors.OnSurface
   }
@@ -122,17 +140,19 @@ const StatCard = memo(({ card, isActive, onClick }) => {
       onClick={onClick}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2 }}>
-        <Box
-          sx={{
-            backgroundColor: isActive && card?.activeIconBg ? card?.activeIconBg : card?.iconBg,
-            borderRadius: '10px',
-            p: 1.5,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          {card.icon}
+        <Box sx={{ borderRadius: '10px', backgroundColor: 'white' }}>
+          <Box
+            sx={{
+              backgroundColor: isActive && card?.activeIconBg ? card?.activeIconBg : card?.iconBg,
+              borderRadius: '10px',
+              p: 1.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            {card.getIcon(isActive)}
+          </Box>
         </Box>
         <Typography
           sx={{
@@ -681,7 +701,7 @@ const Necropsy = () => {
                           fontSize: '13px'
                         }
                       }}
-                      placeholder='Search by tag, species, or ID...'
+                      placeholder='Search...'
                     />
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                       <Box sx={{ display: { xs: 'none', md: 'block' } }}>
@@ -694,28 +714,26 @@ const Necropsy = () => {
                           onChange={handleChange}
                         />
                       </Box>
-                      {viewType === 'animals' && (
-                        <FormControl size='small'>
-                          <Select
-                            value={selectedPriority}
-                            onChange={handlePriorityChange}
-                            displayEmpty
-                            sx={{
-                              minWidth: 120,
-                              minHeight: 44,
-                              fontSize: '14px',
-                              '& .MuiSelect-select': {
-                                py: 1,
-                                px: 4
-                              }
-                            }}
-                          >
-                            <MenuItem value='all'>All Priority</MenuItem>
-                            <MenuItem value='low'>Low</MenuItem>
-                            <MenuItem value='high'>High</MenuItem>
-                          </Select>
-                        </FormControl>
-                      )}
+                      <FormControl size='small'>
+                        <Select
+                          value={selectedPriority}
+                          onChange={handlePriorityChange}
+                          displayEmpty
+                          sx={{
+                            minWidth: 120,
+                            minHeight: 44,
+                            fontSize: '14px',
+                            '& .MuiSelect-select': {
+                              py: 1,
+                              px: 4
+                            }
+                          }}
+                        >
+                          <MenuItem value='all'>All Priority</MenuItem>
+                          <MenuItem value='low'>Low</MenuItem>
+                          <MenuItem value='high'>High</MenuItem>
+                        </Select>
+                      </FormControl>
                       <FilterButtonWithNotification
                         onClick={() => setOpenFilterDrawer(true)}
                         appliedFiltersCount={viewType === 'animals' ? animalFilterCount : speciesFilterCount}

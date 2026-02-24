@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Box, Card, Typography, Tooltip, alpha, Skeleton, IconButton, useTheme, Avatar } from '@mui/material'
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
@@ -98,15 +98,20 @@ const NecropsyAnimalInfoCard = ({
 }) => {
   const theme = useTheme()
   const router = useRouter()
+  const [copied, setCopied] = useState(false)
 
   const rusticRed = theme.palette.customColors?.rusticRed
+
+  const handleCopyNumber = number => {
+    navigator.clipboard.writeText(number)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   if (loading) {
     return (
       <Card sx={{ boxShadow: 'none', overflow: 'hidden' }}>
-        {/* Header Section - Dark */}
         <Box sx={{ backgroundColor: rusticRed, p: 4 }}>
-          {/* Title bar with back button */}
           <Box
             sx={{
               display: 'flex',
@@ -140,7 +145,6 @@ const NecropsyAnimalInfoCard = ({
           </Box>
 
           <Box sx={{ display: 'flex', gap: 4, flexDirection: { xs: 'column', md: 'row' } }}>
-            {/* Animal Card Skeleton */}
             <Box
               sx={{
                 flex: { md: '1 1 300px' },
@@ -151,8 +155,6 @@ const NecropsyAnimalInfoCard = ({
             >
               <AnimalCardSkeleton />
             </Box>
-
-            {/* Info Items Skeleton */}
             <Box
               sx={{
                 flex: { md: '1 1 200px' },
@@ -167,8 +169,6 @@ const NecropsyAnimalInfoCard = ({
             </Box>
           </Box>
         </Box>
-
-        {/* Footer Section */}
         <Box sx={{ backgroundColor: rusticRed }}>
           <Box sx={{ background: alpha('#000', 0.15), px: 4, py: 3 }}>
             <Skeleton variant='text' width={80} height={16} sx={{ bgcolor: 'rgba(255,255,255,0.15)', mb: 1 }} />
@@ -253,14 +253,15 @@ const NecropsyAnimalInfoCard = ({
                 {status?.toUpperCase() === 'DRAFT' && (
                   <Box
                     sx={{
-                      px: 2,
-                      py: 0.5,
-                      borderRadius: 1,
-                      backgroundColor: theme.palette.customColors?.draftChipBg || '#F5E6C8',
-                      color: theme.palette.customColors?.draftChipText || '#8B6914'
+                      px: 4,
+                      py: 1,
+                      borderRadius: 0.5,
+                      backgroundColor: theme.palette.customColors?.antzNotes
                     }}
                   >
-                    <Typography sx={{ fontSize: '12px', fontWeight: 600 }}>Draft</Typography>
+                    <Typography sx={{ fontSize: '12px', fontWeight: 600, color: theme.palette.customColors.Tertiary }}>
+                      Draft
+                    </Typography>
                   </Box>
                 )}
               </Box>
@@ -312,7 +313,7 @@ const NecropsyAnimalInfoCard = ({
         <Box
           sx={{
             display: 'flex',
-            gap: 4,
+            gap: 8,
             flexDirection: { xs: 'column', md: 'row' }
           }}
         >
@@ -322,13 +323,11 @@ const NecropsyAnimalInfoCard = ({
               width: { xs: '100%', md: 'auto' },
               backgroundColor: alpha(theme.palette.customColors.deepDark, 0.2),
               borderRadius: 1,
-              p: 3,
-              '& *': {
-                color: `${theme.palette.customColors?.OnPrimary} !important`
-              }
+              py: 4,
+              px: 6
             }}
           >
-            <AnimalCard data={mortalityData} />
+            <AnimalCard data={mortalityData} valueColor={theme.palette.customColors.OnPrimary} />
           </Box>
 
           <Box
@@ -336,7 +335,7 @@ const NecropsyAnimalInfoCard = ({
               flex: { md: '1 1 200px' },
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row', md: 'column' },
-              gap: 3,
+              gap: 5,
               justifyContent: { xs: 'flex-start', md: 'center' }
             }}
           >
@@ -361,7 +360,7 @@ const NecropsyAnimalInfoCard = ({
             sx={{
               fontSize: '14px',
               fontWeight: 400,
-              color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary,
+              color: alpha(theme.palette.customColors.OnPrimary, 0.8),
               mb: 1
             }}
           >
@@ -374,7 +373,7 @@ const NecropsyAnimalInfoCard = ({
               show_time
               text_color={theme.palette.customColors.OnPrimary}
             />
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 2 }}>
               {mortalityData?.user_mobile_number && (
                 <IconButton
                   onClick={() => window.open(`tel:${mortalityData.user_mobile_number}`, '_self')}
@@ -400,6 +399,32 @@ const NecropsyAnimalInfoCard = ({
                 </IconButton>
               )}
             </Box>
+            {mortalityData?.user_mobile_number && (
+              <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1 }}>
+                <Icon icon='mdi:phone' fontSize={18} color={theme.palette.customColors?.OnPrimary} />
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: theme.palette.customColors?.OnPrimary
+                  }}
+                >
+                  {mortalityData.user_mobile_number}
+                </Typography>
+                <Tooltip title={copied ? 'Copied!' : 'Copy number'}>
+                  <IconButton
+                    size='small'
+                    onClick={() => handleCopyNumber(mortalityData.user_mobile_number)}
+                    sx={{
+                      color: theme.palette.customColors?.OnPrimary,
+                      '&:hover': { backgroundColor: alpha(theme.palette.customColors?.OnPrimary, 0.1) }
+                    }}
+                  >
+                    <Icon icon={copied ? 'mdi:check' : 'mdi:content-copy'} fontSize={18} />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            )}
           </Box>
         </Box>
       </Box>

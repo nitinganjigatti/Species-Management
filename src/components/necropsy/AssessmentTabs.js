@@ -21,7 +21,6 @@ const AssessmentTabs = ({ animalId, hideTitle = false }) => {
       const res = await getAssessmentTypes(animalId)
 
       if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
-        // Filter to only show assessment types that have data
         const typesWithData = res.data.filter(
           type => Array.isArray(type.assessment_values) && type.assessment_values.length > 0
         )
@@ -37,12 +36,39 @@ const AssessmentTabs = ({ animalId, hideTitle = false }) => {
     }
   }
 
-  const getValueAndUnit = record => {
+  const getValueAndUnit = (record, responseType) => {
     const unit = record.uom_abbr || record.unit || ''
+
+    if (responseType === 'list' || responseType === 'numeric_scale') {
+      if (record.asssessment_label) {
+        return { value: record.asssessment_label, unit: '' }
+      }
+      if (record.default_value_label) {
+        return { value: record.default_value_label, unit: '' }
+      }
+      if (record.comments) {
+        return { value: record.comments, unit: '' }
+      }
+    }
+
+    if (responseType === 'text') {
+      if (record.assessment_value !== undefined && record.assessment_value !== null) {
+        return { value: record.assessment_value, unit: '' }
+      }
+    }
+
+    if (responseType === 'numeric_value') {
+      if (record.assessment_value !== undefined && record.assessment_value !== null) {
+        return { value: record.assessment_value, unit }
+      }
+    }
 
     if (record.assessment_value !== undefined && record.assessment_value !== null) {
       if (record.asssessment_label) {
         return { value: record.asssessment_label, unit: '' }
+      }
+      if (record.default_value_label) {
+        return { value: record.default_value_label, unit: '' }
       }
 
       return { value: record.assessment_value, unit }
@@ -205,7 +231,7 @@ const AssessmentTabs = ({ animalId, hideTitle = false }) => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {assessmentValues.map((record, index) => {
               const dateSource = record.recorded_date_time || record.created_at
-              const { value, unit } = getValueAndUnit(record)
+              const { value, unit } = getValueAndUnit(record, activeType?.response_type)
               const hasComments = !!(record.comments || record.notes)
 
               return (

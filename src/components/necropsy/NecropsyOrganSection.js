@@ -68,7 +68,8 @@ const NecropsyOrganSection = ({ organs = [], onChange, disabled = false }) => {
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: 2
+            gap: 2,
+            borderRadius: 0.5
           }}
         >
           <Icon icon='lucide:square-plus' fontSize={18} color={theme.palette.customColors?.OnPrimary} />

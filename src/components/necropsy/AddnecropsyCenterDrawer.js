@@ -56,7 +56,6 @@ const AddnecropsyCenterDrawer = ({ open, setOpen, editData = null, setEditData =
   const [siteOptions, setSiteOptions] = useState([])
   const [siteInputText, setSiteInputText] = useState('')
 
-  // Prefill form when editData is provided
   useEffect(() => {
     if (editData && open) {
       const formData = {
@@ -77,7 +76,6 @@ const AddnecropsyCenterDrawer = ({ open, setOpen, editData = null, setEditData =
   const necropsyCenterName = watch('necropsy_center_name')
   const selectedSite = watch('site')
 
-  // Site is invalid if user typed something but didn't select a valid option
   const isSiteInvalid = siteInputText.trim() !== '' && !selectedSite
 
   const isSubmitDisabled =
@@ -129,7 +127,6 @@ const AddnecropsyCenterDrawer = ({ open, setOpen, editData = null, setEditData =
     try {
       setSubmitLoader(true)
 
-      // Define your payload here
       const payload = {
         name: data.necropsy_center_name?.trim(),
         description: data.description?.trim() || '',
@@ -138,11 +135,9 @@ const AddnecropsyCenterDrawer = ({ open, setOpen, editData = null, setEditData =
         is_external: 0
       }
 
-      // Determine status and necropsyId based on mode
       const status = isEditMode ? 'update' : 'add'
       const necropsyId = isEditMode ? editData?.id : ''
 
-      // Add is_active for update operation
       if (isEditMode) {
         payload.is_active = editData?.is_active ?? 1
       }
@@ -255,13 +250,11 @@ const AddnecropsyCenterDrawer = ({ open, setOpen, editData = null, setEditData =
             onInputChange={query => {
               setSiteInputText(query)
 
-              // Only fetch if the query has actually changed
               if (query !== siteInputText) {
                 fetchSites(query)
               }
             }}
             onChangeOverride={value => {
-              // When a valid selection is made, sync input text with label
               setSiteInputText(value?.label || '')
             }}
             onItemClear={() => {

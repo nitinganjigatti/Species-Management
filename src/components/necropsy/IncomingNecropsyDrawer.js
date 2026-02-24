@@ -14,6 +14,7 @@ import {
   Paper,
   Skeleton,
   TextField,
+  Tooltip,
   Typography,
   useTheme
 } from '@mui/material'
@@ -43,6 +44,7 @@ import {
 } from 'src/lib/api/necropsy'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import TransferPassQRCard from 'src/components/necropsy/TransferPassQRCard'
+import TransferChecklistDrawer from 'src/components/necropsy/TransferChecklistDrawer'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Toaster from '../Toaster'
 import moment from 'moment'
@@ -106,8 +108,15 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
   const [animalList, setAnimalList] = useState([])
   const [animalListLoading, setAnimalListLoading] = useState(false)
   const [acceptLoading, setAcceptLoading] = useState(false)
+  const [showChecklistDrawer, setShowChecklistDrawer] = useState(false)
+  const [copied, setCopied] = useState(false)
 
-  // Fetch all drawer data in parallel for better performance
+  const handleCopyNumber = number => {
+    navigator.clipboard.writeText(number)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   const fetchAllDrawerData = useCallback(async () => {
     if (!transferId) return
 
@@ -115,7 +124,6 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
     setBtnStatusLoading(true)
 
     try {
-      // Execute all API calls in parallel
       const [detailsRes, btnStatusRes, checklistRes] = await Promise.all([
         getIncomingNecropsyTransferSummary({ transfer_id: transferId }),
         getIncomingNecropsyBtnStatus(transferId),
@@ -141,7 +149,6 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
     }
   }, [transferId])
 
-  // Individual fetch for necropsy details (used after adding comment)
   const fetchNecropsyDetails = useCallback(async () => {
     if (!transferId) return
     try {
@@ -226,14 +233,12 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
     }
   }
 
-  // Fetch all data in parallel when drawer opens
   useEffect(() => {
     if (open && transferId) {
       fetchAllDrawerData()
     }
   }, [open, transferId, fetchAllDrawerData])
 
-  // Memoize grouped comments to avoid recalculation on every render
   const groupedChecklistComments = useMemo(() => groupCommentsByDate(checklistComments), [checklistComments])
 
   return (
@@ -425,21 +430,12 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
                         })
                       }}
 
-                      // sx={{
-                      //   backgroundColor: theme.palette.customColors.OnPrimary,
-                      //   p: 1,
-                      //   borderRadius: 1,
-                      //   '&:hover': {
-                      //     backgroundColor: 'rgba(255, 255, 255, 0.9)'
-                      //   }
-                      // }}
                     >
                       <Icon icon='ic:outline-qr-code-2' fontSize={46} color={theme.palette.customColors?.OnPrimary} />
                     </IconButton>
                   )}
                 </Box>
               </Box>
-
               <Box
                 sx={{
                   px: 6,
@@ -472,36 +468,60 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
                     text_color={theme.palette.customColors.OnPrimary}
                   />
                 </Box>
-                <Box sx={{ display: { xs: 'flex', lg: 'none' }, gap: 2 }}>
-                  {necropsyData?.transfer_details?.user_mobile_number && (
-                    <IconButton
-                      sx={{
-                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                        color: theme.palette.customColors.OnPrimary,
-                        '&:hover': {
-                          backgroundColor: 'rgba(0, 0, 0, 0.5)'
-                        }
-                      }}
-                      onClick={() => window.open(`tel:${necropsyData?.transfer_details?.user_mobile_number}`, '_self')}
-                    >
-                      <Icon icon='mdi:phone' fontSize={20} />
-                    </IconButton>
-                  )}
-                  {necropsyData?.transfer_details?.user_mobile_number && (
-                    <IconButton
-                      sx={{
-                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                        color: theme.palette.customColors.OnPrimary,
-                        '&:hover': {
-                          backgroundColor: 'rgba(0, 0, 0, 0.5)'
-                        }
-                      }}
-                      onClick={() => window.open(`sms:${necropsyData?.transfer_details?.user_mobile_number}`, '_self')}
-                    >
-                      <Icon icon='mdi:message-text' fontSize={20} />
-                    </IconButton>
-                  )}
-                </Box>
+{necropsyData?.transfer_details?.user_mobile_number && (
+                  <>
+                    <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 2 }}>
+                      <IconButton
+                        sx={{
+                          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                          color: theme.palette.customColors.OnPrimary,
+                          '&:hover': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                          }
+                        }}
+                        onClick={() => window.open(`tel:${necropsyData?.transfer_details?.user_mobile_number}`, '_self')}
+                      >
+                        <Icon icon='mdi:phone' fontSize={20} />
+                      </IconButton>
+                      <IconButton
+                        sx={{
+                          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                          color: theme.palette.customColors.OnPrimary,
+                          '&:hover': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                          }
+                        }}
+                        onClick={() => window.open(`sms:${necropsyData?.transfer_details?.user_mobile_number}`, '_self')}
+                      >
+                        <Icon icon='mdi:message-text' fontSize={20} />
+                      </IconButton>
+                    </Box>
+                    <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1 }}>
+                      <Icon icon='mdi:phone' fontSize={18} color={theme.palette.customColors?.OnPrimary} />
+                      <Typography
+                        sx={{
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          color: theme.palette.customColors.OnPrimary
+                        }}
+                      >
+                        {necropsyData?.transfer_details?.user_mobile_number}
+                      </Typography>
+                      <Tooltip title={copied ? 'Copied!' : 'Copy number'}>
+                        <IconButton
+                          size='small'
+                          onClick={() => handleCopyNumber(necropsyData?.transfer_details?.user_mobile_number)}
+                          sx={{
+                            color: theme.palette.customColors?.OnPrimary,
+                            '&:hover': { backgroundColor: alpha(theme.palette.customColors?.OnPrimary, 0.1) }
+                          }}
+                        >
+                          <Icon icon={copied ? 'mdi:check' : 'mdi:content-copy'} fontSize={18} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </>
+                )}
               </Box>
             </Box>
 
@@ -513,9 +533,6 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
                 display: 'flex',
                 flexDirection: 'column',
                 minHeight: 0
-
-                // gap: 5,
-                // p: 6
               }}
             >
               {(() => {
@@ -527,8 +544,6 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
                       onClick={() => handleAnimalClick(necropsyData?.entity_details[0]?.animal_id)}
                       sx={{
                         background: theme.palette.customColors.avatarBackground,
-
-                        // borderRadius: 1,
                         p: 3,
                         cursor: necropsyData?.entity_details[0]?.animal_id ? 'pointer' : 'default',
                         '&:hover': necropsyData?.entity_details[0]?.animal_id
@@ -664,6 +679,19 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
                     </Typography>
                   </Box>
                 </Box>
+{necropsyData?.transfer_details?.checked_count > 0 && (
+                  <Box
+                    onClick={() => setShowChecklistDrawer(true)}
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      color: theme.palette.primary.main,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    View
+                  </Box>
+                )}
               </Box>
               {necropsyData?.transfer_attachment?.length > 0 && (
                 <Box sx={{ px: 6, py: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -810,7 +838,6 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
                 gap: 2
               }}
             >
-              {/* Drag Handle */}
               <Box
                 sx={{
                   display: 'flex',
@@ -994,6 +1021,12 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
         />
       )}
 
+      <TransferChecklistDrawer
+        open={showChecklistDrawer}
+        onClose={() => setShowChecklistDrawer(false)}
+        transferId={transferId}
+      />
+
       <Modal
         open={showAnimalListDrawer}
         onClose={() => setShowAnimalListDrawer(false)}
@@ -1120,5 +1153,4 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
   )
 }
 
-// Memoize the component to prevent unnecessary re-renders
 export default memo(IncomingNecropsyDrawer)

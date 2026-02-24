@@ -13,7 +13,6 @@ const NecropsyDropdown = ({ disabled = false }) => {
   const authData = useContext(AuthContext)
   const userId = authData?.userData?.user?.user_id || ''
 
-  // Use Redux-based hook for center management
   const {
     selectedCenter: selectedNecropsy,
     centers: necropsies,
@@ -28,7 +27,6 @@ const NecropsyDropdown = ({ disabled = false }) => {
   const [hasValidatedAccess, setHasValidatedAccess] = useState(false)
   const searchInputRef = useRef(null)
 
-  // Validate access when centers are loaded
   useEffect(() => {
     if (necropsies.length > 0 && !hasValidatedAccess) {
       setIsCheckingNecropsyAccess(true)
@@ -163,8 +161,6 @@ const NecropsyDropdown = ({ disabled = false }) => {
                 display: 'flex',
                 flexDirection: 'row',
                 maxWidth: 400
-
-                // backgroundColor: theme.palette.customColors.background
               }}
             >
               <Avatar
@@ -176,7 +172,6 @@ const NecropsyDropdown = ({ disabled = false }) => {
                   p: '8px'
                 }}
               >
-                {/* <Biotech sx={{ fontSize: 32, color: theme.palette.customColors.OnSurfaceVariant }} /> */}
                 <img src={'/images/necropsy/necropsy_main.svg'} alt='necropsy' />
               </Avatar>
               <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2 }}>

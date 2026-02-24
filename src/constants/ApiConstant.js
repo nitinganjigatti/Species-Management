@@ -987,6 +987,10 @@ export const UPDATE_TRANSFER_BTN_STATUS = `v1/transfer/update-btn-status`
 
 export const GET_TRANSFER_ANIMAL_LIST = `v1/transfer/get-animal-list`
 
+export const GET_FILLED_CHECKLIST_LIST = `v1/get-field-checklist-list`
+
+export const GET_TRANSFER_CHECKLIST = `antz/get-transfer-checklist`
+
 export const GET_NECROPSY_SUMMARY = `v2/necropsy/summary`
 
 export const ADD_NECROPSY = `v2/animal/necropsy/add`
@@ -1023,6 +1027,14 @@ export const GET_MEDICAL_BASIC_DATA_LIST = 'medical/v2/'
 export const GET_MEDICAL_RECORD_DETAILS = 'medical/v2/details'
 
 export const GET_LAB_REQUESTS_BY_ANIMAL = 'medical/get-lab-test-request-status-wise-new'
+
+// Lab Request Details
+export const LAB_REQUEST_DETAILS = 'v1/lab-request-details'
+export const LAB_REQUEST_SAMPLES = 'v1/lab-request/get-sample-details'
+export const LAB_REQUEST_NOTES = 'v1/lab-request-report-notes'
+export const LAB_REQUEST_REPORTS = 'v1/lab-request/get-attachment-list'
+export const LAB_SUB_TESTS = 'v1/labs/master-data'
+export const LAB_SAMPLE_LOGS = 'v1/lab-request/get-sample-logs'
 
 export const GET_ASSESSMENT_ANIMAL_TYPES = 'v1/assessment/animal/types'
 

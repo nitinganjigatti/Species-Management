@@ -32,7 +32,6 @@ const CustomSwitchTabs = ({ options = [], value, onChange, className = '' }) => 
             fontWeight: 600,
             px: 1,
             py: 0.5,
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
             margin: 0,
             minWidth: '120px',
             '&.Mui-selected': {
@@ -40,10 +39,16 @@ const CustomSwitchTabs = ({ options = [], value, onChange, className = '' }) => 
               color: theme.palette.customColors.OnPrimary,
               borderRadius: 3,
               fontSize: '0.875rem',
-              fontWeight: 600
+              fontWeight: 600,
+              '&:hover': {
+                bgcolor: theme.palette.customColors.OnPrimaryContainer
+              }
             },
-            '&:not(.Mui-selected):hover': {
-              bgcolor: 'transparent'
+            '&:not(.Mui-selected)': {
+              bgcolor: 'transparent',
+              '&:hover': {
+                bgcolor: 'transparent'
+              }
             },
             '&:focus': {
               outline: 'none'

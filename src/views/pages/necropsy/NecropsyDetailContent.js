@@ -301,7 +301,7 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
                 Medical History
               </Typography>
             </AccordionSummary>
-            <AccordionDetails sx={{ px: 4, py: 2 }}>
+            <AccordionDetails sx={{ px: 4, pt: 2, pb: 6 }}>
               <MedicalHistoryTabs animalId={mortalityData.animal_id} hideTitle />
             </AccordionDetails>
           </Accordion>
@@ -332,7 +332,7 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
                 Assessments
               </Typography>
             </AccordionSummary>
-            <AccordionDetails sx={{ px: 4, py: 2 }}>
+            <AccordionDetails sx={{ px: 4, pt: 2, pb: 6 }}>
               <AssessmentTabs animalId={mortalityData.animal_id} hideTitle />
             </AccordionDetails>
           </Accordion>

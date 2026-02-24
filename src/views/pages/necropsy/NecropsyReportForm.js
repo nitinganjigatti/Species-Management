@@ -1049,7 +1049,6 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
             ))}
           </Tabs>
         </Box>
-
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Accordion
             expanded={activeTab === 'carcass_details'}
@@ -1185,12 +1184,12 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                         />
                       </Grid>
                       <Grid size={6}>
-                        <ControlledTextField
-                          name='carcass_weight_unit'
+                        <ControlledAutocomplete
+                          name='weight_unit'
                           control={control}
                           errors={mergedErrors}
                           label='Unit'
-                          placeholder='kg'
+                          options={weightUnitOptions}
                         />
                       </Grid>
                     </Grid>
@@ -1669,8 +1668,8 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ pt: 3 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <DialogContent sx={{ pt: 2, overflow: 'visible' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 1 }}>
             <Grid container spacing={2}>
               <Grid size={4}>
                 <TextField
@@ -1680,7 +1679,6 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                   value={ageInputs.years}
                   onChange={e => handleAgeInputChange('years', e.target.value)}
                   inputProps={{ min: 0, max: 999 }}
-                  size='small'
                 />
               </Grid>
               <Grid size={4}>
@@ -1691,7 +1689,6 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                   value={ageInputs.months}
                   onChange={e => handleAgeInputChange('months', e.target.value)}
                   inputProps={{ min: 0, max: 11 }}
-                  size='small'
                 />
               </Grid>
               <Grid size={4}>
@@ -1702,7 +1699,6 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                   value={ageInputs.days}
                   onChange={e => handleAgeInputChange('days', e.target.value)}
                   inputProps={{ min: 0, max: 30 }}
-                  size='small'
                 />
               </Grid>
             </Grid>
