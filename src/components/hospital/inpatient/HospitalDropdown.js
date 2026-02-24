@@ -366,10 +366,10 @@ const HospitalDropdown = ({ disabled = false }) => {
           ) : isCheckingHospitalAccess ? (
 
             // Shimmer for checking hospital access state
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
+            (<Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
               <ShimmerBox width='160px' height='24px' mb={0} />
               <ShimmerBox width='120px' height='16px' mb={0} />
-            </Box>
+            </Box>)
           ) : selectedHospital?.name ? (
             <Box
               sx={{
@@ -408,17 +408,16 @@ const HospitalDropdown = ({ disabled = false }) => {
           ) : (
 
             // Shimmer for initial loading state when no stored hospital
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
+            (<Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
               <ShimmerBox width='160px' height='24px' mb={0} />
               <ShimmerBox width='120px' height='16px' mb={0} />
-            </Box>
+            </Box>)
           )}
         </Box>
 
         {/* Conditionally render dropdown arrow */}
         {!disabled && <KeyboardArrowDown />}
       </Box>
-
       {/* Dropdown Menu - Only show if not disabled */}
       {!disabled && (
         <Menu
@@ -459,7 +458,7 @@ const HospitalDropdown = ({ disabled = false }) => {
             {isLoading ? (
 
               // Shimmer for initial loading of hospital list
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              (<Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {Array.from({ length: 5 }).map((_, index) => (
                   <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 1, px: '4px' }}>
                     <Box sx={{ flex: 1 }}>
@@ -468,7 +467,7 @@ const HospitalDropdown = ({ disabled = false }) => {
                     </Box>
                   </Box>
                 ))}
-              </Box>
+              </Box>)
             ) : hospitalList.length === 0 ? (
               <MenuItem disabled>{searchQuery ? 'No hospitals found' : 'No hospitals available'}</MenuItem>
             ) : (
@@ -562,7 +561,7 @@ const HospitalDropdown = ({ disabled = false }) => {
         </Menu>
       )}
     </Box>
-  )
+  );
 }
 
 export default HospitalDropdown

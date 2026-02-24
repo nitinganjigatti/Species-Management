@@ -318,9 +318,8 @@ const PreparationTypes = () => {
             }
           }}
           onCellClick={''}
-        />
+          showToolbar />
       </Card>
-
       <AddPreparationType
         drawerWidth={400}
         addEventSidebarOpen={openDrawer}
@@ -332,7 +331,7 @@ const PreparationTypes = () => {
       />
       <UserSnackbar status={openSnackbar} message={snackbarMessage} severity={severity} handleClose={handleClose} />
     </>
-  )
+  );
 }
 
 export default PreparationTypes

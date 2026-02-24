@@ -430,7 +430,7 @@ const LabTest = () => {
                 }
               }}
               onCellClick={handleCellClick}
-            />
+              showToolbar />
           </Card>
           {openDrawer && (
             <AddLabTest
@@ -463,7 +463,7 @@ const LabTest = () => {
         <Error404></Error404>
       )}
     </>
-  )
+  );
 }
 
 export default LabTest

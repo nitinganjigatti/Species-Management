@@ -514,12 +514,12 @@ const IngredientsList = () => {
                   }
                 }}
                 onCellClick={onCellClick}
-              />
+                showToolbar />
             </Box>
           </Card>
         )}
       </>
-    )
+    );
   }
 
   return (

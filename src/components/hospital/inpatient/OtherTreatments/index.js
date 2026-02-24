@@ -645,7 +645,6 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
           </Button>
         )}
       </Box>
-
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {isTreatmentsLoading && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -666,7 +665,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
         {!isTreatmentsLoading && treatmentGroups.length === 0 && (
           // <NoDataFound variant='Seal' height={300} width={300} />
-          <Box
+          (<Box
             sx={{
               width: '100%',
               display: 'flex',
@@ -680,7 +679,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
               isDischarged={patientDischarged}
               btnAction={handleOpenAddDrawer}
             />
-          </Box>
+          </Box>)
         )}
 
         {!isTreatmentsLoading && treatmentGroups.length > 0 && (
@@ -904,7 +903,6 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
           </>
         )}
       </Box>
-
       <AddTreatmentDrawer
         open={isAddDrawerOpen}
         onClose={handleCloseAddDrawer}
@@ -918,7 +916,6 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         isSubmitting={isCreatingTreatment}
         admissionDate={dayjs(patientData?.admitted_at)}
       />
-
       <EditTreatmentDrawer
         open={isEditDrawerOpen}
         onClose={closeEditDrawer}
@@ -937,7 +934,6 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         formatShortDate={formatShortDate}
         admissionDate={dayjs(patientData?.admitted_at)}
       />
-
       <DialogConfirmationDialog
         open={isDeleteDialogOpen}
         handleClose={handleCancelDeleteTreatment}
@@ -946,7 +942,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         loading={isDeletingTreatment}
       />
     </Box>
-  )
+  );
 }
 
 export default OtherTreatment

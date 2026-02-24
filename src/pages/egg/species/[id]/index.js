@@ -450,13 +450,13 @@ const SpeciesDetail = () => {
           //     </Typography>
           //   </Box>
           // </Box>
-          <SpeciesImageCard
+          (<SpeciesImageCard
             imgURl={params.row.default_icon}
             eggCondition={params.row.egg_condition}
             eggCode={params.row.egg_code}
             egg_status={params.row.egg_status}
             eggIcon={params.row.image ? params.row.image : '/icons/Egg_icon.png'}
-          />
+          />)
         )
       }
 
@@ -804,13 +804,13 @@ const SpeciesDetail = () => {
                     onChange: event => handleSearch(event.target.value)
                   }
                 }}
-              />
+                showToolbar />
             </div>
           </Card>
         </>
       )}
     </>
-  )
+  );
 }
 
 export default SpeciesDetail

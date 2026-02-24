@@ -15,7 +15,7 @@ import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV2';
 import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 
 const JournalFilterSheet = ({
@@ -380,7 +380,7 @@ return true
                 </LoadingButton>
             </Box>
         </Drawer>
-    )
+    );
 }
 
 export default JournalFilterSheet

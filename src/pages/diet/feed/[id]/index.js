@@ -622,7 +622,7 @@ const FeedDetails = () => {
                                     onChange: event => handleSearch(event.target.value)
                                   }
                                 }}
-                              />
+                                showToolbar />
                             </TabPanel>
                           </TabContext>
                         </Grid>
@@ -679,7 +679,7 @@ const FeedDetails = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default FeedDetails

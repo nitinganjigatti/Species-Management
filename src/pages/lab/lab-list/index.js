@@ -360,7 +360,7 @@ const ListOfLab = () => {
                       }
                     }
                   }}
-                />
+                  showToolbar />
               </Card>
             </>
           )}
@@ -369,7 +369,7 @@ const ListOfLab = () => {
         <ErrorScreen />
       )}
     </>
-  )
+  );
 }
 
 export default ListOfLab

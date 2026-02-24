@@ -602,7 +602,6 @@ const NewEntry = ({}) => {
             <DataGrid
               disableColumnMenu
               disableColumnFilter
-
               // disableColumnSorting
               sx={{
                 '.MuiDataGrid-cell:focus': {
@@ -629,7 +628,6 @@ const NewEntry = ({}) => {
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbarWithFilter }}
-
               // onPaginationModelChange={setPaginationModel}
               onPaginationModelChange={newModel => {
                 setPaginationModel(newModel)
@@ -647,11 +645,11 @@ const NewEntry = ({}) => {
                 }
               }}
               onCellClick={onCellClick}
-            />
+              showToolbar />
           </Card>
         )}
       </>
-    )
+    );
   }
 
   const fetchOrgCountData = useCallback(

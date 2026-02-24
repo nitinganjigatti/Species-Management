@@ -300,7 +300,7 @@ const SubmittedBatches = ({ type }) => {
       alignItems: 'left',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        (<Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography
             noWrap
             variant='body2'
@@ -328,7 +328,7 @@ const SubmittedBatches = ({ type }) => {
               ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.submitted_on))
               : '-'}
           </Typography>
-        </Box>
+        </Box>)
 
         // <Typography variant='body2' sx={{ color: '#E93353' }}>
         //   {params.row.status ? params.row.status : '-'}
@@ -448,11 +448,11 @@ const SubmittedBatches = ({ type }) => {
                 }
               }}
               onCellClick={onCellClick}
-            />
+              showToolbar />
           </Card>
         )}
       </>
-    )
+    );
   }
 
   return <>{pariveshAccess ? <Grid>{tableData()}</Grid> : <Error404></Error404>}</>

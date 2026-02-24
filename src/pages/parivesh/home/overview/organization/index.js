@@ -336,11 +336,11 @@ const Organization = () => {
                 }
               }}
               onCellClick={onCellClick}
-            />
+              showToolbar />
           </Card>
         )}
       </>
-    )
+    );
   }
 
   const headerAction = (

@@ -466,13 +466,13 @@ const Diet = () => {
                     }
                   }}
                   onCellClick={onCellClick}
-                />
+                  showToolbar />
               </Box>
             </Card>
           </>
         )}
       </>
-    )
+    );
   }
 
   return (

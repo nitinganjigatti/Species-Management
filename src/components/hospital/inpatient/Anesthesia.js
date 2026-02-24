@@ -1778,7 +1778,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                       ))}
                     </Grid>
                   ) : (
-                    ''
+                    ("")
                     // <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
                     //   No anesthesia setup data available.
                     // </Typography>
@@ -1840,7 +1840,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
         message='Are you sure you want to delete this anesthesia record?'
       />
     </>
-  )
+  );
 }
 
 export default Anesthesia

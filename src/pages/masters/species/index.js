@@ -373,7 +373,7 @@ return false
                     onChange: event => handleSearch(event.target.value)
                   }
                 }}
-              />
+                showToolbar />
             </Card>
           ) : (
             <Card>
@@ -400,7 +400,7 @@ return false
                     onChange: event => handleSearch(event.target.value)
                   }
                 }}
-              />
+                showToolbar />
             </Card>
           )}
 
@@ -434,7 +434,7 @@ return false
         </>
       )}
     </>
-  )
+  );
 }
 
 export default AddSpecies

@@ -42,10 +42,52 @@ const CommonTable = ({
           outline: 'none'
         },
 
+        // Header styling - MUI X v8
         '& .MuiDataGrid-columnHeaders': {
+          backgroundColor: theme.palette.customColors.customTableHeaderBg,
+          color: theme.palette.customColors.customHeadingTextColor,
+          minHeight: '56px !important',
+          maxHeight: '56px !important'
+        },
+        '& .MuiDataGrid-columnHeader': {
           backgroundColor: theme.palette.customColors.customTableHeaderBg,
           color: theme.palette.customColors.customHeadingTextColor
         },
+        '& .MuiDataGrid-columnHeaderTitle': {
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontWeight: 500
+        },
+
+        // Cell alignment - vertically center content
+        '& .MuiDataGrid-cell': {
+          display: 'flex',
+          alignItems: 'center',
+          lineHeight: 'normal'
+        },
+        '& .MuiDataGrid-columnHeader--alignCenter .MuiDataGrid-columnHeaderDraggableContainer': {
+          justifyContent: 'center'
+        },
+        '& .MuiDataGrid-columnHeader--alignRight .MuiDataGrid-columnHeaderDraggableContainer': {
+          justifyContent: 'flex-end'
+        },
+
+        // Column menu icon button styling
+        '& .MuiDataGrid-menuIcon': {
+          visibility: 'visible',
+          width: 'auto'
+        },
+        '& .MuiDataGrid-iconButtonContainer': {
+          visibility: 'visible',
+          width: 'auto'
+        },
+        '& .MuiDataGrid-menuIconButton': {
+          backgroundColor: 'transparent',
+          color: theme.palette.customColors.customHeadingTextColor,
+          '&:hover': {
+            backgroundColor: theme.palette.action.hover
+          }
+        },
+
         '& .MuiDataGrid-row:hover': {
           cursor: 'pointer'
         },
@@ -122,8 +164,10 @@ const CommonTable = ({
       }}
       onRowClick={onRowClick ? onRowClick : null}
       checkboxSelection={checkBoxOption ? true : false}
-      onRowSelectionModelChange={onRowSelectionModelChange ? onRowSelectionModelChange : null}
-      rowSelectionModel={selectedRows ? selectedRows : []}
+      {...(checkBoxOption && {
+        onRowSelectionModelChange: onRowSelectionModelChange || (() => {}),
+        rowSelectionModel: selectedRows || []
+      })}
       getRowHeight={getRowHeight ? getRowHeight : null}
       getRowClassName={getRowClassName ? getRowClassName : undefined}
     />

@@ -426,7 +426,7 @@ const LabSamples = () => {
                 }
               }}
               onCellClick={handleCellClick}
-            />
+              showToolbar />
           </Card>
           {openDrawer && (
             <AddSample
@@ -459,7 +459,7 @@ const LabSamples = () => {
         <Error404></Error404>
       )}
     </>
-  )
+  );
 }
 
 export default LabSamples

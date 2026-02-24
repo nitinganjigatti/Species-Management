@@ -156,9 +156,239 @@ If other environments (UAT, production) need to load images from additional host
 
 ---
 
+## 7. MUI v8 Upgrade
+
+**Date**: 2026-02-24
+**Scope**: MUI Core v7.3.8 and MUI X v8.27.x upgrade with breaking changes
+
+### 7a. Package Upgrades
+
+| Package | Before | After |
+|---|---|---|
+| `@mui/material` | `^7.1.0` | `^7.3.8` |
+| `@mui/system` | `^7.1.0` | `^7.3.8` |
+| `@mui/icons-material` | `^7.1.0` | `^7.3.8` |
+| `@mui/lab` | `^7.0.0-beta.16` | `^7.0.1-beta.22` |
+| `@mui/x-data-grid` | `^6.20.4` | `^8.27.1` |
+| `@mui/x-date-pickers` | `^6.20.2` | `^8.27.2` |
+
+### 7b. Codemods Executed
+
+**Node version**: v20.19.0 (via nvm)
+
+```bash
+npx @mui/codemod@latest v7.0.0/all src/
+# Result: 61 files transformed
+
+npx @mui/x-codemod@latest v8.0.0/preset-safe src/
+# Result: 36 files transformed
+```
+
+### 7c. Breaking Changes & Fixes
+
+#### 1. DataGrid Row Selection Model (MUI X v8)
+
+**Issue:** `TypeError: Cannot read properties of undefined (reading 'size')` at `gridRowSelectionSelector.js`
+
+**Root Cause:** MUI X v8 requires explicit `rowSelectionModel` state when `checkboxSelection` is enabled.
+
+**Files Fixed:**
+- `src/views/table/data-grid/TableServerSide.js`
+- `src/views/table/data-grid/TableSelection.js`
+- `src/views/table/data-grid/CommonTable.js`
+
+**Changes:**
+```javascript
+// Add state
+const [rowSelectionModel, setRowSelectionModel] = useState([])
+
+// Pass to DataGrid
+<DataGrid
+  rowSelectionModel={rowSelectionModel}
+  onRowSelectionModelChange={setRowSelectionModel}
+  checkboxSelection
+/>
+```
+
+For CommonTable (reusable component), made props conditional:
+```javascript
+{...(checkBoxOption && {
+  onRowSelectionModelChange: onRowSelectionModelChange || (() => {}),
+  rowSelectionModel: selectedRows || []
+})}
+```
+
+#### 2. Conditional Columns Syntax
+
+**Issue:** `Cannot read properties of undefined (reading 'field')`
+
+**Root Cause:** Pattern `{...(condition && {...})}` creates empty objects `{}` in columns array when false. MUI X v8 DataGrid tries to read `field` property from empty objects.
+
+**Before (Incorrect):**
+```javascript
+{
+  ...(stockId === 'all' && {
+    width: 200,
+    field: 'store_name',
+    headerName: 'Store Name',
+    renderCell: params => (...)
+  })
+}
+```
+
+**After (Correct):**
+```javascript
+...(stockId === 'all'
+  ? [
+      {
+        width: 200,
+        field: 'store_name',
+        headerName: 'Store Name',
+        renderCell: params => (...)
+      }
+    ]
+  : [])
+```
+
+**Files Fixed:**
+- `src/pages/pharmacy/stocks/stocksReport/index.js` (2 occurrences)
+- `src/pages/pharmacy/stocks/expired-medicine/index.js`
+- `src/pages/pharmacy/stocks/expired-medicine/expiringStock.js`
+
+#### 3. DataGrid Styling Issues
+
+**Issue:** Header color changed and content not vertically aligned after upgrade.
+
+**Root Cause:** MUI X v8 changed internal DOM structure and CSS class names.
+
+**Fixes Applied:**
+
+**Header Styling:**
+```javascript
+'& .MuiDataGrid-columnHeaders': {
+  backgroundColor: theme.palette.customColors.customTableHeaderBg,
+  color: theme.palette.customColors.customHeadingTextColor,
+  minHeight: '56px !important',
+  maxHeight: '56px !important'
+},
+'& .MuiDataGrid-columnHeader': {
+  backgroundColor: theme.palette.customColors.customTableHeaderBg,
+  color: theme.palette.customColors.customHeadingTextColor
+},
+'& .MuiDataGrid-columnHeaderTitle': {
+  color: theme.palette.customColors.customHeadingTextColor,
+  fontWeight: 500
+}
+```
+
+**Cell Alignment:**
+```javascript
+'& .MuiDataGrid-cell': {
+  display: 'flex',
+  alignItems: 'center',
+  lineHeight: 'normal'  // Critical: Overrides default line-height calculation
+}
+```
+
+**Column Header Alignment:**
+```javascript
+'& .MuiDataGrid-columnHeader--alignCenter .MuiDataGrid-columnHeaderDraggableContainer': {
+  justifyContent: 'center'
+},
+'& .MuiDataGrid-columnHeader--alignRight .MuiDataGrid-columnHeaderDraggableContainer': {
+  justifyContent: 'flex-end'
+}
+```
+
+**Sort Button Styling:**
+```javascript
+'& .MuiDataGrid-menuIcon': {
+  visibility: 'visible',
+  width: 'auto'
+},
+'& .MuiDataGrid-iconButtonContainer': {
+  visibility: 'visible',
+  width: 'auto'
+},
+'& .MuiDataGrid-menuIconButton': {
+  backgroundColor: 'transparent',
+  color: theme.palette.customColors.customHeadingTextColor,
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover
+  }
+}
+```
+
+**Files Updated:**
+- `src/views/table/data-grid/CommonTable.js`
+- `src/views/table/data-grid/TableServerSide.js`
+- `src/views/table/data-grid/TableSelection.js`
+
+#### 4. Line-Height Alignment Issue
+
+**Issue:** Product names and generic names not vertically aligned in DataGrid cells.
+
+**Root Cause:** DataGrid's default CSS has `line-height: calc(var(--height) - 1px)` which interfered with flex alignment.
+
+**Fix:** Added `lineHeight: 'normal'` to all DataGrid cell styles (already included in section 3 above).
+
+### 7d. Modified Files Summary
+
+**Core Table Components:**
+- `src/views/table/data-grid/CommonTable.js`
+- `src/views/table/data-grid/TableServerSide.js`
+- `src/views/table/data-grid/TableSelection.js`
+
+**Pharmacy Stock Pages:**
+- `src/pages/pharmacy/stocks/stocksReport/index.js`
+- `src/pages/pharmacy/stocks/expired-medicine/index.js`
+- `src/pages/pharmacy/stocks/expired-medicine/expiringStock.js`
+
+**Package Files:**
+- `package.json`
+- `eslint.config.mjs` (new, replaces `.eslintrc.json`)
+
+### 7e. Testing Checklist After MUI Upgrade
+
+- [ ] All DataGrid tables render without errors
+- [ ] Checkbox selection works in all tables
+- [ ] Conditional columns (store name) appear/hide correctly
+- [ ] Header colors match theme
+- [ ] Cell content is vertically centered
+- [ ] Sort buttons have correct styling (transparent background)
+- [ ] Product cards in pharmacy tables are properly aligned
+- [ ] Date pickers work correctly
+- [ ] Charts components function properly
+- [ ] No console errors related to MUI components
+- [ ] Test all major pages:
+  - [ ] Pharmacy stocks report (all tabs)
+  - [ ] Expired medicine
+  - [ ] About to expire medicine
+  - [ ] Daily reports
+  - [ ] Hospital module tables
+  - [ ] Diet module tables
+
+### 7f. Important Notes
+
+1. **Theme Colors Only:** All styling uses theme colors (`theme.palette.*`), no hardcoded colors.
+
+2. **Codemod Limitations:** Codemods don't handle all cases (props spreading, cross-file dependencies). Manual fixes were required for:
+   - Row selection model state
+   - Conditional column syntax
+   - Custom styling overrides
+
+3. **ESLint Config:** MUI codemods created `eslint.config.mjs` (flat config format). Ensure this doesn't conflict with existing ESLint setup.
+
+4. **Node Version:** MUI v8 codemods require Node 18+. Used Node v20.19.0 for this migration.
+
+---
+
 ## References
 
 - [Next.js 16 Release Notes](https://nextjs.org/blog)
 - [Next.js `remotePatterns` docs](https://nextjs.org/docs/app/api-reference/components/image#remotepatterns)
 - [Next.js Turbopack docs](https://nextjs.org/docs/app/api-reference/turbopack)
 - [Next.js ESLint configuration](https://nextjs.org/docs/app/api-reference/config/next-config-js/eslint)
+- [MUI v7 Migration Guide](https://mui.com/material-ui/migration/migration-v6/)
+- [MUI X v8 Migration Guide](https://mui.com/x/migration/migration-data-grid-v7/)
+- [MUI Codemods](https://github.com/mui/material-ui/tree/master/packages/mui-codemod)

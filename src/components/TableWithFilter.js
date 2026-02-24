@@ -80,10 +80,10 @@ const TableWithFilter = ({ TableTitle, columns, rows, headerActions, inpFields, 
             }
           }}
           onRowClick={onRowClick}
-        />
+          showToolbar />
       ) : null}
     </Card>
-  )
+  );
 }
 
 export default TableWithFilter

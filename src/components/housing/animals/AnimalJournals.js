@@ -411,7 +411,7 @@ const AnimalJournals = () => {
                                   </span>
                                 </Typography>
                               </Tooltip>
-                            )
+                            );
                           })}
 
                         {item.createdBy && (
@@ -448,7 +448,7 @@ const AnimalJournals = () => {
           </Box>
         ))}
       </Box>
-    )
+    );
   }
 
   const handleSelection = async (selectedIDs, category) => {

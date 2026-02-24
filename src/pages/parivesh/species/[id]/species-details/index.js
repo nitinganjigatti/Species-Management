@@ -221,7 +221,7 @@ const SpeciesDetails = () => {
       headerName: 'DATE',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        (<Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params.row.transaction_date
               ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.transaction_date))
@@ -232,7 +232,7 @@ const SpeciesDetails = () => {
               ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.transaction_date))
               : '-'}
           </Typography>
-        </Box>
+        </Box>)
 
         // <Typography variant='body2' sx={{ color: 'text.primary' }}>
         //   {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
@@ -722,7 +722,6 @@ const SpeciesDetails = () => {
             <DataGrid
               disableColumnMenu
               disableColumnFilter
-
               // disableColumnSorting
               sx={{
                 '.MuiDataGrid-cell:focus': {
@@ -762,11 +761,11 @@ const SpeciesDetails = () => {
                 }
               }}
               onCellClick={onCellClick}
-            />
+              showToolbar />
           </Card>
         )}
       </>
-    )
+    );
   }
 
   console.log(organizationCountList, 'jjj')

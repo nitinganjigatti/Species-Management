@@ -195,11 +195,11 @@ const ComplaintsDetails = () => {
       renderCell: params => (
         <>
           {params.row.zoo_id === zoo_id && params?.row?.can_edit === 1 ? ( // Show only if the zoo_id matches
-            <Box sx={{}}>
+            (<Box sx={{}}>
               <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
                 <Icon icon='mdi:pencil-outline' />
               </IconButton>
-            </Box>
+            </Box>)
           ) : null}
         </>
       )
@@ -251,7 +251,6 @@ const ComplaintsDetails = () => {
             <CardHeader title='Symptoms List' action={headerAction} />
 
             <DataGrid
-
               //   hideFooterPagination={true}
               sx={{
                 '.MuiDataGrid-cell:focus-within': {
@@ -292,7 +291,7 @@ const ComplaintsDetails = () => {
                 }
               }}
               onCellClick={handleCellClick}
-            />
+              showToolbar />
           </Card>
           {openDrawer && (
             <AddCategories
@@ -310,7 +309,7 @@ const ComplaintsDetails = () => {
         <Error404></Error404>
       )}
     </>
-  )
+  );
 }
 
 export default ComplaintsDetails

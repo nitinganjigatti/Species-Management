@@ -345,10 +345,10 @@ const FeedTypes = () => {
               }
             }}
             onCellClick={onCellClick}
-          />
+            showToolbar />
         </Box>
       </Card>
-    )
+    );
   }
 
   return (

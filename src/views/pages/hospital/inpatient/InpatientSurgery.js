@@ -53,7 +53,7 @@ const htmlToPlainText = value => {
   return value
     .replace(/<[^>]*>/g, ' ')
     .replace(/\s+/g, ' ')
-    .trim()
+    .trim();
 }
 
 const getRichTextHtmlValue = value => {
@@ -143,7 +143,7 @@ const parseProcedurePerformed = value => {
   return text
     .split(/[\r\n]+|•/g)
     .map(item => item.replace(/^[•\-\s]+/, '').trim())
-    .filter(Boolean)
+    .filter(Boolean);
 }
 
 const getRecordIdentifier = record => {
@@ -700,7 +700,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
               {error ? (
                 <Typography sx={{ color: theme.palette.error.main }}>{error}</Typography>
               ) : (
-                <Box
+                (<Box
                   sx={{
                     width: '100%',
                     display: 'flex',
@@ -714,7 +714,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                     isDischarged={patientDischarged}
                     btnAction={handleAddSurgeryRecord}
                   />
-                </Box>
+                </Box>)
                 // <NoDataFound variant='Seal' height={300} width={300} />
               )}
             </Box>
@@ -1141,7 +1141,6 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
           </Box>
         )}
       </Box>
-
       <DeleteConfirmationDialog
         open={deleteDialogOpen}
         loading={deleteLoading}
@@ -1150,7 +1149,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
         message='Are you sure you want to delete this surgery record?'
       />
     </>
-  )
+  );
 }
 
 export default InpatientSurgery

@@ -2959,7 +2959,7 @@ const AddPurchaseForm = () => {
         }}
       />
     </PageCardLayout>
-  )
+  );
 }
 
 export default AddPurchaseForm

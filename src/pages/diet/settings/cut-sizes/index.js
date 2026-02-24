@@ -329,9 +329,8 @@ const CutSizes = () => {
             }
           }}
           onCellClick={''}
-        />
+          showToolbar />
       </Card>
-
       <AddCutSize
         drawerWidth={400}
         addEventSidebarOpen={openDrawer}
@@ -343,7 +342,7 @@ const CutSizes = () => {
       />
       <UserSnackbar status={openSnackbar} message={snackbarMessage} severity={severity} handleClose={handleClose} />
     </>
-  )
+  );
 }
 
 export default CutSizes

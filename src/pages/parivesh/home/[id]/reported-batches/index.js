@@ -501,11 +501,11 @@ const ReportedBatches = ({ type }) => {
                 }
               }}
               onCellClick={onCellClick}
-            />
+              showToolbar />
           </Card>
         )}
       </>
-    )
+    );
   }
 
   return (

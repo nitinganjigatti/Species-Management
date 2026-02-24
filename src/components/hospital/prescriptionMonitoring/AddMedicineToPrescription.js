@@ -259,7 +259,7 @@ export default function AddMedicineToPrescription() {
       .test('is-number', 'Quantity must be a number', value => {
         if (!value) return true // allow empty
 
-        return /^[0-9]*$/.test(value)
+        return /^[0-9]*$/.test(value);
       })
       .test('positive', 'Quantity must be greater than 0', value => {
         if (!value) return true // allow empty

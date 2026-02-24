@@ -645,7 +645,6 @@ const ListOfRequest = () => {
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbar }}
-
               // onPaginationModelChange={setPaginationModel}
               onPaginationModelChange={handlePaginationModelChange}
               loading={loading}
@@ -663,12 +662,12 @@ const ListOfRequest = () => {
                   }
                 }
               }}
-            />
+              showToolbar />
           </Card>
         </>
       )}
     </>
-  )
+  );
 }
 
 export default ListOfRequest

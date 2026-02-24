@@ -212,11 +212,11 @@ const Diagnosis = () => {
       renderCell: params => (
         <>
           {params.row.zoo_id === zoo_id ? ( // Show only if the zoo_id matches
-            <Box>
+            (<Box>
               <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
                 <Icon icon='mdi:pencil-outline' />
               </IconButton>
-            </Box>
+            </Box>)
           ) : null}
         </>
       )
@@ -316,19 +316,16 @@ const Diagnosis = () => {
           disableColumnSelector={true}
           disableColumnMenu
           autoHeight
-
           // pagination
           rows={indexedRows === undefined ? [] : indexedRows}
           rowCount={total}
           columns={columns}
           sortingMode='server'
           paginationMode='server'
-
           // pageSizeOptions={[7, 10, 25, 50]}
           // paginationModel={paginationModel}
           onSortModelChange={handleSortModel}
           slots={{ toolbar: ServerSideToolbarWithFilter }}
-
           // onPaginationModelChange={setPaginationModel}
           loading={loading}
           slotProps={{
@@ -342,7 +339,7 @@ const Diagnosis = () => {
             }
           }}
           onCellClick={handleCellClick}
-        />
+          showToolbar />
       </Card>
       {openDrawer && (
         <AddCategories
@@ -356,7 +353,7 @@ const Diagnosis = () => {
         />
       )}
     </>
-  )
+  );
 }
 
 export default Diagnosis

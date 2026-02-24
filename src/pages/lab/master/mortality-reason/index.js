@@ -21,7 +21,7 @@ import { DataGrid } from '@mui/x-data-grid'
 import QuickSearchToolbar from 'src/views/table/data-grid/QuickSearchToolbar'
 
 const escapeRegExp = value => {
-  return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
+  return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 }
 
 const MortalityReason = () => {
@@ -333,7 +333,7 @@ const MortalityReason = () => {
                   onChange: event => handleSearch(event.target.value)
                 }
               }}
-            />
+              showToolbar />
           </Card>
           {openDrawer && (
             <AddMortalityReasons
@@ -360,7 +360,7 @@ const MortalityReason = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default MortalityReason

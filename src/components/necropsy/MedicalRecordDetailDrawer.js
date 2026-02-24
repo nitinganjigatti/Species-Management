@@ -383,7 +383,7 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
               ))}
             </Box>
           </Box>
-        )
+        );
 
       case 'followup':
         return (

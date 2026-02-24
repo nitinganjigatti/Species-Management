@@ -87,20 +87,20 @@ const SignedMediaPlayer = ({
         <video {...commonProps} playsInline={playsInline} onCanPlay={() => onLoad?.()} />
       ) : isSafari ? (
         // Safari → blob audio
-        <audio {...commonProps} onCanPlay={() => onLoad?.()} />
+        (<audio {...commonProps} onCanPlay={() => onLoad?.()} />)
       ) : (
         // Chrome / others → direct URL audio
-        <audio
+        (<audio
           src={src}
           controls
           preload='auto'
           style={{ width: '100%' }}
           onError={onError}
           onCanPlay={() => onLoad?.()}
-        />
+        />)
       )}
     </Box>
-  )
+  );
 }
 
 export default SignedMediaPlayer

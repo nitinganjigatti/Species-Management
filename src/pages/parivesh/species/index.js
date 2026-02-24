@@ -591,7 +591,6 @@ const SpeciesList = () => {
             <DataGrid
               disableColumnMenu
               disableColumnFilter
-
               // disableColumnSorting
               disableRowSelectionOnClick
               sx={{
@@ -646,6 +645,7 @@ const SpeciesList = () => {
               onPaginationModelChange={setPaginationModel}
               loading={loading}
               rowHeight={80}
+              // onCellClick={onCellClick}
               slotProps={{
                 baseButton: {
                   variant: 'outlined'
@@ -656,13 +656,11 @@ const SpeciesList = () => {
                   onChange: event => handleSearch(event.target.value)
                 }
               }}
-
-              // onCellClick={onCellClick}
-            />
+              showToolbar />
           </Card>
         )}
       </>
-    )
+    );
   }
 
   return (

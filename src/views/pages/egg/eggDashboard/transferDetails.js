@@ -195,7 +195,7 @@ const TransferDetails = () => {
         //     {params.row.egg_status ? params.row.egg_status : '-'}
         //   </Typography>
         // </Box>
-        <SpeciesImageCard
+        (<SpeciesImageCard
           imgURl={params.row.default_icon}
           eggCondition={params.row.egg_condition}
           eggCode={params.row.egg_code}
@@ -204,7 +204,7 @@ const TransferDetails = () => {
           // defaultName={params.row.default_common_name}
           // completeName={params.row.complete_name}
           eggIcon={'/icons/Egg_icon.png'}
-        />
+        />)
       )
     },
     {

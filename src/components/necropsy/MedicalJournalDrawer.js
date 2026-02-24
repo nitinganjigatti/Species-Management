@@ -107,7 +107,7 @@ const MedicalJournalDrawer = ({ open, onClose, animalId, medicalRecordId }) => {
     return key
       .replace(/_/g, ' ')
       .toLowerCase()
-      .replace(/^./, s => s.toUpperCase())
+      .replace(/^./, s => s.toUpperCase());
   }
 
   const formatDetailValue = (key, value) => {

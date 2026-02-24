@@ -490,12 +490,12 @@ const RecipeList = () => {
                   }
                 }}
                 onCellClick={onCellClick}
-              />
+                showToolbar />
             </Box>
           </Card>
         )}
       </>
-    )
+    );
   }
 
   return (
