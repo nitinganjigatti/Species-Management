@@ -1,15 +1,5 @@
 import React, { useState, useEffect, useCallback, memo } from 'react'
-import {
-  Box,
-  Drawer,
-  IconButton,
-  Typography,
-  Skeleton,
-  Tabs,
-  Tab,
-  Divider,
-  Chip
-} from '@mui/material'
+import { Box, Drawer, IconButton, Typography, Skeleton, Tabs, Tab, Divider, Chip } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
@@ -196,11 +186,13 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
 
   const getTestsForSample = sampleName => {
     if (!labDetails?.testDetails || !sampleName) return []
+
     return labDetails.testDetails.filter(test => test.sampleName === sampleName)
   }
 
   const getSummaryBackgroundColor = () => {
     if (!labDetails) return alpha(theme.palette.warning.main, 0.15)
+
     const allCompleted =
       labDetails.totalReceivedSamples === labDetails.totalSamples &&
       labDetails.totalTestsCompleted === labDetails.totalTests
@@ -208,11 +200,13 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
 
     if (allCompleted) return alpha(theme.palette.success.main, 0.15)
     if (noneCompleted) return alpha(theme.palette.error.light, 0.2)
+
     return alpha(theme.palette.warning.main, 0.5)
   }
 
   const getSummaryTextColor = () => {
     if (!labDetails) return theme.palette.warning.main
+
     const allCompleted =
       labDetails.totalReceivedSamples === labDetails.totalSamples &&
       labDetails.totalTestsCompleted === labDetails.totalTests
@@ -220,6 +214,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
 
     if (allCompleted) return theme.palette.success.main
     if (noneCompleted) return theme.palette.error.main
+
     return theme.palette.warning.dark
   }
 
@@ -334,7 +329,10 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
                 }}
               >
                 <PersonOutlineIcon
-                  sx={{ fontSize: 20, color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary }}
+                  sx={{
+                    fontSize: 20,
+                    color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                  }}
                 />
                 <Typography
                   sx={{
@@ -466,7 +464,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
           cursor: clickable && hasSubTests ? 'pointer' : 'default'
         }}
       >
-        <Box sx={{ p: 3, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <Box sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ flex: 1 }}>
             <Typography
               sx={{
