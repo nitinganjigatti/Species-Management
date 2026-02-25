@@ -1,27 +1,31 @@
 import React from 'react'
-import { Box, Card, CardContent, Divider, Grid, Typography, useTheme } from '@mui/material'
+import { Box, Card, CardContent, Typography, alpha, useTheme } from '@mui/material'
 import Utility from 'src/utility'
 
-const LabelValue = ({ label, value }) => {
-  const theme = useTheme()
-
+const FieldRow = ({ label, value, theme }) => {
   return (
-    <Box sx={{ py: 2 }}>
+    <Box
+      sx={{
+        borderBottom: `1px solid ${theme.palette.customColors?.OnPrimary}`,
+        px: 4,
+        py: 3
+      }}
+    >
       <Typography
         sx={{
           fontSize: '14px',
           fontWeight: 400,
-          color: theme.palette.customColors.neutralSecondary,
-          mb: 1
+          color: theme.palette.customColors?.OnSurfaceVariant,
+          mb: 0.5
         }}
       >
         {label}
       </Typography>
       <Typography
         sx={{
-          fontSize: '14px',
-          fontWeight: 500,
-          color: theme.palette.customColors.OnSurfaceVariant
+          fontSize: '16px',
+          fontWeight: 600,
+          color: theme.palette.customColors?.OnSurfaceVariant
         }}
       >
         {value || '--'}
@@ -33,48 +37,51 @@ const LabelValue = ({ label, value }) => {
 const MortalityReportSection = ({ data }) => {
   const theme = useTheme()
 
-  const mortalityDate = data?.mortality_created_at
+  const mortalityDate = data?.discovered_date || data?.mortality_created_at
 
   const dateTimeValue = mortalityDate
-    ? `${Utility.convertUtcToLocalReadableDate(mortalityDate)} ${Utility.convertUTCToLocaltime(mortalityDate)}`
+    ? `${Utility.convertUtcToLocalReadableDate(mortalityDate)} • ${Utility.convertUTCToLocaltime(mortalityDate)}`
     : '--'
 
   const fields = [
-    { label: 'Suspected Cause of Death', value: '--' },
+    { label: 'Suspected Cause of Death', value: data?.manner_of_death || '--' },
     { label: 'Date and Time of Death', value: dateTimeValue },
-    { label: 'Carcass Condition', value: '--' },
-    { label: 'Short History of Illness', value: '--' },
-    { label: 'Notes', value: '--' }
+    { label: 'Carcass Condition', value: data?.caracass_condition || '--' },
+    { label: 'Short History of Illness', value: data?.history_of_illness || '--' },
+    { label: 'Notes', value: data?.notes || data?.notes || '--' }
   ]
 
   return (
-    <Card sx={{ mt: 6, boxShadow: 'none', border: `1px solid ${theme.palette.divider}` }}>
-      <CardContent sx={{ p: 6 }}>
+    <Card
+      sx={{
+        mt: 6,
+        border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`
+      }}
+    >
+      <CardContent sx={{ p: 5 }}>
         <Typography
           sx={{
             fontSize: '20px',
             fontWeight: 500,
-            color: theme.palette.customColors.OnSurfaceVariant,
-            mb: 3
+            color: theme.palette.customColors?.OnSurfaceVariant,
+            mb: 4
           }}
         >
           Mortality Report
         </Typography>
-        <Divider />
-        <Grid container spacing={4}>
+
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            borderRadius: 1,
+            backgroundColor: theme.palette.customColors?.avatarBackground
+          }}
+        >
           {fields.map((field, index) => (
-            <React.Fragment key={field.label}>
-              <Grid item xs={12} sm={6}>
-                <LabelValue label={field.label} value={field.value} />
-              </Grid>
-              {index < fields.length - 1 && index % 2 === 1 && (
-                <Grid item xs={12}>
-                  <Divider />
-                </Grid>
-              )}
-            </React.Fragment>
+            <FieldRow key={index} label={field.label} value={field.value} theme={theme} />
           ))}
-        </Grid>
+        </Box>
       </CardContent>
     </Card>
   )

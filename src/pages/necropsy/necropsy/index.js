@@ -1,13 +1,23 @@
-import { Box, Breadcrumbs, Card, CardContent, Grid, Paper, Typography, useTheme } from '@mui/material'
+import {
+  alpha,
+  Box,
+  Card,
+  CardContent,
+  Grid,
+  Paper,
+  Tooltip,
+  Typography,
+  useTheme,
+  Select,
+  MenuItem,
+  FormControl
+} from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useCallback, useContext, useEffect, useMemo, useState, memo } from 'react'
 import dynamic from 'next/dynamic'
-import {
-  Inbox as InboxIcon,
-  AccessTime as ClockIcon,
-  Description as DocumentIcon,
-  CheckCircle as CheckIcon
-} from '@mui/icons-material'
+import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded'
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined'
+import { AccessTime as ClockIcon } from '@mui/icons-material'
 import Search from 'src/views/utility/Search'
 import NecropsyAnalytics from 'src/views/pages/necropsy/NecropsyAnalytics'
 import CustomSwitchTabs from 'src/components/CustomSwitchTabs'
@@ -15,24 +25,17 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import AnimalCard from 'src/views/utility/AnimalCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
-import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import Utility from 'src/utility'
 import { AuthContext } from 'src/context/AuthContext'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
-// Custom hooks
 import { useNecropsyList, useNecropsyCenter } from 'src/hooks/necropsy'
 
-// Lazy load heavy drawer components
 const NecropsyFilterDrawer = dynamic(() => import('src/components/necropsy/NecropsyFilterDrawer'), { ssr: false })
-
 const SpeciesFilterDrawer = dynamic(() => import('src/components/necropsy/SpeciesFilterDrawer'), { ssr: false })
-
 const IncomingNecropsyDrawer = dynamic(() => import('src/components/necropsy/IncomingNecropsyDrawer'), { ssr: false })
 
-const CarcassTransferCard = dynamic(() => import('src/components/necropsy/CarcassTransferCard'), { ssr: false })
-
-// Memoized helper function for transfer status
-const getTransferStatus = item => {
+export const getTransferStatus = item => {
   if (item?.transfer_status === 'CANCELED') return 'Cancelled'
 
   switch (item?.activity_status) {
@@ -53,39 +56,57 @@ const getTransferStatus = item => {
   }
 }
 
-// Memoized stat card configuration
 const getDefaultStatCards = theme => [
   {
     id: 'INCOMING',
     label: 'INCOMING TRANSFERS',
-    icon: <InboxIcon sx={{ fontSize: 24 }} />,
-    color: theme.palette.customColors.addPrimary,
-    bgColor: theme.palette.customColors.bodyBg
+    getIcon: isActive => (
+      <Box
+        sx={{
+          width: 16,
+          height: 16,
+          maskImage: 'url(/images/necropsy/carcass_transfer.svg)',
+          maskSize: 'contain',
+          maskRepeat: 'no-repeat',
+          maskPosition: 'center',
+          WebkitMaskImage: 'url(/images/necropsy/carcass_transfer.svg)',
+          WebkitMaskSize: 'contain',
+          WebkitMaskRepeat: 'no-repeat',
+          WebkitMaskPosition: 'center',
+          backgroundColor: theme.palette.customColors.Tertiary
+        }}
+      />
+    ),
+    iconBg: alpha(theme.palette.customColors.TertiaryContainer, 0.4),
+    activeIconBg: alpha(theme.palette.customColors.TertiaryContainer, 0.2),
+    bgColor: theme.palette.customColors.Tertiary
   },
   {
     id: 'PENDING',
     label: 'PENDING NECROPSY',
-    icon: <ClockIcon sx={{ fontSize: 24 }} />,
-    color: theme.palette.primary.dark,
-    bgColor: theme.palette.customColors.antzNotesLight
+    getIcon: () => <ClockIcon sx={{ fontSize: 18, color: theme.palette.customColors.addPrimary }} />,
+    iconBg: alpha(theme.palette.customColors.addPrimary, 0.2),
+    activeIconBg: alpha(theme.palette.customColors.addPrimary, 0.2),
+    bgColor: theme.palette.customColors.addPrimary
   },
   {
     id: 'DRAFT',
     label: 'DRAFT REPORTS',
-    icon: <DocumentIcon sx={{ fontSize: 24 }} />,
-    color: theme.palette.customColors.Error,
-    bgColor: theme.palette.customColors.avatarBackground
+    getIcon: () => (
+      <DescriptionOutlinedIcon sx={{ fontSize: 18, color: theme.palette.customColors.moderateSecondary }} />
+    ),
+    iconBg: theme.palette.customColors.antzNotes,
+    bgColor: theme.palette.customColors.moderateSecondary
   },
   {
     id: 'COMPLETED',
     label: 'COMPLETED CASES',
-    icon: <CheckIcon sx={{ fontSize: 24 }} />,
-    color: theme.palette.primary.main,
-    bgColor: theme.palette.customColors.OnBackground
+    getIcon: () => <CheckCircleOutlineRoundedIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurface }} />,
+    iconBg: theme.palette.customColors.OnBackground,
+    bgColor: theme.palette.customColors.OnSurface
   }
 ]
 
-// Memoized StatCard component
 const StatCard = memo(({ card, isActive, onClick }) => {
   const theme = useTheme()
 
@@ -94,15 +115,13 @@ const StatCard = memo(({ card, isActive, onClick }) => {
       elevation={0}
       sx={{
         position: 'relative',
-        border: `${isActive ? '2px' : '0px'} solid ${card.color}`,
         p: 3,
-        borderRadius: '20px',
-        bgcolor: card.bgColor,
+        backgroundColor: isActive ? card?.bgColor : theme.palette.customColors.OnPrimary,
+        borderRadius: '12px',
         cursor: 'pointer',
         transition: 'all 0.2s ease-in-out',
         overflow: 'hidden',
         '&:hover': {
-          transform: 'translateY(-2px)',
           boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
         },
         '&::before': {
@@ -120,26 +139,26 @@ const StatCard = memo(({ card, isActive, onClick }) => {
       }}
       onClick={onClick}
     >
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 2 }}>
-        <Box
-          sx={{
-            color: card.color,
-            bgcolor: 'white',
-            borderRadius: '12px',
-            p: 1.5,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          {card.icon}
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2 }}>
+        <Box sx={{ borderRadius: '10px', backgroundColor: 'white' }}>
+          <Box
+            sx={{
+              backgroundColor: isActive && card?.activeIconBg ? card?.activeIconBg : card?.iconBg,
+              borderRadius: '10px',
+              p: 1.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            {card.getIcon(isActive)}
+          </Box>
         </Box>
         <Typography
-          variant='h3'
           sx={{
-            fontWeight: 700,
-            color: card.color,
-            fontSize: '2.5rem'
+            fontWeight: 500,
+            color: isActive ? theme.palette.customColors.OnPrimary : card?.bgColor,
+            fontSize: '1.5rem'
           }}
         >
           {card.count?.toString()?.padStart(2, '0')}
@@ -150,7 +169,7 @@ const StatCard = memo(({ card, isActive, onClick }) => {
           variant='caption'
           sx={{
             fontWeight: 600,
-            color: card.color,
+            color: isActive ? theme.palette.customColors.OnPrimary : theme.palette.customColors.OnSurfaceVariant,
             letterSpacing: '0.5px',
             fontSize: '0.75rem'
           }}
@@ -206,13 +225,12 @@ const Necropsy = () => {
   // Use necropsy center hook (autoFetch disabled - NecropsyDropdown handles fetching)
   useNecropsyCenter(userId, false)
 
-  // Local UI state
   const [searchValue, setSearchValue] = useState('')
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [openIncomingDrawer, setOpenIncomingDrawer] = useState(false)
   const [selectedNecropsyRow, setSelectedNecropsyRow] = useState(null)
+  const [selectedPriority, setSelectedPriority] = useState('all')
 
-  // Memoized stat cards with counts
   const statCards = useMemo(
     () =>
       getDefaultStatCards(theme).map(card => ({
@@ -222,13 +240,18 @@ const Necropsy = () => {
     [theme, stats]
   )
 
-  // Sync URL params on mount
   useEffect(() => {
     const { q = '' } = router.query
     setSearchValue(q)
   }, [router.query])
 
-  // Fetch data when dependencies change
+  // Sync priority state with filters
+  useEffect(() => {
+    const currentFilters = viewType === 'animals' ? animalFilters : speciesFilters
+    const priorityFilter = currentFilters?.Priority
+    setSelectedPriority(priorityFilter || 'all')
+  }, [viewType, animalFilters, speciesFilters])
+
   useEffect(() => {
     if (enableAddNecropsyReport && selectedNecropsy?.id) {
       fetchAll()
@@ -247,7 +270,6 @@ const Necropsy = () => {
     fetchAll
   ])
 
-  // Update URL params
   const updateUrlParams = useCallback(
     (updatedFilters, status, tab) => {
       const params = new URLSearchParams()
@@ -270,7 +292,6 @@ const Necropsy = () => {
     [activeCard, viewType, router]
   )
 
-  // Handle search input change
   const onSearchChange = useCallback(
     e => {
       const value = e.target.value
@@ -280,13 +301,11 @@ const Necropsy = () => {
     [handleSearch]
   )
 
-  // Handle search clear
   const onSearchClear = useCallback(() => {
     setSearchValue('')
     handleSearchClear()
   }, [handleSearchClear])
 
-  // Handle view type change
   const handleChange = useCallback(
     (event, newValue) => {
       handleViewTypeChange(event, newValue)
@@ -297,7 +316,6 @@ const Necropsy = () => {
     [handleViewTypeChange, updateUrlParams, filters, activeCard]
   )
 
-  // Handle row click
   const handleRowClick = useCallback(
     params => {
       if (viewType === 'animals') {
@@ -320,7 +338,6 @@ const Necropsy = () => {
     [viewType, activeCard, router]
   )
 
-  // Handle stat card click
   const handleStatCardClick = useCallback(
     cardId => {
       handleActiveCardChange(cardId)
@@ -329,7 +346,6 @@ const Necropsy = () => {
     [handleActiveCardChange, updateUrlParams, filters]
   )
 
-  // Handle pagination
   const handlePaginationModelChange = useCallback(
     model => {
       handlePaginationChange(model)
@@ -342,7 +358,6 @@ const Necropsy = () => {
     [handlePaginationChange, updateUrlParams, filters]
   )
 
-  // Handle filter apply
   const handleApplyAnimalFilters = useCallback(
     selectedOptions => {
       applyAnimalFilters(selectedOptions)
@@ -359,19 +374,32 @@ const Necropsy = () => {
     [applySpeciesFilters]
   )
 
-  // Handle incoming drawer close
+  const handlePriorityChange = useCallback(
+    event => {
+      const newPriority = event.target.value
+      setSelectedPriority(newPriority)
+
+      const priorityValue = newPriority === 'all' ? '' : newPriority
+
+      if (viewType === 'animals') {
+        applyAnimalFilters({ ...animalFilters, Priority: priorityValue })
+      } else {
+        applySpeciesFilters({ ...speciesFilters, Priority: priorityValue })
+      }
+    },
+    [viewType, animalFilters, speciesFilters, applyAnimalFilters, applySpeciesFilters]
+  )
+
   const handleIncomingDrawerClose = useCallback(() => {
     setOpenIncomingDrawer(false)
     setSelectedNecropsyRow(null)
   }, [])
 
-  // Handle accept success
   const handleAcceptSuccess = useCallback(() => {
     fetchStats()
     fetchNecropsyData()
   }, [fetchStats, fetchNecropsyData])
 
-  // Memoized animal columns
   const animalColumns = useMemo(
     () => [
       {
@@ -390,84 +418,19 @@ const Necropsy = () => {
         )
       },
       {
-        width: 300,
+        width: 450,
         minWidth: 20,
         sortable: false,
         field: 'animal_name',
         headerName: 'Animal Name & ID',
         renderCell: params => <AnimalCard data={params?.row} />
       },
-      ...(activeCard === 'INCOMING'
-        ? [
-            {
-              width: 200,
-              minWidth: 20,
-              sortable: false,
-              field: 'transfer_code',
-              headerName: 'Transfer Code',
-              renderCell: params => (
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant, px: 2 }}
-                >
-                  {params.row.transfer_code}
-                </Typography>
-              )
-            }
-          ]
-        : []),
-      ...(activeCard === 'DRAFT' || activeCard === 'COMPLETED'
-        ? [
-            {
-              width: 200,
-              minWidth: 20,
-              sortable: false,
-              field: 'request_id',
-              headerName: 'Request ID',
-              renderCell: params => (
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant, px: 2 }}
-                >
-                  {params.row.request_id}
-                </Typography>
-              )
-            }
-          ]
-        : []),
-      {
-        width: 220,
-        minWidth: 20,
-        sortable: false,
-        field: 'mortality_date',
-        headerName: 'Mortality Date',
-        renderCell: params => {
-          const date = params.row.mortality_created_at
-
-          return (
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography
-                variant='body2'
-                sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}
-              >
-                {Utility.convertUtcToLocalReadableDate(date)}
-              </Typography>
-              <Typography
-                variant='caption'
-                sx={{ fontSize: '12px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}
-              >
-                {Utility.convertUTCToLocaltime(date)}
-              </Typography>
-            </Box>
-          )
-        }
-      },
       {
         width: 200,
         minWidth: 20,
         sortable: false,
         field: 'priority',
-        headerName: 'Priority',
+        headerName: 'Necropsy Priority',
         renderCell: params => {
           const priority = params.row.priority?.toLowerCase()
           const isHigh = priority === 'high'
@@ -478,9 +441,11 @@ const Necropsy = () => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 px: 2,
-                py: 0.5,
+                py: 2,
                 borderRadius: 0.5,
-                bgcolor: isHigh ? theme.palette.customColors.Tertiary30 : theme.palette.customColors.antzInfoLight,
+                bgcolor: isHigh
+                  ? theme.palette.customColors.Tertiary30
+                  : alpha(theme.palette.customColors.SecondaryContainer, 0.5),
                 color: isHigh ? theme.palette.customColors.Tertiary : theme.palette.customColors.addPrimary,
                 fontWeight: 600,
                 fontSize: '14px'
@@ -495,26 +460,95 @@ const Necropsy = () => {
       ...(activeCard === 'INCOMING'
         ? [
             {
-              width: 280,
+              width: 300,
               minWidth: 20,
               sortable: false,
-              field: 'security_check',
-              headerName: 'Security Check',
-              renderCell: params => {
-                return (
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      fontSize: '14px',
-                      fontWeight: 400,
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      px: 2
-                    }}
+              field: 'transfer_code',
+              headerName: 'Transfer ID & Status',
+              renderCell: params => (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Tooltip title={params.row.transfer_code} placement='top'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        color: theme.palette.customColors.OnPrimaryContainer
+                      }}
+                    >
+                      {params.row.transfer_code}
+                    </Typography>
+                  </Tooltip>
+                  <Tooltip title={getTransferStatus(params.row)} placement='top'>
+                    <Typography
+                      sx={{
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        color: theme.palette.customColors.OnPrimaryContainer,
+                        fontWeight: 500
+                      }}
+                    >
+                      {getTransferStatus(params.row)}
+                    </Typography>
+                  </Tooltip>
+                  <Tooltip
+                    title={Utility.convertUtcToLocalReadableDate(params?.row?.transfer_modified_at)}
+                    placement='top'
                   >
-                    {getTransferStatus(params.row)}
-                  </Typography>
-                )
-              }
+                    <Typography
+                      sx={{ fontSize: '12px', fontWeight: 400, color: theme.palette.customColors.neutral_50 }}
+                    >
+                      Since <span>{Utility.convertUtcToLocalReadableDate(params?.row?.transfer_modified_at)}</span>
+                      <span> &bull; </span> {Utility.convertUTCToLocaltime(params?.row?.transfer_modified_at)}
+                    </Typography>
+                  </Tooltip>
+                </Box>
+              )
+            }
+          ]
+        : []),
+      ...(activeCard === 'COMPLETED'
+        ? [
+            {
+              width: 250,
+              minWidth: 20,
+              sortable: false,
+              field: 'request_id',
+              headerName: 'Request ID',
+              renderCell: params => (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Tooltip title={params.row.request_id} placement='top'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontSize: '14px',
+                        fontWeight: 400,
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        px: 2
+                      }}
+                    >
+                      {params.row.request_id}
+                    </Typography>
+                  </Tooltip>
+                  {params?.row?.is_unsuitable !== '0' && (
+                    <Box
+                      sx={{ backgroundColor: theme.palette.customColors.Tertiary30, borderRadius: 0.5, px: 2, py: 1 }}
+                    >
+                      <Tooltip title={params.row.is_unsuitable} placement='top'>
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: 600,
+                            color: theme.palette.customColors.Tertiary
+                          }}
+                        >
+                          Unsuitable for necropsy
+                        </Typography>
+                      </Tooltip>
+                    </Box>
+                  )}
+                </Box>
+              )
             }
           ]
         : []),
@@ -538,16 +572,22 @@ const Necropsy = () => {
           const isIncomingOrPending = activeCard === 'INCOMING' || activeCard === 'PENDING'
 
           const userName = isIncomingOrPending ? row.reported_by : row.user_profile_for_necropsy?.name
-          const date = isIncomingOrPending ? row.mortality_created_at : row.updated_at
 
-          return <UserAvatarDetails user_name={userName} date={date} show_time size='medium' />
+          return (
+            <Tooltip title={userName} placement='top'>
+              <Typography
+                sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}
+              >
+                {userName}
+              </Typography>
+            </Tooltip>
+          )
         }
       }
     ],
     [theme, activeCard]
   )
 
-  // Memoized species columns
   const speciesColumns = useMemo(
     () => [
       {
@@ -600,131 +640,117 @@ const Necropsy = () => {
     [theme]
   )
 
-  // Current data based on view type
   const currentRows = viewType === 'animals' ? indexedAnimalRows : indexedSpeciesRows
   const currentTotal = viewType === 'animals' ? animalTotal : speciesTotal
   const currentColumns = viewType === 'animals' ? animalColumns : speciesColumns
 
   return (
     <Box>
-      <Breadcrumbs></Breadcrumbs>
       <NecropsyAnalytics
         filterDate={filterDate}
         setFilterDate={handleDateFilterChange}
         badgeCount={stats?.CARCASS_TRANSFER}
         allowCarcassCollection={allowCarcassCollection}
         showCarcassTransferButton={!!enableAddNecropsyReport}
-        onCarcassTransfer={() => router.push('/necropsy/necropsy/carcass-transfer/')}
+        onCarcassTransfer={() => router.push('/necropsy/carcass-transfer')}
       />
+      <Box
+        sx={{
+          mt: 6,
+          display: 'grid',
+          gridTemplateColumns: {
+            xs: '1fr',
+            sm: 'repeat(4, 1fr)'
+
+            // md: 'repeat(4, 1fr)'
+          },
+          gap: 4,
+          mb: 4
+        }}
+      >
+        {statCards.map(card => (
+          <StatCard
+            key={card.id}
+            card={card}
+            isActive={activeCard === card.id}
+            onClick={() => handleStatCardClick(card.id)}
+          />
+        ))}
+      </Box>
       {enableAddNecropsyReport ? (
         <>
           <Box sx={{ mt: 6 }}>
-            <Card
-              sx={{
-                borderBottomLeftRadius: 0,
-                borderBottomRightRadius: 0,
-                borderBottom: `0.5px solid ${theme.palette.divider}`,
-                elevation: 'none',
-                boxShadow: 'none'
-              }}
-            >
+            <Card>
               <CardContent>
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: {
-                      xs: '1fr',
-                      sm: 'repeat(2, 1fr)',
-                      md: 'repeat(4, 1fr)'
-                    },
-                    gap: 2,
-                    mb: 4
-                  }}
-                >
-                  {statCards.map(card => (
-                    <StatCard
-                      key={card.id}
-                      card={card}
-                      isActive={activeCard === card.id}
-                      onClick={() => handleStatCardClick(card.id)}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 3
+                    }}
+                  >
+                    <Search
+                      borderRadius='4px'
+                      value={searchValue}
+                      onClear={onSearchClear}
+                      onChange={onSearchChange}
+                      textFielsSX={{
+                        '& .MuiInputBase-input::placeholder': {
+                          fontSize: '13px'
+                        }
+                      }}
+                      placeholder='Search...'
                     />
-                  ))}
-                </Box>
-                <Grid container spacing={4}>
-                  <Grid size={{ xs: 12 }}>
-                    <Box>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: theme.palette.customColors.neutralSecondary,
-                          display: 'inline',
-                          fontSize: '10px',
-                          fontWeight: 500,
-                          letterSpacing: '0.5px'
-                        }}
-                      >
-                        ACTIVE STATUS:{' '}
-                      </Typography>
-
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: statCards.find(c => c.id === activeCard)?.color,
-                          backgroundColor: statCards.find(c => c.id === activeCard)?.bgColor,
-                          border: `1px solid ${statCards.find(c => c.id === activeCard)?.color}`,
-                          borderRadius: 1,
-                          px: 2,
-                          py: 1,
-                          fontWeight: 600,
-                          display: 'inline',
-                          fontSize: '10px',
-                          letterSpacing: '0.5px'
-                        }}
-                      >
-                        • {statCards.find(c => c.id === activeCard)?.label}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 8 }} order={{ xs: 2, sm: 3 }}>
-                    <Box
-                      display='flex'
-                      gap={2}
-                      justifyContent={{ xs: 'space-between', sm: 'flex-end' }}
-                      alignItems='center'
-                    >
-                      <Search
-                        borderRadius='4px'
-                        value={searchValue}
-                        onClear={onSearchClear}
-                        onChange={onSearchChange}
-                        textFielsSX={{
-                          '& .MuiInputBase-input::placeholder': {
-                            fontSize: '13px'
-                          }
-                        }}
-                        placeholder='Search by tag, species, or ID...'
-                      />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+                        <CustomSwitchTabs
+                          options={[
+                            { value: 'animals', label: 'Animals' },
+                            { value: 'species', label: 'Species' }
+                          ]}
+                          value={viewType}
+                          onChange={handleChange}
+                        />
+                      </Box>
+                      <FormControl size='small'>
+                        <Select
+                          value={selectedPriority}
+                          onChange={handlePriorityChange}
+                          displayEmpty
+                          sx={{
+                            minWidth: 120,
+                            minHeight: 44,
+                            fontSize: '14px',
+                            '& .MuiSelect-select': {
+                              py: 1,
+                              px: 4
+                            }
+                          }}
+                        >
+                          <MenuItem value='all'>All Priority</MenuItem>
+                          <MenuItem value='low'>Low</MenuItem>
+                          <MenuItem value='high'>High</MenuItem>
+                        </Select>
+                      </FormControl>
                       <FilterButtonWithNotification
                         onClick={() => setOpenFilterDrawer(true)}
                         appliedFiltersCount={viewType === 'animals' ? animalFilterCount : speciesFilterCount}
                       />
                     </Box>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }} order={{ xs: 3, sm: 2 }}>
+                  </Box>
+                  <Box sx={{ display: { xs: 'block', md: 'none' } }}>
                     <CustomSwitchTabs
                       options={[
-                        { value: 'animals', label: 'By Animals' },
-                        { value: 'species', label: 'By Species' }
+                        { value: 'animals', label: 'Animals' },
+                        { value: 'species', label: 'Species' }
                       ]}
                       value={viewType}
                       onChange={handleChange}
                     />
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-            <Card sx={{ borderTopLeftRadius: 0, borderTopRightRadius: 0, boxShadow: 'none', elevation: 'none' }}>
-              <CardContent>
+                  </Box>
+                </Box>
                 <Grid container spacing={4}>
                   <Grid size={{ xs: 12 }}>
                     <CommonTable
@@ -785,13 +811,9 @@ const Necropsy = () => {
             />
           )}
         </>
-      ) : allowCarcassCollection ? (
-        <Box sx={{ mt: 6 }}>
-          <CarcassTransferCard filterDate={filterDate} />
-        </Box>
       ) : null}
     </Box>
   )
 }
 
-export default Necropsy
+export default enforceModuleAccess(Necropsy, 'enable_add_necropsy_report')

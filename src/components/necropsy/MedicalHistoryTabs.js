@@ -8,7 +8,7 @@ import LabRequestsList from './LabRequestsList'
 
 const TABS = ['Medical Records', 'Diagnosis', 'Prescription', 'Lab Requests']
 
-const MedicalHistoryTabs = ({ animalId }) => {
+const MedicalHistoryTabs = ({ animalId, hideTitle = false }) => {
   const theme = useTheme()
   const [activeTab, setActiveTab] = useState('Medical Records')
 
@@ -28,16 +28,18 @@ const MedicalHistoryTabs = ({ animalId }) => {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <Typography
-        sx={{
-          fontSize: '16px',
-          fontWeight: 600,
-          color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
-        }}
-      >
-        Medical History
-      </Typography>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {!hideTitle && (
+        <Typography
+          sx={{
+            fontSize: '16px',
+            fontWeight: 600,
+            color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+          }}
+        >
+          Medical History
+        </Typography>
+      )}
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box

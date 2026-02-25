@@ -82,7 +82,6 @@ const SelectOrganDrawer = ({ open, setOpen, selectedOrgans, onAddSelected }) => 
 
   const activeParts = useMemo(() => {
     if (activeCategory === '') {
-      // "All" selected - show all parts from all categories
       const allParts = []
       organCategories.forEach(cat => {
         const categoryId = String(cat.id || cat.body_section_id)

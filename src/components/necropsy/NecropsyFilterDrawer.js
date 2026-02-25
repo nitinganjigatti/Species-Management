@@ -7,13 +7,13 @@ import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
 
-const incomingMenus = ['Sex', 'Site', 'Priority']
-const baseMenus = ['Sex', 'Site', 'Priority', 'Necropsy Location']
+const incomingMenus = ['Sex', 'Site']
+const baseMenus = ['Sex', 'Site', 'Necropsy Location']
 const extendedMenus = [...baseMenus, 'Necropsy Conducted By', 'Created By']
 
 const getInitialOptions = menus => menus.reduce((acc, key) => ({ ...acc, [key]: [] }), {})
 
-const singleSelectMenus = ['Priority', 'Necropsy Location', 'Site']
+const singleSelectMenus = ['Necropsy Location', 'Site']
 
 const staticMenuData = {
   Sex: [
@@ -21,10 +21,6 @@ const staticMenuData = {
     { label: 'Female', value: 'Female' },
     { label: 'Indeterminate', value: 'Indeterminate' },
     { label: 'Undeterminate', value: 'Undeterminate' }
-  ],
-  Priority: [
-    { label: 'Low', value: 'Low' },
-    { label: 'High', value: 'High' }
   ],
   'Necropsy Location': [
     { label: 'Onsite', value: 1 },

@@ -129,7 +129,6 @@ const PrescriptionList = ({ animalId }) => {
         .filter(d => d.time || d.dosage)
     }
 
-    // Old format: dosage string like "321 pt" + time from created_at
     const timeStr = item.created_at ? Utility.convertUTCToLocaltime(item.created_at) : null
     const dosageStr = item.dosage || null
 

@@ -8,7 +8,9 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  useTheme
+  useTheme,
+  alpha,
+  InputAdornment
 } from '@mui/material'
 import { ExpandMore as ExpandMoreIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
@@ -52,81 +54,79 @@ const NecropsyOrganSection = ({ organs = [], onChange, disabled = false }) => {
   }
 
   return (
-    <Box>
-      <Box sx={{ mb: 3 }}>
-        <Button
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+          Organ-wise Description of Lessions
+        </Typography>
+        <Box
           onClick={() => setOpenAddOrganDrawer(true)}
-          disabled={disabled}
           sx={{
-            width: '100%',
-            backgroundColor: theme.palette.customColors?.SecondaryContainer || theme.palette.primary.light,
-            color: theme.palette.customColors?.OnSecondaryContainer || theme.palette.primary.dark,
-            fontSize: '18px',
-            fontWeight: 500,
-            textTransform: 'none',
+            backgroundColor: theme.palette.customColors?.addPrimary,
             py: 2,
-            '&:hover': {
-              backgroundColor: theme.palette.customColors?.SecondaryContainer || theme.palette.primary.light
-            },
-            '&.Mui-disabled': {
-              backgroundColor: theme.palette.action.disabledBackground,
-              color: theme.palette.action.disabled
-            }
+            px: 6,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            borderRadius: 0.5
           }}
-          startIcon={<Icon icon='mdi:plus' fontSize={24} />}
         >
-          Add Organ
-        </Button>
+          <Icon icon='lucide:square-plus' fontSize={18} color={theme.palette.customColors?.OnPrimary} />
+          <Typography sx={{ color: theme.palette.customColors?.OnPrimary, fontSize: '16px', fontWeight: 600 }}>
+            Select Organ
+          </Typography>
+        </Box>
       </Box>
 
       {organs.length > 0 ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 0.4),
+            py: 4,
+            px: 4
+          }}
+        >
           {organs.map((organ, organIndex) => (
-            <Accordion
+            <Box
               key={organ.id || organIndex}
-              defaultExpanded
               sx={{
-                border: `1px solid ${theme.palette.divider}`,
-                borderRadius: '8px !important',
-                '&:before': { display: 'none' },
-                boxShadow: 'none',
-                '&.Mui-expanded': {
-                  margin: 0
-                }
+                borderRadius: '8px'
               }}
             >
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
+              <Box
                 sx={{
-                  '& .MuiAccordionSummary-content': {
-                    alignItems: 'center',
-                    gap: 2,
-                    my: 1
-                  }
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
                     {organ.label || `Organ ${organIndex + 1}`}
                   </Typography>
+
                   <Typography variant='caption' color='text.secondary'>
                     ({organ.parts?.length || 0} parts)
                   </Typography>
                 </Box>
+
                 {!disabled && (
                   <IconButton
                     size='small'
-                    onClick={e => {
-                      e.stopPropagation()
-                      handleRemoveOrgan(organIndex)
-                    }}
+                    onClick={() => handleRemoveOrgan(organIndex)}
                     sx={{ color: theme.palette.error.main }}
                   >
-                    <DeleteIcon fontSize='small' />
+                    <Icon icon={'fontisto:close'} color={theme.palette.customColors.Tertiary} fontSize={18} />
                   </IconButton>
                 )}
-              </AccordionSummary>
-              <AccordionDetails sx={{ pt: 0 }}>
+              </Box>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {organ.parts?.map((part, partIndex) => {
                   const partName = part.organ_name || part.label || `Part ${partIndex + 1}`
 
@@ -134,7 +134,6 @@ const NecropsyOrganSection = ({ organs = [], onChange, disabled = false }) => {
                     <Box
                       key={part.id || partIndex}
                       sx={{
-                        mb: 2,
                         display: 'flex',
                         alignItems: 'center',
                         gap: 2
@@ -145,45 +144,64 @@ const NecropsyOrganSection = ({ organs = [], onChange, disabled = false }) => {
                         size='small'
                         label={`Enter ${partName} Description`}
                         multiline
-                        rows={2}
+                        rows={1}
                         value={part.value || ''}
                         onChange={e => handlePartChange(organIndex, partIndex, 'value', e.target.value)}
                         disabled={disabled}
+                        sx={{
+                          backgroundColor: theme.palette.customColors.OnPrimary,
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: '4px'
+                          },
+                          '& .MuiOutlinedInput-input': {
+                            padding: '4px 8px'
+                          }
+                        }}
+                        InputProps={{
+                          endAdornment: !disabled && (
+                            <InputAdornment position='end'>
+                              <IconButton
+                                size='small'
+                                onClick={() => handleRemovePart(organIndex, partIndex)}
+                                edge='end'
+                                sx={{
+                                  color: theme.palette.text.secondary,
+                                  '&:hover': {
+                                    color: theme.palette.error.main,
+                                    backgroundColor: 'transparent'
+                                  }
+                                }}
+                              >
+                                <Icon icon='mdi:close' fontSize={18} />
+                              </IconButton>
+                            </InputAdornment>
+                          )
+                        }}
                       />
-                      {!disabled && (
-                        <IconButton
-                          size='small'
-                          onClick={() => handleRemovePart(organIndex, partIndex)}
-                          sx={{
-                            color: theme.palette.text.secondary,
-                            '&:hover': {
-                              color: theme.palette.error.main,
-                              backgroundColor: theme.palette.error.light + '20'
-                            }
-                          }}
-                        >
-                          <Icon icon='mdi:close' fontSize={20} />
-                        </IconButton>
-                      )}
                     </Box>
                   )
                 })}
-              </AccordionDetails>
-            </Accordion>
+              </Box>
+            </Box>
           ))}
         </Box>
       ) : (
         <Box
           sx={{
             p: 4,
-            textAlign: 'center',
             border: `1px dashed ${theme.palette.divider}`,
-            borderRadius: 2,
-            bgcolor: theme.palette.customColors?.bodyBg || theme.palette.grey[50]
+            borderRadius: 0.4,
+            bgcolor: '#E8F4F266',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 4
           }}
         >
-          <Typography color='text.secondary'>
-            No organs added. Click "Add Organ" to select organs for examination.
+          <img src='/images/necropsy/organ_sheet.svg' alt='organ_sheet' />
+          <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
+            Select new organs or add from templates
           </Typography>
         </Box>
       )}
