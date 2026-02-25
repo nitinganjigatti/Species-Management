@@ -86,6 +86,7 @@ const AddIngredients = props => {
   const [visibility, setVisibility] = useState([])
 
   const [selectedDays, setSelectedDays] = useState([])
+  const [validationErrors, setValidationErrors] = useState([])
   const [loading, setLoading] = useState(false)
   const menuRef = useRef(null)
   const handelShowBottom = (event, item, index) => {
@@ -274,6 +275,12 @@ const AddIngredients = props => {
 
     if (newUom) {
       handelCardSelection(event, item, null, null, newUom, selectedDays)
+      setValidationErrors(prevErrors => {
+        if (prevErrors.includes(item.id)) {
+          return prevErrors.filter(id => id !== item.id)
+        }
+        return prevErrors
+      })
     }
   }
 
@@ -299,12 +306,16 @@ const AddIngredients = props => {
         if (selectedItem.cardId === cardId) {
           let updatedDays = [...selectedItem.days]
 
-          if (dayId === 0 && !updatedDays.some(day => day.dayId === 0)) {
-            // Select "All" if it's not already selected
-            updatedDays = Day.map(day => ({ dayId: day.id, dayName: day.name }))
-            // updatedDays.push({ dayId: 0, dayName: 'All' })
-          } else if (dayId !== 0) {
-            // Toggle individual day selection
+          if (dayId === 0) {
+            // Toggle All
+            const isAllCurrentlyActive = updatedDays.some(d => d.dayId === 0)
+            if (isAllCurrentlyActive) {
+              updatedDays = []
+            } else {
+              updatedDays = Day.map(day => ({ dayId: day.id, dayName: day.name }))
+            }
+          } else {
+            // Toggle specific day
             const existingIndex = updatedDays.findIndex(d => d.dayId === dayId)
             if (existingIndex === -1) {
               updatedDays.push({ dayId, dayName })
@@ -312,16 +323,17 @@ const AddIngredients = props => {
               updatedDays = updatedDays.filter(d => d.dayId !== dayId)
             }
 
-            // Check if "All" should be deselected
-            const allDayIndex = updatedDays.findIndex(d => d.dayId === 0)
-            if (allDayIndex !== -1 && dayId !== 0) {
+            // Check if "All" should be toggled
+            const allDaysButZero = Day.filter(d => d.id !== 0)
+            const activeStandardDays = updatedDays.filter(d => d.dayId !== 0)
+            
+            if (activeStandardDays.length === allDaysButZero.length) {
+              if (!updatedDays.some(d => d.dayId === 0)) {
+                updatedDays.push({ dayId: 0, dayName: 'All' })
+              }
+            } else {
               updatedDays = updatedDays.filter(d => d.dayId !== 0)
             }
-          }
-
-          // Ensure at least one day remains selected if only one is currently selected
-          if (updatedDays.length === 0 && selectedItem.days.length === 1) {
-            updatedDays = selectedItem.days
           }
 
           return { cardId, days: updatedDays }
@@ -332,6 +344,13 @@ const AddIngredients = props => {
       .filter(item => item !== undefined)
 
     setSelectedDays(updatedSelectedDays)
+
+    // Remove validation error for this card if it now has at least one day selected
+    const updatedCard = updatedSelectedDays.find(c => c.cardId === cardId)
+    const activeDaysCount = updatedCard?.days.filter(d => d.dayId !== 0).length || 0
+    if (activeDaysCount > 0) {
+      setValidationErrors(prevErrors => prevErrors.filter(id => id !== cardId))
+    }
 
     if (updatedSelectedDays.length > 0) {
       handelCardSelection(event, item, null, null, null, updatedSelectedDays)
@@ -407,7 +426,33 @@ const AddIngredients = props => {
       toast.error('Please select a Cutsize', {
         duration: 1000
       })
-    } else if (selectedCard?.length > 0) {
+      // Identify cards missing cutsize
+      const missingCutsizeCards = selectedCard.filter(card => !size[card.ingredient_id])
+      setValidationErrors(prev => {
+        const newErrors = new Set(prev)
+        missingCutsizeCards.forEach(c => newErrors.add(c.ingredient_id))
+        return Array.from(newErrors)
+      })
+      return
+    }
+
+    const invalidIngredients = selectedCard.filter(item => {
+      const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.ingredient_id)
+      const activeDays = selectedDaysForItem?.days.filter(d => d.dayId !== 0) || []
+      return activeDays.length === 0
+    })
+
+    if (invalidIngredients.length > 0) {
+      toast.error('Please select at least one feeding day for each selected item.')
+      setValidationErrors(prev => {
+        const newErrors = new Set(prev)
+        invalidIngredients.forEach(i => newErrors.add(i.ingredient_id))
+        return Array.from(newErrors)
+      })
+      return
+    }
+    
+    if (selectedCard?.length > 0) {
       handleSidebarClose()
 
       setSelectedCard(selectedCard)
@@ -468,12 +513,21 @@ const AddIngredients = props => {
     // Update selectedDays state with the extracted values
     const updatedSelectedDays = []
     cardIds?.forEach((cardId, index) => {
+      const allStandardDays = Day.filter(d => d.id !== 0)
+      const isAllSelected = allStandardDays.every(d => days[index]?.includes(d.id))
+      
+      let initialDaysForCard = days[index]?.map(dayId => ({
+        dayId: dayId,
+        dayName: Day.find(day => day.id === dayId)?.name
+      })) || []
+
+      if (isAllSelected && !initialDaysForCard.some(d => d.dayId === 0)) {
+        initialDaysForCard.push({ dayId: 0, dayName: 'All' })
+      }
+
       updatedSelectedDays.push({
         cardId: String(cardId),
-        days: days[index]?.map(dayId => ({
-          dayId: dayId,
-          dayName: Day.find(day => day.id === dayId)?.name
-        }))
+        days: initialDaysForCard
       })
     })
     setSelectedDays(updatedSelectedDays)
@@ -574,6 +628,8 @@ const AddIngredients = props => {
 
         return newSize
       })
+      
+      setValidationErrors(prevErrors => prevErrors.filter(id => id !== itemId))
     }
   }
 
@@ -809,9 +865,11 @@ const AddIngredients = props => {
                   borderRadius: '8px',
                   my: 4,
                   width: '92%',
-                  ...(selectedCard.some(card => card.ingredient_id === item.id) && {
-                    border: `2px solid ${theme.palette.primary.main}`
-                  })
+                  border: validationErrors.includes(item.id) 
+                    ? '2px solid red' 
+                    : selectedCard.some(card => card.ingredient_id === item.id)
+                      ? `2px solid ${theme.palette.primary.main}`
+                      : 'none'
                 }}
                 onClick={event => handelShowBottom(event, item, index)}
               >

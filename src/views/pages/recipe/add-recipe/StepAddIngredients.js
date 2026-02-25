@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react'
-
-// ** MUI Components
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
@@ -247,56 +245,57 @@ const StepAddIngredients = ({
   }, [])
 
   const onSubmit = async data => {
-    // Filter out incomplete entries
-    data.by_percentage = data.by_percentage.filter(
-      item => item.ingredient_id || item.quantity || item.preparation_type_id
-    )
-    data.by_quantity = data.by_quantity.filter(
-      item => item.ingredient_id || item.quantity || item.preparation_type_id || item.uom_id
-    )
+    const isByQuantityValid =
+      data.by_quantity.length > 0 &&
+      data.by_quantity.every(
+        item =>
+          item.ingredient_id &&
+          item.quantity &&
+          item.uom_id &&
+          item.preparation_type_id &&
+          item.cut_size_id &&
+          item.cut_size_id !== 'null' &&
+          item.cut_size_id !== '0'
+      )
 
-    // Function to find the first incomplete index
-    const findFirstIncompleteIndex = (array, keys) => {
-      return array.findIndex(item => keys.some(key => !item[key]))
-    }
+    if (!isByQuantityValid) {
+      const firstIncompleteIndex = data.by_quantity.findIndex(
+        item =>
+          !item.ingredient_id ||
+          !item.quantity ||
+          !item.uom_id ||
+          !item.preparation_type_id ||
+          !item.cut_size_id ||
+          item.cut_size_id === 'null' ||
+          item.cut_size_id === '0'
+      )
+      const targetIndex = firstIncompleteIndex !== -1 ? firstIncompleteIndex : 0
 
-    // Check if all entries in by_quantity have all required fields
-    const isByQuantityValid = data.by_quantity.every(
-      item => item.ingredient_id && item.quantity && item.uom_id && item.preparation_type_id && item.cut_size_id
-    )
-
-    // If both arrays are empty or have incomplete entries, show an error
-    if (data.by_quantity.length === 0) {
-      window.scrollTo(0, 0)
-
-      return Toaster({
-        type: 'error',
-        message: 'Please fill in all fields for By Quantity.'
+      data.by_quantity.forEach((item, index) => {
+        if (!item.ingredient_id)
+          setError(`by_quantity[${index}].ingredient_id`, { type: 'manual', message: 'Item is required' })
+        if (!item.quantity)
+          setError(`by_quantity[${index}].quantity`, { type: 'manual', message: 'Quantity is required' })
+        if (!item.uom_id)
+          setError(`by_quantity[${index}].uom_id`, { type: 'manual', message: 'Measurement is required' })
+        if (!item.preparation_type_id)
+          setError(`by_quantity[${index}].preparation_type_id`, { type: 'manual', message: 'Type is required' })
+        if (!item.cut_size_id || item.cut_size_id === 'null' || item.cut_size_id === '0')
+          setError(`by_quantity[${index}].cut_size`, { type: 'manual', message: 'Cut size is required' })
       })
-    }
 
-    if (data.by_quantity.length > 0 && !isByQuantityValid) {
-      const firstIncompleteIndex = findFirstIncompleteIndex(data.by_quantity, [
-        'ingredient_id',
-        'quantity',
-        'uom_id',
-        'preparation_type_id',
-        'cut_size_id'
-      ])
-      window.scrollTo(0, 0)
+      setTimeout(() => {
+        const errorElement = document.getElementById('testnew' + targetIndex)
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        } else {
+          window.scrollTo(0, 0)
+        }
+      }, 50)
 
       return Toaster({
         type: 'error',
-        message: `Please fill in all fields in By Quantity at index ${firstIncompleteIndex + 1}.`
-      })
-    }
-
-    if (!isByQuantityValid || data.by_quantity.some(item => item.cut_size_id === 'null' || item.cut_size_id === '0')) {
-      window.scrollTo(0, 0)
-
-      return Toaster({
-        type: 'error',
-        message: 'Please fill in all fields for By Quantity.'
+        message: `Please fill in all fields in By Quantity at row ${targetIndex + 1}.`
       })
     }
 
@@ -361,7 +360,6 @@ const StepAddIngredients = ({
   }, [formData])
 
   useEffect(() => {
-    // Initialize fieldsByQuantity and fieldsIngredients with at least one empty object if empty
     if (fieldsByQuantity.length === 0) {
       appendByQuantity({ ingredient_id: '', quantity: '', uom_id: '', preparation_type_id: '', cut_size_id: '' })
     }
@@ -377,14 +375,13 @@ const StepAddIngredients = ({
       const errorElement = document.getElementById('test' + index)
 
       if (errorElement) {
-        // errorElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        window.scroll(0, 250)
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
     } else if (firstErrorField === 'by_quantity') {
       const errorElement = document.getElementById('testnew' + index)
 
       if (errorElement) {
-        window.scrollTo(0, 700)
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
     }
 
@@ -469,7 +466,6 @@ const StepAddIngredients = ({
                                   width: isSmallDevice ? '216px' : '236px'
                                 }}
                                 value={fullIngredientList.find(option => option.id === value) || null}
-                                //disablePortal
                                 id={`by_quantity[${index}].ingredient_id`}
                                 placeholder='Search & Select'
                                 options={fullIngredientList || []}
@@ -663,32 +659,54 @@ const StepAddIngredients = ({
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => {
                               return (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                  <Autocomplete
-                                    sx={{
-                                      width: isSmallDevice ? '216px' : '236px'
-                                    }}
-                                    id={`by_quantity[${index}].cut_size`}
-                                    getOptionLabel={option => option.cut_size}
-                                    renderInput={params => <TextField {...params} label='Select Cut size *' />}
-                                    options={cutsizeList || []}
-                                    onChange={(e, val) => {
-                                      if (val === null) {
-                                        onChange('')
-                                        setFormValue(`by_quantity[${index}].cut_size`, '')
-                                        setFormValue(`by_quantity[${index}].cut_size_id`, '')
-                                      } else {
-                                        onChange(val.id)
-                                        setFormValue(`by_quantity[${index}].cut_size`, val?.cut_size)
-                                        setFormValue(`by_quantity[${index}].cut_size_id`, val?.id)
-                                      }
-                                    }}
-                                    value={cutsizeList.find(option => option.cut_size === value) || null}
-                                    isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                                  />
+                                <>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <Autocomplete
+                                      sx={{
+                                        width: isSmallDevice ? '216px' : '236px'
+                                      }}
+                                      id={`by_quantity[${index}].cut_size`}
+                                      getOptionLabel={option => option.cut_size}
+                                      options={cutsizeList || []}
+                                      onChange={(e, val) => {
+                                        if (val === null) {
+                                          onChange('')
+                                          setFormValue(`by_quantity[${index}].cut_size`, '')
+                                          setFormValue(`by_quantity[${index}].cut_size_id`, '')
+                                        } else {
+                                          onChange(val.id)
+                                          setFormValue(`by_quantity[${index}].cut_size`, val?.cut_size)
+                                          setFormValue(`by_quantity[${index}].cut_size_id`, val?.id)
+                                          clearErrors(`by_quantity[${index}].cut_size`)
+                                        }
+                                      }}
+                                      value={cutsizeList.find(option => option.cut_size === value) || null}
+                                      isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                      renderInput={params => (
+                                        <TextField
+                                          {...params}
+                                          label='Select Cut size *'
+                                          error={
+                                            errors.by_quantity &&
+                                            errors.by_quantity[index] &&
+                                            errors.by_quantity[index].cut_size?.message
+                                              ? true
+                                              : false
+                                          }
+                                        />
+                                      )}
+                                    />
 
-                                  {fieldsByQuantity.length > 1 && removebyQuantityButton(index)}
-                                </Box>
+                                    {fieldsByQuantity.length > 1 && removebyQuantityButton(index)}
+                                  </Box>
+                                  {errors.by_quantity &&
+                                    errors.by_quantity[index] &&
+                                    errors.by_quantity[index].cut_size && (
+                                      <FormHelperText sx={{ color: 'error.main' }}>
+                                        {errors.by_quantity[index].cut_size?.message}
+                                      </FormHelperText>
+                                    )}
+                                </>
                               )
                             }}
                           />

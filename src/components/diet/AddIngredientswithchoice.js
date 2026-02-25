@@ -88,6 +88,7 @@ const AddIngredientswithChoice = props => {
   const [cutSize, setCutSize] = useState({})
   const [size, setSize] = useState({})
   const [visibility, setVisibility] = useState([])
+  const [validationErrors, setValidationErrors] = useState([])
 
   const [selectedDays, setSelectedDays] = useState([])
 
@@ -240,6 +241,12 @@ const AddIngredientswithChoice = props => {
 
     if (newUom) {
       handelCardSelection(event, item, null, null, newUom, selectedDays)
+      setValidationErrors(prevErrors => {
+        if (prevErrors.includes(item.id)) {
+          return prevErrors.filter(id => id !== item.id)
+        }
+        return prevErrors
+      })
     }
   }
 
@@ -315,6 +322,13 @@ const AddIngredientswithChoice = props => {
     ) {
       toast.error('Please select a Cutsize', {
         duration: 1000
+      })
+      
+      const missingCutsizeCards = selectedCardIngchoice.filter(card => !size[card.ingredient_id])
+      setValidationErrors(prev => {
+        const newErrors = new Set(prev)
+        missingCutsizeCards.forEach(c => newErrors.add(c.ingredient_id))
+        return Array.from(newErrors)
       })
     } else if (selectedCardIngchoice.length >= 1) {
       if (allIngredientchoiceSelectedValues.some(all => all.mealid === checkid) && ingType === 'addingIndex') {
@@ -486,6 +500,8 @@ const AddIngredientswithChoice = props => {
 
         return newSize
       })
+      
+      setValidationErrors(prevErrors => prevErrors.filter(id => id !== itemId))
     }
   }
 
@@ -501,18 +517,28 @@ const AddIngredientswithChoice = props => {
 
   const handleDayClick = day => {
     if (day.id === 0) {
-      const allDayIds = Day.map(day => day.id)
-      setSelectedDays(allDayIds)
-    } else if (selectedDays.length === 7 && selectedDays.includes(0)) {
-      setSelectedDays(selectedDays.filter(selectedDayId => selectedDayId !== day.id))
-    } else if (selectedDays.length === 1 && selectedDays.includes(day.id)) {
-      return
-    } else if (day.id !== 0 && selectedDays.includes(0)) {
-      setSelectedDays(selectedDays.filter(selectedDayId => selectedDayId !== day.id && selectedDayId !== 0))
+      if (selectedDays.includes(0)) {
+        setSelectedDays([])
+      } else {
+        const allDayIds = Day.map(d => d.id)
+        setSelectedDays(allDayIds)
+      }
     } else {
-      const updatedSelection = selectedDays.includes(day.id)
-        ? selectedDays.filter(selectedDayId => selectedDayId !== day.id)
-        : [...selectedDays, day.id]
+      let updatedSelection = [...selectedDays]
+      if (updatedSelection.includes(day.id)) {
+        updatedSelection = updatedSelection.filter(id => id !== day.id && id !== 0)
+      } else {
+        updatedSelection.push(day.id)
+      }
+
+      const allStandardDays = Day.filter(d => d.id !== 0).map(d => d.id)
+      const hasAllStandardDays = allStandardDays.every(id => updatedSelection.includes(id))
+
+      if (hasAllStandardDays && !updatedSelection.includes(0)) {
+        updatedSelection.push(0)
+      } else if (!hasAllStandardDays && updatedSelection.includes(0)) {
+        updatedSelection = updatedSelection.filter(id => id !== 0)
+      }
 
       setSelectedDays(updatedSelection)
     }
@@ -521,6 +547,12 @@ const AddIngredientswithChoice = props => {
   const [listOfIngredient, setListOfIngredient] = useState([])
 
   const handelSetIngredient = () => {
+    const activeDays = selectedDays.filter(d => d !== 0)
+    if (activeDays.length === 0) {
+      toast.error('Please select at least one feeding day.')
+      return
+    }
+
     setShowDays(false)
     setOpenIngredientchoice(false)
 
@@ -944,9 +976,11 @@ const AddIngredientswithChoice = props => {
                   mx: '24px',
                   borderRadius: '8px',
                   my: 4,
-                  ...(selectedCardIngchoice.some(card => card.ingredient_id === item.id) && {
-                    border: `2px solid ${theme.palette.primary.main}`
-                  })
+                  border: validationErrors.includes(item.id) 
+                    ? '2px solid red' 
+                    : selectedCardIngchoice.some(card => card.ingredient_id === item.id)
+                      ? `2px solid ${theme.palette.primary.main}`
+                      : 'none'
                 }}
                 onClick={event => handelShowBottom(event, item, index)}
               >
