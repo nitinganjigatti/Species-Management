@@ -14,6 +14,7 @@ import {
 } from 'src/lib/api/lab/labDetails'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import AnimalCard from 'src/views/utility/AnimalCard'
+import NewMediaCard from 'src/views/utility/NewMediaCard'
 import TestDetailsDrawer from './TestDetailsDrawer'
 import SampleDetailsDrawer from './SampleDetailsDrawer'
 import Utility from 'src/utility'
@@ -698,85 +699,31 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
   )
 
   const renderReportCard = (report, index) => (
-    <Box
+    <NewMediaCard
       key={report.id || index}
-      sx={{
-        backgroundColor: theme.palette.background.paper,
-        borderRadius: '4px',
-        mb: 2,
-        p: 3,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2,
-        cursor: 'pointer',
-        '&:hover': {
-          backgroundColor: alpha(theme.palette.primary.main, 0.05)
-        }
+      fileUrl={report.file}
+      fileName={report.file_original_name || 'Report'}
+      fileType={report.file_type}
+      width='100%'
+      showTitle={true}
+      user={
+        report.report_uploaded_by || report.report_uploaded_at
+          ? {
+              created_at: report.report_uploaded_at,
+              user_profile: {
+                user_full_name: report.report_uploaded_by || ''
+              }
+            }
+          : null
+      }
+      cardStyle={{
+        boxShadow: 'none',
+        border: `1px solid ${theme.palette.divider}`,
+        overflow: 'hidden',
+        minWidth: 0
       }}
-      onClick={() => {
-        if (report.file) {
-          window.open(report.file, '_blank')
-        }
-      }}
-    >
-      <Box
-        sx={{
-          width: 40,
-          height: 40,
-          borderRadius: '8px',
-          backgroundColor: alpha(theme.palette.primary.main, 0.1),
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        <Icon
-          icon={report.file_type === 'pdf' ? 'mdi:file-pdf-box' : 'mdi:file-document-outline'}
-          fontSize={24}
-          color={theme.palette.primary.main}
-        />
-      </Box>
-      <Box sx={{ flex: 1 }}>
-        <Typography
-          sx={{
-            fontSize: '14px',
-            fontWeight: 500,
-            color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary,
-            mb: 0.5
-          }}
-        >
-          {report.file_original_name || 'Report'}
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {report.report_uploaded_by && (
-            <Typography
-              sx={{
-                fontSize: '12px',
-                color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
-              }}
-            >
-              {report.report_uploaded_by}
-            </Typography>
-          )}
-          {report.report_uploaded_by && report.report_uploaded_at && (
-            <Typography sx={{ color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary }}>
-              &bull;
-            </Typography>
-          )}
-          {report.report_uploaded_at && (
-            <Typography
-              sx={{
-                fontSize: '12px',
-                color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
-              }}
-            >
-              {Utility.convertUtcToLocalReadableDate(report.report_uploaded_at)}
-            </Typography>
-          )}
-        </Box>
-      </Box>
-      <Icon icon='mdi:download' fontSize={20} color={theme.palette.primary.main} />
-    </Box>
+      height={220}
+    />
   )
 
   const renderTabContent = () => {
@@ -820,9 +767,20 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
         )
       case 2:
         return (
-          <Box sx={{ py: 3 }}>
+          <Box sx={{ py: 3, px: 4, overflow: 'hidden' }}>
             {reports.length > 0 ? (
-              reports.map((report, index) => renderReportCard(report, index))
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: 2,
+                  '& > *': {
+                    minWidth: 0
+                  }
+                }}
+              >
+                {reports.map((report, index) => renderReportCard(report, index))}
+              </Box>
             ) : (
               <Box sx={{ py: 6 }}>
                 <NoDataFound message='No lab reports found' />
