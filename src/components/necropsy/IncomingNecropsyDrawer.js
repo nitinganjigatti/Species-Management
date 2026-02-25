@@ -429,7 +429,6 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
                           subtitle: 'Transfer Request number'
                         })
                       }}
-
                     >
                       <Icon icon='ic:outline-qr-code-2' fontSize={46} color={theme.palette.customColors?.OnPrimary} />
                     </IconButton>
@@ -468,7 +467,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
                     text_color={theme.palette.customColors.OnPrimary}
                   />
                 </Box>
-{necropsyData?.transfer_details?.user_mobile_number && (
+                {necropsyData?.transfer_details?.user_mobile_number && (
                   <>
                     <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 2 }}>
                       <IconButton
@@ -479,7 +478,9 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
                             backgroundColor: 'rgba(0, 0, 0, 0.5)'
                           }
                         }}
-                        onClick={() => window.open(`tel:${necropsyData?.transfer_details?.user_mobile_number}`, '_self')}
+                        onClick={() =>
+                          window.open(`tel:${necropsyData?.transfer_details?.user_mobile_number}`, '_self')
+                        }
                       >
                         <Icon icon='mdi:phone' fontSize={20} />
                       </IconButton>
@@ -491,7 +492,9 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
                             backgroundColor: 'rgba(0, 0, 0, 0.5)'
                           }
                         }}
-                        onClick={() => window.open(`sms:${necropsyData?.transfer_details?.user_mobile_number}`, '_self')}
+                        onClick={() =>
+                          window.open(`sms:${necropsyData?.transfer_details?.user_mobile_number}`, '_self')
+                        }
                       >
                         <Icon icon='mdi:message-text' fontSize={20} />
                       </IconButton>
@@ -679,7 +682,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
                     </Typography>
                   </Box>
                 </Box>
-{necropsyData?.transfer_details?.checked_count > 0 && (
+                {necropsyData?.transfer_details?.checked_count > 0 && (
                   <Box
                     onClick={() => setShowChecklistDrawer(true)}
                     sx={{
@@ -1038,7 +1041,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
       >
         <Paper
           sx={{
-            width: { xs: '100%', sm: 560 },
+            width: { xs: '100%', sm: '80%', md: 560 },
             maxHeight: '80vh',
             backgroundColor: theme.palette.background.paper,
             borderTopLeftRadius: '16px',

@@ -652,7 +652,7 @@ const Necropsy = () => {
         badgeCount={stats?.CARCASS_TRANSFER}
         allowCarcassCollection={allowCarcassCollection}
         showCarcassTransferButton={!!enableAddNecropsyReport}
-        onCarcassTransfer={() => router.push('/necropsy/carcass-transfer')}
+        onCarcassTransfer={() => router.push('/necropsy/carcass-transfer?backTo=/necropsy/necropsy')}
       />
       <Box
         sx={{
