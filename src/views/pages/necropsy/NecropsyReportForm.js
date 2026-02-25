@@ -639,6 +639,9 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
     if (formValues.disposal_method) {
       const disposalId = formValues.disposal_method.value || formValues.disposal_method.id
       fd.append('disposal_method', disposalId)
+    } else if (status === 'draft') {
+      // For drafts, send 0 value to satisfy backend validation
+      fd.append('disposal_method', 0)
     }
 
     if (formValues.qr_number) fd.append('qr_number', formValues.qr_number)
