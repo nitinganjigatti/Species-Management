@@ -22,6 +22,10 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
@@ -51,6 +55,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const [noteRecord, setNoteRecord] = useState(null)
   const [isNotesOpen, setIsNotesOpen] = useState(false)
   const [activityLoader, setActivityLoader] = useState(false)
+  const [recordedDateTime, setRecordedDateTime] = useState(dayjs())
 
   const [clinicalAsmnt, setClinicalAsmnt] = useState('')
   const [prognosisVal, setPrognosisValue] = useState('')
@@ -330,7 +335,8 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
       type: 'DIAGNOSIS',
       is_system_generated: isSystemGenerated,
       animal_id: animal_id || '',
-      hospital_case_id: id || ''
+      hospital_case_id: id || '',
+      recorded_date_time: recordedDateTime.format('YYYY-MM-DD HH:mm:ss'),
     }
 
     // Only add clinical_assessment if changed
@@ -591,6 +597,8 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
           handleEditNoteClick={handleEditNoteClick}
           isNotesOpen={isNotesOpen}
           setIsNotesOpen={setIsNotesOpen}
+          recordedDateTime={recordedDateTime}
+          setRecordedDateTime={setRecordedDateTime}
         />
       )}
 

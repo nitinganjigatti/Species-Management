@@ -1,10 +1,15 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Typography, Select, MenuItem, TextField, IconButton, Drawer, FormControlLabel } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import SideSheetActionButtons from '../SideSheetActionButtons'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
+import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
 
 const AddClinicalAsmntDrawer = ({
   open,
@@ -20,11 +25,34 @@ const AddClinicalAsmntDrawer = ({
   notes,
   setNotes,
   status,
-  setStatus
+  setStatus,
+  admittedDate,
+  dischargedDate,
+  isDischarged
 }) => {
   const theme = useTheme()
   const { getSeverityColor } = useHospitalColorUtils()
   const activities = [1, 2, 3]
+  const [recordedDateTime, setRecordedDateTime] = useState(dayjs())
+  const [minDate, setMinDate] = useState(null)
+  const [maxDate, setMaxDate] = useState(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    // Set default date based on discharge status
+    if (isDischarged && dischargedDate) {
+      // Convert UTC discharge date to local time
+      const localDischargeDateTime = dayjs.utc(dischargedDate).local()
+      setRecordedDateTime(localDischargeDateTime)
+      setMinDate(dayjs.utc(admittedDate).local().startOf('day'))
+      setMaxDate(localDischargeDateTime.endOf('day'))
+    } else {
+      setRecordedDateTime(dayjs())
+      setMinDate(admittedDate ? dayjs.utc(admittedDate).local().startOf('day') : null)
+      setMaxDate(null) // No max date restriction for non-discharged animals
+    }
+  }, [open, isDischarged, admittedDate, dischargedDate])
 
   const commonFieldStyles = {
     textAlign: 'left',
@@ -45,7 +73,8 @@ const AddClinicalAsmntDrawer = ({
       clinicalAsmnt,
       prognosisVal,
       chronicVal,
-      notes
+      notes,
+      recordedDateTime: recordedDateTime.format('YYYY-MM-DD HH:mm:ss')
     })
   }
 
@@ -238,6 +267,22 @@ const AddClinicalAsmntDrawer = ({
 
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
+            >
+              Date & Time
+            </Typography>
+            <Box sx={{ mb: 6 }}>
+              <MUIDateTimePicker
+                value={recordedDateTime}
+                onChange={newValue => setRecordedDateTime(newValue)}
+                label=''
+                minDateTime={minDate}
+                maxDateTime={maxDate}
+                ampm={true}
+              />
+            </Box>
+
+            <Typography
+              sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1 }}
             >
               Notes
             </Typography>

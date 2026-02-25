@@ -96,6 +96,11 @@ function AddSymptoms() {
     setSelectedSymptoms(prev => [...prev, { id: temporarilySelected.id, name: temporarilySelected.name, ...details }])
     setTemporarilySelected(null)
     setSymptomDrawerOpen(false)
+    // Reset form fields for next symptom
+    setDurationValue(0)
+    setNotes('')
+    setDurationUnit('Days')
+    setSeverity('Mild')
   }
 
   const cancelSymptomSelection = () => {
@@ -357,7 +362,8 @@ function AddSymptoms() {
           duration: symptom.durationValue == 0 ? '' : String(symptom.durationValue || ''),
           duration_unit: symptom.durationUnit || 'Days',
           status: 'active',
-          comment_list: []
+          comment_list: [],
+          recorded_date_time: symptom.recordedDateTime || new Date().toISOString()
         }
       }))
 
@@ -525,6 +531,9 @@ function AddSymptoms() {
           setStatus={setStatus}
           setNotes={setNotes}
           onSave={addSymptomDetails}
+          admittedDate={patientData?.admitted_at}
+          dischargedDate={patientData?.discharge_at}
+          isDischarged={patientData?.status === 'discharge'}
         />
       )}
       {complaintDrawerOpen && (

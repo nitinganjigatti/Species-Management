@@ -243,9 +243,10 @@ function AddClinicalAssessment() {
                 ...symptom,
                 ...details,
                 chronicVal: details.clinicalAsmnt === 'Tentative' ? 'No' : details.chronicVal,
-                prognosisVal: details.clinicalAsmnt === 'Tentative' ? '' : details.prognosisVal
+                prognosisVal: details.clinicalAsmnt === 'Tentative' ? '' : details.prognosisVal,
+                recordedDateTime: details.recordedDateTime
               }
-            : symptom
+            : {...symptom, recordedDateTime: details.recordedDateTime}
         )
       )
     } else {
@@ -329,6 +330,7 @@ function AddClinicalAssessment() {
         isChronic: symptom?.chronicVal === 'Yes',
         prognosis: symptom?.prognosisVal?.toLowerCase() || '',
         notes: symptom?.notes || '',
+        recorded_date_time: symptom?.recordedDateTime,
         active_at: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
           .toISOString()
           .replace('T', ' ')
@@ -577,6 +579,9 @@ function AddClinicalAssessment() {
           setNotes={setNotes}
           onSave={addSymptomDetails}
           isSubmitLoading={isSubmitLoading}
+          admittedDate={patientData?.admit_date}
+          dischargedDate={patientData?.discharge_date}
+          isDischarged={patientData?.status === 'discharge'}
         />
       )}
 
