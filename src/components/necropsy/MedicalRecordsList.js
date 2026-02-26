@@ -7,7 +7,7 @@ import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets
 import { getMedicalBasicDataList } from 'src/lib/api/necropsy/medicalHistory'
 import MedicalRecordDetailDrawer from './MedicalRecordDetailDrawer'
 
-const MedicalRecordsList = ({ animalId }) => {
+const MedicalRecordsList = ({ animalId, mortalityId, mortalityCreatedAt }) => {
   const theme = useTheme()
   const [data, setData] = useState([])
   const [pageNo, setPageNo] = useState(1)
@@ -32,7 +32,15 @@ const MedicalRecordsList = ({ animalId }) => {
       if (page === 1) setLoading(true)
       else setLoadingMore(true)
 
-      const res = await getMedicalBasicDataList(animalId, { page_no: page, limit: 10 })
+      const params = {
+        page_no: page,
+        limit: 10,
+        purpose: 'necropsy',
+        ...(mortalityCreatedAt && { till_date: mortalityCreatedAt }),
+        ...(mortalityId && { mortality_id: mortalityId })
+      }
+
+      const res = await getMedicalBasicDataList(animalId, params)
 
       if (res?.success) {
         const records = res.data?.result || res.data || []
@@ -53,7 +61,7 @@ const MedicalRecordsList = ({ animalId }) => {
 
   useEffect(() => {
     fetchData(1)
-  }, [animalId])
+  }, [animalId, mortalityId, mortalityCreatedAt])
 
   const handleLoadMore = () => {
     const nextPage = pageNo + 1

@@ -302,7 +302,12 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails sx={{ px: 4, pt: 2, pb: 6 }}>
-              <MedicalHistoryTabs animalId={mortalityData.animal_id} hideTitle />
+              <MedicalHistoryTabs
+                animalId={mortalityData.animal_id}
+                hideTitle
+                mortalityId={mortalityData.mortality_id}
+                mortalityCreatedAt={mortalityData.mortality_created_at}
+              />
             </AccordionDetails>
           </Accordion>
 

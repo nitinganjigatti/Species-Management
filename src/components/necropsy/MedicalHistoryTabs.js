@@ -1,30 +1,93 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Box, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import MedicalRecordsList from './MedicalRecordsList'
 import DiagnosisList from './DiagnosisList'
 import PrescriptionList from './PrescriptionList'
 import LabRequestsList from './LabRequestsList'
+import { getMedicalRecordStats } from 'src/lib/api/necropsy/medicalHistory'
 
 const TABS = ['Medical Records', 'Diagnosis', 'Prescription', 'Lab Requests']
 
-const MedicalHistoryTabs = ({ animalId, hideTitle = false }) => {
+const MedicalHistoryTabs = ({ animalId, hideTitle = false, mortalityId, mortalityCreatedAt }) => {
   const theme = useTheme()
   const [activeTab, setActiveTab] = useState('Medical Records')
+  const [medicalStats, setMedicalStats] = useState(null)
+  const [statsLoading, setStatsLoading] = useState(true)
+
+  useEffect(() => {
+    if (animalId) {
+      fetchMedicalStats()
+    }
+  }, [animalId, mortalityId, mortalityCreatedAt])
+
+  const fetchMedicalStats = async () => {
+    try {
+      setStatsLoading(true)
+
+      const params = {
+        medical: 'zoo',
+        animal_id: animalId,
+        purpose: 'necropsy',
+        ...(mortalityCreatedAt && { till_date: mortalityCreatedAt }),
+        ...(mortalityId && { mortality_id: mortalityId })
+      }
+      const res = await getMedicalRecordStats(params)
+      if (res?.success) {
+        setMedicalStats(res.data)
+      }
+    } catch (error) {
+      console.error('Error fetching medical stats:', error)
+    } finally {
+      setStatsLoading(false)
+    }
+  }
+
+  const hasMedicalHistory = medicalStats?.medical_record_count > 0 || medicalStats?.diagnosis_count > 0
 
   const renderTabContent = () => {
     switch (activeTab) {
       case 'Medical Records':
-        return <MedicalRecordsList animalId={animalId} />
+        return (
+          <MedicalRecordsList animalId={animalId} mortalityId={mortalityId} mortalityCreatedAt={mortalityCreatedAt} />
+        )
       case 'Diagnosis':
-        return <DiagnosisList animalId={animalId} />
+        return <DiagnosisList animalId={animalId} mortalityId={mortalityId} mortalityCreatedAt={mortalityCreatedAt} />
       case 'Prescription':
-        return <PrescriptionList animalId={animalId} />
+        return (
+          <PrescriptionList animalId={animalId} mortalityId={mortalityId} mortalityCreatedAt={mortalityCreatedAt} />
+        )
       case 'Lab Requests':
-        return <LabRequestsList animalId={animalId} />
+        return <LabRequestsList animalId={animalId} mortalityId={mortalityId} mortalityCreatedAt={mortalityCreatedAt} />
       default:
         return null
     }
+  }
+
+  // Show "No medical history available" if stats loaded and count is 0
+  if (!statsLoading && !hasMedicalHistory) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {!hideTitle && (
+          <Typography
+            sx={{
+              fontSize: '16px',
+              fontWeight: 600,
+              color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+            }}
+          >
+            Medical History
+          </Typography>
+        )}
+        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', py: 10 }}>
+          <Typography
+            sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary, fontWeight: 400 }}
+          >
+            No medical history available
+          </Typography>
+        </Box>
+      </Box>
+    )
   }
 
   return (

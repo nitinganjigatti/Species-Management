@@ -278,8 +278,9 @@ const JournalCard = ({ entry, theme, formatKey, formatDetailValue, isLast }) => 
     <Box
       sx={{
         p: 2,
-        bgcolor: theme.palette.background.paper,
-        borderBottom: isLast ? 'none' : `1px solid ${theme.palette.divider}`
+        bgcolor: theme.palette.background.paper
+
+        // borderBottom: isLast ? 'none' : `1px solid ${theme.palette.divider}`
       }}
     >
       <Box sx={{ display: 'flex', gap: 2 }}>
@@ -308,7 +309,7 @@ const JournalCard = ({ entry, theme, formatKey, formatDetailValue, isLast }) => 
               />
             )}
           </Avatar>
-          {!isLast && (
+          {/* {!isLast && (
             <Box
               sx={{
                 width: 1,
@@ -323,7 +324,17 @@ const JournalCard = ({ entry, theme, formatKey, formatDetailValue, isLast }) => 
                 )`
               }}
             />
-          )}
+          )} */}
+          {/* {!isLast && (
+            <Box
+              sx={{
+                width: 2,
+                flexGrow: 1,
+                mt: 1,
+                backgroundColor: theme.palette.divider
+              }}
+            />
+          )} */}
         </Box>
 
         <Box sx={{ flex: 1, minWidth: 0 }}>

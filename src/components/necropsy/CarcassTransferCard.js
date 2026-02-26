@@ -33,7 +33,7 @@ const getTransferStatus = item => {
 }
 
 const TABS = [
-  { key: 'pending', label: 'Pending Acceptance' },
+  { key: 'intransit', label: 'Pending Acceptance' },
   { key: 'completed', label: 'Received' }
 ]
 
@@ -43,11 +43,11 @@ const CarcassTransferCard = ({ filterDate }) => {
   const userId = authData?.userData?.user?.user_id || ''
   const { selectedCenter: selectedNecropsy } = useNecropsyCenter(userId, false)
 
-  const [activeTab, setActiveTab] = useState('pending')
+  const [activeTab, setActiveTab] = useState('intransit')
   const [data, setData] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
-  const [stats, setStats] = useState({ pending: 0, completed: 0 })
+  const [stats, setStats] = useState({ intransit: 0, completed: 0 })
   const [filters, setFilters] = useState({ page: 1, limit: 50, q: '' })
   const [searchValue, setSearchValue] = useState('')
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
@@ -74,12 +74,11 @@ const CarcassTransferCard = ({ filterDate }) => {
         page_no: filters.page,
         limit: filters.limit,
         q: filters.q,
-        request_from: 'web',
         reference_type: 'carcass_transfer',
         transfer_status: activeTab,
         necropsy_center_id: JSON.stringify([selectedNecropsy?.id]),
-        from_date: formatDate(filterDate?.startDate),
-        to_date: formatDate(filterDate?.endDate),
+        start_date: formatDate(filterDate?.startDate),
+        end_date: formatDate(filterDate?.endDate),
         ...(siteId ? { entity_type: 'site', entity_id: siteId } : {})
       })
 
@@ -89,15 +88,12 @@ const CarcassTransferCard = ({ filterDate }) => {
         setTotal(totalCount)
 
         const statsObj = res?.data?.stats || res?.stats || {}
+        console.log('Carcass Transfer Stats:', statsObj)
 
-        const pendingVal = Number(statsObj?.pending_count ?? statsObj?.transfer_pending_count ?? 0)
-
-        const completedVal = Number(statsObj?.completed_count ?? statsObj?.transfer_completed_count ?? 0)
-
-        setStats(prev => ({
-          pending: pendingVal || (activeTab === 'pending' ? totalCount : prev.pending),
-          completed: completedVal || (activeTab === 'completed' ? totalCount : prev.completed)
-        }))
+        setStats({
+          intransit: Number(statsObj?.intransit_count ?? statsObj?.pending_count ?? 0),
+          completed: Number(statsObj?.completed_count ?? 0)
+        })
       }
     } catch (err) {
       console.error(err)
@@ -346,7 +342,7 @@ const CarcassTransferCard = ({ filterDate }) => {
                 <Tab
                   key={tab.key}
                   value={tab.key}
-                  label={`${tab.label} (${tab.key === 'pending' ? stats.pending : stats.completed})`}
+                  label={`${tab.label} (${tab.key === 'intransit' ? stats.intransit : stats.completed})`}
                   sx={{
                     textTransform: 'none',
                     fontSize: '14px',

@@ -146,7 +146,8 @@ export const useNecropsyList = () => {
         necropsy_center_id: selectedNecropsy.id,
         from_date: formatDate(filterDate.startDate),
         til_date: formatDate(filterDate.endDate),
-        type: viewType
+        type: viewType,
+        use_case: 'necropsy_module'
       })
     )
   }, [selectedNecropsy?.id, filterDate, viewType, formatDate, dispatch])

@@ -5,9 +5,23 @@ import {
   GET_LAB_REQUESTS_BY_ANIMAL,
   GET_ASSESSMENT_ANIMAL_TYPES,
   GET_ASSESSMENT_ANIMAL_DATA,
-  ANIMAL_JOURNAL_LOGS
+  ANIMAL_JOURNAL_LOGS,
+  GET_MEDICAL_STATS
 } from 'src/constants/ApiConstant'
 import { axiosGet } from '../utility'
+
+export async function getMedicalRecordStats(params) {
+  try {
+    const url = GET_MEDICAL_STATS
+    const response = await axiosGet({ url, params })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error fetching medical record stats:', error.message)
+
+    return { success: false, message: error.message }
+  }
+}
 
 export async function getMedicalBasicDataList(animalId, params) {
   try {

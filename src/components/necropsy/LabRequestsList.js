@@ -9,7 +9,7 @@ import LabRequestDetailsDrawer from './LabRequestDetailsDrawer'
 
 const SUB_TABS = ['Pending', 'Completed', 'All']
 
-const LabRequestsList = ({ animalId }) => {
+const LabRequestsList = ({ animalId, mortalityId, mortalityCreatedAt }) => {
   const theme = useTheme()
   const [activeSubTab, setActiveSubTab] = useState('Pending')
   const [data, setData] = useState([])
@@ -39,11 +39,16 @@ const LabRequestsList = ({ animalId }) => {
       if (page === 1) setLoading(true)
       else setLoadingMore(true)
 
-      const res = await getLabRequestsByAnimal({
+      const params = {
         animal_id: animalId,
         type: getTypeParam(tab),
-        page_no: page
-      })
+        page_no: page,
+        purpose: 'necropsy',
+        ...(mortalityCreatedAt && { till_date: mortalityCreatedAt }),
+        ...(mortalityId && { mortality_id: mortalityId })
+      }
+
+      const res = await getLabRequestsByAnimal(params)
 
       if (res?.success) {
         const records = res.data?.result || res.data || []
@@ -66,7 +71,7 @@ const LabRequestsList = ({ animalId }) => {
     setPageNo(1)
     setData([])
     fetchData(activeSubTab, 1)
-  }, [activeSubTab, animalId])
+  }, [activeSubTab, animalId, mortalityId, mortalityCreatedAt])
 
   const handleLoadMore = () => {
     const nextPage = pageNo + 1

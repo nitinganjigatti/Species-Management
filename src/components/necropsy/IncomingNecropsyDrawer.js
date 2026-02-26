@@ -541,6 +541,10 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
               {(() => {
                 const animalCount = necropsyData?.total_animal_count || necropsyData?.entity_details?.length || 0
 
+                // Find loaded count from checklist comments (LOADED_ANIMALS status)
+                const loadedAnimalItem = checklistComments?.find(item => item?.dump?.loaded_count != null)
+                const loadedCount = loadedAnimalItem?.dump?.loaded_count ?? loadedAnimalItem?.pending_count ?? null
+
                 if (animalCount === 1 && necropsyData?.entity_details?.[0]) {
                   return (
                     <Box
@@ -596,7 +600,9 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
                             color: theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                          {animalCount} {animalCount === 1 ? 'Carcass' : 'Carcasses'}
+                          {loadedCount != null
+                            ? `${loadedCount} / ${animalCount} Carcasses`
+                            : `${animalCount} ${animalCount === 1 ? 'Carcass' : 'Carcasses'}`}
                         </Typography>
                       </Box>
                     </Box>

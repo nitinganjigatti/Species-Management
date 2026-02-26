@@ -7,7 +7,7 @@ import { getMedicalCommonData } from 'src/lib/api/necropsy/medicalHistory'
 
 const SUB_TABS = ['Active', 'Resolved', 'All']
 
-const DiagnosisList = ({ animalId }) => {
+const DiagnosisList = ({ animalId, mortalityId, mortalityCreatedAt }) => {
   const theme = useTheme()
   const [activeSubTab, setActiveSubTab] = useState('Active')
   const [data, setData] = useState([])
@@ -35,12 +35,17 @@ const DiagnosisList = ({ animalId }) => {
       if (page === 1) setLoading(true)
       else setLoadingMore(true)
 
-      const res = await getMedicalCommonData(animalId, {
+      const params = {
         medical_type: 'diagnosis',
         type: getTypeParam(tab),
         page_no: page,
-        limit: 10
-      })
+        limit: 10,
+        purpose: 'necropsy',
+        ...(mortalityCreatedAt && { till_date: mortalityCreatedAt }),
+        ...(mortalityId && { mortality_id: mortalityId })
+      }
+
+      const res = await getMedicalCommonData(animalId, params)
 
       if (res?.success) {
         const records = res.data?.result || []
@@ -68,7 +73,7 @@ const DiagnosisList = ({ animalId }) => {
     setPageNo(1)
     setData([])
     fetchData(activeSubTab, 1)
-  }, [activeSubTab, animalId])
+  }, [activeSubTab, animalId, mortalityId, mortalityCreatedAt])
 
   const handleLoadMore = () => {
     const nextPage = pageNo + 1
