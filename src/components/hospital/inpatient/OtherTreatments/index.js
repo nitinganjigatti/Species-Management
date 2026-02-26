@@ -302,8 +302,13 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     setTreatmentOptionsLoading(true)
 
     const handler = setTimeout(async () => {
+      const params = {
+        q: treatmentSearchTerm,
+        page: 0,
+        limit: 10
+      }
       try {
-        const response = await getTreatmentMasterList({ q: treatmentSearchTerm, page: 0, limit: 10 })
+        const response = await getTreatmentMasterList(params)
         if (!isMounted) return
         const records = response?.data?.records || []
         if (records.length) {
@@ -891,7 +896,11 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
                           <UserInfoCard
                             avatarUrl={treatment?.record?.profile_pic || ''}
                             name={treatment?.record?.created_by_name || '—'}
-                            description={formatClinicianTimestamp(treatment?.clinician?.updatedAt ? treatment?.clinician?.updatedAt : treatment?.clinician?.createdAt)}
+                            description={formatClinicianTimestamp(
+                              treatment?.clinician?.updatedAt
+                                ? treatment?.clinician?.updatedAt
+                                : treatment?.clinician?.createdAt
+                            )}
                             textColor={theme.palette.customColors.OnSurfaceVariant}
                           />
                         </Box>

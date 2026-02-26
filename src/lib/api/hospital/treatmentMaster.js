@@ -7,11 +7,11 @@ import {
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet } from '../utility'
 
-export const getTreatmentMasterList = async ({ q = '', page = 0, limit = 10 } = {}) => {
+export const getTreatmentMasterList = async params => {
   try {
     const response = await axiosGet({
       url: GET_TREATMENT_MASTER_LIST,
-      params: { q, page, limit }
+      params: params
     })
 
     return response?.data
