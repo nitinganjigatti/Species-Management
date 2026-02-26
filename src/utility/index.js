@@ -242,12 +242,12 @@ const downloadFileFromURLWithBlob = async (url, fileName) => {
     document.body.removeChild(link)
     window.URL.revokeObjectURL(blobUrl)
   } catch (error) {
-    console.error('Download failed:', error)
+    console.error('Download failed:', error?.message)
   }
 }
 
 const formatText = text => {
-  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
+  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
 }
 
 function toPascalSentenceCase(str) {
@@ -257,7 +257,7 @@ function toPascalSentenceCase(str) {
     .trim()
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize the first letter of each word
-    .join(' ')
+    .join(' ');
 }
 
 function formatAmountCompactDisplay(value) {
@@ -298,7 +298,7 @@ function formatIdentifierType(type) {
     .replace(/_/g, ' ') // Replace underscores with spaces
     .split(' ') // Split into words
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize each word
-    .join(' ') // Join back with spaces
+    .join(' '); // Join back with spaces
 }
 
 function hexToHex8(hex, opacity) {
@@ -426,6 +426,68 @@ const scrollToFirstError = (errors, options = {}) => {
   return null
 }
 
+export const AgeConverter = recorded_date_time => {
+  moment.updateLocale('en', {
+    relativeTime: {
+      future: 'in %s',
+      past: '%s',
+      s: 'sec',
+      ss: '%dsec',
+      m: '%dm',
+      mm: '%dm',
+      h: '%dh',
+      hh: '%dh',
+      d: '%dd',
+      dd: '%dd',
+      w: 'a week',
+      ww: '%d weeks',
+      M: '%d months',
+      MM: '%d months',
+      y: 'a year',
+      yy: '%d years'
+    }
+  })
+
+  if (!recorded_date_time) {
+    return ''
+  }
+
+  let recordedAge
+  const now = moment()
+  const recorded = moment(recorded_date_time, 'YYYY-MM-DD HH:mm:ss')
+  if (!recorded.isValid()) {
+    return ''
+  }
+
+  const diffInMinutes = now.diff(recorded, 'minutes')
+  const diffInHours = now.diff(recorded, 'hours')
+  const diffInDays = now.diff(recorded, 'days')
+  const nowYear = now.year()
+  const recordedYear = recorded.year()
+
+  if (diffInMinutes < 1) {
+    return 'Just now'
+  }
+
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes} minute ago`
+  }
+
+  if (diffInHours < 24) {
+    return `${diffInHours} hour ago`
+  }
+
+  if (diffInDays < 30) {
+    return `${diffInDays} day ago`
+  }
+
+  if (nowYear === recordedYear) {
+    return recorded.format('D MMM')
+  }
+
+  return recorded.format('D MMM YYYY')
+}
+
 export const extractTextFromHtml = html => {
   if (!html) return ''
 
@@ -453,7 +515,7 @@ export const extractTextFromHtml = html => {
   return (doc?.body?.textContent || '')
     .replace(/<\/?[^>]+(>|$)/g, '')
     .replace(/\s+/g, ' ')
-    .trim()
+    .trim();
 }
 
 const Utility = {
@@ -489,6 +551,7 @@ const Utility = {
   capitalizeFirstLetter,
   scrollToField,
   scrollToFirstError,
+  AgeConverter,
   extractTextFromHtml
 }
 

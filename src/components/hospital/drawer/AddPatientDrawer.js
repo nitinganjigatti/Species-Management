@@ -37,17 +37,6 @@ const defaultValues = {
   // patient_status: false
 }
 
-const schema = yup.object().shape({
-  room: yup.object().required('Room is required'),
-  holdingEnclosure: yup.object().required('Holding Enclosure is required'),
-  selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
-  admission_date: yup.date().required('Admission date is required'),
-  admission_time: yup.string().required('Admission time is required'),
-  reason: yup.string().required('Reason for admission is required')
-
-  // patient_status: yup.boolean().required('Patient status is required')
-})
-
 const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
@@ -67,6 +56,84 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
   const [openAddRoomDrawer, setOpenAddRoomDrawer] = useState(false)
   const [openAddBedsDrawer, setOpenAddBedsDrawer] = useState(false)
 
+  const schema = yup.object().shape({
+    room: yup.object().required('Room is required'),
+    holdingEnclosure: yup.object().required('Holding Enclosure is required'),
+    selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
+
+    // Must not be in the future and must not be before the admitted date
+    admission_date: yup
+      .date()
+      .typeError('Invalid date')
+      .nullable()
+      .required('Date is required')
+
+      // Must not be a future date (after today)
+      .test('not-future-date', 'Date cannot be in the future', function (value) {
+        if (!value) return true
+        const now = dayjs()
+        if (dayjs(value).isAfter(now, 'day')) {
+          return this.createError({ message: 'Date cannot be in the future' })
+        }
+
+        return true
+      })
+
+      // Must not be before the admitted date
+      .test('not-before-admitted', 'Date cannot be before the admitted date', function (value) {
+        const admittedAt = patientData?.admitted_at ? dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)) : null
+        if (!value || !admittedAt) return true
+        if (dayjs(value).isBefore(admittedAt, 'day')) {
+          return this.createError({
+            message: `Date cannot be before the admitted date (${admittedAt.format('DD MMM YYYY')})`
+          })
+        }
+
+        return true
+      }),
+
+    // Must not be in the future and must not be before the admitted time
+    admission_time: yup
+      .date()
+      .typeError('Invalid time')
+      .nullable()
+      .required('Time is required')
+      .test('is-valid-time', 'Time is invalid', function (value) {
+        const { admission_date } = this.parent
+        const admittedAt = patientData?.admitted_at ? dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)) : null
+        if (!value || !admission_date) return true
+
+        const now = dayjs()
+
+        const selectedTime = dayjs(admission_date)
+          .startOf('day')
+          .set('hour', dayjs(value).hour())
+          .set('minute', dayjs(value).minute())
+          .set('second', 0)
+
+        // Must not be before the admitted time (on the same day)
+        if (admittedAt && dayjs(admission_date).isSame(admittedAt, 'day')) {
+          if (selectedTime.isBefore(admittedAt)) {
+            return this.createError({
+              message: `Time cannot be before the admitted time (${admittedAt.format('hh:mm A')})`
+            })
+          }
+        }
+
+        // Must not be in the future (on today)
+        if (dayjs(admission_date).isSame(now, 'day')) {
+          if (selectedTime.isAfter(now)) {
+            return this.createError({ message: 'Time cannot be in the future' })
+          }
+        }
+
+        return true
+      }),
+    reason: yup.string().required('Reason for admission is required')
+
+      // patient_status: yup.boolean().required('Patient status is required')
+  })
+
   const {
     control,
     handleSubmit,
@@ -74,6 +141,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
     reset,
     clearErrors,
     watch,
+    trigger,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -237,17 +305,24 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
 
   const selectedDate = watch('admission_date')
 
-  const createdAtLocal = dayjs(Utility.convertUTCToLocal(patientData?.admitted_at))
+  const createdAtLocal = patientData?.admitted_at ? dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)) : null
+  const now = dayjs()
 
   const minDate = createdAtLocal.startOf('day')
+  const maxDate = now.endOf('day')
 
   let minTime = null
+  let maxTime = null
 
   if (selectedDate) {
-    const isCreatedDate = dayjs(selectedDate).isSame(createdAtLocal, 'day')
+    const isCreatedDate = createdAtLocal && dayjs(selectedDate).isSame(createdAtLocal, 'day')
+    const isToday = dayjs(selectedDate).isSame(now, 'day')
 
     if (isCreatedDate) {
       minTime = createdAtLocal
+    }
+    if (isToday) {
+      maxTime = now
     }
   }
 
@@ -414,10 +489,20 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
                       label='Date'
                       defaultValue={dayjs()}
                       minDate={minDate}
+                      maxDate={maxDate}
+                      onChangeOverride={() => {
+                        trigger('admission_time')
+                      }}
                     />
                   </Grid>
                   <Grid size={{ sm: 6, xs: 6 }}>
-                    <ControlledTimePicker control={control} name={'admission_time'} label='Time' minTime={minTime} />
+                    <ControlledTimePicker
+                      control={control}
+                      name={'admission_time'}
+                      label='Time'
+                      minTime={minTime}
+                      maxTime={maxTime}
+                    />
                   </Grid>
                 </Grid>
               </Box>

@@ -42,10 +42,74 @@ const CommonTable = ({
           outline: 'none'
         },
 
+        // Header styling - MUI X v8
         '& .MuiDataGrid-columnHeaders': {
           backgroundColor: theme.palette.customColors.customTableHeaderBg,
-          color: theme.palette.customColors.customHeadingTextColor
+          color: theme.palette.customColors.customHeadingTextColor,
+          minHeight: '56px !important',
+          maxHeight: '56px !important'
         },
+        '& .MuiDataGrid-columnHeader': {
+          backgroundColor: theme.palette.customColors.customTableHeaderBg,
+          color: theme.palette.customColors.customHeadingTextColor,
+          display: 'flex',
+          alignItems: 'center'
+        },
+        '& .MuiDataGrid-columnHeaderTitle': {
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontWeight: 500,
+          lineHeight: 'normal'
+        },
+        '& .MuiDataGrid-columnHeaderTitleContainer': {
+          display: 'flex',
+          alignItems: 'center'
+        },
+        '& .MuiDataGrid-filler': {
+          backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+        },
+        '& .MuiDataGrid-scrollbarFiller': {
+          backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+        },
+        '& .MuiDataGrid-filler--pinnedColumns': {
+          backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+        },
+        '& .MuiDataGrid-scrollbarFiller--header': {
+          backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+        },
+        '& .MuiDataGrid-cellEmpty': {
+          display: 'none !important'
+        },
+
+        // Cell alignment - vertically center content
+        '& .MuiDataGrid-cell': {
+          display: 'flex',
+          alignItems: 'center',
+          lineHeight: 'normal'
+        },
+        '& .MuiDataGrid-columnHeader--alignCenter .MuiDataGrid-columnHeaderDraggableContainer': {
+          justifyContent: 'center'
+        },
+        '& .MuiDataGrid-columnHeader--alignRight .MuiDataGrid-columnHeaderDraggableContainer': {
+          justifyContent: 'flex-end'
+        },
+
+        // Column menu icon button styling
+        '& .MuiDataGrid-menuIcon': {
+          visibility: 'visible',
+          width: 'auto'
+        },
+        '& .MuiDataGrid-iconButtonContainer': {
+          visibility: 'visible',
+          width: 'auto'
+        },
+        '& .MuiDataGrid-menuIconButton': {
+          backgroundColor: 'transparent',
+          color: theme.palette.customColors.customHeadingTextColor,
+          '&:hover': {
+            backgroundColor: theme.palette.action.hover
+          }
+        },
+
         '& .MuiDataGrid-row:hover': {
           cursor: 'pointer'
         },
@@ -95,7 +159,7 @@ const CommonTable = ({
         pageSizeOptions && pageSizeOptions.length > 0
           ? pageSizeOptions
           : disablePagination
-          ? [total]
+          ? [total || 10]
           : [7, 10, 25, 50, 100]
       }
       localeText={{
@@ -104,7 +168,7 @@ const CommonTable = ({
       }}
       onCellClick={onCellClick ? onCellClick : null}
       // paginationModel={paginationModel}
-      paginationModel={disablePagination ? undefined : paginationModel}
+      paginationModel={disablePagination ? undefined : paginationModel || { page: 0, pageSize: 50 }}
       onSortModelChange={handleSortModel}
       // onPaginationModelChange={setPaginationModel}
       onPaginationModelChange={disablePagination ? undefined : setPaginationModel}
@@ -122,8 +186,10 @@ const CommonTable = ({
       }}
       onRowClick={onRowClick ? onRowClick : null}
       checkboxSelection={checkBoxOption ? true : false}
-      onRowSelectionModelChange={onRowSelectionModelChange ? onRowSelectionModelChange : null}
-      rowSelectionModel={selectedRows ? selectedRows : []}
+      {...(checkBoxOption && {
+        onRowSelectionModelChange: onRowSelectionModelChange || (() => {}),
+        rowSelectionModel: selectedRows || []
+      })}
       getRowHeight={getRowHeight ? getRowHeight : null}
       getRowClassName={getRowClassName ? getRowClassName : undefined}
     />

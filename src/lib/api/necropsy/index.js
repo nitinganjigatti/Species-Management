@@ -9,6 +9,8 @@ import {
   GET_INCOMING_NECROPSY_BTN_STATUS,
   UPDATE_TRANSFER_BTN_STATUS,
   GET_TRANSFER_ANIMAL_LIST,
+  GET_FILLED_CHECKLIST_LIST,
+  GET_TRANSFER_CHECKLIST,
   GET_NECROPSY_SUMMARY,
   ADD_NECROPSY,
   EDIT_NECROPSY,
@@ -95,6 +97,18 @@ export async function acceptNecropsyTransfer(transferId, payload) {
 
 export async function getTransferAnimalList(transferId, params) {
   const response = await axiosGet({ url: `${GET_TRANSFER_ANIMAL_LIST}/${transferId}`, params })
+
+  return response?.data
+}
+
+export async function getFilledChecklistList(transferId) {
+  const response = await axiosGet({ url: `${GET_FILLED_CHECKLIST_LIST}/${transferId}` })
+
+  return response?.data
+}
+
+export async function getTransferChecklist() {
+  const response = await axiosGet({ url: GET_TRANSFER_CHECKLIST })
 
   return response?.data
 }

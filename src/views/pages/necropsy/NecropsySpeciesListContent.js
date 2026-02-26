@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react'
-import { Box, Card, CardContent, Typography, Grid, Skeleton, Avatar, useTheme } from '@mui/material'
+import { Box, Card, CardContent, Typography, Grid, Skeleton, Avatar, useTheme, Tooltip } from '@mui/material'
 import { useRouter } from 'next/router'
 import { debounce } from 'lodash'
 import Search from 'src/views/utility/Search'
@@ -14,6 +14,7 @@ import { getAnimalWiseNecropsyList } from 'src/lib/api/necropsy'
 import { useNecropsyCenter } from 'src/hooks/necropsy'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
+import { getTransferStatus } from 'src/pages/necropsy/necropsy'
 
 const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
   const theme = useTheme()
@@ -194,7 +195,7 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
       )
     },
     {
-      width: 300,
+      width: 450,
       minWidth: 20,
       sortable: false,
       field: 'animal_name',
@@ -204,71 +205,6 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
           <AnimalCard data={params?.row} />
         </>
       )
-    },
-    ...(status === 'INCOMING'
-      ? [
-          {
-            width: 200,
-            minWidth: 20,
-            sortable: false,
-            field: 'transfer_code',
-            headerName: 'Transfer Code',
-            renderCell: params => (
-              <Typography
-                variant='body2'
-                sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant, px: 2 }}
-              >
-                {params.row.transfer_code}
-              </Typography>
-            )
-          }
-        ]
-      : []),
-    ...(status === 'DRAFT' || status === 'COMPLETED'
-      ? [
-          {
-            width: 200,
-            minWidth: 20,
-            sortable: false,
-            field: 'request_id',
-            headerName: 'Request ID',
-            renderCell: params => (
-              <Typography
-                variant='body2'
-                sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant, px: 2 }}
-              >
-                {params.row.request_id}
-              </Typography>
-            )
-          }
-        ]
-      : []),
-    {
-      width: 220,
-      minWidth: 20,
-      sortable: false,
-      field: 'mortality_date',
-      headerName: 'Mortality Date',
-      renderCell: params => {
-        const date = params.row.mortality_created_at
-
-        return (
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography
-              variant='body2'
-              sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}
-            >
-              {Utility.convertUtcToLocalReadableDate(date)}
-            </Typography>
-            <Typography
-              variant='caption'
-              sx={{ fontSize: '12px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}
-            >
-              {Utility.convertUTCToLocaltime(date)}
-            </Typography>
-          </Box>
-        )
-      }
     },
     {
       width: 200,
@@ -300,6 +236,97 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
         )
       }
     },
+    ...(status === 'INCOMING'
+      ? [
+          {
+            width: 300,
+            minWidth: 20,
+            sortable: false,
+            field: 'transfer_code',
+            headerName: 'Transfer Id & Status',
+            renderCell: params => (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Tooltip title={params.row.transfer_code} placement='top'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: theme.palette.customColors.OnPrimaryContainer
+                    }}
+                  >
+                    {params.row.transfer_code}
+                  </Typography>
+                </Tooltip>
+                <Tooltip title={getTransferStatus(params.row)} placement='top'>
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      color: theme.palette.customColors.OnPrimaryContainer,
+                      fontWeight: 500
+                    }}
+                  >
+                    {getTransferStatus(params.row)}
+                  </Typography>
+                </Tooltip>
+                <Tooltip
+                  title={Utility.convertUtcToLocalReadableDate(params?.row?.transfer_modified_at)}
+                  placement='top'
+                >
+                  <Typography sx={{ fontSize: '12px', fontWeight: 400, color: theme.palette.customColors.neutral_50 }}>
+                    Since <span>{Utility.convertUtcToLocalReadableDate(params?.row?.transfer_modified_at)}</span>
+                    <span> &bull; </span> {Utility.convertUTCToLocaltime(params?.row?.transfer_modified_at)}
+                  </Typography>
+                </Tooltip>
+              </Box>
+            )
+          }
+        ]
+      : []),
+    ...(status === 'COMPLETED'
+      ? [
+          {
+            width: 250,
+            minWidth: 20,
+            sortable: false,
+            field: 'request_id',
+            headerName: 'Request ID',
+            renderCell: params => (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Tooltip title={params.row.request_id} placement='top'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      fontSize: '14px',
+                      fontWeight: 400,
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      px: 2
+                    }}
+                  >
+                    {params.row.request_id}
+                  </Typography>
+                </Tooltip>
+                {params?.row?.is_unsuitable !== '0' && (
+                  <Box sx={{ backgroundColor: theme.palette.customColors.Tertiary30, borderRadius: 0.5, px: 2, py: 1 }}>
+                    <Tooltip title={params.row.is_unsuitable} placement='top'>
+                      <Typography
+                        sx={{
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          color: theme.palette.customColors.Tertiary
+                        }}
+                      >
+                        Unsuitable for necropsy
+                      </Typography>
+                    </Tooltip>
+                  </Box>
+                )}
+              </Box>
+            )
+          }
+        ]
+      : []),
     {
       width: 300,
       minWidth: 20,
@@ -320,9 +347,14 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
         const isIncomingOrPending = status === 'INCOMING' || status === 'PENDING'
 
         const userName = isIncomingOrPending ? row.reported_by : row.user_profile_for_necropsy?.name
-        const date = isIncomingOrPending ? row.mortality_created_at : row.updated_at
 
-        return <UserAvatarDetails user_name={userName} date={date} show_time size='medium' />
+        return (
+          <Tooltip title={userName} placement='top'>
+            <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
+              {userName}
+            </Typography>
+          </Tooltip>
+        )
       }
     }
   ]

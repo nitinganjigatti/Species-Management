@@ -5,23 +5,20 @@ import { useState, useEffect, useCallback, Fragment } from 'react'
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
 
-import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
-import FormControl from '@mui/material/FormControl'
-import FormHelperText from '@mui/material/FormHelperText'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
-import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
 import { getGenericsById } from 'src/lib/api/pharmacy/genericNames'
 
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import ControlledRadioGroup from 'src/views/forms/form-fields/ControlledRadioGroup'
 
 const schema = yup.object().shape({
   name: yup
@@ -41,7 +38,6 @@ const AddGenericName = props => {
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
   const [values, setValues] = useState(defaultValues)
-
 
   const {
     reset,
@@ -96,7 +92,7 @@ const AddGenericName = props => {
   const RenderSidebarFooter = () => {
     return (
       <Fragment>
-        <LoadingButton size='large' type='submit' variant='contained' >
+        <LoadingButton size='large' type='submit' variant='contained'>
           Submit
         </LoadingButton>
       </Fragment>
@@ -128,54 +124,32 @@ const AddGenericName = props => {
       </Box>
       <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='name'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Generic Name*'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Generic Name'
-                  error={Boolean(errors.name)}
-                  name='name'
-                />
-              )}
-            />
-            {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
-          </FormControl>
+          <ControlledTextField
+            name='name'
+            control={control}
+            required
+            label='Generic Name*'
+            placeholder='Generic Name'
+            error={Boolean(errors.name)}
+            fullWidth
+            sx={{ mb: 6 }}
+          />
+
           {editParams?.id !== null ? (
-            <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
-              <FormLabel>Status</FormLabel>
-              <Controller
-                name='status'
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <RadioGroup row {...field} aria-label='gender' name='validation-basic-radio'>
-                    <FormControlLabel
-                      value='active'
-                      label='Active'
-                      sx={errors.status ? { color: 'error.main' } : null}
-                      control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
-                    />
-                    <FormControlLabel
-                      value='inactive'
-                      label='Inactive'
-                      sx={errors.status ? { color: 'error.main' } : null}
-                      control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
-                    />
-                  </RadioGroup>
-                )}
-              />
-              {errors.radio && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-radio'>
-                  This field is required
-                </FormHelperText>
-              )}
-            </FormControl>
+            <ControlledRadioGroup
+              name='status'
+              control={control}
+              errors={errors}
+              label='Status'
+              required
+              options={[
+                { label: 'Active', value: 'active' },
+                { label: 'Inactive', value: 'inactive' }
+              ]}
+              row
+              gap={4}
+              sx={{ mb: 6 }}
+            />
           ) : null}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RenderSidebarFooter />

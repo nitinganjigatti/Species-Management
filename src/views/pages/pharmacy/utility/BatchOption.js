@@ -53,7 +53,7 @@ const BatchOption = ({ option, ...props }) => {
             fontWeight: 400
           }}
         >
-          Availability: {option.available_item_qty}
+          Availability: {option.available_item_qty || option.qty}
         </Typography>
       </Box>
     </Box>

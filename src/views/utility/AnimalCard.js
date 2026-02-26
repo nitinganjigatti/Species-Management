@@ -2,8 +2,9 @@ import { Avatar, Skeleton, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import React, { useEffect, useState } from 'react'
+import Utility from 'src/utility'
 
-const AnimalCard = ({ data, size, edit }) => {
+const AnimalCard = ({ data, size, edit, valueColor }) => {
   const theme = useTheme()
   const [imageLoading, setImageLoading] = useState(true)
   const [src, setSrc] = useState(data?.default_icon)
@@ -134,6 +135,20 @@ const AnimalCard = ({ data, size, edit }) => {
           gap: '2px'
         }}
       >
+        {(data?.mortality_date || data?.mortality_created_at) && (
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 600,
+              lineHeight: '16.94px',
+              color: theme.palette.customColors.Tertiary
+            }}
+          >
+            <span>Mortality Date : </span>
+            <span>{Utility.convertUtcToLocalReadableDate(data?.mortality_date || data?.mortality_created_at)}</span>
+            <span> &bull; </span> {Utility.convertUTCToLocaltime(data?.mortality_date || data?.mortality_created_at)}
+          </Typography>
+        )}
         {data?.local_identifier_name && data?.local_identifier_value && (
           <Box
             sx={{
@@ -143,7 +158,7 @@ const AnimalCard = ({ data, size, edit }) => {
           >
             <Typography
               sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
+                color: valueColor || theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '16px',
                 fontWeight: '600',
                 lineHeight: '19.36px',
@@ -159,7 +174,7 @@ const AnimalCard = ({ data, size, edit }) => {
               <Box
                 component='span'
                 sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
+                  color: valueColor || theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '14px',
                   fontWeight: 400,
                   background: '#37bd6924',
@@ -187,7 +202,7 @@ const AnimalCard = ({ data, size, edit }) => {
                 fontSize: size ?? '16px',
                 fontWeight: 600,
                 lineHeight: '19.36px',
-                color: theme.palette.customColors.OnSurfaceVariant,
+                color: valueColor || theme.palette.customColors.OnSurfaceVariant,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 maxWidth: edit ? '118px' : '200px'
@@ -199,7 +214,7 @@ const AnimalCard = ({ data, size, edit }) => {
               <Box
                 component='span'
                 sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
+                  color: valueColor || theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '14px',
                   fontWeight: 400,
                   background: '#37bd6924',
@@ -221,7 +236,7 @@ const AnimalCard = ({ data, size, edit }) => {
               fontSize: '16px',
               fontWeight: 600,
               lineHeight: '19.36px',
-              color: theme.palette.customColors.OnSurfaceVariant
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
             {data?.common_name || data?.default_common_name}
@@ -234,7 +249,7 @@ const AnimalCard = ({ data, size, edit }) => {
               fontSize: '13px',
               fontWeight: 500,
               fontStyle: 'italic',
-              color: theme.palette.customColors.OnSurfaceVariant
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
             {data?.scientific_name || data?.complete_name}
@@ -247,7 +262,7 @@ const AnimalCard = ({ data, size, edit }) => {
               fontSize: '14px',
               fontWeight: 600,
               lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
             <span>Age : </span>
@@ -273,9 +288,9 @@ const AnimalCard = ({ data, size, edit }) => {
           <Typography
             variant='caption'
             sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant,
               fontSize: '14px',
-              bgcolor: '#DDEBE9',
+              bgcolor: theme.palette.customColors.displaybgSecondary,
               padding: '2px 4px',
               borderRadius: '4px',
               width: 'fit-content'
@@ -291,7 +306,7 @@ const AnimalCard = ({ data, size, edit }) => {
               fontSize: '14px',
               fontWeight: 600,
               lineHeight: '19.36px',
-              color: theme.palette.customColors.OnSurfaceVariant
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
             <span>Breed : </span>
@@ -304,7 +319,7 @@ const AnimalCard = ({ data, size, edit }) => {
               fontSize: '14px',
               fontWeight: 600,
               lineHeight: '19.36px',
-              color: theme.palette.customColors.OnSurfaceVariant
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
             <span>Variant : </span>
@@ -318,7 +333,7 @@ const AnimalCard = ({ data, size, edit }) => {
               fontSize: '14px',
               fontWeight: 600,
               lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
             <span> Encl : </span>
@@ -332,7 +347,7 @@ const AnimalCard = ({ data, size, edit }) => {
               fontSize: '14px',
               fontWeight: 600,
               lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
             <span>Sec : </span> {data?.section_name}
@@ -345,7 +360,7 @@ const AnimalCard = ({ data, size, edit }) => {
               fontSize: '14px',
               fontWeight: 600,
               lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
             <span>Site : </span>

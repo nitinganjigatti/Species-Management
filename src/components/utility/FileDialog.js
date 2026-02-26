@@ -15,35 +15,81 @@ import Icon from 'src/@core/components/icon'
 import { LoadingButton } from '@mui/lab'
 import SignedMediaPlayer from './SignedMediaPlayer'
 import TextEllipsisWithModal from '../TextEllipsisWithModal'
+import Utility from 'src/utility'
 
 const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
   const theme = useTheme()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isError, setIsError] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [errorType, setErrorType] = useState(null) // broken | unsupported
 
-  const handleDownload = e => {
+  const handleDownload = async e => {
     e.preventDefault()
     if (!src) return
 
     setIsSubmitting(true)
-
-    // Create a temporary link to trigger download
-    const link = document.createElement('a')
-    link.href = src
-    link.download = title || 'file'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    // Simulate a short loading delay before closing dialog
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      await Utility.downloadFileFromURLWithBlob(src, title)
       onClose()
-    }, 500)
+    } catch (error) {
+      console.error('Download failed:', error?.message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Checks whether the file URL is reachable
+  const checkURLExists = async url => {
+    try {
+      const response = await fetch(url)
+
+      return response.ok
+    } catch {
+      return false
+    }
+  }
+
+  // Determines if the error is due to a broken URL or unsupported preview format
+  const handleLoadError = async () => {
+    setIsLoading(false)
+
+    const exists = await checkURLExists(src)
+
+    if (exists) {
+      setErrorType('unsupported')
+    } else {
+      setErrorType('broken')
+    }
+
+    setIsError(true)
   }
 
   const renderFallback = () => {
+    //  Unsupported URL shows only Download button
+    if (errorType === 'unsupported') {
+      return (
+        <Box sx={{ p: 10, textAlign: 'center' }}>
+          <LoadingButton
+            variant='contained'
+            loading={isSubmitting}
+            onClick={handleDownload}
+            endIcon={<Icon icon='mdi:download' width={24} height={24} />}
+            sx={{
+              px: 8,
+              py: 2,
+              borderRadius: '6px',
+              textTransform: 'none',
+              letterSpacing: 1,
+              fontSize: '1rem'
+            }}
+          >
+            Download File
+          </LoadingButton>
+        </Box>
+      )
+    }
+
     return (
       <Box
         sx={{
@@ -53,13 +99,15 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: fileIcon?.bg_color || theme.palette.action.hover,
+          backgroundColor: theme.palette.action.hover,
           p: 10,
           gap: 4
         }}
       >
         {type == 'image' ? (
           <Icon icon='mdi:image-off-outline' fontSize={80} color={theme.palette.text.secondary} />
+        ) : type == 'video' ? (
+          <Icon icon='mdi:video-off-outline' fontSize={80} color={theme.palette.text.secondary} />
         ) : fileIcon?.image_path ? (
           <Box
             component='img'
@@ -81,6 +129,7 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
     )
   }
 
+  // Loader
   const loadingOverlay = (
     <Box
       sx={{
@@ -103,33 +152,23 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
 
     switch (type) {
       case 'pdf':
-        // Standard PDF parameters for better browser compatibility
-        const pdfUrl = `${src}#view=FitH`
+        // Ensures the PDF fits the iframe width for consistent preview across browsers and iPad
+        // const pdfUrl = `${src}#view=FitH`
 
         return (
-          <Box
-            sx={{
-              width: '100%',
-              height: '70vh',
-              position: 'relative',
-              overflow: 'hidden'
-            }}
-          >
+          <Box sx={{ width: '100%', height: '70vh', position: 'relative', overflow: 'hidden' }}>
             {isLoading && loadingOverlay}
-            <iframe
-              src={pdfUrl}
-              title={title || 'PDF Preview'}
-              onLoad={() => setIsLoading(false)}
-              onError={() => {
-                setIsError(true)
-                setIsLoading(false)
-              }}
-              style={{
-                border: 'none',
-                width: '100%',
-                height: '100%'
-              }}
-            />
+            {!isError && (
+              <iframe
+                src={src}
+                title={title || 'PDF Preview'}
+                style={{
+                  border: 'none',
+                  width: '100%',
+                  height: '100%'
+                }}
+              />
+            )}
           </Box>
         )
       case 'image':
@@ -149,10 +188,7 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
               src={src}
               alt={title || 'Image Preview'}
               onLoad={() => setIsLoading(false)}
-              onError={() => {
-                setIsError(true)
-                setIsLoading(false)
-              }}
+              onError={handleLoadError}
               style={{
                 maxWidth: '100%',
                 maxHeight: '70vh',
@@ -179,10 +215,7 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
               preload='auto'
               type='video'
               onLoad={() => setIsLoading(false)}
-              onError={() => {
-                setIsError(true)
-                setIsLoading(false)
-              }}
+              onError={handleLoadError}
               style={{
                 width: '100%',
                 maxHeight: '70vh',
@@ -202,10 +235,7 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
               preload='auto'
               height='auto'
               onLoad={() => setIsLoading(false)}
-              onError={() => {
-                setIsError(true)
-                setIsLoading(false)
-              }}
+              onError={handleLoadError}
             />
           </Box>
         )
@@ -234,13 +264,41 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
     }
   }
 
-  // Reset error state when modal opens or src changes
+  // Resets loading and error state whenever dialog opens or file source changes
   useEffect(() => {
     if (open) {
       setIsError(false)
       setIsLoading(true)
+      setErrorType(null)
     }
   }, [open, src])
+
+  // Pre-check PDF accessibility to detect broken links before rendering preview
+  useEffect(() => {
+    if (!open || type !== 'pdf' || !src) return
+
+    let active = true
+
+    const validatePdf = async () => {
+      setIsLoading(true)
+
+      const exists = await checkURLExists(src)
+
+      if (!exists && active) {
+        setErrorType('broken')
+        setIsError(true)
+        setIsLoading(false)
+      } else if (active) {
+        setIsLoading(false)
+      }
+    }
+
+    validatePdf()
+
+    return () => {
+      active = false
+    }
+  }, [open, src, type])
 
   // Dialog UI with title and content
   return (
@@ -278,7 +336,7 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
             size={{ sm: type == 'pdf' ? 4 : 1, md: type == 'pdf' ? 3 : 1 }}
             sx={{ display: 'flex', justifyContent: 'end', gap: 3 }}
           >
-            {type == 'pdf' && (
+            {type === 'pdf' && errorType !== 'broken' && (
               <Button
                 variant='contained'
                 onClick={() => window.open(src, '_blank')}
@@ -315,4 +373,5 @@ export default FileDialog
  * - src: string — Source URL of the file to preview or download
  * - title?: string — Optional title shown at the top of the dialog
  * - type: string — File type ('pdf', 'image', 'video', 'audio', or fallback)
+ * - fileIcon: object - containing icon and bg_color for the file
  */

@@ -13,13 +13,13 @@ import {
   TextField,
   Typography
 } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
 import { debounce } from 'lodash'
 
 import Utility from 'src/utility'
 import { AuthContext } from 'src/context/AuthContext'
 import Icon from 'src/@core/components/icon'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import CustomChip from 'src/@core/components/mui/chip'
 import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
 import ErrorScreen from 'src/pages/Error'
@@ -212,7 +212,7 @@ const NurseryList = () => {
           size='small'
           label={params.row?.active === '1' ? 'Active' : 'InActive'}
           color={params.row?.active === '1' ? 'success' : 'error'}
-          sx={{
+          externalTableStyle={{
             height: 20,
             fontWeight: 600,
             borderRadius: '5px',
@@ -305,7 +305,7 @@ const NurseryList = () => {
   
 return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+      <Breadcrumbs aria-label='breadcrumb' externalTableStyle={{ mb: 5 }}>
         <Typography sx={{ cursor: 'pointer' }} color='inherit'>
           Egg
         </Typography>
@@ -360,7 +360,7 @@ return (
                 value={defaultSite}
                 disablePortal
                 id='site'
-                sx={{ width: 220 }}
+                externalTableStyle={{ width: 220 }}
                 options={userData?.user?.zoos[0].sites}
                 getOptionLabel={option => option?.site_name || ''}
                 isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
@@ -412,29 +412,21 @@ return (
           </Box>
         </Box>
 
-        <DataGrid
-          autoHeight
-          rows={indexedRows || []}
-          rowCount={total}
+        <CommonTable
+          indexedRows={indexedRows || []}
+          total={total}
           columns={columns}
           rowHeight={64}
-          pagination
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
           paginationModel={paginationModel}
-          onPaginationModelChange={setPaginationModel}
-          onSortModelChange={handleSortModel}
+          setPaginationModel={setPaginationModel}
+          handleSortModel={handleSortModel}
           loading={loading}
           onCellClick={handleCellClick}
-          hideFooterSelectedRowCount
-          disableColumnSelector
-          disableColumnMenu
 
           // columnVisibilityModel={{
           //   sl_no: false
           // }}
-          sx={{
+          externalTableStyle={{
             '.MuiDataGrid-cell:focus': { outline: 'none' },
             '.MuiDataGrid-main': {
               borderLeft: '1px solid #0000000D',

@@ -55,14 +55,16 @@ const MortalityDischargeForm = props => {
         const now = dayjs().startOf('day')
         const selectedDate = dayjs(value).startOf('day')
 
+        // Must not be before the admitted date
         if (selectedDate.isBefore(admittedAt)) {
           return this.createError({
-            message: `Date must be on or after (${dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)).format(
-              'DD MMM YYYY'
-            )})`
+            message: `Date cannot be before the admitted date (${dayjs(
+              Utility.convertUTCToLocal(patientData?.admitted_at)
+            ).format('DD MMM YYYY')})`
           })
         }
 
+        // Must not be a future date (after today)
         if (selectedDate.isAfter(now)) {
           return this.createError({ message: 'Date cannot be in the future' })
         }
@@ -87,14 +89,18 @@ const MortalityDischargeForm = props => {
           .set('minute', dayjs(value).minute())
           .set('second', 0)
 
+        // Must not be before the admitted time (on the same day)
         if (dayjs(date_of_death).format('YYYY-MM-DD') === admittedAt.format('YYYY-MM-DD')) {
           if (deathDateTime.isBefore(admittedAt)) {
             return this.createError({
-              message: `Time must be after admission time (${Utility.convertUTCToLocaltime(patientData?.admitted_at)})`
+              message: `Time cannot be before the admitted time (${Utility.convertUTCToLocaltime(
+                patientData?.admitted_at
+              )})`
             })
           }
         }
 
+        // Must not be in the future (on today)
         if (dayjs(date_of_death).format('YYYY-MM-DD') === now.format('YYYY-MM-DD')) {
           if (deathDateTime.isAfter(now)) {
             return this.createError({ message: 'Time cannot be in the future' })
@@ -172,12 +178,13 @@ const MortalityDischargeForm = props => {
     reset,
     setValue,
     clearErrors,
-    formState: { errors, isDirty }
+    trigger,
+    formState: { errors, isDirty, isValid }
   } = useForm({
     defaultValues,
     resolver: yupResolver(mortalitySchema),
     shouldUnregister: false,
-    mode: 'onBlur',
+    mode: 'onChange',
     reValidateMode: 'onChange'
   })
 
@@ -293,17 +300,20 @@ const MortalityDischargeForm = props => {
                 <ControlledDatePicker
                   control={control}
                   name={'date_of_death'}
-                  label='Date of Death'
+                  label='Date of Death*'
                   errors={errors}
                   minDate={dayjs(patientData?.admitted_at)}
                   maxDate={dayjs(new Date())}
+                  onChangeOverride={() => {
+                    trigger('time_of_death')
+                  }}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <ControlledTimePicker
                   control={control}
                   name={'time_of_death'}
-                  label='Time of Death'
+                  label='Time of Death*'
                   errors={errors}
                   minTime={minTime}
                   maxTime={maxTime}
@@ -318,13 +328,13 @@ const MortalityDischargeForm = props => {
                   label={'Cause of Death*'}
                   options={causeOfDeath}
                   getOptionLabel={option => option?.label || ''}
-                  getOptionValue={option => option?.value || ''}
                   onInputChange={value => handleMannerSearch(value)}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => handleMannerSearch('')}
                   loading={fetchLoading}
                   required
                   showIcons={false}
+                  showLoader={true}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -335,13 +345,13 @@ const MortalityDischargeForm = props => {
                   label={'Carcass Condition*'}
                   options={carcassCondition}
                   getOptionLabel={option => option?.label || ''}
-                  getOptionValue={option => option?.value || ''}
                   onInputChange={value => handleConditionSearch(value)}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => handleConditionSearch('')}
                   loading={fetchLoading}
                   required
                   showIcons={false}
+                  showLoader={true}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -352,13 +362,13 @@ const MortalityDischargeForm = props => {
                   label={'Carcass Deposition*'}
                   options={carcassDeposition}
                   getOptionLabel={option => option?.label || ''}
-                  getOptionValue={option => option?.value || ''}
                   onInputChange={value => handleDispositionSearch(value)}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => handleDispositionSearch('')}
                   loading={fetchLoading}
                   required
                   showIcons={false}
+                  showLoader={true}
                 />
               </Grid>
             </Grid>

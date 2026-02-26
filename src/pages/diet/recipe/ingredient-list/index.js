@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
@@ -164,9 +164,11 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       field: 'preparation_type',
       headerName: 'PREPARATION TYPE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} title={params.row.preparation_type}>
-          {params.row.preparation_type ? params.row.preparation_type : '-'}
-        </Typography>
+        <Tooltip title={params.row.preparation_type}>
+          <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} className='text_overflow_moduled'>
+            {params.row.preparation_type ? params.row.preparation_type : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -175,9 +177,21 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       field: 'cut_size',
       headerName: 'CUT SIZE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} title={params.row.preparation_type}>
-          {params.row.cut_size ? params.row.cut_size : '-'}
-        </Typography>
+        <Tooltip title={params?.row?.cut_size}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.primary',
+              pl: 2,
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              width: '130px',
+              overflow: 'hidden'
+            }}
+          >
+            {params.row.cut_size ? params.row.cut_size : '-'}
+          </Typography>
+        </Tooltip>
       )
     }
   ]
@@ -191,26 +205,16 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
           <Card sx={{ boxShadow: 'none' }}>
             <CardHeader title='Item by quantity' sx={{ pl: 0 }} />
 
-            <DataGrid
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
+            <CommonTable
+              indexedRows={rowsQuantity.map((row, index) => ({ ...row, id: index }))}
+              total={rowsQuantity.length}
+              columns={columns}
+              loading={loading}
               columnVisibilityModel={{
                 sl_no: false
               }}
-              autoHeight
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
               hideFooter={true}
-              rows={rowsQuantity.map((row, index) => ({ ...row, id: index }))}
-              rowCount={rowsQuantity.length}
-              columns={columns}
-              loading={loading}
+              disablePagination={true}
             />
           </Card>
         )}

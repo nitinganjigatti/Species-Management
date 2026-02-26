@@ -496,7 +496,7 @@ export const AddProductForm = ({
           >
             <Grid
               item
-              size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? (isEdit ? 4 : 3.4) : isEdit ? 3 : 2.7 }}
+              size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? (isEdit ? 4 : 3.4) : isEdit ? 3 : 2.5 }}
               sm={getValues('stock_type') === 'non_medical' ? 6 : 4}
             >
               <ControlledAutocomplete
@@ -564,8 +564,8 @@ export const AddProductForm = ({
             {!isEdit && (
               <Grid
                 item
-                size={{ xs: 12, sm: 1.8 }}
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                size={{ xs: 12, sm: 2, md: 1.6 }}
+                sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', mt: '8px' }}
               >
                 {handleAddRemoveSalts(fields, index)}
               </Grid>

@@ -1,5 +1,4 @@
 import { Avatar, Box, Tooltip, Typography, debounce } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import React, { useCallback, useEffect, useState } from 'react'
 
 import Icon from 'src/@core/components/icon'

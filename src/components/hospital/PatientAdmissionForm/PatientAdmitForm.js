@@ -67,16 +67,6 @@ const defaultValues = {
   admission_time: dayjs()
 }
 
-const schema = yup.object().shape({
-  treatmentType: yup.string().required('Treatment Type is Required'),
-  healthStatus: yup.string().notRequired(),
-  selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
-  holdingEnclosure: yup.object().required('Holding Enclosure is required'),
-  room: yup.object().required('Room is required'),
-  admission_date: yup.date().required('Admission date is required'),
-  admission_time: yup.string().required('Admission time is required')
-})
-
 const PatientAdmitForm = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -88,9 +78,93 @@ const PatientAdmitForm = () => {
 
   const { id } = router.query
 
+  const [patientData, setPatientData] = useState(null)
+  const [patientLoading, setPatientLoading] = useState(false)
+  const [holdingEnclosures, setHoldingEnclosures] = useState([])
+
+  const createdAt = patientData?.transfer_details?.created_at
+    ? dayjs(Utility.convertUTCToLocal(patientData?.transfer_details?.created_at))
+    : null
+
+  const schema = yup.object().shape({
+    treatmentType: yup.string().required('Treatment Type is Required'),
+    healthStatus: yup.string().notRequired(),
+    selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
+    room: yup.object().required('Room is required'),
+    holdingEnclosure: yup.object().required('Holding Enclosure is required'),
+
+    // Must not be in the future and must not be before the transfer request date
+    admission_date: yup
+      .date()
+      .typeError('Invalid date')
+      .nullable()
+      .required('Date is required')
+
+      // Must not be a future date (after today)
+      .test('not-future-date', 'Date cannot be in the future', function (value) {
+        if (!value) return true
+        const now = dayjs()
+        if (dayjs(value).isAfter(now, 'day')) {
+          return this.createError({ message: 'Date cannot be in the future' })
+        }
+
+        return true
+      })
+
+      // Must not be before the transfer request created date
+      .test('not-before-transfer', 'Date cannot be before the transfer request date', function (value) {
+        if (!value || !createdAt) return true
+        if (dayjs(value).isBefore(createdAt, 'day')) {
+          return this.createError({
+            message: `Date cannot be before the transfer request date (${createdAt.format('DD MMM YYYY')})`
+          })
+        }
+
+        return true
+      }),
+
+    // Must not be in the future and must not be before the transfer request time
+    admission_time: yup
+      .date()
+      .typeError('Invalid time')
+      .nullable()
+      .required('Time is required')
+      .test('is-valid-time', 'Time is invalid', function (value) {
+        const { admission_date } = this.parent
+        if (!value || !admission_date) return true
+
+        const now = dayjs()
+
+        const selectedTime = dayjs(admission_date)
+          .startOf('day')
+          .set('hour', dayjs(value).hour())
+          .set('minute', dayjs(value).minute())
+          .set('second', 0)
+
+        // Must not be before the transfer request time (on the same day)
+        if (createdAt && dayjs(admission_date).isSame(createdAt, 'day')) {
+          if (selectedTime.isBefore(createdAt)) {
+            return this.createError({
+              message: `Time cannot be before the transfer request time (${createdAt.format('hh:mm A')})`
+            })
+          }
+        }
+
+        // Must not be in the future (on today)
+        if (dayjs(admission_date).isSame(now, 'day')) {
+          if (selectedTime.isAfter(now)) {
+            return this.createError({ message: 'Time cannot be in the future' })
+          }
+        }
+
+        return true
+      })
+  })
+
   const {
     control,
     handleSubmit,
+    trigger,
     formState: { errors },
     setValue,
     clearErrors,
@@ -103,11 +177,8 @@ const PatientAdmitForm = () => {
     reValidateMode: 'onChange'
   })
 
-  const [holdingEnclosures, setHoldingEnclosures] = useState([])
   const [selectedDoctor, setSelectedDoctor] = useState(null)
   const [doctorDrawerOpen, setDoctorDrawerOpen] = useState(false)
-  const [patientData, setPatientData] = useState(null)
-  const [patientLoading, setPatientLoading] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [isRejecting, setIsRejecting] = useState(false)
   const [isRejectLoading, setIsSubmitLoading] = useState(false)
@@ -586,6 +657,9 @@ const PatientAdmitForm = () => {
                             minDate={minDate}
                             maxDate={maxDate}
                             disabled={submitLoader}
+                            onChangeOverride={() => {
+                              trigger('admission_time')
+                            }}
                           />
                         </Grid>
                         <Grid size={{ sm: 6, xs: 6 }}>
@@ -822,7 +896,7 @@ const PatientAdmitForm = () => {
                 color: theme.palette.primary.main
               }}
             />
-            <Typography
+            {/* <Typography
               sx={{
                 fontSize: '16px',
                 fontWeight: 500,
@@ -841,7 +915,7 @@ const PatientAdmitForm = () => {
               }}
             >
               Please wait while we verify your access to admit patients to this hospital
-            </Typography>
+            </Typography> */}
           </Box>
         )}
       </Box>

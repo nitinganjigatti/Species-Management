@@ -18,7 +18,6 @@ import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import StockReportSkeleton from 'src/views/utility/SkeletonLoading/StockReportSkeleton'
-
 const ExpiredMedicine = () => {
   const theme = useTheme()
   const { selectedPharmacy } = usePharmacyContext()
@@ -168,27 +167,29 @@ const ExpiredMedicine = () => {
         </Box>
       )
     },
-    {
-      ...(storeId === 'all' && {
-        width: 200,
-        field: 'store_name',
-        headerName: 'Store Name',
-        renderCell: params => (
-          <Tooltip title={params.row.store_name} placement='top'>
-            <Typography
-              variant='body2'
-              sx={{
-                color: theme.palette.customColors.customHeadingTextColor,
-                fontSize: '14px',
-                fontWeight: 500
-              }}
-            >
-              {params.row.store_name}
-            </Typography>
-          </Tooltip>
-        )
-      })
-    },
+    ...(storeId === 'all'
+      ? [
+          {
+            width: 200,
+            field: 'store_name',
+            headerName: 'Store Name',
+            renderCell: params => (
+              <Tooltip title={params.row.store_name} placement='top'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: theme.palette.customColors.customHeadingTextColor,
+                    fontSize: '14px',
+                    fontWeight: 500
+                  }}
+                >
+                  {params.row.store_name}
+                </Typography>
+              </Tooltip>
+            )
+          }
+        ]
+      : []),
     {
       width: 250,
       minWidth: 100,
@@ -292,7 +293,7 @@ const ExpiredMedicine = () => {
   return (
     <>
       {loader ? (
-        <StockReportSkeleton ExpiredProducts />
+        <StockReportSkeleton ExpiredProducts selectedPharmacy={selectedPharmacy} />
       ) : (
         <>
           <PageCardLayout title={'Expired Products'}>

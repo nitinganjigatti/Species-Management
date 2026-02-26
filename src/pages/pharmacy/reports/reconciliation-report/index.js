@@ -109,7 +109,7 @@ const ReconciliationReport = () => {
 
       // month: monthAndYear.month,
       // year: monthAndYear.year
-    })
+  })
     updateUrlParams({
       sort,
       q: searchValue,
@@ -132,7 +132,6 @@ const ReconciliationReport = () => {
     monthAndYear,
     filterSwitch,
     activeStatus,
-    searchValue
   ])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -674,28 +673,27 @@ const ReconciliationReport = () => {
         page: paginationModel?.page,
         limit: paginationModel?.pageSize
       })
-    }
+    } 
   }
-
-  const searchTableData = useCallback(
+    const searchTableData = useCallback(
     debounce(async (sort, q, column, page, limit) => {
       setSearchValue(q)
-
       try {
         await fetchTableData({
-          sort: sort,
-          q: q,
-          column: column,
-          page: page,
-          limit: limit
-        })
+          sort,
+          q,
+          column,
+          page,
+          limit 
+      })
 
-        updateUrlParams({
-          sort: sort,
-          q: q,
-          column: column,
-          page: page,
-          limit: limit
+        updateUrlParams({        
+          sort: sort, 
+          q: searchValue,
+          column: sortColumn,
+          page: paginationModel.page,
+          limit: paginationModel.pageSize,
+          
         })
       } catch (error) {
         console.error(error)
@@ -705,9 +703,9 @@ const ReconciliationReport = () => {
   )
 
   const handleSearch = value => {
-    setSearchValue(value)
-    searchTableData(sort, value, sortColumn, paginationModel?.page, paginationModel?.pageSize)
-  }
+  setSearchValue(value)
+  searchTableData(sort, value, sortColumn, paginationModel?.page, paginationModel?.pageSize)
+}
 
   const datePickerHandleChange = newValue => {
     // debounce(newValue => {

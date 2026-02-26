@@ -395,7 +395,7 @@ const HospitalBedDetails = () => {
       )
     },
     {
-      minWidth: 320,
+      minWidth: 380,
       field: 'occupant',
       headerName: 'Occupant',
       sortable: false,

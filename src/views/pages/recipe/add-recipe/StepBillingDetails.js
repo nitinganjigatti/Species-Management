@@ -7,7 +7,6 @@ import { Card, CardContent, Avatar, Tooltip, CircularProgress } from '@mui/mater
 import Icon from 'src/@core/components/icon'
 import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/material/styles'
-import 'react-credit-cards/es/styles-compiled.css'
 
 const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
   const theme = useTheme()
@@ -74,9 +73,11 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       field: 'preparation_type',
       headerName: 'Preparation Type',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {params.row.preparation_type}
-        </Typography>
+        <Tooltip title={params?.row?.preparation_type}>
+          <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }} className='text_overflow_moduled'>
+            {params.row.preparation_type}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -85,9 +86,18 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       field: 'cut_size',
       headerName: 'Cut Size',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-          {params?.row?.cut_size ? params?.row?.cut_size : '-'}
-        </Typography>
+        <Tooltip title={params?.row?.cut_size}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.primary',
+              pl: 2
+            }}
+            className='text_overflow_moduled'
+          >
+            {params?.row?.cut_size ? params?.row?.cut_size : '-'}
+          </Typography>
+        </Tooltip>
       )
     }
   ]

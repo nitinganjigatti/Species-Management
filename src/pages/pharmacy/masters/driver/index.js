@@ -291,7 +291,7 @@ const Driver = () => {
     <>
       {pharmacyRole ? (
         <>
-          {loader ? (
+          {loading ? (
             <FallbackSpinner />
           ) : (
             <>

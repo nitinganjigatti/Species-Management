@@ -33,7 +33,6 @@ const DeathFields = ({
   const totalCount = Number(male_count) + Number(female_count) + Number(other_count)
 
   return (
-
     // <>
     //   <Grid container spacing={2} sx={{ mb: 6 }}>
     //     <Grid item xs={12} sm={6}>
@@ -605,7 +604,7 @@ const DeathFields = ({
         </Grid>
       </Grid>
     </>
-  )
+  );
 }
 
 export default DeathFields

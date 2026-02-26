@@ -16,7 +16,7 @@ import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationChec
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useTheme } from '@mui/material/styles'
 import AddSpecies from 'src/views/pages/parivesh/addSpecies/addSpecies'
 import Router from 'next/router'
@@ -588,22 +588,25 @@ const SpeciesList = () => {
               ConfirmationText={'Delete'}
               confirmAction={onClose}
             />
-            <DataGrid
-              disableColumnMenu
-              disableColumnFilter
-
-              // disableColumnSorting
-              disableRowSelectionOnClick
-              sx={{
-                width: '100%', // Adjust table width to 100% of its parent container
-                // maxWidth: '1200px',
+            <CommonTable
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
+              columns={getColumns(indexedRows)}
+              paginationModel={paginationModel}
+              handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
+              pageSizeOptions={[7, 10, 25, 50]}
+              loading={loading}
+              searchValue={searchValue}
+              handleSearch={handleSearch}
+              rowHeight={80}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              externalTableStyle={{
+                width: '100%',
                 px: 4,
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-
                 '& .MuiDataGrid-row:hover': {
-                  // cursor: 'pointer',
                   backgroundColor: 'transparent'
                 },
                 '& .MuiDataGrid-cell:hover': {
@@ -615,54 +618,13 @@ const SpeciesList = () => {
                 '& .MuiDataGrid-row:hover .MuiDataGrid-cell:nth-of-type(-n+2)': {
                   backgroundColor: 'transparent',
                   border: 'none'
-                },
-
-                overflowX: 'auto',
-                '& .MuiDataGrid-main': {
-                  // margin: '16px',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(233, 233, 236, 1)'
-                },
-                '& .MuiDataGrid-footerContainer': {
-                  borderTop: 'none'
                 }
               }}
-              columnVisibilityModel={{
-                sl_no: false
-              }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={getColumns(indexedRows)}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              rowHeight={80}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-
-              // onCellClick={onCellClick}
             />
           </Card>
         )}
       </>
-    )
+    );
   }
 
   return (

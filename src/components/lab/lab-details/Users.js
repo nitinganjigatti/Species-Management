@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Card, CardHeader, Tooltip, Typography } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { GetLabUsersById } from 'src/lib/api/lab/labDetails'
 
 const Users = ({ labId }) => {
@@ -96,20 +96,17 @@ const Users = ({ labId }) => {
     <Card>
       <CardHeader title='USERS' />
 
-      <DataGrid
-        autoHeight
+      <CommonTable
+        indexedRows={indexedRows}
+        total={total}
+        columns={columns}
+        handleSortModel={handleSortModelChange}
+        loading={loading}
+        hideFooterPagination
+        disablePagination
         columnVisibilityModel={{
           id: false
         }}
-        hideFooterPagination
-        rows={indexedRows === undefined ? [] : indexedRows}
-        rowCount={total}
-        columns={columns}
-        sortingMode='server'
-        sortModel={sortModel}
-        disableColumnMenu={true}
-        onSortModelChange={handleSortModelChange}
-        loading={loading}
       />
     </Card>
   )

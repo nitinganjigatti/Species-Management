@@ -3892,12 +3892,12 @@ const DietDetail = () => {
                                                       {itemd.notes}
                                                     </>
                                                   ) : (
-                                                    <></> // Render nothing if no notes are available
+                                                    (<></>) // Render nothing if no notes are available
                                                   )}
                                                 </TableCell>
                                               </TableRow>
                                             </>
-                                          )
+                                          );
                                         })}
                                       </TableBody>
                                     ) : (
@@ -3956,7 +3956,7 @@ const DietDetail = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default DietDetail

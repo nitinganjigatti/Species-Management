@@ -17,7 +17,7 @@ const stripHtmlToText = value => {
     .replace(/<[^>]*>/g, ' ')
     .replace(/&nbsp;/g, ' ')
     .replace(/\s+/g, ' ')
-    .trim()
+    .trim();
 }
 
 // Validation schema

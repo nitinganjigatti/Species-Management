@@ -131,8 +131,16 @@ export default function AddMedicineToPrescription() {
           quantity: yup
             .number()
             .typeError('Quantity is required')
+            .test(
+              'quantity-format',
+              'Quantity must have up to 8 digits and up to 4 decimal places',
+              function (value) {
+                if (value === undefined || value === null) return true
+                const rawValue = String(this.originalValue ?? value).trim()
+                return /^\d{1,8}(\.\d{1,4})?$/.test(rawValue)
+              }
+            )
             .moreThan(0, 'Quantity must be greater than 0')
-            .max(100000, 'Quantity cannot exceed 100000')
             .required('Quantity is required'),
           unit: yup.string().required('Please select a unit')
         })
@@ -259,7 +267,7 @@ export default function AddMedicineToPrescription() {
       .test('is-number', 'Quantity must be a number', value => {
         if (!value) return true // allow empty
 
-        return /^[0-9]*$/.test(value)
+        return /^[0-9]*$/.test(value);
       })
       .test('positive', 'Quantity must be greater than 0', value => {
         if (!value) return true // allow empty
@@ -739,7 +747,7 @@ export default function AddMedicineToPrescription() {
               value: item.key,
               unit_name: item.label,
               uom_abbr: item.key
-            })) || [],
+            }))?.sort((a, b) => a.label?.localeCompare(b.label)) || [],
           prescriptionDuration: response?.data?.prescriptionDuration?.map(item => ({ ...item, value: item.key })) || [],
           prescriptionMeasurementType:
             response?.data?.prescriptionMeasurementType?.map(item => ({
@@ -752,7 +760,7 @@ export default function AddMedicineToPrescription() {
               ...item,
               label: item.delivery,
               value: item.route_abbr
-            })) || []
+            }))?.sort((a, b) => a.label?.localeCompare(b.label)) || []
         }))
       } else {
         setMedicalMasterData([])
@@ -1987,7 +1995,7 @@ export default function AddMedicineToPrescription() {
 
   const getUnitFromLabel = (unitName, medicalMasterData) => {
     const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
-      item => item?.label === unitName
+      item => item?.label?.toLowerCase() == unitName?.toLowerCase()
     )
 
     return unit?.key || ''
@@ -2065,7 +2073,7 @@ export default function AddMedicineToPrescription() {
 
   const handleAIDDisplay = () => {
     if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
-      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+      return patientData?.animal_detail?.local_identifier_value
     } else {
       return patientData?.animal_detail?.animal_id
     }
@@ -2085,7 +2093,13 @@ export default function AddMedicineToPrescription() {
         age={`${patientData?.animal_detail?.age}`}
         gender={`${patientData?.animal_detail?.sex}`}
         additionalFields={[
-          { label: 'AID', value: handleAIDDisplay() },
+          {
+            label:
+              patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value
+                ? patientData?.animal_detail?.local_identifier_name
+                : 'AID',
+            value: handleAIDDisplay()
+          },
           { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
           // { label: 'Admitted days', value: patientData?.admitted_for_day },
           { label: 'Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },

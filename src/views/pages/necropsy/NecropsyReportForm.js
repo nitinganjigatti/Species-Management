@@ -17,7 +17,14 @@ import {
   FormControlLabel,
   Checkbox,
   Skeleton,
-  useTheme
+  useTheme,
+  FormHelperText,
+  Tabs,
+  Tab,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  alpha
 } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -40,7 +47,7 @@ import NecropsyOrganSection from 'src/components/necropsy/NecropsyOrganSection'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
-import { Close as CloseIcon } from '@mui/icons-material'
+import { Close as CloseIcon, Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material'
 import {
   addNecropsy,
   editNecropsy,
@@ -102,7 +109,13 @@ const submitSchema = yup.object().shape({
     .mixed()
     .nullable()
     .when(['is_suitable', 'carcass_weight'], {
-      is: (suitable, weight) => suitable === true && weight != null && String(weight).trim().length > 0,
+      // Only require weight unit if a meaningful weight value is entered (not 0, empty, or "0.00")
+      is: (suitable, weight) => {
+        if (suitable !== true) return false
+        const weightValue = parseFloat(weight)
+
+        return !isNaN(weightValue) && weightValue > 0
+      },
       then: schema => schema.test('required', 'Please select the weight unit', value => value != null),
       otherwise: schema => schema.nullable()
     })
@@ -141,8 +154,10 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
   const [weightUomId, setWeightUomId] = useState(null)
 
   const [conductedByUsers, setConductedByUsers] = useState([])
+  const [draftErrors, setDraftErrors] = useState({})
   const [organs, setOrgans] = useState([])
   const [existingAttachments, setExistingAttachments] = useState([])
+  const [activeTab, setActiveTab] = useState('carcass_details')
 
   const isEditing = !!necropsyId
   const isDraftEdit = isEditing && status?.toUpperCase() === 'DRAFT'
@@ -189,6 +204,9 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
 
   const isSuitable = watch('is_suitable')
 
+  // Merge form errors with draft validation errors
+  const mergedErrors = useMemo(() => ({ ...errors, ...draftErrors }), [errors, draftErrors])
+
   useEffect(() => {
     if (!necropsyId && authData?.userData?.user && conductedByUsers.length === 0) {
       const userDetails = authData.userData.user
@@ -204,6 +222,51 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
       }
     }
   }, [necropsyId, authData?.userData?.user])
+
+  // Clear draft errors when relevant field values change
+  const reasonForUnsuitable = watch('reason_for_unsuitable')
+  const weightUnit = watch('weight_unit')
+  const confirmedCauseOfDeath = watch('confirmed_cause_of_death')
+
+  useEffect(() => {
+    if (draftErrors.reason_for_unsuitable && reasonForUnsuitable?.trim()) {
+      setDraftErrors(prev => {
+        const { reason_for_unsuitable, ...rest } = prev
+
+        return rest
+      })
+    }
+  }, [reasonForUnsuitable, draftErrors.reason_for_unsuitable])
+
+  useEffect(() => {
+    if (draftErrors.weight_unit && weightUnit) {
+      setDraftErrors(prev => {
+        const { weight_unit, ...rest } = prev
+
+        return rest
+      })
+    }
+  }, [weightUnit, draftErrors.weight_unit])
+
+  useEffect(() => {
+    if (draftErrors.confirmed_cause_of_death && confirmedCauseOfDeath) {
+      setDraftErrors(prev => {
+        const { confirmed_cause_of_death, ...rest } = prev
+
+        return rest
+      })
+    }
+  }, [confirmedCauseOfDeath, draftErrors.confirmed_cause_of_death])
+
+  useEffect(() => {
+    if (draftErrors.conducted_by && conductedByUsers.length > 0) {
+      setDraftErrors(prev => {
+        const { conducted_by, ...rest } = prev
+
+        return rest
+      })
+    }
+  }, [conductedByUsers, draftErrors.conducted_by])
 
   // Fetch initial data when options are loaded
   useEffect(() => {
@@ -231,7 +294,9 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
             setValue('qr_number', mortData.qr_number)
           }
 
-          if (mortData?.carcass_weight) {
+          // Only set weight if it's a meaningful value (not 0 or empty)
+          const mortWeightVal = parseFloat(mortData?.carcass_weight)
+          if (!isNaN(mortWeightVal) && mortWeightVal > 0) {
             setValue('carcass_weight', String(mortData.carcass_weight))
 
             const uomId = mortData.carcass_weight_uom_id || mortData.carcass_weight_uom || mortData.uom_id
@@ -352,27 +417,34 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
     if (data.death_time) setValue('death_time', dayjs(`2000-01-01 ${data.death_time}`))
 
     setValue('place_of_death', data.place_of_death || '')
-    setValue('carcass_weight', data.carcass_weight || '')
 
-    // Use Redux helper to find weight unit
-    const uomId = data.carcass_weight_uom_id || data.carcass_weight_uom || data.uom_id
-    if (uomId && !isNaN(Number(uomId))) {
-      setWeightUomId(Number(uomId))
-      const unitById = findWeightUnitOption(uomId)
-      if (unitById) {
-        setValue('weight_unit', unitById)
+    // Only set weight and UOM if weight is a meaningful value (not 0 or empty)
+    const weightVal = parseFloat(data.carcass_weight)
+    const hasMeaningfulWeight = !isNaN(weightVal) && weightVal > 0
+    setValue('carcass_weight', hasMeaningfulWeight ? String(data.carcass_weight) : '')
+
+    // Only set weight unit if weight is meaningful
+    if (hasMeaningfulWeight) {
+      // Use Redux helper to find weight unit
+      const uomId = data.carcass_weight_uom_id || data.carcass_weight_uom || data.uom_id
+      if (uomId && !isNaN(Number(uomId))) {
+        setWeightUomId(Number(uomId))
+        const unitById = findWeightUnitOption(uomId)
+        if (unitById) {
+          setValue('weight_unit', unitById)
+        }
       }
-    }
 
-    if (!watch('weight_unit')) {
-      const uomAbbr = data.uom_abbr || data.carcass_weight_unit_name
-      if (uomAbbr) {
-        const unit = findWeightUnitOption(uomAbbr)
-        if (unit) {
-          setValue('weight_unit', unit)
-          setWeightUomId(unit.id)
-        } else if (uomAbbr) {
-          setValue('weight_unit', { label: uomAbbr, value: uomAbbr })
+      if (!watch('weight_unit')) {
+        const uomAbbr = data.uom_abbr || data.carcass_weight_unit_name
+        if (uomAbbr) {
+          const unit = findWeightUnitOption(uomAbbr)
+          if (unit) {
+            setValue('weight_unit', unit)
+            setWeightUomId(unit.id)
+          } else if (uomAbbr) {
+            setValue('weight_unit', { label: uomAbbr, value: uomAbbr })
+          }
         }
       }
     }
@@ -567,6 +639,9 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
     if (formValues.disposal_method) {
       const disposalId = formValues.disposal_method.value || formValues.disposal_method.id
       fd.append('disposal_method', disposalId)
+    } else if (status === 'draft') {
+      // For drafts, send 0 value to satisfy backend validation
+      fd.append('disposal_method', 0)
     }
 
     if (formValues.qr_number) fd.append('qr_number', formValues.qr_number)
@@ -584,29 +659,39 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
   const handleSaveAsDraft = async () => {
     const formValues = watch()
 
+    // Clear previous draft errors
+    setDraftErrors({})
+
     if (!formValues.is_suitable) {
       if (!formValues.reason_for_unsuitable?.trim()) {
+        setDraftErrors({ reason_for_unsuitable: { message: 'Reason for unsuitable is required' } })
         Utility.scrollToField('reason_for_unsuitable')
 
         return
       }
       if (conductedByUsers.length === 0) {
+        setDraftErrors({ conducted_by: { message: 'At least one user is required' } })
         Utility.scrollToField('conducted_by')
 
         return
       }
     } else {
-      if (formValues.carcass_weight && !formValues.weight_unit) {
+      // Only require weight unit if a meaningful weight value is entered (not 0, empty, or "0.00")
+      const weightValue = parseFloat(formValues.carcass_weight)
+      if (!isNaN(weightValue) && weightValue > 0 && !formValues.weight_unit) {
+        setDraftErrors({ weight_unit: { message: 'Weight unit is required when weight is provided' } })
         Utility.scrollToField('weight_unit')
 
         return
       }
       if (!formValues.confirmed_cause_of_death) {
+        setDraftErrors({ confirmed_cause_of_death: { message: 'Confirmed cause of death is required' } })
         Utility.scrollToField('confirmed_cause_of_death')
 
         return
       }
       if (conductedByUsers.length === 0) {
+        setDraftErrors({ conducted_by: { message: 'At least one user is required' } })
         Utility.scrollToField('conducted_by')
 
         return
@@ -620,7 +705,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
 
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message || 'Draft saved successfully' })
-        router.push('/necropsy/necropsy')
+        router.replace('/necropsy/necropsy')
       } else {
         Toaster({ type: 'error', message: getErrorMessage(res?.message, 'Failed to save draft') })
       }
@@ -633,6 +718,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
 
   const onSubmit = async formValues => {
     if (conductedByUsers.length === 0) {
+      setDraftErrors({ conducted_by: { message: 'At least one user is required' } })
       Utility.scrollToField('conducted_by')
 
       return
@@ -646,7 +732,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
 
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message || 'Necropsy submitted successfully' })
-        router.push('/necropsy/necropsy')
+        router.replace('/necropsy/necropsy')
       } else {
         Toaster({ type: 'error', message: getErrorMessage(res?.message, 'Failed to submit necropsy') })
       }
@@ -669,7 +755,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message || 'Draft deleted successfully' })
         setDeleteDialogOpen(false)
-        router.push('/necropsy/necropsy')
+        router.replace('/necropsy/necropsy')
       } else {
         Toaster({ type: 'error', message: getErrorMessage(res?.message, 'Failed to delete draft') })
       }
@@ -822,7 +908,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
   const labelSx = {
     fontWeight: 500,
     fontSize: '16px',
-    color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.secondary
+    color: theme.palette.customColors?.OnSurfaceVariant
   }
 
   const FormFieldSkeleton = ({ label = true, height = 56 }) => (
@@ -853,95 +939,62 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
           <NecropsyAnimalInfoCard loading={true} />
         </Box>
 
-        <Card>
-          <CardContent sx={{ p: 6 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Skeleton variant='text' width={150} height={24} />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Skeleton variant='text' width={250} height={24} />
-                  <Skeleton variant='rectangular' width={50} height={30} sx={{ borderRadius: 3 }} />
-                </Box>
+        {/* Accordion Skeletons */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {/* Carcass Details Accordion */}
+          <Card sx={{ borderRadius: 2 }}>
+            <CardContent sx={{ p: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Skeleton variant='text' width={150} height={28} />
+                <Skeleton variant='circular' width={24} height={24} />
               </Box>
+            </CardContent>
+          </Card>
 
-              <Skeleton variant='rectangular' height={1} />
-
-              <Skeleton variant='text' width={140} height={28} />
-
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 12, lg: 6 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Skeleton variant='text' width={200} height={24} />
-                    <Grid container spacing={3}>
-                      <Grid size={6}>
-                        <FormFieldSkeleton label={false} />
-                      </Grid>
-                      <Grid size={6}>
-                        <FormFieldSkeleton label={false} />
-                      </Grid>
-                    </Grid>
-                  </Box>
-                </Grid>
-                <Grid size={{ xs: 12, lg: 6 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Skeleton variant='text' width={180} height={24} />
-                    <Grid container spacing={3}>
-                      <Grid size={6}>
-                        <FormFieldSkeleton label={false} />
-                      </Grid>
-                      <Grid size={6}>
-                        <FormFieldSkeleton label={false} />
-                      </Grid>
-                    </Grid>
-                  </Box>
-                </Grid>
-              </Grid>
-
-              <SectionSkeleton fields={2} />
-
-              <SectionSkeleton fields={2} />
-
-              <SectionSkeleton fields={1} />
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Skeleton variant='text' width={50} height={24} />
-                <Skeleton variant='rectangular' height={80} sx={{ borderRadius: 1 }} />
+          {/* Examination Findings Accordion */}
+          <Card sx={{ borderRadius: 2 }}>
+            <CardContent sx={{ p: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Skeleton variant='text' width={180} height={28} />
+                <Skeleton variant='circular' width={24} height={24} />
               </Box>
+            </CardContent>
+          </Card>
 
-              <Skeleton variant='rectangular' height={1} />
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Skeleton variant='text' width={130} height={24} />
-                <Skeleton variant='rectangular' height={120} sx={{ borderRadius: 1 }} />
+          {/* Conclusion Accordion */}
+          <Card sx={{ borderRadius: 2 }}>
+            <CardContent sx={{ p: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Skeleton variant='text' width={120} height={28} />
+                <Skeleton variant='circular' width={24} height={24} />
               </Box>
+            </CardContent>
+          </Card>
 
-              <Skeleton variant='rectangular' height={1} />
-
-              <Skeleton variant='text' width={140} height={28} />
-              <SectionSkeleton fields={2} />
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Skeleton variant='text' width={180} height={24} />
-                <Skeleton variant='rectangular' height={56} sx={{ borderRadius: 1 }} />
-              </Box>
-
-              <Skeleton variant='rectangular' height={1} />
-
-              <Skeleton variant='text' width={180} height={28} />
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Skeleton variant='text' width={150} height={24} />
-                <Skeleton variant='rectangular' height={120} sx={{ borderRadius: 1 }} />
-              </Box>
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Skeleton variant='text' width={250} height={24} />
-                <Skeleton variant='rectangular' height={100} sx={{ borderRadius: 1 }} />
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
+          {/* Additional Notes Card */}
+          <Card sx={{ borderRadius: 2 }}>
+            <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Skeleton variant='text' width={140} height={24} />
+              <Skeleton variant='rectangular' height={100} sx={{ borderRadius: 1 }} />
+            </CardContent>
+          </Card>
+        </Box>
       </Box>
     )
+  }
+
+  const FORM_TABS = [
+    { key: 'carcass_details', label: 'Carcass Details' },
+    { key: 'examination_findings', label: 'Examination Findings' },
+    { key: 'conclusion', label: 'Conclusion' }
+  ]
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue)
+  }
+
+  const handleAccordionChange = panel => (event, isExpanded) => {
+    setActiveTab(isExpanded ? panel : false)
   }
 
   return (
@@ -950,126 +1003,184 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
         <Box sx={{ mb: 3 }}>
           <NecropsyAnimalInfoCard
             mortalityData={mortalityData}
+            necropsyData={necropsyData}
+            status={status}
             loading={false}
             onBack={() => router.back()}
-            requestId={mortalityData?.request_id || necropsyData?.request_id}
+            requestId={mortalityData?.request_id || necropsyData?.request_id || necropsyData?.necropsy_code}
+            onDeleteClick={isDraftEdit ? () => setDeleteDialogOpen(true) : undefined}
           />
         </Box>
       )}
 
       <form>
-        <Card>
-          <CardContent sx={{ p: 6 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Typography sx={labelSx}>Carcass Suitability</Typography>
-                <ControlledSwitch
-                  name='is_suitable'
-                  label='Carcass is suitable for necropsy'
-                  control={control}
-                  errors={errors}
-                  labelPosition='start'
-                  spaceBetween
-                  onChangeOverride={handleSuitableToggle}
-                />
-                {!isSuitable && (
-                  <ControlledTextArea
-                    name='reason_for_unsuitable'
+        <Box sx={{ mt: 6, mb: 4 }}>
+          <Tabs
+            value={activeTab}
+            onChange={handleTabChange}
+            variant='scrollable'
+            scrollButtons='auto'
+            sx={{
+              minHeight: 'auto',
+              '& .MuiTabs-flexContainer': {
+                borderBottom: `1px solid ${theme.palette.divider}`,
+                width: 'fit-content'
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: theme.palette.primary.main
+              }
+            }}
+          >
+            {FORM_TABS.map(tab => (
+              <Tab
+                key={tab.key}
+                value={tab.key}
+                label={tab.label}
+                sx={{
+                  textTransform: 'none',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  minHeight: 'auto',
+                  py: 1.5,
+                  color: theme.palette.customColors?.neutralSecondary,
+                  '&.Mui-selected': {
+                    color: theme.palette.primary.main,
+                    fontWeight: 600
+                  }
+                }}
+              />
+            ))}
+          </Tabs>
+        </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Accordion
+            expanded={activeTab === 'carcass_details'}
+            onChange={handleAccordionChange('carcass_details')}
+            sx={{
+              padding: 0,
+              borderRadius: '8px !important',
+              '&:before': { display: 'none' },
+              '&.Mui-expanded': { margin: 0 }
+            }}
+          >
+            <AccordionSummary
+              expandIcon={activeTab === 'carcass_details' ? <RemoveIcon /> : <AddIcon />}
+              sx={{
+                px: 4,
+                py: 1
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: '20px',
+                  fontWeight: 600,
+                  color: theme.palette.customColors?.OnSurfaceVariant
+                }}
+              >
+                Carcass Details
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: 4, pb: 6, pt: 0 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 3,
+                    p: 5,
+                    borderRadius: 1,
+                    backgroundColor: isSuitable
+                      ? alpha(theme.palette.customColors.PrimaryContainer, 0.12)
+                      : theme.palette.customColors.avatarBackground
+                  }}
+                >
+                  <ControlledSwitch
+                    name='is_suitable'
+                    label='Carcass is suitable for necropsy'
                     control={control}
-                    errors={errors}
-                    rows={3}
-                    placeholder='Describe why the carcass is unsuitable for necropsy...'
+                    errors={mergedErrors}
+                    labelPosition='start'
+                    spaceBetween
+                    onChangeOverride={handleSuitableToggle}
                   />
-                )}
-              </Box>
-
-              {!isSuitable && (
-                <>
-                  <Divider />
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }} data-field='conducted_by'>
-                    <Typography sx={labelSx}>Necropsy Conducted By</Typography>
-                    <UserMultiSelect
-                      selectedUsers={conductedByUsers}
-                      onChange={setConductedByUsers}
-                      label='Search users by name'
+                  {!isSuitable && (
+                    <ControlledTextArea
+                      name='reason_for_unsuitable'
+                      control={control}
+                      errors={mergedErrors}
+                      rows={3}
+                      placeholder='Describe why the carcass is unsuitable for necropsy...'
                     />
-                  </Box>
-                </>
-              )}
+                  )}
+                </Box>
 
-              {isSuitable && (
-                <>
-                  <Divider />
-
-                  <Typography sx={{ ...labelSx, fontSize: '18px', fontWeight: 600 }}>Carcass Details</Typography>
-
-                  <Grid container spacing={3}>
-                    <Grid size={{ xs: 12, lg: 6 }}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                        <Typography sx={labelSx}>Carcass Submission Date & Time</Typography>
-                        <Grid container spacing={3}>
-                          <Grid size={6}>
-                            <ControlledDatePicker
-                              name='caracass_submission_date'
-                              control={control}
-                              label='Date'
-                              maxDate={dayjs()}
-                            />
-                          </Grid>
-                          <Grid size={6}>
-                            <ControlledTimePicker name='caracass_submission_time' control={control} label='Time' />
-                          </Grid>
+                <Grid container spacing={6}>
+                  <Grid size={{ xs: 12, lg: 6 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <Typography sx={labelSx}>Carcass Submission Date & Time</Typography>
+                      <Grid container spacing={3}>
+                        <Grid size={6}>
+                          <ControlledDatePicker
+                            name='caracass_submission_date'
+                            control={control}
+                            label='Date'
+                            maxDate={dayjs()}
+                          />
                         </Grid>
-                      </Box>
-                    </Grid>
-                    <Grid size={{ xs: 12, lg: 6 }}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                        <Typography sx={labelSx}>Date & Time of Death</Typography>
-                        <Grid container spacing={3}>
-                          <Grid size={6}>
-                            <ControlledDatePicker name='death_date' control={control} label='Date' maxDate={dayjs()} />
-                          </Grid>
-                          <Grid size={6}>
-                            <ControlledTimePicker name='death_time' control={control} label='Time' />
-                          </Grid>
+                        <Grid size={6}>
+                          <ControlledTimePicker name='caracass_submission_time' control={control} label='Time' />
                         </Grid>
-                      </Box>
-                    </Grid>
+                      </Grid>
+                    </Box>
                   </Grid>
-
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography sx={labelSx}>Place of Death & QR Number</Typography>
-                    <Grid container spacing={6}>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <ControlledTextField
-                          name='place_of_death'
-                          control={control}
-                          errors={errors}
-                          label='Place of Death'
-                          placeholder='E.g. Enclosure A, Holding area...'
-                        />
+                  <Grid size={{ xs: 12, lg: 6 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <Typography sx={labelSx}>Date & Time of Death</Typography>
+                      <Grid container spacing={3}>
+                        <Grid size={6}>
+                          <ControlledDatePicker name='death_date' control={control} label='Date' maxDate={dayjs()} />
+                        </Grid>
+                        <Grid size={6}>
+                          <ControlledTimePicker name='death_time' control={control} label='Time' />
+                        </Grid>
                       </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <ControlledTextField
-                          name='qr_number'
-                          control={control}
-                          errors={errors}
-                          label='QR Number'
-                          placeholder='Enter QR number'
-                          disabled={!!necropsyData?.qr_number}
-                        />
-                      </Grid>
-                    </Grid>
-                  </Box>
+                    </Box>
+                  </Grid>
+                </Grid>
 
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Grid container spacing={6}>
+                  <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Typography sx={labelSx}>Place of Death</Typography>
+                    <ControlledTextField
+                      name='place_of_death'
+                      control={control}
+                      errors={mergedErrors}
+                      label='Place of Death'
+                      placeholder='E.g. Enclosure A, Holding area...'
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Typography sx={labelSx}>QR Number</Typography>
+                    <ControlledTextField
+                      name='qr_number'
+                      control={control}
+                      errors={mergedErrors}
+                      label='QR Number'
+                      placeholder='Enter QR number'
+                      disabled={!!necropsyData?.qr_number}
+                    />
+                  </Grid>
+                </Grid>
+
+                <Grid container spacing={6}>
+                  <Grid size={{ xs: 12, sm: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <Typography sx={labelSx}>Carcass Weight</Typography>
                     <Grid container spacing={3}>
                       <Grid size={6}>
                         <ControlledTextField
                           name='carcass_weight'
                           control={control}
-                          errors={errors}
+                          errors={mergedErrors}
                           label='Weight'
                           type='number'
                           placeholder='0.00'
@@ -1079,7 +1190,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                         <ControlledAutocomplete
                           name='weight_unit'
                           control={control}
-                          errors={errors}
+                          errors={mergedErrors}
                           label='Unit'
                           options={weightUnitOptions}
                         />
@@ -1089,38 +1200,18 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                       name='approximate_weight'
                       label='Approximate weight'
                       control={control}
-                      errors={errors}
+                      errors={mergedErrors}
                       size='small'
                     />
-                  </Box>
-
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography sx={labelSx}>Confirmed Sex</Typography>
-                    <Grid container spacing={6}>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <ControlledSelect
-                          name='sex'
-                          control={control}
-                          errors={errors}
-                          label='Sex'
-                          options={sexOptions}
-                          getOptionLabel={o => o.charAt(0).toUpperCase() + o.slice(1)}
-                          getOptionValue={o => o}
-                        />
-                      </Grid>
-                    </Grid>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <Typography sx={labelSx}>Age</Typography>
-
                     <Box
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         p: 3,
-                        backgroundColor: theme.palette.customColors?.Surface || theme.palette.grey[50],
                         borderRadius: 1,
                         border: `1px solid ${theme.palette.divider}`
                       }}
@@ -1147,20 +1238,7 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                             </Typography>
                           )}
                         </Typography>
-
-                        {animalDOB && (
-                          <Typography
-                            sx={{
-                              fontSize: '0.875rem',
-                              color: theme.palette.text.secondary,
-                              mt: 0.5
-                            }}
-                          >
-                            DOB: {dayjs(animalDOB).format('DD MMM YYYY')}
-                          </Typography>
-                        )}
                       </Box>
-
                       <Button
                         variant='text'
                         size='small'
@@ -1174,25 +1252,281 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                         Edit
                       </Button>
                     </Box>
-                  </Box>
+                    {animalDOB && (
+                      <Typography
+                        sx={{
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
+                          color: theme.palette.customColors.OnSurface,
+                          ml: 1
+                        }}
+                      >
+                        DOB: {dayjs(animalDOB).format('DD MMM YYYY')}
+                      </Typography>
+                    )}
+                  </Grid>
+                </Grid>
 
-                  <Divider />
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Typography sx={labelSx}>Confirmed Sex</Typography>
+                  <Grid container spacing={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <ControlledSelect
+                        name='sex'
+                        control={control}
+                        errors={mergedErrors}
+                        label='Sex'
+                        options={sexOptions}
+                        getOptionLabel={o => o.charAt(0).toUpperCase() + o.slice(1)}
+                        getOptionValue={o => o}
+                      />
+                    </Grid>
+                  </Grid>
+                </Box>
 
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography sx={labelSx}>Clinical History</Typography>
-                    <ControlledTextArea
-                      name='history_of_illness'
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Typography sx={labelSx}>Clinical History</Typography>
+                  <ControlledTextArea
+                    name='history_of_illness'
+                    control={control}
+                    errors={mergedErrors}
+                    rows={3}
+                    placeholder='Enter clinical history, symptoms, treatments, and relevant medical background...'
+                  />
+                </Box>
+              </Box>
+            </AccordionDetails>
+          </Accordion>
+          <Accordion
+            expanded={activeTab === 'examination_findings'}
+            onChange={handleAccordionChange('examination_findings')}
+            sx={{
+              padding: 0,
+              borderRadius: '8px !important',
+              '&:before': { display: 'none' },
+              '&.Mui-expanded': { margin: 0 }
+            }}
+          >
+            <AccordionSummary
+              expandIcon={activeTab === 'examination_findings' ? <RemoveIcon /> : <AddIcon />}
+              sx={{
+                px: 4,
+                py: 1
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: '20px',
+                  fontWeight: 500,
+                  color: theme.palette.customColors?.OnSurfaceVariant
+                }}
+              >
+                Examination Findings
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: 4, pb: 6, pt: 0 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Typography sx={labelSx}>General Description</Typography>
+                  <ControlledTextArea
+                    name='general_description'
+                    control={control}
+                    errors={mergedErrors}
+                    rows={3}
+                    placeholder='Describe the general gross findings, external condition, body condition score...'
+                  />
+                </Box>
+
+                <NecropsyOrganSection organs={organs} onChange={setOrgans} />
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Typography sx={labelSx}>Attachments</Typography>
+                  {existingAttachments.length > 0 && (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                      {existingAttachments.map((doc, index) => {
+                        const fileUrl = doc.file || doc.url || doc.file_url || doc.path || ''
+
+                        const fileName =
+                          doc.file_original_name || doc.original_name || doc.name || doc.filename || 'File'
+
+                        const docId = doc.id || doc.attachment_id || index
+
+                        const isImage = ['jpeg', 'jpg', 'png', 'gif', 'webp'].some(
+                          ext => fileUrl?.toLowerCase()?.endsWith(ext) || fileName?.toLowerCase()?.endsWith(ext)
+                        )
+
+                        return (
+                          <Box
+                            key={docId}
+                            sx={{
+                              position: 'relative',
+                              width: 100,
+                              height: 100,
+                              borderRadius: 2,
+                              overflow: 'hidden',
+                              border: `1px solid ${theme.palette.divider}`,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              bgcolor: theme.palette.customColors?.displaybgPrimary || theme.palette.grey[50]
+                            }}
+                          >
+                            {isImage && fileUrl ? (
+                              <img
+                                src={fileUrl}
+                                alt={fileName}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              />
+                            ) : (
+                              <Typography
+                                variant='caption'
+                                sx={{ p: 2, wordBreak: 'break-all', fontSize: '11px', textAlign: 'center' }}
+                              >
+                                {fileName}
+                              </Typography>
+                            )}
+                            <IconButton
+                              size='small'
+                              onClick={() => handleRemoveExistingAttachment(doc.id || doc.attachment_id)}
+                              sx={{
+                                position: 'absolute',
+                                top: 4,
+                                right: 4,
+                                width: 22,
+                                height: 22,
+                                bgcolor: 'rgba(0,0,0,0.55)',
+                                color: '#fff',
+                                '&:hover': { bgcolor: 'rgba(0,0,0,0.75)' }
+                              }}
+                            >
+                              <CloseIcon sx={{ fontSize: 14 }} />
+                            </IconButton>
+                          </Box>
+                        )
+                      })}
+                    </Box>
+                  )}
+                  <ControlledMultiFileUpload
+                    name='attachments'
+                    control={control}
+                    label='Upload Attatchments'
+                    maxFiles={10}
+                    maxFileSize={10 * 1024 * 1024}
+                    acceptedFileTypes='images,pdf,documents'
+                  />
+                </Box>
+              </Box>
+            </AccordionDetails>
+          </Accordion>
+          <Accordion
+            expanded={activeTab === 'conclusion'}
+            onChange={handleAccordionChange('conclusion')}
+            sx={{
+              borderRadius: '8px !important',
+              '&:before': { display: 'none' },
+              '&.Mui-expanded': { margin: 0 }
+            }}
+          >
+            <AccordionSummary
+              expandIcon={activeTab === 'conclusion' ? <RemoveIcon /> : <AddIcon />}
+              sx={{
+                px: 4,
+                py: 1
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: '20px',
+                  fontWeight: 600,
+                  color: theme.palette.customColors?.OnSurfaceVariant
+                }}
+              >
+                Conclusion
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: 4, pb: 3, pt: 0 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {mortalityData?.manner_of_death && (
+                  <Grid container sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Grid size={{ xs: 12 }}>
+                      <Typography sx={labelSx}>Suspected Cause of Death</Typography>
+                    </Grid>
+                    <Grid
+                      size={{ xs: 12, sm: 12, md: 6 }}
+                      sx={{
+                        backgroundColor: theme.palette.customColors.neutral05,
+                        p: 3,
+                        border: `1px solid ${theme.palette.customColors.Outlinevariant}`,
+                        borderRadius: 0.4
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          color: theme.palette.customColors.Outline,
+                          fontSize: '16px',
+                          fontWeight: 400
+                        }}
+                      >
+                        {mortalityData.manner_of_death}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                )}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Typography sx={labelSx}>Opinion (Cause of Death)</Typography>
+                  <ControlledTextArea
+                    name='opinion'
+                    control={control}
+                    errors={mergedErrors}
+                    rows={2}
+                    placeholder='Enter your professional opinion on the cause of death...'
+                  />
+                </Box>
+                <Grid container spacing={6}>
+                  <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography sx={labelSx}>Disposal Method</Typography>
+                    <ControlledAutocomplete
+                      name='confirmed_cause_of_death'
                       control={control}
-                      errors={errors}
-                      rows={5}
-                      placeholder='Enter clinical history, symptoms, treatments, and relevant medical background...'
+                      errors={mergedErrors}
+                      label='Confirmed Cause After Necropsy'
+                      options={mannerOfDeathOptions}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography sx={labelSx}>Confirmed Cause of Death after Necropsy</Typography>
+                    <ControlledAutocomplete
+                      name='disposal_method'
+                      control={control}
+                      errors={mergedErrors}
+                      label='Disposal Method'
+                      options={disposalOptions}
+                    />
+                  </Grid>
+                </Grid>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <Typography
+                    sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    Additional Details
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography sx={labelSx}>Biological Tests Done (if any)</Typography>
+                    <ControlledTextArea
+                      name='biological_test'
+                      control={control}
+                      errors={mergedErrors}
+                      rows={3}
+                      placeholder='Enter any biological tests performed...'
                     />
                   </Box>
-
-                  <Divider />
-
-                  <Typography sx={{ ...labelSx, fontSize: '18px', fontWeight: 600 }}>Necropsy Details</Typography>
-
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <Typography
+                    sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    Necropsy Details
+                  </Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     <Typography sx={labelSx}>Necropsy Date & Time</Typography>
                     <Grid container spacing={3}>
@@ -1212,195 +1546,46 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                       onChange={setConductedByUsers}
                       label='Search users by name'
                     />
-                  </Box>
-
-                  <Divider />
-
-                  <Typography sx={{ ...labelSx, fontSize: '18px', fontWeight: 600 }}>Examination Findings</Typography>
-
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography sx={labelSx}>General Description</Typography>
-                    <ControlledTextArea
-                      name='general_description'
-                      control={control}
-                      errors={errors}
-                      rows={5}
-                      placeholder='Describe the general gross findings, external condition, body condition score...'
-                    />
-                  </Box>
-
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography sx={labelSx}>Organ-wise Description of Lesions</Typography>
-                    <NecropsyOrganSection organs={organs} onChange={setOrgans} />
-                  </Box>
-
-                  <Divider />
-
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography sx={labelSx}>Attachments</Typography>
-                    {existingAttachments.length > 0 && (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                        {existingAttachments.map((doc, index) => {
-                          const fileUrl = doc.file || doc.url || doc.file_url || doc.path || ''
-
-                          const fileName =
-                            doc.file_original_name || doc.original_name || doc.name || doc.filename || 'File'
-                          const docId = doc.id || doc.attachment_id || index
-
-                          const isImage = ['jpeg', 'jpg', 'png', 'gif', 'webp'].some(
-                            ext => fileUrl?.toLowerCase()?.endsWith(ext) || fileName?.toLowerCase()?.endsWith(ext)
-                          )
-
-                          return (
-                            <Box
-                              key={docId}
-                              sx={{
-                                position: 'relative',
-                                width: 100,
-                                height: 100,
-                                borderRadius: 2,
-                                overflow: 'hidden',
-                                border: `1px solid ${theme.palette.divider}`,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                bgcolor: theme.palette.customColors?.displaybgPrimary || theme.palette.grey[50]
-                              }}
-                            >
-                              {isImage && fileUrl ? (
-                                <img
-                                  src={fileUrl}
-                                  alt={fileName}
-                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                />
-                              ) : (
-                                <Typography
-                                  variant='caption'
-                                  sx={{ p: 2, wordBreak: 'break-all', fontSize: '11px', textAlign: 'center' }}
-                                >
-                                  {fileName}
-                                </Typography>
-                              )}
-                              <IconButton
-                                size='small'
-                                onClick={() => handleRemoveExistingAttachment(doc.id || doc.attachment_id)}
-                                sx={{
-                                  position: 'absolute',
-                                  top: 4,
-                                  right: 4,
-                                  width: 22,
-                                  height: 22,
-                                  bgcolor: 'rgba(0,0,0,0.55)',
-                                  color: '#fff',
-                                  '&:hover': { bgcolor: 'rgba(0,0,0,0.75)' }
-                                }}
-                              >
-                                <CloseIcon sx={{ fontSize: 14 }} />
-                              </IconButton>
-                            </Box>
-                          )
-                        })}
-                      </Box>
+                    {mergedErrors.conducted_by && (
+                      <FormHelperText sx={{ color: 'error.main', mt: -2 }}>
+                        {mergedErrors.conducted_by.message}
+                      </FormHelperText>
                     )}
-                    <ControlledMultiFileUpload
-                      name='attachments'
-                      control={control}
-                      label='Drop files here or click to upload'
-                      maxFiles={10}
-                      maxFileSize={10 * 1024 * 1024}
-                      acceptedFileTypes='images,pdf,documents'
-                    />
                   </Box>
-                </>
-              )}
-
-              <Divider />
-
-              <Typography sx={{ ...labelSx, fontSize: '18px', fontWeight: 600 }}>Cause of Death</Typography>
-
-              {mortalityData?.manner_of_death && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <Typography sx={labelSx}>Suspected Cause of Death</Typography>
-                  <Typography
-                    sx={{
-                      p: 2,
-                      bgcolor: theme.palette.customColors?.bodyBg || theme.palette.grey[100],
-                      borderRadius: 1,
-                      color: theme.palette.text.secondary
-                    }}
-                  >
-                    {mortalityData.manner_of_death}
-                  </Typography>
                 </Box>
-              )}
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Typography sx={labelSx}>Opinion / Death Opinion</Typography>
-                <ControlledTextArea
-                  name='opinion'
-                  control={control}
-                  errors={errors}
-                  rows={3}
-                  placeholder='Enter your professional opinion on the cause of death...'
-                />
               </Box>
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Typography sx={labelSx}>Confirmed Cause & Disposal Method</Typography>
-                <Grid container spacing={6}>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <ControlledAutocomplete
-                      name='confirmed_cause_of_death'
-                      control={control}
-                      errors={errors}
-                      label='Confirmed Cause After Necropsy'
-                      options={mannerOfDeathOptions}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <ControlledAutocomplete
-                      name='disposal_method'
-                      control={control}
-                      errors={errors}
-                      label='Disposal Method'
-                      options={disposalOptions}
-                    />
-                  </Grid>
-                </Grid>
+            </AccordionDetails>
+          </Accordion>
+          <Card>
+            <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Typography
+                sx={{
+                  fontSize: '18px',
+                  fontWeight: 600,
+                  color: theme.palette.customColors?.OnSurfaceVariant
+                }}
+              >
+                Notes (Optional)
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <ControlledTextArea
+                    name='additional_notes'
+                    control={control}
+                    errors={mergedErrors}
+                    rows={2}
+                    placeholder='Enter'
+                    inputBackgroundColor={theme.palette.customColors.antzNotes}
+                  />
+                </Box>
               </Box>
-
-              <Divider />
-
-              <Typography sx={{ ...labelSx, fontSize: '18px', fontWeight: 600 }}>Additional Information</Typography>
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Typography sx={labelSx}>Biological Tests Done (if any)</Typography>
-                <ControlledTextArea
-                  name='biological_test'
-                  control={control}
-                  errors={errors}
-                  rows={3}
-                  placeholder='Enter any biological tests performed...'
-                />
-              </Box>
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Typography sx={labelSx}>Notes (Optional)</Typography>
-                <ControlledTextArea
-                  name='additional_notes'
-                  control={control}
-                  errors={errors}
-                  rows={4}
-                  placeholder='Enter any additional notes or observations...'
-                />
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Box>
       </form>
 
       <BottomActionBar
-        onCancel={() => router.push('/necropsy/necropsy')}
+        onCancel={() => router.push(status ? `/necropsy/necropsy?status=${status}` : '/necropsy/necropsy')}
         onSubmit={handleSubmit(onSubmit, onValidationError)}
         loading={submitLoading}
         disabled={isAnyLoading}
@@ -1414,18 +1599,8 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
         submitBtnStyle={{
           backgroundColor: theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main
         }}
+        layoutStyle={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}
       >
-        {isDraftEdit && (
-          <Button
-            variant='outlined'
-            color='error'
-            onClick={() => setDeleteDialogOpen(true)}
-            disabled={isAnyLoading}
-            sx={{ fontWeight: 600, minHeight: '56px', minWidth: '160px', borderRadius: 0.5 }}
-          >
-            Delete Draft
-          </Button>
-        )}
         {!isCompletedEdit && (
           <Button
             variant='outlined'
@@ -1496,8 +1671,8 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ pt: 3 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <DialogContent sx={{ pt: 2, overflow: 'visible' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 1 }}>
             <Grid container spacing={2}>
               <Grid size={4}>
                 <TextField
@@ -1507,7 +1682,6 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                   value={ageInputs.years}
                   onChange={e => handleAgeInputChange('years', e.target.value)}
                   inputProps={{ min: 0, max: 999 }}
-                  size='small'
                 />
               </Grid>
               <Grid size={4}>
@@ -1518,7 +1692,6 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                   value={ageInputs.months}
                   onChange={e => handleAgeInputChange('months', e.target.value)}
                   inputProps={{ min: 0, max: 11 }}
-                  size='small'
                 />
               </Grid>
               <Grid size={4}>
@@ -1529,7 +1702,6 @@ const NecropsyReportForm = ({ mortalityId, necropsyId, status }) => {
                   value={ageInputs.days}
                   onChange={e => handleAgeInputChange('days', e.target.value)}
                   inputProps={{ min: 0, max: 30 }}
-                  size='small'
                 />
               </Grid>
             </Grid>

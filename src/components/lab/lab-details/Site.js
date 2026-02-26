@@ -1,9 +1,8 @@
 import { Icon } from '@iconify/react'
 import { Box, Card, CardHeader, IconButton, Typography } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
 import { GetLabSitesById } from 'src/lib/api/lab/labDetails'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useTheme } from '@mui/material/styles'
 
 const Site = ({ labId }) => {
@@ -112,36 +111,13 @@ const Site = ({ labId }) => {
         //    action={headerAction}
       />
       {rows?.length > 0 ? (
-        <DataGrid
-          autoHeight
-          hideFooterPagination
-          rows={indexedRows === undefined ? [] : indexedRows}
-          getRowId={getRowId}
-          rowCount={total}
+        <CommonTable
+          indexedRows={indexedRows}
+          total={total}
           columns={columns}
-          disableColumnFilter
-          disableColumnMenu={true}
-
-          // onSortModelChange={false}
-          // slots={{ toolbar: ServerSideToolbar }}
           loading={loading}
-
-          // slotProps={{
-          //   baseButton: {
-          //     variant: 'outlined'
-          //   }
-
-          // toolbar: {
-          //   value: searchValue,
-          //   clearSearch: () => handleSearch(''),
-
-          //   onChange: event => {
-          //     setSearchValue(event.target.value)
-
-          //     return handleSearch(event.target.value)
-          //   }
-          // }
-          // }}
+          hideFooterPagination
+          disablePagination
         />
       ) : (
         <Box sx={{ px: 4, pb: 3 }}>

@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
-import { DataGrid } from '@mui/x-data-grid'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { useRouter } from 'next/router'
 import { useTheme } from '@mui/material/styles'
@@ -188,11 +188,11 @@ const Complaints = () => {
       renderCell: params => (
         <>
           {params.row.zoo_id === zoo_id ? ( // Show only if the zoo_id matches
-            <Box>
+            (<Box>
               <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
                 <Icon icon='mdi:pencil-outline' />
               </IconButton>
-            </Box>
+            </Box>)
           ) : null}
         </>
       )
@@ -240,50 +240,20 @@ const Complaints = () => {
           <Card>
             <CardHeader title='Category List' action={headerAction} />
 
-            <DataGrid
+            <CommonTable
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
+              columns={columns}
+              handleSortModel={handleSortModel}
+              loading={loading}
+              searchValue={searchValue}
+              handleSearch={handleSearch}
+              onCellClick={handleCellClick}
               hideFooterPagination={true}
-              sx={{
-                '.MuiDataGrid-cell:focus-within': {
-                  outline: 'none'
-                },
-
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
+              disablePagination={true}
               columnVisibilityModel={{
                 sl_no: false
               }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              disableColumnMenu
-              autoHeight
-
-              // pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-
-              // pageSizeOptions={[7, 10, 25, 50]}
-              // paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
-
-              // onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onCellClick={handleCellClick}
             />
           </Card>
           {openDrawer && (
@@ -304,7 +274,7 @@ const Complaints = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default Complaints

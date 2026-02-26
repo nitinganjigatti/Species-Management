@@ -192,7 +192,6 @@ const InpatientClinicalNotes = props => {
                     </IconButton>
                   )}
                 </Box>
-
                 <UserAvatarDetails
                   user_name={data?.created_by_user_name}
                   date={data?.created_at}
@@ -201,7 +200,7 @@ const InpatientClinicalNotes = props => {
                   profile_image={data?.user_created_profile_pic}
                 />
               </Box>
-            )
+            );
           })}
 
           {/* Show skeleton only when fetching more pages and we already have data */}
@@ -228,7 +227,7 @@ const InpatientClinicalNotes = props => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default InpatientClinicalNotes

@@ -9,10 +9,12 @@ import {
   Divider,
   Drawer,
   IconButton,
+  InputAdornment,
   Modal,
   Paper,
   Skeleton,
   TextField,
+  Tooltip,
   Typography,
   useTheme
 } from '@mui/material'
@@ -42,8 +44,10 @@ import {
 } from 'src/lib/api/necropsy'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import TransferPassQRCard from 'src/components/necropsy/TransferPassQRCard'
+import TransferChecklistDrawer from 'src/components/necropsy/TransferChecklistDrawer'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Toaster from '../Toaster'
+import moment from 'moment'
 
 const groupCommentsByDate = comments => {
   const grouped = {}
@@ -86,7 +90,7 @@ const StyledSectionHeader = styled(Box)(({ theme }) => ({
   gap: '4px'
 }))
 
-const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) => {
+const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hideAcceptButton = false }) => {
   const theme = useTheme()
   const router = useRouter()
 
@@ -104,8 +108,15 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
   const [animalList, setAnimalList] = useState([])
   const [animalListLoading, setAnimalListLoading] = useState(false)
   const [acceptLoading, setAcceptLoading] = useState(false)
+  const [showChecklistDrawer, setShowChecklistDrawer] = useState(false)
+  const [copied, setCopied] = useState(false)
 
-  // Fetch all drawer data in parallel for better performance
+  const handleCopyNumber = number => {
+    navigator.clipboard.writeText(number)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   const fetchAllDrawerData = useCallback(async () => {
     if (!transferId) return
 
@@ -113,7 +124,6 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
     setBtnStatusLoading(true)
 
     try {
-      // Execute all API calls in parallel
       const [detailsRes, btnStatusRes, checklistRes] = await Promise.all([
         getIncomingNecropsyTransferSummary({ transfer_id: transferId }),
         getIncomingNecropsyBtnStatus(transferId),
@@ -139,7 +149,6 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
     }
   }, [transferId])
 
-  // Individual fetch for necropsy details (used after adding comment)
   const fetchNecropsyDetails = useCallback(async () => {
     if (!transferId) return
     try {
@@ -224,14 +233,12 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
     }
   }
 
-  // Fetch all data in parallel when drawer opens
   useEffect(() => {
     if (open && transferId) {
       fetchAllDrawerData()
     }
   }, [open, transferId, fetchAllDrawerData])
 
-  // Memoize grouped comments to avoid recalculation on every render
   const groupedChecklistComments = useMemo(() => groupCommentsByDate(checklistComments), [checklistComments])
 
   return (
@@ -372,11 +379,11 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                 position: 'sticky',
                 top: 0,
                 zIndex: 1,
-                backgroundColor: theme.palette.customColors?.rusticRed || '#4A0415',
+                backgroundColor: theme.palette.customColors?.rusticRed,
                 color: theme.palette.customColors.OnPrimary
               }}
             >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 6, pt: 2, mb: 4 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 6, pt: 4, mb: 4 }}>
                 <Typography sx={{ fontWeight: 500, fontSize: '20px', color: theme.palette.customColors.OnPrimary }}>
                   {necropsyData?.transfer_details?.transfer_code}
                 </Typography>
@@ -422,30 +429,17 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                           subtitle: 'Transfer Request number'
                         })
                       }}
-                      sx={{
-                        backgroundColor: theme.palette.customColors.OnPrimary,
-                        p: 1,
-                        borderRadius: 1,
-                        '&:hover': {
-                          backgroundColor: 'rgba(255, 255, 255, 0.9)'
-                        }
-                      }}
                     >
-                      <Icon
-                        icon='mdi:qrcode'
-                        fontSize={40}
-                        color={theme.palette.customColors?.rusticRed || '#4A0415'}
-                      />
+                      <Icon icon='ic:outline-qr-code-2' fontSize={46} color={theme.palette.customColors?.OnPrimary} />
                     </IconButton>
                   )}
                 </Box>
               </Box>
-
               <Box
                 sx={{
                   px: 6,
                   py: 4,
-                  backgroundColor: 'rgba(0, 0, 0, 0.15)',
+                  backgroundColor: alpha(theme.palette.customColors.deepDark, 0.12),
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center'
@@ -459,7 +453,9 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                     color: `${theme.palette.customColors.OnPrimary} !important`
                   }}
                 >
-                  <Typography sx={{ fontSize: '12px', fontWeight: 400, color: 'rgba(255, 255, 255, 0.7)' }}>
+                  <Typography
+                    sx={{ fontSize: '12px', fontWeight: 400, color: alpha(theme.palette.customColors.OnPrimary, 0.8) }}
+                  >
                     Initiated by
                   </Typography>
                   <UserAvatarDetails
@@ -471,38 +467,64 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                     text_color={theme.palette.customColors.OnPrimary}
                   />
                 </Box>
-
-                {/* Phone and Message icons - only show on smaller screens (xs, sm, md) */}
-                <Box sx={{ display: { xs: 'flex', lg: 'none' }, gap: 2 }}>
-                  {necropsyData?.transfer_details?.user_mobile_number && (
-                    <IconButton
-                      sx={{
-                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                        color: theme.palette.customColors.OnPrimary,
-                        '&:hover': {
-                          backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                {necropsyData?.transfer_details?.user_mobile_number && (
+                  <>
+                    <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 2 }}>
+                      <IconButton
+                        sx={{
+                          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                          color: theme.palette.customColors.OnPrimary,
+                          '&:hover': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                          }
+                        }}
+                        onClick={() =>
+                          window.open(`tel:${necropsyData?.transfer_details?.user_mobile_number}`, '_self')
                         }
-                      }}
-                      onClick={() => window.open(`tel:${necropsyData?.transfer_details?.user_mobile_number}`, '_self')}
-                    >
-                      <Icon icon='mdi:phone' fontSize={20} />
-                    </IconButton>
-                  )}
-                  {necropsyData?.transfer_details?.user_mobile_number && (
-                    <IconButton
-                      sx={{
-                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                        color: theme.palette.customColors.OnPrimary,
-                        '&:hover': {
-                          backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                      >
+                        <Icon icon='mdi:phone' fontSize={20} />
+                      </IconButton>
+                      <IconButton
+                        sx={{
+                          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                          color: theme.palette.customColors.OnPrimary,
+                          '&:hover': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                          }
+                        }}
+                        onClick={() =>
+                          window.open(`sms:${necropsyData?.transfer_details?.user_mobile_number}`, '_self')
                         }
-                      }}
-                      onClick={() => window.open(`sms:${necropsyData?.transfer_details?.user_mobile_number}`, '_self')}
-                    >
-                      <Icon icon='mdi:message-text' fontSize={20} />
-                    </IconButton>
-                  )}
-                </Box>
+                      >
+                        <Icon icon='mdi:message-text' fontSize={20} />
+                      </IconButton>
+                    </Box>
+                    <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1 }}>
+                      <Icon icon='mdi:phone' fontSize={18} color={theme.palette.customColors?.OnPrimary} />
+                      <Typography
+                        sx={{
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          color: theme.palette.customColors.OnPrimary
+                        }}
+                      >
+                        {necropsyData?.transfer_details?.user_mobile_number}
+                      </Typography>
+                      <Tooltip title={copied ? 'Copied!' : 'Copy number'}>
+                        <IconButton
+                          size='small'
+                          onClick={() => handleCopyNumber(necropsyData?.transfer_details?.user_mobile_number)}
+                          sx={{
+                            color: theme.palette.customColors?.OnPrimary,
+                            '&:hover': { backgroundColor: alpha(theme.palette.customColors?.OnPrimary, 0.1) }
+                          }}
+                        >
+                          <Icon icon={copied ? 'mdi:check' : 'mdi:content-copy'} fontSize={18} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </>
+                )}
               </Box>
             </Box>
 
@@ -513,9 +535,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                 background: theme.palette.customColors.OnPrimary,
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 5,
-                minHeight: 0,
-                p: 6
+                minHeight: 0
               }}
             >
               {(() => {
@@ -523,278 +543,281 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
 
                 if (animalCount === 1 && necropsyData?.entity_details?.[0]) {
                   return (
-                    <Card sx={{ overflow: 'visible' }}>
-                      <CardContent>
-                        <Box
-                          onClick={() => handleAnimalClick(necropsyData?.entity_details[0]?.animal_id)}
-                          sx={{
-                            background: alpha(
-                              theme.palette.customColors?.errorContainer || theme.palette.error.light,
-                              0.4
-                            ),
-                            borderRadius: 1,
-                            p: 3,
-                            cursor: necropsyData?.entity_details[0]?.animal_id ? 'pointer' : 'default',
-                            '&:hover': necropsyData?.entity_details[0]?.animal_id
-                              ? {
-                                  opacity: 0.85
-                                }
-                              : {}
-                          }}
-                        >
-                          <AnimalCard data={necropsyData?.entity_details[0]} />
-                        </Box>
-                      </CardContent>
-                    </Card>
+                    <Box
+                      onClick={() => handleAnimalClick(necropsyData?.entity_details[0]?.animal_id)}
+                      sx={{
+                        background: theme.palette.customColors.avatarBackground,
+                        p: 3,
+                        cursor: necropsyData?.entity_details[0]?.animal_id ? 'pointer' : 'default',
+                        '&:hover': necropsyData?.entity_details[0]?.animal_id
+                          ? {
+                              opacity: 0.85
+                            }
+                          : {}
+                      }}
+                    >
+                      <AnimalCard data={necropsyData?.entity_details[0]} />
+                    </Box>
                   )
                 }
 
                 return (
-                  <Card sx={{ overflow: 'visible' }}>
-                    <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between'
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <Icon icon='mdi:arrow-top-right' fontSize={24} />
-                          <Box>
-                            <Typography
-                              sx={{
-                                fontWeight: 400,
-                                fontSize: '14px',
-                                color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
-                              }}
-                            >
-                              Transfer
-                            </Typography>
-                            <Typography
-                              sx={{
-                                fontWeight: 600,
-                                fontSize: '16px',
-                                color: theme.palette.customColors.OnSurfaceVariant
-                              }}
-                            >
-                              {animalCount} {animalCount === 1 ? 'Carcass' : 'Carcasses'}
-                            </Typography>
-                          </Box>
-                        </Box>
-                        <Button
-                          variant='text'
-                          onClick={handleViewAnimals}
-                          sx={{
-                            fontWeight: 600,
-                            fontSize: '14px',
-                            color: theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main
-                          }}
-                        >
-                          View
-                        </Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                )
-              })()}
-
-              {necropsyData?.transfer_details?.reason_for_transfer && (
-                <Card sx={{ overflow: 'visible' }}>
-                  <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: 2,
-                        background: theme.palette.customColors.antzNotes,
-                        borderRadius: 1,
-                        p: 3
-                      }}
-                    >
-                      <Icon icon='mdi:note-outline' fontSize={24} />
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <Typography
-                          sx={{
-                            fontWeight: 400,
-                            fontSize: '14px',
-                            color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
-                          }}
-                        >
-                          Notes
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontWeight: 500,
-                            fontSize: '14px',
-                            color: theme.palette.customColors.OnSurfaceVariant
-                          }}
-                        >
-                          {necropsyData?.transfer_details?.reason_for_transfer}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
-              )}
-
-              <Card sx={{ overflow: 'visible' }}>
-                <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <Box
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 2,
                       justifyContent: 'space-between',
-                      backgroundColor: theme.palette.customColors?.displaybgPrimary,
-                      p: 2,
-                      borderRadius: 1
+                      px: 6,
+                      py: 2,
+                      background: theme.palette.customColors.avatarBackground
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Icon icon={'uis:check-circle'} color={theme.palette.success.main} fontSize={24} />
-                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                      <Icon
+                        icon='proicons:arrow-enter'
+                        fontSize={20}
+                        style={{ transform: 'rotate(180deg)' }}
+                        color={theme.palette.customColors.neutralPrimary}
+                      />
+                      <Box>
                         <Typography
-                          sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
+                          sx={{
+                            fontWeight: 400,
+                            fontSize: '14px',
+                            color: theme.palette.customColors?.OnSurfaceVariant
+                          }}
                         >
-                          Transfer Checklist
+                          Transfer
                         </Typography>
                         <Typography
                           sx={{
                             fontWeight: 600,
-                            fontSize: '14px',
-                            color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                            fontSize: '16px',
+                            color: theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                          {necropsyData?.transfer_details?.checked_count}/
-                          {necropsyData?.transfer_details?.total_checklist_count} Filled
+                          {animalCount} {animalCount === 1 ? 'Carcass' : 'Carcasses'}
                         </Typography>
                       </Box>
                     </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-
-              {necropsyData?.transfer_attachment?.length > 0 && (
-                <Card sx={{ overflow: 'visible' }}>
-                  <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Icon icon='mdi:attachment' fontSize={20} />
-                      <Typography
-                        sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
-                      >
-                        Attachments
-                      </Typography>
-                    </Box>
                     <Box
+                      onClick={handleViewAnimals}
                       sx={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(2, 1fr)',
-                        gap: 3
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        color: theme.palette.primary.main,
+                        cursor: 'pointer'
                       }}
                     >
-                      {necropsyData?.transfer_attachment?.map((attachment, index) => (
-                        <Box
-                          key={attachment?.id || index}
-                          sx={{ cursor: 'pointer' }}
-                          onClick={() => attachment?.file && window.open(attachment.file, '_blank')}
-                        >
-                          <MediaCard
-                            media={{
-                              file: attachment?.file || attachment?.url || attachment?.file_url || '',
-                              file_original_name: attachment?.file_original_name || attachment?.name || 'File',
-                              created_at: attachment?.created_at,
-                              type: attachment?.type || attachment?.file_type
-                            }}
-                            isBorderedCard
-                          />
-                        </Box>
-                      ))}
+                      View
                     </Box>
-                  </CardContent>
-                </Card>
-              )}
+                  </Box>
+                )
+              })()}
 
-              <Card sx={{ overflow: 'visible' }}>
-                <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {necropsyData?.transfer_details?.reason_for_transfer && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    background: theme.palette.customColors.avatarBackground,
+                    px: 6,
+                    py: 2,
+                    mt: '1px'
+                  }}
+                >
+                  <Icon icon='mdi:note-outline' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Typography
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: '14px',
+                        color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+                      }}
+                    >
+                      Notes
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '16px',
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
+                    >
+                      {necropsyData?.transfer_details?.reason_for_transfer}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  justifyContent: 'space-between',
+                  backgroundColor: theme.palette.customColors?.avatarBackground,
+                  px: 6,
+                  py: 2,
+                  mt: '1px'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Icon icon={'uis:check-circle'} color={theme.palette.customColors.neutralSecondary} fontSize={20} />
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Typography
+                      sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      Transfer Checklist
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        color: theme.palette.customColors?.OnSurfaceVariant
+                      }}
+                    >
+                      {necropsyData?.transfer_details?.checked_count}/
+                      {necropsyData?.transfer_details?.total_checklist_count} Filled
+                    </Typography>
+                  </Box>
+                </Box>
+                {necropsyData?.transfer_details?.checked_count > 0 && (
+                  <Box
+                    onClick={() => setShowChecklistDrawer(true)}
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      color: theme.palette.primary.main,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    View
+                  </Box>
+                )}
+              </Box>
+              {necropsyData?.transfer_attachment?.length > 0 && (
+                <Box sx={{ px: 6, py: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Icon icon={'hugeicons:comment-01'} />
+                    <Icon icon='mdi:attachment' fontSize={20} />
                     <Typography
                       sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      Comments
+                      Attachments
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <TextField
-                      fullWidth
-                      size='small'
-                      placeholder='Add a comment...'
-                      value={comment}
-                      onChange={e => setComment(e.target.value)}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 0.7,
-                          px: 2,
-                          py: 1
-                        }
-                      }}
-                    />
-                    <IconButton
-                      onClick={handleAddComment}
-                      disabled={!comment.trim() || commentLoading}
-                      sx={{
-                        backgroundColor: theme.palette.primary.main,
-                        color: theme.palette.customColors.OnPrimary,
-                        '&:hover': {
-                          backgroundColor: theme.palette.primary.dark
-                        },
-                        '&.Mui-disabled': {
-                          backgroundColor: theme.palette.action.disabledBackground,
-                          color: theme.palette.action.disabled
-                        }
-                      }}
-                    >
-                      {commentLoading ? (
-                        <CircularProgress size={20} color='inherit' />
-                      ) : (
-                        <Icon icon='mdi:arrow-right' fontSize={20} />
-                      )}
-                    </IconButton>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(2, 1fr)',
+                      gap: 3
+                    }}
+                  >
+                    {necropsyData?.transfer_attachment?.map((attachment, index) => (
+                      <Box
+                        key={attachment?.id || index}
+                        sx={{ cursor: 'pointer' }}
+                        onClick={() => attachment?.file && window.open(attachment.file, '_blank')}
+                      >
+                        <MediaCard
+                          media={{
+                            file: attachment?.file || attachment?.url || attachment?.file_url || '',
+                            file_original_name: attachment?.file_original_name || attachment?.name || 'File',
+                            created_at: attachment?.created_at,
+                            type: attachment?.type || attachment?.file_type
+                          }}
+                          isBorderedCard
+                        />
+                      </Box>
+                    ))}
                   </Box>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    {necropsyData?.comments_details?.length > 0 ? (
-                      necropsyData?.comments_details?.map(item => (
-                        <Box
-                          key={item?.id}
+                </Box>
+              )}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, px: 6, py: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2 }}>
+                  <Icon
+                    icon={'mdi-light:message-text'}
+                    color={theme.palette.customColors.OnSurfaceVariant}
+                    fontSize={20}
+                  />
+                  <Typography
+                    sx={{ fontWeight: 500, fontSize: '14px', color: theme.palette.customColors.neutralPrimary }}
+                  >
+                    Comments
+                  </Typography>
+                </Box>
+                <TextField
+                  fullWidth
+                  size='small'
+                  placeholder='Add your comment'
+                  value={comment}
+                  onChange={e => setComment(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 0.4,
+                      p: 2
+                    }
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position='end'>
+                        <IconButton
+                          onClick={handleAddComment}
+                          disabled={!comment.trim() || commentLoading}
+                          size='small'
                           sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 3,
-                            backgroundColor: theme.palette.customColors?.displaybgPrimary,
-                            borderRadius: 1,
-                            px: 4,
-                            py: 2
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            '&:hover': {
+                              backgroundColor: 'transparent'
+                            },
+                            '&.Mui-disabled': {
+                              color: theme.palette.action.disabled
+                            }
                           }}
                         >
-                          <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                            {item?.comments}
-                          </Typography>
-                          <UserAvatarDetails
-                            user_name={`${item?.user_first_name} ${item?.user_last_name}`}
-                            profile_image={item?.user_profile_pic}
-                            date={item?.commented_on}
-                            show_time
-                            size='medium'
-                          />
-                        </Box>
-                      ))
-                    ) : (
-                      <NoDataFound />
-                    )}
-                  </Box>
-                </CardContent>
-              </Card>
+                          {commentLoading ? (
+                            <CircularProgress size={18} color='inherit' />
+                          ) : (
+                            <Icon icon='mdi:send-outline' fontSize={20} />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }}
+                />
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {necropsyData?.comments_details?.length > 0 ? (
+                    necropsyData?.comments_details?.map(item => (
+                      <Box
+                        key={item?.id}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 2,
+                          backgroundColor: theme.palette.customColors?.mdAntzNeutral,
+                          borderRadius: 0.4,
+                          px: 4,
+                          py: 2
+                        }}
+                      >
+                        <Typography
+                          sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.neutralPrimary }}
+                        >
+                          {item?.comments}
+                        </Typography>
+                        <Typography
+                          sx={{ fontSize: '10px', fontWeight: 500, color: theme.palette.customColors.neutralSecondary }}
+                        >
+                          {Utility.convertUTCToLocaltime(item?.commented_on)}
+                        </Typography>
+                      </Box>
+                    ))
+                  ) : (
+                    <NoDataFound />
+                  )}
+                </Box>
+              </Box>
             </Box>
 
             <Box
@@ -815,9 +838,25 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                 flexShrink: 0,
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 4
+                gap: 2
               }}
             >
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  mb: 1
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 40,
+                    height: 4,
+                    backgroundColor: theme.palette.customColors?.OutlineVariant || theme.palette.grey[300],
+                    borderRadius: 2
+                  }}
+                />
+              </Box>
               {checklistComments?.length > 0 ? (
                 <>
                   <Collapse in={showChecklistComment}>
@@ -929,15 +968,23 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                       ))}
                     </Box>
                   </Collapse>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Typography
-                      sx={{ fontSize: '20px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
+                      sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.neutralSecondary }}
                     >
-                      {checklistComments?.[0]?.comments}
+                      Current Status <span> &bull; </span>
+                      {Utility.AgeConverter(Utility.convertUTCToLocal(checklistComments?.[0]?.commented_on))}
                     </Typography>
-                    <Button onClick={() => setShowChecklistComment(prev => !prev)}>
-                      {showChecklistComment ? 'Hide' : 'See All'}
-                    </Button>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+                      <Typography
+                        sx={{ fontSize: '20px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
+                      >
+                        {checklistComments?.[0]?.comments}
+                      </Typography>
+                      <Button onClick={() => setShowChecklistComment(prev => !prev)}>
+                        {showChecklistComment ? 'Hide' : 'See All'}
+                      </Button>
+                    </Box>
                   </Box>
                 </>
               ) : null}
@@ -950,18 +997,18 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
                     Cancelled
                   </Typography>
                 </Box>
-              ) : (
+              ) : !hideAcceptButton ? (
                 <Button
                   variant='contained'
                   fullWidth
                   color='primary'
                   disabled={btnStatusLoading || acceptLoading || btnStatusData?.show_accept_button === 0}
                   onClick={handleAcceptNecropsy}
-                  sx={{ p: 3, fontWeight: 600, backgroundColor: theme.palette.customColors?.rusticRed || '#4A0415' }}
+                  sx={{ p: 3, fontWeight: 600, backgroundColor: theme.palette.primary.main }}
                 >
                   {btnStatusLoading || acceptLoading ? <CircularProgress size={24} /> : 'ACCEPT NECROPSY'}
                 </Button>
-              )}
+              ) : null}
             </Box>
           </>
         )}
@@ -977,6 +1024,12 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
         />
       )}
 
+      <TransferChecklistDrawer
+        open={showChecklistDrawer}
+        onClose={() => setShowChecklistDrawer(false)}
+        transferId={transferId}
+      />
+
       <Modal
         open={showAnimalListDrawer}
         onClose={() => setShowAnimalListDrawer(false)}
@@ -988,7 +1041,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
       >
         <Paper
           sx={{
-            width: { xs: '100%', sm: 560 },
+            width: { xs: '100%', sm: '80%', md: 560 },
             maxHeight: '80vh',
             backgroundColor: theme.palette.background.paper,
             borderTopLeftRadius: '16px',
@@ -1103,5 +1156,4 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess }) 
   )
 }
 
-// Memoize the component to prevent unnecessary re-renders
 export default memo(IncomingNecropsyDrawer)

@@ -295,7 +295,8 @@ const AddPatientSiteFilter = ({ localSelections, setLocalSelections }) => {
             image: localSelections.Sites[0]?.site_image,
             queryKey: 'hospital-sections',
             params: {
-              site_id: localSelections.Sites[0]?.site_id
+              site_id: localSelections.Sites[0]?.site_id,
+              list_all_sections: true
             }
           }}
         />
@@ -313,7 +314,9 @@ const AddPatientSiteFilter = ({ localSelections, setLocalSelections }) => {
             image: localSelections.Sections[0]?.images?.[0]?.file,
             queryKey: 'hospital-enclosures',
             params: {
-              section_id: localSelections.Sections[0]?.section_id
+              section_id: localSelections.Sections[0]?.section_id,
+              filter_user_enclosure: 0, // to remove permission filter
+              // include_sub_enclosure: 1 // include sub enclosures
             }
           }}
         />

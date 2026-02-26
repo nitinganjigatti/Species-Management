@@ -53,7 +53,7 @@ const htmlToPlainText = value => {
   return value
     .replace(/<[^>]*>/g, ' ')
     .replace(/\s+/g, ' ')
-    .trim()
+    .trim();
 }
 
 const getRichTextHtmlValue = value => {
@@ -143,7 +143,7 @@ const parseProcedurePerformed = value => {
   return text
     .split(/[\r\n]+|•/g)
     .map(item => item.replace(/^[•\-\s]+/, '').trim())
-    .filter(Boolean)
+    .filter(Boolean);
 }
 
 const getRecordIdentifier = record => {
@@ -202,29 +202,22 @@ const MediaScroller = ({ items = [] }) => {
           const key = item?.id ?? `${item?.file || item?.file_original_name || 'attachment'}-${index}`
 
           return (
-            <Box
+            <FilePreviewCard
               key={key}
-              sx={{
-                width: 240
-                // flexShrink: 0
+              width={'240px'}
+              fileUrl={item?.file}
+              fileName={item?.file_original_name}
+              fileType={item?.file_type}
+              user={{
+                created_at: item?.created_at,
+                modified_at: item?.modified_at,
+                user_profile: {
+                  user_full_name: item?.user_full_name,
+                  user_profile_pic: item?.user_profile_pic
+                }
               }}
-            >
-              <FilePreviewCard
-                fileUrl={item?.file}
-                fileName={item?.file_original_name}
-                fileType={item?.file_type}
-                user={{
-                  created_at: item?.created_at,
-                  modified_at: item?.modified_at,
-                  user_profile: {
-                    user_full_name: item?.user_full_name,
-                    user_profile_pic: item?.user_profile_pic
-                  }
-                }}
-                showTitle={true}
-              />
-              {/* <MediaCard media={item} isBorderedCard /> */}
-            </Box>
+              showTitle={true}
+            />
           )
         })}
       </Box>
@@ -700,7 +693,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
               {error ? (
                 <Typography sx={{ color: theme.palette.error.main }}>{error}</Typography>
               ) : (
-                <Box
+                (<Box
                   sx={{
                     width: '100%',
                     display: 'flex',
@@ -714,7 +707,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                     isDischarged={patientDischarged}
                     btnAction={handleAddSurgeryRecord}
                   />
-                </Box>
+                </Box>)
                 // <NoDataFound variant='Seal' height={300} width={300} />
               )}
             </Box>
@@ -1141,7 +1134,6 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
           </Box>
         )}
       </Box>
-
       <DeleteConfirmationDialog
         open={deleteDialogOpen}
         loading={deleteLoading}
@@ -1150,7 +1142,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
         message='Are you sure you want to delete this surgery record?'
       />
     </>
-  )
+  );
 }
 
 export default InpatientSurgery
