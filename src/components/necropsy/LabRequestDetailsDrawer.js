@@ -648,7 +648,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
     <Box
       key={note.id || index}
       sx={{
-        backgroundColor: alpha(theme.palette.warning.light, 0.3),
+        backgroundColor: theme.palette.customColors.antzNotes,
         borderRadius: '8px',
         mx: 3,
         mb: 2,
