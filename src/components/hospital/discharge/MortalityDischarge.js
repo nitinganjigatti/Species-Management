@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import debounce from 'lodash/debounce'
 import { getMannerOfDeath, getCarcassCondition, getCarcassDeposition } from 'src/lib/api/housing'
 import { addInpatientDischarge, getNecropsyCenter } from 'src/lib/api/hospital/inpatientDischarge'
@@ -95,7 +95,6 @@ function MortalityDischarge() {
     try {
       const params = { q, limit: 10, page: 1 }
 
-      // debugger
       const res = await getNecropsyCenter(params)
 
       if (res?.status) {
@@ -113,41 +112,43 @@ function MortalityDischarge() {
   }
 
   // Debounced versions
-  const debouncedFetchManner = useCallback(
-    debounce(q => fetchManner(q), 500),
-    []
-  )
+  const debouncedFetchManner = useMemo(() => debounce(q => fetchManner(q), 500), [])
 
-  const debouncedFetchCondition = useCallback(
-    debounce(q => fetchCondition(q), 500),
-    []
-  )
+  const debouncedFetchCondition = useMemo(() => debounce(q => fetchCondition(q), 500), [])
 
-  const debouncedFetchDisposition = useCallback(
-    debounce(q => fetchDisposition(q), 500),
-    []
-  )
+  const debouncedFetchDisposition = useMemo(() => debounce(q => fetchDisposition(q), 500), [])
 
-  const debouncedFetchNecropsyCenter = useCallback(
-    debounce(q => fetchNecropsyCenter(q), 500),
-    []
-  )
+  const debouncedFetchNecropsyCenter = useMemo(() => debounce(q => fetchNecropsyCenter(q), 500), [])
 
   // Initial fetch on mount
   useEffect(() => {
-    setFetchLoading(true)
+    let isMounted = true
 
-    Promise.all([fetchManner(''), fetchCondition(''), fetchDisposition(''), fetchNecropsyCenter('')])
-      .catch(error => console.error('Initial fetch error:', error?.response?.data?.message || error?.message))
-      .finally(() => setFetchLoading(false))
+    const load = async () => {
+      try {
+        setFetchLoading(true)
+
+        await Promise.all([fetchManner(''), fetchCondition(''), fetchDisposition(''), fetchNecropsyCenter('')])
+      } catch (error) {
+        console.error('Initial fetch failed:', error)
+      } finally {
+        if (isMounted) {
+          setFetchLoading(false)
+        }
+      }
+    }
+
+    load()
 
     return () => {
+      isMounted = false
+
       debouncedFetchManner.cancel()
       debouncedFetchCondition.cancel()
       debouncedFetchDisposition.cancel()
       debouncedFetchNecropsyCenter.cancel()
     }
-  }, [debouncedFetchManner, debouncedFetchCondition, debouncedFetchDisposition, debouncedFetchNecropsyCenter])
+  }, [])
 
   // Functions to be called when user types in each autocomplete
   const handleMannerSearch = text => debouncedFetchManner(text || '')

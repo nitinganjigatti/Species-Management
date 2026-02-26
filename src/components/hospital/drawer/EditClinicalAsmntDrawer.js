@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -16,10 +16,15 @@ import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import ActivityList from 'src/views/pages/hospital/symptoms/ActivityList'
 import SideSheetActionButtons from '../SideSheetActionButtons'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
+import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
 import { useRouter } from 'next/router'
 import Utility from 'src/utility'
 import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import EditNotes from '../inpatient/EditNotes'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
 
 const EditClinicalAsmntDrawer = ({
   open,
@@ -45,13 +50,48 @@ const EditClinicalAsmntDrawer = ({
   handleDeleteNotes,
   handleEditNoteClick,
   isNotesOpen,
-  setIsNotesOpen
+  setIsNotesOpen,
+  admittedDate,
+  dischargedDate,
+  recordedDateTime,
+  setRecordedDateTime,
+  isDischarged,
+  isChanged
 }) => {
   const theme = useTheme()
   const { getSeverityColor } = useHospitalColorUtils()
   const activities = [1, 2, 3]
   const router = useRouter()
   const { medical_record_id } = router.query
+  const [minDate, setMinDate] = useState(null)
+  const [maxDate, setMaxDate] = useState(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    // Set date range based on discharge status
+    if (isDischarged && dischargedDate) {
+      setMinDate(dayjs(admittedDate).startOf('day'))
+      setMaxDate(dayjs(dischargedDate).endOf('day'))
+    } else {
+      setMinDate(admittedDate ? dayjs(admittedDate).startOf('day') : null)
+      setMaxDate(null)
+    }
+
+    // Set recorded datetime from existing data or default
+    if (selectedSymptom?.additional_info?.recorded_date_time) {
+      // Load existing recorded datetime and convert from UTC to local
+      const existingDateTime = dayjs.utc(selectedSymptom.additional_info.recorded_date_time).local()
+      setRecordedDateTime(existingDateTime)
+    } else {
+      // Set default to current time or discharge time
+      if (isDischarged && dischargedDate) {
+        setRecordedDateTime(dayjs.utc(dischargedDate).local())
+      } else {
+        setRecordedDateTime(dayjs())
+      }
+    }
+  }, [open, selectedSymptom, isDischarged, admittedDate, dischargedDate])
 
   const isResolved = status === 'Closed' || status === 'Inactive'
 
@@ -69,7 +109,8 @@ const EditClinicalAsmntDrawer = ({
       clinicalAsmnt,
       prognosisVal,
       chronicVal,
-      notes
+      notes,
+      recordedDateTime: recordedDateTime.format('YYYY-MM-DD HH:mm:ss')
     })
   }
 
@@ -344,6 +385,22 @@ const EditClinicalAsmntDrawer = ({
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
             >
+              Date & Time
+            </Typography>
+            <Box sx={{ mb: 6 }}>
+              <MUIDateTimePicker
+                value={recordedDateTime}
+                onChange={newValue => setRecordedDateTime(newValue)}
+                label=''
+                minDateTime={minDate}
+                maxDateTime={maxDate}
+                ampm={true}
+              />
+            </Box>
+
+            <Typography
+              sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1 }}
+            >
               Notes
             </Typography>
             <TextField
@@ -381,6 +438,7 @@ const EditClinicalAsmntDrawer = ({
             onCancel={handleCancel}
             width={260}
             height={50}
+            isDisabled={!isChanged}
           />
         </Box>
       </Box>

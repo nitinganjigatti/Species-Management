@@ -33,6 +33,7 @@ const HospitalOutPatient = () => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [sortModel, setSortModel] = useState([])
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -47,6 +48,7 @@ const HospitalOutPatient = () => {
 
   const applyFilters = selectedOptions => {
     setSelectedOptions(selectedOptions)
+    setFilters(prev => ({ ...prev, page: 1 }))
     setOpenFilterDrawer(false)
   }
 
@@ -78,6 +80,9 @@ const HospitalOutPatient = () => {
     try {
       setLoading(true)
 
+      const activeSortModel = sortModel[0]
+      const sortParam = activeSortModel ? JSON.stringify({ [activeSortModel.field]: activeSortModel.sort }) : undefined
+
       const res = await getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
@@ -88,7 +93,8 @@ const HospitalOutPatient = () => {
         from_date: formatDate(filterDate.startDate),
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('Chief Veterinarian'),
-        origin_site: prepareFilterParams('Origin Site')
+        origin_site: prepareFilterParams('Origin Site'),
+        sort: sortParam
       })
 
       setRows(res?.data?.records || [])
@@ -102,7 +108,7 @@ const HospitalOutPatient = () => {
 
   useEffect(() => {
     fetchOutPatients()
-  }, [filters?.page, filters?.limit, filters?.q, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions])
+  }, [filters?.page, filters?.limit, filters?.q, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions, sortModel])
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -149,6 +155,21 @@ const HospitalOutPatient = () => {
   const handleSearchClear = () => {
     setSearchValue('')
     debouncedSearch('')
+  }
+
+  const handleSortModel = model => {
+    setSortModel(model)
+    setFilters(prev => ({ ...prev, page: 1 }))
+  }
+
+  const handleDateChange = (start, end) => {
+    setFilterDate({ startDate: start, endDate: end })
+    setFilters(prev => ({ ...prev, page: 1 }))
+  }
+
+  const handleVisitTypeChange = e => {
+    setSelectedVisitType(e.target.value)
+    setFilters(prev => ({ ...prev, page: 1 }))
   }
 
   const getSlNo = index => (filters.page - 1) * filters.limit + index + 1
@@ -201,7 +222,7 @@ const HospitalOutPatient = () => {
       width: 180,
       minWidth: 120,
       field: 'health_status',
-      sortable: false,
+      sortable: true,
       headerName: 'HEALTH STATUS',
       renderCell: params => {
         const status = params.row.health_status || 'stable'
@@ -308,7 +329,7 @@ const HospitalOutPatient = () => {
       width: 200,
       minWidth: 20,
       field: 'admitted_at',
-      sortable: false,
+      sortable: true,
       headerName: 'OPD Visit Date',
       align: 'left',
       headerAlign: 'left',
@@ -355,7 +376,7 @@ const HospitalOutPatient = () => {
       renderCell: params => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.bed_name ? params?.row?.bed_name : '-'}
+            {params?.row?.bed_name || params?.row?.room_name ? `${params?.row?.bed_name}, ${params?.row?.room_name}` : '-'}
           </Typography>
         </>
       )
@@ -424,13 +445,13 @@ const HospitalOutPatient = () => {
               <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
                 <CommonDateRangePickers
                   filterDates={filterDate}
-                  onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
+                  onChange={handleDateChange}
                 />
                 <Select
                   size='small'
                   value={selectedVisitType}
                   displayEmpty
-                  onChange={e => setSelectedVisitType(e.target.value)}
+                  onChange={handleVisitTypeChange}
                 >
                   {visitTypeOptions?.map((item, index) => (
                     <MenuItem key={index} value={item?.value}>
@@ -456,6 +477,7 @@ const HospitalOutPatient = () => {
                 loading={loading}
                 paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
                 setPaginationModel={handlePaginationModelChange}
+                handleSortModel={handleSortModel}
                 searchValue=''
                 getRowHeight={() => 'auto'}
                 onRowClick={handleRowClick}

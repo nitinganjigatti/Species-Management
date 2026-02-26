@@ -127,6 +127,13 @@ const SaveTemplateBar = ({ onClose, onSave, loading = false, richNote }) => {
     }
   }
 
+  useEffect(() => {
+    // Clear template name if the editor content is removed/empty
+    if (!richNote?.html || !richNote.text.trim()) {
+      setTemplateName('')
+    }
+  }, [richNote])
+
   const isDisabled = loading || !templateName.trim()
 
   return (
@@ -311,7 +318,7 @@ const TemplateSection = ({
       const normalizedHtml = richFromHtml(safeHtml) === '' ? '' : safeHtml
       onChange?.(normalizedHtml)
     },
-    [onChange, onDirtyChange]
+    [onChange]
   )
 
   const handleTemplateSelect = useCallback(
@@ -405,7 +412,7 @@ const TemplateSection = ({
       const normalizedHtml = richFromHtml(safeHtml) === '' ? '' : safeHtml
       onChange?.(normalizedHtml)
     },
-    [onChange, onDirtyChange]
+    [onChange]
   )
 
   const handleSaveTemplateBar = useCallback(
