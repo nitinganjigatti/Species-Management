@@ -3,10 +3,11 @@ import { DataGrid } from '@mui/x-data-grid'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
-import { Card, CardContent, Avatar, CircularProgress } from '@mui/material'
+import { Card, CardContent, Avatar, CircularProgress, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Typography from '@mui/material/Typography'
 import 'react-credit-cards/es/styles-compiled.css'
+import { end } from '@popperjs/core'
 
 const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
   // const columns = [
@@ -131,9 +132,11 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       field: 'preparation_type',
       headerName: 'Preparation Type',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {params.row.preparation_type}
-        </Typography>
+        <Tooltip title={params?.row?.preparation_type} arrow placement='bottom-start'>
+          <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }} className='text_overflow_moduled'>
+            {params.row.preparation_type}
+          </Typography>
+        </Tooltip>
       )
     }
 
@@ -168,7 +171,6 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
         </Box>
 
         <Grid container spacing={5}>
-         
           <Grid item size={{ xs: 12 }}>
             <>
               <Card sx={{ boxShadow: 'none' }}>

@@ -1227,8 +1227,23 @@ const StepBasicDetails = ({
                       name='desc'
                       error={Boolean(errors.desc)}
                       onChange={onChange}
+                      slotProps={{
+                        inputLabel: { shrink: true }
+                      }}
                       id='textarea-outlined'
                       rows={5}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          alignItems: 'flex-start',
+                          paddingTop: '12px'
+                        },
+                        '& textarea': {
+                          paddingTop: '8px'
+                        },
+                        '& .MuiOutlinedInput-notchedOutline legend': {
+                          maxWidth: '100%'
+                        }
+                      }}
                     />
                   )}
                 />

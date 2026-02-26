@@ -283,14 +283,14 @@ const SpeciesMappedtoDietFilter = ({
 
   const getTabSelectionCount = tab => {
     if (tab === 'Taxonomy') {
-      return selectedTaxonomyIds?.length || tempSelectedItems?.Taxonomy?.length || selectedItems?.Taxonomy?.length || 0
+      return selectedTaxonomyIds?.length ?? tempSelectedItems?.Taxonomy?.length ?? selectedItems?.Taxonomy?.length ?? 0
     }
 
     if (tab === 'Species') {
-      return selectedSpeciesIds?.length || tempSelectedItems?.Species?.length || selectedItems?.Species?.length || 0
+      return selectedSpeciesIds?.length ?? tempSelectedItems?.Species?.length ?? selectedItems?.Species?.length ?? 0
     }
 
-    return tempSelectedItems?.[tab]?.length || selectedItems?.[tab]?.length || 0
+    return tempSelectedItems?.[tab]?.length ?? selectedItems?.[tab]?.length ?? 0
   }
 
   return (
@@ -742,10 +742,10 @@ const SpeciesMappedtoDietFilter = ({
                       <Box sx={{ mb: 3, width: '100%' }}>
                         <Box sx={{ mt: 1, height: '100vh', width: '100%' }}>
                           {speciesDataforFilter?.length > 0 ? (
-                            speciesDataforFilter.map(item => {
+                            speciesDataforFilter.map((item, index) => {
                               const itemName = item.scientific_name
                               const itemId = item.species_id
-
+                              const isLast = index === speciesDataforFilter?.length - 1
                               return (
                                 <div
                                   key={itemId}
@@ -753,7 +753,7 @@ const SpeciesMappedtoDietFilter = ({
                                     display: 'flex',
                                     alignItems: 'center',
                                     width: '100%',
-                                    paddingBottom: '8px'
+                                    paddingBottom: isLast ? '80px' : '8px'
                                   }}
                                 >
                                   <Checkbox
@@ -863,10 +863,10 @@ const SpeciesMappedtoDietFilter = ({
                       <Box sx={{ mb: 3, width: '100%' }}>
                         <Box sx={{ height: '100vh', mt: 1, width: '100%' }}>
                           {filteredTaxonomyList?.length > 0 ? (
-                            filteredTaxonomyList.map(item => {
+                            filteredTaxonomyList.map((item, index) => {
                               const itemName = item.scientific_name
                               const itemId = item.tsn
-
+                              const isLast = index === filteredTaxonomyList?.length - 1
                               return (
                                 <div
                                   key={itemId}
@@ -874,7 +874,7 @@ const SpeciesMappedtoDietFilter = ({
                                     display: 'flex',
                                     alignItems: 'center',
                                     width: '100%',
-                                    paddingBottom: '8px'
+                                    paddingBottom: isLast ? '80px' : '8px'
                                   }}
                                 >
                                   <Checkbox
