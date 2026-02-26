@@ -6,7 +6,6 @@ import Button from '@mui/material/Button'
 import { Card, CardContent, Avatar, CircularProgress, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Typography from '@mui/material/Typography'
-import 'react-credit-cards/es/styles-compiled.css'
 import { end } from '@popperjs/core'
 
 const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
