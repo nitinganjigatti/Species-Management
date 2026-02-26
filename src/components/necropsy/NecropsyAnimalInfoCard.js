@@ -327,7 +327,11 @@ const NecropsyAnimalInfoCard = ({
               px: 6
             }}
           >
-            <AnimalCard data={mortalityData} valueColor={theme.palette.customColors.OnPrimary} />
+            {(() => {
+              const { age, ...animalData } = mortalityData || {}
+
+              return <AnimalCard data={animalData} valueColor={theme.palette.customColors.OnPrimary} />
+            })()}
           </Box>
 
           <Box

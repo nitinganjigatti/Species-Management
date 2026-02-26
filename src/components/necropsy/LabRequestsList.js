@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Typography, Skeleton, CircularProgress } from '@mui/material'
+import { Box, Typography, Skeleton, CircularProgress, Dialog, IconButton, Divider } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
-import { ExpandMore, Science } from '@mui/icons-material'
+import { ExpandMore, Science, Close } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
 import Utility from 'src/utility'
 import { getLabRequestsByAnimal } from 'src/lib/api/necropsy/medicalHistory'
@@ -19,6 +19,7 @@ const LabRequestsList = ({ animalId }) => {
   const [loadingMore, setLoadingMore] = useState(false)
   const [selectedLabRequest, setSelectedLabRequest] = useState(null)
   const [showDetailsDrawer, setShowDetailsDrawer] = useState(false)
+  const [legendModalVisible, setLegendModalVisible] = useState(false)
 
   const getTypeParam = tab => {
     switch (tab) {
@@ -89,6 +90,7 @@ const LabRequestsList = ({ animalId }) => {
   const getSamplesCount = labTests => {
     if (!labTests || !Array.isArray(labTests)) return 0
     const uniqueSamples = new Set(labTests.map(test => test.lims_sample_id || test.lims_sample_name))
+
     return uniqueSamples.size
   }
 
@@ -191,7 +193,7 @@ const LabRequestsList = ({ animalId }) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'space-between' }}>
         <Box
           sx={{
             flex: '1 1 auto',
@@ -216,14 +218,7 @@ const LabRequestsList = ({ animalId }) => {
                   borderRadius: '8px',
                   backgroundColor:
                     activeSubTab === tab ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    backgroundColor:
-                      activeSubTab === tab
-                        ? theme.palette.secondary.dark
-                        : alpha(theme.palette.customColors.mdAntzNeutral, 0.7)
-                  }
+                  cursor: 'pointer'
                 }}
               >
                 <Typography
@@ -241,6 +236,75 @@ const LabRequestsList = ({ animalId }) => {
                 </Typography>
               </Box>
             ))}
+          </Box>
+        </Box>
+        <Box
+          onClick={() => setLegendModalVisible(true)}
+          sx={{
+            backgroundColor: theme.palette.background.paper,
+            px: 2,
+            py: 1,
+            borderRadius: '6px',
+            border: `0.5px solid ${theme.palette.divider}`,
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.background.paper, 0.8)
+            }
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: '12px',
+              fontWeight: 500,
+              color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+            }}
+          >
+            Legends
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', mt: 0.5 }}>
+            <Box
+              sx={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                backgroundColor: alpha(theme.palette.error.main, 0.15)
+              }}
+            />
+            <Box
+              sx={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                backgroundColor: alpha(theme.palette.error.main, 0.5)
+              }}
+            />
+            <Box
+              sx={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                backgroundColor: theme.palette.warning.main
+              }}
+            />
+            <Box
+              sx={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                backgroundColor: theme.palette.primary.main
+              }}
+            />
+            <Box
+              sx={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                backgroundColor: theme.palette.customColors?.Tertiary || theme.palette.secondary.main
+              }}
+            />
           </Box>
         </Box>
       </Box>
@@ -567,6 +631,165 @@ const LabRequestsList = ({ animalId }) => {
         requestGuid={selectedLabRequest?.requestGuid}
         labCode={selectedLabRequest?.labCode}
       />
+
+      <Dialog
+        open={legendModalVisible}
+        onClose={() => setLegendModalVisible(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: 1,
+            minWidth: 360,
+            maxWidth: 420
+          }
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            px: 3,
+            py: 2,
+            borderBottom: `1px solid ${theme.palette.divider}`
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: '16px',
+              fontWeight: 600,
+              color: theme.palette.customColors?.OnPrimaryContainer
+            }}
+          >
+            Legends
+          </Typography>
+          <IconButton onClick={() => setLegendModalVisible(false)} size='small'>
+            <Close sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
+          </IconButton>
+        </Box>
+
+        <Box sx={{ px: 3, py: 2 }}>
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 500,
+              color: theme.palette.customColors?.OnSurfaceVariant,
+              mb: 1.5
+            }}
+          >
+            Request Priority
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 4 }}>
+            {[
+              { label: 'Low', color: theme.palette.customColors?.Secondary },
+              { label: 'High', color: theme.palette.customColors?.Tertiary }
+            ].map(priority => (
+              <Box key={priority.label} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box
+                  sx={{
+                    backgroundColor: priority.color,
+                    p: 1,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Icon icon='mdi:flask-outline' fontSize={20} color={theme.palette.customColors?.OnPrimary} />
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: theme.palette.text.primary
+                  }}
+                >
+                  {priority.label}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+
+        <Box sx={{ px: 3, py: 2 }}>
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 500,
+              color: theme.palette.customColors?.OnSurfaceVariant,
+              mb: 1.5
+            }}
+          >
+            Test Status
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {[
+              { label: 'Completed', color: theme.palette.primary.main },
+              { label: 'Pending', color: theme.palette.customColors?.Tertiary },
+              { label: 'In Progress', color: theme.palette.warning.main }
+            ].map(status => (
+              <Box
+                key={status.label}
+                sx={{
+                  backgroundColor: alpha(status.color, 0.15),
+                  px: 1.5,
+                  py: 0.75,
+                  borderRadius: '6px'
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: status.color
+                  }}
+                >
+                  {status.label}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+
+        <Box sx={{ px: 3, py: 2, pb: 3 }}>
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 500,
+              color: theme.palette.customColors?.OnSurfaceVariant,
+              mb: 1.5
+            }}
+          >
+            Sample Status
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {[
+              { label: 'Received', color: theme.palette.primary.main },
+              { label: 'Not Received', color: theme.palette.customColors?.Tertiary },
+              { label: 'Rejected', color: theme.palette.error.main }
+            ].map(status => (
+              <Box
+                key={status.label}
+                sx={{
+                  backgroundColor: status.color,
+                  px: 1.5,
+                  py: 0.75,
+                  borderRadius: '6px'
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: theme.palette.customColors?.OnPrimary
+                  }}
+                >
+                  {status.label}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Dialog>
     </Box>
   )
 }

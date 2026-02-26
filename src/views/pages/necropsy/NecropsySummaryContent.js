@@ -2,8 +2,9 @@ import React from 'react'
 import { Box, Card, CardContent, Typography, Grid, useTheme, alpha, styled } from '@mui/material'
 import Utility from 'src/utility'
 import FilePreviewCard from 'src/views/utility/NewMediaCard'
+import moment from 'moment'
 
-const NecropsySummaryContent = ({ necropsyData }) => {
+const NecropsySummaryContent = ({ necropsyData, mortalityData }) => {
   const theme = useTheme()
 
   if (!necropsyData) return null
@@ -30,11 +31,81 @@ const NecropsySummaryContent = ({ necropsyData }) => {
     return Utility.extractHoursAndMinutes(time)
   }
 
+  const getYMD = (startDate, endDate) => {
+    const start = moment(startDate).startOf('day')
+    const end = moment(endDate).startOf('day')
+
+    let year = end.diff(start, 'years')
+    start.add(year, 'years')
+
+    let month = end.diff(start, 'months')
+    start.add(month, 'months')
+
+    let day = end.diff(start, 'days')
+
+    return { year, month, day }
+  }
+
+  const getDateDifference = (startDate, endDate) => {
+    const { year, month, day } = getYMD(startDate, endDate)
+
+    const parts = []
+
+    if (year > 0) parts.push(`${year} Year${year > 1 ? 's' : ''}`)
+    if (month > 0) parts.push(`${month} Month${month > 1 ? 's' : ''}`)
+    if (day > 0) parts.push(`${day} Day${day > 1 ? 's' : ''}`)
+
+    return parts.length > 0 ? parts.join(' ') : '--'
+  }
+
+  const getDOBObject = (dateObj = null) => {
+    const { day, month, year, week } = dateObj || {}
+    if (day || month || year || week) {
+      const discoveredDate = mortalityData?.discovered_date || necropsyData?.death_date
+      if (!discoveredDate) return null
+
+      const endDate = moment(Utility.convertUTCToLocal(discoveredDate))
+
+      let updatedDate = endDate.clone()
+
+      if (year) {
+        updatedDate = updatedDate.subtract(year, 'years')
+      }
+      if (month) {
+        updatedDate = updatedDate.subtract(month, 'months')
+      }
+      if (week) {
+        updatedDate = updatedDate.subtract(week, 'weeks')
+      }
+      if (day) {
+        updatedDate = updatedDate.subtract(day, 'days')
+      }
+
+      return updatedDate.toDate()
+    }
+
+    return null
+  }
+
   const getAgeDisplay = () => {
     if (!necropsyData.age) return '--'
-    const approx = necropsyData.approximate_dob === '1' ? ' (Approximate)' : ''
 
-    return `${necropsyData.age} ${necropsyData.age_unit || ''}${approx}`
+    const approx = necropsyData.approximate_dob === '1' ? ' (Approximate)' : ''
+    const ageUnit = necropsyData.age_unit || 'day'
+
+    const dob = getDOBObject({ [ageUnit]: necropsyData.age })
+    if (!dob) {
+      return `${necropsyData.age} ${ageUnit}${approx}`
+    }
+
+    const discoveredDate = mortalityData?.discovered_date || necropsyData?.death_date
+    if (!discoveredDate) {
+      return `${necropsyData.age} ${ageUnit}${approx}`
+    }
+
+    const formattedAge = getDateDifference(dob, moment(Utility.convertUTCToLocal(discoveredDate)))
+
+    return `${formattedAge}${approx}`
   }
 
   const getSexDisplay = () => {
@@ -104,10 +175,10 @@ const NecropsySummaryContent = ({ necropsyData }) => {
                 <ValueText
                   sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  {necropsyData.carcass_weight
-                    ? `${necropsyData.carcass_weight} ${
+                  {Number(necropsyData?.carcass_weight)
+                    ? `${Number(necropsyData.carcass_weight)} ${
                         necropsyData.carcass_weight_unit_name || necropsyData.carcass_weight_uom || ''
-                      }${necropsyData.approximate_weight === '1' ? ' (Approx.)' : ''}`
+                      }${necropsyData?.approximate_weight == 1 ? ' (Approx.)' : ''}`
                     : '--'}
                 </ValueText>
               </Grid>

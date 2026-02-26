@@ -1,8 +1,15 @@
 import React, { memo, useMemo } from 'react'
 import { Box, Drawer, IconButton, Typography, Skeleton, Tabs, Tab } from '@mui/material'
-import { useTheme, alpha } from '@mui/material/styles'
+import { useTheme, styled } from '@mui/material/styles'
+import Timeline from '@mui/lab/Timeline'
+import TimelineItem from '@mui/lab/TimelineItem'
+import TimelineSeparator from '@mui/lab/TimelineSeparator'
+import TimelineConnector from '@mui/lab/TimelineConnector'
+import TimelineContent from '@mui/lab/TimelineContent'
+import TimelineOppositeContent, { timelineOppositeContentClasses } from '@mui/lab/TimelineOppositeContent'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import Icon from 'src/@core/components/icon'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import moment from 'moment'
@@ -28,11 +35,14 @@ const SampleDetailsDrawer = ({
     const datesArray = Object.keys(sampleLogs)
       .map(date => {
         const logs = Array.isArray(sampleLogs[date]) ? sampleLogs[date] : []
+
         const sortedLogs = [...logs].sort((a, b) => {
           const timeA = a?.logDateTime ? moment.utc(a.logDateTime).valueOf() : 0
           const timeB = b?.logDateTime ? moment.utc(b.logDateTime).valueOf() : 0
+
           return timeB - timeA
         })
+
         return { date, logs: sortedLogs }
       })
       .sort((a, b) => moment(b.date).valueOf() - moment(a.date).valueOf())
@@ -86,7 +96,7 @@ const SampleDetailsDrawer = ({
               sx={{
                 fontSize: '15px',
                 fontWeight: 500,
-                color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary,
+                color: theme.palette.customColors?.OnSurfaceVariant,
                 mb: 0.5
               }}
             >
@@ -110,178 +120,143 @@ const SampleDetailsDrawer = ({
   const renderSampleLogTimeline = () => (
     <Box sx={{ py: 3 }}>
       {logsLoading ? (
-        <Box sx={{ px: 3 }}>
+        <Box sx={{ px: 2 }}>
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} variant='rounded' height={60} sx={{ mb: 2 }} />
+            <Box key={i} sx={{ display: 'flex', gap: 2, mb: 3, alignItems: 'center' }}>
+              <Skeleton variant='text' width={50} height={16} />
+              <Skeleton variant='circular' width={28} height={28} />
+              <Skeleton variant='rounded' width='100%' height={50} />
+            </Box>
           ))}
         </Box>
       ) : filteredLogs.length > 0 ? (
         filteredLogs.map(dateItem => (
-          <Box key={dateItem.date}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                px: 3,
-                py: 2,
-                backgroundColor: theme.palette.customColors?.avatarBackground || theme.palette.grey[100],
-                mb: 2
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography
-                  sx={{
-                    fontSize: '24px',
-                    fontWeight: 700,
-                    color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
-                  }}
-                >
-                  {moment(dateItem.date).format('D')}
-                </Typography>
-                <Box>
-                  <Typography
-                    sx={{
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
-                    }}
-                  >
-                    {moment(dateItem.date).format('dddd')}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: '12px',
-                      color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
-                    }}
-                  >
-                    {moment(dateItem.date).format('MMM YYYY')}
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
+          <Box key={dateItem.date} sx={{ mb: 2 }}>
+            <StyledSectionHeader>
+              <CalendarTodayIcon
+                sx={{
+                  fontSize: 18,
+                  color: theme.palette.customColors?.OnPrimary
+                }}
+              />
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: theme.palette.customColors?.OnPrimary
+                }}
+              >
+                {moment(dateItem.date).format('ddd, D MMM YYYY')}
+              </Typography>
+            </StyledSectionHeader>
 
-            <Box sx={{ px: 3 }}>
+            <StyledTimeline>
               {dateItem.logs.map((log, logIndex) => {
                 const logTime = log?.logDateTime ? moment.utc(log.logDateTime).local().format('h:mm A') : ''
-                const hasReasonOrNotes = log?.reason || log?.notes
+                const isFirst = logIndex === 0
+                const isLast = logIndex === dateItem.logs.length - 1
 
                 return (
-                  <Box
-                    key={`${log?.logDateTime}-${log?.sNo || logIndex}`}
-                    sx={{
-                      display: 'flex',
-                      gap: 2,
-                      mb: logIndex < dateItem.logs.length - 1 ? 3 : 0
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        fontSize: '12px',
-                        color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary,
-                        width: 60,
-                        flexShrink: 0
-                      }}
-                    >
-                      {logTime}
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <Box
+                  <TimelineItem key={`${log?.logDateTime}-${log?.sNo || logIndex}`} sx={{ minHeight: '4rem' }}>
+                    <StyledOppositeContent>
+                      <Typography
                         sx={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: '50%',
-                          border: `1px solid ${theme.palette.primary.main}`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          backgroundColor: theme.palette.background.paper
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
+                          color: theme.palette.customColors?.OnSurfaceVariant
                         }}
                       >
-                        <CheckCircleIcon sx={{ fontSize: 18, color: theme.palette.primary.main }} />
-                      </Box>
-                      {logIndex < dateItem.logs.length - 1 && (
-                        <Box
+                        {logTime}
+                      </Typography>
+                    </StyledOppositeContent>
+
+                    <TimelineSeparator>
+                      <TimelineConnector
+                        sx={{
+                          visibility: isFirst ? 'hidden' : 'visible',
+                          minHeight: isFirst ? 0 : '1rem',
+                          backgroundColor: theme.palette.customColors?.OnPrimaryContainer,
+                          width: '1.5px'
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          width: '2rem',
+                          height: '2rem',
+                          borderRadius: '50%',
+                          border: `1px solid ${theme.palette.customColors?.OnPrimaryContainer}`,
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <CheckCircleIcon
                           sx={{
-                            width: 1,
-                            flex: 1,
-                            minHeight: 40,
-                            backgroundColor: theme.palette.primary.main
+                            color: theme.palette.customColors?.OnPrimaryContainer,
+                            fontSize: '1.5rem'
                           }}
                         />
-                      )}
-                    </Box>
+                      </Box>
+                      <TimelineConnector
+                        sx={{
+                          visibility: isLast ? 'hidden' : 'visible',
+                          minHeight: isLast ? 0 : '1rem',
+                          backgroundColor: theme.palette.customColors?.OnPrimaryContainer,
+                          width: '1.5px'
+                        }}
+                      />
+                    </TimelineSeparator>
 
-                    <Box
-                      sx={{
-                        flex: 1,
-                        backgroundColor: theme.palette.customColors?.avatarBackground || theme.palette.grey[50],
-                        borderRadius: '8px',
-                        overflow: 'hidden'
-                      }}
-                    >
-                      {hasReasonOrNotes ? (
-                        <>
-                          <Box
-                            sx={{
-                              backgroundColor: alpha(
-                                theme.palette.customColors?.avatarBackground || theme.palette.grey[200],
-                                0.5
-                              ),
-                              p: 1.5
-                            }}
-                          >
-                            <Typography
-                              sx={{
-                                fontSize: '13px',
-                                color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
-                              }}
-                            >
-                              {log?.action}
-                            </Typography>
-                            {log?.reason && (
-                              <Typography
-                                sx={{
-                                  fontSize: '12px',
-                                  color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary,
-                                  mt: 0.5
-                                }}
-                              >
-                                {log.reason}
-                              </Typography>
-                            )}
-                          </Box>
-                          {log?.notes && (
-                            <Box sx={{ p: 1.5 }}>
-                              <Typography
-                                sx={{
-                                  fontSize: '12px',
-                                  color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
-                                }}
-                              >
-                                {log.notes}
-                              </Typography>
-                            </Box>
-                          )}
-                        </>
-                      ) : (
-                        <Box sx={{ p: 1.5 }}>
+                    <TimelineContent sx={{ py: 1, display: 'flex', alignItems: 'center' }}>
+                      <Box
+                        sx={{
+                          backgroundColor: theme.palette.background.paper,
+                          borderRadius: 1,
+                          px: 3,
+                          py: 2,
+                          ml: 1,
+                          flex: 1
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            color: theme.palette.customColors?.OnSurfaceVariant
+                          }}
+                        >
+                          {log?.action}
+                        </Typography>
+                        {log?.reason && (
                           <Typography
                             sx={{
-                              fontSize: '13px',
-                              color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                              fontSize: '0.75rem',
+                              fontWeight: 400,
+                              color: theme.palette.text.secondary,
+                              mt: 0.5
                             }}
                           >
-                            {log?.action}
+                            {log.reason}
                           </Typography>
-                        </Box>
-                      )}
-                    </Box>
-                  </Box>
+                        )}
+                        {log?.notes && (
+                          <Typography
+                            sx={{
+                              fontSize: '0.75rem',
+                              fontWeight: 400,
+                              color: theme.palette.text.secondary,
+                              mt: 0.5
+                            }}
+                          >
+                            {log.notes}
+                          </Typography>
+                        )}
+                      </Box>
+                    </TimelineContent>
+                  </TimelineItem>
                 )
               })}
-            </Box>
+            </StyledTimeline>
           </Box>
         ))
       ) : (
@@ -323,7 +298,7 @@ const SampleDetailsDrawer = ({
             sx={{
               fontSize: '16px',
               fontWeight: 500,
-              color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+              color: theme.palette.customColors?.OnSurfaceVariant
             }}
           >
             Sample Details
@@ -336,7 +311,7 @@ const SampleDetailsDrawer = ({
           sx={{
             fontSize: '15px',
             fontWeight: 600,
-            color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+            color: theme.palette.customColors?.OnSurfaceVariant
           }}
         >
           {selectedSample?.sampleName}
@@ -380,3 +355,34 @@ const SampleDetailsDrawer = ({
 }
 
 export default memo(SampleDetailsDrawer)
+
+const StyledTimeline = styled(Timeline)(() => ({
+  [`& .${timelineOppositeContentClasses.root}`]: {
+    flex: 0,
+    minWidth: '5rem',
+    padding: 0
+  },
+  margin: 0,
+  padding: '0 1rem',
+  '& .MuiTimelineItem-root:before': {
+    display: 'none'
+  }
+}))
+
+const StyledOppositeContent = styled(TimelineOppositeContent)(() => ({
+  display: 'flex',
+  justifyContent: 'start',
+  alignItems: 'center'
+}))
+
+const StyledSectionHeader = styled(Box)(({ theme }) => ({
+  backgroundColor: theme.palette.customColors?.OnPrimaryContainer,
+  padding: '0.75rem 1rem',
+  borderRadius: '8px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '6px',
+  marginBottom: '0.5rem',
+  marginLeft: '1rem',
+  marginRight: '1rem'
+}))

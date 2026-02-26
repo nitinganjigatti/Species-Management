@@ -9,6 +9,7 @@ import {
   DialogTitle,
   Drawer,
   IconButton,
+  InputAdornment,
   Skeleton,
   TextField,
   Typography,
@@ -118,6 +119,21 @@ const EditTemplateDrawer = ({ open, setOpen, template, onSave, onDelete }) => {
           }
         })
         .filter(Boolean)
+    })
+  }
+
+  const handlePartDescriptionChange = (organId, partId, value) => {
+    setTemplateData(prev => {
+      return prev.map(organ => {
+        if (organ.id !== organId) return organ
+        return {
+          ...organ,
+          parts: organ.parts.map(part => {
+            if (part.id !== partId) return part
+            return { ...part, description: value }
+          })
+        }
+      })
     })
   }
 
@@ -391,77 +407,78 @@ const EditTemplateDrawer = ({ open, setOpen, template, onSave, onDelete }) => {
                           }}
                         >
                           <Box sx={{ flex: 1 }}>
-                            <Typography
+                            <Box
                               sx={{
-                                fontSize: '1rem',
-                                fontWeight: 600,
-                                color: theme.palette.customColors.OnSurfaceVariant,
-                                mb: 1
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 2,
+                                mb: 4
                               }}
                             >
-                              {organ.label || `Category ${organ.id}`}
-                            </Typography>
+                              <Typography
+                                sx={{
+                                  fontSize: '1rem',
+                                  fontWeight: 600,
+                                  color: theme.palette.customColors.OnSurfaceVariant
+                                }}
+                              >
+                                {organ.label || `Category ${organ.id}`}
+                              </Typography>
+                              <IconButton onClick={() => handleRemoveOrgan(organ.id)} size='small'>
+                                <Icon icon='zondicons:close-outline' color={theme.palette.customColors.Error} />
+                              </IconButton>
+                            </Box>
                             {organ.parts?.length > 0 && (
-                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 0.5 }}>
-                                {organ.parts.map((part, idx) => (
-                                  <Box
-                                    key={part.id || idx}
-                                    sx={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: 1,
-                                      backgroundColor: theme.palette.customColors.Surface || theme.palette.grey[100],
-                                      border: `1px solid ${theme.palette.divider}`,
-                                      px: 2,
-                                      py: 0.75,
-                                      borderRadius: '16px',
-                                      transition: 'all 0.2s ease',
-                                      '&:hover': {
-                                        backgroundColor: theme.palette.action.hover,
-                                        borderColor: theme.palette.primary.light
-                                      }
-                                    }}
-                                  >
-                                    <Typography
-                                      sx={{
-                                        fontSize: '0.8125rem',
-                                        fontWeight: 500,
-                                        color: theme.palette.customColors.OnSurfaceVariant,
-                                        lineHeight: 1.4
-                                      }}
-                                    >
-                                      {part.organ_name || part.label || `Part ${idx + 1}`}
-                                    </Typography>
-                                    <IconButton
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                                {organ.parts.map((part, idx) => {
+                                  const partName = part.organ_name || part.label || `Part ${idx + 1}`
+
+                                  return (
+                                    <TextField
+                                      key={part.id || idx}
+                                      fullWidth
                                       size='small'
-                                      onClick={e => {
-                                        e.stopPropagation()
-                                        handleRemovePart(organ.id, part.id)
-                                      }}
+                                      label={`Enter ${partName} Description`}
+                                      multiline
+                                      rows={1}
+                                      value={part.description || ''}
+                                      onChange={e => handlePartDescriptionChange(organ.id, part.id, e.target.value)}
                                       sx={{
-                                        p: 0.25,
-                                        ml: 0.25,
-                                        backgroundColor: theme.palette.grey[300],
-                                        borderRadius: '50%',
-                                        transition: 'all 0.2s ease',
-                                        '&:hover': {
-                                          backgroundColor: theme.palette.error.light,
-                                          '& svg': {
-                                            color: `${theme.palette.common.white} !important`
-                                          }
+                                        backgroundColor: theme.palette.customColors.Surface,
+                                        '& .MuiOutlinedInput-root': {
+                                          borderRadius: '4px'
+                                        },
+                                        '& .MuiOutlinedInput-input': {
+                                          padding: '8px 12px'
                                         }
                                       }}
-                                    >
-                                      <Icon icon='mdi:close' fontSize={12} color={theme.palette.text.secondary} />
-                                    </IconButton>
-                                  </Box>
-                                ))}
+                                      InputProps={{
+                                        endAdornment: (
+                                          <InputAdornment position='end'>
+                                            <IconButton
+                                              size='small'
+                                              onClick={() => handleRemovePart(organ.id, part.id)}
+                                              edge='end'
+                                              sx={{
+                                                color: theme.palette.text.secondary,
+                                                '&:hover': {
+                                                  color: theme.palette.error.main,
+                                                  backgroundColor: 'transparent'
+                                                }
+                                              }}
+                                            >
+                                              <Icon icon='mdi:close' fontSize={18} />
+                                            </IconButton>
+                                          </InputAdornment>
+                                        )
+                                      }}
+                                    />
+                                  )
+                                })}
                               </Box>
                             )}
                           </Box>
-                          <IconButton onClick={() => handleRemoveOrgan(organ.id)} size='small'>
-                            <Icon icon='zondicons:close-outline' color={theme.palette.customColors.Error} />
-                          </IconButton>
                         </Box>
                       ))}
                     </Box>

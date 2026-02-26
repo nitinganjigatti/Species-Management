@@ -1,8 +1,8 @@
 import React from 'react'
-import { Box, Card, CardContent, Divider, Grid, useTheme, Button, Badge, Typography, Avatar } from '@mui/material'
+import { Box, Card, CardContent, Divider, Grid, useTheme, Button, Badge, Typography, Avatar, IconButton } from '@mui/material'
 import NecropsyDropdown from 'src/components/necropsy/NecropsyDropdown'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { AirportShuttle } from '@mui/icons-material'
+import { AirportShuttle, ArrowBack } from '@mui/icons-material'
 import RenderUtility from 'src/utility/render'
 import Icon from 'src/@core/components/icon'
 
@@ -13,7 +13,9 @@ const NecropsyAnalytics = ({
   badgeCount = 1,
   onCarcassTransfer,
   allowCarcassCollection,
-  showCarcassTransferButton = true
+  showCarcassTransferButton = true,
+  showBackButton = false,
+  onBack
 }) => {
   const theme = useTheme()
 
@@ -28,7 +30,16 @@ const NecropsyAnalytics = ({
         <CardContent sx={{ p: 4 }}>
           <Grid container alignItems='center' rowSpacing={1}>
             <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              {RenderUtility.pageTitle('Necropsy')}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                {showBackButton && (
+                  <IconButton
+                    onClick={onBack}
+                  >
+                    <ArrowBack sx={{ color: theme.palette.customColors.OnSurfaceVariant }} />
+                  </IconButton>
+                )}
+                {RenderUtility.pageTitle('Necropsy')}
+              </Box>
               {allowCarcassCollection && showCarcassTransferButton && (
                 <Box
                   onClick={onCarcassTransfer}
