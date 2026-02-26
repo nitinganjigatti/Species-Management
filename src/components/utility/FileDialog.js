@@ -33,7 +33,7 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
       await Utility.downloadFileFromURLWithBlob(src, title)
       onClose()
     } catch (error) {
-      console.error('Download failed:', error)
+      console.error('Download failed:', error?.message)
     } finally {
       setIsSubmitting(false)
     }
@@ -154,14 +154,13 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
       case 'pdf':
         // Ensures the PDF fits the iframe width for consistent preview across browsers and iPad
         // const pdfUrl = `${src}#view=FitH`
-        const pdfUrl = src
 
         return (
           <Box sx={{ width: '100%', height: '70vh', position: 'relative', overflow: 'hidden' }}>
             {isLoading && loadingOverlay}
             {!isError && (
               <iframe
-                src={pdfUrl}
+                src={src}
                 title={title || 'PDF Preview'}
                 style={{
                   border: 'none',
@@ -337,7 +336,7 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
             size={{ sm: type == 'pdf' ? 4 : 1, md: type == 'pdf' ? 3 : 1 }}
             sx={{ display: 'flex', justifyContent: 'end', gap: 3 }}
           >
-            {type == 'pdf' && (
+            {type === 'pdf' && errorType !== 'broken' && (
               <Button
                 variant='contained'
                 onClick={() => window.open(src, '_blank')}

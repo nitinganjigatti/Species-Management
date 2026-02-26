@@ -242,7 +242,7 @@ const downloadFileFromURLWithBlob = async (url, fileName) => {
     document.body.removeChild(link)
     window.URL.revokeObjectURL(blobUrl)
   } catch (error) {
-    console.error('Download failed:', error)
+    console.error('Download failed:', error?.message)
   }
 }
 
