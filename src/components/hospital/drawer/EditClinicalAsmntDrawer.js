@@ -55,7 +55,8 @@ const EditClinicalAsmntDrawer = ({
   dischargedDate,
   recordedDateTime,
   setRecordedDateTime,
-  isDischarged
+  isDischarged,
+  isChanged
 }) => {
   const theme = useTheme()
   const { getSeverityColor } = useHospitalColorUtils()
@@ -437,6 +438,7 @@ const EditClinicalAsmntDrawer = ({
             onCancel={handleCancel}
             width={260}
             height={50}
+            isDisabled={!isChanged}
           />
         </Box>
       </Box>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react'
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { Box, Button, Typography, CircularProgress } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import Search from 'src/views/utility/Search'
@@ -255,6 +255,59 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
 
   const filteredRecords = records
 
+  const assessmentChangeState = useMemo(() => {
+    if (!selectedAssessment) {
+      return {
+        isClinicalAsmntChanged: false,
+        isPrognosisChanged: false,
+        isChronicChanged: false,
+        isStatusChanged: false,
+        isNotesChanged: false,
+        // isRecordedDateTimeChanged: false,
+        hasChanges: false
+      }
+    }
+
+    const isDiagnosis = clinicalAsmnt?.toLowerCase() === 'diagnosis'
+    const initialRecordedDateTime =
+      selectedAssessment?.additional_info?.recorded_date_time || selectedAssessment?.created_at || null
+
+    const isClinicalAsmntChanged =
+      clinicalAsmnt?.toLowerCase() !== selectedAssessment?.clinical_assessment?.toLowerCase()
+
+    const isPrognosisChanged = isDiagnosis
+      ? prognosisVal?.toLowerCase() !== selectedAssessment?.additional_info?.prognosis?.toLowerCase()
+      : false
+
+    const isChronicChanged = isDiagnosis ? chronicVal !== selectedAssessment?.additional_info?.isChronic : false
+
+    const isStatusChanged = status?.toLowerCase() !== selectedAssessment?.additional_info?.status?.toLowerCase()
+
+    const isNotesChanged = (notes || '').trim() !== (selectedAssessment?.additional_info?.note || '').trim()
+
+    // const isRecordedDateTimeChanged = initialRecordedDateTime
+    //   ? !dayjs(recordedDateTime).isSame(dayjs.utc(initialRecordedDateTime).local(), 'second')
+    //   : false
+
+    const hasChanges =
+      isClinicalAsmntChanged ||
+      isPrognosisChanged ||
+      isChronicChanged ||
+      isStatusChanged ||
+      isNotesChanged
+      // || isRecordedDateTimeChanged
+
+    return {
+      isClinicalAsmntChanged,
+      isPrognosisChanged,
+      isChronicChanged,
+      isStatusChanged,
+      isNotesChanged,
+      // isRecordedDateTimeChanged,
+      hasChanges
+    }
+  }, [selectedAssessment, clinicalAsmnt, prognosisVal, chronicVal, status, notes, recordedDateTime])
+
   // Get count based on current tab
   const getTabCount = currentTab => {
     switch (currentTab) {
@@ -312,18 +365,16 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   }
 
   const updateAssessment = async () => {
-    // Check if any values have been modified
-    const isClinicalAsmntChanged =
-      clinicalAsmnt?.toLowerCase() !== selectedAssessment?.clinical_assessment?.toLowerCase()
+    const {
+      isClinicalAsmntChanged,
+      isPrognosisChanged,
+      isChronicChanged,
+      isStatusChanged,
+      isNotesChanged,
+      hasChanges
+    } = assessmentChangeState
 
-    const isPrognosisChanged =
-      clinicalAsmnt?.toLowerCase() === 'diagnosis'
-        ? prognosisVal?.toLowerCase() !== selectedAssessment?.additional_info?.prognosis?.toLowerCase()
-        : false
-
-    const isChronicChanged = chronicVal !== selectedAssessment?.additional_info?.isChronic
-
-    const isStatusChanged = status?.toLowerCase() !== selectedAssessment?.additional_info?.status?.toLowerCase()
+    if (!hasChanges) return
 
     // Set is_system_generated to true if any value has changed
     const isSystemGenerated = isClinicalAsmntChanged || isPrognosisChanged || isChronicChanged || isStatusChanged
@@ -336,7 +387,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
       is_system_generated: isSystemGenerated,
       animal_id: animal_id || '',
       hospital_case_id: id || '',
-      recorded_date_time: recordedDateTime.format('YYYY-MM-DD HH:mm:ss'),
+      recorded_date_time: recordedDateTime.format('YYYY-MM-DD HH:mm:ss')
     }
 
     // Only add clinical_assessment if changed
@@ -360,7 +411,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
     }
 
     // Only add note if changed
-    if (notes) {
+    if (isNotesChanged) {
       payload.note = notes || ''
     }
 
@@ -599,6 +650,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
           setIsNotesOpen={setIsNotesOpen}
           recordedDateTime={recordedDateTime}
           setRecordedDateTime={setRecordedDateTime}
+          isChanged={assessmentChangeState.hasChanges}
         />
       )}
 

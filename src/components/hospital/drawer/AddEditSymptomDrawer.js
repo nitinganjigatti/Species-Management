@@ -260,8 +260,6 @@ const AddEditSymptomDrawer = ({
         <Box
           sx={{
             pb: 22,
-            borderBottom:
-              processedActivities?.length > 0 ? `1px solid ${theme.palette.customColors.OutlineVariant}` : 'none',
             height: processedActivities?.length > 0 ? '-webkit-fill-available' : '80%'
           }}
         >

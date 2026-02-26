@@ -23,7 +23,8 @@ const MUIDateTimePicker = ({
   maxDateTime = null,
   ampm = false,
   sx = {},
-  size = 'medium'
+  size = 'medium',
+  borderRadius = '4px'
 }) => {
   dayjs.locale(locale)
 
@@ -48,6 +49,9 @@ const MUIDateTimePicker = ({
             helperText,
             size,
             sx: {
+              '& .MuiOutlinedInput-root': {
+                borderRadius
+              },
               '& .MuiInputAdornment-root .MuiIconButton-root': {
                 alignSelf: 'center'
               },

@@ -213,7 +213,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         animal_id: animal_id || '',
         medical_type: 'prescription',
         type: 'active',
-        medical_record_id: medical_record_id || '',
+        // medical_record_id: medical_record_id || '',
         generate_for_date: selectedDate,
         medical_record_id: isCurrentMedicalRecord ? medical_record_id : '',
         hospital_case_id: id || ''
