@@ -149,7 +149,7 @@ const CommonTable = ({
         pageSizeOptions && pageSizeOptions.length > 0
           ? pageSizeOptions
           : disablePagination
-          ? [total]
+          ? [total || 10]
           : [7, 10, 25, 50, 100]
       }
       localeText={{

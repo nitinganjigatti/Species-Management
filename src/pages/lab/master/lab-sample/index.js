@@ -12,7 +12,6 @@ import {
   debounce
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
 import toast from 'react-hot-toast'
 
@@ -22,6 +21,7 @@ import Error404 from 'src/pages/404'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
 import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import AddSample from 'src/views/pages/lab/sample/addSample'
 import SampleDetails from 'src/views/pages/lab/sample/sampleDetails'
@@ -374,47 +374,19 @@ const LabSamples = () => {
           <Card>
             <CardHeader title='Lab Samples' sx={{ paddingX: 5 }} action={headerAction} />
 
-            <DataGrid
-              sx={{
-                paddingX: 5,
-                borderTopLeftRadius: '8px',
-                '& .MuiBox-root': {
-                  paddingX: 0
-                },
-                '.MuiDataGrid-main': {
-                  border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
-                  borderRadius: '8px'
-                },
-                '& .MuiDataGrid-footerContainer': {
-                  border: 'none !important'
-                },
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
+            <CommonTable
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
+              columns={columns}
+              paginationModel={paginationModel}
+              handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
+              loading={loading}
+              onRowClick={handleCellClick}
               columnVisibilityModel={{
                 sl_no: false
               }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              disableColumnMenu
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
               slotProps={{
                 baseButton: {
                   variant: 'outlined'
@@ -425,8 +397,10 @@ const LabSamples = () => {
                   onChange: event => handleSearch(event.target.value)
                 }
               }}
-              onCellClick={handleCellClick}
-              showToolbar />
+              externalTableStyle={{
+                paddingX: 5
+              }}
+            />
           </Card>
           {openDrawer && (
             <AddSample

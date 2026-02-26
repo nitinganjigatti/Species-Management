@@ -17,7 +17,7 @@ import Error404 from 'src/pages/404'
 import AddMortalityReasons from 'src/views/pages/lab/mortality-reason'
 import TableWithFilter from 'src/components/TableWithFilter'
 import { useTheme } from '@mui/material/styles'
-import { DataGrid } from '@mui/x-data-grid'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import QuickSearchToolbar from 'src/views/table/data-grid/QuickSearchToolbar'
 
 const escapeRegExp = value => {
@@ -279,50 +279,17 @@ const MortalityReason = () => {
             </Typography>
           </Breadcrumbs>
           <Card>
-            {/* <TableWithFilter
-              TableTitle='Mortality Reason'
-              columns={columns || []}
-              rows={rows || []}
-              headerActions={headerAction}
-            /> */}
             <CardHeader
               title={'Mortality Reason'}
               sx={{ paddingX: 5 }}
               action={headerAction !== undefined ? headerAction : null}
             />
-            <DataGrid
-              sx={{
-                paddingX: 5,
-                borderTopLeftRadius: '8px',
-                '& .MuiBox-root': {
-                  paddingX: 0
-                },
-                '.MuiDataGrid-main': {
-                  border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
-                  borderRadius: '8px'
-                },
-                '& .MuiDataGrid-footerContainer': {
-                  border: 'none !important'
-                },
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
-              autoHeight
-              disableColumnFilter
-              hideFooterSelectedRowCount
-              disableColumnMenu
-              disableColumnSelector={true}
+            <CommonTable
+              indexedRows={filteredData.length ? filteredData : data}
               columns={columns || []}
-              pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
+              setPaginationModel={setPaginationModel}
               slots={{ toolbar: QuickSearchToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              rows={filteredData.length ? filteredData : data}
               slotProps={{
                 baseButton: {
                   variant: 'outlined'
@@ -333,7 +300,10 @@ const MortalityReason = () => {
                   onChange: event => handleSearch(event.target.value)
                 }
               }}
-              showToolbar />
+              externalTableStyle={{
+                paddingX: 5
+              }}
+            />
           </Card>
           {openDrawer && (
             <AddMortalityReasons
