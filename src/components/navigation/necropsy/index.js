@@ -1,19 +1,32 @@
-const composeNecropsyNavigation = hasPermissionToAddNecropsyCenter => {
+const composeNecropsyNavigation = (
+  hasPermissionToAddNecropsyCenter,
+  allowCarcassCollection,
+  enableAddNecropsyReport
+) => {
   const Title = {
     sectionTitle: 'Necropsy'
   }
 
   const necropsyListing = {
-    title: 'Necropsy',
+    title: 'Necropsy Dashboard',
     path: '/necropsy/necropsy',
-    icon: 'tabler:align-box-top-left'
+    icon: 'streamline-ultimate:laboratory-drug-file'
+  }
+
+  const carcassTransfer = {
+    title: 'Carcass Transfer',
+    path: '/necropsy/carcass-transfer',
+    icon: 'tabler:transfer',
+    icon: <img src='/icons/egg_module_icons/Dashboard_Dark.svg' alt='Dashboard Icon' />,
+    activeIcon: <img src='/icons/egg_module_icons/Dashboard_White.svg' alt='Dashboard Icon' />
   }
 
   const NecropsyMasterParent = {
     title: 'Masters',
     key: 'necropsy-masters',
     path: '/necropsy/masters',
-    icon: 'tabler:align-box-top-left',
+    icon: <img src='/icons/egg_module_icons/Dashboard_Dark.svg' alt='Dashboard Icon' />,
+    activeIcon: <img src='/icons/egg_module_icons/Dashboard_White.svg' alt='Dashboard Icon' />,
     children: []
   }
 
@@ -25,7 +38,16 @@ const composeNecropsyNavigation = hasPermissionToAddNecropsyCenter => {
   const necropsyNavigationArray = []
 
   necropsyNavigationArray.push(Title)
-  necropsyNavigationArray.push(necropsyListing)
+
+  // Only show Necropsy listing when user has enableAddNecropsyReport permission
+  if (enableAddNecropsyReport) {
+    necropsyNavigationArray.push(necropsyListing)
+  }
+
+  // Show Carcass Transfer when user has allowCarcassCollection permission
+  if (allowCarcassCollection) {
+    necropsyNavigationArray.push(carcassTransfer)
+  }
 
   if (hasPermissionToAddNecropsyCenter) {
     NecropsyMasterParent.children.push(necropsyCenter)
@@ -35,7 +57,7 @@ const composeNecropsyNavigation = hasPermissionToAddNecropsyCenter => {
   return necropsyNavigationArray
 }
 
-const necropsyNavigation = hasPermissionToAddNecropsyCenter =>
-  composeNecropsyNavigation(hasPermissionToAddNecropsyCenter)
+const necropsyNavigation = (hasPermissionToAddNecropsyCenter, allowCarcassCollection, enableAddNecropsyReport) =>
+  composeNecropsyNavigation(hasPermissionToAddNecropsyCenter, allowCarcassCollection, enableAddNecropsyReport)
 
 export default necropsyNavigation

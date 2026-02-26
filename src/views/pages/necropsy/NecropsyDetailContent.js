@@ -1,10 +1,26 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Card, CardContent, Typography, Button, Grid, Skeleton, Divider, Chip, useTheme } from '@mui/material'
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Grid,
+  Skeleton,
+  Divider,
+  Chip,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  useTheme,
+  alpha
+} from '@mui/material'
 import {
   PlayArrow as StartIcon,
   Edit as EditIcon,
   Download as DownloadIcon,
-  Timeline as TimelineIcon
+  Timeline as TimelineIcon,
+  ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material'
 import { useRouter } from 'next/router'
 import Utility from 'src/utility'
@@ -17,6 +33,8 @@ import Toaster from 'src/components/Toaster'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import NecropsyTimelineDrawer from 'src/components/necropsy/NecropsyTimelineDrawer'
 import NecropsySummaryContent from './NecropsySummaryContent'
+import MortalityReportSection from './MortalityReportSection'
+import Icon from 'src/@core/components/icon'
 
 const NecropsyDetailContent = ({ mortalityId, status }) => {
   const theme = useTheme()
@@ -94,105 +112,72 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {/* Top Card Skeleton - matches NecropsyAnimalInfoCard */}
-        <Card sx={{ boxShadow: 'none' }}>
-          <CardContent>
-            {/* Header with back arrow and title */}
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, pb: 2, gap: 4 }}>
-              <Skeleton variant='circular' width={28} height={28} />
-              <Skeleton variant='text' width={180} height={32} />
-            </Box>
+        {/* NecropsyAnimalInfoCard Skeleton */}
+        <NecropsyAnimalInfoCard loading={true} />
 
-            <Grid container spacing={8} alignItems='stretch'>
-              {/* Animal Card Section with gradient background */}
-              <Grid size={{ xs: 12, sm: 12, md: 5 }}>
-                <Box
-                  sx={{
-                    background: theme.palette.mode === 'dark'
-                      ? 'linear-gradient(90deg, rgba(100,100,100,0.2), rgba(120,120,120,0.2))'
-                      : 'linear-gradient(90deg, rgba(200,230,200,0.3), rgba(200,200,230,0.3))',
-                    py: 4,
-                    px: 6,
-                    borderRadius: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    minHeight: 140
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, width: '100%' }}>
-                    <Skeleton variant='circular' width={80} height={80} />
-                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <Skeleton variant='text' width='60%' height={28} />
-                      <Skeleton variant='text' width='40%' height={20} />
-                      <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                        <Skeleton variant='rounded' width={60} height={24} sx={{ borderRadius: '12px' }} />
-                        <Skeleton variant='rounded' width={80} height={24} sx={{ borderRadius: '12px' }} />
-                      </Box>
-                    </Box>
+        {/* Content Cards Skeleton */}
+        <Card sx={{ mt: 3 }}>
+          <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {/* Header */}
+            <Skeleton variant='text' width={200} height={28} />
+
+            {/* Grid of info items */}
+            <Grid container spacing={6}>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Skeleton variant='text' width={120} height={16} />
+                    <Skeleton variant='text' width={180} height={20} />
                   </Box>
-                </Box>
-              </Grid>
-
-              {/* Info Fields Section */}
-              <Grid size={{ xs: 12, sm: 12, md: 7 }} sx={{ display: 'flex', alignItems: 'center' }}>
-                <Grid container spacing={2} columnSpacing={4} rowSpacing={4}>
-                  {Array.from(new Array(6)).map((_, i) => (
-                    <Grid key={i} size={{ xs: 12, sm: 6 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                        <Skeleton variant='rectangular' width={48} height={48} sx={{ borderRadius: 1 }} />
-                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                          <Skeleton variant='text' width={80} height={20} />
-                          <Skeleton variant='text' width={120} height={22} />
-                        </Box>
-                      </Box>
-                    </Grid>
-                  ))}
                 </Grid>
-              </Grid>
+              ))}
             </Grid>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent sx={{ p: 6, '&:last-child': { pb: 6 } }}>
-            <Skeleton variant='text' width={140} height={20} sx={{ mb: 1 }} />
-            <Skeleton variant='rounded' width='100%' height={60} sx={{ borderRadius: 2 }} />
-            <Skeleton variant='text' width={80} height={20} sx={{ mt: 4, mb: 1 }} />
-            <Skeleton variant='rounded' width='100%' height={60} sx={{ borderRadius: 2 }} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent sx={{ p: 6, '&:last-child': { pb: 6 } }}>
-            <Skeleton variant='text' width={160} height={24} sx={{ mb: 3 }} />
-            <Box sx={{ display: 'flex', gap: 3, mb: 4 }}>
+          <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <Skeleton variant='text' width={180} height={28} />
+            <Grid container spacing={4}>
               {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} variant='rounded' width={120} height={36} sx={{ borderRadius: '8px' }} />
+                <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Skeleton variant='text' width={140} height={16} />
+                    <Skeleton variant='text' width={200} height={20} />
+                  </Box>
+                </Grid>
               ))}
-            </Box>
-            {Array.from({ length: 2 }).map((_, i) => (
-              <Skeleton key={i} variant='rounded' width='100%' height={100} sx={{ borderRadius: '12px', mb: 2 }} />
-            ))}
+            </Grid>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent sx={{ p: 6, '&:last-child': { pb: 6 } }}>
-            <Skeleton variant='text' width={140} height={24} sx={{ mb: 3 }} />
-            <Box sx={{ display: 'flex', gap: 3, mb: 4 }}>
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} variant='rounded' width={100} height={36} sx={{ borderRadius: '8px' }} />
+          <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Skeleton variant='text' width={220} height={28} />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {Array.from({ length: 2 }).map((_, i) => (
+                <Box
+                  key={i}
+                  sx={{
+                    p: 4,
+                    borderRadius: 1,
+                    backgroundColor: alpha(theme.palette.grey[200], 0.5)
+                  }}
+                >
+                  <Skeleton variant='text' width={150} height={24} sx={{ mb: 2 }} />
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Skeleton variant='text' width={100} height={16} />
+                      <Skeleton variant='text' width='80%' height={18} />
+                    </Box>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Skeleton variant='text' width={100} height={16} />
+                      <Skeleton variant='text' width='60%' height={18} />
+                    </Box>
+                  </Box>
+                </Box>
               ))}
             </Box>
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 2 }}>
-                <Box sx={{ flexShrink: 0, width: 90, textAlign: 'right' }}>
-                  <Skeleton variant='text' width={80} height={18} sx={{ ml: 'auto' }} />
-                  <Skeleton variant='text' width={60} height={16} sx={{ ml: 'auto' }} />
-                </Box>
-                <Skeleton variant='rounded' sx={{ flex: 1, height: 56, borderRadius: '12px' }} />
-              </Box>
-            ))}
           </CardContent>
         </Card>
       </Box>
@@ -215,31 +200,19 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
   if (isCompleted && necropsyData) {
     return (
       <Box>
-        <NecropsyAnimalInfoCard mortalityData={mortalityData} />
+        <NecropsyAnimalInfoCard
+          mortalityData={mortalityData}
+          necropsyData={necropsyData}
+          status={status}
+          requestId={necropsyData?.necropsy_code}
+          onDownloadClick={handleDownloadPdf}
+          onEditClick={handleContinueEditing}
+          onTimelineClick={() => setShowTimeline(true)}
+          downloadLoading={pdfLoading}
+        />
 
         <Box sx={{ mt: 3 }}>
-          <NecropsySummaryContent
-            necropsyData={necropsyData}
-            mortalityData={mortalityData}
-            actionButtons={
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button variant='outlined' startIcon={<TimelineIcon />} onClick={() => setShowTimeline(true)}>
-                  See Timeline
-                </Button>
-                <Button
-                  variant='outlined'
-                  startIcon={<DownloadIcon />}
-                  onClick={handleDownloadPdf}
-                  disabled={pdfLoading}
-                >
-                  {pdfLoading ? 'Generating...' : 'Download PDF'}
-                </Button>
-                <Button variant='outlined' startIcon={<EditIcon />} onClick={handleContinueEditing}>
-                  Edit
-                </Button>
-              </Box>
-            }
-          />
+          <NecropsySummaryContent necropsyData={necropsyData} mortalityData={mortalityData} />
         </Box>
 
         <NecropsyTimelineDrawer open={showTimeline} onClose={() => setShowTimeline(false)} mortalityId={mortalityId} />
@@ -249,126 +222,197 @@ const NecropsyDetailContent = ({ mortalityId, status }) => {
 
   return (
     <Box>
-      <NecropsyAnimalInfoCard mortalityData={mortalityData} />
+      <NecropsyAnimalInfoCard
+        mortalityData={mortalityData}
+        necropsyData={necropsyData}
+        status={status}
+        requestId={necropsyData?.necropsy_code}
+      />
 
       {isDraft && necropsyData && (
-        <Card sx={{ mt: 3, bgcolor: theme.palette.customColors?.avatarBackground || '#FFF3E0' }}>
-          <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Chip label='DRAFT' color='warning' size='small' sx={{ fontWeight: 600 }} />
-              <Typography variant='body2'>
-                Saved as draft by <strong>{necropsyData?.user_profile?.name || 'Unknown'}</strong>
-                {necropsyData?.modified_at && (
-                  <> on {Utility.convertUtcToLocalReadableDate(necropsyData.modified_at)}</>
-                )}
-              </Typography>
-            </Box>
-            <Button
-              variant='text'
-              startIcon={<TimelineIcon />}
-              onClick={() => setShowTimeline(true)}
-              sx={{ fontWeight: 500, fontSize: '13px' }}
+        <Card sx={{ mt: 3, bgcolor: alpha(theme.palette.customColors?.antzNotes80, 0.4) }}>
+          <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <Box
+              sx={{
+                backgroundColor: theme.palette.customColors.OnPrimary,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '4px',
+                width: '44px',
+                height: '44px'
+              }}
             >
-              View Timeline
-            </Button>
+              <Icon
+                icon={'fluent:document-text-32-regular'}
+                fontSize={22}
+                color={theme.palette.customColors.Tertiary}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Typography
+                sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceContainer }}
+              >
+                {necropsyData?.user_profile?.name || 'Unknown'}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.Tertiary }}>
+                  Saved as draft
+                </Typography>
+                <Typography
+                  sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  <span> &bull; </span>
+                  {Utility.convertUtcToLocalReadableDate(necropsyData.modified_at)} <span> &bull; </span>{' '}
+                  {Utility.convertUTCToLocaltime(necropsyData.modified_at)}
+                </Typography>
+              </Box>
+            </Box>
           </CardContent>
         </Card>
       )}
 
-      {(mortalityData.history_of_illness || mortalityData.notes) && (
-        <Card sx={{ mt: 3, mb: 3 }}>
-          <CardContent sx={{ p: 6, '&:last-child': { pb: 6 } }}>
-            {mortalityData.history_of_illness && (
-              <Box>
-                <Typography
-                  sx={{
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    color: theme.palette.customColors?.OnSurfaceVariant
-                  }}
-                >
-                  History of Illness
-                </Typography>
-                <Typography
-                  sx={{
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary,
-                    mt: 1,
-                    whiteSpace: 'pre-wrap',
-                    lineHeight: 1.6,
-                    p: 3,
-                    borderRadius: 1,
-                    bgcolor: theme.palette.customColors?.displaybgPrimary || theme.palette.grey[50]
-                  }}
-                >
-                  {mortalityData.history_of_illness}
-                </Typography>
-              </Box>
-            )}
-
-            {mortalityData.notes && (
-              <Box sx={{ mt: mortalityData.history_of_illness ? 5 : 0 }}>
-                <Typography
-                  sx={{
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    color: theme.palette.customColors?.OnSurfaceVariant
-                  }}
-                >
-                  Notes
-                </Typography>
-                <Typography
-                  sx={{
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary,
-                    mt: 1,
-                    whiteSpace: 'pre-wrap',
-                    lineHeight: 1.6,
-                    p: 3,
-                    borderRadius: 1,
-                    bgcolor: theme.palette.customColors?.displaybgPrimary || theme.palette.grey[50]
-                  }}
-                >
-                  {mortalityData.notes}
-                </Typography>
-              </Box>
-            )}
-          </CardContent>
-        </Card>
-      )}
+      <MortalityReportSection data={mortalityData} />
 
       {mortalityData?.animal_id && (
-        <>
-          <Card sx={{ mt: 3 }}>
-            <CardContent sx={{ p: 6, '&:last-child': { pb: 6 } }}>
-              <MedicalHistoryTabs animalId={mortalityData.animal_id} />
-            </CardContent>
-          </Card>
-          <Card sx={{ mt: 3, mb: 3 }}>
-            <CardContent sx={{ p: 6, '&:last-child': { pb: 6 } }}>
-              <AssessmentTabs animalId={mortalityData.animal_id} />
-            </CardContent>
-          </Card>
-        </>
+        <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Accordion
+            sx={{
+              borderRadius: '8px !important',
+              '&:before': { display: 'none' },
+              '&.Mui-expanded': { margin: 0 }
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                px: 4,
+                py: 1,
+                '& .MuiAccordionSummary-content': { my: 2 }
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: '18px',
+                  fontWeight: 600,
+                  color: theme.palette.customColors?.OnSurfaceVariant
+                }}
+              >
+                Medical History
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: 4, pt: 2, pb: 6 }}>
+              <MedicalHistoryTabs animalId={mortalityData.animal_id} hideTitle />
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion
+            sx={{
+              borderRadius: '8px !important',
+              '&:before': { display: 'none' },
+              '&.Mui-expanded': { margin: 0 },
+              mb: 3
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                px: 4,
+                py: 1,
+                '& .MuiAccordionSummary-content': { my: 2 }
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: '18px',
+                  fontWeight: 600,
+                  color: theme.palette.customColors?.OnSurfaceVariant
+                }}
+              >
+                Assessments
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: 4, pt: 2, pb: 6 }}>
+              <AssessmentTabs animalId={mortalityData.animal_id} hideTitle />
+            </AccordionDetails>
+          </Accordion>
+        </Box>
       )}
 
       <Box sx={{ height: 100 }} />
 
       <BottomActionBar
-        onCancel={() => router.push(`/necropsy?status=${status}`)}
+        onCancel={() => router.push(`/necropsy/necropsy?status=${status}`)}
         onSubmit={isDraft ? handleContinueEditing : handleStartNecropsy}
-        cancelLabel='Back'
-        submitLabel={isDraft ? 'Continue Editing' : 'Update Necropsy'}
+        cancelLabel='CANCEL'
+        submitLabel={isDraft ? 'CONTINUE EDITING' : 'ADD NECROPSY'}
         cancelBtnStyle={{
           color: theme.palette.customColors?.OnPrimaryContainer || theme.palette.text.primary,
           borderColor: theme.palette.customColors?.OnPrimaryContainer || theme.palette.divider
         }}
         submitBtnStyle={{
-          backgroundColor: theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main
+          backgroundColor: isDraft ? theme.palette.customColors?.OnPrimaryContainer : theme.palette.primary.main
         }}
-      />
+        layoutStyle={{
+          justifyContent: 'space-between'
+        }}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography
+              sx={{
+                fontSize: '14px',
+                fontWeight: 400,
+                color: theme.palette.customColors?.neutralSecondary
+              }}
+            >
+              Current Status <span> &bull; </span>
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: '14px',
+                fontWeight: 400,
+                color: theme.palette.customColors?.neutralSecondary
+              }}
+            >
+              {isDraft
+                ? Utility.AgeConverter(Utility.convertUTCToLocal(necropsyData?.modified_at))
+                : Utility.AgeConverter(Utility.convertUTCToLocal(mortalityData?.created_at))}
+            </Typography>
+            {isDraft && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  ml: 1
+                }}
+                onClick={() => setShowTimeline(true)}
+              >
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: theme.palette.primary.main
+                  }}
+                >
+                  See all
+                </Typography>
+                <Icon icon='mdi:chevron-right' fontSize={20} color={theme.palette.primary.main} />
+              </Box>
+            )}
+          </Box>
+          <Typography
+            sx={{
+              fontSize: '18px',
+              fontWeight: 600,
+              color: theme.palette.customColors?.OnSurfaceVariant
+            }}
+          >
+            {isDraft ? 'Draft' : 'Pending'}
+          </Typography>
+        </Box>
+      </BottomActionBar>
 
       <NecropsyTimelineDrawer open={showTimeline} onClose={() => setShowTimeline(false)} mortalityId={mortalityId} />
     </Box>

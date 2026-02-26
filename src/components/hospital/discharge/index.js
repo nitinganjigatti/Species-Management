@@ -56,6 +56,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   const site_id = medicalRecordData?.site_id
   const purpose_of_visit = medicalRecordData?.purpose_of_visit
   const status = medicalRecordData?.status
+  const animal_id = medicalRecordData?.animal_id
 
   // Separate dynamic states for each medicine table discharge type
   const transferMedicines = data.transfer_medicines || []
@@ -145,7 +146,9 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
 
       const payload = {
         hospital_case_id: id,
-        medical_record_id: medical_record_id,
+
+        // medical_record_id: medical_record_id, // removed
+        animal_id: animal_id, // added this to get active prescription from the other medical records
         status: 'active',
         type: 'prescription'
       }
@@ -545,10 +548,10 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   // }, [transferTempMedicines])
 
   useEffect(() => {
-    if (id && medical_record_id) {
+    if (id && animal_id) {
       getPrescriptionList()
     }
-  }, [])
+  }, [id, animal_id])
 
   useEffect(() => {
     if (!Array.isArray(enclosureTempMedicines) || enclosureTempMedicines?.length === 0) return
@@ -862,6 +865,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
             handleDispositionSearch={handleDispositionSearch}
             handleNecropsyCenterSearch={handleNecropsyCenterSearch}
             submitLoader={mortalitySubmitLoader}
+
             // handleSubmitData={handleMortalitySubmitData}
             handleSubmitData={handleMortalitySubmitWithConfirmation}
             onDirtyChange={setIsMortalityDirty}
@@ -893,6 +897,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
             patientData={patientData}
             watchDischargeType={watchDischargeType}
             submitLoader={transferEnclosureSubmitLoader}
+
             // handleSubmitData={handleTransferEnclosureSubmitData}
             handleSubmitData={handleEnclosureSubmitWithConfirmation}
             medicationsColumns={medicationsColumns}

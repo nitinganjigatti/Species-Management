@@ -18,7 +18,6 @@ import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import StockReportSkeleton from 'src/views/utility/SkeletonLoading/StockReportSkeleton'
-
 const ExpiredMedicine = () => {
   const theme = useTheme()
   const { selectedPharmacy } = usePharmacyContext()
@@ -294,7 +293,7 @@ const ExpiredMedicine = () => {
   return (
     <>
       {loader ? (
-        <StockReportSkeleton ExpiredProducts />
+        <StockReportSkeleton ExpiredProducts selectedPharmacy={selectedPharmacy} />
       ) : (
         <>
           <PageCardLayout title={'Expired Products'}>

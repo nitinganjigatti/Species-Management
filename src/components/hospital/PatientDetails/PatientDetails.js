@@ -609,7 +609,7 @@ const PatientDetails = ({ category }) => {
               color: theme.palette.primary.main
             }}
           />
-          <Typography
+          {/* <Typography
             sx={{
               fontSize: '16px',
               fontWeight: 500,
@@ -628,7 +628,7 @@ const PatientDetails = ({ category }) => {
             }}
           >
             Please wait while we verify your access to view this patient's details.
-          </Typography>
+          </Typography> */}
         </Box>
       ) : null}
 

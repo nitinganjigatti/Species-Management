@@ -164,9 +164,11 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       field: 'preparation_type',
       headerName: 'PREPARATION TYPE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} title={params.row.preparation_type}>
-          {params.row.preparation_type ? params.row.preparation_type : '-'}
-        </Typography>
+        <Tooltip title={params.row.preparation_type}>
+          <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} className='text_overflow_moduled'>
+            {params.row.preparation_type ? params.row.preparation_type : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -175,9 +177,21 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       field: 'cut_size',
       headerName: 'CUT SIZE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} title={params.row.preparation_type}>
-          {params.row.cut_size ? params.row.cut_size : '-'}
-        </Typography>
+        <Tooltip title={params?.row?.cut_size}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.primary',
+              pl: 2,
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              width: '130px',
+              overflow: 'hidden'
+            }}
+          >
+            {params.row.cut_size ? params.row.cut_size : '-'}
+          </Typography>
+        </Tooltip>
       )
     }
   ]

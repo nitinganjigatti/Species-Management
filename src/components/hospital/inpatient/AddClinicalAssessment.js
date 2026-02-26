@@ -243,9 +243,10 @@ function AddClinicalAssessment() {
                 ...symptom,
                 ...details,
                 chronicVal: details.clinicalAsmnt === 'Tentative' ? 'No' : details.chronicVal,
-                prognosisVal: details.clinicalAsmnt === 'Tentative' ? '' : details.prognosisVal
+                prognosisVal: details.clinicalAsmnt === 'Tentative' ? '' : details.prognosisVal,
+                recordedDateTime: details.recordedDateTime
               }
-            : symptom
+            : {...symptom, recordedDateTime: details.recordedDateTime}
         )
       )
     } else {
@@ -329,6 +330,7 @@ function AddClinicalAssessment() {
         isChronic: symptom?.chronicVal === 'Yes',
         prognosis: symptom?.prognosisVal?.toLowerCase() || '',
         notes: symptom?.notes || '',
+        recorded_date_time: symptom?.recordedDateTime,
         active_at: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
           .toISOString()
           .replace('T', ' ')
@@ -443,7 +445,7 @@ function AddClinicalAssessment() {
 
   const handleAIDDisplay = () => {
     if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
-      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+      return patientData?.animal_detail?.local_identifier_value
     } else {
       return patientData?.animal_detail?.animal_id
     }
@@ -459,7 +461,13 @@ function AddClinicalAssessment() {
         age={`${patientData?.animal_detail?.age}`}
         gender={`${patientData?.animal_detail?.sex}`}
         additionalFields={[
-          { label: 'AID', value: handleAIDDisplay() },
+          {
+            label:
+              patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value
+                ? patientData?.animal_detail?.local_identifier_name
+                : 'AID',
+            value: handleAIDDisplay()
+          },
           { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
 
           // { label: 'Admitted days', value: patientData?.admitted_for_day },
@@ -571,6 +579,9 @@ function AddClinicalAssessment() {
           setNotes={setNotes}
           onSave={addSymptomDetails}
           isSubmitLoading={isSubmitLoading}
+          admittedDate={patientData?.admit_date}
+          dischargedDate={patientData?.discharge_date}
+          isDischarged={patientData?.status === 'discharge'}
         />
       )}
 

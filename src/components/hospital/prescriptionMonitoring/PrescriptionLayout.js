@@ -213,7 +213,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         animal_id: animal_id || '',
         medical_type: 'prescription',
         type: 'active',
-        medical_record_id: medical_record_id || '',
+        // medical_record_id: medical_record_id || '',
         generate_for_date: selectedDate,
         medical_record_id: isCurrentMedicalRecord ? medical_record_id : '',
         hospital_case_id: id || ''
@@ -743,7 +743,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
               value: item.key,
               unit_name: item.label,
               uom_abbr: item.key
-            })) || [],
+            }))?.sort((a, b) => a.label?.localeCompare(b.label)) || [],
           prescriptionDuration: response?.data?.prescriptionDuration?.map(item => ({ ...item, value: item.key })) || [],
           prescriptionMeasurementType:
             response?.data?.prescriptionMeasurementType?.map(item => ({
@@ -756,7 +756,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
               ...item,
               label: item.delivery,
               value: item.route_abbr
-            })) || []
+            }))?.sort((a, b) => a.label?.localeCompare(b.label)) || []
         })
       } else {
         setMedicalMasterData([])

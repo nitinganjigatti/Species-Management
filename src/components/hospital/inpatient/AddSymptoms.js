@@ -96,6 +96,11 @@ function AddSymptoms() {
     setSelectedSymptoms(prev => [...prev, { id: temporarilySelected.id, name: temporarilySelected.name, ...details }])
     setTemporarilySelected(null)
     setSymptomDrawerOpen(false)
+    // Reset form fields for next symptom
+    setDurationValue(0)
+    setNotes('')
+    setDurationUnit('Days')
+    setSeverity('Mild')
   }
 
   const cancelSymptomSelection = () => {
@@ -354,10 +359,11 @@ function AddSymptoms() {
           severity: symptom.severity || 'Mild',
           notes: symptom.notes || '',
           active_at: '',
-          duration: String(symptom.durationValue || 0),
+          duration: symptom.durationValue == 0 ? '' : String(symptom.durationValue || ''),
           duration_unit: symptom.durationUnit || 'Days',
           status: 'active',
-          comment_list: []
+          comment_list: [],
+          recorded_date_time: symptom.recordedDateTime || new Date().toISOString()
         }
       }))
 
@@ -405,7 +411,7 @@ function AddSymptoms() {
 
   const handleAIDDisplay = () => {
     if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
-      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+      return patientData?.animal_detail?.local_identifier_value
     } else {
       return patientData?.animal_detail?.animal_id
     }
@@ -420,7 +426,13 @@ function AddSymptoms() {
         age={`${patientData?.animal_detail?.age}`}
         gender={`${patientData?.animal_detail?.sex}`}
         additionalFields={[
-          { label: 'AID', value: handleAIDDisplay() },
+          {
+            label:
+              patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value
+                ? patientData?.animal_detail?.local_identifier_name
+                : 'AID',
+            value: handleAIDDisplay()
+          },
           { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
 
           // { label: 'Admitted days', value: patientData?.admitted_for_day },
@@ -519,6 +531,9 @@ function AddSymptoms() {
           setStatus={setStatus}
           setNotes={setNotes}
           onSave={addSymptomDetails}
+          admittedDate={patientData?.admitted_at}
+          dischargedDate={patientData?.discharge_at}
+          isDischarged={patientData?.status === 'discharge'}
         />
       )}
       {complaintDrawerOpen && (

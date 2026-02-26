@@ -79,7 +79,50 @@ const schema = yup.object().shape({
   holdingEnclosure: yup.object().required('Holding Enclosure is required'),
   selectedAnimal: yup.mixed().nullable().required('Animal is required'),
   selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
-  room: yup.object().required('Room is required')
+  room: yup.object().required('Room is required'),
+
+  // Must not be a future date (after today)
+  admission_date: yup
+    .date()
+    .typeError('Invalid date')
+    .nullable()
+    .required('Date is required')
+    .test('not-future-date', 'Date cannot be in the future', function (value) {
+      if (!value) return true
+      if (dayjs(value).isAfter(dayjs(), 'day')) {
+        return this.createError({ message: 'Date cannot be in the future' })
+      }
+
+      return true
+    }),
+
+  // Must not be in the future time
+  admission_time: yup
+    .date()
+    .typeError('Invalid time')
+    .nullable()
+    .required('Time is required')
+    .test('is-valid-time', 'Time is invalid', function (value) {
+      const { admission_date } = this.parent
+      if (!value || !admission_date) return true
+
+      const now = dayjs()
+
+      const selectedTime = dayjs(admission_date)
+        .startOf('day')
+        .set('hour', dayjs(value).hour())
+        .set('minute', dayjs(value).minute())
+        .set('second', 0)
+
+      // Must not be in the future (on today)
+      if (dayjs(admission_date).isSame(now, 'day')) {
+        if (selectedTime.isAfter(now)) {
+          return this.createError({ message: 'Time cannot be in the future' })
+        }
+      }
+
+      return true
+    })
 
   // patient_status: yup.boolean().required('Patient Status is Required')
 })
@@ -174,8 +217,17 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
 
   const watchMedicalChoice = watch('medicalRecordChoice')
   const watchTreatmentType = watch('treatmentType')
+  const selectedDate = watch('admission_date')
 
   // const watchPatientStatus = watch('patient_status')
+
+  // Time limits for admission time
+  const now = dayjs()
+  let maxTime = null
+
+  if (selectedDate && dayjs(selectedDate).isSame(now, 'day')) {
+    maxTime = now
+  }
 
   useEffect(() => {
     const getHospitalRooms = async () => {
@@ -574,6 +626,10 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                       label='Date*'
                       defaultValue={dayjs()}
                       disabled={submitLoader}
+                      maxDate={dayjs(new Date())}
+                      onChangeOverride={() => {
+                        trigger('admission_time')
+                      }}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
@@ -582,6 +638,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                       name={'admission_time'}
                       label='Time*'
                       disabled={submitLoader}
+                      maxTime={maxTime}
                     />
                   </Grid>
                 </Grid>

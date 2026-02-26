@@ -12,6 +12,22 @@ const NecropsyReport = () => {
 
   if (!id) return null
 
+  const effectiveStatus = status || (necropsy_id ? 'DRAFT' : 'PENDING')
+
+  const getStatusLabel = () => {
+    switch (effectiveStatus?.toUpperCase()) {
+      case 'PENDING':
+        return 'Pending'
+      case 'DRAFT':
+        return 'Draft'
+      case 'COMPLETED':
+      case 'UNSUITABLE':
+        return 'Completed'
+      default:
+        return 'Pending'
+    }
+  }
+
   return (
     <NecropsyProvider>
       <Box sx={{ p: 4 }}>
@@ -19,7 +35,7 @@ const NecropsyReport = () => {
           <Breadcrumbs>
             <MuiLink
               component={NextLink}
-              href={`/necropsy/necropsy?status=${status || (necropsy_id ? 'DRAFT' : 'PENDING')}`}
+              href='/necropsy/necropsy'
               underline='hover'
               color='inherit'
             >
@@ -27,7 +43,15 @@ const NecropsyReport = () => {
             </MuiLink>
             <MuiLink
               component={NextLink}
-              href={`/necropsy/necropsy/${id}?status=${status || (necropsy_id ? 'DRAFT' : 'PENDING')}`}
+              href={`/necropsy/necropsy?status=${effectiveStatus}`}
+              underline='hover'
+              color='inherit'
+            >
+              {getStatusLabel()}
+            </MuiLink>
+            <MuiLink
+              component={NextLink}
+              href={`/necropsy/necropsy/${id}?status=${effectiveStatus}`}
               underline='hover'
               color='inherit'
             >

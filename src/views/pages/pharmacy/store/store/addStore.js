@@ -4,19 +4,13 @@ import { useState, useEffect, useCallback, Fragment, useContext } from 'react'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
-
-import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
-import FormControl from '@mui/material/FormControl'
-import FormHelperText from '@mui/material/FormHelperText'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
-import { RadioGroup, FormLabel, FormControlLabel, Radio, InputLabel, Select, MenuItem, Button } from '@mui/material'
-
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 
 import Icon from 'src/@core/components/icon'
 import { getStoreById } from 'src/lib/api/pharmacy/getStoreList'
@@ -24,6 +18,7 @@ import { getStoreById } from 'src/lib/api/pharmacy/getStoreList'
 import { AuthContext } from 'src/context/AuthContext'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import ControlledRadioGroup from 'src/views/forms/form-fields/ControlledRadioGroup'
 
 const schema = yup.object().shape({
   name: yup
@@ -215,35 +210,20 @@ const AddStore = props => {
           />
 
           {editParams?.id !== null && watch('type') === 'local' ? (
-            <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
-              <FormLabel>Status</FormLabel>
-              <Controller
-                name='status'
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <RadioGroup row {...field} aria-label='gender' name='validation-basic-radio'>
-                    <FormControlLabel
-                      value='active'
-                      label='Active'
-                      sx={errors.status ? { color: 'error.main' } : null}
-                      control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
-                    />
-                    <FormControlLabel
-                      value='inactive'
-                      label='Inactive'
-                      sx={errors.status ? { color: 'error.main' } : null}
-                      control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
-                    />
-                  </RadioGroup>
-                )}
-              />
-              {errors.radio && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-radio'>
-                  This field is required
-                </FormHelperText>
-              )}
-            </FormControl>
+            <ControlledRadioGroup
+              name='status'
+              control={control}
+              errors={errors}
+              label='Status'
+              required
+              options={[
+                { label: 'Active', value: 'active' },
+                { label: 'Inactive', value: 'inactive' }
+              ]}
+              row
+              gap={4}
+              sx={{ mb: 6 }}
+            />
           ) : null}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RenderSidebarFooter />

@@ -1,17 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Typography, Skeleton, Collapse, CircularProgress, Chip } from '@mui/material'
+import { Box, Typography, Skeleton, CircularProgress, Dialog, IconButton, Divider } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
-import {
-  ExpandMore,
-  ExpandLess,
-  CheckCircle,
-  AccessTime,
-  Science,
-  CalendarToday,
-  KeyboardArrowRight
-} from '@mui/icons-material'
+import { ExpandMore, Science, Close } from '@mui/icons-material'
+import Icon from 'src/@core/components/icon'
 import Utility from 'src/utility'
 import { getLabRequestsByAnimal } from 'src/lib/api/necropsy/medicalHistory'
+import LabRequestDetailsDrawer from './LabRequestDetailsDrawer'
 
 const SUB_TABS = ['Pending', 'Completed', 'All']
 
@@ -23,7 +17,9 @@ const LabRequestsList = ({ animalId }) => {
   const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
-  const [expandedItems, setExpandedItems] = useState({})
+  const [selectedLabRequest, setSelectedLabRequest] = useState(null)
+  const [showDetailsDrawer, setShowDetailsDrawer] = useState(false)
+  const [legendModalVisible, setLegendModalVisible] = useState(false)
 
   const getTypeParam = tab => {
     switch (tab) {
@@ -69,7 +65,6 @@ const LabRequestsList = ({ animalId }) => {
   useEffect(() => {
     setPageNo(1)
     setData([])
-    setExpandedItems({})
     fetchData(activeSubTab, 1)
   }, [activeSubTab, animalId])
 
@@ -79,35 +74,87 @@ const LabRequestsList = ({ animalId }) => {
     fetchData(activeSubTab, nextPage, true)
   }
 
-  const toggleExpand = id => {
-    setExpandedItems(prev => ({ ...prev, [id]: !prev[id] }))
+  const handleCardClick = item => {
+    setSelectedLabRequest({
+      requestGuid: item.request_guid || item.lab_request_guid,
+      labCode: item.antz_lab_request_code
+    })
+    setShowDetailsDrawer(true)
   }
 
-  const getStatusConfig = status => {
-    const s = (status || '').toLowerCase()
-    if (s === 'completed') {
+  const handleCloseDrawer = () => {
+    setShowDetailsDrawer(false)
+    setSelectedLabRequest(null)
+  }
+
+  const getSamplesCount = labTests => {
+    if (!labTests || !Array.isArray(labTests)) return 0
+    const uniqueSamples = new Set(labTests.map(test => test.lims_sample_id || test.lims_sample_name))
+
+    return uniqueSamples.size
+  }
+
+  const getTestStatusCounts = labTests => {
+    if (!labTests || !Array.isArray(labTests)) return { completed: 0, inProgress: 0, pending: 0 }
+
+    let completed = 0
+    let inProgress = 0
+    let pending = 0
+
+    labTests.forEach(test => {
+      const status = (test.status || '').toLowerCase()
+      if (status === 'completed') completed++
+      else if (status === 'inprogress' || status === 'in_progress') inProgress++
+      else pending++
+    })
+
+    return { completed, inProgress, pending }
+  }
+
+  const getSampleStatusCounts = (labTests, item) => {
+    if (
+      item?.totalSampleCollected !== undefined ||
+      item?.totalSampleNotCollected !== undefined ||
+      item?.totalSampleRejected !== undefined
+    ) {
       return {
-        icon: <CheckCircle sx={{ fontSize: 14 }} />,
-        color: theme.palette.success.main,
-        bgColor: alpha(theme.palette.success.main, 0.1),
-        label: 'Completed'
-      }
-    }
-    if (s === 'inprogress' || s === 'in_progress') {
-      return {
-        icon: <AccessTime sx={{ fontSize: 14 }} />,
-        color: theme.palette.warning.main,
-        bgColor: alpha(theme.palette.warning.main, 0.1),
-        label: 'In Progress'
+        collected: item?.totalSampleCollected || 0,
+        notCollected: item?.totalSampleNotCollected || 0,
+        rejected: item?.totalSampleRejected || 0
       }
     }
 
-    return {
-      icon: <AccessTime sx={{ fontSize: 14 }} />,
-      color: theme.palette.info.main,
-      bgColor: alpha(theme.palette.info.main, 0.1),
-      label: 'Pending'
+    if (!labTests || !Array.isArray(labTests)) {
+      return { collected: 0, notCollected: 0, rejected: 0 }
     }
+
+    const sampleTests = {}
+    labTests.forEach(test => {
+      const sampleId = test.lims_sample_id || test.lims_sample_name || 'unknown'
+      if (!sampleTests[sampleId]) {
+        sampleTests[sampleId] = []
+      }
+      sampleTests[sampleId].push(test)
+    })
+
+    let collected = 0
+    let notCollected = 0
+    let rejected = 0
+
+    Object.values(sampleTests).forEach(tests => {
+      const hasRejected = tests.some(t => (t.status || '').toLowerCase() === 'rejected')
+      const allCompleted = tests.every(t => (t.status || '').toLowerCase() === 'completed')
+
+      if (hasRejected) {
+        rejected++
+      } else if (allCompleted) {
+        collected++
+      } else {
+        notCollected++
+      }
+    })
+
+    return { collected, notCollected, rejected }
   }
 
   const renderShimmer = () => (
@@ -118,20 +165,26 @@ const LabRequestsList = ({ animalId }) => {
           sx={{
             backgroundColor: theme.palette.background.paper,
             borderRadius: '12px',
-            padding: 3,
+            padding: 4,
             boxShadow: `0 1px 3px ${alpha(theme.palette.common.black, 0.08)}`
           }}
         >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              <Skeleton variant='rounded' width={140} height={28} sx={{ borderRadius: '6px' }} />
-              <Skeleton variant='rounded' width={80} height={24} sx={{ borderRadius: '12px' }} />
-            </Box>
-            <Skeleton variant='rounded' width={100} height={20} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+            <Skeleton variant='circular' width={28} height={28} />
+            <Skeleton variant='rounded' width={160} height={22} />
           </Box>
+          <Skeleton variant='text' width={200} height={18} sx={{ mb: 1 }} />
+          <Skeleton variant='text' width={140} height={18} sx={{ mb: 2 }} />
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Skeleton variant='rounded' width={60} height={24} sx={{ borderRadius: '12px' }} />
-            <Skeleton variant='rounded' width={90} height={20} />
+            <Box sx={{ display: 'flex', gap: 4 }}>
+              <Skeleton variant='text' width={60} height={18} />
+              <Skeleton variant='text' width={80} height={18} />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Skeleton variant='rounded' width={24} height={24} />
+              <Skeleton variant='rounded' width={24} height={24} />
+              <Skeleton variant='rounded' width={24} height={24} />
+            </Box>
           </Box>
         </Box>
       ))}
@@ -140,8 +193,7 @@ const LabRequestsList = ({ animalId }) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {/* Sub Tabs */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'space-between' }}>
         <Box
           sx={{
             flex: '1 1 auto',
@@ -166,14 +218,7 @@ const LabRequestsList = ({ animalId }) => {
                   borderRadius: '8px',
                   backgroundColor:
                     activeSubTab === tab ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    backgroundColor:
-                      activeSubTab === tab
-                        ? theme.palette.secondary.dark
-                        : alpha(theme.palette.customColors.mdAntzNeutral, 0.7)
-                  }
+                  cursor: 'pointer'
                 }}
               >
                 <Typography
@@ -193,9 +238,77 @@ const LabRequestsList = ({ animalId }) => {
             ))}
           </Box>
         </Box>
+        <Box
+          onClick={() => setLegendModalVisible(true)}
+          sx={{
+            backgroundColor: theme.palette.background.paper,
+            px: 2,
+            py: 1,
+            borderRadius: '6px',
+            border: `0.5px solid ${theme.palette.divider}`,
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.background.paper, 0.8)
+            }
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: '12px',
+              fontWeight: 500,
+              color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+            }}
+          >
+            Legends
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', mt: 0.5 }}>
+            <Box
+              sx={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                backgroundColor: alpha(theme.palette.error.main, 0.15)
+              }}
+            />
+            <Box
+              sx={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                backgroundColor: alpha(theme.palette.error.main, 0.5)
+              }}
+            />
+            <Box
+              sx={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                backgroundColor: theme.palette.warning.main
+              }}
+            />
+            <Box
+              sx={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                backgroundColor: theme.palette.primary.main
+              }}
+            />
+            <Box
+              sx={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                backgroundColor: theme.palette.customColors?.Tertiary || theme.palette.secondary.main
+              }}
+            />
+          </Box>
+        </Box>
       </Box>
 
-      {/* Content */}
       {loading ? (
         renderShimmer()
       ) : data.length === 0 ? (
@@ -223,247 +336,258 @@ const LabRequestsList = ({ animalId }) => {
         </Box>
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {data.map((group, index) => {
-            const groupId = group.id || group.lab_test_request_id || index
-            const isExpanded = expandedItems[groupId] || false
-            const tests = group.lab_tests || group.tests || []
-            const statusConfig = getStatusConfig(group.status)
+          {data.map((item, index) => {
+            const groupId = item.lab_request_id || item.id || index
+            const tests = item.lab_tests || []
+            const testsCount = tests.length
+            const samplesCount = getSamplesCount(tests)
+            const testStatusCounts = getTestStatusCounts(tests)
+            const sampleStatusCounts = getSampleStatusCounts(tests, item)
+            const isPriorityLow = (item.priority || '').toLowerCase() === 'low'
 
             return (
               <Box
                 key={groupId}
+                onClick={() => handleCardClick(item)}
                 sx={{
                   backgroundColor: theme.palette.background.paper,
                   borderRadius: '12px',
                   overflow: 'hidden',
-                  boxShadow: `0 1px 3px ${alpha(theme.palette.common.black, 0.08)}`,
                   border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    boxShadow: `0 4px 12px ${alpha(theme.palette.common.black, 0.1)}`
-                  }
+                  cursor: 'pointer'
                 }}
               >
-                {/* Card Header */}
-                <Box
-                  onClick={() => tests.length > 0 && toggleExpand(groupId)}
-                  sx={{
-                    padding: 3,
-                    cursor: tests.length > 0 ? 'pointer' : 'default'
-                  }}
-                >
-                  {/* Top Row - Request ID and Date */}
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      mb: 2
-                    }}
-                  >
-                    {/* Request ID */}
+                <Box sx={{ p: 4 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                     <Box
                       sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: '50%',
+                        backgroundColor: isPriorityLow
+                          ? theme.palette.customColors?.Secondary
+                          : theme.palette.customColors?.Tertiary,
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 1,
-                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                        px: 1.5,
-                        py: 0.75,
-                        borderRadius: '6px'
+                        justifyContent: 'center'
                       }}
                     >
-                      <Science sx={{ fontSize: 16, color: theme.palette.primary.main }} />
-                      <Typography
-                        sx={{
-                          fontSize: '0.875rem',
-                          fontWeight: 600,
-                          color: theme.palette.primary.main,
-                          letterSpacing: '0.3px'
-                        }}
-                      >
-                        {group.medical_record_code || `REQ-${groupId}`}
-                      </Typography>
+                      <Icon
+                        icon={isPriorityLow ? 'mdi:flask-outline' : 'mdi:test-tube'}
+                        fontSize={18}
+                        color={theme.palette.customColors?.OnPrimary}
+                      />
                     </Box>
-
-                    {/* Date & Time */}
-                    {group.created_at && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <CalendarToday sx={{ fontSize: 14, color: theme.palette.text.secondary }} />
-                        <Typography
-                          sx={{
-                            fontSize: '0.75rem',
-                            color: theme.palette.text.secondary,
-                            fontWeight: 500
-                          }}
-                        >
-                          {Utility.convertUtcToLocalReadableDate(group.created_at)} &bull;{' '}
-                          {Utility.convertUTCToLocaltime(group.created_at)}
-                        </Typography>
-                      </Box>
-                    )}
+                    <Typography
+                      sx={{
+                        fontSize: '16px',
+                        fontWeight: 600,
+                        color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                      }}
+                    >
+                      {item.antz_lab_request_code || `LAB-REQ-${groupId}`}
+                    </Typography>
                   </Box>
 
-                  {/* Bottom Row - Status and Tests */}
+                  {item.created_at && (
+                    <Typography
+                      sx={{
+                        fontSize: '13px',
+                        fontWeight: 400,
+                        color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary,
+                        mb: 1
+                      }}
+                    >
+                      {Utility.convertUtcToLocalReadableDate(item.created_at)} &bull;{' '}
+                      {Utility.convertUTCToLocaltime(item.created_at)}
+                    </Typography>
+                  )}
+
+                  {item.medical_record_code && (
+                    <Typography
+                      sx={{
+                        fontSize: '13px',
+                        fontWeight: 400,
+                        color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary,
+                        mb: 3
+                      }}
+                    >
+                      Case ID:{' '}
+                      <Typography
+                        component='span'
+                        sx={{
+                          fontWeight: 600,
+                          color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                        }}
+                      >
+                        {item.medical_record_code}
+                      </Typography>
+                    </Typography>
+                  )}
+
                   <Box
                     sx={{
                       display: 'flex',
                       justifyContent: 'space-between',
-                      alignItems: 'center'
+                      gap: 10,
+                      alignItems: 'flex-start'
                     }}
                   >
-                    {/* Status and Test Count */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      {/* Status Chip */}
-                      <Chip
-                        icon={statusConfig.icon}
-                        label={statusConfig.label}
-                        size='small'
+                    <Box>
+                      <Typography
                         sx={{
-                          backgroundColor: statusConfig.bgColor,
-                          color: statusConfig.color,
-                          fontWeight: 600,
-                          fontSize: '0.75rem',
-                          height: 26,
-                          '& .MuiChip-icon': {
-                            color: statusConfig.color
-                          }
-                        }}
-                      />
-
-                      {/* Test Count */}
-                      {tests.length > 0 && (
-                        <Chip
-                          label={`${tests.length} Test${tests.length > 1 ? 's' : ''}`}
-                          size='small'
-                          sx={{
-                            backgroundColor: alpha(theme.palette.text.primary, 0.06),
-                            color: theme.palette.text.secondary,
-                            fontWeight: 500,
-                            fontSize: '0.75rem',
-                            height: 26
-                          }}
-                        />
-                      )}
-                    </Box>
-
-                    {/* View Tests Button */}
-                    {tests.length > 0 && (
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                          color: theme.palette.primary.main,
-                          transition: 'all 0.2s ease',
-                          '&:hover': {
-                            gap: 1
-                          }
+                          fontSize: '14px',
+                          fontWeight: 400,
+                          color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary,
+                          mb: 1
                         }}
                       >
-                        <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
-                          {isExpanded ? 'Hide' : 'View'} Tests
+                        Tests{' '}
+                        <Typography
+                          component='span'
+                          sx={{
+                            fontWeight: 700,
+                            color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                          }}
+                        >
+                          {testsCount}
                         </Typography>
-                        {isExpanded ? <ExpandLess fontSize='small' /> : <KeyboardArrowRight fontSize='small' />}
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Box
+                          sx={{
+                            minWidth: 36,
+                            height: 30,
+                            borderRadius: '6px',
+                            backgroundColor: alpha(theme.palette.error.main, 0.2),
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            px: 1.5
+                          }}
+                        >
+                          <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.error.main }}>
+                            {testStatusCounts.pending}
+                          </Typography>
+                        </Box>
+                        <Box
+                          sx={{
+                            minWidth: 36,
+                            height: 30,
+                            borderRadius: '6px',
+                            backgroundColor: alpha(theme.palette.warning.main, 0.25),
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            px: 1.5
+                          }}
+                        >
+                          <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.warning.dark }}>
+                            {testStatusCounts.inProgress}
+                          </Typography>
+                        </Box>
+                        <Box
+                          sx={{
+                            minWidth: 36,
+                            height: 30,
+                            borderRadius: '6px',
+                            backgroundColor: alpha(theme.palette.success.main, 0.15),
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            px: 1.5
+                          }}
+                        >
+                          <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.success.main }}>
+                            {testStatusCounts.completed}
+                          </Typography>
+                        </Box>
                       </Box>
-                    )}
+                    </Box>
+
+                    <Box sx={{ textAlign: 'right' }}>
+                      <Typography
+                        sx={{
+                          fontSize: '14px',
+                          fontWeight: 400,
+                          color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary,
+                          mb: 1
+                        }}
+                      >
+                        Samples{' '}
+                        <Typography
+                          component='span'
+                          sx={{
+                            fontWeight: 700,
+                            color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                          }}
+                        >
+                          {samplesCount}
+                        </Typography>
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                        <Box
+                          sx={{
+                            minWidth: 36,
+                            height: 30,
+                            borderRadius: '6px',
+                            backgroundColor: theme.palette.success.main,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            px: 1.5
+                          }}
+                        >
+                          <Typography
+                            sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.customColors?.OnPrimary }}
+                          >
+                            {sampleStatusCounts.collected}
+                          </Typography>
+                        </Box>
+                        <Box
+                          sx={{
+                            minWidth: 36,
+                            height: 30,
+                            borderRadius: '6px',
+                            backgroundColor: theme.palette.customColors?.Tertiary,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            px: 1.5
+                          }}
+                        >
+                          <Typography
+                            sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.customColors?.OnPrimary }}
+                          >
+                            {sampleStatusCounts.notCollected}
+                          </Typography>
+                        </Box>
+                        <Box
+                          sx={{
+                            minWidth: 36,
+                            height: 30,
+                            borderRadius: '6px',
+                            backgroundColor: theme.palette.error.main,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            px: 1.5
+                          }}
+                        >
+                          <Typography
+                            sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.customColors?.OnPrimary }}
+                          >
+                            {sampleStatusCounts.rejected}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
                   </Box>
                 </Box>
-
-                {/* Expanded Tests List */}
-                {tests.length > 0 && (
-                  <Collapse in={isExpanded}>
-                    <Box
-                      sx={{
-                        borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                        backgroundColor: alpha(theme.palette.background.default, 0.5)
-                      }}
-                    >
-                      {tests.map((test, tIndex) => {
-                        const testStatusConfig = getStatusConfig(test.status)
-
-                        return (
-                          <Box
-                            key={test.id || test.lab_test_id || tIndex}
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              px: 3,
-                              py: 2,
-                              borderBottom:
-                                tIndex < tests.length - 1 ? `1px solid ${alpha(theme.palette.divider, 0.08)}` : 'none',
-                              transition: 'background-color 0.2s ease',
-                              '&:hover': {
-                                backgroundColor: alpha(theme.palette.primary.main, 0.02)
-                              }
-                            }}
-                          >
-                            {/* Test Info */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0 }}>
-                              <Box
-                                sx={{
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: '8px',
-                                  backgroundColor: testStatusConfig.bgColor,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  flexShrink: 0
-                                }}
-                              >
-                                {testStatusConfig.icon}
-                              </Box>
-                              <Box sx={{ minWidth: 0 }}>
-                                <Typography
-                                  sx={{
-                                    fontSize: '0.875rem',
-                                    fontWeight: 500,
-                                    color: theme.palette.text.primary,
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap'
-                                  }}
-                                >
-                                  {test.test_name || test.name || `Test #${test.lab_test_id || tIndex + 1}`}
-                                </Typography>
-                                {test.created_at && (
-                                  <Typography
-                                    sx={{
-                                      fontSize: '0.75rem',
-                                      color: theme.palette.text.secondary
-                                    }}
-                                  >
-                                    {Utility.convertUtcToLocalReadableDate(test.created_at)}
-                                  </Typography>
-                                )}
-                              </Box>
-                            </Box>
-
-                            {/* Test Status */}
-                            <Typography
-                              sx={{
-                                fontSize: '0.75rem',
-                                fontWeight: 600,
-                                color: testStatusConfig.color,
-                                flexShrink: 0,
-                                ml: 2
-                              }}
-                            >
-                              {testStatusConfig.label}
-                            </Typography>
-                          </Box>
-                        )
-                      })}
-                    </Box>
-                  </Collapse>
-                )}
               </Box>
             )
           })}
 
-          {/* Load More */}
           {hasMore && (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
               {loadingMore ? (
@@ -501,6 +625,171 @@ const LabRequestsList = ({ animalId }) => {
           )}
         </Box>
       )}
+      <LabRequestDetailsDrawer
+        open={showDetailsDrawer}
+        onClose={handleCloseDrawer}
+        requestGuid={selectedLabRequest?.requestGuid}
+        labCode={selectedLabRequest?.labCode}
+      />
+
+      <Dialog
+        open={legendModalVisible}
+        onClose={() => setLegendModalVisible(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: 1,
+            minWidth: 360,
+            maxWidth: 420
+          }
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            px: 3,
+            py: 2,
+            borderBottom: `1px solid ${theme.palette.divider}`
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: '16px',
+              fontWeight: 600,
+              color: theme.palette.customColors?.OnPrimaryContainer
+            }}
+          >
+            Legends
+          </Typography>
+          <IconButton onClick={() => setLegendModalVisible(false)} size='small'>
+            <Close sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
+          </IconButton>
+        </Box>
+
+        <Box sx={{ px: 3, py: 2 }}>
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 500,
+              color: theme.palette.customColors?.OnSurfaceVariant,
+              mb: 1.5
+            }}
+          >
+            Request Priority
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 4 }}>
+            {[
+              { label: 'Low', color: theme.palette.customColors?.Secondary },
+              { label: 'High', color: theme.palette.customColors?.Tertiary }
+            ].map(priority => (
+              <Box key={priority.label} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box
+                  sx={{
+                    backgroundColor: priority.color,
+                    p: 1,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Icon icon='mdi:flask-outline' fontSize={20} color={theme.palette.customColors?.OnPrimary} />
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: theme.palette.text.primary
+                  }}
+                >
+                  {priority.label}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+
+        <Box sx={{ px: 3, py: 2 }}>
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 500,
+              color: theme.palette.customColors?.OnSurfaceVariant,
+              mb: 1.5
+            }}
+          >
+            Test Status
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {[
+              { label: 'Completed', color: theme.palette.primary.main },
+              { label: 'Pending', color: theme.palette.customColors?.Tertiary },
+              { label: 'In Progress', color: theme.palette.warning.main }
+            ].map(status => (
+              <Box
+                key={status.label}
+                sx={{
+                  backgroundColor: alpha(status.color, 0.15),
+                  px: 1.5,
+                  py: 0.75,
+                  borderRadius: '6px'
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: status.color
+                  }}
+                >
+                  {status.label}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+
+        <Box sx={{ px: 3, py: 2, pb: 3 }}>
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 500,
+              color: theme.palette.customColors?.OnSurfaceVariant,
+              mb: 1.5
+            }}
+          >
+            Sample Status
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {[
+              { label: 'Received', color: theme.palette.primary.main },
+              { label: 'Not Received', color: theme.palette.customColors?.Tertiary },
+              { label: 'Rejected', color: theme.palette.error.main }
+            ].map(status => (
+              <Box
+                key={status.label}
+                sx={{
+                  backgroundColor: status.color,
+                  px: 1.5,
+                  py: 0.75,
+                  borderRadius: '6px'
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: theme.palette.customColors?.OnPrimary
+                  }}
+                >
+                  {status.label}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Dialog>
     </Box>
   )
 }

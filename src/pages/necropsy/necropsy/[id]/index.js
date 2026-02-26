@@ -17,6 +17,20 @@ const NecropsyDetails = () => {
 
   const effectiveTaxonomyId = isSpeciesView ? taxonomy_id || id : null
 
+  const getStatusLabel = () => {
+    switch (status?.toUpperCase()) {
+      case 'PENDING':
+        return 'Pending'
+      case 'DRAFT':
+        return 'Draft'
+      case 'COMPLETED':
+      case 'UNSUITABLE':
+        return 'Completed'
+      default:
+        return 'Pending'
+    }
+  }
+
   return (
     <NecropsyProvider>
       <Box sx={{ p: 4 }}>
@@ -24,11 +38,19 @@ const NecropsyDetails = () => {
           <Breadcrumbs>
             <MuiLink
               component={NextLink}
-              href={isSpeciesView ? `/necropsy/necropsy?status=${status}&tab=species` : `/necropsy/necropsy?status=${status}`}
+              href='/necropsy/necropsy'
               underline='hover'
               color='inherit'
             >
               Necropsy
+            </MuiLink>
+            <MuiLink
+              component={NextLink}
+              href={isSpeciesView ? `/necropsy/necropsy?status=${status}&tab=species` : `/necropsy/necropsy?status=${status}`}
+              underline='hover'
+              color='inherit'
+            >
+              {getStatusLabel()}
             </MuiLink>
             {isSpeciesView ? (
               <Typography color='text.primary' sx={{ fontWeight: 500 }}>
@@ -36,7 +58,7 @@ const NecropsyDetails = () => {
               </Typography>
             ) : (
               <Typography color='text.primary' sx={{ fontWeight: 500 }}>
-                {status === 'COMPLETED' || status === 'UNSUITABLE' ? 'Summary' : 'Details'}
+                Details
               </Typography>
             )}
           </Breadcrumbs>

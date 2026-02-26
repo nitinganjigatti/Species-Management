@@ -16,12 +16,14 @@ import {
   Favorite as CaseTypeIcon,
   Science as LabIcon,
   Lightbulb as AdviceIcon,
-  History as HistoryIcon
+  History as HistoryIcon,
+  ChevronRight as ChevronRightIcon
 } from '@mui/icons-material'
 import { getMedicalRecordDetails } from 'src/lib/api/necropsy/medicalHistory'
 import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import MedicalJournalDrawer from './MedicalJournalDrawer'
+import LabRequestDetailsDrawer from './LabRequestDetailsDrawer'
 import Utility from 'src/utility'
 
 const TAB_ICONS = [
@@ -42,6 +44,8 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
   const [data, setData] = useState(null)
   const [activeTab, setActiveTab] = useState('case_type')
   const [journalDrawerOpen, setJournalDrawerOpen] = useState(false)
+  const [labDetailsDrawerOpen, setLabDetailsDrawerOpen] = useState(false)
+  const [selectedLabRequest, setSelectedLabRequest] = useState(null)
 
   useEffect(() => {
     if (open && medicalRecordId) {
@@ -271,10 +275,26 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
             <SectionHeader icon={LabIcon} title='Lab Test Requests' theme={theme} />
             <Box sx={{ ml: 4 }}>
               {data?.lab?.map((item, idx) => (
-                <LabCard key={idx} item={item} theme={theme} />
+                <LabCard
+                  key={idx}
+                  item={item}
+                  theme={theme}
+                  onClick={() => {
+                    setSelectedLabRequest(item)
+                    setLabDetailsDrawerOpen(true)
+                  }}
+                />
               ))}
               {data?.lab_data?.map((item, idx) => (
-                <LabCard key={`data_${idx}`} item={item} theme={theme} />
+                <LabCard
+                  key={`data_${idx}`}
+                  item={item}
+                  theme={theme}
+                  onClick={() => {
+                    setSelectedLabRequest(item)
+                    setLabDetailsDrawerOpen(true)
+                  }}
+                />
               ))}
             </Box>
           </Box>
@@ -456,30 +476,21 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
             <Box sx={{ p: 3, bgcolor: theme.palette.background.paper }}>
               <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1.5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  {data?.case_type?.default_icon ? (
-                    <Avatar
-                      src={data.case_type.default_icon}
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        bgcolor: data.case_type.color_code || theme.palette.primary.main
-                      }}
-                    />
-                  ) : (
-                    <Box
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: '50%',
-                        bgcolor: theme.palette.success.main,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <CaseTypeIcon sx={{ color: 'white', fontSize: 20 }} />
-                    </Box>
-                  )}
+                  <Avatar
+                    src={data?.case_type?.default_icon || ''}
+                    alt={data?.case_type?.label || 'Case Type'}
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      bgcolor: data?.case_type?.color_code || theme.palette.success.main,
+                      '& img': {
+                        objectFit: 'contain',
+                        p: 1
+                      }
+                    }}
+                  >
+                    <CaseTypeIcon sx={{ color: 'white', fontSize: 20 }} />
+                  </Avatar>
                   <Typography sx={{ fontSize: '18px', fontWeight: 600, color: theme.palette.text.primary }}>
                     {data?.medical_record_code || `MR-${data?.id}`}
                   </Typography>
@@ -561,7 +572,6 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
                 }}
               >
                 {availableTabs.map(tab => {
-                  const Icon = tab.icon
                   const isActive = activeTab === tab.id
 
                   return (
@@ -570,10 +580,10 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
                       onClick={() => setActiveTab(tab.id)}
                       sx={{
                         flex: '1 0 auto',
-                        minWidth: 60,
-                        py: 2,
+                        minWidth: 'auto',
+                        px: 2,
+                        py: 1.5,
                         display: 'flex',
-                        flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
                         cursor: 'pointer',
@@ -584,12 +594,16 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
                         }
                       }}
                     >
-                      <Icon
+                      <Typography
                         sx={{
-                          fontSize: 22,
-                          color: isActive ? theme.palette.primary.main : theme.palette.text.secondary
+                          fontSize: '13px',
+                          fontWeight: isActive ? 600 : 500,
+                          color: isActive ? theme.palette.primary.main : theme.palette.text.secondary,
+                          whiteSpace: 'nowrap'
                         }}
-                      />
+                      >
+                        {tab.label}
+                      </Typography>
                     </Box>
                   )
                 })}
@@ -606,6 +620,15 @@ const MedicalRecordDetailDrawer = ({ open, onClose, medicalRecordId }) => {
         onClose={() => setJournalDrawerOpen(false)}
         animalId={animalData?.animal_id}
         medicalRecordId={medicalRecordId}
+      />
+
+      <LabRequestDetailsDrawer
+        open={labDetailsDrawerOpen}
+        onClose={() => {
+          setLabDetailsDrawerOpen(false)
+          setSelectedLabRequest(null)
+        }}
+        requestGuid={selectedLabRequest?.request_guid || selectedLabRequest?.requestGuid}
       />
     </Drawer>
   )
@@ -820,34 +843,68 @@ const PrescriptionCard = ({ item, theme, isStopped }) => (
   </Box>
 )
 
-const LabCard = ({ item, theme }) => (
-  <Box
-    sx={{
-      mb: 2,
-      p: 2,
-      borderRadius: 1,
-      bgcolor: theme.palette.background.paper,
-      border: `1px solid ${theme.palette.divider}`
-    }}
-  >
-    <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>{item.test_name || item.name || 'Lab Test'}</Typography>
-    {item.status && (
-      <Chip
-        label={item.status}
-        size='small'
+const LabCard = ({ item, theme, onClick }) => {
+  const labCode = item?.lab_code || item?.request_code || item?.code || 'Lab Test'
+  const requestDate = item?.requested_on || item?.created_at || item?.date
+
+  return (
+    <Box
+      onClick={onClick}
+      sx={{
+        mb: 2,
+        p: 2,
+        borderRadius: 1,
+        bgcolor: theme.palette.background.paper,
+        border: `1px solid ${theme.palette.divider}`,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        cursor: onClick ? 'pointer' : 'default',
+        transition: 'all 0.2s ease',
+        '&:hover': onClick
+          ? {
+              bgcolor: alpha(theme.palette.primary.main, 0.04),
+              borderColor: theme.palette.primary.main
+            }
+          : {}
+      }}
+    >
+      <Box
         sx={{
-          mt: 1,
-          fontSize: '11px',
-          height: 20,
-          bgcolor:
-            item.status?.toLowerCase() === 'completed'
-              ? alpha(theme.palette.success.main, 0.12)
-              : alpha(theme.palette.warning.main, 0.12),
-          color: item.status?.toLowerCase() === 'completed' ? theme.palette.success.main : theme.palette.warning.main
+          width: 40,
+          height: 40,
+          borderRadius: '50%',
+          bgcolor: alpha(theme.palette.info.main, 0.12),
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0
         }}
-      />
-    )}
-  </Box>
-)
+      >
+        <LabIcon sx={{ fontSize: 22, color: theme.palette.info.main }} />
+      </Box>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography
+          sx={{
+            fontSize: '14px',
+            fontWeight: 500,
+            color: theme.palette.text.primary,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          Lab Test - {labCode}
+        </Typography>
+        {requestDate && (
+          <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary, mt: 0.25 }}>
+            Requested on: {Utility.convertUtcToLocalReadableDate(requestDate)}
+          </Typography>
+        )}
+      </Box>
+      {onClick && <ChevronRightIcon sx={{ fontSize: 22, color: theme.palette.text.secondary, flexShrink: 0 }} />}
+    </Box>
+  )
+}
 
 export default MedicalRecordDetailDrawer

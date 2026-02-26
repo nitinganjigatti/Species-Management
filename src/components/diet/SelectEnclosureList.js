@@ -330,7 +330,7 @@ const SelectEnclosureList = ({
                       /> */}
                         <FallbackAvatar
                           src={enclosure?.default_icon}
-                          fallback='/images/housing/site-icon-colored.svg'
+                          fallback='/images/housing/enclosure-icon-colored.svg'
                           variant='rounded'
                           sx={{
                             backgroundColor: theme.palette.customColors.displaybgPrimary,

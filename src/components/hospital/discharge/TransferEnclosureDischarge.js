@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext, useMemo } from 'react'
 import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
 import { useRouter } from 'next/router'
@@ -125,31 +125,57 @@ function TransferEnclosureDischarge(initialData) {
     }
   }
 
-  const debouncedFetchSites = useCallback(
-    debounce(q => fetchSites(q), 500),
-    []
-  )
+  const debouncedFetchSites = useMemo(() => debounce(q => fetchSites(q), 500), [])
 
-  const debouncedFetchSections = useCallback(
-    debounce((siteId, q) => fetchSections(siteId, q), 500),
-    []
-  )
+  const debouncedFetchSections = useMemo(() => debounce((siteId, q) => fetchSections(siteId, q), 500), [])
 
-  const debouncedFetchEnclosures = useCallback(
-    debounce((sectionId, q) => fetchEnclosures(sectionId, q), 500),
-    []
-  )
+  const debouncedFetchEnclosures = useMemo(() => debounce((sectionId, q) => fetchEnclosures(sectionId, q), 500), [])
 
   useEffect(() => {
-    setFetchLoading(true)
-    fetchSites('').finally(() => setFetchLoading(false))
+    const saved = sessionStorage.getItem('transfer_enclosure_form')
 
-    if (initialData?.site_id) {
-      fetchSections(initialData.site_id)
+    let siteId = null
+    let siteLabel = ''
+
+    let sectionId = null
+    let sectionLabel = ''
+
+    let enclosureId = null
+    let enclosureLabel = ''
+
+    if (saved) {
+      const parsed = JSON.parse(saved)
+
+      siteId = parsed?.site_name?.value || null
+      siteLabel = parsed?.site_name?.label || ''
+
+      sectionId = parsed?.section_name?.value || null
+      sectionLabel = parsed?.section_name?.label || ''
+
+      enclosureId = parsed?.user_enclosure_name?.value || null
+      enclosureLabel = parsed?.user_enclosure_name?.label || ''
+    } else if (initialData) {
+      siteId = initialData?.site_id || null
+      siteLabel = initialData?.site_name || ''
+
+      sectionId = initialData?.section_id || null
+      sectionLabel = initialData?.section_name || ''
+
+      enclosureId = initialData?.user_enclosure_id || null
+      enclosureLabel = initialData?.user_enclosure_name || ''
     }
 
-    if (initialData?.section_id) {
-      fetchEnclosures(initialData.section_id)
+    if (!siteId) {
+      fetchSites('')
+
+      return
+    }
+
+    fetchSites(siteLabel)
+    fetchSections(siteId, sectionLabel || '')
+
+    if (sectionId) {
+      fetchEnclosures(sectionId, enclosureLabel || '')
     }
 
     return () => {
@@ -157,7 +183,7 @@ function TransferEnclosureDischarge(initialData) {
       debouncedFetchSections.cancel()
       debouncedFetchEnclosures.cancel()
     }
-  }, [initialData, debouncedFetchSites, debouncedFetchSections, debouncedFetchEnclosures])
+  }, [initialData])
 
   const clearSections = () => {
     setSections([])

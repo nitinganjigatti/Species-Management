@@ -1,24 +1,15 @@
 import React from 'react'
-import { Box, Card, CardContent, Typography, Grid, Divider, Chip, Avatar, Tooltip, useTheme } from '@mui/material'
+import { Box, Card, CardContent, Typography, Grid, useTheme, alpha, styled } from '@mui/material'
 import Utility from 'src/utility'
+import FilePreviewCard from 'src/views/utility/NewMediaCard'
+import moment from 'moment'
 
-const NecropsySummaryContent = ({ necropsyData, mortalityData, actionButtons }) => {
+const NecropsySummaryContent = ({ necropsyData, mortalityData }) => {
   const theme = useTheme()
 
   if (!necropsyData) return null
 
-  const isUnsuitable = necropsyData.is_unsuitable === '1' || necropsyData.is_unsuitable === 1
-
-  const labelColor = theme.palette.customColors?.secondaryBg || theme.palette.text.secondary
-  const valueColor = theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
-  const borderColor = theme.palette.customColors?.OutlineVariant || theme.palette.divider
-
-  const sectionTitleSx = {
-    fontSize: '16px',
-    fontWeight: 600,
-    color: valueColor,
-    mb: 3
-  }
+  const isUnsuitable = necropsyData.is_unsuitable === '1'
 
   const formatDate = date => {
     if (!date) return 'N/A'
@@ -40,479 +31,378 @@ const NecropsySummaryContent = ({ necropsyData, mortalityData, actionButtons }) 
     return Utility.extractHoursAndMinutes(time)
   }
 
-  const getAgeDisplay = () => {
-    if (!necropsyData.age) return 'N/A'
-    const approx = necropsyData.approximate_dob ? ' (Approximate)' : ''
+  const getYMD = (startDate, endDate) => {
+    const start = moment(startDate).startOf('day')
+    const end = moment(endDate).startOf('day')
 
-    return `${necropsyData.age} ${necropsyData.age_unit || ''}${approx}`
+    let year = end.diff(start, 'years')
+    start.add(year, 'years')
+
+    let month = end.diff(start, 'months')
+    start.add(month, 'months')
+
+    let day = end.diff(start, 'days')
+
+    return { year, month, day }
+  }
+
+  const getDateDifference = (startDate, endDate) => {
+    const { year, month, day } = getYMD(startDate, endDate)
+
+    const parts = []
+
+    if (year > 0) parts.push(`${year} Year${year > 1 ? 's' : ''}`)
+    if (month > 0) parts.push(`${month} Month${month > 1 ? 's' : ''}`)
+    if (day > 0) parts.push(`${day} Day${day > 1 ? 's' : ''}`)
+
+    return parts.length > 0 ? parts.join(' ') : '--'
+  }
+
+  const getDOBObject = (dateObj = null) => {
+    const { day, month, year, week } = dateObj || {}
+    if (day || month || year || week) {
+      const discoveredDate = mortalityData?.discovered_date || necropsyData?.death_date
+      if (!discoveredDate) return null
+
+      const endDate = moment(Utility.convertUTCToLocal(discoveredDate))
+
+      let updatedDate = endDate.clone()
+
+      if (year) {
+        updatedDate = updatedDate.subtract(year, 'years')
+      }
+      if (month) {
+        updatedDate = updatedDate.subtract(month, 'months')
+      }
+      if (week) {
+        updatedDate = updatedDate.subtract(week, 'weeks')
+      }
+      if (day) {
+        updatedDate = updatedDate.subtract(day, 'days')
+      }
+
+      return updatedDate.toDate()
+    }
+
+    return null
+  }
+
+  const getAgeDisplay = () => {
+    if (!necropsyData.age) return '--'
+
+    const approx = necropsyData.approximate_dob === '1' ? ' (Approximate)' : ''
+    const ageUnit = necropsyData.age_unit || 'day'
+
+    const dob = getDOBObject({ [ageUnit]: necropsyData.age })
+    if (!dob) {
+      return `${necropsyData.age} ${ageUnit}${approx}`
+    }
+
+    const discoveredDate = mortalityData?.discovered_date || necropsyData?.death_date
+    if (!discoveredDate) {
+      return `${necropsyData.age} ${ageUnit}${approx}`
+    }
+
+    const formattedAge = getDateDifference(dob, moment(Utility.convertUTCToLocal(discoveredDate)))
+
+    return `${formattedAge}${approx}`
   }
 
   const getSexDisplay = () => {
     const sex = necropsyData.sex
-    if (!sex) return 'N/A'
+    if (!sex) return '--'
 
     return sex.charAt(0).toUpperCase() + sex.slice(1)
   }
 
-  const AlignedFields = ({ items }) => {
-    const mid = Math.ceil(items.length / 2)
-    const left = items.slice(0, mid)
-    const right = items.slice(mid)
-
-    const renderHalf = (fields, showBorder) => (
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'stretch',
-          borderRight: showBorder ? { md: `1px solid ${borderColor}` } : 'none',
-          pr: showBorder ? { md: 5, xs: 1 } : { md: 10, xs: 2 },
-          mr: showBorder ? { md: 5, xs: 1 } : 0,
-          pl: { xs: 0, sm: 4 },
-          py: 1,
-          height: '100%',
-          gap: { lg: '60px', xs: '30px' }
-        }}
-      >
-        <Box sx={{ width: '180px', minWidth: '180px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {fields.map((item, index) => (
-            <Tooltip key={index} title={item.label || ''}>
-              <Typography
-                sx={{
-                  color: labelColor,
-                  fontWeight: 400,
-                  fontSize: '14px',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {item.label}
-              </Typography>
-            </Tooltip>
-          ))}
-        </Box>
-        <Box
-          sx={{
-            flex: 1,
-            minWidth: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2,
-            alignItems: 'start'
-          }}
-        >
-          {fields.map((item, index) => (
-            <Tooltip key={index} title={item.value || 'N/A'}>
-              <Typography
-                sx={{
-                  width: '100%',
-                  color: valueColor,
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden'
-                }}
-              >
-                {item.value || 'N/A'}
-              </Typography>
-            </Tooltip>
-          ))}
-        </Box>
-      </Box>
-    )
-
-    return (
-      <Grid container rowGap={1} spacing={0} alignItems='stretch'>
-        <Grid item size={{ xs: 12, md: 6 }}>
-          {renderHalf(left, true)}
-        </Grid>
-        {right.length > 0 && (
-          <Grid item size={{ xs: 12, md: 6 }}>
-            {renderHalf(right, false)}
-          </Grid>
-        )}
-      </Grid>
-    )
-  }
-
   return (
-    <Card>
-      <CardContent sx={{ p: { xs: 3, sm: 6 }, '&:last-child': { pb: { xs: 3, sm: 6 } } }}>
-        <Box
-          sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}
-        >
-          <Box>
-            <Typography sx={sectionTitleSx}>Necropsy Suitability</Typography>
-            <Chip
-              label={isUnsuitable ? 'Unsuitable for Necropsy' : 'Suitable for Necropsy'}
-              color={isUnsuitable ? 'error' : 'success'}
-              variant='outlined'
-              sx={{ fontWeight: 600 }}
-            />
-          </Box>
-          {actionButtons}
-        </Box>
-        {isUnsuitable && necropsyData.reason_for_unsuitable && (
-          <Box sx={{ mt: 2, pl: { xs: 0, sm: 4 } }}>
-            <Typography sx={{ color: labelColor, fontWeight: 400, fontSize: '14px' }}>Reason</Typography>
-            <Typography sx={{ color: valueColor, fontWeight: 500, fontSize: '14px', mt: 0.5, whiteSpace: 'pre-wrap' }}>
-              {necropsyData.reason_for_unsuitable}
-            </Typography>
-          </Box>
-        )}
-
-        <Divider sx={{ my: 5 }} />
-
-        <Typography sx={sectionTitleSx}>Carcass Details</Typography>
-        <AlignedFields
-          items={[
-            { label: 'Submission Date', value: formatDate(necropsyData.caracass_submission_date) },
-            { label: 'Submission Time', value: formatTime(necropsyData.caracass_submission_time) },
-            { label: 'Date of Death', value: formatDate(necropsyData.death_date) },
-            { label: 'Time of Death', value: formatTime(necropsyData.death_time) },
-            { label: 'Place of Death', value: necropsyData.place_of_death },
-            {
-              label: 'Carcass Weight',
-              value: necropsyData.carcass_weight
-                ? `${necropsyData.carcass_weight} ${
-                    necropsyData.carcass_weight_unit_name || necropsyData.carcass_weight_uom || ''
-                  }${necropsyData.approximate_weight ? ' (Approx.)' : ''}`
-                : null
-            },
-            { label: 'Confirmed Sex', value: getSexDisplay() },
-            { label: 'Age', value: getAgeDisplay() }
-          ]}
-        />
-
-        {necropsyData.history_of_illness && (
-          <>
-            <Divider sx={{ my: 5 }} />
-            <Typography sx={sectionTitleSx}>Clinical History</Typography>
-            <Box
-              sx={{
-                p: 3,
-                borderRadius: 1,
-                bgcolor: theme.palette.customColors?.displaybgPrimary || theme.palette.grey[50]
-              }}
-            >
-              <Typography
+    <>
+      <Box>
+        <Card sx={{ mt: 6 }}>
+          <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <Box
                 sx={{
-                  fontSize: '14px',
-                  fontWeight: 400,
-                  color: valueColor,
-                  whiteSpace: 'pre-wrap',
-                  lineHeight: 1.6
+                  px: 6,
+                  py: 3,
+                  borderRadius: 1,
+                  width: 'fit-content',
+                  backgroundColor: isUnsuitable
+                    ? theme.palette.customColors.Tertiary20
+                    : alpha(theme.palette.customColors.PrimaryContainer, 0.16)
                 }}
               >
-                {necropsyData.history_of_illness}
-              </Typography>
-            </Box>
-          </>
-        )}
-
-        <Divider sx={{ my: 5 }} />
-
-        <Typography sx={sectionTitleSx}>Necropsy Details</Typography>
-        <Grid container spacing={0} alignItems='stretch'>
-          <Grid item size={{ xs: 12, md: 6 }}>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderRight: { md: `1px solid ${borderColor}` },
-                pr: { md: 5, xs: 1 },
-                pl: { xs: 0, sm: 4 },
-                py: 1,
-                gap: { lg: '60px', xs: '30px' }
-              }}
-            >
-              <Typography
-                sx={{
-                  width: '180px',
-                  minWidth: '180px',
-                  color: labelColor,
-                  fontWeight: 400,
-                  fontSize: '14px'
-                }}
-              >
-                Necropsy Date
-              </Typography>
-              <Typography
-                sx={{
-                  color: valueColor,
-                  fontWeight: 500,
-                  fontSize: '14px'
-                }}
-              >
-                {formatDate(necropsyData.necropsy_date)}
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item size={{ xs: 12, md: 6 }}>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                pl: { xs: 0, sm: 4, md: 5 },
-                py: 1,
-                gap: { lg: '60px', xs: '30px' }
-              }}
-            >
-              <Typography
-                sx={{
-                  width: '180px',
-                  minWidth: '180px',
-                  color: labelColor,
-                  fontWeight: 400,
-                  fontSize: '14px'
-                }}
-              >
-                Necropsy Time
-              </Typography>
-              <Typography
-                sx={{
-                  color: valueColor,
-                  fontWeight: 500,
-                  fontSize: '14px'
-                }}
-              >
-                {formatTime(necropsyData.necropsy_time)}
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
-
-        {necropsyData.general_description && (
-          <Box sx={{ mt: 3 }}>
-            <Typography sx={{ color: labelColor, fontWeight: 400, fontSize: '14px', pl: { xs: 0, sm: 4 }, mb: 1 }}>
-              General Description
-            </Typography>
-            <Box
-              sx={{
-                p: 3,
-                borderRadius: 1,
-                bgcolor: theme.palette.customColors?.displaybgPrimary || theme.palette.grey[50]
-              }}
-            >
-              <Typography
-                sx={{
-                  fontSize: '14px',
-                  fontWeight: 400,
-                  color: valueColor,
-                  whiteSpace: 'pre-wrap',
-                  lineHeight: 1.6
-                }}
-              >
-                {necropsyData.general_description}
-              </Typography>
-            </Box>
-          </Box>
-        )}
-
-        {necropsyData.necropsy_conducted_by?.length > 0 && (
-          <Box sx={{ mt: 3 }}>
-            <Typography sx={{ color: labelColor, fontWeight: 400, fontSize: '14px', pl: { xs: 0, sm: 4 }, mb: 1.5 }}>
-              Necropsy Conducted By
-            </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, pl: { xs: 0, sm: 4 } }}>
-              {necropsyData.necropsy_conducted_by.map((user, index) => (
-                <Chip
-                  key={user.user_id || index}
-                  avatar={<Avatar src={user.user_profile_pic}>{(user.user_name || user.name)?.charAt(0)}</Avatar>}
-                  label={
-                    <Box>
-                      <Typography sx={{ fontWeight: 500, fontSize: '13px', color: valueColor }}>
-                        {user.user_name || user.name}
-                      </Typography>
-                      {(user.role_name || user.role) && (
-                        <Typography sx={{ fontSize: '11px', color: labelColor }}>
-                          {user.role_name || user.role}
-                        </Typography>
-                      )}
-                    </Box>
-                  }
-                  variant='outlined'
+                <Typography
                   sx={{
-                    height: 'auto',
-                    py: 0.5,
-                    '& .MuiChip-label': { display: 'flex', flexDirection: 'column' }
-                  }}
-                />
-              ))}
-            </Box>
-          </Box>
-        )}
-
-        {necropsyData.necropsy_organs?.length > 0 && (
-          <>
-            <Divider sx={{ my: 5 }} />
-            <Typography sx={sectionTitleSx}>Examination Findings</Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {necropsyData.necropsy_organs.map((organ, index) => (
-                <Box
-                  key={organ.id || index}
-                  sx={{
-                    p: 3,
-                    borderRadius: 1,
-                    bgcolor: theme.palette.customColors?.displaybgPrimary || theme.palette.grey[50]
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: isUnsuitable ? theme.palette.customColors.Tertiary : theme.palette.customColors.OnSurface
                   }}
                 >
-                  <Typography sx={{ fontSize: '14px', fontWeight: 600, color: valueColor, mb: 1 }}>
-                    {organ.label}
-                  </Typography>
-                  {organ.parts?.map((part, pIndex) => (
-                    <Box key={part.id || pIndex} sx={{ ml: 2, mb: 1 }}>
-                      {part.organ_name && (
-                        <Typography sx={{ color: labelColor, fontWeight: 400, fontSize: '14px', mb: 0.5 }}>
-                          {part.organ_name}
-                        </Typography>
-                      )}
-                      <Typography sx={{ fontSize: '14px', fontWeight: 400, color: valueColor, whiteSpace: 'pre-wrap' }}>
-                        {part.value || 'No description'}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-              ))}
-            </Box>
-          </>
-        )}
-
-        {necropsyData.attachments?.documents?.length > 0 && (
-          <>
-            <Divider sx={{ my: 5 }} />
-            <Typography sx={sectionTitleSx}>Attachments</Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-              {necropsyData.attachments.documents.map((doc, index) => {
-                const isImage = ['jpeg', 'jpg', 'png', 'gif', 'webp', 'svg'].some(
-                  ext => doc.file?.toLowerCase()?.endsWith(ext) || doc.file_original_name?.toLowerCase()?.endsWith(ext)
-                )
-
-                return (
-                  <Box
-                    key={doc.id || index}
-                    sx={{
-                      width: 100,
-                      height: 100,
-                      borderRadius: 1,
-                      overflow: 'hidden',
-                      border: `1px solid ${theme.palette.divider}`,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      bgcolor: theme.palette.customColors?.displaybgPrimary || theme.palette.grey[50]
-                    }}
-                    onClick={() => doc.file && window.open(doc.file, '_blank')}
-                  >
-                    {isImage ? (
-                      <img
-                        src={doc.file}
-                        alt={doc.file_original_name || 'attachment'}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    ) : (
-                      <Box sx={{ textAlign: 'center', p: 1 }}>
-                        <Typography sx={{ fontSize: '10px', wordBreak: 'break-all', color: valueColor }}>
-                          {doc.file_original_name || doc.file_type || 'File'}
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
-                )
-              })}
-            </Box>
-          </>
-        )}
-
-        <Divider sx={{ my: 5 }} />
-
-        <Typography sx={sectionTitleSx}>Cause of Death</Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pl: { xs: 0, sm: 4 } }}>
-          {[
-            { label: 'Suspected Cause of Death', value: necropsyData.suspected_cause_of_death },
-            { label: 'Confirmed Cause of Death', value: necropsyData.confirmed_cause_of_death },
-            { label: 'Disposal Method', value: necropsyData.disposition || necropsyData.disposal_method },
-            { label: 'Opinion', value: necropsyData.opinion }
-          ].map((item, index) => (
-            <Box
-              key={index}
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                gap: { xs: 2, sm: 4 }
-              }}
-            >
-              <Typography
-                sx={{
-                  width: '200px',
-                  minWidth: '200px',
-                  color: labelColor,
-                  fontWeight: 400,
-                  fontSize: '14px'
-                }}
-              >
-                {item.label}
-              </Typography>
-              <Typography
-                sx={{
-                  flex: 1,
-                  color: valueColor,
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word'
-                }}
-              >
-                {item.value || 'N/A'}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-
-        {(necropsyData.additional_notes || necropsyData.qr_number) && (
-          <>
-            <Divider sx={{ my: 5 }} />
-            <Typography sx={sectionTitleSx}>Additional Information</Typography>
-            {necropsyData.qr_number && (
-              <AlignedFields items={[{ label: 'QR Number', value: necropsyData.qr_number }]} />
-            )}
-            {necropsyData.additional_notes && (
-              <Box sx={{ mt: necropsyData.qr_number ? 3 : 0 }}>
-                <Typography sx={{ color: labelColor, fontWeight: 400, fontSize: '14px', pl: { xs: 0, sm: 4 }, mb: 1 }}>
-                  Additional Notes
+                  {isUnsuitable ? 'Unsuitable for Necropsy' : 'Suitable for Necropsy'}
                 </Typography>
-                <Box
-                  sx={{
-                    p: 3,
-                    borderRadius: 1,
-                    bgcolor: theme.palette.customColors?.displaybgPrimary || theme.palette.grey[50]
-                  }}
+              </Box>
+              {isUnsuitable && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <SubHeaderText>Reason for Unsuitability</SubHeaderText>
+                  <ValueText>{necropsyData.reason_for_unsuitable}</ValueText>
+                </Box>
+              )}
+            </Box>
+            <Grid container spacing={6}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <SubHeaderText>Carcass Submission Date and Time </SubHeaderText>
+                <ValueText>{`${formatDate(necropsyData.caracass_submission_date)}  •  ${formatTime(
+                  necropsyData.caracass_submission_time
+                )}`}</ValueText>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <SubHeaderText>Date and Time of Death </SubHeaderText>
+                <ValueText>{`${formatDate(necropsyData.death_date)}  •  ${formatTime(
+                  necropsyData.death_time
+                )}`}</ValueText>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <SubHeaderText>Place of Death </SubHeaderText>
+                <ValueText>{necropsyData.place_of_death ? necropsyData.place_of_death : '--'}</ValueText>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 12 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <SubHeaderText>QR Number </SubHeaderText>
+                <ValueText>{necropsyData.qr_number ? necropsyData.qr_number : '--'}</ValueText>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <SubHeaderText>Weight </SubHeaderText>
+                <ValueText
+                  sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  <Typography
+                  {Number(necropsyData?.carcass_weight)
+                    ? `${Number(necropsyData.carcass_weight)} ${
+                        necropsyData.carcass_weight_unit_name || necropsyData.carcass_weight_uom || ''
+                      }${necropsyData?.approximate_weight == 1 ? ' (Approx.)' : ''}`
+                    : '--'}
+                </ValueText>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <SubHeaderText>Age </SubHeaderText>
+                <ValueText>{getAgeDisplay()}</ValueText>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Typography
+                  sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.neutralSecondary }}
+                >
+                  Confirmed Sex{' '}
+                </Typography>
+                <Typography
+                  sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  {getSexDisplay()}
+                </Typography>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+        {necropsyData.history_of_illness && (
+          <Card sx={{ mt: 6 }}>
+            <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <HeaderText>Clinical History</HeaderText>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <SubHeaderText>Short History of Illness </SubHeaderText>
+                <ValueText>{necropsyData.history_of_illness}</ValueText>
+              </Box>
+            </CardContent>
+          </Card>
+        )}
+        {(necropsyData.necropsy_organs?.length > 0 || necropsyData.attachments?.documents?.length > 0) && (
+          <Card sx={{ mt: 6 }}>
+            <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {necropsyData.necropsy_organs?.length > 0 && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <HeaderText>Examination Findings</HeaderText>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {necropsyData.necropsy_organs.map((organ, index) => (
+                      <Box
+                        key={organ.id || index}
+                        sx={{
+                          p: 4,
+                          borderRadius: 1,
+                          backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 0.6)
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: '16px',
+                            fontWeight: 600,
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            mb: 2
+                          }}
+                        >
+                          {organ.label}
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          {organ.parts?.map((part, pIndex) => (
+                            <Box key={part.id || pIndex} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                              {part.organ_name && <SubHeaderText>{`${part.organ_name} Description`}</SubHeaderText>}
+                              <Typography
+                                sx={{
+                                  fontSize: '14px',
+                                  fontWeight: 500,
+                                  color: theme.palette.customColors.OnSurfaceVariant,
+                                  whiteSpace: 'pre-wrap'
+                                }}
+                              >
+                                {part.value || 'No description'}
+                              </Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              )}
+              {necropsyData.attachments?.documents?.length > 0 && (
+                <>
+                  <HeaderText>{`Attachments - ${necropsyData.attachments.documents.length}`}</HeaderText>
+                  <Box
                     sx={{
-                      fontSize: '14px',
-                      fontWeight: 400,
-                      color: valueColor,
-                      whiteSpace: 'pre-wrap',
-                      lineHeight: 1.6
+                      display: 'flex',
+                      gap: 4,
+                      overflowX: 'auto',
+                      width: '100%',
+                      pb: 2,
+                      '&::-webkit-scrollbar': {
+                        height: 6
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: theme.palette.divider,
+                        borderRadius: 3
+                      }
                     }}
                   >
-                    {necropsyData.additional_notes}
-                  </Typography>
+                    {necropsyData.attachments.documents.map((doc, index) => (
+                      <Box key={doc.id || index} sx={{ flexShrink: 0 }}>
+                        <FilePreviewCard
+                          fileUrl={doc.file}
+                          fileName={doc.file_original_name}
+                          fileType={doc.file_type}
+                          user={{
+                            created_at: necropsyData.modified_at || necropsyData.created_at,
+                            user_profile: {
+                              user_full_name: doc.user_profile?.name,
+                              user_profile_pic: doc.user_profile?.user_profile_pic
+                            }
+                          }}
+                          width='220px'
+                          height='220px'
+                          showTitle
+                        />
+                      </Box>
+                    ))}
+                  </Box>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <Card sx={{ mt: 6 }}>
+          <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <HeaderText>Conclusion</HeaderText>
+            <Grid container spacing={4}>
+              <Grid size={{ xs: 12 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <SubHeaderText>Suspected Cause of Death</SubHeaderText>
+                <ValueText>
+                  {necropsyData.suspected_cause_of_death ? necropsyData.suspected_cause_of_death : '--'}
+                </ValueText>
+              </Grid>
+              <Grid size={{ xs: 12 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <SubHeaderText>{`Opinion (Cause Of Death)`}</SubHeaderText>
+                <ValueText>{necropsyData.opinion ? necropsyData.opinion : '--'}</ValueText>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <SubHeaderText>Dispposal Method</SubHeaderText>
+                <ValueText>
+                  {necropsyData.disposition || necropsyData.disposal_method
+                    ? necropsyData.disposition || necropsyData.disposal_method
+                    : '--'}
+                </ValueText>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 12, md: 8 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <SubHeaderText>Confirmed Cause of Death</SubHeaderText>
+                <ValueText>
+                  {necropsyData.confirmed_cause_of_death ? necropsyData.confirmed_cause_of_death : '--'}
+                </ValueText>
+              </Grid>
+            </Grid>
+            {necropsyData?.biological_test && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <Typography
+                  sx={{ fontSize: '16px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  Additional Information
+                </Typography>
+                <Box>
+                  <SubHeaderText>{`Biological Tests ( if any)`}</SubHeaderText>
+                  <ValueText>{necropsyData?.biological_test}</ValueText>
                 </Box>
               </Box>
             )}
-          </>
+            <Grid container spacing={4}>
+              <Grid size={{ xs: 12 }}>
+                <Typography
+                  sx={{ fontSize: '16px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  Necropsy Details
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <SubHeaderText>Necropsy Date and Time </SubHeaderText>
+                <ValueText>{`${formatDate(necropsyData.necropsy_date)} • ${formatTime(
+                  necropsyData.necropsy_time
+                )}`}</ValueText>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 12, md: 8 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <SubHeaderText>Pathologist</SubHeaderText>
+                <ValueText>
+                  {necropsyData.necropsy_conducted_by?.length > 0
+                    ? necropsyData.necropsy_conducted_by.map(user => user.user_name || user.name).join(', ')
+                    : '--'}
+                </ValueText>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+        {necropsyData?.additional_notes && (
+          <Card sx={{ mt: 6 }}>
+            <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <HeaderText>Additional notes</HeaderText>
+              <Box sx={{ p: 4, backgroundColor: theme.palette.customColors.antzNotes, borderRadius: 1 }}>
+                <ValueText>{necropsyData.additional_notes}</ValueText>
+              </Box>
+            </CardContent>
+          </Card>
         )}
-      </CardContent>
-    </Card>
+      </Box>
+    </>
   )
 }
+
+const HeaderText = styled(Typography)(({ theme }) => ({
+  fontSize: '20px',
+  fontWeight: 500,
+  color: theme.palette.customColors.OnSurfaceVariant
+}))
+
+const SubHeaderText = styled(Typography)(({ theme }) => ({
+  fontSize: '14px',
+  fontWeight: 400,
+  color: theme.palette.customColors.neutralSecondary
+}))
+
+const ValueText = styled(Typography)(({ theme }) => ({
+  fontSize: '16px',
+  fontWeight: 500,
+  color: theme.palette.customColors.OnSurfaceVariant
+}))
 
 export default NecropsySummaryContent

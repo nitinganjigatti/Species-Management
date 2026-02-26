@@ -37,7 +37,7 @@ const SignedMediaPlayer = ({
 
       return objectUrl
     } catch (error) {
-      console.error('Failed to load media:', error)
+      console.error('Failed to load media:', error?.message)
       onError?.(error)
 
       return null
@@ -86,9 +86,11 @@ const SignedMediaPlayer = ({
       {type === 'video' ? (
         <video {...commonProps} playsInline={playsInline} onCanPlay={() => onLoad?.()} />
       ) : isSafari ? (
+
         // Safari → blob audio
         (<audio {...commonProps} onCanPlay={() => onLoad?.()} />)
       ) : (
+
         // Chrome / others → direct URL audio
         (<audio
           src={src}

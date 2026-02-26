@@ -135,9 +135,11 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       field: 'preparation_type',
       headerName: 'PREPARATION TYPE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} title={params.row.preparation_type}>
-          {params.row.preparation_type ? params.row.preparation_type : '-'}
-        </Typography>
+        <Tooltip title={params?.row?.preparation_type} arrow placement='bottom-start'>
+          <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} className='text_overflow_moduled'>
+            {params.row.preparation_type ? params.row.preparation_type : '-'}
+          </Typography>
+        </Tooltip>
       )
     }
   ]

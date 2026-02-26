@@ -481,7 +481,7 @@ export default function ScheduleMedicine({
                     sx={commonFieldStyles}
                     size='large'
                     required
-                    maxDecimals={2}
+                    maxDecimals={4}
                   />
                 </Grid>
 
