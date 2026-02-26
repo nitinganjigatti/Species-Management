@@ -8,7 +8,7 @@ import CardContent from '@mui/material/CardContent'
 import InputAdornment from '@mui/material/InputAdornment'
 
 // ** Third Party Imports
-import format from 'date-fns/format'
+import { format } from 'date-fns/format'
 import { Bar } from 'react-chartjs-2'
 import DatePicker from 'react-datepicker'
 import OptionsMenu from 'src/@core/components/option-menu'
