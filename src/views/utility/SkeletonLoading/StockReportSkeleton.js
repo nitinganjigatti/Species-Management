@@ -2,10 +2,18 @@ import { Skeleton } from '@mui/material'
 import { Grid } from '@mui/system'
 import CommonTableSkeleton from './CommonTableSkeleton'
 
-function StockReportSkeleton({ StockReport, Escrow, LowStock, ExpiredProducts, AboutToExpire, length = 5 }) {
+function StockReportSkeleton({
+  StockReport,
+  Escrow,
+  LowStock,
+  ExpiredProducts,
+  AboutToExpire,
+  length = 5,
+  selectedPharmacy
+}) {
   return (
     <Grid sx={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px' }}>
-      <Grid sx={{ marginBottom: '20px' }}>
+      <Grid sx={{ marginBottom: '14px' }}>
         <Skeleton width={220} height={50} />
       </Grid>
       <Grid container>
@@ -29,7 +37,10 @@ function StockReportSkeleton({ StockReport, Escrow, LowStock, ExpiredProducts, A
               alignItems: 'center'
             }}
           >
-            {(StockReport || AboutToExpire || ExpiredProducts || Escrow) && (
+            {((StockReport && selectedPharmacy.type === 'central') ||
+              (AboutToExpire && selectedPharmacy.type === 'central') ||
+              (ExpiredProducts && selectedPharmacy.type === 'central') ||
+              Escrow) && (
               <Grid size={{ xs: ExpiredProducts ? 10 : 12, sm: Escrow ? 8 : ExpiredProducts ? 11 : 12, md: 4 }}>
                 <Skeleton variant='rounded' width={'100%'} height={'40px'} />
               </Grid>

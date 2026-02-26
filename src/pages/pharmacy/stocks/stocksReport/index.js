@@ -853,7 +853,7 @@ const ListOfStocks = () => {
           >
             <TabPanel value='1'>
               {PageLoading ? (
-                <StockReportSkeleton StockReport />
+                <StockReportSkeleton StockReport selectedPharmacy={selectedPharmacy} />
               ) : (
                 <>
                   {show && (

@@ -182,8 +182,9 @@ const StoreWiseNewRequests = () => {
               pagination={false}
               hideFooter
               sx={{
-                '& .MuiDataGrid-row:last-of-type': {
-                  borderBottom: '1px solid rgba(224, 224, 224, 1)'
+                '& .MuiDataGrid-main': {
+                  border: '1px solid rgba(224, 224, 224, 1)',
+                  borderRadius: '8px'
                 }
               }}
             />

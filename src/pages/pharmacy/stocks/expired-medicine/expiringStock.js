@@ -333,7 +333,7 @@ const ExpiringMedicine = () => {
   return (
     <>
       {loader ? (
-        <StockReportSkeleton AboutToExpire />
+        <StockReportSkeleton AboutToExpire selectedPharmacy={selectedPharmacy} />
       ) : (
         <>
           <PageCardLayout title={'About To Expire'}>
