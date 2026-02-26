@@ -10,10 +10,11 @@ import {
   Tooltip,
   MenuItem,
   IconButton,
-  CircularProgress
+  CircularProgress,
+  Tabs,
+  Tab
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
-import { differenceInDays } from 'date-fns'
 import { debounce, set } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
@@ -33,7 +34,7 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
 import { getPatientDischargeSummary } from 'src/lib/api/hospital/inpatient'
-import Toaster from 'src/components/Toaster'
+import { extractTextFromHtml } from 'src/utility'
 
 const HospitalDischarged = () => {
   const theme = useTheme()
@@ -47,6 +48,16 @@ const HospitalDischarged = () => {
   const [filterCount, setFilterCount] = useState(0)
   const [filterDate, setFilterDate] = useState({})
   const [downloadingRowId, setDownloadingRowId] = useState(null)
+  const [rows, setRows] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [selectedDischargeType, setSelectedDischargeType] = useState('')
+
+  const dischargeTabs = [
+    { label: 'All', value: '' },
+    { label: 'Inpatient', value: 'inpatient' },
+    { label: 'Outpatient', value: 'opd' }
+  ]
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -86,10 +97,13 @@ const HospitalDischarged = () => {
     return new Date(dateString).toISOString().split('T')[0]
   }
 
-  const { data, isFetching, refetch } = useQuery({
-    queryKey: ['outpatients-listings', filters, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions],
-    queryFn: () =>
-      getIncomingPatients({
+  const fetchDischargedPatients = async () => {
+    if (!selectedHospital?.id) return
+
+    try {
+      setLoading(true)
+
+      const res = await getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
         q: filters?.q,
@@ -99,17 +113,56 @@ const HospitalDischarged = () => {
         from_date: formatDate(filterDate.startDate),
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('Chief Veterinarian'),
-        origin_site: prepareFilterParams('Origin Site')
-      }),
-    enabled: !!selectedHospital?.id
-  })
+        origin_site: prepareFilterParams('Origin Site'),
+        discharge_treatment_type: selectedDischargeType || undefined
+      })
 
-  const total = data?.data?.total || 0
-  const rows = data?.data?.records || []
+      setRows(res?.data?.records || [])
+      setTotal(res?.data?.total || 0)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    refetch()
-  }, [refetch])
+    fetchDischargedPatients()
+  }, [
+    filters?.page,
+    filters?.limit,
+    filters?.q,
+    selectedVisitType,
+    selectedHospital?.id,
+    filterDate,
+    selectedOptions,
+    selectedDischargeType
+  ])
+
+  // const { data, isFetching, refetch } = useQuery({
+  //   queryKey: ['outpatients-listings', filters, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions],
+  //   queryFn: () =>
+  //     getIncomingPatients({
+  //       page_no: filters?.page,
+  //       limit: filters?.limit,
+  //       q: filters?.q,
+  //       hospital_id: selectedHospital?.id,
+  //       visit_type: selectedVisitType,
+  //       patient_category: 'discharge',
+  //       from_date: formatDate(filterDate.startDate),
+  //       to_date: formatDate(filterDate.endDate),
+  //       users: prepareFilterParams('Chief Veterinarian'),
+  //       origin_site: prepareFilterParams('Origin Site')
+  //     }),
+  //   enabled: !!selectedHospital?.id
+  // })
+
+  // const total = data?.data?.total || 0
+  // const rows = data?.data?.records || []
+
+  // useEffect(() => {
+  //   refetch()
+  // }, [refetch])
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -247,15 +300,7 @@ const HospitalDischarged = () => {
       headerName: 'Discharge Summary',
       renderCell: params => (
         <>
-          <Tooltip
-            title={
-              <span
-                dangerouslySetInnerHTML={{
-                  __html: params?.row?.notes || 'NA'
-                }}
-              />
-            }
-          >
+          <Tooltip title={extractTextFromHtml(params?.row?.discharge_reason || 'NA')}>
             <Box
               sx={{
                 fontSize: '14px',
@@ -267,13 +312,11 @@ const HospitalDischarged = () => {
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                whiteSpace: 'normal',
-                py: 4
+                whiteSpace: 'normal'
               }}
-              dangerouslySetInnerHTML={{
-                __html: params?.row?.discharge_reason || 'NA'
-              }}
-            />
+            >
+              {extractTextFromHtml(params?.row?.discharge_reason || 'NA')}
+            </Box>
           </Tooltip>
         </>
       )
@@ -482,6 +525,29 @@ const HospitalDischarged = () => {
                 />
               </Box>
             </Box>
+            <Box sx={{ px: 5, mb: 2, borderBottom: 1, borderColor: 'divider' }}>
+              <Tabs
+                value={selectedDischargeType}
+                onChange={(e, newValue) => {
+                  setSelectedDischargeType(newValue)
+                  setFilters(prev => ({ ...prev, page: 1 }))
+                }}
+                aria-label='discharge treatment type tabs'
+                sx={{
+                  '& .MuiTab-root': {
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    fontSize: '14px',
+                    minWidth: 'auto',
+                    px: 4
+                  }
+                }}
+              >
+                {dischargeTabs.map(tab => (
+                  <Tab key={tab.value} label={tab.label} value={tab.value} />
+                ))}
+              </Tabs>
+            </Box>
             <Grid
               sx={{
                 mx: { xs: 5 }
@@ -491,7 +557,7 @@ const HospitalDischarged = () => {
                 columns={columns}
                 indexedRows={indexedRows}
                 total={total}
-                loading={isFetching}
+                loading={loading}
                 paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
                 setPaginationModel={handlePaginationModelChange}
                 searchValue=''

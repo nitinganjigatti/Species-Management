@@ -47,6 +47,9 @@ const HospitalFollowUp = () => {
   const [filterDate, setFilterDate] = useState({})
   const [downloadingRowId, setDownloadingRowId] = useState(null)
   const [activeTab, setActiveTab] = useState(0)
+  const [rows, setRows] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -86,37 +89,68 @@ const HospitalFollowUp = () => {
     return new Date(dateString).toISOString().split('T')[0]
   }
 
-  const { data, isFetching, refetch } = useQuery({
-    queryKey: [
-      'patients-discharge-follow-up-listings',
-      filters,
-      selectedHospital?.id,
-      filterDate,
-      selectedOptions,
-      activeTab
-    ],
-    queryFn: () =>
-      getFollowUpPatientsListings({
+  const fetchFollowUpPatients = async () => {
+    if (!selectedHospital?.id) return
+
+    try {
+      setLoading(true)
+
+      const res = await getFollowUpPatientsListings({
         page_no: filters?.page,
         limit: filters?.limit,
         q: filters?.q,
-        hospital_id: 1,
         hospital_id: selectedHospital?.id,
         from_date: formatDate(filterDate.startDate),
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('Chief Veterinarian'),
         origin_site: prepareFilterParams('Origin Site'),
         due_days_crossed: activeTab
-      }),
-    enabled: !!selectedHospital?.id
-  })
+      })
 
-  const total = data?.data?.total_records || 0
-  const rows = data?.data?.records || []
+      setRows(res?.data?.records || [])
+      setTotal(res?.data?.total_records || 0)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    refetch()
-  }, [refetch])
+    fetchFollowUpPatients()
+  }, [filters?.page, filters?.limit, filters?.q, selectedHospital?.id, filterDate, selectedOptions, activeTab])
+
+  // const { data, isFetching, refetch } = useQuery({
+  //   queryKey: [
+  //     'patients-discharge-follow-up-listings',
+  //     filters,
+  //     selectedHospital?.id,
+  //     filterDate,
+  //     selectedOptions,
+  //     activeTab
+  //   ],
+  //   queryFn: () =>
+  //     getFollowUpPatientsListings({
+  //       page_no: filters?.page,
+  //       limit: filters?.limit,
+  //       q: filters?.q,
+  //       hospital_id: 1,
+  //       hospital_id: selectedHospital?.id,
+  //       from_date: formatDate(filterDate.startDate),
+  //       to_date: formatDate(filterDate.endDate),
+  //       users: prepareFilterParams('Chief Veterinarian'),
+  //       origin_site: prepareFilterParams('Origin Site'),
+  //       due_days_crossed: activeTab
+  //     }),
+  //   enabled: !!selectedHospital?.id
+  // })
+
+  // const total = data?.data?.total_records || 0
+  // const rows = data?.data?.records || []
+
+  // useEffect(() => {
+  //   refetch()
+  // }, [refetch])
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -319,7 +353,7 @@ const HospitalFollowUp = () => {
       renderCell: params => {
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.due_in_days} {params?.row?.due_in_days > 1 ? 'Days' : 'Day'}
+            {params?.row?.due_in_days}
           </Typography>
         )
       }
@@ -482,7 +516,7 @@ const HospitalFollowUp = () => {
                 columns={columns}
                 indexedRows={indexedRows}
                 total={total}
-                loading={isFetching}
+                loading={loading}
                 paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
                 setPaginationModel={handlePaginationModelChange}
                 searchValue=''

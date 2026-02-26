@@ -50,8 +50,9 @@ const AddParameterDrawer = ({
   const [saveLoading, setSaveLoading] = useState(false)
   const [applyLoading, setApplyLoading] = useState(false)
   const [monitoringLoading, setMonitoringLoading] = useState(false)
-  const [todayOnly, setTodayOnly] = useState(null)
+  const [todayOnly, setTodayOnly] = useState(0)
   const [todayOnlyError, setTodayOnlyError] = useState(false)
+  const [showAllTemplates, setShowAllTemplates] = useState(false)
 
   useEffect(() => {
     const fetchMonitoringParameters = async () => {
@@ -253,6 +254,8 @@ const AddParameterDrawer = ({
   }
 
   const hasNewParameters = parameters.some(p => !p.isExisting)
+
+  const visibleTemplates = showAllTemplates ? templateList : templateList?.slice(0, 5)
 
   return (
     <>
@@ -492,35 +495,52 @@ const AddParameterDrawer = ({
                     ))}
                   </Box>
                 ) : (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                    {templateList?.map((template, index) => {
-                      const isSelected = selectedTemplates.includes(template.value)
+                  <>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      {visibleTemplates?.map((template, index) => {
+                        const isSelected = selectedTemplates.includes(template.value)
 
-                      return (
-                        <Box
-                          key={index}
-                          onClick={() => handleTemplateClick(template.value)}
+                        return (
+                          <Box
+                            key={index}
+                            onClick={() => handleTemplateClick(template.value)}
+                            sx={{
+                              p: 4,
+                              backgroundColor: isSelected
+                                ? theme.palette.customColors.OnBackground
+                                : theme.palette.customColors.OnPrimary,
+                              border: isSelected
+                                ? `1px solid ${theme.palette.customColors.SurfaceVariant}`
+                                : `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                              borderRadius: 1,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontSize: '1rem',
+                              fontWeight: 400,
+                              cursor: 'pointer',
+                              transition: 'background-color 0.2s'
+                            }}
+                          >
+                            {template.label}
+                          </Box>
+                        )
+                      })}
+                    </Box>
+                    {templateList?.length > 5 && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                        <Typography
                           sx={{
-                            p: 4,
-                            backgroundColor: isSelected
-                              ? theme.palette.customColors.OnBackground
-                              : theme.palette.customColors.OnPrimary,
-                            border: isSelected
-                              ? `1px solid ${theme.palette.customColors.SurfaceVariant}`
-                              : `1px solid ${theme.palette.customColors.SurfaceVariant}`,
-                            borderRadius: 1,
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            fontSize: '1rem',
-                            fontWeight: 400,
-                            cursor: 'pointer',
-                            transition: 'background-color 0.2s'
+                            fontSize: '0.95rem',
+                            fontWeight: 500,
+                            color: theme.palette.primary.main,
+                            cursor: 'pointer'
                           }}
+                          onClick={() => setShowAllTemplates(prev => !prev)}
                         >
-                          {template.label}
-                        </Box>
-                      )
-                    })}
-                  </Box>
+                          {showAllTemplates ? 'Show less' : 'Show all'}
+                        </Typography>
+                      </Box>
+                    )}
+                  </>
                 )}
               </Box>
             ) : null}
@@ -543,7 +563,7 @@ const AddParameterDrawer = ({
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 1
+                gap: 0.1
               }}
             >
               <FormLabel
@@ -554,7 +574,7 @@ const AddParameterDrawer = ({
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Select parameter schedule
+                Select Parameter Frequency
               </FormLabel>
 
               <RadioGroup
@@ -568,7 +588,7 @@ const AddParameterDrawer = ({
                 <FormControlLabel
                   value='1'
                   control={<Radio />}
-                  label='Set for today'
+                  label='Only for today'
                   sx={{
                     '& .MuiTypography-root': {
                       fontSize: '0.95rem',
@@ -579,7 +599,7 @@ const AddParameterDrawer = ({
                 <FormControlLabel
                   value='0'
                   control={<Radio />}
-                  label='Set for future days'
+                  label='Set For all days'
                   sx={{
                     '& .MuiTypography-root': {
                       fontSize: '0.95rem',

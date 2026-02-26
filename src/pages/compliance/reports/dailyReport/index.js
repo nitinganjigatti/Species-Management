@@ -5,6 +5,7 @@ import {
   Box,
   Card,
   CardHeader,
+  Checkbox,
   CircularProgress,
   IconButton,
   TextField,
@@ -61,7 +62,6 @@ const DailyReport = () => {
   const [tempSelectedItems, setTempSelectedItems] = useState({ Site: [] })
   const [filterCount, setFilterCount] = useState(0)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
-
   const [dateRange, setDateRange] = useState({
     startDate: '',
     endDate: ''
@@ -70,6 +70,8 @@ const DailyReport = () => {
   const [defaultObservationType, setDefaultObservationType] = useState(null)
   const [observationListLoader, setObservationListLoader] = useState(false)
   const [observationList, setObservationList] = useState([])
+  const [subObservationOptions, setSubObservationOptions] = useState([])
+  const [selectedSubObservations, setSelectedSubObservations] = useState([])
   const skipNextAutoFetchRef = useRef(false)
 
   const title = (
@@ -88,7 +90,6 @@ const DailyReport = () => {
   const loadSitesFromAuth = useCallback(() => {
     try {
       const sites = authData?.userData?.user?.zoos?.[0]?.sites || []
-
       const mapped = sites.map(s => ({
         site_id: String(s.id ?? s.site_id ?? ''),
         site_name: s.site_name,
@@ -178,7 +179,15 @@ const DailyReport = () => {
 
       for (const d of detailsArr) {
         counter += 1
-        const child = Array.isArray(d.child_observation) ? d.child_observation.join('• ') : ''
+        const childItems = Array.isArray(d.child_observation) ? d.child_observation : []
+        const childLabels = childItems
+          .map(item => {
+            if (typeof item === 'string' || typeof item === 'number') return String(item)
+
+            return item?.type_name || item?.name || item?.label || item?.key || ''
+          })
+          .filter(Boolean)
+        const child = childLabels.length ? childLabels.join('• ') : ''
 
         const reporterName = d.created_by || block?.created_by || ''
         const reportedAt = d.created_at || block?.created_at || ''
@@ -201,6 +210,7 @@ const DailyReport = () => {
           taxonomy: taxonomy || null,
           observation_type: d.master_enrichment_type || '',
           observation_details: child || '',
+          observation_details_list: childLabels,
           observation: d.details || d.observation || '',
           site_name: site || '',
           sex: sex || '',
@@ -242,6 +252,8 @@ const DailyReport = () => {
     setSelectedSiteExtraNames([])
 
     setDefaultObservationType(null)
+    setSelectedSubObservations([])
+    setSubObservationOptions([])
 
     // table/search state reset
     setIndexedRows([])
@@ -317,9 +329,12 @@ const DailyReport = () => {
       if (!siteIds.length) {
         setIndexedRows([])
         setTotal(0)
-
         return
       }
+
+      const childObservationIds = selectedSubObservations
+        .map(item => item?.id)
+        .filter(item => item !== undefined && item !== null && item !== '')
 
       const resolvedPage = typeof page === 'number' ? page : paginationModel.page || 0
       const resolvedLimit = typeof limit === 'number' ? limit : paginationModel.pageSize || 50
@@ -338,7 +353,9 @@ const DailyReport = () => {
         page_no: resolvedPage + 1,
         limit: resolvedLimit,
         ...(q && { q }),
-        ...(obsTypeId && { observation_type: obsTypeId })
+        ...(obsTypeId && { observation_type: obsTypeId }),
+        // ...(childObservationIds.length && { 'child_observation_ids[]': childObservationIds })
+        ...(childObservationIds.length && { child_observation_ids: childObservationIds })
       }
       setLoading(true)
       try {
@@ -356,7 +373,7 @@ const DailyReport = () => {
         setLoading(false)
       }
     },
-    [paginationModel.page, paginationModel.pageSize, transformApiToRows]
+    [paginationModel.page, paginationModel.pageSize, selectedSubObservations, transformApiToRows]
   )
 
   // Centralized trigger: sites / dates / search / obsType pe 1 hi call
@@ -382,18 +399,22 @@ const DailyReport = () => {
     fetchObservationMasterType()
   }, [
     fetchDailyReport,
-
     // explicit deps to trigger once per change:
     selectedSiteIds.join(','), // array -> string to avoid ref churn
     dateRange.startDate,
     dateRange.endDate,
     searchQuery,
-    defaultObservationType?.id
+    defaultObservationType?.id,
+    selectedSubObservations.map(item => item?.id).join(',')
   ])
 
   const downloadDailyReport = async () => {
     const ids = Array.isArray(selectedSiteIds) ? selectedSiteIds : []
     if (!ids.length) return
+
+    const childObservationIds = selectedSubObservations
+      .map(item => item?.id)
+      .filter(item => item !== undefined && item !== null && item !== '')
 
     const startDateForApi = dateRange.startDate || '2020-01-01'
     const endDateForApi = dateRange.endDate || Utility.formatDate(new Date())
@@ -404,11 +425,12 @@ const DailyReport = () => {
       start_date: startDateForApi,
       end_date: endDateForApi,
       ...(searchQuery && { q: searchQuery }), // include server-side search if any
-      ...(defaultObservationType?.id && { observation_type: defaultObservationType?.id })
+      ...(defaultObservationType?.id && { observation_type: defaultObservationType?.id }),
+      // ...(childObservationIds.length && { 'child_observation_ids[]': childObservationIds })
+      ...(childObservationIds.length && { child_observation_ids: childObservationIds })
     }
     try {
       setIsDownloading(true)
-
       // If you already have a util to download PDF, call it here:
       await downloadPDF({
         apiCall: getComplianceDailyReport,
@@ -653,10 +675,14 @@ const DailyReport = () => {
             {/* Search */}
             <Box
               sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: '24px',
-                flexWrap: 'wrap'
+                display: 'grid',
+                gap: '16px',
+                alignItems: 'center',
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: 'repeat(2, minmax(0, 1fr))',
+                  md: 'repeat(4, minmax(0, 1fr))'
+                }
               }}
             >
               <Search
@@ -664,7 +690,7 @@ const DailyReport = () => {
                 onChange={handleSearchChange}
                 placeholder='Search by AID & common name'
                 value={searchText}
-                width={342}
+                width='100%'
                 borderRadius='4px'
                 textFielsSX={{
                   height: '40px',
@@ -683,7 +709,7 @@ const DailyReport = () => {
                   }
                 }}
               />
-              <Box sx={{ display: 'flex', gap: '16px' }}>
+              <Box sx={{ display: 'contents' }}>
                 <Autocomplete
                   value={defaultObservationType}
                   disablePortal
@@ -695,6 +721,16 @@ const DailyReport = () => {
                   isOptionEqualToValue={(option, value) => option?.id === value?.id}
                   onChange={(e, val) => {
                     setDefaultObservationType(val ?? null)
+                    const options = Array.isArray(val?.child_observation) ? val.child_observation : []
+                    const normalized = options
+                      .map(item => ({
+                        id: String(item?.id ?? item?.value ?? item?.key ?? item?.type_name ?? ''),
+                        type_name: item?.type_name || item?.name || item?.label || item?.key || ''
+                      }))
+                      .filter(item => item.type_name)
+                    setSubObservationOptions(normalized)
+                    setSelectedSubObservations([])
+                    setPaginationModel(prev => ({ ...prev, page: 0 }))
                   }}
                   clearOnEscape
                   disableClearable={false}
@@ -707,7 +743,7 @@ const DailyReport = () => {
                       label='Observation Type'
                       placeholder='Search & Select'
                       sx={{
-                        width: 200,
+                        width: '100%',
 
                         /* ---- OUTER INPUT WRAPPER (outlined root) ---- */
                         '& .MuiOutlinedInput-root': {
@@ -748,11 +784,119 @@ const DailyReport = () => {
                   )}
                 />
 
-                <CommonDateRangePickers
-                  // sx={{ maxWidth: '400px' }}
-                  onChange={handleDateRangeChange}
-                  filterDates={dateRange}
+                <Autocomplete
+                  multiple
+                  value={selectedSubObservations}
+                  disablePortal
+                  disableCloseOnSelect
+                  id='sub-observation-type'
+                  loading={observationListLoader}
+                  options={subObservationOptions}
+                  getOptionLabel={option => option.type_name}
+                  isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                  renderOption={(props, option, { selected }) => (
+                    <li {...props}>
+                      <Checkbox
+                        checked={selected}
+                        sx={{
+                          mr: 1,
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          '&.Mui-checked': {
+                            color: theme.palette.primary.main
+                          }
+                        }}
+                      />
+                      <Typography sx={{ fontSize: 14, color: theme.palette.customColors.OnSurfaceVariant }}>
+                        {option?.type_name}
+                      </Typography>
+                    </li>
+                  )}
+                  onChange={(e, val) => {
+                    setSelectedSubObservations(val || [])
+                    setPaginationModel(prev => ({ ...prev, page: 0 }))
+                  }}
+                  renderTags={(value, getTagProps) => {
+                    if (!value.length) return null
+                    const names = value.map(item => item?.type_name).filter(Boolean)
+                    const label = names.join(', ')
+
+                    return (
+                      <Typography
+                        component='span'
+                        sx={{
+                          fontSize: 14,
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          pointerEvents: 'none'
+                        }}
+                      >
+                        {label}
+                      </Typography>
+                    )
+                  }}
+                  clearOnEscape
+                  disableClearable={false}
+                  disabled={!defaultObservationType || subObservationOptions.length === 0}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      label='Sub-Observation Types'
+                      placeholder={selectedSubObservations.length ? '' : 'Search & Select'}
+                      sx={{
+                        width: '100%',
+                        '& .MuiOutlinedInput-root': {
+                          height: 40,
+                          padding: '0 8px',
+                          borderRadius: '4px',
+                          alignItems: 'center',
+                          flexWrap: 'nowrap',
+                          overflow: 'hidden',
+                          cursor: 'text',
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme.palette.customColors.OutlineVariant
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme.palette.customColors.OutlineVariant
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme.palette.primary.main
+                          },
+                          '& .MuiAutocomplete-input': {
+                            padding: '8px 4px',
+                            fontSize: 14,
+                            minWidth: 0,
+                            width: selectedSubObservations.length ? 0 : 'auto'
+                          },
+                          '& .MuiAutocomplete-input::placeholder': {
+                            opacity: selectedSubObservations.length ? 0 : 1
+                          },
+                          '& .MuiAutocomplete-endAdornment': {
+                            top: '50%',
+                            transform: 'translateY(-50%)'
+                          }
+                        },
+                        '& .MuiInputLabel-root': {
+                          top: '50%',
+                          transform: 'translate(14px, -50%) scale(1)'
+                        },
+                        '& .MuiInputLabel-shrink': {
+                          top: 0,
+                          transform: 'translate(14px, -9px) scale(0.75)'
+                        }
+                      }}
+                    />
+                  )}
                 />
+
+                <Box sx={{ minWidth: 0 }}>
+                  <CommonDateRangePickers
+                    // sx={{ maxWidth: '400px' }}
+                    onChange={handleDateRangeChange}
+                    filterDates={dateRange}
+                  />
+                </Box>
               </Box>
             </Box>
 

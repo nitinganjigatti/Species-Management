@@ -7,6 +7,7 @@ import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import SymptomsList from 'src/components/hospital/Symptoms/SymptomsList'
 import SelectedSymptoms from 'src/components/hospital/Symptoms/SelectedSymptoms'
 import AddSymptomDrawer from 'src/components/hospital/drawer/AddSymptomDrawer'
+import AddComplaintDrawer from 'src/components/hospital/drawer/AddComplaintDrawer'
 import Toaster from 'src/components/Toaster'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import { checkAnimalStatusByType, getDiagnosisList } from 'src/lib/api/hospital/clinicalAssessment'
@@ -50,6 +51,7 @@ function AddSymptoms() {
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [symptomDrawerOpen, setSymptomDrawerOpen] = useState(false)
+  const [complaintDrawerOpen, setComplaintDrawerOpen] = useState(false)
   const [severity, setSeverity] = useState('Mild')
   const [durationValue, setDurationValue] = useState(0)
   const [durationUnit, setDurationUnit] = useState('Days')
@@ -72,6 +74,7 @@ function AddSymptoms() {
   const [currentTabId, setCurrentTabId] = useState('')
   const [isDuplicatesErrorModelOpen, setDuplicatesErrorModelOpen] = useState(false)
   const [duplicateSymptoms, setDuplicateSymptoms] = useState([])
+  const [alreadySelectedIds, setAlreadySelectedIds] = useState([])
   const medicalRecordId = medicalRecordData?.medical_record_id
 
   const initialLoadRef = useRef(false)
@@ -104,7 +107,9 @@ function AddSymptoms() {
     setSelectedSymptoms(prev => prev.filter(s => s.id !== symptomId))
   }
 
-  const availableSymptoms = symptomsList.filter(symptom => !selectedSymptoms.some(s => s.id === symptom.id))
+  const availableSymptoms = symptomsList.filter(
+    symptom => !selectedSymptoms.some(s => s.id === symptom.id) && temporarilySelected?.id !== symptom.id
+  )
 
   const fetchSymptoms = useCallback(
     async (query = '', pageNo = 1, append = false, categoryId = '') => {
@@ -125,7 +130,8 @@ function AddSymptoms() {
           q: query,
           category_id: categoryId || '',
           request_from: 'hospital_module',
-          medical_record_id: patientData?.medical_record_id || '',
+          // medical_record_id: patientData?.medical_record_id || '',
+          animal_id: patientData?.animal_detail?.animal_id || '',
           limit: 20
         }
 
@@ -166,6 +172,10 @@ function AddSymptoms() {
           if (newResults.length > 0) {
             setPage(currentPage)
           }
+
+          if (pageNo === 1 && response?.data?.selected_ids) {
+            setAlreadySelectedIds(response.data.selected_ids)
+          }
         }
       } catch (error) {
         setHasMore(false)
@@ -178,6 +188,40 @@ function AddSymptoms() {
     },
     [patientData?.medical_record_id]
   )
+
+  const fetchDiagnosisTypes = useCallback(async () => {
+    try {
+      setIsTabsLoading(true)
+
+      const params = {
+        include_all: 1,
+        type: 'complaints',
+        request_from: 'web_hospital',
+        medical_record_id: patientData?.medical_record_id || ''
+      }
+
+      const res = await getDiagnosisList(params)
+      if (res?.success) {
+        const categories = res.data?.result || []
+        setTabOptions(categories)
+
+        if (categories.length > 0 && !currentTabId) {
+          const firstCategory = categories[0]
+          setCurrentTab(firstCategory?.category || '')
+          setCurrentTabId(firstCategory?.id || '')
+
+          const key = `${firstCategory?.id || 'all'}_noquery`
+          loadedItemsRef.current[key] = 0
+
+          fetchSymptoms('', 1, false, firstCategory?.id || '')
+        }
+      }
+    } catch (error) {
+      setTabOptions([])
+    } finally {
+      setIsTabsLoading(false)
+    }
+  }, [patientData?.medical_record_id, currentTabId, fetchSymptoms])
 
   const debouncedSearch = useDebounce((query, categoryId) => {
     setResetPagination(true)
@@ -246,45 +290,11 @@ function AddSymptoms() {
   }, [id])
 
   useEffect(() => {
-    const fetchDiagnosisTypes = async () => {
-      if (!patientData?.medical_record_id || initialLoadRef.current) return
-
-      try {
-        setIsTabsLoading(true)
-
-        const params = {
-          include_all: 1,
-          type: 'complaints',
-          request_from: 'web_hospital',
-          medical_record_id: patientData.medical_record_id
-        }
-
-        const res = await getDiagnosisList(params)
-        if (res?.success) {
-          const categories = res.data?.result || []
-          setTabOptions(categories)
-
-          if (categories.length > 0) {
-            const firstCategory = categories[0]
-            setCurrentTab(firstCategory?.category || '')
-            setCurrentTabId(firstCategory?.id || '')
-
-            const key = `${firstCategory?.id || 'all'}_noquery`
-            loadedItemsRef.current[key] = 0
-
-            fetchSymptoms('', 1, false, firstCategory?.id || '')
-            initialLoadRef.current = true
-          }
-        }
-      } catch (error) {
-        setTabOptions([])
-      } finally {
-        setIsTabsLoading(false)
-      }
-    }
+    if (!patientData?.medical_record_id || initialLoadRef.current) return
 
     fetchDiagnosisTypes()
-  }, [patientData?.medical_record_id, fetchSymptoms])
+    initialLoadRef.current = true
+  }, [patientData?.medical_record_id, fetchDiagnosisTypes])
 
   const handleTabChange = (tabValue, tabId) => {
     setCurrentTab(tabValue)
@@ -330,7 +340,7 @@ function AddSymptoms() {
 
         return
       }
-      
+
       if (duplicatesData?.length > 0) {
         setDuplicatesErrorModelOpen(true)
 
@@ -355,6 +365,7 @@ function AddSymptoms() {
       formData.append('medical_record_id', patientData?.medical_record_id)
       formData.append('animal_id', JSON.stringify([Number(patientData?.animal_detail?.animal_id)]))
       formData.append('complaints', JSON.stringify(complaints))
+      formData.append('hospital_case_id', id)
 
       const response = await addSymptoms(formData)
 
@@ -372,8 +383,32 @@ function AddSymptoms() {
     }
   }
 
+  const handleAddNewClick = () => {
+    setComplaintDrawerOpen(true)
+  }
+
+  const handleComplaintAdded = symptom => {
+    handleSymptomSelect(symptom)
+
+    // Refetch categories and symptoms
+    fetchDiagnosisTypes()
+
+    // Refetch symptoms for current tab
+    const key = `${currentTabId || 'all'}_${searchQuery || 'noquery'}`
+    loadedItemsRef.current[key] = 0
+    fetchSymptoms(searchQuery, 1, false, currentTabId)
+  }
+
   const handleRouterNavigation = () => {
     router.back()
+  }
+
+  const handleAIDDisplay = () => {
+    if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
+      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+    } else {
+      return patientData?.animal_detail?.animal_id
+    }
   }
 
   return (
@@ -385,8 +420,10 @@ function AddSymptoms() {
         age={`${patientData?.animal_detail?.age}`}
         gender={`${patientData?.animal_detail?.sex}`}
         additionalFields={[
-          { label: 'AID', value: patientData?.animal_detail?.animal_id },
-          { label: 'Admitted days', value: patientData?.admitted_for_day },
+          { label: 'AID', value: handleAIDDisplay() },
+          { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
+
+          // { label: 'Admitted days', value: patientData?.admitted_for_day },
           { label: 'Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
           { label: 'Consulting Veterinarian', value: patientData?.attend_by_full_name }
         ]}
@@ -421,6 +458,8 @@ function AddSymptoms() {
             handleTabChange={handleTabChange}
             symptomsCount={symptomsCount}
             hasMore={hasMore}
+            handleAddNewClick={handleAddNewClick}
+            alreadySelectedIds={alreadySelectedIds}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
@@ -451,9 +490,9 @@ function AddSymptoms() {
       />
       <ConfirmationDialog
         dialogBoxStatus={isDuplicatesErrorModelOpen}
-        title={`Clinical assessment${duplicateSymptoms?.length > 1 ? 's' : ''} already exists`}
-        description={`Duplicate assessments: ${duplicateSymptoms?.map(item => item?.diagnosis)?.join(', ')}`}
-        additionalDescription={`To proceed choose a different Clinical Assessment or remove the animal accessed`}
+        title={`Symptoms${duplicateSymptoms?.length > 1 ? 's' : ''} already exists`}
+        description={`Duplicate Symptoms: ${duplicateSymptoms?.map(item => item?.diagnosis)?.join(', ')}`}
+        additionalDescription={`To proceed choose a different Symptoms`}
         confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
         image={'/images/warning-icon.svg'}
         imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
@@ -480,6 +519,13 @@ function AddSymptoms() {
           setStatus={setStatus}
           setNotes={setNotes}
           onSave={addSymptomDetails}
+        />
+      )}
+      {complaintDrawerOpen && (
+        <AddComplaintDrawer
+          open={complaintDrawerOpen}
+          setOpen={setComplaintDrawerOpen}
+          onComplaintAdded={handleComplaintAdded}
         />
       )}
     </Box>

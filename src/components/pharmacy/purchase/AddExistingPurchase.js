@@ -1,32 +1,32 @@
 /* eslint-disable lines-around-comment */
 // ** MUI Imports
-import Grid from '@mui/material/Grid'
-import Card from '@mui/material/Card'
-import Table from '@mui/material/Table'
-import Divider from '@mui/material/Divider'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
-import CardContent from '@mui/material/CardContent'
-import { styled, useTheme } from '@mui/material/styles'
-import TableContainer from '@mui/material/TableContainer'
-import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
-import FormHelperText from '@mui/material/FormHelperText'
-import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-import Autocomplete from '@mui/material/Autocomplete'
+
+import {
+  Grid,
+  Table,
+  TableRow,
+  TableHead,
+  TableBody,
+  Typography,
+  Box,
+  CardContent,
+  styled,
+  TableContainer,
+  TableCell,
+  Button,
+  IconButton,
+  FormHelperText,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  useTheme
+} from '@mui/material'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import { debounce } from 'lodash'
-
 import toast from 'react-hot-toast'
 import { useForm, Controller } from 'react-hook-form'
 import * as yup from 'yup'
@@ -53,6 +53,7 @@ import AddSupplier from 'src/pages/pharmacy/masters/supplier/add-supplier'
 import { AuthContext } from 'src/context/AuthContext'
 import { useContext } from 'react'
 import { getVariantFOrProduct } from 'src/lib/api/pharmacy/variant'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -787,227 +788,232 @@ const AddExistingPurchase = () => {
     getSuppliersLists()
     setSupplierDialog(false)
   }
-
+  const theme = useTheme();
   return (
-    <Card>
-      <Grid container spacing={6}>
-        <Grid
-          item
-          size={{ xs: 12, sm: 12 }}
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mr: 5
-          }}
-        >
-          <CardHeader
-            avatar={
-              <Icon
-                style={{ cursor: 'pointer' }}
-                onClick={() => {
-                  router.back()
-                  // Router.push('/pharmacy/purchase/purchase-list/')
-                }}
-                icon='ep:back'
-              />
-            }
-            title={id ? 'Edit Inventory List' : 'Add Existing Inventory'}
-          />
+    <PageCardLayout
+      title={id ? 'Edit Inventory List' : 'Add Existing Inventory'}
+      onIconClick={() => {
+        router.push('/pharmacy/purchase/')
+      }}
+      titleStyles={{
+        fontSize: '20px'
+      }}
+      showIcon={true}
+      action={
+        <>
           {authData?.userData?.roles?.settings?.add_pharmacy && (
-            <AddButton
-              styles={{ marginRight: 20 }}
-              title='Add Supplier'
-              action={() => {
-                setSupplierDialog(true)
-              }}
-            />
-          )}
-        </Grid>
-      </Grid>
-
-      <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-        <CardContent>
-          <Grid container spacing={6}>
-            {/* <Grid item size={{xs: 12, sm: 6}}> */}
-            <Grid item size={{ xs: 12, sm: 6 }}>
-              <FormControl fullWidth>
-                <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
-                <Controller
-                  name='supplier_id'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      // name='supplier_id'
-                      // value={value}
-                      // onChange={(e, val) => {
-                      //   onChange(e.target.value)
-                      // }}
-                      label='Supplier*'
-                      // disabled={!!id}
-                      error={Boolean(errors.supplier_id)}
-                    >
-                      {suppliers?.map(item => (
-                        <MenuItem key={item.id} disabled={item.status === 'inactive'} value={item.id}>
-                          {item.company_name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-                {errors?.supplier_id && <FormHelperText error>{errors.supplier_id.message}</FormHelperText>}
-              </FormControl>
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 6, lg: 6 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='po_date'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { onChange, value } }) => (
-                    <SingleDatePicker
-                      name='Purchase Date*'
-                      fullWidth
-                      maxDate={new Date()}
-                      date={value ? parseFormattedDate(value) : null}
-                      width={'100%'}
-                      onChangeHandler={date => {
-                        let formatted = formatDate(date)
-                        onChange(formatted)
-                      }}
-                      customInput={<CustomInput label='Purchase Date*' error={Boolean(errors.po_date)} />}
-                      isClearable={false}
-                    />
-                  )}
-                />
-                {errors.po_date && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    {errors.po_date.message}
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 6, lg: 6 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='po_no'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type='text'
-                      name='po_no'
-                      disabled={id ? true : false}
-                      error={Boolean(errors.po_no)}
-                      label='Purchase Invoice Number*'
-                    />
-                  )}
-                />
-                {errors.po_no && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    {errors.po_no.message}
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 6, lg: 6 }} sx={{ mx: 'auto' }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='description'
-                  control={control}
-                  defaultValue=''
-                  rules={{ required: true }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label='Comment'
-                      // onChange={e => {
-                      //   setEditParams({
-                      //     ...editParams,
-                      //     description: e.target.value
-                      //   })
-                      //   setErrors({})
-                      // }}
-                    />
-                  )}
-                />
-                {errors.description && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 6, lg: 6 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='purchase_order_no'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type='text'
-                      name='purchase_order_no'
-                      disabled={id ? true : false}
-                      error={Boolean(errors.purchase_order_no)}
-                      label='Purchase order number'
-                    />
-                  )}
-                />
-              </FormControl>
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 6, lg: 6 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='requested_by'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type='text'
-                      name='requested_by'
-                      disabled={id ? true : false}
-                      // error={Boolean(errors.po_no)}
-                      label='Requested by'
-                    />
-                  )}
-                />
-              </FormControl>
-            </Grid>
-          </Grid>
-        </CardContent>
-        <CardContent>
-          <Grid container>
-            <Grid
-              item
-              size={{ xs: 12, sm: 12 }}
+            <Box
               sx={{
                 display: 'flex',
-                justifyContent: 'flex-end',
-                alignItems: 'center'
+                justifyContent: {sm: 'flex-end'}
               }}
             >
               <AddButton
-                title='Add Inventory Item'
+                title='Add Supplier'
                 action={() => {
-                  handlePurchaseSubmit()
+                  setSupplierDialog(true)
                 }}
+                styles={{
+                  margin: 0,
+                  width: '100%'
+                }}
+                
               />
-            </Grid>
+            </Box>
+          )}
+        </>
+      }
+   
+    >
+      <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+        <Grid container spacing={6}>
+          <Grid item size={{ xs: 12, sm: 6 }}>
+            <FormControl fullWidth>
+              <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
+              <Controller
+                name='supplier_id'
+                control={control}
+                rules={{ required: true }}
+                defaultValue=''
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    // name='supplier_id'
+                    // value={value}
+                    // onChange={(e, val) => {
+                    //   onChange(e.target.value)
+                    // }}
+                    label='Supplier*'
+                    // disabled={!!id}
+                    error={Boolean(errors.supplier_id)}
+                  >
+                    {suppliers?.map(item => (
+                      <MenuItem key={item.id} disabled={item.status === 'inactive'} value={item.id}>
+                        {item.company_name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
+              />
+              {errors?.supplier_id && <FormHelperText error>{errors.supplier_id.message}</FormHelperText>}
+            </FormControl>
           </Grid>
-        </CardContent>
+          <Grid item size={{ xs: 12, sm: 6, lg: 6 }}>
+            <FormControl fullWidth>
+              <Controller
+                name='po_date'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { onChange, value } }) => (
+                  <SingleDatePicker
+                    name='Purchase Date*'
+                    fullWidth
+                    maxDate={new Date()}
+                    date={value ? parseFormattedDate(value) : null}
+                    width={'100%'}
+                    onChangeHandler={date => {
+                      let formatted = formatDate(date)
+                      onChange(formatted)
+                    }}
+                    customInput={<CustomInput label='Purchase Date*' error={Boolean(errors.po_date)} />}
+                    isClearable={false}
+                  />
+                )}
+              />
+              {errors.po_date && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  {errors.po_date.message}
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+          <Grid item size={{ xs: 12, sm: 6, lg: 6 }}>
+            <FormControl fullWidth>
+              <Controller
+                name='po_no'
+                control={control}
+                rules={{ required: true }}
+                defaultValue=''
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    type='text'
+                    name='po_no'
+                    disabled={id ? true : false}
+                    error={Boolean(errors.po_no)}
+                    label='Purchase Invoice Number*'
+                  />
+                )}
+              />
+              {errors.po_no && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  {errors.po_no.message}
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+          <Grid item size={{ xs: 12, sm: 6, lg: 6 }} sx={{ mx: 'auto' }}>
+            <FormControl fullWidth>
+              <Controller
+                name='description'
+                control={control}
+                defaultValue=''
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label='Comment'
+                    // onChange={e => {
+                    //   setEditParams({
+                    //     ...editParams,
+                    //     description: e.target.value
+                    //   })
+                    //   setErrors({})
+                    // }}
+                  />
+                )}
+              />
+              {errors.description && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  This field is required
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+          <Grid item size={{ xs: 12, sm: 6, lg: 6 }}>
+            <FormControl fullWidth>
+              <Controller
+                name='purchase_order_no'
+                control={control}
+                rules={{ required: true }}
+                defaultValue=''
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    type='text'
+                    name='purchase_order_no'
+                    disabled={id ? true : false}
+                    error={Boolean(errors.purchase_order_no)}
+                    label='Purchase order number'
+                  />
+                )}
+              />
+            </FormControl>
+          </Grid>
+          <Grid item size={{ xs: 12, sm: 6, lg: 6 }}>
+            <FormControl fullWidth>
+              <Controller
+                name='requested_by'
+                control={control}
+                rules={{ required: true }}
+                defaultValue=''
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    type='text'
+                    name='requested_by'
+                    disabled={id ? true : false}
+                    // error={Boolean(errors.po_no)}
+                    label='Requested by'
+                  />
+                )}
+              />
+            </FormControl>
+          </Grid>
+        </Grid>
+        <Grid container 
+        sx = {{ 
+          display: 'flex',
+          justifyContent: 'flex-end', 
+          alignItems: 'center'
+          }}>
+          <Grid
+            item
+            size={{ xs: 12, sm: 'auto' }}
+            sx={{
+              my: 4
+            }}
+          >
+            <AddButton
+              title='Add Inventory Item'
+              action={() => {
+                handlePurchaseSubmit()
+              }}
+              styles={{
+                margin: 0,
+                width: '100%',
+              }}
+            />
+          </Grid>
+        </Grid>
         <TableContainer>
           <Table>
-            <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
+            <TableHead 
+              sx={{ 
+                // backgroundColor: '#F5F5F7'
+                backgroundColor: 'theme.palette.customColors.tableHeaderBg'
+
+              }}>
               <TableRow>
                 <TableCell width='30%'>Product Name</TableCell>
                 <TableCell width='20%'>Batch</TableCell>
@@ -1156,8 +1162,8 @@ const AddExistingPurchase = () => {
             </Card>
           </Grid>
         </Grid> */}
-        <Grid item size={{ xs: 12 }}>
-          <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+        <Grid item size={{ xs: 12 }} sx = {{display: 'flex', justifyContent: 'flex-end', my: 4}}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 4 }}>
             <LoadingButton
               disabled={editParams.purchase_details.length > 0 ? false : true}
               sx={{ marginRight: '8px' }}
@@ -1186,7 +1192,6 @@ const AddExistingPurchase = () => {
           </Box>
         </Grid>
       </form>
-      <CardContent>
         <Grid container>
           <CommonDialogBox
             title={'Add Inventory Item'}
@@ -1214,8 +1219,7 @@ const AddExistingPurchase = () => {
             setSupplierDialog(true)
           }}
         />
-      </CardContent>
-    </Card>
+    </PageCardLayout>
   )
 }
 

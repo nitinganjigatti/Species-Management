@@ -195,6 +195,7 @@ const AddTreatmentDrawer = ({
                 options={treatmentOptions}
                 loading={optionsLoading}
                 fullWidth
+                // clearOnBlur={false}
                 getOptionLabel={option => option?.label || option || ''}
                 isOptionEqualToValue={(option, value) =>
                   (option?.value && option?.value === value?.value) || option === value
@@ -226,24 +227,26 @@ const AddTreatmentDrawer = ({
                 }}
               />
             </Box>
-
-            <ControlledTextArea
-              name='notes'
-              control={control}
-              errors={errors}
-              required='Notes is required'
-              rows={4}
-              placeholder='Add notes'
-              onChangeOverride={event => onChange('notes', event?.target?.value || '')}
-              inputBackgroundColor={theme.palette.primary.contrastText}
-              sx={{
-                ...commonFieldStyles,
-                '& .MuiOutlinedInput-root': {
-                  ...(commonFieldStyles['& .MuiOutlinedInput-root'] || {}),
-                  minHeight: '120px'
-                }
-              }}
-            />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>Notes</Typography>
+              <ControlledTextArea
+                name='notes'
+                control={control}
+                errors={errors}
+                required='Notes is required'
+                rows={4}
+                placeholder='Add notes'
+                onChangeOverride={event => onChange('notes', event?.target?.value || '')}
+                inputBackgroundColor={theme.palette.primary.contrastText}
+                sx={{
+                  ...commonFieldStyles,
+                  '& .MuiOutlinedInput-root': {
+                    ...(commonFieldStyles['& .MuiOutlinedInput-root'] || {}),
+                    minHeight: '120px'
+                  }
+                }}
+              />
+            </Box>
           </Box>
         </Box>
 

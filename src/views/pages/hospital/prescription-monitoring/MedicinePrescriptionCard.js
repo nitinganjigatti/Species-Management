@@ -1,5 +1,5 @@
 /* eslint-disable lines-around-comment */
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   Box,
   Typography,
@@ -289,6 +289,33 @@ const MedicinePrescriptionCard = ({
       reset(defaultValues)
     }
   }, [isSingleSelection, reset])
+
+  const autoSelectSinglePendingMedication = useCallback(() => {
+    if (!open || isDetailLoading || isDatesLoading) return;
+
+    const pendingMedications = dosageEntries?.filter(
+      item => !item?.status || item?.status?.toLowerCase() === 'pending'
+    );
+
+    if (pendingMedications?.length === 1) {
+      const singlePendingId = pendingMedications[0]?.administritive_id;
+      if (!selectedMedications.includes(singlePendingId)) {
+        const isControlledSubstance = pendingMedications[0]?.controlled_substance == 1;
+
+        setSelectedMedications(prev => {
+          if (isControlledSubstance) {
+            return [singlePendingId];
+          } else {
+            return [...prev, singlePendingId];
+          }
+        });
+      }
+    }
+  }, [open, dosageEntries, isDetailLoading, isDatesLoading, selectedMedications]);
+
+  useEffect(() => {
+    autoSelectSinglePendingMedication();
+  }, [autoSelectSinglePendingMedication]);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue)
@@ -1277,6 +1304,9 @@ const MedicinePrescriptionCard = ({
                                       </Grid>
 
                                       <Grid size={{ xs: 12 }}>
+                                        <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>
+                                          Notes
+                                        </Typography>
                                         <ControlledTextArea
                                           name='notes'
                                           control={control}
@@ -1347,6 +1377,9 @@ const MedicinePrescriptionCard = ({
                             <>
                               {/* Reason for Skip Section */}
                               <Grid size={{ xs: 12 }}>
+                                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>
+                                  Reason for Skipping
+                                </Typography>
                                 <ControlledTextArea
                                   name='skipReason'
                                   control={control}

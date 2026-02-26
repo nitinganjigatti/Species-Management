@@ -274,6 +274,8 @@ export const RETURN_TO_SUPPLIER = 'return-supplier-report'
 
 export const ALL_REQUESTED_ITEMS_REPORT = 'all-requested-items'
 
+export const RECONCILIATION_REPORT = 'stock/reconciliation-report'
+
 export const PRODUCT_MAPPING_FOR_ML = 'v1/public/pharmacy/ml/product-mapping/bulkInsert'
 
 export const STOCK_LIST = 'stock-item'
@@ -691,6 +693,8 @@ export const NECROPSY_CENTER = `v1/entity/types/necropsy_centre`
 
 export const ANIMAL_DIET_LIST = `diet/get-species-detail`
 
+export const GENERATE_DIET_PDF = `diet/generate-attachment-by-diet`
+
 export const ANIMAL_JOURNAL_LOGS = `journal/animal-logs`
 
 export const ANIMAL_HISTORY = `animal-log-history`
@@ -785,6 +789,10 @@ export const GET_SPECIES_FOR_HOSPITAL = `master/zoo/taxonomy/list`
 
 export const GET_OVERVIEW_MEDIA_FILES = 'v1/hospital/get-hospital-case-overview'
 
+export const GET_PATIENT_MEDIA = 'v1/hospital/media/get'
+
+export const UPLOAD_PATIENT_MEDIA = 'medical/attachment-update'
+
 // Clinical Assessment
 
 export const GET_CLINICAL_ASSESSMENTS = 'medical/v2/'
@@ -824,8 +832,6 @@ export const MEDICAL_MASTER_DATA = 'medical/masterdata'
 export const ADD_PRESCRIPTION = 'medical/v2/prescription-update'
 
 export const SCHEDULE_PRESCRIPTION = 'v1/hospital/add-additional-dosage-timing'
-
-export const UPDATE_PRESCRIPTION = 'medical/v2/prescription-update'
 
 export const STOP_PRESCRIPTION = 'medical/v2/restart-stop-medicine'
 
@@ -888,6 +894,8 @@ export const CREATE_HOSPITAL_BED = 'v1/hospital/bed/create'
 export const UPDATE_HOSPITAL_BED = 'v1/hospital/bed/update'
 
 export const ROOM_STATUS_UPDATE = 'v1/hospital/room/status/update'
+
+export const GET_PATIENT_LIST_BY_ENCLOSURES = `v1/hospital/bed/admitted-animals`
 
 // Hospital inpatient discharge
 
@@ -964,6 +972,8 @@ export const GET_ANESTHESIA_MEDICATION = `v1/hospital/anaesthesia/medication/upd
 export const DELETE_ANESTHESIA_MEDICATION = `v1/hospital/anaesthesia/medication/delete`
 
 export const DELETE_VITAL_MONITORING = `v1/hospital/anaesthesia/vital-monitoring-time-slot/delete`
+
+export const UPDATE_ANIMAL_HEALTH_STATUS = 'v1/hospital/update-animal-health-status'
 
 export const GET_UPCOMING_VACCINATION_RECORDS = 'v1/vaccination/deworming/animal/pending/report'
 

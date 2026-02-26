@@ -315,7 +315,7 @@ const MortalityDischargeForm = props => {
                   control={control}
                   name={'manner_of_death'}
                   errors={errors}
-                  label={'Cause of Death'}
+                  label={'Cause of Death*'}
                   options={causeOfDeath}
                   getOptionLabel={option => option?.label || ''}
                   getOptionValue={option => option?.value || ''}
@@ -332,7 +332,7 @@ const MortalityDischargeForm = props => {
                   control={control}
                   name={'carcass_condition'}
                   errors={errors}
-                  label={'Carcass Condition'}
+                  label={'Carcass Condition*'}
                   options={carcassCondition}
                   getOptionLabel={option => option?.label || ''}
                   getOptionValue={option => option?.value || ''}
@@ -349,7 +349,7 @@ const MortalityDischargeForm = props => {
                   control={control}
                   name={'carcass_disposition'}
                   errors={errors}
-                  label={'Carcass Deposition'}
+                  label={'Carcass Deposition*'}
                   options={carcassDeposition}
                   getOptionLabel={option => option?.label || ''}
                   getOptionValue={option => option?.value || ''}
@@ -402,6 +402,7 @@ const MortalityDischargeForm = props => {
                 control={control}
                 errors={errors}
                 gap={4}
+                disabled={true}
               />
             </Grid>
 
@@ -420,6 +421,30 @@ const MortalityDischargeForm = props => {
                     backgroundColor: priorityBgColor,
                     color: priorityColor,
                     '& .MuiSelect-icon': {
+                      color: priorityColor
+                    }
+                  }}
+                  formControlSx={{
+                    // normal
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: `${priorityColor} !important`
+                    },
+
+                    // hover
+                    '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: `${priorityColor} !important`
+                    },
+
+                    // focused
+                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: `${priorityColor} !important`
+                    },
+
+                    // label
+                    '& .MuiInputLabel-root': {
+                      color: priorityColor
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': {
                       color: priorityColor
                     }
                   }}
@@ -448,7 +473,7 @@ const MortalityDischargeForm = props => {
                   control={control}
                   name={'necropsy_center_id'}
                   errors={errors}
-                  label={'Necropsy Center'}
+                  label={'Necropsy Center*'}
                   options={necropsyCenter}
                   getOptionLabel={option => option?.label || ''}
                   getOptionValue={option => option?.value || ''}

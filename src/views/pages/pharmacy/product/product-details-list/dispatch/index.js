@@ -6,16 +6,15 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
 import { getDispatchList } from 'src/lib/api/pharmacy/getMedicineList'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 function Dispatch({ tabValue, updateUrlParams }) {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
-
 
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
@@ -516,130 +515,82 @@ function Dispatch({ tabValue, updateUrlParams }) {
           alignItems: 'center',
           mt: 3,
           flexWrap: 'wrap'
-        }}>
+        }}
+      >
         <Grid item size={{ xs: 12, sm: 12, md: 3, lg: 3 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              borderRadius: '8px',
-              padding: '0 8px',
-              height: '40px',
-              width: '100%'
-            }}
-          >
-            <Icon icon='mi:search' fontSize={24} color={theme => theme.palette.customColors.neutralSecondary} />
-            <TextField
-              variant='outlined'
-              value={searchValue}
-              placeholder='Search...'
-              onChange={e => handleSearch(e.target.value)}
-              fullWidth
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  border: 'none',
-                  padding: '0',
-                  '& fieldset': {
-                    border: 'none'
-                  }
-                }
-              }}
-            />
-          </Box>
+          <MUISearch
+            width={'100%'}
+            placeholder='Search...'
+            value={searchValue}
+            onChange={e => handleSearch(e.target.value)}
+            fullWidth
+            onClear={() => handleSearch('')}
+          />
         </Grid>
       </Grid>
       <Grid
         container
-        size={{ xs: 12, sm: 12 }}
         sx={{
           display: 'flex',
-          justifyContent: 'flex-end',
+
           alignItems: 'center',
-          mt: 5
+          mt: 2,
+          gap: '8px'
         }}
       >
-        <Grid
-          container
-          spacing={2}
-          direction={{ xs: 'column', sm: 'row' }}
-          sx={{
-            justifyContent: { xs: 'center', sm: 'space-between' }
-          }}
-        >
-        
-          <Grid item size={{ xs: 12, sm: 'auto' }}>
-            <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
-          </Grid>
+        <Grid item size={{ xs: 12, sm: 12, md: 'auto', lg: 'auto' }} sx={{ marginRight: 'auto' }}>
+          <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+        </Grid>
 
-          <Grid
-            item
-            container
-            spacing={2}
-            xs={12}
-            sm
-            direction={{ xs: 'column', sm: 'row' }}
-            wrap='nowrap'
-            sx={{
-              justifyContent: { xs: 'center', sm: 'flex-end' }
-            }}
-          >
-       
-            <Grid item size={{ xs: 12, sm: 4, md: 3 }}>
-              <FormControl fullWidth size='small'>
-                <Autocomplete
-                  id='reference-type-autocomplete'
-                  options={selectedTypeOptions}
-                  getOptionLabel={option => option.name || ''}
-                  value={selectedTypeOptions.find(option => option.id === selectedType) || null}
-                  onChange={(event, newValue) => {
-                    handleTypeChange({ target: { value: newValue?.id || '' } })
-                  }}
-                  renderInput={params => (
-                    <TextField {...params} label='Reference Type' variant='outlined' size='small' />
-                  )}
-                  isOptionEqualToValue={(option, value) => option.id === value?.id}
-                  clearOnEscape
-                />
-              </FormControl>
-            </Grid>
+        <Grid item size={{ xs: 12, sm: 12, md: 2.2, lg: 1.8 }}>
+          <FormControl fullWidth size='small'>
+            <Autocomplete
+              id='reference-type-autocomplete'
+              options={selectedTypeOptions}
+              getOptionLabel={option => option.name || ''}
+              value={selectedTypeOptions.find(option => option.id === selectedType) || null}
+              onChange={(event, newValue) => {
+                handleTypeChange({ target: { value: newValue?.id || '' } })
+              }}
+              renderInput={params => <TextField {...params} label='Reference Type' variant='outlined' size='small' />}
+              isOptionEqualToValue={(option, value) => option.id === value?.id}
+              clearOnEscape
+            />
+          </FormControl>
+        </Grid>
 
-           
-            <Grid item size={{ xs: 12, sm: 4, md: 3 }}>
-              <FormControl fullWidth size='small'>
-                <Autocomplete
-                  id='dispatch-to-autocomplete'
-                  options={dispatchedToOptions}
-                  getOptionLabel={option => option.name || ''}
-                  value={dispatchedToOptions.find(option => option.id === selectedDispatchedTo) || null}
-                  onChange={(event, newValue) => {
-                    handleDispatchedToChange({ target: { value: newValue?.id || '' } })
-                  }}
-                  renderInput={params => <TextField {...params} label='Dispatch To' variant='outlined' size='small' />}
-                  isOptionEqualToValue={(option, value) => option.id === value?.id}
-                  clearOnEscape
-                />
-              </FormControl>
-            </Grid>
+        <Grid item size={{ xs: 12, sm: 12, md: 1.7, lg: 2 }}>
+          <FormControl fullWidth size='small'>
+            <Autocomplete
+              id='dispatch-to-autocomplete'
+              options={dispatchedToOptions}
+              getOptionLabel={option => option.name || ''}
+              value={dispatchedToOptions.find(option => option.id === selectedDispatchedTo) || null}
+              onChange={(event, newValue) => {
+                handleDispatchedToChange({ target: { value: newValue?.id || '' } })
+              }}
+              renderInput={params => <TextField {...params} label='Dispatch To' variant='outlined' size='small' />}
+              isOptionEqualToValue={(option, value) => option.id === value?.id}
+              clearOnEscape
+            />
+          </FormControl>
+        </Grid>
 
-            
-            <Grid item size={{ xs: 12, sm: 4, md: 3 }}>
-              <FormControl fullWidth size='small'>
-                <Autocomplete
-                  id='requested-by-autocomplete'
-                  options={requestedByOptions}
-                  getOptionLabel={option => option.name || ''}
-                  value={requestedByOptions.find(option => option.id === selectedRequestedBy) || null}
-                  onChange={(event, newValue) => {
-                    handleRequestedByChange({ target: { value: newValue?.id || '' } })
-                  }}
-                  renderInput={params => <TextField {...params} label='Requested By' variant='outlined' size='small' />}
-                  isOptionEqualToValue={(option, value) => option.id === value?.id}
-                  clearOnEscape
-                />
-              </FormControl>
-            </Grid>
-          </Grid>
+        <Grid item size={{ xs: 12, sm: 12, md: 2, lg: 2.1 }}>
+          <FormControl fullWidth size='small'>
+            <Autocomplete
+              id='requested-by-autocomplete'
+              options={requestedByOptions}
+              getOptionLabel={option => option.name || ''}
+              value={requestedByOptions.find(option => option.id === selectedRequestedBy) || null}
+              onChange={(event, newValue) => {
+                handleRequestedByChange({ target: { value: newValue?.id || '' } })
+              }}
+              renderInput={params => <TextField {...params} label='Requested By' variant='outlined' size='small' />}
+              isOptionEqualToValue={(option, value) => option.id === value?.id}
+              clearOnEscape
+            />
+          </FormControl>
         </Grid>
       </Grid>
       <Grid>
@@ -657,7 +608,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
       </Grid>
       <>{/* <Error404></Error404> */}</>
     </>
-  );
+  )
 }
 
 export default Dispatch

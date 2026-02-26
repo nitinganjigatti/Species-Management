@@ -16,7 +16,7 @@ const formatScheduledTime = timeStr => {
   return `${hour}:00 ${period}`
 }
 
-const TimeSlotCell = ({ hasSchedule, status, scheduledTime, administeredTime, dosage, onClick, config, theme }) => (
+const TimeSlotCell = ({ hasSchedule, status, scheduledTime, administeredTime, dosage, onClick, config, theme, disabled }) => (
   <>
     {hasSchedule ? (
       <Box
@@ -77,7 +77,8 @@ const TimeSlotCell = ({ hasSchedule, status, scheduledTime, administeredTime, do
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              maxWidth: '50px', // Consistent width
+              px: status == 'pending' && 2,
+              maxWidth: status == 'pending' ? '100%' : '50px',
               flex: 1
             }}
             variant='caption'
@@ -87,7 +88,7 @@ const TimeSlotCell = ({ hasSchedule, status, scheduledTime, administeredTime, do
         </Tooltip>
       </Box>
     ) : (
-      <Icon icon={'mdi-plus'} color={theme.palette.customColors.OutlineVariant} fontSize={20} />
+      !disabled ? <Icon icon={'mdi-plus'} color={theme.palette.customColors.OutlineVariant} fontSize={20} /> : null
     )}
   </>
 )

@@ -612,7 +612,7 @@ const AddParameterDataEntry = ({
                           >
                             <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                {(resType === 'numeric_scale' || 'list') && (
+                                {(resType === 'numeric_scale' || resType === 'list') && (
                                   <Typography
                                     sx={{
                                       fontSize: '1rem',

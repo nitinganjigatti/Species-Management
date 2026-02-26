@@ -2,6 +2,7 @@ import {
   CREATE_ROOMS_AND_ENCLOSURES,
   DELETE_ROOMS_AND_ENCLOSURES,
   GET_HOSPITAL_ROOMS,
+  GET_PATIENT_LIST_BY_ENCLOSURES,
   GET_ROOMS_AND_ENCLOSURES,
   ROOM_STATUS_UPDATE,
   UPDATE_HOSPITAL_BED
@@ -66,6 +67,12 @@ export async function updateRoomsAndEnclosures(id, payload) {
 
 export async function getHospitalRoomsList(params) {
   const response = await axiosGet({ url: `${GET_HOSPITAL_ROOMS}`, params: params })
+
+  return response?.data
+}
+
+export async function getPatientListByEnclosures(params) {
+  const response = await axiosGet({ url: `${GET_PATIENT_LIST_BY_ENCLOSURES}`, params: params })
 
   return response?.data
 }

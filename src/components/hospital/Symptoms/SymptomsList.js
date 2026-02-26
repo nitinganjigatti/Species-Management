@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import {
   Box,
   TextField,
@@ -8,12 +8,15 @@ import {
   Typography,
   CircularProgress,
   IconButton,
-  Skeleton
+  Skeleton,
+  Button
 } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { Add as AddIcon } from '@mui/icons-material'
+import { alpha, useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
 import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentListShimmer'
+import { AuthContext } from 'src/context/AuthContext'
 
 export default function SymptomsList({
   symptoms,
@@ -31,36 +34,66 @@ export default function SymptomsList({
   currentTab,
   handleTabChange,
   symptomsCount,
-  hasMore
+  hasMore,
+  handleAddNewClick,
+  alreadySelectedIds = []
 }) {
   const theme = useTheme()
+  const authData = useContext(AuthContext)
+  const userSettings = authData?.userData?.permission?.user_settings
 
   return (
     <Box sx={{ pt: 1 }}>
-      <TextField
-        placeholder='Search'
-        fullWidth
-        size='small'
-        sx={{ mb: 3, borderRadius: '8px' }}
-        value={searchQuery}
-        onChange={handleSearchChange}
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position='start'>
-                <SearchIcon fontSize='small' sx={{ color: 'gray' }} />
-              </InputAdornment>
-            ),
-            endAdornment: searchQuery && (
-              <InputAdornment position='end'>
-                <IconButton onClick={handleClearSearch} size='small' sx={{ color: 'gray' }}>
-                  <ClearIcon fontSize='small' />
-                </IconButton>
-              </InputAdornment>
-            )
-          }
-        }}
-      />
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 3 }}>
+        <TextField
+          placeholder='Search'
+          fullWidth
+          size='small'
+          sx={{
+            flex: 1,
+            borderRadius: '8px',
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '8px'
+            }
+          }}
+          value={searchQuery}
+          onChange={handleSearchChange}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon fontSize='small' sx={{ color: 'gray' }} />
+                </InputAdornment>
+              ),
+              endAdornment: searchQuery && (
+                <InputAdornment position='end'>
+                  <IconButton onClick={handleClearSearch} size='small' sx={{ color: 'gray' }}>
+                    <ClearIcon fontSize='small' />
+                  </IconButton>
+                </InputAdornment>
+              )
+            }
+          }}
+        />
+
+        {userSettings?.medical_add_complaints && (
+          <Button
+            variant='contained'
+            startIcon={<AddIcon />}
+            onClick={handleAddNewClick}
+            sx={{
+              height: '40px',
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 500,
+              fontSize: '14px',
+              px: 3
+            }}
+          >
+            ADD NEW
+          </Button>
+        )}
+      </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box
@@ -160,6 +193,7 @@ export default function SymptomsList({
           symptoms.map((symptom, index) => {
             const isSelected = selectedSymptoms.includes(symptom?.id)
             const isTemporarilySelected = temporarilySelected?.id === symptom?.id
+            const isAlreadyPrescribed = alreadySelectedIds?.includes(symptom?.id)
 
             return (
               <Box
@@ -172,13 +206,17 @@ export default function SymptomsList({
                   py: 3.7,
                   display: 'flex',
                   alignItems: 'center',
-                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  // opacity: isAlreadyPrescribed ? 0.9 : 1,
+                  // pointerEvents: isAlreadyPrescribed ? 'none' : 'auto',
+                  // backgroundColor: isAlreadyPrescribed ? alpha(theme.palette.action.disabledBackground, 0.05) : 'inherit'
                 }}
               >
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={isSelected || isTemporarilySelected}
+                      checked={isSelected || isTemporarilySelected || isAlreadyPrescribed}
+                      disabled={isAlreadyPrescribed}
                       onChange={() => onSelect(symptom)}
                       sx={{
                         transform: 'scale(0.8)',
@@ -220,7 +258,7 @@ export default function SymptomsList({
           </Box>
         )}
 
-        {!hasMore && !loading && symptoms?.length > 0 && (
+        {!hasMore && !loading && symptoms?.length > 10 && (
           <Box sx={{ textAlign: 'center', py: 2 }}>
             <Typography variant='body2' color='textSecondary'>
               All symptoms loaded ({symptoms?.length} of {symptomsCount})

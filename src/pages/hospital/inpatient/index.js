@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react'
-import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem } from '@mui/material'
+import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem, alpha } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { differenceInDays } from 'date-fns'
 import { debounce } from 'lodash'
@@ -31,6 +31,9 @@ const HospitalInpatient = () => {
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
   const [filterDate, setFilterDate] = useState({})
+  const [rows, setRows] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -70,10 +73,13 @@ const HospitalInpatient = () => {
     return new Date(dateString).toISOString().split('T')[0]
   }
 
-  const { data, isFetching, refetch } = useQuery({
-    queryKey: ['inpatients-listings', filters, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions],
-    queryFn: () =>
-      getIncomingPatients({
+  const fetchIncomingPatients = async () => {
+    if (!isHospitalAccessChecked || !selectedHospital?.id) return
+
+    try {
+      setLoading(true)
+
+      const res = await getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
         q: filters?.q,
@@ -84,16 +90,29 @@ const HospitalInpatient = () => {
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('Chief Veterinarian'),
         origin_site: prepareFilterParams('Origin Site')
-      }),
-    enabled: !!(isHospitalAccessChecked && selectedHospital?.id)
-  })
+      })
 
-  const total = data?.data?.total || 0
-  const rows = data?.data?.records || []
+      setRows(res?.data?.records || [])
+      setTotal(res?.data?.total || 0)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  // useEffect(() => {
-  //   refetch()
-  // }, [refetch, selectedHospital?.id])
+  useEffect(() => {
+    fetchIncomingPatients()
+  }, [
+    filters.page,
+    filters.limit,
+    filters.q,
+    selectedVisitType,
+    selectedHospital?.id,
+    filterDate,
+    selectedOptions,
+    isHospitalAccessChecked
+  ])
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -186,6 +205,70 @@ const HospitalInpatient = () => {
             }}
           />
         </>
+      )
+    },
+    {
+      width: 180,
+      minWidth: 120,
+      field: 'health_status',
+      sortable: false,
+      headerName: 'HEALTH STATUS',
+      renderCell: params => {
+        const status = params.row.health_status || 'stable'
+        const isCritical = status === 'critical'
+        const capitalizedStatus = status.charAt(0).toUpperCase() + status.slice(1)
+
+        return (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+
+            }}
+          >
+            <Box sx={{
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              backgroundColor: isCritical ? alpha(theme.palette.error.main, 0.2) : theme.palette.customColors.OnBackground,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <Box sx={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                backgroundColor: isCritical ? theme.palette.customColors.Tertiary : theme.palette.primary.main
+              }}>
+
+              </Box>
+            </Box>
+            <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+
+              {capitalizedStatus}
+            </Typography>
+          </Box>
+        )
+      }
+    },
+    {
+      width: 180,
+      minWidth: 120,
+      field: 'case_code',
+      sortable: false,
+      headerName: 'CASE ID',
+      renderCell: params => (
+        <Typography
+          sx={{
+            fontSize: '14px',
+            color: theme.palette.customColors.OnSurfaceVariant,
+          }}
+        >
+          {params.row.case_code || 'N/A'}
+        </Typography>
       )
     },
     {
@@ -387,7 +470,7 @@ const HospitalInpatient = () => {
                 columns={columns}
                 indexedRows={indexedRows}
                 total={total}
-                loading={isFetching}
+                loading={loading}
                 paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
                 setPaginationModel={handlePaginationModelChange}
                 searchValue=''

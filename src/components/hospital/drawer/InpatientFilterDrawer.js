@@ -3,8 +3,8 @@ import React, { useCallback, useContext, useEffect, useMemo, useState } from 're
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import FilterContent from 'src/components/drawers/FilterContent'
 import Toaster from 'src/components/Toaster'
+import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
-import { getAllSites } from 'src/lib/api/housing'
 
 const InpatientFilterDrawer = ({
   open,
@@ -65,7 +65,7 @@ const InpatientFilterDrawer = ({
               params.q = query
             }
 
-            const res = await getAllSites(params)
+            const res = await getZooWiseSiteLists(params)
 
             data =
               res?.data?.result?.length > 0

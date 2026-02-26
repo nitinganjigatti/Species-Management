@@ -75,20 +75,22 @@ const PharmacySettingsDrawer = props => {
           onSubmit={handleSubmit(onFormSubmit)}
           style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
         >
-          <Box sx={{ flex: 1 }}>
-            <FormControl fullWidth sx={{ mb: 6 }}>
-              <ControlledAutocomplete
-                control={control}
-                name='selectedUsers'
-                options={availableUsers || []}
-                multiple
-                label='Select Users'
-                placeholder='Search or Type User'
-                isOptionEqualToValue={(option, value) => option?.value === value?.value}
-                errors={errors}
-                helperText={errors.selectedUsers?.message}
-              />
-            </FormControl>
+          <Box sx={{ flex: 1, my: 4 }}>
+            {/* <FormControl fullWidth sx={{ mb: 6 }}> */}
+            <ControlledAutocomplete
+              control={control}
+              name='selectedUsers'
+              options={availableUsers || []}
+              multiple
+              label='Select Users'
+              placeholder='Search or Type User'
+              isOptionEqualToValue={(option, value) => option?.value === value?.value}
+              errors={errors}
+              helperText={errors.selectedUsers?.message}
+              autocompleteProps={{ limitTags: 3 }}
+              maxTagsHeight={200}
+            />
+            {/* </FormControl> */}
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 4 }}>

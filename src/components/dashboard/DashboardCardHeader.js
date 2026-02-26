@@ -13,8 +13,6 @@ const DashboardCardHeader = ({
   return (
     <Card>
       <CardHeader
-
-        // title={title}
         title={
           isSmall ? (
             <Typography
@@ -23,7 +21,9 @@ const DashboardCardHeader = ({
                 fontWeight: 500,
                 color: '#44544A',
                 textAlign: 'start',
-                lineHeight: '3px',
+
+                lineHeight: 1.2,
+
                 marginTop: '6px'
               }}
             >
@@ -58,7 +58,7 @@ const DashboardCardHeader = ({
         {children}
       </CardContent>
     </Card>
-  );
+  )
 }
 
 export default DashboardCardHeader

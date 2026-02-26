@@ -27,7 +27,7 @@ const AddAlternativeMedicineDrawer = ({
     slotProps={{
       paper: {
         sx: {
-          width: 500,
+          width: {xs: '100%', sm: 500},
           display: 'flex',
           flexDirection: 'column',
           backgroundColor: 'customColors.Background'

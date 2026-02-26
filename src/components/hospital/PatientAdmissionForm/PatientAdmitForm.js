@@ -53,23 +53,28 @@ const treatmentType = [
   { label: 'Hospital Admission (inpatient)', value: 'inpatient' }
 ]
 
+const healthStatusOptions = [
+  { label: 'Stable', value: 'stable' },
+  { label: 'Critical', value: 'critical' }
+]
+
 const defaultValues = {
   treatmentType: 'inpatient',
+  healthStatus: 'stable',
   holdingEnclosure: null,
   room: null,
   admission_date: dayjs(),
-  admission_time: dayjs(),
-  patient_status: false
+  admission_time: dayjs()
 }
 
 const schema = yup.object().shape({
   treatmentType: yup.string().required('Treatment Type is Required'),
+  healthStatus: yup.string().notRequired(),
   selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
   holdingEnclosure: yup.object().required('Holding Enclosure is required'),
   room: yup.object().required('Room is required'),
   admission_date: yup.date().required('Admission date is required'),
-  admission_time: yup.string().required('Admission time is required'),
-  patient_status: yup.boolean().required('Patient Status is Required')
+  admission_time: yup.string().required('Admission time is required')
 })
 
 const PatientAdmitForm = () => {
@@ -151,8 +156,9 @@ const PatientAdmitForm = () => {
           hospital_id: selectedHospital?.id,
           page: 1,
           per_page: 20,
-          q: searchRoom,
-          availability: 'available'
+          q: searchRoom
+
+          // availability: 'available'
         }).then(res => {
           if (res?.success === true) {
             const filteredRooms = res?.data?.records
@@ -178,9 +184,15 @@ const PatientAdmitForm = () => {
 
   const selectedRoom = watch('room')
   const watchTreatmentType = watch('treatmentType')
-  const watchPatientStatus = watch('patient_status')
 
   useEffect(() => {
+    // Reset holding enclosure when room changes
+    setValue('holdingEnclosure', {
+      label: '',
+      value: ''
+    })
+    setHoldingEnclosures([])
+
     const getHospitalBeds = async () => {
       if (!selectedRoom?.value) return
       setBedsLoading(true)
@@ -190,7 +202,8 @@ const PatientAdmitForm = () => {
           status: 'active',
           room_id: selectedRoom.value,
           page: 1,
-          is_occupied: 'available',
+
+          // is_occupied: 'available',
           q: searchEnclosure
         })
         if (res?.success === true) {
@@ -236,7 +249,8 @@ const PatientAdmitForm = () => {
         holding_enclosure: data?.holdingEnclosure?.value,
         admit_date: moment(data?.admission_date).format('YYYY-MM-DD'),
         admit_time: moment(data?.admission_time).format('HH:mm'),
-        room_id: data?.room?.value
+        room_id: data?.room?.value,
+        health_status: data?.healthStatus
       }
 
       const res = await admitHospitalPatient(params)
@@ -520,6 +534,41 @@ const PatientAdmitForm = () => {
                       )}
                     />
                   </Box>
+
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 4
+                    }}
+                  >
+                    <Typography
+                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      Health Status
+                    </Typography>
+                    <Controller
+                      name='healthStatus'
+                      control={control}
+                      render={({ field }) => (
+                        <Box sx={{ display: 'flex', flexDirection: { sm: 'row', xs: 'column' }, gap: 6 }}>
+                          {healthStatusOptions?.map((item, index) => (
+                            <TreatmentTypeRadioButtons
+                              key={index}
+                              label={item?.label}
+                              isSelected={field.value === item?.value}
+                              onClick={() => field.onChange(item?.value)}
+                              backgroundColor={theme.palette.customColors.OnPrimary}
+                              borderColor={theme.palette.customColors.OutlineVariant}
+                              selectedBorderColor={theme.palette.primary.main}
+                              selectedBackgroundColor={theme.palette.customColors.OnPrimary}
+                              disabled={submitLoader}
+                            />
+                          ))}
+                        </Box>
+                      )}
+                    />
+                  </Box>
                   <Grid container spacing={6}>
                     <Grid item size={{ sm: 6, xs: 12 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       <Typography
@@ -532,7 +581,7 @@ const PatientAdmitForm = () => {
                           <ControlledDatePicker
                             control={control}
                             name={'admission_date'}
-                            label='Date'
+                            label='Date*'
                             defaultValue={dayjs()}
                             minDate={minDate}
                             maxDate={maxDate}
@@ -543,7 +592,7 @@ const PatientAdmitForm = () => {
                           <ControlledTimePicker
                             control={control}
                             name={'admission_time'}
-                            label='Time'
+                            label='Time*'
                             minTime={minTime}
                             maxTime={maxTime}
                             disabled={submitLoader}
@@ -584,7 +633,7 @@ const PatientAdmitForm = () => {
                                   : theme.palette.customColors.OnSurfaceVariant
                               }}
                             >
-                              Select chief Veterinarian
+                              Select chief Veterinarian*
                             </Typography>
                             <Icon
                               icon='mdi:chevron-down'
@@ -646,34 +695,6 @@ const PatientAdmitForm = () => {
                       )}
                     </Grid>
                   </Grid>
-                  <Grid
-                    size={{ xs: 12 }}
-                    sx={{
-                      display: 'none',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 3,
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      p: 3,
-                      borderRadius: 1
-                    }}
-                  >
-                    <Typography
-                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                    >
-                      Patient Status
-                    </Typography>
-                    <ControlledSwitch
-                      control={control}
-                      name='patient_status'
-                      errors={errors}
-                      required
-                      disabled={submitLoader}
-                      label={watchPatientStatus ? 'Critical' : 'Normal'}
-                      labelPosition='start'
-                      spaceBetween
-                    />
-                  </Grid>
                   <Grid container spacing={6}>
                     <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       <Typography
@@ -683,7 +704,7 @@ const PatientAdmitForm = () => {
                       </Typography>
                       <ControlledAutocomplete
                         name='room'
-                        label='Select Room'
+                        label='Select Room*'
                         control={control}
                         errors={errors}
                         options={rooms}
@@ -736,7 +757,7 @@ const PatientAdmitForm = () => {
                       </Typography>
                       <ControlledAutocomplete
                         name='holdingEnclosure'
-                        label='Select Holding Enclosure'
+                        label='Select Holding Enclosure*'
                         control={control}
                         errors={errors}
                         options={holdingEnclosures}
@@ -764,6 +785,19 @@ const PatientAdmitForm = () => {
                           )
                         }
                       />
+                      {selectedRoom?.value && !bedsLoading && holdingEnclosures.length === 0 && (
+                        <Typography
+                          sx={{
+                            color: theme.palette.error.main,
+                            mt: '0px',
+                            mx: '4px',
+                            fontSize: '0.75rem',
+                            fontWeight: 400
+                          }}
+                        >
+                          No active/available enclosures available for this Room
+                        </Typography>
+                      )}
                     </Grid>
                   </Grid>
                 </Box>
@@ -850,7 +884,7 @@ const PatientAdmitForm = () => {
         <ConfirmationDialog
           dialogBoxStatus={isRejecting}
           onClose={() => setIsRejecting(false)}
-          title={'Reject Incoming patient'}
+          title={'Reject Request'}
           cancelText={'CANCEL'}
           cancelBtnStyle={{
             borderColor: theme.palette.customColors.OnPrimaryContainer,
@@ -862,16 +896,17 @@ const PatientAdmitForm = () => {
           confirmAction={handlePatientRejection}
           loading={isRejectLoading}
           ConfirmationText={'SUBMIT'}
-          description={"Once rejected, the animal can't be admitted again."}
+          // description={"Once rejected, the animal can't be admitted again."}
           formComponent={
             <TextField
-              label='Enter Rejection Reason'
+              label='Enter Rejection Reason*'
               multiline
               rows={4}
               fullWidth
               value={rejectionReason}
               onChange={e => setRejectionReason(e.target.value)}
               sx={{
+                width: { xs: '100%', sm: '400px' },
                 '& .MuiInputBase-root': {
                   backgroundColor: theme.palette.customColors.ErrorContainer
                 },

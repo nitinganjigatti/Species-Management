@@ -29,48 +29,49 @@ const AddHospitalRoom = props => {
     hospitalDetails,
     hospitalId,
     hospitalStatus,
-    isActive
+    isActive,
+    sites,
+    sitesLoading,
+    onSiteSearch
   } = props
 
   const theme = useTheme()
   const authData = useContext(AuthContext)
-  const getSitesList = useMemo(() => authData?.userData?.user?.zoos?.[0]?.sites ?? [], [authData?.userData?.user?.zoos])
+
+  // const getSitesList = useMemo(() => authData?.userData?.user?.zoos?.[0]?.sites ?? [], [authData?.userData?.user?.zoos])
 
   // Determine mode and Conditional rendering flags
-  const isHospitalEditMode = hospitalStatus
-  const hasOccupants = Number(hospitalDetails?.no_of_occupied) === 0
-  const hasRoomOccupants = Number(editParams?.no_of_occupied ?? 0) === 0 // When adding a new room, no_of_occupied is undefined, so default to 0
+  const isHospitalEditMode = Boolean(hospitalStatus)
+  const isRoomEditMode = !isHospitalEditMode && Boolean(editParams?.id)
+  const isRoomAddMode = !isHospitalEditMode && !isRoomEditMode
+
+  const isHospitalEmpty = Number(hospitalDetails?.no_of_occupied) === 0
+  const isRoomEmpty = Number(editParams?.no_of_occupied ?? 0) === 0
+
+  const showStatusField = (isHospitalEditMode && isHospitalEmpty) || (isRoomEditMode && isRoomEmpty) || isRoomAddMode
+
   const showRoomFields = !isHospitalEditMode
   const hospitalNameDisabled = !isHospitalEditMode
 
   const schema = useMemo(() => {
     if (isHospitalEditMode) {
-      if (hasOccupants) {
-        return yup.object().shape({
-          hospital_id: yup.string().trim().required('Hospital Name is required'),
+      return yup.object().shape({
+        hospital_id: yup.string().trim().required('Hospital Name is required'),
+        ...(isHospitalEmpty && {
           status: yup.boolean().required('Status is required')
         })
-      } else {
-        return yup.object().shape({
-          hospital_id: yup.string().trim().required('Hospital Name is required')
-        })
-      }
+      })
     }
-    if (hasRoomOccupants) {
-      return yup.object().shape({
-        hospital_id: yup.string().trim().required('Hospital Name is required'),
-        room_name: yup.string().trim().required('Room Name is required'),
-        floor_name: yup.string().trim().required('Floor Name is required'),
+
+    return yup.object().shape({
+      hospital_id: yup.string().trim().required('Hospital Name is required'),
+      room_name: yup.string().trim().required('Room Name is required'),
+      floor_name: yup.string().trim().required('Floor Name is required'),
+      ...(showStatusField && {
         status: yup.boolean().required('Status is required')
       })
-    } else {
-      return yup.object().shape({
-        hospital_id: yup.string().trim().required('Hospital Name is required'),
-        room_name: yup.string().trim().required('Room Name is required'),
-        floor_name: yup.string().trim().required('Floor Name is required')
-      })
-    }
-  }, [isHospitalEditMode, hasOccupants, hasRoomOccupants])
+    })
+  }, [isHospitalEditMode, isHospitalEmpty, showStatusField])
 
   const {
     reset,
@@ -91,8 +92,8 @@ const AddHospitalRoom = props => {
       const payload = {
         name: formData?.hospital_id,
         description: formData?.description,
-        site_id: formData?.site_id?.site_id || null,
-        is_active: formData?.status === true ? '1' : '0',
+        site_id: formData.site_id?.value || null,
+        is_active: formData?.status !== undefined ? (formData?.status ? '1' : '0') : '1',
         entity_type: 'hospital',
         is_external: 0
       }
@@ -107,7 +108,7 @@ const AddHospitalRoom = props => {
         hospital_id: hospitalId,
         room_name: formData?.room_name,
         floor_name: formData?.floor_name,
-        status: formData?.status === true ? '1' : '0'
+        status: formData?.status !== undefined ? (formData?.status ? '1' : '0') : '1'
       }
       const success = await handleSubmitData(payload, 'room')
       if (success) {
@@ -119,14 +120,14 @@ const AddHospitalRoom = props => {
   // Prefill form based on mode
   useEffect(() => {
     if (!handleSidebarOpen) return
-
     let prefill = { ...defaultValues }
-    const matchedSite = getSitesList?.find(site => Number(site?.site_id) === Number(hospitalDetails?.site_id))
 
     if (isHospitalEditMode) {
       prefill = {
         hospital_id: hospitalDetails?.hospital_name,
-        site_id: matchedSite || null,
+        site_id: hospitalDetails?.site_id
+          ? { value: hospitalDetails?.site_id, label: hospitalDetails?.site_name }
+          : null, // prevents Autocomplete from treating an empty value as a selected option
         description: hospitalDetails?.description || '',
         status: Boolean(isActive)
       }
@@ -147,7 +148,7 @@ const AddHospitalRoom = props => {
     }
 
     reset(prefill)
-  }, [handleSidebarOpen])
+  }, [])
 
   const handleClose = useCallback(() => {
     reset(defaultValues)
@@ -231,9 +232,14 @@ const AddHospitalRoom = props => {
                     name='site_id'
                     errors={errors}
                     label='Site Name'
-                    options={getSitesList}
-                    getOptionLabel={option => option?.site_name || ''}
-                    isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+                    options={sites}
+                    getOptionLabel={option => option?.label || ''}
+                    getOptionValue={option => option?.value || ''}
+                    onInputChange={value => onSiteSearch(value)}
+                    isOptionEqualToValue={(option, value) => option?.value === value?.value}
+                    onItemClear={() => onSiteSearch('')}
+                    loading={sitesLoading}
+                    showLoader={true}
                     showIcons={false}
                   />
                 </>
@@ -261,7 +267,7 @@ const AddHospitalRoom = props => {
                 </>
               )}
 
-              {hasRoomOccupants && (
+              {showStatusField && (
                 <ControlledRadioGroup
                   name='status'
                   control={control}

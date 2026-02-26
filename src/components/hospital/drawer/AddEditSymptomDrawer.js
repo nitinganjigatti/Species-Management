@@ -9,6 +9,7 @@ import {
   Drawer,
   Divider,
   InputAdornment,
+  FormControl,
   alpha
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
@@ -50,13 +51,16 @@ const AddEditSymptomDrawer = ({
   isUpdating,
   setIsDeleting,
   isDeleting,
+  isSubmitLoading,
   setActivityListData,
-  isChanged
+  isChanged,
+  isResolved
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
   const router = useRouter()
   const { id } = router.query
+
 
   const handleSave = () => {
     onSave({
@@ -82,7 +86,7 @@ const AddEditSymptomDrawer = ({
       formattedTime: `${Utility.formatDisplayDate(activity?.created_at)} • ${Utility.convertUTCToLocaltime(
         activity?.created_at
       )}`,
-      note: activity.note || 'N/A'
+      note: activity.note || ''
     })) ||
     // .sort((a, b) => {
     //   return b.isSystemGenerated - a.isSystemGenerated
@@ -212,10 +216,10 @@ const AddEditSymptomDrawer = ({
             </IconButton>
           </Box>
         </Box>
-
+          
         <Box
           sx={{
-            pb: 2,
+            pb: 22,
             borderBottom:
               processedActivities?.length > 0 ? `1px solid ${theme.palette.customColors.OutlineVariant}` : 'none',
             height: processedActivities?.length > 0 ? '-webkit-fill-available' : '80%'
@@ -296,16 +300,16 @@ const AddEditSymptomDrawer = ({
                 <Select
                   value={severity}
                   onChange={e => setSeverity(e.target.value)}
+                  disabled={status === 'closed'}
                   sx={{
                     backgroundColor: getSymptomsSeverityColor(severity).bgColor,
-
                     fontWeight: 500,
                     height: 56,
                     borderRadius: '4px',
                     width: '260px',
                     '& .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',
-                      borderColor: getSymptomsSeverityColor(severity).color
+                      borderColor: `${getSymptomsSeverityColor(severity).color} !important`
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',
@@ -338,6 +342,7 @@ const AddEditSymptomDrawer = ({
                 <TextField
                   type='number'
                   value={durationValue}
+                  disabled={status === 'closed'}
                   onChange={e => {
                     const val = e.target.value
                     if (val === '' || Number(val) >= 0) {
@@ -354,6 +359,7 @@ const AddEditSymptomDrawer = ({
                             value={durationUnit}
                             onChange={e => setDurationUnit(e.target.value)}
                             variant='standard'
+                            disabled={status === 'closed'}
                             disableUnderline
                             sx={{
                               fontSize: 14,
@@ -384,6 +390,7 @@ const AddEditSymptomDrawer = ({
             </Typography>
             <TextField
               placeholder='Add notes'
+              disabled={status === 'closed'}
               fullWidth
               multiline
               rows={3}
@@ -410,15 +417,18 @@ const AddEditSymptomDrawer = ({
             ''
           )}
         </Box>
-        <SideSheetActionButtons
-          addLabel='UPDATE'
-          cancelLabel='CANCEL'
-          onAdd={handleSave}
-          onCancel={handleCancel}
-          width={260}
-          height={50}
-          isDisabled={!isChanged}
-        />
+        <Box sx={{ position: 'fixed', bottom: 0 }}>
+          <SideSheetActionButtons
+            addLabel='UPDATE'
+            cancelLabel='CANCEL'
+            onAdd={handleSave}
+            isSubmitLoading={isSubmitLoading}
+            onCancel={handleCancel}
+            width={260}
+            height={50}
+            isDisabled={!isChanged}
+          />
+        </Box>
       </Box>
 
       <EditNotes

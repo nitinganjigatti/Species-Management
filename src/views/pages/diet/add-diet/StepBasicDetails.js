@@ -100,7 +100,8 @@ const StepBasicDetails = ({
   loader,
   onLoadMore,
   loadingfeed,
-  feedtotalCount
+  feedtotalCount,
+  handleFeedSearch
 }) => {
   // ** States
   const theme = useTheme()
@@ -1123,13 +1124,11 @@ const StepBasicDetails = ({
                       return (
                         <Autocomplete
                           value={uomList?.find(option => option.id === value) || null}
-
                           // disablePortal
                           id='diet_type_id'
                           options={uomList || []}
                           getOptionLabel={option => option.diet_type_name}
                           isOptionEqualToValue={(option, value) => option?.id === value}
-
                           //disabled={id ? true : false}
                           onChange={(e, val) => {
                             if (val === null) {
@@ -1891,7 +1890,6 @@ const StepBasicDetails = ({
                                 </Grid>
 
                                 <Icon
-
                                   //onClick={() => removeingClickRecipe(all.recipe_id, all.mealid)}
                                   style={{ fontSize: '22px', cursor: 'pointer' }}
                                   className='pencil_diet'
@@ -2032,7 +2030,7 @@ const StepBasicDetails = ({
                                     ))}
                                   </Grid>
                                 </Grid>
-                                <Grid size={{ xs: 12, sm: 3.7, md: 3.6 }}>
+                                <Grid size={{ xs: 12, sm: 3.2, md: 3.6 }}>
                                   <Grid sx={{ pl: 7 }}>
                                     <Tooltip title={all?.remarks} arrow placement='bottom-start'>
                                       <Typography
@@ -2054,7 +2052,7 @@ const StepBasicDetails = ({
                                 </Grid>
 
                                 <Icon
-                                  className='pencil_diet'
+                                  className='pencil_diet_for_choice'
                                   style={{
                                     fontSize: '22px',
                                     cursor: 'pointer'
@@ -2073,7 +2071,7 @@ const StepBasicDetails = ({
                                   icon='bx:pencil'
                                 />
                                 <Icon
-                                  className='del_diet'
+                                  className='del_diet_for_choice'
                                   onClick={() => removeingClicking(index, all.mealid, all)}
                                   style={{ fontSize: '22px', cursor: 'pointer' }}
                                   icon='iconoir:cancel'
@@ -2341,7 +2339,6 @@ const StepBasicDetails = ({
                 <Button
                   color='secondary'
                   variant='outlined'
-
                   //startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                   sx={{ mr: 6 }}
                   onClick={cancelBack}
@@ -2388,6 +2385,7 @@ const StepBasicDetails = ({
             onLoadMore={onLoadMore}
             loadingfeed={loadingfeed}
             feedtotalCount={feedtotalCount}
+            handleFeedSearch={handleFeedSearch}
           />
           <AddIngredients
             open={openIngredient}
@@ -2422,6 +2420,7 @@ const StepBasicDetails = ({
             onLoadMore={onLoadMore}
             loadingfeed={loadingfeed}
             feedtotalCount={feedtotalCount}
+            handleFeedSearch={handleFeedSearch}
           />
           <RecipeList
             recipeList={recipeList}
