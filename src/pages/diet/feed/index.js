@@ -16,9 +16,9 @@ import Icon from 'src/@core/components/icon'
 import React, { useCallback, useEffect, useState, useContext } from 'react'
 import Router, { useRouter } from 'next/router'
 import { getFeedTypeList } from 'src/lib/api/diet/feedType'
-import { DataGrid } from '@mui/x-data-grid'
 import CustomChip from 'src/@core/components/mui/chip'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import toast from 'react-hot-toast'
 import Tooltip from '@mui/material/Tooltip'
@@ -278,55 +278,13 @@ const FeedTypes = () => {
       <Card>
         <CardHeader title='Feed Types' action={headerAction} sx={{ px: 5 }} />
         <Box sx={{ width: '100%', overflowX: 'auto' }}>
-          <DataGrid
-            sx={{
-              height: 700,
-              '.MuiDataGrid-cell:focus': {
-                outline: 'none'
-              },
-              '& .MuiDataGrid-row:hover': {
-                cursor: 'pointer'
-              },
-              '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: theme.palette.customColors.customTableHeaderBg,
-                color: theme.palette.customColors.customHeadingTextColor
-              },
-              '.MuiDataGrid-virtualScroller': {
-                overflowX: 'auto'
-              },
-              '.MuiDataGrid-main': {
-                borderLeft: '1px solid #0000000D',
-                borderRight: '1px solid #0000000D',
-                marginLeft: '20px',
-                marginRight: '20px',
-                borderRadius: '8px',
-                border: '1px solid rgba(233, 233, 236, 1)'
-              },
-              '& .MuiDataGrid-footerContainer': {
-                borderTop: 'none'
-              },
-
-              '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
-                borderBottom: 'none'
-              }
-            }}
-            columnVisibilityModel={{
-              sl_no: false
-            }}
-            hideFooterSelectedRowCount
-            disableColumnSelector={true}
-            autoHeight
-            pagination
-            rows={indexedRows === undefined ? [] : indexedRows}
-            rowCount={total}
+          <CommonTable
+            indexedRows={indexedRows === undefined ? [] : indexedRows}
+            total={total}
             columns={columns}
-            sortingMode='server'
-            paginationMode='server'
-            pageSizeOptions={[7, 10, 25, 50, 100]}
             paginationModel={paginationModel}
-            onSortModelChange={handleSortModel}
-            slots={{ toolbar: ServerSideToolbarWithFilter }}
-            onPaginationModelChange={newPaginationModel => {
+            handleSortModel={handleSortModel}
+            setPaginationModel={newPaginationModel => {
               updateQueryParams({
                 page: newPaginationModel.page,
                 pageSize: newPaginationModel.pageSize
@@ -334,18 +292,21 @@ const FeedTypes = () => {
               setPaginationModel(newPaginationModel)
             }}
             loading={loading}
-            slotProps={{
-              baseButton: {
-                variant: 'outlined'
-              },
-              toolbar: {
-                value: searchValue,
-                clearSearch: () => handleSearch(''),
-                onChange: event => handleSearch(event.target.value)
-              }
+            columnVisibilityModel={{
+              sl_no: false
             }}
             onCellClick={onCellClick}
-            showToolbar />
+            externalTableStyle={{
+              height: 700,
+              '.MuiDataGrid-virtualScroller': {
+                overflowX: 'auto'
+              },
+              '.MuiDataGrid-main': {
+                marginLeft: '20px',
+                marginRight: '20px'
+              }
+            }}
+          />
         </Box>
       </Card>
     );

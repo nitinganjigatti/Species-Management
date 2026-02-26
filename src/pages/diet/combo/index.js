@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback, useContext } from 'react'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
@@ -426,52 +426,13 @@ const RecipeList = () => {
             <CardHeader title='Mix' action={headerAction} sx={{ px: 5 }} />
 
             <Box sx={{ width: '100%', overflowX: 'auto' }}>
-              <DataGrid
-                sx={{
-                  height: 700,
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  },
-                  '& .MuiDataGrid-columnHeaders': {
-                    backgroundColor: theme.palette.customColors.customTableHeaderBg,
-                    color: theme.palette.customColors.customHeadingTextColor
-                  },
-                  '.MuiDataGrid-virtualScroller': {
-                    overflowX: 'auto'
-                  },
-                  '.MuiDataGrid-main': {
-                    borderLeft: '1px solid #0000000D',
-                    borderRight: '1px solid #0000000D',
-                    marginLeft: '20px',
-                    marginRight: '20px',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(233, 233, 236, 1)'
-                  },
-                  '& .MuiDataGrid-footerContainer': {
-                    borderTop: 'none'
-                  },
-
-                  '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
-                    borderBottom: 'none'
-                  }
-                }}
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                autoHeight
-                pagination
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
+              <CommonTable
+                indexedRows={indexedRows === undefined ? [] : indexedRows}
+                total={total}
                 columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50, 100]}
                 paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbarWithFilter }}
-                onPaginationModelChange={newPaginationModel => {
+                handleSortModel={handleSortModel}
+                setPaginationModel={newPaginationModel => {
                   updateQueryParams({
                     page: newPaginationModel.page,
                     pageSize: newPaginationModel.pageSize
@@ -479,18 +440,18 @@ const RecipeList = () => {
                   setPaginationModel(newPaginationModel)
                 }}
                 loading={loading}
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
+                onCellClick={onCellClick}
+                externalTableStyle={{
+                  height: 700,
+                  '.MuiDataGrid-virtualScroller': {
+                    overflowX: 'auto'
                   },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
+                  '.MuiDataGrid-main': {
+                    marginLeft: '20px',
+                    marginRight: '20px'
                   }
                 }}
-                onCellClick={onCellClick}
-                showToolbar />
+              />
             </Box>
           </Card>
         )}

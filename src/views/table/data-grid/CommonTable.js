@@ -51,11 +51,18 @@ const CommonTable = ({
         },
         '& .MuiDataGrid-columnHeader': {
           backgroundColor: theme.palette.customColors.customTableHeaderBg,
-          color: theme.palette.customColors.customHeadingTextColor
+          color: theme.palette.customColors.customHeadingTextColor,
+          display: 'flex',
+          alignItems: 'center'
         },
         '& .MuiDataGrid-columnHeaderTitle': {
           color: theme.palette.customColors.customHeadingTextColor,
-          fontWeight: 500
+          fontWeight: 500,
+          lineHeight: 'normal'
+        },
+        '& .MuiDataGrid-columnHeaderTitleContainer': {
+          display: 'flex',
+          alignItems: 'center'
         },
         '& .MuiDataGrid-filler': {
           backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
@@ -68,6 +75,9 @@ const CommonTable = ({
         },
         '& .MuiDataGrid-scrollbarFiller--header': {
           backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+        },
+        '& .MuiDataGrid-cellEmpty': {
+          display: 'none !important'
         },
 
         // Cell alignment - vertically center content
@@ -158,7 +168,7 @@ const CommonTable = ({
       }}
       onCellClick={onCellClick ? onCellClick : null}
       // paginationModel={paginationModel}
-      paginationModel={disablePagination ? undefined : paginationModel}
+      paginationModel={disablePagination ? undefined : paginationModel || { page: 0, pageSize: 50 }}
       onSortModelChange={handleSortModel}
       // onPaginationModelChange={setPaginationModel}
       onPaginationModelChange={disablePagination ? undefined : setPaginationModel}

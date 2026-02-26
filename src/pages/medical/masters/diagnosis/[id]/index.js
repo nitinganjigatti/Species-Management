@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
-import { DataGrid } from '@mui/x-data-grid'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { useRouter } from 'next/router'
 import { useTheme } from '@mui/material/styles'
@@ -252,48 +252,22 @@ const DiagnosisDetails = () => {
           <Card>
             <CardHeader title='Diagnosis List' action={headerAction} />
 
-            <DataGrid
-              //   hideFooterPagination={true}
-              sx={{
-                '.MuiDataGrid-cell:focus-within': {
-                  outline: 'none'
-                },
-
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
+            <CommonTable
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
+              columns={columns}
+              paginationModel={paginationModel}
+              handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
+              pageSizeOptions={[7, 10, 25, 50]}
+              loading={loading}
+              searchValue={searchValue}
+              handleSearch={handleSearch}
+              onCellClick={handleCellClick}
               columnVisibilityModel={{
                 sl_no: false
               }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              disableColumnMenu
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onCellClick={handleCellClick}
-              showToolbar />
+            />
           </Card>
           {openDrawer && (
             <AddCategories

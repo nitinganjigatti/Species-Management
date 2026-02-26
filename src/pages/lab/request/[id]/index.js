@@ -33,7 +33,6 @@ import {
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
-import { DataGrid } from '@mui/x-data-grid'
 
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -46,6 +45,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import Icon from 'src/@core/components/icon'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import ScrollToTop from 'src/@core/components/scroll-to-top'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 import Toaster from 'src/components/Toaster'
 import CommonMediaView from 'src/components/lab/CommonMediaView'
@@ -1438,7 +1438,7 @@ const RequestDetails = () => {
               )}
             </Box>
 
-            <DataGrid
+            <CommonTable
               checkboxSelection={
                 permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests
               }
@@ -1476,7 +1476,19 @@ const RequestDetails = () => {
                   return true
                 }
               }}
-              sx={{
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
+              columns={columns}
+              handleSortModel={handleSortModel}
+              loading={loading}
+              hideFooterPagination
+              disablePagination
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                }
+              }}
+              externalTableStyle={{
                 '& .MuiDataGrid-row:hover .customButton': {
                   display: 'block'
                 },
@@ -1491,19 +1503,6 @@ const RequestDetails = () => {
                 },
                 '& .MuiDataGrid-row.Mui-selected.MuiDataGrid-row--focused': {
                   backgroundColor: 'white !important'
-                }
-              }}
-              autoHeight
-              hideFooterPagination
-              hideFooterSelectedRowCount
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              onSortModelChange={handleSortModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
                 }
               }}
             />
