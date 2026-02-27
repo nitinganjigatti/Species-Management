@@ -85,9 +85,17 @@ const StepAddIngredients = ({
   cutsizeList,
   fullIngredientList,
   IngredientTypeListSearch,
-  setcutSize
+  setcutSize,
+  fetchMoreIngredients
 }) => {
   const ingredients = [{ label: ' Items' }, { label: 'Quantity' }, { label: 'Preparation Type' }, { label: 'Cut Size' }]
+
+  const handleScroll = event => {
+    const listboxNode = event.currentTarget
+    if (listboxNode.scrollTop + listboxNode.clientHeight >= listboxNode.scrollHeight - 5) {
+      fetchMoreIngredients()
+    }
+  }
 
   const ingredientsbyqun = [
     { label: ' Items' },
@@ -338,9 +346,7 @@ const StepAddIngredients = ({
           }
         }
       }
-    } catch (error) {
-      // Handle error
-    }
+    } catch (error) {}
   }
 
   useEffect(() => {
@@ -459,10 +465,6 @@ const StepAddIngredients = ({
                             render={({ field: { value, onChange } }) => (
                               <Autocomplete
                                 sx={{
-                                  // '&.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon .MuiOutlinedInput-root':
-                                  //   isSmallDevice ? { paddingRight: '10px' } : {},
-                                  // '& .MuiAutocomplete-clearIndicator': isSmallDevice ? { display: 'none' } : {},
-                                  // '& .MuiAutocomplete-popupIndicator': isSmallDevice ? { display: 'none' } : {},
                                   width: isSmallDevice ? '216px' : '236px'
                                 }}
                                 value={fullIngredientList.find(option => option.id === value) || null}
@@ -471,6 +473,9 @@ const StepAddIngredients = ({
                                 options={fullIngredientList || []}
                                 getOptionLabel={option => option?.ingredient_name}
                                 isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                ListboxProps={{
+                                  onScroll: handleScroll
+                                }}
                                 onChange={(e, val) => {
                                   if (val === null) {
                                     onChange('')
