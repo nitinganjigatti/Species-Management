@@ -568,7 +568,6 @@ const StepAddIngredients = ({
               <Grid container spacing={5} sx={{ px: 0, py: 0 }}>
                 {fieldsIngredients.map((field, index) => (
                   <Grid container spacing={5} sx={{ px: 0, py: 1 }} key={field.id} id={'test' + index}>
-
                     <Grid size={{ xs: 12, sm: 3.6 }}>
                       <FormControl fullWidth>
                         <Controller
