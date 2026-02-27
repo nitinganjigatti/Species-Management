@@ -14,7 +14,6 @@ import {
   InputLabel,
   Card
 } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
 
 import { debounce } from 'lodash'
@@ -23,6 +22,7 @@ import moment from 'moment'
 import { AuthContext } from 'src/context/AuthContext'
 import Icon from 'src/@core/components/icon'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 import { GetLabReportById, GetLabRequestTestStatusById } from 'src/lib/api/lab/getLabRequest'
@@ -615,40 +615,16 @@ const ListOfRequest = () => {
               </Box>
             </Stack>
 
-            <DataGrid
-              sx={{
-                paddingX: 5,
-                borderTopLeftRadius: '8px',
-                '& .MuiBox-root': {
-                  paddingX: 0
-                },
-                '.MuiDataGrid-main': {
-                  border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
-                  borderRadius: '8px'
-                },
-                '& .MuiDataGrid-footerContainer': {
-                  border: 'none !important'
-                },
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
+            <CommonTable
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
               columns={columns}
-              disableColumnMenu
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[10, 25, 50, 100]}
               paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              // onPaginationModelChange={setPaginationModel}
-              onPaginationModelChange={handlePaginationModelChange}
+              handleSortModel={handleSortModel}
+              setPaginationModel={handlePaginationModelChange}
               loading={loading}
-              onCellClick={handleClickRequestId}
+              onRowClick={handleClickRequestId}
+              slots={{ toolbar: ServerSideToolbar }}
               slotProps={{
                 baseButton: {
                   variant: 'outlined'
@@ -662,12 +638,15 @@ const ListOfRequest = () => {
                   }
                 }
               }}
+              externalTableStyle={{
+                paddingX: 5
+              }}
             />
           </Card>
         </>
       )}
     </>
-  )
+  );
 }
 
 export default ListOfRequest

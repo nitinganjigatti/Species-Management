@@ -28,6 +28,7 @@ const ExportCard = ({
   const [exportID, setexportID] = useState('')
   const [exportAnimalData, setexportAnimalData] = useState([])
   const [loading, setLoading] = useState(false)
+
   const handleClickAnimals = val => {
     setAddAnimalsDrawerOpen(true)
     setexportID(val)
@@ -68,9 +69,19 @@ const ExportCard = ({
           borderRadius: '8px',
           backgroundColor: theme.palette.common.white,
           boxShadow: 'none',
-          minHeight: '120px'
+          minHeight: '120px',
+          cursor: 'pointer'
         }}
         onClick={() => handleClickAnimals(exportId)}
+        onKeyDown={event => {
+          if (event.target !== event.currentTarget) return
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            handleClickAnimals(exportId)
+          }
+        }}
+        tabIndex={0}
+        role='button'
       >
         <CardContent sx={{ flex: 1, px: 4, py: 4 }}>
           <Typography
@@ -133,6 +144,7 @@ const ExportCard = ({
         <Box
           sx={{
             background: theme.palette.customColors.Surface,
+
             //height: '117px',
             width: '45px',
             display: 'flex',

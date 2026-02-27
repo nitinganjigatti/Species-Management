@@ -101,6 +101,7 @@ const Drawer = props => {
         ...userNavMenuStyle
       }}
       {...userNavMenuProps}
+      disableSwipeToOpen
     >
       {children}
     </SwipeableDrawer>

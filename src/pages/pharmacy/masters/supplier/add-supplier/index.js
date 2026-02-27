@@ -2,29 +2,7 @@ import React, { useState, useEffect } from 'react'
 
 // ** MUI Imports
 
-import {
-  Grid,
-  styled,
-  Button,
-  Card,
-  Radio,
-  Select,
-  MenuItem,
-  Checkbox,
-  TextField,
-  FormLabel,
-  CardHeader,
-  InputLabel,
-  IconButton,
-  RadioGroup,
-  CardContent,
-  FormControl,
-  OutlinedInput,
-  FormHelperText,
-  InputAdornment,
-  FormControlLabel,
-  CircularProgress
-} from '@mui/material'
+import { Grid, Button, Card, Select, MenuItem, TextField, InputLabel, FormControl, FormHelperText } from '@mui/material'
 
 import { LoadingButton } from '@mui/lab'
 import Router from 'next/router'
@@ -40,6 +18,7 @@ import { getStates } from 'src/lib/api/pharmacy/getStates'
 import { getSupplierById, updateSuppliersById } from 'src/lib/api/pharmacy/getSupplierList'
 
 import Utility from 'src/utility'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
   const defaultValues = {
@@ -229,7 +208,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
         setSubmitLoader(true)
         reset(defaultValues)
 
-         if (supplierDialog) {
+        if (supplierDialog) {
           closeSupplierDialog()
         } else {
           Router.push('/pharmacy/masters/supplier/supplier-list')
@@ -279,10 +258,10 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
   const supplierForm = () => {
     return (
       <>
-        {supplierDialog ? null : (
-          <CardHeader
-            title={id ? 'Edit Supplier' : 'Add Supplier'}
-            action={
+        <PageCardLayout
+          title={supplierDialog ? null : id ? 'Edit Supplier' : 'Add Supplier'}
+          action={
+            supplierDialog ? null : (
               <div>
                 <Button
                   size='big'
@@ -293,15 +272,10 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 >
                   Suppliers List
                 </Button>
-                {/* <span style={{ marginRight: 4 }}></span>
-          <Button size='big' variant='contained' href=''>
-            Upload CSV
-          </Button> */}
               </div>
-            }
-          />
-        )}
-        <CardContent>
+            )
+          }
+        >
           <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
             <Grid container spacing={5}>
               <Grid item size={{ xs: 12, sm: 6 }}>
@@ -527,7 +501,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
               </Grid>
             </Grid>
           </form>
-        </CardContent>
+        </PageCardLayout>
       </>
     )
   }

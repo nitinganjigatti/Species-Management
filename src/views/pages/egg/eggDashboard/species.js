@@ -6,13 +6,13 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
-import { DataGrid } from '@mui/x-data-grid'
 import dayjs from 'dayjs'
 import moment from 'moment'
 import Router from 'next/router'
 import debounce from 'lodash/debounce'
 
 import Icon from 'src/@core/components/icon'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 import DashboardSlider from '../eggs/dashboardSlider'
@@ -91,10 +91,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     return useCallback(debounce(callback, delay), [callback, delay])
   }
 
-  // // Debounced search callbacks
-  // const searchSpecies = useDebouncedCallback(async search => await TaxonomyList({ search }), 1000)
-  // const searchNursery = useDebouncedCallback(async q => await NurseryList(q), 1000)
-
   const searchTableData = useDebouncedCallback(async (status, q, fDate, tDate, ref_id) => {
     setSearchValue(q)
     await getspeciesFunc(status, q, fDate, tDate, ref_id)
@@ -170,7 +166,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 80,
       field: 'uid',
       headerName: 'SL.NO',
-      disableColumnMenu: true,
       sortable: false,
       align: 'center',
       renderCell: params => (
@@ -189,79 +184,14 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 280,
       sortable: true,
-      disableColumnMenu: true,
       field: 'species',
       headerName: 'SPECIES',
-      renderCell: params => (
-        <SpeciesCard species={{ ...params?.row, common_name: params.row?.default_common_name }} />
-        // <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-        //   <Avatar
-        //     variant='rounded'
-        //     alt='Medicine Image'
-        //     sx={{
-        //       width: 35,
-        //       height: 35,
-        //       mr: 4,
-        //       p: 1,
-        //       objectFit: 'contain',
-        //       borderRadius: '50%',
-        //       background: '#E8F4F2'
-        //     }}
-        //   >
-        //     <img
-        //       style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-        //       src={params.row.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
-        //       alt='Profile'
-        //     />
-        //   </Avatar>
-
-        //   <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        //     <Tooltip title={params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}>
-        //       <Typography
-        //         sx={{
-        //           color: theme.palette.primary.light,
-        //           fontSize: '16px',
-        //           fontWeight: '500',
-        //           lineHeight: '19.36px',
-        //           overflow: 'hidden',
-        //           textOverflow: 'ellipsis',
-        //           whiteSpace: 'nowrap',
-        //           width: '200px',
-        //           boxSizing: 'border-box'
-        //         }}
-        //       >
-        //         {params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}
-        //       </Typography>
-        //     </Tooltip>
-        //     <Tooltip
-        //       title={
-        //         params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'
-        //       }
-        //     >
-        //       <Typography
-        //         sx={{
-        //           color: theme.palette.primary.light,
-        //           fontSize: '14px',
-        //           fontWeight: '400',
-        //           lineHeight: '16.94px',
-        //           overflow: 'hidden',
-        //           textOverflow: 'ellipsis',
-        //           whiteSpace: 'nowrap',
-        //           width: '200px'
-        //         }}
-        //       >
-        //         {params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'}
-        //       </Typography>
-        //     </Tooltip>
-        //   </Box>
-        // </Box>
-      )
+      renderCell: params => <SpeciesCard species={{ ...params?.row, common_name: params.row?.default_common_name }} />
     },
     {
       width: 120,
       field: 'total_eggs',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'TOTAL EGGS',
       renderCell: params => (
         <Box
@@ -305,7 +235,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'hatched_percentage',
       sortable: false,
-      disableColumnMenu: true,
       headerName: 'TOTAL HATCHED %',
       renderCell: params => (
         <Box
@@ -351,7 +280,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'total_hatch',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'TOTAL HATCHED',
       renderCell: params => (
         <Box
@@ -384,7 +312,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 140,
       field: 'total_discarded',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'TOTAL DISCARDED',
       renderCell: params => (
         <Box
@@ -417,7 +344,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'currently_in_nest',
       sortable: true,
-      disableColumnMenu: true,
       renderHeader: () => (
         <Box>
           <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
@@ -459,7 +385,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'currently_in_nursery',
       sortable: true,
-      disableColumnMenu: true,
 
       // headerName: 'EGGS TO NURSERY',
       renderHeader: () => (
@@ -505,7 +430,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'hatched_in_nursery_percentage',
       sortable: false,
-      disableColumnMenu: true,
       headerName: 'HATCHED IN NURSERY %',
       renderCell: params => (
         <Box
@@ -560,7 +484,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'hatched_in_nursery',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'HATCHED IN NURSERY',
       renderCell: params => (
         <Box
@@ -592,7 +515,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'hatched_in_nest_percentage',
       sortable: false,
-      disableColumnMenu: true,
       headerName: 'HATCHED IN NEST %',
       renderCell: params => (
         <Box
@@ -647,7 +569,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 180,
       field: 'hatched_in_nest',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'HATCHED IN NEST',
       renderCell: params => (
         <Box
@@ -680,7 +601,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 170,
       field: 'total_discard_at_site',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'DISCARDED AT SITE',
       renderCell: params => (
         <Box
@@ -712,7 +632,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'total_discard_at_nursery',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'DISCARDED AT NURSERY',
       renderCell: params => (
         <Box
@@ -754,7 +673,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 120,
       field: 'in_transit',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'IN TRANSIT',
       renderCell: params => (
         <Box
@@ -797,7 +715,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 80,
       field: 'uid',
       headerName: 'SL.NO',
-      disableColumnMenu: true,
       sortable: false,
       align: 'center',
       renderCell: params => (
@@ -816,7 +733,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 320,
       sortable: true,
-      disableColumnMenu: true,
       field: 'sites',
       headerName: 'SITES',
       renderCell: params => (
@@ -865,7 +781,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'total_eggs',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'TOTAL EGGS',
       renderCell: params => (
         <Box
@@ -906,7 +821,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'hatched_percentage',
       sortable: false,
-      disableColumnMenu: true,
       headerName: 'TOTAL HATCHED %',
       renderCell: params => (
         <Box
@@ -952,7 +866,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'total_hatch',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'TOTAL HATCHED',
       renderCell: params => (
         <Box
@@ -985,7 +898,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'total_discarded',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'TOTAL DISCARDED',
       renderCell: params => (
         <Box
@@ -1018,7 +930,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'currently_in_nest',
       sortable: true,
-      disableColumnMenu: true,
       renderHeader: () => (
         <Box>
           <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
@@ -1061,7 +972,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'currently_in_nursery',
       sortable: true,
-      disableColumnMenu: true,
 
       // headerName: 'EGGS TO NURSERY',
       renderHeader: () => (
@@ -1106,7 +1016,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'hatched_in_nursery_percentage',
       sortable: false,
-      disableColumnMenu: true,
       headerName: 'HATCHED IN NURSERY %',
       renderCell: params => (
         <Box
@@ -1159,7 +1068,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'hatched_in_nursery',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'HATCHED IN NURSERY',
       renderCell: params => (
         <Box
@@ -1191,7 +1099,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 180,
       field: 'hatched_in_Nest_percentage',
       sortable: false,
-      disableColumnMenu: true,
       headerName: 'HATCHED IN NEST %',
       renderCell: params => (
         <Box
@@ -1244,7 +1151,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 180,
       field: 'hatched_in_nest',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'HATCHED IN NEST',
       renderCell: params => (
         <Box
@@ -1277,7 +1183,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 170,
       field: 'total_discard_at_site',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'DISCARDED AT SITE',
       renderCell: params => (
         <Box
@@ -1318,7 +1223,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'total_discard_at_nursery',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'DISCARDED AT NURSERY',
       renderCell: params => (
         <Box
@@ -1360,7 +1264,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 120,
       field: 'in_transit',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'IN TRANSIT',
       renderCell: params => (
         <Box
@@ -1402,7 +1305,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 80,
       field: 'uid',
       headerName: 'SL.NO',
-      disableColumnMenu: true,
       sortable: false,
       align: 'center',
       renderCell: params => (
@@ -1421,7 +1323,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 340,
       sortable: true,
-      disableColumnMenu: true,
       field: 'nursery',
       headerName: 'NURSERIES',
       renderCell: params => (
@@ -1476,7 +1377,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 180,
       field: 'total_eggs',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'TOTAL EGGS',
       renderCell: params => (
         <Box
@@ -1517,7 +1417,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'currently_in_incubator',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'CURRENTLY IN INCUBATOR',
       renderCell: params => (
         <Box
@@ -1550,7 +1449,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'currently_in_nursery',
       sortable: true,
-      disableColumnMenu: true,
       renderHeader: () => (
         <Box>
           <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
@@ -1593,7 +1491,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'hatched_in_nursery_percentage',
       sortable: false,
-      disableColumnMenu: true,
       headerName: 'HATCHED IN NURSERY %',
       renderCell: params => (
         <Box
@@ -1646,7 +1543,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'hatched_in_nursery',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'HATCHED IN NURSERY',
       renderCell: params => (
         <Box
@@ -1678,7 +1574,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'total_discard_at_nursery',
       sortable: true,
-      disableColumnMenu: true,
       headerName: 'DISCARDED AT NURSERY',
       renderCell: params => (
         <Box
@@ -1714,47 +1609,47 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           </CustomTooltip>
         </Box>
       )
-    },
-
-    {
-      width: 120,
-      field: 'in_transit',
-      sortable: true,
-      disableColumnMenu: true,
-      headerName: 'IN TRANSIT',
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: 40,
-            borderRadius: '4px',
-            paddingLeft: 2,
-            alignContent: 'center',
-            '&:hover': {
-              backgroundColor: '#FA61401A'
-            }
-          }}
-        >
-          <CustomTooltip
-            title={[
-              { label: 'Send to nursery :', value: params?.row?.send_to_nursery },
-              { label: 'With in transfer request:', value: params?.row?.within_transfer_request }
-            ]}
-          >
-            <Typography
-              style={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '16px',
-                fontWeight: '600',
-                lineHeight: '19.36px'
-              }}
-            >
-              {params.row.in_transit ? params.row.in_transit : '-'}
-            </Typography>
-          </CustomTooltip>
-        </Box>
-      )
     }
+
+    // {
+    //   width: 120,
+    //   field: 'in_transit',
+    //   sortable: true,
+    //: true,
+    //   headerName: 'IN TRANSIT',
+    //   renderCell: params => (
+    //     <Box
+    //       sx={{
+    //         width: '100%',
+    //         height: 40,
+    //         borderRadius: '4px',
+    //         paddingLeft: 2,
+    //         alignContent: 'center',
+    //         '&:hover': {
+    //           backgroundColor: '#FA61401A'
+    //         }
+    //       }}
+    //     >
+    //       <CustomTooltip
+    //         title={[
+    //           { label: 'Send to nursery :', value: params?.row?.send_to_nursery },
+    //           { label: 'With in transfer request:', value: params?.row?.within_transfer_request }
+    //         ]}
+    //       >
+    //         <Typography
+    //           style={{
+    //             color: theme.palette.customColors.OnSurfaceVariant,
+    //             fontSize: '16px',
+    //             fontWeight: '600',
+    //             lineHeight: '19.36px'
+    //           }}
+    //         >
+    //           {params.row.in_transit ? params.row.in_transit : '-'}
+    //         </Typography>
+    //       </CustomTooltip>
+    //     </Box>
+    //   )
+    // }
   ]
 
   const getIdBasedOnStatus = () => {
@@ -2112,15 +2007,10 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         </Box>
 
         {/* DataGrid */}
-        <DataGrid
-          sx={dataGridStyles}
+        <CommonTable           sx={dataGridStyles}
           columnVisibilityModel={{ sl_no: false }}
-          hideFooterSelectedRowCount
-          disableColumnSelector
-          autoHeight
-          pagination
-          rows={indexedRows || []}
-          rowCount={total}
+          indexedRows={indexedRows || []}
+          total={total}
           rowHeight={68}
           columns={
             status === 'species'
@@ -2131,14 +2021,11 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               ? columnNurseries
               : columnSpecies
           }
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
           paginationModel={paginationModel}
-          onPaginationModelChange={setPaginationModel}
+          setPaginationModel={setPaginationModel}
           loading={loading}
           sortModel={sortModel}
-          onSortModelChange={handleSortModelChange}
+          handleSortModel={handleSortModelChange}
 
           // onCellClick={onCellClick}
         />
@@ -2210,18 +2097,18 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     >
       <TabContext value={status}>
         <TabList onChange={handleChange}>
-          <Tab sx={{ pl: 0 }} value='species' label={'Eggs by species'} />
+          <Tab externalTableStyle={{ pl: 0 }} value='species' label={'Eggs by species'} />
           <Tab value='site' label={'Eggs by sites'} />
           <Tab value='nursery' label={'Eggs by nurseries'} />
         </TabList>
 
-        <TabPanel sx={{ p: 0 }} value='species'>
+        <TabPanel externalTableStyle={{ p: 0 }} value='species'>
           {tableData()}
         </TabPanel>
-        <TabPanel sx={{ p: 0 }} value='site'>
+        <TabPanel externalTableStyle={{ p: 0 }} value='site'>
           {tableData()}
         </TabPanel>
-        <TabPanel sx={{ p: 0 }} value='nursery'>
+        <TabPanel externalTableStyle={{ p: 0 }} value='nursery'>
           {tableData()}
         </TabPanel>
       </TabContext>

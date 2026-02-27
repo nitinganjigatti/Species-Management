@@ -5,7 +5,8 @@ import { Typography, Card, CardContent } from '@mui/material'
 
 const SpeciesfirstSection = ({ eggDetails }) => {
   const theme = useTheme()
-  return (
+  
+return (
     <>
       <Card>
         <CardContent

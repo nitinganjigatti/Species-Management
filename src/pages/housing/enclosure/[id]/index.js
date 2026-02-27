@@ -125,6 +125,12 @@ const EnclsouerDetails = () => {
               return
             }
           }}
+          onMessageClick={() => {
+            const phoneNumber = data?.data?.incharge_mobile_no || ''
+            if (phoneNumber) {
+              window.open(`sms:${phoneNumber}`)
+            } else return
+          }}
         />
         <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>

@@ -40,7 +40,7 @@ const AnimalAssessment = () => {
   const enable_animal_assessment_report = authData?.userData?.permission?.user_settings?.enable_animal_assessment_report
 
   const [initialLoad, setInitialLoad] = useState(true)
-  const [selectedSpecie, setSelectedSpecie] = useState('')
+  const [selectedSpecies, setSelectedSpecies] = useState([])
   const [openspeciesFilter, setOpenspeciesFilter] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(0)
   const [selectedAssessmentType, setSelectedAssessmentType] = useState('')
@@ -50,7 +50,7 @@ const AnimalAssessment = () => {
   const defaultEndDate = dayjs().format('YYYY-MM-DD')
   const defaultStartDate = dayjs().subtract(6, 'month').format('YYYY-MM-DD')
 
-  const [filterDates, setFilterDates] = useState({
+  const getDefaultFilterDates = () => ({
     startDate: defaultStartDate,
     endDate: defaultEndDate
   })
@@ -75,7 +75,7 @@ const AnimalAssessment = () => {
   const [selectedSections, setSelectedSections] = useState([])
   const [selectedEnclosures, setSelectedEnclosures] = useState([])
 
-  const [selectedItems, setSelectedItems] = useState({
+  const getDefaultSelectedItems = () => ({
     Site: [],
     Section: [],
     Enclosure: [],
@@ -83,17 +83,38 @@ const AnimalAssessment = () => {
     accession_start: null,
     accession_end: null
   })
-  const [tempSelectedItems, setTempSelectedItems] = useState(selectedItems)
+
+  const [selectedItems, setSelectedItems] = useState(getDefaultSelectedItems())
+  const [tempSelectedItems, setTempSelectedItems] = useState(getDefaultSelectedItems())
+  const [filterDates, setFilterDates] = useState(getDefaultFilterDates())
   const [filterCount, setFilterCount] = useState(0)
 
   const [showDetailsPopUp, setShowDetailsPopUp] = useState(false)
   const [animalDetailsData, setAnimalDetailsData] = useState({})
+
+  const taxonomyIds =
+    selectedSpecies
+      ?.map(species => species?.tsn_id)
+      .filter(Boolean)
+      .join(',') || ''
+  const selectedSpeciesIcon = selectedSpecies?.[0]?.default_icon || '/branding/antz/Antz_logomark_h_color.svg'
+
+  const resetDrawerFilters = () => {
+    setSelectedItems(getDefaultSelectedItems())
+    setTempSelectedItems(getDefaultSelectedItems())
+    setSelectedSections([])
+    setSelectedEnclosures([])
+    setFilterCount(0)
+    setSearchTerm('')
+    setSearchQuery('')
+  }
 
   //////////////////////////////////////////////////////////////
   const [searchTerm, setSearchTerm] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
   const searchRef = useRef(null)
+  const skipNextFetchRef = useRef(false)
 
   useEffect(() => {
     if (searchRef.current && document.activeElement !== searchRef.current) {
@@ -101,16 +122,16 @@ const AnimalAssessment = () => {
     }
   }, [assessmentData])
 
-  const animalAssessmentReport = async (searchValue = search || '') => {
+  const animalAssessmentReport = async (searchValue = search || '', pageOverride) => {
     setIsLoading(true)
 
     const params = {
-      page: paginationModel.page + 1,
+      page: (typeof pageOverride === 'number' ? pageOverride : paginationModel.page) + 1,
       limit: paginationModel.pageSize
     }
 
     const payload = {
-      taxonomy_ids: selectedSpecie?.tsn_id || '',
+      taxonomy_ids: taxonomyIds,
       assessment_type_ids: selectedAssessmentType?.assessment_type_id || '',
       start_date: filterDates.startDate,
       end_date: filterDates.endDate,
@@ -137,23 +158,40 @@ const AnimalAssessment = () => {
   }
 
   const debouncedSearch = useCallback(
-    debounce(value => {
-      animalAssessmentReport(value)
+    debounce((value, pageOverride) => {
+      animalAssessmentReport(value, pageOverride)
     }, 500),
-    [selectedSpecie, selectedAssessmentType, filterDates, selectedItems]
+    [selectedSpecies, selectedAssessmentType, filterDates, selectedItems]
   )
 
   const handleSearchChange = e => {
     const value = e.target.value
+    skipNextFetchRef.current = true
+    resetDrawerFilters()
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
     setSearch(value)
-    debouncedSearch(value)
+    debouncedSearch(value, 0)
+  }
+
+  const handleGenerate = () => {
+    resetDrawerFilters()
+    setFilterDates(getDefaultFilterDates())
+    setSearch('')
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
   }
 
   useEffect(() => {
-    if (selectedSpecie && selectedAssessmentType) {
-      animalAssessmentReport()
+    if (!selectedSpecies?.length || !selectedAssessmentType) return
+    if (skipNextFetchRef.current) {
+      skipNextFetchRef.current = false
+      return
     }
+    animalAssessmentReport()
   }, [paginationModel, filterDates, selectedItems])
+
+  useEffect(() => {
+    setPaginationModel(prev => (prev.page === 0 ? prev : { ...prev, page: 0 }))
+  }, [selectedItems])
 
   useEffect(() => transformAnimalData(), [assessmentData])
 
@@ -199,7 +237,7 @@ const AnimalAssessment = () => {
 
       return {
         ...recordMap,
-        default_icon: selectedSpecie?.default_icon || '/branding/antz/Antz_logomark_h_color.svg',
+        default_icon: selectedSpeciesIcon,
         local_identifier_name: animal.identifier_type,
         local_identifier_value: animal.identifier_value,
         animal_id: animal.animal_id,
@@ -228,7 +266,7 @@ const AnimalAssessment = () => {
               {selectedAssessmentType?.assessments_type_label}
             </span>
           ) : (
-            ''
+            ' '
           )
       }))
     ]
@@ -281,7 +319,7 @@ const AnimalAssessment = () => {
             onClick={() => {
               setAnimalDetailsData({
                 ...record,
-                default_icon: selectedSpecie?.default_icon || '/branding/antz/Antz_logomark_h_color.svg',
+                default_icon: selectedSpeciesIcon,
                 local_identifier_name: params?.row?.identifier_type,
                 local_identifier_value: params?.row?.identifier_value,
                 animal_id: params?.row?.animal_id,
@@ -354,6 +392,9 @@ const AnimalAssessment = () => {
         endDate: ''
       })
     }
+    resetDrawerFilters()
+    setSearch('')
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
   }
 
   const siteList = async (q = '') => {
@@ -392,13 +433,13 @@ const AnimalAssessment = () => {
   }
 
   const getDataToExport = async type => {
-    if (selectedSpecie && selectedAssessmentType) {
+    if (selectedSpecies?.length && selectedAssessmentType) {
       setIsDownloading(true)
 
       const params = {
         page: paginationModel.page + 1,
         limit: paginationModel.pageSize,
-        taxonomy_ids: selectedSpecie?.tsn_id,
+        taxonomy_ids: taxonomyIds,
         assessment_type_ids: selectedAssessmentType?.assessment_type_id,
         start_date: filterDates.startDate,
         end_date: filterDates.endDate,
@@ -609,33 +650,49 @@ const AnimalAssessment = () => {
                     sx={{
                       bgcolor: theme.palette.primary.contrastText,
                       display: 'flex',
-                      justifyContent: 'space-between',
                       alignItems: 'center',
+                      gap: 2,
                       padding: '16px',
                       height: '56px',
                       borderRadius: '8px',
                       border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                     }}
                   >
-                    {selectedSpecie?.tsn_id ? (
-                      <Typography
-                        sx={{
-                          fontWeight: 500,
-                          fontSize: '16px',
-                          lineHeight: '100%',
-                          letterSpacing: '0%',
-                          color: theme.palette.primary.light,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {`${selectedSpecie?.common_name} `}
-                        <span style={{ fontStyle: 'italic' }}>{`(${selectedSpecie?.complete_name})`}</span>
-                      </Typography>
+                    {selectedSpecies?.length ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0 }}>
+                        <Typography
+                          sx={{
+                            flex: 1,
+                            fontWeight: 500,
+                            fontSize: '16px',
+                            lineHeight: '100%',
+                            letterSpacing: '0%',
+                            color: theme.palette.primary.light,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {`${selectedSpecies?.[0]?.common_name} `}
+                          <span style={{ fontStyle: 'italic' }}>{`(${selectedSpecies?.[0]?.complete_name})`}</span>
+                        </Typography>
+                        {selectedSpecies.length > 1 && (
+                          <Typography
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: '14px',
+                              color: theme.palette.primary.main,
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            +{selectedSpecies.length - 1}
+                          </Typography>
+                        )}
+                      </Box>
                     ) : (
                       <Typography
                         sx={{
+                          flex: 1,
                           fontWeight: 400,
                           fontSize: '16px',
                           lineHeight: '100%',
@@ -649,7 +706,7 @@ const AnimalAssessment = () => {
                         Select Species
                       </Typography>
                     )}
-                    <IconButton sx={{ mr: -4, width: '37px' }}>
+                    <IconButton sx={{ mr: -4, width: '37px', flexShrink: 0 }}>
                       <Icon icon='fa:angle-right' fontSize={20} color={theme.palette.primary.light} />
                     </IconButton>
                   </Box>
@@ -728,10 +785,10 @@ const AnimalAssessment = () => {
                 <Box sx={{ minWidth: 120 }}>
                   <Button
                     variant='contained'
-                    disabled={!selectedSpecie || !selectedAssessmentType || isLoading}
+                    disabled={!selectedSpecies.length || !selectedAssessmentType || isLoading}
                     sx={{ width: '127px', height: '56px', borderRadius: '8px' }}
                     fullWidth
-                    onClick={() => animalAssessmentReport()}
+                    onClick={handleGenerate}
                   >
                     Generate
                   </Button>
@@ -740,16 +797,16 @@ const AnimalAssessment = () => {
 
               {!initialLoad && (
                 <>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: 4,
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        mt: 1
-                      }}
-                    >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 4,
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      mt: 1
+                    }}
+                  >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
                       <TextField
                         inputRef={searchRef}
@@ -881,10 +938,12 @@ const AnimalAssessment = () => {
                       paginationModel={paginationModel}
                       onPaginationModelChange={setPaginationModel}
                       loading={isLoading}
+
                       // downloadExcel
                       serverSide
-                      rowSelection
+                      // rowSelection
                       modifyColumnPinning
+                      hideHeaderWhenEmpty
                       searchMode='server'
 
                       // disableColumnSorting={true}
@@ -962,8 +1021,8 @@ const AnimalAssessment = () => {
           )}
           {openspeciesFilter && (
             <AssessmentSpeciesListingDrawer
-              selectedSpecie={selectedSpecie}
-              setSelectedSpecie={setSelectedSpecie}
+              selectedSpecies={selectedSpecies}
+              setSelectedSpecies={setSelectedSpecies}
               openspeciesFilter={openspeciesFilter}
               setOpenspeciesFilter={setOpenspeciesFilter}
             />

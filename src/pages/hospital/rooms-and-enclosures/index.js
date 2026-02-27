@@ -45,6 +45,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 // ** View component
 import AddEnclosures from 'src/views/pages/hospital/add-enclosure-drawer'
 import Search from 'src/views/utility/Search'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const RoomsAndEnclosures = () => {
   const theme = useTheme()
@@ -484,4 +485,4 @@ const RoomsAndEnclosures = () => {
   )
 }
 
-export default RoomsAndEnclosures
+export default enforceModuleAccess(RoomsAndEnclosures, 'add_hospital')

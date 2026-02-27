@@ -1,19 +1,16 @@
-
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { CardHeader, Grid, Card, Chip } from '@mui/material'
+import { Grid, Chip } from '@mui/material'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
-import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { useRouter } from 'next/router'
 import RequestedItems from './RequestedItems'
 import ShipmentRequests from './ShipmentRequests'
-import Error404 from 'src/pages/404'
-
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 const RequestDetailsScreen = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -68,34 +65,37 @@ const RequestDetailsScreen = () => {
   )
 
   return (
-    <Grid container>
-    
-      <Card sx={{ mb: 6, width: '100%', boxShadow: 'none !important' }}>
-        {selectedPharmacy.type === 'local' ? null : (
-          <CardHeader
-            avatar={
-              <Icon
-                style={{ cursor: 'pointer' }}
-                onClick={() => {
-                  if (selectedPharmacy.type === 'local') {
-                    router.push({
-                      pathname: `/pharmacy/requests-by-product`,
-                      query: selectedPharmacy?.id
-                    })
-                  } else {
-                    router.back()
-                  }
-                }}
-                icon='ep:back'
-              />
-            }
-            title={selectedStoreDetails?.storeName ? selectedStoreDetails?.storeName : router?.query?.selectedStoreName}
-          />
-        )}
-
+    <PageCardLayout
+      cardStyles={{
+        mb: 6,
+        width: '100%',
+        boxShadow: 'none !important'
+      }}
+      title={
+        selectedPharmacy?.type === 'local'
+          ? null
+          : selectedStoreDetails?.storeName
+          ? selectedStoreDetails?.storeName
+          : router?.query?.selectedStoreName
+      }
+      showIcon={selectedPharmacy?.type !== 'local'}
+      titleStyles={{
+        fontSize: '20px'
+      }}
+      onIconClick={() => {
+        if (selectedPharmacy?.type === 'local') {
+          router.push({
+            pathname: `/pharmacy/requests-by-product`,
+            query: selectedPharmacy?.id
+          })
+        } else {
+          router.back()
+        }
+      }}
+    >
+      <Grid container>
         <Grid
           sx={{
-            px: 6,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
@@ -145,19 +145,19 @@ const RequestDetailsScreen = () => {
                 padding: '0 !important'
               }}
             >
-              <Grid
+              {/* <Grid
                 sx={{
                   width: '100%',
                   px: '0 !important'
                 }}
-              >
-                <ShipmentRequests updateUrlParams={updateUrlParams} />
-              </Grid>
+              > */}
+              <ShipmentRequests updateUrlParams={updateUrlParams} />
+              {/* </Grid> */}
             </TabPanel>
           </TabContext>
         </Grid>
-      </Card>
-    </Grid>
+      </Grid>
+    </PageCardLayout>
   )
 }
 

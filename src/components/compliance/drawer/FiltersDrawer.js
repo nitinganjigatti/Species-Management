@@ -265,7 +265,7 @@ const FiltersDrawer = ({
       onSelectItem={handleMenuClick}
     >
       {selectedMenu === 'Species' && ( // Change state keys as per your requirement
-        <FilterContent
+        (<FilterContent
           menuName='Species'
           searchQuery={searchQuery}
           onSearch={query => handleSearch(query, 'Species')}
@@ -276,11 +276,10 @@ const FiltersDrawer = ({
           isAllSelected={isAllSelected('Species')}
           searchLoading={searchLoading}
           placeholder='Search species...'
-        />
+        />)
       )}
-
       {selectedMenu === 'Exporting country' && ( // Change state keys as per your requirement
-        <FilterContent
+        (<FilterContent
           menuName='Exporting country'
           searchQuery={searchQuery}
           onSearch={query => handleSearch(query, 'Exporting country')}
@@ -291,11 +290,10 @@ const FiltersDrawer = ({
           isAllSelected={isAllSelected('Exporting country')}
           searchLoading={searchLoading}
           placeholder='Search countries...'
-        />
+        />)
       )}
-
       {selectedMenu === 'Exporter' && ( // Change state keys as per your requirement
-        <FilterContent
+        (<FilterContent
           menuName='Exporter'
           searchQuery={searchQuery}
           onSearch={query => handleSearch(query, 'Exporter')}
@@ -306,10 +304,10 @@ const FiltersDrawer = ({
           isAllSelected={isAllSelected('Exporter')}
           searchLoading={searchLoading}
           placeholder='Search exporters...'
-        />
+        />)
       )}
       {selectedMenu === 'Importer' && ( // Change state keys as per your requirement
-        <FilterContent
+        (<FilterContent
           menuName='Importer'
           searchQuery={searchQuery}
           onSearch={query => handleSearch(query, 'Importer')}
@@ -320,10 +318,10 @@ const FiltersDrawer = ({
           isAllSelected={isAllSelected('Importer')}
           searchLoading={searchLoading}
           placeholder='Search importers...'
-        />
+        />)
       )}
       {selectedMenu === 'Documents' && ( // Change state keys as per your requirement
-        <FilterContent
+        (<FilterContent
           menuName='Documents'
           searchQuery={searchQuery}
           onSearch={query => handleSearch(query, 'Documents')}
@@ -334,10 +332,10 @@ const FiltersDrawer = ({
           isAllSelected={isAllSelected('Documents')}
           searchLoading={searchLoading}
           placeholder='Search documents...'
-        />
+        />)
       )}
     </CustomFilterDrawer>
-  )
+  );
 }
 
 export default FiltersDrawer

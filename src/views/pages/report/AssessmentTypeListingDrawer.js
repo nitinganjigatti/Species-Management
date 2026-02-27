@@ -34,7 +34,8 @@ function AssessmentTypeListingDrawer({
 
   useEffect(() => {
     window.addEventListener('resize', measure)
-    return () => window.removeEventListener('resize', measure)
+    
+return () => window.removeEventListener('resize', measure)
   }, [])
 
   const [tempSelectedCategory, setTempSelectedCategory] = useState(selectedCategory || 0)
@@ -75,6 +76,7 @@ function AssessmentTypeListingDrawer({
         ref_type: 'animal',
         cat_id: tempSelectedCategory,
         q
+
         // limit: 10,
         // page_no: pageNum
       })
@@ -111,6 +113,7 @@ function AssessmentTypeListingDrawer({
       sx={{
         '& .MuiDrawer-paper': {
           width: ['100%', '562px'],
+
           // 100dvh is better for mobile/tablet chrome/urlbar changes
           height: '100dvh',
           display: 'flex',
@@ -198,6 +201,7 @@ function AssessmentTypeListingDrawer({
             height: '100%',
             display: 'flex',
             justifyContent: 'center'
+
             // pt: 2
           }}
         >
@@ -207,6 +211,7 @@ function AssessmentTypeListingDrawer({
         <>
           <Box
             ref={scrollRef}
+
             // onScroll={handleScroll}
             sx={{
               flex: '1 1 auto',
@@ -226,7 +231,8 @@ function AssessmentTypeListingDrawer({
                 {assessmentTypeList.length > 0 &&
                   assessmentTypeList.map((item, index) => {
                     const isSelected = tempSelectedAssessmentType?.assessment_type_id === item?.assessment_type_id
-                    return (
+                    
+return (
                       <Box
                         key={index}
                         onClick={() => setTempSelectedAssessmentType(item)}

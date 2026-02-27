@@ -5,33 +5,30 @@ import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
 
 // ** MUI Imports
+import { Box, Tab, Grid, Tooltip, Typography, IconButton } from '@mui/material'
 
-import Typography from '@mui/material/Typography'
-import CardHeader from '@mui/material/CardHeader'
-import Card from '@mui/material/Card'
 import { debounce } from 'lodash'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge, TextField, Tab, Tooltip } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
+
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import Utility from 'src/utility'
-import { AddButton } from 'src/components/Buttons'
-import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
-import Error404 from 'src/pages/404'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
-import RenderUtility from 'src/utility/render'
-import { fontSize, height, width } from '@mui/system'
-import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
+
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import MenuWithDots from 'src/components/MenuWithDots'
+import AddReOrderDialog from 'src/components/pharmacy/stockLocation/AddReOrderDialog'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const ListOfMedicine = () => {
   const theme = useTheme()
@@ -45,6 +42,10 @@ const ListOfMedicine = () => {
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
+  const [dialogCheck, setDialogCheck] = useState(false)
+
+  const [openReOrderLevelDialog, setOpenReOrderLevelDialog] = useState(false)
+  const [configReOrderMed, setConfigReOrderMed] = useState(null)
 
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -140,7 +141,6 @@ const ListOfMedicine = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -167,7 +167,6 @@ const ListOfMedicine = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -194,7 +193,6 @@ const ListOfMedicine = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -267,8 +265,7 @@ const ListOfMedicine = () => {
                   ? theme.palette.customColors.Error
                   : theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter'
+              fontWeight: 400
             }}
           >
             {parseInt(params.row.active) === 0 ? 'In-Active' : 'Active'}
@@ -313,24 +310,30 @@ const ListOfMedicine = () => {
       width: 100,
       field: 'Action',
       headerName: 'Action',
+      sortable: false,
 
       renderCell: params => (
-        <>
+        (<Box onClick={e => e.stopPropagation()} sx={{ display: 'flex', alignItems: 'center' }}>
           {selectedPharmacy.type === 'central' &&
             (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-              <Box>
-                <IconButton
-                  size='small'
-                  onClick={e => {
-                    e.stopPropagation(), handleEdit(params.row)
-                  }}
-                  aria-label='Edit'
-                >
-                  <Icon icon='mdi:pencil-outline' />
-                </IconButton>
-              </Box>
+              <>
+                <Box>
+                  <IconButton
+                    size='small'
+                    onClick={e => {
+                      e.stopPropagation(), handleEdit(params.row)
+                    }}
+                    aria-label='Edit'
+                  >
+                    <Icon icon='mdi:pencil-outline' />
+                  </IconButton>
+                </Box>
+                <Tooltip title='More Options' placement='top'>
+                  <MenuWithDots options={getMenuOptions(params?.row)} />
+                </Tooltip>
+              </>
             )}
-        </>
+        </Box>)
 
         //     // {selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') &&(<Box>
         //     //   <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
@@ -370,35 +373,26 @@ const ListOfMedicine = () => {
   })
 
   const [loading, setLoading] = useState(false)
+  const [excelLoader, setExcelLoader] = useState(false)
 
-  const [statusFilter, setStatusFilter] = useState(router.query.status || true)
+  const [statusFilter, setStatusFilter] = useState(router.query.status || 'all')
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, status }) => {
-      let params = {}
       const activeStatus = status ?? statusFilter
       try {
         setLoading(true)
-        if (activeStatus === 'all') {
-          params = {
-            sort,
-            q,
-            column,
-            page: paginationModel?.page + 1,
-            limit: paginationModel?.pageSize
-          }
-        } else {
-          params = {
-            sort,
-            q,
-            column,
-            page: paginationModel?.page + 1,
-            limit: paginationModel?.pageSize,
-            active: activeStatus
-          }
+
+        let params = {
+          sort,
+          q,
+          column,
+          page: paginationModel?.page + 1,
+          limit: paginationModel?.pageSize,
+          ...(activeStatus !== 'all' && { active: activeStatus })
         }
 
         await getMedicineList({ params: params }).then(res => {
@@ -425,8 +419,38 @@ const ListOfMedicine = () => {
         setLoading(false)
       }
     },
-    [paginationModel, statusFilter]
+    [paginationModel, statusFilter, dialogCheck]
   )
+
+  const ExportExcel = async ({ status }) => {
+    // let params = {}
+    const activeStatus = status ?? statusFilter
+    try {
+      setExcelLoader(true)
+
+      let params = {
+        sort: sort,
+        q: searchValue,
+        column: sortColumn,
+        ...(activeStatus !== 'all' && { active: activeStatus }),
+        response_type: 'csv'
+      }
+
+      console.log('aaaa', params)
+      const response = await getMedicineList({ params })
+      if (response?.success === true && response?.data) {
+        Utility.downloadFileFromURL(response?.data)
+        setExcelLoader(false)
+      } else {
+        setExcelLoader(false)
+      }
+    } catch (error) {
+      console.log('Error', error)
+      setExcelLoader(false)
+    } finally {
+      setExcelLoader(false)
+    }
+  }
 
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
@@ -499,6 +523,7 @@ const ListOfMedicine = () => {
               router.push('/pharmacy/medicine/add-product')
             }}
             fullWidth={'fullWidth'}
+            styles={{ margin: 0 }}
           />
         )}
     </div>
@@ -519,11 +544,21 @@ const ListOfMedicine = () => {
     setStatusFilter(newValue)
   }
 
+  const getMenuOptions = row => [
+    {
+      label: 'Add Reorder Level',
+      action: () => {
+        setOpenReOrderLevelDialog(true)
+        setConfigReOrderMed(row)
+      }
+    }
+  ]
+
   const RenderTable = () => {
     return (
       <>
         {/* Table Section */}
-        <Grid sx={{ mx: { xs: 3, md: 5 } }}>
+        <Grid>
           <CommonTable
             onRowClick={handleRowClick}
             indexedRows={indexedRows}
@@ -555,132 +590,44 @@ const ListOfMedicine = () => {
                 close={closeDialog}
                 show={showDialog}
               />
-              <Card>
-                <CardHeader
-                  title={RenderUtility.pageTitle('Product List')}
-                  action={headerAction}
+              <PageCardLayout title={'Product List'} action={headerAction}>
+                <Grid
+                  container
+                  spacing={3}
                   sx={{
                     display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start',
-                    alignItems: 'flex-start',
-                    gap: { xs: 3, sm: 0 },
-                    '& .MuiCardHeader-action': {
-                      width: { xs: '100% ', sm: 'auto' }
-                    },
-                    mx: { xs: -1, sm: 1 },
-                    mt: 1
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
                   }}
-                />
-                {/* <Box
-                  display='flex'
-                  // justifyContent='space-between'
-                  flexDirection={{ xs: 'column', sm: 'row' }} // Adjust direction based on screen size
-                  gap={6} // Gap between items on smaller screens
-                  sx={{ mx: { xs: 3, md: 5 } }}
-                  mt={3}
-                > */}
-                {/* Left Box (Search Field) */}
-                {/* <Grid item xs={12} sm={8} md={7}> */}
-                {/* <Box sx={{ ml: 'auto' }}>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                        borderRadius: '8px',
-                        padding: '0 8px',
-                        height: '40px'
-                      }}
-                    >
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      <TextField
-                        variant='outlined'
-                        value={searchValue}
-                        placeholder='Search...'
-                        onChange={e => handleSearch(e.target.value)}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            border: 'none',
-                            padding: '0',
-                            '& fieldset': {
-                              border: 'none'
-                            }
-                          }
-                        }}
-                      />
-                    </Box>
-                  </Box> */}
-
-                {/* </Grid> */}
-
-                {/* Right Box (Filter by Status) */}
-                {/* <Grid
+                >
+                  <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
+                    <TabContext value={tabValue} sx={{ m: 0, p: 0 }}>
+                      <TabList onChange={handleTabChange} aria-label='lab API tabs example'>
+                        <Tab label='All' value='all' />
+                        <Tab label='Active' value='true' />
+                        <Tab label='In-Active' value='false' />
+                      </TabList>
+                    </TabContext>
+                  </Grid>
+                  <Grid
                     item
-                    xs={12}
-                    sm={4}
-                    md={4}
+                    size={{ xs: 12, sm: 4, md: 4 }}
                     sx={{
                       display: 'flex',
-                      justifyContent: 'flex-end',
-                      alignItems: 'center'
+                      gap: '6px'
                     }}
                   >
-                    <FormControl fullWidth size='small'>
-                      <InputLabel id='status-filter-label'>Filter by Status</InputLabel>
-                      <Select
-                        size='small'
-                        value={statusFilter}
-                        label='Filter by Status'
-                        onChange={e => handleStatusFilterChange(e.target.value)}
-                      >
-                        <MenuItem value='all'>All</MenuItem>
-                        <MenuItem value={true}>Active</MenuItem>
-                        <MenuItem value={false}>In-Active</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid> */}
-                {/* </Box> */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mx: 6 }}>
-                  <TabContext value={tabValue}>
-                    <TabList onChange={handleTabChange} aria-label='lab API tabs example'>
-                      <Tab label='All' value='all' />
-                      <Tab label='Active' value='true' />
-                      <Tab label='In-Active' value='false' />
-                    </TabList>
-                  </TabContext>
-                  <Grid item size={{ xs: 12, sm: 8, md: 7 }}>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                        borderRadius: '8px',
-                        padding: '0 8px',
-                        height: '40px'
-                      }}
-                    >
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      <TextField
-                        variant='outlined'
-                        value={searchValue}
-                        placeholder='Search...'
-                        onChange={e => handleSearch(e.target.value)}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            border: 'none',
-                            padding: '0',
-                            '& fieldset': {
-                              border: 'none'
-                            }
-                          }
-                        }}
-                      />
+                    <MUISearch
+                      onChange={e => handleSearch(e.target.value)}
+                      onClear={() => handleSearch('')}
+                      placeholder='Search...'
+                      value={searchValue}
+                    />
+                    <Box>
+                      <ExportButton onClick={ExportExcel} loading={excelLoader} disabled={total === 0 ? true : false} />
                     </Box>
                   </Grid>
-                </Box>
+                </Grid>
 
                 <TabContext value={tabValue}>
                   <TabPanel value='all' sx={{ p: 0 }}>
@@ -693,7 +640,17 @@ const ListOfMedicine = () => {
                     {RenderTable()}
                   </TabPanel>
                 </TabContext>
-              </Card>
+                {openReOrderLevelDialog && (
+                  <AddReOrderDialog
+                    openDrawer={openReOrderLevelDialog}
+                    setOpenDrawer={setOpenReOrderLevelDialog}
+                    stockDetails={configReOrderMed}
+                    setStockDetails={setConfigReOrderMed}
+                    dialogCheck={dialogCheck}
+                    setDialogCheck={setDialogCheck}
+                  />
+                )}
+              </PageCardLayout>
             </>
           )}
         </>

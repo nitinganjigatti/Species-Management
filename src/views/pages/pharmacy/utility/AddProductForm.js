@@ -510,7 +510,7 @@ export const AddProductForm = ({
                 getOptionLabel={option => option.label || ''}
                 required
                 onChangeOverride={value => handleBatchChange(value, index)}
-                renderOption={(props, option) => <BatchOption option={option} {...props} />}
+                renderOption={(props, option) => <BatchOption key={option.value} option={option} {...props} />}
                 inputBackgroundColor={theme.palette.customColors.OnPrimary}
               />
             </Grid>
@@ -525,7 +525,7 @@ export const AddProductForm = ({
                 errors={errors}
                 required
                 disabled
-                inputBackgroundColor={theme.palette.customColors.OnPrimary}
+                sx={{ backgroundColor: theme.palette.customColors.OnPrimary, borderRadius: '10px' }}
               />
             </Grid>
             {getValues('stock_type') === 'non_medical' ? null : (
@@ -538,7 +538,7 @@ export const AddProductForm = ({
                   errors={errors}
                   required
                   readOnly
-                  inputBackgroundColor={theme.palette.customColors.OnPrimary}
+                  sx={{ backgroundColor: theme.palette.customColors.OnPrimary, borderRadius: '10px' }}
                 />
               </Grid>
             )}
@@ -558,13 +558,13 @@ export const AddProductForm = ({
                 onPaste={checkTotalCount}
                 onInput={checkTotalCount}
                 onChangeOverride={checkTotalCount}
-                inputBackgroundColor={theme.palette.customColors.OnPrimary}
+                sx={{ backgroundColor: theme.palette.customColors.OnPrimary, borderRadius: '10px' }}
               />
             </Grid>
             {!isEdit && (
               <Grid
                 item
-                size={{ xs: 12, sm: 1.6, md: 1.6 }}
+                size={{ xs: 12, sm: 2, md: 1.6 }}
                 sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', mt: '8px' }}
               >
                 {handleAddRemoveSalts(fields, index)}

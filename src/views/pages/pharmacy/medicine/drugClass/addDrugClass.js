@@ -4,25 +4,20 @@ import { useState, useEffect, useCallback, Fragment } from 'react'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
-
-import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
-import FormControl from '@mui/material/FormControl'
-import FormHelperText from '@mui/material/FormHelperText'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
-import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
-
 // ** Third Party Imports
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { getDrugById } from 'src/lib/api/pharmacy/getDrugs'
-
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import ControlledRadioGroup from 'src/views/forms/form-fields/ControlledRadioGroup'
 
 const schema = yup.object().shape({
   name: yup
@@ -134,54 +129,31 @@ const AddDrugClass = props => {
       </Box>
       <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='name'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Drug Class Name*'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Drug Class Name'
-                  error={Boolean(errors.name)}
-                  name='name'
-                />
-              )}
-            />
-            {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
-          </FormControl>
+          <ControlledTextField
+            name='name'
+            control={control}
+            label='Drug Class Name*'
+            required
+            placeholder='Drug Class Name'
+            error={Boolean(errors.name)}
+            fullWidth
+            sx={{ mb: 6 }}
+          />
           {editParams?.id !== null ? (
-            <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
-              <FormLabel>Status</FormLabel>
-              <Controller
-                name='active'
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <RadioGroup row {...field} name='validation-basic-radio'>
-                    <FormControlLabel
-                      value='1'
-                      label='Active'
-                      sx={errors.status ? { color: 'error.main' } : null}
-                      control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
-                    />
-                    <FormControlLabel
-                      value='0'
-                      label='Inactive'
-                      sx={errors.status ? { color: 'error.main' } : null}
-                      control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
-                    />
-                  </RadioGroup>
-                )}
-              />
-              {errors.radio && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-radio'>
-                  This field is required
-                </FormHelperText>
-              )}
-            </FormControl>
+            <ControlledRadioGroup
+              name='active'
+              control={control}
+              errors={errors}
+              label='Status'
+              required
+              options={[
+                { label: 'Active', value: '1' },
+                { label: 'Inactive', value: '0' }
+              ]}
+              row
+              gap={4}
+              sx={{ mb: 6 }}
+            />
           ) : null}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RenderSidebarFooter />

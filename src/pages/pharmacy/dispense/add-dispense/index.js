@@ -1,10 +1,7 @@
 import {
   Autocomplete,
-  Avatar,
   Button,
   Card,
-  CardContent,
-  CardHeader,
   FormControl,
   FormHelperText,
   Grid,
@@ -17,16 +14,15 @@ import {
   Typography,
   TableRow,
   TextField,
-  Box,
   Dialog,
   CircularProgress,
-  Divider
+  Divider,
+  Stack,
+  CardContent
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import React, { useEffect, useState } from 'react'
-import { AddButton } from 'src/components/Buttons'
+import React, { useContext, useEffect, useState } from 'react'
 import { getUserList, submitDispense } from 'src/lib/api/pharmacy/dispenseProduct'
-import { readAsync } from 'src/lib/windows/utils'
 import * as Yup from 'yup'
 import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -34,15 +30,15 @@ import ProductForm from '../../../../components/pharmacy/dispense/ProductForm'
 import Router from 'next/router'
 import AddAnimals from '../../../../components/pharmacy/dispense/addAnimals'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 import UserSnackbar from 'src/components/utility/snackbar'
 import Utility from 'src/utility'
-import { th } from 'date-fns/locale'
 import { useTheme } from '@emotion/react'
-import { Stack } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import AnimalLabelCard from 'src/views/utility/AnimalLabelCard'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 function AddDispense() {
   const theme = useTheme()
@@ -50,12 +46,13 @@ function AddDispense() {
   const [currentDate] = useState(() => {
     const today = new Date()
     const year = today.getFullYear()
-    const month = String(today.getMonth() + 1).padStart(2, '0') 
+    const month = String(today.getMonth() + 1).padStart(2, '0')
     const day = String(today.getDate()).padStart(2, '0')
 
     return `${year}-${month}-${day}`
   })
   const { selectedPharmacy } = usePharmacyContext()
+  const authData = useContext(AuthContext)
   const [users, setUsers] = useState([])
   const [animals_s, setAnimals_s] = useState([])
 
@@ -110,7 +107,7 @@ function AddDispense() {
 
   const getUserLists = async () => {
     try {
-      const userDetails = await readAsync('userDetails')
+      const userDetails = authData?.userData
       if (userDetails?.user?.zoos.length > 0) {
         let zoo_id = userDetails?.user?.zoos[0].zoo_id
         await getUserList({ zoo_id }).then(res => {
@@ -164,16 +161,13 @@ function AddDispense() {
     }
   }
 
- 
   const deleteRowData = index => {
     const newArray = [...productArray]
     const newArrayUi = [...productArrayUi]
 
-  
     newArray.splice(index, 1)
     newArrayUi.splice(index, 1)
 
-   
     setProductArray(newArray)
     setProductArrayUi(newArrayUi)
     setDispensesPayload(newArrayUi)
@@ -214,7 +208,6 @@ function AddDispense() {
 
             // query: { id: res?.data }
           })
-
         } else {
           setSubmitLoading(false)
           setOpenSnackbar({
@@ -234,13 +227,20 @@ function AddDispense() {
   const totalQty = productArrayUi.reduce((sum, item) => sum + item.qty, 0)
   const totalUnitPrice = productArrayUi.reduce((sum, item) => sum + Number(item.unit_price) * item.qty, 0)
 
-
-
   return (
     <>
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
       selectedPharmacy.permission.dispense_medicine ? (
-        <Card>
+        <PageCardLayout
+          title='Add Dispense'
+          showIcon={true}
+          onIconClick={() => {
+            Router.back()
+          }}
+          titleStyles={{
+            fontSize: '20px'
+          }}
+        >
           <Dialog
             fullWidth
             open={showProductFormDialog}
@@ -249,62 +249,37 @@ function AddDispense() {
             scroll='body'
             onClose={() => closeDialog()}
           >
-            <Card>
-              <CardHeader
-                sx={{ mx: 1.4 }}
-                title={editMode ? 'Edit Dispense Item' : 'Add Dispense Item'}
-                action={
-                  <IconButton size='small' onClick={() => closeDialog()} sx={{ mx: 4 }}>
-                    <Icon icon='mdi:close' />
-                  </IconButton>
-                }
+            <PageCardLayout
+              title={editMode ? 'Edit Dispense Item' : 'Add Dispense Item'}
+              action={
+                <IconButton size='small' onClick={() => closeDialog()}>
+                  <Icon icon='mdi:close' />
+                </IconButton>
+              }
+              titleStyles={{
+                fontSize: '20px'
+              }}
+            >
+              <ProductForm
+                closeDialog={closeDialog}
+                productArray={productArray}
+                setProductArray={setProductArray}
+                productArrayUi={productArrayUi}
+                setProductArrayUi={setProductArrayUi}
+                editMode={editMode}
+                setEditMode={setEditMode}
+                dataForEditRow={dataForEditRow}
+                setDataForEditRow={setDataForEditRow}
+                selectedIndex={selectedIndex}
+                setSelectedIndex={setSelectedIndex}
+                addedProcuctQty={addedProcuctQty}
+                setAddedProductQty={setAddedProductQty}
+                setDispensesPayload={setDispensesPayload}
               />
-              <CardContent sx={{ pt: 0 }}>
-                <ProductForm
-                  closeDialog={closeDialog}
-                  productArray={productArray}
-                  setProductArray={setProductArray}
-                  productArrayUi={productArrayUi}
-                  setProductArrayUi={setProductArrayUi}
-                  editMode={editMode}
-                  setEditMode={setEditMode}
-                  dataForEditRow={dataForEditRow}
-                  setDataForEditRow={setDataForEditRow}
-                  selectedIndex={selectedIndex}
-                  setSelectedIndex={setSelectedIndex}
-                  addedProcuctQty={addedProcuctQty}
-                  setAddedProductQty={setAddedProductQty}
-                  setDispensesPayload={setDispensesPayload}
-                />
-              </CardContent>
-            </Card>
+            </PageCardLayout>
           </Dialog>
-          <Grid
-            container
-            size={{ xs: 12, sm: 12 }}
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}
-          >
-            <Grid item>
-              <CardHeader
-                title='Add Dispense'
-                avatar={
-                  <Icon
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => {
-                      Router.back()
-                    }}
-                    icon='ep:back'
-                  />
-                }
-              />
-            </Grid>
-          </Grid>
           <form onSubmit={handleSubmit(submitForm, onError)}>
-            <CardContent>
+            <CardContent sx={{ px: 0, py: 4 }}>
               <Grid container spacing={5}>
                 <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
                   <FormControl fullWidth>
@@ -356,13 +331,13 @@ function AddDispense() {
                 </Grid>
               </Grid>
             </CardContent>
-            <Box
+            {/* <Box
               sx={{
                 width: '100%',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                px: 5,
+                // px: 5,
                 py: 5
               }}
             >
@@ -373,9 +348,9 @@ function AddDispense() {
 
                 <Stack
                   direction='row'
-                  spacing={2}
-                  divider={<Divider orientation='vertical' flexItem />}
-                  sx={{ textAlign: 'center' }}
+                  spacing={4}
+                  divider={<Divider orientation='vertical' flexItem sx = {{display: {xs: 'none', sm: 'block'}}}/>}
+                  sx={{ textAlign: {xs: 'left', md: 'center'}, flexWrap: {xs: 'wrap', sm: 'nowrap'} }}
                 >
                   <Typography
                     variant='body2'
@@ -397,15 +372,74 @@ function AddDispense() {
                   </Typography>
                 </Stack>
               </Box>
-
-              <AddButtonContained
+               <Box >
+                 <AddButtonContained
                 disabled={watch('user_id')?.value === '' || errors.user_id}
                 title='Add Dispense Item'
                 action={() => {
                   handleOpenAddDispense()
                 }}
               />
+              </Box>
             </Box>
+              */}
+
+            <Grid
+              container
+              spacing={3}
+              alignItems='center'
+              sx={{
+                py: 5
+              }}
+            >
+              <Grid item size={{ lg: 8 }}>
+                <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
+                  Add Dispense Item
+                </Typography>
+                <Stack
+                  direction='row'
+                  spacing={{ xs: 2, sm: 6 }}
+                  divider={<Divider orientation='vertical' flexItem />}
+                  sx={{ textAlign: 'center' }}
+                >
+                  <Grid item>
+                    <Typography
+                      variant='body2'
+                      sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                    >
+                      Total Dispense Quantity:{' '}
+                      <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                        {totalQty ? totalQty : '0'}
+                      </Typography>
+                    </Typography>
+                  </Grid>
+
+                  <Grid item>
+                    <Typography
+                      variant='body2'
+                      sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                    >
+                      Total Value:{' '}
+                      <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                        {Utility.formatAmountToReadableDigit(totalUnitPrice)}
+                      </Typography>
+                    </Typography>
+                  </Grid>
+                </Stack>
+              </Grid>
+              <Grid item sx={{ marginLeft: 'auto' }}>
+                <AddButtonContained
+                  disabled={watch('user_id')?.value === '' || errors.user_id}
+                  title='Add Dispense Item'
+                  action={() => {
+                    handleOpenAddDispense()
+                  }}
+                  styles={{
+                    margin: 0
+                  }}
+                />
+              </Grid>
+            </Grid>
             {/* <Box
               sx={{
                 display: 'flex',
@@ -425,14 +459,15 @@ function AddDispense() {
               />
             </Box> */}
             <Card
-              sx={{ mx: 5, boxShadow: 'none', border: '1px solid', borderColor: 'customColors.customTableBorderBg' }}
+              sx={{
+                boxShadow: 'none',
+                border: '1px solid',
+                borderColor: 'customColors.customTableBorderBg'
+              }}
             >
               <TableContainer>
                 <Table>
-                  <TableHead
-                    sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}
-
-                  >
+                  <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
                     <TableRow>
                       <TableCell>Product Name</TableCell>
                       <TableCell>Batch No.</TableCell>
@@ -509,32 +544,39 @@ function AddDispense() {
               </TableContainer>
             </Card>
 
-            <Box
+            <Grid
+              container
+              spacing={2}
+              alignItems='center'
               sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                px: 5,
                 py: 5
               }}
             >
-              <Typography variant='h6'>Add Animals</Typography>
+              <Grid item>
+                <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Add Animals</Typography>
+              </Grid>
 
-              <AddButtonContained
-                title='Add Animals'
-                disabled={productArray.length < 1 || errors.user_id}
-                action={() => setOpenDrawer(true)}
-              />
-
-              {/* <AddButton
+              <Grid item sx={{ marginLeft: 'auto' }}>
+                <AddButtonContained
+                  title='Add Animals'
+                  disabled={productArray.length < 1 || errors.user_id}
+                  action={() => setOpenDrawer(true)}
+                />
+              </Grid>
+            </Grid>
+            {/* <AddButton
                 title='Add Animals'
                 disabled={productArray.length < 1 || errors.user_id}
                 action={() => setOpenDrawer(true)}
               /> */}
-            </Box>
+            {/* </Box> */}
 
             <Card
-              sx={{ mx: 5, boxShadow: 'none', border: '1px solid', borderColor: 'customColors.customTableBorderBg' }}
+              sx={{
+                boxShadow: 'none',
+                border: '1px solid',
+                borderColor: 'customColors.customTableBorderBg'
+              }}
             >
               <TableContainer>
                 <Table>
@@ -543,7 +585,7 @@ function AddDispense() {
                       <TableCell>Animal Name</TableCell>
                       <TableCell>Animal Id</TableCell>
                       {/* <TableCell>animal Name</TableCell> */}
-                      <TableCell>enclosure Id</TableCell>
+                      <TableCell>enclosure Name</TableCell>
                       <TableCell>section Name</TableCell>
                       <TableCell>gender</TableCell>
                       <TableCell>Action</TableCell>
@@ -568,7 +610,7 @@ function AddDispense() {
                                 />
                               </TableCell>
                               <TableCell>{elmnt?.animal_id}</TableCell>
-                              <TableCell>{elmnt?.enclosure_id}</TableCell>
+                              <TableCell>{elmnt?.user_enclosure_name}</TableCell>
                               <TableCell>{elmnt?.section_name}</TableCell>
                               <TableCell>{elmnt?.gender}</TableCell>
                               <TableCell>
@@ -590,26 +632,26 @@ function AddDispense() {
                 </Table>
               </TableContainer>
             </Card>
-            <CardContent>
-              <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
-                <Grid
-                  container
-                  sx={{
-                    alignItems: 'flex-end',
-                    justifyContent: 'flex-end',
-                    height: '100%'
-                  }}>
-                  <Button
-                    sx={{ width: '100px', height: '40px' }}
-                    disabled={productArrayUi?.length === 0 || errors.user_id || submitLoading}
-                    type='submit'
-                    variant='contained'
-                  >
-                    {submitLoading ? <CircularProgress size={'16px'} /> : 'Submit'}
-                  </Button>
-                </Grid>
+            <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
+              <Grid
+                container
+                sx={{
+                  alignItems: 'flex-end',
+                  justifyContent: 'flex-end',
+                  height: '100%',
+                  py: 5
+                }}
+              >
+                <Button
+                  sx={{ width: '100px', height: '40px' }}
+                  disabled={productArrayUi?.length === 0 || errors.user_id || submitLoading}
+                  type='submit'
+                  variant='contained'
+                >
+                  {submitLoading ? <CircularProgress size={'16px'} /> : 'Submit'}
+                </Button>
               </Grid>
-            </CardContent>
+            </Grid>
             {openSnackbar.open ? (
               <UserSnackbar
                 handleClose={() =>
@@ -632,14 +674,14 @@ function AddDispense() {
             animals_s={animals_s}
             setAnimals_s={setAnimals_s}
           />
-        </Card>
+        </PageCardLayout>
       ) : (
         <>
           <Error404></Error404>
         </>
       )}
     </>
-  );
+  )
 }
 
 export default AddDispense

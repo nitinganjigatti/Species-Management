@@ -10,6 +10,7 @@ const SelectedExportDrawer = ({ selectedSidebarOpen, setSelectedSidebarOpen, dra
   return (
     <Drawer
       open={selectedSidebarOpen}
+
       //onClose={() => setSelectedSidebarOpen(false)}
       anchor='right'
       sx={{

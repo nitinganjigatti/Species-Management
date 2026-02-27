@@ -386,7 +386,8 @@ const RecipeCard = ({
 
       const preservedDaysOfWeek = selectedDayId?.length ? selectedDayId : existingCard?.days_of_week || []
       console.log(item, 'item')
-      return {
+      
+return {
         recipe_name: item.recipe_name,
         recipe_id: item.id ? item.id : null,
         days_of_week: preservedDaysOfWeek,
@@ -620,6 +621,7 @@ const RecipeCard = ({
                               height: '100%',
                               objectFit: 'cover'
                             }}
+
                             // onError={e => {
                             //   e.target.src = '/icons/icon_ingredient.svg' // Fallback to default icon
                             // }}

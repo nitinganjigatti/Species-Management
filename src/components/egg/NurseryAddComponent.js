@@ -65,6 +65,7 @@ const NurseryAddComponent = ({
   const onSubmit = async values => {
     try {
       setLoader(true)
+
       const payload = {
         nursery_name: values.nursery_name,
         site_id: values.site_id
@@ -238,11 +239,13 @@ const NurseryAddComponent = ({
                     onChange={(e, val) => {
                       if (val === null) {
                         setDefaultSite(null)
-                        return onChange('')
+                        
+return onChange('')
                       } else {
                         setDefaultSite(val)
                         setValue('site_id', '')
-                        return onChange(val.site_id)
+                        
+return onChange(val.site_id)
                       }
                     }}
                     renderInput={params => (

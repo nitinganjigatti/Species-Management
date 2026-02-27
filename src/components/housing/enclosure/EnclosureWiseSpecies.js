@@ -398,6 +398,7 @@ const EnclosureWiseSpecies = ({
           }}
         >
           <CommonTable
+
             // onRowClick={handleRowClick}
             indexedRows={indexedRows}
             total={total}

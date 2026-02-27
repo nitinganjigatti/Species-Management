@@ -367,6 +367,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   value={search}
                   onChange={e => {
                     setPage(1)
+
                     // setSearch(e.target.value)
                     handleSearch(e.target.value)
                   }}

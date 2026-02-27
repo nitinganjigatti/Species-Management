@@ -239,7 +239,8 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
                             setSectionList([])
                             setEnclosureList([])
                             await searchSections('', e.target.value)
-                            return onChange(e)
+                            
+return onChange(e)
                           }}
                           labelId='site_id'
                           error={Boolean(errors?.site_id)}
@@ -298,7 +299,8 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
                               setEnclosureList([])
                               setSelectedSectionId(val?.section_id)
                               await searchEnclosures({ searchText: '', section_id: val?.section_id })
-                              return onChange(val)
+                              
+return onChange(val)
                             }
                           }}
                           onClose={() => searchSections('', selected_site_id)}

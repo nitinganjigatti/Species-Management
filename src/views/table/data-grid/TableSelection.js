@@ -7,6 +7,7 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
+import { useTheme } from '@mui/material/styles'
 
 // ** Custom Components
 import CustomChip from 'src/@core/components/mui/chip'
@@ -124,17 +125,62 @@ const columns = [
 ]
 
 const TableSelection = () => {
+  const theme = useTheme()
+
   // ** State
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [rowSelectionModel, setRowSelectionModel] = useState([])
 
   return (
     <Card>
       <CardHeader title='Selection' />
       <DataGrid
+        sx={{
+          // Header styling - MUI X v8
+          '& .MuiDataGrid-columnHeaders': {
+            minHeight: '56px !important',
+            maxHeight: '56px !important'
+          },
+          '& .MuiDataGrid-columnHeaderTitle': {
+            fontWeight: 500
+          },
+
+          // Cell alignment - vertically center content
+          '& .MuiDataGrid-cell': {
+            display: 'flex',
+            alignItems: 'center',
+            lineHeight: 'normal'
+          },
+          '& .MuiDataGrid-columnHeader--alignCenter .MuiDataGrid-columnHeaderDraggableContainer': {
+            justifyContent: 'center'
+          },
+          '& .MuiDataGrid-columnHeader--alignRight .MuiDataGrid-columnHeaderDraggableContainer': {
+            justifyContent: 'flex-end'
+          },
+
+          // Column menu icon button styling
+          '& .MuiDataGrid-menuIcon': {
+            visibility: 'visible',
+            width: 'auto'
+          },
+          '& .MuiDataGrid-iconButtonContainer': {
+            visibility: 'visible',
+            width: 'auto'
+          },
+          '& .MuiDataGrid-menuIconButton': {
+            backgroundColor: 'transparent',
+            color: 'inherit',
+            '&:hover': {
+              backgroundColor: theme.palette.action.hover
+            }
+          }
+        }}
         autoHeight
         rows={rows}
         columns={columns}
         checkboxSelection
+        rowSelectionModel={rowSelectionModel}
+        onRowSelectionModelChange={setRowSelectionModel}
         pageSizeOptions={[7, 10, 25, 50]}
         paginationModel={paginationModel}
         onPaginationModelChange={setPaginationModel}

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Avatar, Box, Typography } from '@mui/material'
+import { Avatar, Box, Tooltip, Typography } from '@mui/material'
 
 const KeyInsights = ({ insights }) => {
   const bgColors = {
@@ -37,35 +37,39 @@ const KeyInsights = ({ insights }) => {
           />
 
           <Box sx={{ flexGrow: 1, textAlign: 'start', overflow: 'hidden', paddingRight: '10px' }}>
-            <Typography
-              variant='subtitle2'
-              sx={{
-                fontWeight: 500,
-                fontSize: '16px',
-                color: '#44544A',
-                whiteSpace: 'nowrap',
-                textOverflow: 'ellipsis',
-                display: 'block',
-                overflow: 'hidden'
-              }}
-            >
-              {insight.title}
-            </Typography>
-            <Typography
-              variant='caption'
-              sx={{
-                color: 'text.secondary',
-                fontWeight: 400,
-                fontSize: '14px',
-                color: '#7A8684',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: 'block'
-              }}
-            >
-              {insight.subtitle}
-            </Typography>
+            <Tooltip title={insight.title}>
+              <Typography
+                variant='subtitle2'
+                sx={{
+                  fontWeight: 500,
+                  fontSize: '16px',
+                  color: '#44544A',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
+                  display: 'block',
+                  overflow: 'hidden'
+                }}
+              >
+                {insight.title}
+              </Typography>
+            </Tooltip>
+            <Tooltip title={insight.subtitle}>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'text.secondary',
+                  fontWeight: 400,
+                  fontSize: '14px',
+                  color: '#7A8684',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: 'block'
+                }}
+              >
+                {insight.subtitle}
+              </Typography>
+            </Tooltip>
           </Box>
           <Typography sx={{ fontWeight: 600, fontSize: '24px', color: '#44544A' }}>{insight.value}</Typography>
         </Box>

@@ -64,6 +64,7 @@ const ActivityLogs = ({
   const getActivityLogs = async searchVal => {
     try {
       setLoader(true)
+
       const params = {
         activity_type_id: detailsValue?.id,
         activity_type,

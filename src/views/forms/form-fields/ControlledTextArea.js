@@ -19,7 +19,8 @@ const ControlledTextArea = ({
   onKeyDown,
   onPaste,
   onInput,
-  sx = {}
+  sx = {},
+  inputBackgroundColor
 }) => {
   const error = get(errors, name) //  safely access nested error
   const helperText = error?.message || ''
@@ -49,7 +50,12 @@ const ControlledTextArea = ({
             onKeyDown={onKeyDown}
             onPaste={onPaste}
             onInput={onInput}
-            sx={sx}
+            sx={{
+              ...sx,
+              '& .MuiOutlinedInput-root, & .MuiFilledInput-root': {
+                backgroundColor: inputBackgroundColor ? inputBackgroundColor : 'inherit'
+              }
+            }}
             slotProps={{
               input: { readOnly },
               htmlInput: inputProps

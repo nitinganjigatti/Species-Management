@@ -7,6 +7,7 @@ import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import { height } from '@mui/system'
+import { useTheme } from '@mui/material/styles'
 
 const TableBasic = ({
   TableTitle,
@@ -21,6 +22,7 @@ const TableBasic = ({
   loading
 }) => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const theme = useTheme()
 
   return (
     <Box>
@@ -30,7 +32,10 @@ const TableBasic = ({
           '.MuiDataGrid-cell:focus': {
             outline: 'none'
           },
-
+          '& .MuiDataGrid-cell': {
+            display: 'flex',
+            alignItems: 'center'
+          },
           '& .MuiDataGrid-row:hover': {
             cursor: 'pointer',
             backgroundColor: 'transparent'
@@ -44,7 +49,23 @@ const TableBasic = ({
             borderTop: 'none' // Remove the border-top from footer container
           },
           '& .MuiDataGrid-columnHeaders': {
-            backgroundColor: backgroundColor
+            backgroundColor: backgroundColor || theme.palette.customColors.customTableHeaderBg,
+            minHeight: '56px !important'
+          },
+          '& .MuiDataGrid-columnHeader': {
+            backgroundColor: backgroundColor || theme.palette.customColors.customTableHeaderBg
+          },
+          '& .MuiDataGrid-filler': {
+            backgroundColor: `${backgroundColor || theme.palette.customColors.customTableHeaderBg} !important`
+          },
+          '& .MuiDataGrid-scrollbarFiller': {
+            backgroundColor: `${backgroundColor || theme.palette.customColors.customTableHeaderBg} !important`
+          },
+          '& .MuiDataGrid-filler--pinnedColumns': {
+            backgroundColor: `${backgroundColor || theme.palette.customColors.customTableHeaderBg} !important`
+          },
+          '& .MuiDataGrid-scrollbarFiller--header': {
+            backgroundColor: `${backgroundColor || theme.palette.customColors.customTableHeaderBg} !important`
           }
         }}
         columnVisibilityModel={{

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
@@ -153,24 +153,16 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
           <Card sx={{ boxShadow: 'none' }}>
             <CardHeader title='Item by percentage' sx={{ pl: 0 }} />
 
-            <DataGrid
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
+            <CommonTable
+              indexedRows={rowsPercentage.map((row, index) => ({ ...row, id: index }))}
+              total={rowsPercentage.length}
+              columns={columnsforPercentage}
+              loading={loading}
               columnVisibilityModel={{
                 sl_no: false
               }}
-              autoHeight
-              rows={rowsPercentage.map((row, index) => ({ ...row, id: index }))}
-              rowCount={rowsPercentage.length}
-              columns={columnsforPercentage}
-              loading={loading}
               hideFooter={true}
+              disablePagination={true}
             />
           </Card>
         )}

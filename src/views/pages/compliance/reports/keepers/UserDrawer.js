@@ -132,6 +132,7 @@ const UserDrawer = ({
     const selectedUser = list.find(user => user.user_id === selected)
     setUserDetail(selectedUser)
     onClose()
+
     // console.log('Selected user data:', selectedUser)
   }
 
@@ -263,6 +264,7 @@ const UserDrawer = ({
 
             {list.map(user => (
               <UserCard
+                key={user?.user_id || user?.uid}
                 name={user?.user_name}
                 uid={user?.user_id}
                 role={user?.role_name}

@@ -416,7 +416,7 @@ const ListOfSpeciesMapped = ({
               ''
             )}
             <>
-              <Box
+              {/* <Box
                 sx={{
                   display: 'flex',
                   flexWrap: 'wrap',
@@ -519,7 +519,7 @@ const ListOfSpeciesMapped = ({
                     {errors.endDate && <FormHelperText sx={{ color: 'error.main' }}>{errors.endDate}</FormHelperText>}
                   </FormControl>
                 </Box>
-              </Box>
+              </Box> */}
               {!loading ? (
                 speciesview === 'select' ? (
                   <Typography

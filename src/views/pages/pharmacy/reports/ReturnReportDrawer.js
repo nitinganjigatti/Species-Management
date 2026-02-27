@@ -1,24 +1,14 @@
 import { useTheme } from '@emotion/react'
 import styled from '@emotion/styled'
 import { LoadingButton } from '@mui/lab'
-import {
-  Badge,
-  Checkbox,
-  Divider,
-  Drawer,
-  FormControl,
-  Grid,
-  IconButton,
-  MenuItem,
-  Select,
-  TextField,
-  Typography
-} from '@mui/material'
+import { Badge, Checkbox, Divider, Drawer, Grid, IconButton, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import Utility from 'src/utility'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import MUISelect from 'src/views/forms/form-fields/MUISelect'
 
 const drugTypeOptions = [
   { id: 'all', name: 'All' },
@@ -162,8 +152,8 @@ const ReturnReportDrawer = ({
     [setSelectedOptions]
   )
 
-  const handleSearch = useCallback(event => {
-    setSearchQuery(event.target.value)
+  const handleSearch = useCallback(value => {
+    setSearchQuery(value)
   }, [])
 
   const applyFilters = useCallback(() => {
@@ -271,7 +261,6 @@ const ReturnReportDrawer = ({
               <Box
                 key={menu.id}
                 sx={{
-                  width: '190px',
                   bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
                   cursor: 'pointer',
                   p: 4,
@@ -302,7 +291,6 @@ const ReturnReportDrawer = ({
                 bgcolor: '#FFFFFF',
                 p: '16px',
                 borderRadius: '8px',
-                width: '345px',
                 height: 'calc(100dvh - 190px)',
                 overflowY: 'auto',
                 '&::-webkit-scrollbar': {
@@ -315,37 +303,12 @@ const ReturnReportDrawer = ({
             >
               {selectedMenu.name === 'Pharmacy' ? (
                 <>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: '1px solid #C3CEC7',
-                      borderRadius: '4px',
-                      padding: '0 8px',
-                      height: '40px',
-                      mb: 4
-                    }}
-                  >
-                    <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
-                    <TextField
-                      variant='outlined'
+                  <Box>
+                    <MUISearch
                       placeholder='Search'
                       value={searchQuery}
-                      onChange={handleSearch}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                      slotProps={{
-                        input: {
-                          disableUnderline: false
-                        }
-                      }}
+                      onChange={e => handleSearch(e.target.value)}
+                      onClear={() => handleSearch('')}
                     />
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
@@ -392,33 +355,18 @@ const ReturnReportDrawer = ({
                 </>
               ) : selectedMenu.name === 'Drug Type' ? (
                 <>
-                  <FormControl fullWidth>
-                    <Select
-                      value={selectedOptions['Drug Type'] || 'all'}
-                      onChange={handleDrugTypeChange}
-                      sx={{
-                        '& .MuiSelect-select': {
-                          fontSize: '16px',
-                          fontWeight: 400,
-                          color: '#839D8D'
-                        }
-                      }}
-                    >
-                      {drugTypeOptions.map(option => (
-                        <MenuItem
-                          key={option.id}
-                          value={option.id}
-                          sx={{
-                            fontSize: '16px',
-                            fontWeight: 400,
-                            color: '#839D8D'
-                          }}
-                        >
-                          {option.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <MUISelect
+                    value={selectedOptions['Drug Type'] || 'all'}
+                    onChange={handleDrugTypeChange}
+                    sx={{
+                      '& .MuiSelect-select': {
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        color: '#839D8D'
+                      }
+                    }}
+                    options={drugTypeOptions}
+                  />
                 </>
               ) : null}
             </Box>
@@ -450,7 +398,7 @@ const ReturnReportDrawer = ({
         </LoadingButton>
       </Box>
     </Drawer>
-  );
+  )
 }
 
 export default ReturnReportDrawer

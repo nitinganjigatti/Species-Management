@@ -1,5 +1,5 @@
 /* eslint-disable lines-around-comment */
-import React, { forwardRef, useState, useEffect, useRef } from 'react'
+import React, { forwardRef, useState, useEffect, useRef, useCallback } from 'react'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 
 import {
@@ -8,14 +8,12 @@ import {
   Select,
   MenuItem,
   TextField,
-  Divider,
   Box,
   Button,
   IconButton,
   CardContent,
   CardHeader,
   Tooltip,
-  InputAdornment,
   FormGroup,
   FormControlLabel,
   Checkbox,
@@ -56,20 +54,11 @@ import { useTheme } from '@emotion/react'
 import ShipmentPrintComponent from 'src/components/ShipmentPrintComponent'
 import { getShipmentDetailOfOrder } from 'src/lib/api/pharmacy/storeWiseRequest'
 import { getRequestsShipmentDetailPdf, getStoreWiseShipmentDetailPdf } from 'src/lib/api/pharmacy/downloadShipmentPdf'
-import { textAlign } from '@mui/system'
+import InfoDisplayGrid from 'src/views/utility/InfoDisplayGrid'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
-
-const LabelValues = ({ label, value }) => {
-  return (
-    <Grid item size={{ xs: 6, sm: 3, md: 2 }} sx={{ pt: 6 }}>
-      <p style={{ margin: '0px' }}> {label}</p>
-      <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{value}</h4>
-    </Grid>
-  )
-}
 
 const DisputeItemDetails = React.forwardRef((props, ref) => {
   const {
@@ -80,7 +69,8 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
     handleChange,
     setDisputeItemDetails,
     columns,
-    getBulkStatusUpdateRadioButton
+    getBulkStatusUpdateRadioButton,
+    hasViewPermission
   } = props
 
   return (
@@ -88,42 +78,60 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
       {disputeItemDetails?.item_details?.length > 0 ? (
         <Grid container size={{ xs: 12 }} sx={{ mx: 'auto' }}>
           <Grid item size={{ xs: 12 }}>
-            <Grid
-              container
-              size={{ xs: 12 }}
-              className='printable-container'
-              sx={{ backgroundColor: 'customColors.bodyBg', pb: 6, px: 6, borderRadius: '10px' }}
-            >
-              {orderData?.request_number ? (
-                <LabelValues label={'Reference No:'} value={orderData?.request_number} />
-              ) : null}
-              {orderData?.from_store_name ? (
-                <LabelValues label={'Shipped From:'} value={orderData?.from_store_name} />
-              ) : null}
-              {orderData?.to_store_name ? <LabelValues label={'Shipped To:'} value={orderData?.to_store_name} /> : null}
-              {/* {orderData?.shipment_id ? <LabelValues label={'Shipping id:'} value={orderData.shipment_id} /> : null} */}
+            <InfoDisplayGrid
+              cardsData={[
+                orderData?.request_number && {
+                  label: 'Reference No:',
+                  value: orderData?.request_number
+                },
 
-              {orderData?.shipment_date ? (
-                <LabelValues label={'Shipped Date:'} value={Utility.formatDisplayDate(orderData.shipment_date)} />
-              ) : null}
-              {orderData?.vehicle_no ? <LabelValues label={'Vehicle Number:'} value={orderData.vehicle_no} /> : null}
-              {/* {orderData?.to_store_name ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>To Store: </p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.to_store_name}</h4>
-                </Grid>
-              ) : null} */}
+                orderData?.from_store_name && {
+                  label: 'Shipped From:',
+                  value: orderData?.from_store_name
+                },
 
-              {orderData?.person_shipping ? (
-                <LabelValues label={'Driver Name:'} value={orderData.person_shipping} />
-              ) : // <Grid item md={2} sm={3} xs={6}>
-              //   <p style={{ margin: '0px' }}>Driver Name:</p>
-              //   <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.person_shipping}</h4>
-              // </Grid>
-              null}
-              {orderData?.person_shipping ? <LabelValues label={'Mobile No:'} value={orderData?.phone_number} /> : null}
-              {orderData?.carton_box ? <LabelValues label={'Carton Boxes:'} value={orderData?.carton_box} /> : null}
-            </Grid>
+                orderData?.to_store_name && {
+                  label: 'Shipped To:',
+                  value: orderData?.to_store_name
+                },
+
+                {
+                  label: 'Shipped Date',
+                  value: Utility.formatDisplayDate(orderData.shipment_date)
+                },
+                {
+                  label: 'Vehicle Number',
+                  value: orderData.vehicle_no
+                },
+                {
+                  label: 'Driver Name',
+                  value: orderData.person_shipping
+                },
+                {
+                  label: 'Mobile No',
+                  value: orderData?.phone_number
+                },
+                {
+                  label: 'Carton Boxes',
+                  value: orderData?.carton_box
+                }
+              ]}
+              commonLabelStyle={{ fontSize: '16px', color: 'theme.palette.customColors.secondaryBg' }}
+              commonValueStyle={{
+                fontSize: '16px',
+                fontWeight: '600',
+                color: 'theme.palette.customColors.secondaryBg'
+              }}
+              showSeparator={false}
+              displayVertically={true}
+              GridSizes={{
+                xs: 6,
+                sm: 3,
+                md: 2
+              }}
+              textContainer={{ gap: '10px' }}
+              rowSpacing={6}
+            />
 
             {disputeItemDetails?.item_details?.length > 0 ? (
               <>
@@ -169,7 +177,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                             checked={checked}
                             onChange={handleChange}
                             name=' mark_all_as_received'
-                            // disabled={checked}
+                            disabled={hasViewPermission}
                           />
                         }
                       />
@@ -298,6 +306,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
   const router = useRouter()
   const { id } = router.query
   const pathname = router?.pathname
+  const hasViewPermission = selectedPharmacy?.permission?.key === 'VIEW'
 
   const closeDisputeDialog = () => {
     setDisputeDialog(false)
@@ -320,15 +329,10 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
 
   const handleStatusChange = (itemId, event) => {
     const { name, value } = event.target
-
-    const updatedData = {
-      ...disputeItemDetails,
-      item_details: disputeItemDetails.item_details.map(item =>
-        // item.id === itemId ? { ...item, status: event.target.value } : item
-        item.id === itemId ? { ...item, [name]: value } : item
-      )
-    }
-    setDisputeItemDetails(updatedData)
+    setDisputeItemDetails(prev => ({
+      ...prev,
+      item_details: prev.item_details.map(item => (item.id === itemId ? { ...item, [name]: value } : item))
+    }))
   }
 
   const clearStatus = (itemId, event) => {
@@ -365,7 +369,6 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       } else {
         response = await getShipmentOrderDetailsOfRequests(orderId, requestId)
       }
-
       if (response?.success === true && response?.data !== '') {
         const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
           const data = {
@@ -379,7 +382,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
             stock_name: el?.stock_name,
             from_store_name: el?.from_store_name,
             to_store_name: el?.to_store_name,
-            status: el.status ? el.status : '',
+            status: el.status ? el?.status : '',
             dispatch_id: el?.dispatch_id,
             dispatch_item_id: el?.dispatch_item_id,
             wrong_count_type: el?.wrong_count_type ? el?.wrong_count_type : '',
@@ -766,9 +769,11 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
               </Box>
 
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 2 }}>
-                <Button type='button' variant='contained' onClick={() => markAsReceived(markReceived?.id)}>
-                  Mark as Received
-                </Button>
+                {shouldShowSubmitButton() && (
+                  <Button type='button' variant='contained' onClick={() => markAsReceived(markReceived?.id)}>
+                    Mark as Received
+                  </Button>
+                )}
               </Box>
             </Box>
           </>
@@ -807,29 +812,64 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
     )
   }
 
-  const showSubmitButton = () => {
+  // Function that returns boolean
+  const shouldShowSubmitButton = () => {
     if (
       requestedFrom === 'localDispatch' &&
       disputeItemDetails?.delivery_status !== 'Delivered' &&
       selectedPharmacy?.type === 'local'
     ) {
-      return submitButton()
+      return true
     }
     if (
       requestedFrom === 'return' &&
       disputeItemDetails?.delivery_status !== 'Delivered' &&
       selectedPharmacy?.type === 'central'
     ) {
-      return submitButton()
+      return true
     }
     if (
       (requestedFrom === 'request' || requestedFrom === 'directDispatch' || requestedFrom === 'requestByAllStores') &&
       disputeItemDetails?.delivery_status !== 'Delivered' &&
       selectedPharmacy?.type === 'local'
     ) {
-      return submitButton()
+      return true
+    } else {
+      return false
     }
   }
+
+  // Function that returns the button component
+  const showSubmitButton = () => {
+    if (shouldShowSubmitButton()) {
+      return submitButton()
+    }
+
+    return null
+  }
+  // const showSubmitButton = () => {
+  // if (
+  //   requestedFrom === 'localDispatch' &&
+  //   disputeItemDetails?.delivery_status !== 'Delivered' &&
+  //   selectedPharmacy?.type === 'local'
+  // ) {
+  //   return submitButton()
+  // }
+  // if (
+  //   requestedFrom === 'return' &&
+  //   disputeItemDetails?.delivery_status !== 'Delivered' &&
+  //   selectedPharmacy?.type === 'central'
+  // ) {
+  //   return submitButton()
+  // }
+  // if (
+  //   (requestedFrom === 'request' || requestedFrom === 'directDispatch' || requestedFrom === 'requestByAllStores') &&
+  //   disputeItemDetails?.delivery_status !== 'Delivered' &&
+  //   selectedPharmacy?.type === 'local'
+  // ) {
+  //   return submitButton()
+  // }
+  // }
 
   const isStoreMatch = () => {
     const isMatch = disputeItemDetails?.item_details?.some(
@@ -1027,6 +1067,9 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                           params?.row?.dispute_status === 'Dispute Resolved' ? 'Missing - Accepted' : 'Missing - Denied'
                         }`
                       : getStatusLabel(params?.row?.status)}
+                    {params?.row?.total_deny_comments &&
+                      params?.row?.total_deny_comments !== '0' &&
+                      commentViewButton(params)}
 
                     {/* : params.row.status}  */}
                   </Typography>
@@ -1087,7 +1130,9 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                                         ...rejectItemsPayload,
                                         comment: e.target.value
                                       })
-                                      setRejectItemsError(null)
+                                      if (rejectItemsError) {
+                                        setRejectItemsError(null)
+                                      }
                                     }}
                                     label='Comment'
                                     sx={{
@@ -1167,7 +1212,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                       <FormControl size='small' style={{ width: '100%' }}>
                         <Select
                           label=''
-                          // disabled={getDisableStatus(params.row.id)}
+                          disabled={hasViewPermission}
                           name='wrong_count_type'
                           size='small'
                           style={{ fontSize: '12px' }}
@@ -1284,8 +1329,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                                 <FormControl size='small' style={{ width: '100%' }}>
                                   <Select
                                     label=''
-                                    // disabled={getDisableStatus(params.row.id)}
-
+                                    disabled={hasViewPermission}
                                     name='wrong_count_type'
                                     size='small'
                                     style={{ fontSize: '12px' }}
@@ -1401,7 +1445,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                         ) : (
                           <FormControl fullWidth size='small'>
                             <Select
-                              // disabled={getDisableStatus(params.row.id)}
+                              disabled={hasViewPermission}
                               fullWidth
                               placeholder='Status'
                               name='status'
@@ -1427,7 +1471,15 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                                 <span style={{ color: 'customColors.neutral_50' }}>Select Received Status</span>
                               </MenuItem>
                               {statusOptions?.map((item, index) => (
-                                <MenuItem key={index} value={item?.label}>
+                                <MenuItem
+                                  onClick={() => {
+                                    handleStatusChange(params.row.id, {
+                                      target: { name: 'status', value: item?.label }
+                                    })
+                                  }}
+                                  key={index}
+                                  value={item?.label}
+                                >
                                   {item?.label === 'Broken' || item?.label === 'Expired'
                                     ? `Received (${item?.label})`
                                     : item?.label === 'Missing'
@@ -1445,26 +1497,27 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                         {params.row.status === 'Wrong Count - Deny Closed' ||
                         params?.row?.status === 'Missing - Deny Closed' ||
                         params?.row?.status === 'Missing - Deny Open' ||
-                        params.row.status === 'Wrong Count - Deny Open' ? (
-                          <Button
-                            variant='text'
-                            onClick={e => {
-                              e.preventDefault()
-                              setMarkReceived(params.row)
-                              openCommentDialog()
-                            }}
-                            sx={{ p: 0, m: 0 }}
-                          >
-                            <Chip
-                              label={params.row.total_deny_comments}
-                              avatar={<Avatar variant='square' alt='' src={'/images/sms.png'}></Avatar>}
-                              onClick={() => {
-                                getRejectedCommentsList(params?.row?.dispatch_item_id)
-                              }}
-                              sx={{ padding: 0, mx: 0, alignSelf: 'center', borderRadius: '8px' }}
-                            />
-                          </Button>
-                        ) : null}
+                        params.row.status === 'Wrong Count - Deny Open'
+                          ? // <Button
+                            //   variant='text'
+                            //   onClick={e => {
+                            //     e.preventDefault()
+                            //     setMarkReceived(params.row)
+                            //     openCommentDialog()
+                            //   }}
+                            //   sx={{ p: 0, m: 0 }}
+                            // >
+                            //   <Chip
+                            //     label={params.row.total_deny_comments}
+                            //     avatar={<Avatar variant='square' alt='' src={'/images/sms.png'}></Avatar>}
+                            //     onClick={() => {
+                            //       getRejectedCommentsList(params?.row?.dispatch_item_id)
+                            //     }}
+                            //     sx={{ padding: 0, mx: 0, alignSelf: 'center', borderRadius: '8px' }}
+                            //   />
+                            // </Button>
+                            commentViewButton(params)
+                          : null}
                       </Grid>
                     ) : (
                       <Typography variant='p' sx={{ mx: 2 }}>
@@ -1486,6 +1539,9 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                                 : 'Missing - Denied'
                             }`
                           : getStatusLabel(params?.row?.status)}
+                        {params?.row?.total_deny_comments &&
+                          params?.row?.total_deny_comments !== '0' &&
+                          commentViewButton(params)}
                       </Typography>
                     )}
                   </Grid>
@@ -1713,6 +1769,28 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
   //     shipmentPrintRef.current.handlePrint()
   //   }
   // }
+  const commentViewButton = params => {
+    return (
+      <Button
+        variant='text'
+        onClick={e => {
+          e.preventDefault()
+          setMarkReceived(params.row)
+          openCommentDialog()
+        }}
+        sx={{ p: 0, my: 0, mx: 2 }}
+      >
+        <Chip
+          label={params.row.total_deny_comments}
+          avatar={<Avatar variant='square' alt='' src={'/images/sms.png'}></Avatar>}
+          onClick={() => {
+            getRejectedCommentsList(params?.row?.dispatch_item_id)
+          }}
+          sx={{ padding: 0, mx: 0, alignSelf: 'center', borderRadius: '8px' }}
+        />
+      </Button>
+    )
+  }
 
   return (
     <>
@@ -1808,6 +1886,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                 setDisputeItemDetails={setDisputeItemDetails}
                 columns={columns}
                 getBulkStatusUpdateRadioButton={getBulkStatusUpdateRadioButton}
+                hasViewPermission={hasViewPermission}
               />
 
               {commentDialog && commentDialogBox()}
@@ -1845,4 +1924,4 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
   )
 }
 
-export default OrderReceiveForm
+export default React.memo(OrderReceiveForm)

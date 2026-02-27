@@ -274,7 +274,7 @@ const ReceivedMedicinesReport = () => {
                   </Box>
                 ),
                 renderCell: params => (
-                  <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
                     <Tooltip title={params.row.stock_name}>
                       <Typography
                         sx={{
@@ -774,9 +774,25 @@ const ReceivedMedicinesReport = () => {
                     '.MuiDataGrid-cell:focus': {
                       outline: 'none'
                     },
-
                     '& .MuiDataGrid-columnHeaders': {
+                      backgroundColor: theme.palette.customColors.customTableHeaderBg,
+                      minHeight: '56px !important',
+                      maxHeight: '100px !important'
+                    },
+                    '& .MuiDataGrid-columnHeader': {
                       backgroundColor: theme.palette.customColors.customTableHeaderBg
+                    },
+                    '& .MuiDataGrid-filler': {
+                      backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+                    },
+                    '& .MuiDataGrid-scrollbarFiller': {
+                      backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+                    },
+                    '& .MuiDataGrid-filler--pinnedColumns': {
+                      backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+                    },
+                    '& .MuiDataGrid-scrollbarFiller--header': {
+                      backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
                     },
                     '& .MuiDataGrid-row:hover': {
                       cursor: 'pointer'
@@ -791,7 +807,6 @@ const ReceivedMedicinesReport = () => {
                     '& .MuiDataGrid-footerContainer': {
                       borderTop: 'none'
                     },
-
                     '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
                       borderBottom: 'none'
                     }

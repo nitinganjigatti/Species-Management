@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useContext, useRef } from 'react'
 
-import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import {
   Avatar,
   Tooltip,
@@ -771,17 +771,22 @@ const SpeciesDietList = () => {
               </Grid>
             </Grid>
 
-            <DataGrid
+            <CommonTable
               key={isAnimalTab ? 'diet-animal-table' : 'diet-species-table'}
-              ref={gridRef}
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                },
+              indexedRows={activeRows === undefined ? [] : activeRows}
+              total={activeTotal}
+              columns={activeColumns}
+              paginationModel={activePaginationModel}
+              handleSortModel={isAnimalTab ? handleAnimalSortModel : handleSortModel}
+              setPaginationModel={isAnimalTab ? setAnimalPaginationModel : setPaginationModel}
+              loading={activeLoading}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              onCellClick={onCellClick}
+              rowHeight={isAnimalTab ? 140 : 64}
+              getRowHeight={isAnimalTab ? () => 'auto' : undefined}
+              externalTableStyle={{
                 ...(isAnimalTab
                   ? {
                       '& .MuiDataGrid-row': {
@@ -798,31 +803,6 @@ const SpeciesDietList = () => {
                     }
                   : {})
               }}
-              columnVisibilityModel={{
-                sl_no: false
-              }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              autoHeight
-              pagination
-              rows={activeRows === undefined ? [] : activeRows}
-              rowCount={activeTotal}
-              rowHeight={isAnimalTab ? 140 : 64}
-              getRowHeight={isAnimalTab ? () => 'auto' : undefined}
-              getEstimatedRowHeight={isAnimalTab ? () => 140 : undefined}
-              disableRowSelectionOnClick
-              disableColumnMenu
-              columns={activeColumns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50, 100]}
-              paginationModel={activePaginationModel}
-              onSortModelChange={isAnimalTab ? handleAnimalSortModel : handleSortModel}
-              sortModel={activeSortModel}
-              onPaginationModelChange={isAnimalTab ? setAnimalPaginationModel : setPaginationModel}
-              loading={activeLoading}
-              // onRowClick={() => setSpeciesDetailsDrawer(true)}
-              onCellClick={onCellClick}
             />
           </Card>
           {/* ///////////////////////Filter-Code//////////////////////////// */}

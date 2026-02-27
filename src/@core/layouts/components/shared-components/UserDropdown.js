@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, Fragment, useEffect } from 'react'
+import { useState, Fragment, useEffect, useContext } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -19,8 +19,7 @@ import Icon from 'src/@core/components/icon'
 
 // ** Context
 import { useAuth } from 'src/hooks/useAuth'
-
-import { read } from 'src/lib/windows/utils'
+import { AuthContext } from 'src/context/AuthContext'
 
 // ** Styled Components
 const BadgeContentSpan = styled('span')(({ theme }) => ({
@@ -45,11 +44,10 @@ const UserDropdown = props => {
 
   // ** Vars
   const { direction } = settings
+  const authData = useContext(AuthContext)
 
   const getUserData = () => {
-    const result = read('userDetails')
-
-    setUserData(result)
+    setUserData(authData.userData || {})
   }
 
   const handleDropdownOpen = event => {

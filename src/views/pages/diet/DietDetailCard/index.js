@@ -558,7 +558,7 @@ const DietDetailCard = ({
                   alignItems: 'center',
                   gap: '8px',
                   mb: '6px',
-                  maxWidth: '400px'
+                  maxWidth: '275px'
                 }}
               >
                 <UserAvatarDetails
