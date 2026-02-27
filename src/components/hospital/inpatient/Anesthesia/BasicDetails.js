@@ -51,6 +51,7 @@ export default function BasicDetails({
     control,
     watch,
     setValue,
+    trigger,
     formState: { errors }
   } = useFormContext()
   const router = useRouter()
@@ -691,8 +692,11 @@ export default function BasicDetails({
                     placeholder='Enter new purpose'
                     value={newPurpose}
                     onChange={e => {
-                      setNewPurpose(e.target.value)
+                      const val = e.target.value
+                      setNewPurpose(val)
+                      setValue('basicDetails.newPurpose', val)
                       if (newPurposeError) setNewPurposeError('')
+                      trigger('basicDetails.selected')
                     }}
                     sx={{ ...commonTextFieldSx, background: theme.palette.common.white }}
                   />
@@ -729,6 +733,7 @@ export default function BasicDetails({
                       }
                       setValue('basicDetails.custom', [...custom, v], { shouldValidate: true })
                       setNewPurpose('')
+                      setValue('basicDetails.newPurpose', '')
                       setNewPurposeError('')
                     }}
                     sx={{

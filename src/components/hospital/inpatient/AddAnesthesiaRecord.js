@@ -34,7 +34,14 @@ const anesthesiaSchema = yup.object().shape({
     estimated_time_unit: yup.string().trim().required('Time unit is required'),
     veterinarian_id: yup.array().min(1, 'Select at least one veterinarian'),
     anesthetist_id: yup.array().min(1, 'Select at least one anesthetist'),
-    selected: yup.array().of(yup.string()).min(1, 'Select at least one purpose').default([]),
+    selected: yup.array().of(yup.string()).default([]).test('purpose-required', 'Select at least one purpose', function (val) {
+      const { custom, newPurpose } = this.parent
+      const hasSelected = val && val.length > 0
+      const hasCustom = custom && custom.some(v => v && v.trim() !== '')
+      const hasCurrentTyping = newPurpose && newPurpose.trim() !== ''
+
+      return hasSelected || hasCustom || hasCurrentTyping
+    }),
     custom: yup.array().of(yup.string()).default([])
 
     // notes: yup.string().trim().required('Notes are required')
@@ -51,6 +58,7 @@ const defaultValues = {
     anesthetist_id: [],
     selected: [],
     custom: [],
+    newPurpose: '',
     notes: ''
   }
 }
@@ -435,7 +443,8 @@ const AddanesthesiaRecordDrawer = ({
                   additionalFields={[
                     {
                       label:
-                        patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value
+                        patientData?.animal_detail?.local_identifier_name &&
+                        patientData?.animal_detail?.local_identifier_value
                           ? patientData?.animal_detail?.local_identifier_name
                           : 'AID',
                       value: handleAIDDisplay()
