@@ -88,7 +88,8 @@ const AddParameterDataEntry = ({
   animalId,
   refetchMonitoringData,
   selectedDate,
-  isPatientDischarged
+  isPatientDischarged,
+  refetchPatient
 }) => {
   const theme = useTheme()
 
@@ -198,6 +199,8 @@ const AddParameterDataEntry = ({
           setAddLoading(false)
           Toaster({ type: 'success', message: res?.message })
           handleDrawerClose()
+          // Refetch patient details only when weight parameter is added to update animal card
+          if (data?.parameter?.assessment_type_id === '1' && refetchPatient) refetchPatient()
 
           // refetchMonitoringData()
         } else {

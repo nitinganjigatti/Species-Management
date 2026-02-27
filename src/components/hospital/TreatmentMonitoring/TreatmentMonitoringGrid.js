@@ -170,7 +170,7 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday, theme) => {
   }, [scrollContainerRef, timeSlots, isToday])
 }
 
-const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
+const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatient }) => {
   const theme = useTheme()
   const { data } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
@@ -826,6 +826,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
           selectedDate={selectedDate}
           monitoringRefetch={monitoringRefetch}
           isPatientDischarged={isPatientDischarged}
+          refetchPatient={refetchPatient}
         />
       )}
       {openDeleteDialog && (
