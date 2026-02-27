@@ -5,9 +5,25 @@ import {
   GET_LAB_REQUESTS_BY_ANIMAL,
   GET_ASSESSMENT_ANIMAL_TYPES,
   GET_ASSESSMENT_ANIMAL_DATA,
-  ANIMAL_JOURNAL_LOGS
+  ANIMAL_JOURNAL_LOGS,
+  GET_MEDICAL_STATS,
+  ADD_ASSESSMENT_VALUE_TO_PARAMS,
+  MEASUREMENT_UNITS
 } from 'src/constants/ApiConstant'
-import { axiosGet } from '../utility'
+import { axiosGet, axiosPost } from '../utility'
+
+export async function getMedicalRecordStats(params) {
+  try {
+    const url = GET_MEDICAL_STATS
+    const response = await axiosGet({ url, params })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error fetching medical record stats:', error.message)
+
+    return { success: false, message: error.message }
+  }
+}
 
 export async function getMedicalBasicDataList(animalId, params) {
   try {
@@ -99,3 +115,43 @@ export async function getMedicalJournalLogs(params) {
     return { success: false, message: error.message }
   }
 }
+
+export async function addAssessmentValue(animalId, params) {
+  try {
+    const url = `${ADD_ASSESSMENT_VALUE_TO_PARAMS}/${animalId}`
+    const response = await axiosPost({ url, body: params })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error adding assessment value:', error.message)
+
+    return { success: false, message: error.message }
+  }
+}
+
+export async function updateAssessmentValue(animalId, params) {
+  try {
+    const url = `v1/assessment/animal/update/${animalId}`
+    const response = await axiosPost({ url, body: params })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error updating assessment value:', error.message)
+
+    return { success: false, message: error.message }
+  }
+}
+
+export async function getMeasurementUnits() {
+  try {
+    const url = MEASUREMENT_UNITS
+    const response = await axiosGet({ url })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error fetching measurement units:', error.message)
+
+    return { success: false, message: error.message }
+  }
+}
+ 

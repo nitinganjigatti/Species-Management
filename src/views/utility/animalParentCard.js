@@ -5,7 +5,7 @@ import React from 'react'
 import AnimalCard from './AnimalCard'
 import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 
-const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelete, radio = false, sx }) => {
+const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelete, radio = false, sx, onWeightClick }) => {
   const theme = useTheme()
   const interactive = Boolean(radio)
   const handleSelect = () => {
@@ -43,7 +43,7 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelet
           role={interactive ? 'button' : undefined}
         >
           {/* Animal Card Content */}
-          <AnimalCard data={data} size={size} animal={animal} />
+          <AnimalCard data={data} size={size} animal={animal} onWeightClick={onWeightClick} />
 
           {/* Right-aligned Radio Button */}
 

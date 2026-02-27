@@ -29,6 +29,7 @@ import Icon from 'src/@core/components/icon'
 import PatientVisitSummaryFilterDrawer from 'src/components/hospital/drawer/PatientVisitSummaryFilterDrawer'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import { useForm } from 'react-hook-form'
+import AssessmentDrawer from 'src/components/housing/animals/AssessmentDrawer'
 
 const PatientCard = ({ patientData, animalData, loading, refetch, category, totalVisitCount }) => {
   const theme = useTheme()
@@ -39,6 +40,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
   const [openAddAnimalDrawer, setOpenAddAnimalDrawer] = useState(false)
   const [dischargeSummaryLoading, setDischargeSummaryLoading] = useState(false)
   const [openVisitSummaryFilterDrawer, setOpenVisitSummaryFilterDrawer] = useState(false)
+  const [assessmentDrawerOpen, setAssessmentDrawerOpen] = useState(false)
   // Add this state variable inside PatientCard component
   const [healthStatus, setHealthStatus] = useState(patientData?.health_status || 'stable')
 
@@ -462,7 +464,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
                 {loading ? (
                   <Skeleton variant='rectangular' width='100%' height={140} sx={{ borderRadius: 1 }} />
                 ) : (
-                  <AnimalCard data={animalData} />
+                  <AnimalCard data={animalData} onWeightClick={() => setAssessmentDrawerOpen(true)} />
                 )}
               </Grid>
 
@@ -517,6 +519,12 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
           animalId={animalData?.animal_id}
         />
       )}
+      <AssessmentDrawer
+        open={assessmentDrawerOpen}
+        onClose={() => setAssessmentDrawerOpen(false)}
+        animalData={animalData}
+        initialTabName='Weight'
+      />
     </>
   )
 }
