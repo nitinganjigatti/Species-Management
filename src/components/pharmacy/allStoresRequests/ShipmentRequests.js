@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Box, Tooltip, Grid, Card, Button, Typography, FormControl, MenuItem, Select, InputLabel } from '@mui/material'
+import { Box, Tooltip, Grid, Card, Button, Typography } from '@mui/material'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
@@ -11,20 +11,31 @@ import { useRouter } from 'next/router'
 import { debounce } from 'lodash'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
-import { getAllShipmentsSelectedStore } from 'src/lib/api/pharmacy/storeWiseRequest'
 import { alpha } from '@mui/material'
 import ShippedItems from './ShippedItems'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useDispatch, useSelector } from 'react-redux'
+import {
+  fetchShipments,
+  setShipmentParams,
+  setSelectedRows,
+  setDispatchedItems
+} from 'src/store/slices/pharmacy/request/shipmentSlice'
 import Icon from 'src/@core/components/icon'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { deleteFulfillItem } from 'src/lib/api/pharmacy/getRequestItemsList'
 import toast from 'react-hot-toast'
 import { LoadingButton } from '@mui/lab'
+import MUISelect from 'src/views/forms/form-fields/MUISelect'
 
 export default function ShipmentRequests({ updateUrlParams }) {
   const { selectedPharmacy } = usePharmacyContext()
-  const { data, updateMultipleStates } = useDynamicStateContext()
+  const dispatch = useDispatch()
+
+  const { list, total, loading, page, pageSize, search, sort, sortColumn, priority, selectedRows, dispatchedItems } =
+    useSelector(state => state.shipment)
+
+  const paginationModel = { page, pageSize }
 
   const TabLists = styled(MuiTabList)(({ theme }) => ({
     '& .MuiTabs-indicator': {
@@ -56,26 +67,6 @@ export default function ShipmentRequests({ updateUrlParams }) {
   const { id } = router.query
 
   const [shipmentTab, setShipmentTab] = useState(router.query.subTab || 'Ready To Ship')
-
-  // /***** Serverside pagination */
-
-  const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState(router.query.sort || 'asc')
-  const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [sortColumn, setSortColumn] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  const [paginationModel, setPaginationModel] = useState({
-    page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 50
-  })
-  const [priority, setPriority] = useState(router.query.priority || 'all')
-
-  function loadServerRows(currentPage, data) {
-    return data
-  }
-  const [selectedRows, setSelectedRows] = useState(data?.dispatchedItems || [])
   const [totalShippedCounts, setTotalShippedCounts] = useState()
   const [deleteDialog, setDeleteDialog] = useState(false)
   const [deleteFullFillId, setDeleteFullFillId] = useState(null)
@@ -83,11 +74,25 @@ export default function ShipmentRequests({ updateUrlParams }) {
   const [handleExport, setHandleExport] = useState(null)
 
   const currentStoreId = selectedPharmacy.type === 'local' ? selectedPharmacy.id : id
+  const isViewOnlyPermission = selectedPharmacy?.permission?.key === 'VIEW'
+
+  // Hydrate Redux state from URL query params on mount
+  useEffect(() => {
+    const queryParams = {}
+    if (router.query.sort) queryParams.sort = router.query.sort
+    if (router.query.q) queryParams.search = router.query.q
+    if (router.query.column) queryParams.sortColumn = router.query.column
+    if (router.query.page) queryParams.page = parseInt(router.query.page) || 0
+    if (router.query.limit) queryParams.pageSize = parseInt(router.query.limit) || 50
+    if (router.query.priority) queryParams.priority = router.query.priority
+    if (Object.keys(queryParams).length > 0) {
+      dispatch(setShipmentParams(queryParams))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const shipItems = () => {
-    updateMultipleStates({
-      dispatchedItems: selectedRows?.length > 0 ? selectedRows : []
-    })
+    dispatch(setDispatchedItems(selectedRows?.length > 0 ? selectedRows : []))
     router.push(`/pharmacy/requests-by-store/${currentStoreId}/ship-all-items`)
   }
 
@@ -107,6 +112,24 @@ export default function ShipmentRequests({ updateUrlParams }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shipmentTab])
 
+  const actionColumn = {
+    minWidth: 20,
+    headerName: 'Action',
+    renderCell: params => (
+      <Typography variant='body2' sx={{ color: 'text.primary', display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ mr: 2 }}>
+          <Icon
+            onClick={() => {
+              setDeleteDialog(true)
+              setDeleteFullFillId(params?.row?.dispatch_item_id)
+            }}
+            icon='mdi:delete-outline'
+          />
+        </Box>
+      </Typography>
+    )
+  }
+
   const columns = [
     {
       width: 80,
@@ -117,8 +140,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {parseInt(params.row.sl_no) + '.'}
@@ -216,8 +238,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params?.row?.ro_no}
@@ -233,8 +254,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.batch_no}
@@ -250,8 +270,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility?.formatDisplayDate(params.row.expiry_date)}
@@ -267,8 +286,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.dispatch_qty}
@@ -278,116 +296,51 @@ export default function ShipmentRequests({ updateUrlParams }) {
 
     {
       width: 200,
-      field: 'requested_date',
+      field: 'created_at',
       headerName: 'Packed Date',
+      sortable: false,
       renderCell: params => (
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
-          {Utility?.formatDisplayDate(params.row.requested_date)}
+          {Utility?.formatDisplayDate(params.row.created_at)}
         </Typography>
       )
     },
-    {
-      minWidth: 20,
-      headerName: 'Action',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ mr: 2 }}>
-            <Icon
-              onClick={() => {
-                setDeleteDialog(true)
-                setDeleteFullFillId(params?.row?.dispatch_item_id)
-              }}
-              icon='mdi:delete-outline'
-            />
-          </Box>
-        </Typography>
-      )
-    }
+    ...(isViewOnlyPermission ? [] : [actionColumn])
   ]
 
-  const fetchTableData = useCallback(
-    async ({ sort, q, column }) => {
-      try {
-        setLoading(true)
-
-        let params = {
-          limit: paginationModel?.pageSize,
-          page: paginationModel?.page + 1,
-          q,
-          sort,
-          column,
-          ...(priority !== 'all' && { priority: priority })
-        }
-
-        await getAllShipmentsSelectedStore({ params: params }, currentStoreId).then(res => {
-          console.log('result', res)
-
-          if (res?.success === true && res?.data?.dispatch_items?.length > 0) {
-            setTotal(parseInt(res?.data?.total))
-
-            // adding dispatch_item_id as id here to get unique row
-            // setRows(loadServerRows(paginationModel?.page, res?.data?.dispatch_items))
-            const updatedRows = res?.data?.dispatch_items?.map((item, index) => ({
-              ...item,
-              id: item?.dispatch_item_id
-            }))
-            setRows(loadServerRows(paginationModel?.page, updatedRows))
-            if (data?.dispatchedItems?.length > 0) {
-              const dispatchItems = data?.dispatchedItems
-              setSelectedRows(dispatchItems)
-            }
-          } else {
-            setTotal(0)
-            setRows([])
-          }
-        })
-        setLoading(false)
-      } catch (e) {
-        console.log(e)
-        setLoading(false)
-      }
-    },
-    [paginationModel, priority]
-  )
-
-  const searchTableData = useCallback(
-    debounce(async ({ sort, q, column }) => {
-      setSearchValue(q)
-      try {
-        await fetchTableData({ sort, q, column })
-      } catch (error) {
-        console.error(error)
-      }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedFetch = useCallback(
+    debounce(storeId => {
+      dispatch(fetchShipments({ storeId }))
     }, 1000),
-    [fetchTableData]
+    [dispatch]
   )
+
+  const handleSearch = value => {
+    dispatch(setShipmentParams({ search: value, page: 0 }))
+    debouncedFetch(currentStoreId)
+  }
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
-      updateUrlParams({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize
-      })
-    } else {
+      dispatch(
+        setShipmentParams({
+          sort: newModel[0].sort,
+          sortColumn: newModel[0].field
+        })
+      )
     }
   }
 
-  const getSlNo = index => (paginationModel?.page + 1 - 1) * paginationModel?.pageSize + index + 1
+  const getSlNo = index => (page + 1 - 1) * pageSize + index + 1
 
-  const indexedRows = rows?.map((row, index) => ({
+  const indexedRows = list?.map((row, index) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
@@ -400,7 +353,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
         if (result?.success === true) {
           toast.success(result.data)
           closeDeleteDialog()
-          fetchTableData({ sort, q: searchValue, column: sortColumn })
+          dispatch(fetchShipments({ storeId: currentStoreId }))
           setDeleteItemLoader(false)
         } else {
           closeDeleteDialog()
@@ -416,18 +369,27 @@ export default function ShipmentRequests({ updateUrlParams }) {
     }
   }
 
+  // Fetch data when pagination, sort, or priority changes
   useEffect(() => {
-    fetchTableData({ sort, q: searchValue, column: sortColumn })
+    dispatch(fetchShipments({ storeId: currentStoreId }))
     updateUrlParams({
       sort,
-      q: searchValue,
+      q: search,
       column: sortColumn,
-      page: paginationModel?.page,
-      limit: paginationModel?.pageSize,
+      page,
+      limit: pageSize,
       subTab: shipmentTab === 'Ready To Ship' ? 'Ready To Ship' : 'Shipped'
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData])
+  }, [page, pageSize, sort, sortColumn, priority])
+
+  // Restore selections from dispatchedItems when list loads
+  useEffect(() => {
+    if (dispatchedItems?.length > 0 && list?.length > 0) {
+      dispatch(setSelectedRows(dispatchedItems))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list])
 
   useEffect(() => {
     if (selectedPharmacy.type === 'local') {
@@ -442,17 +404,13 @@ export default function ShipmentRequests({ updateUrlParams }) {
     <TabContext value={shipmentTab}>
       <Grid
         container
+        spacing={3}
         sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row', sm: 'row' },
-
-          justifyContent: 'space-between',
-          mt: 6
+          mt: 4
         }}
       >
-        <Grid item xs={12} sm={6} md={6}>
+        <Grid item size={{ xs: 12, sm: 'auto' }}>
           <TabLists
-            variant='scrollable'
             allowScrollButtonsMobile
             onChange={(event, newValue) => {
               setShipmentTab(newValue)
@@ -461,12 +419,9 @@ export default function ShipmentRequests({ updateUrlParams }) {
               })
             }}
             sx={{
-              height: 'auto',
               display: 'flex',
-              flexDirection: { xs: 'column', md: 'row', sm: 'row' },
-              alignItems: 'center',
-
-              justifyContent: { xs: 'flex-start', md: 'flex-start', lg: 'space-between' }
+              flexDirection: 'row',
+              alignItems: 'center'
             }}
           >
             {selectedPharmacy.type === 'local' ? null : (
@@ -477,43 +432,43 @@ export default function ShipmentRequests({ updateUrlParams }) {
         </Grid>
         <Grid
           item
-          xs={12}
-          sm={6}
-          md={6}
+          size={{
+            xs: 12,
+            sm: 12
+          }}
           sx={{
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row', md: 'row' },
             width: '100%',
-            justifyContent: { xs: 'space-between', md: 'flex-end' },
+            justifyContent: { xs: 'space-between' },
             gap: { xs: 2, md: 3, sm: 1 },
             py: 1,
             alignItems: 'center'
           }}
         >
           {shipmentTab === 'Ready To Ship' && (
-            <Grid item>
-              <FormControl fullWidth size='small'>
-                <InputLabel sx={{ py: '2px' }}>Priority</InputLabel>
-                <Select
-                  value={priority}
-                  label='Priority'
-                  onChange={e => {
-                    setPriority(e.target.value)
-                    setPaginationModel({ page: 0, pageSize: 50 })
-                  }}
-                >
-                  <MenuItem value='all'>All</MenuItem>
-                  <MenuItem value='high'>High</MenuItem>
-                  <MenuItem value='emergency'>Emergency</MenuItem>
-                </Select>
-              </FormControl>
+            <Grid item size={{ xs: 12, sm: 6 }}>
+              <MUISelect
+                sx={{ width: { xs: '100%', sm: '250px' } }}
+                value={priority}
+                label='Priority'
+                options={[
+                  { id: 'all', name: 'All' },
+                  { id: 'high', name: 'High' },
+                  { id: 'emergency', name: 'Emergency' }
+                ]}
+                onChange={e => {
+                  dispatch(setShipmentParams({ priority: e.target.value, page: 0 }))
+                }}
+              />
             </Grid>
           )}
           {shipmentTab === 'Ready To Ship' &&
           (indexedRows?.length > 0 || selectedRows?.length > 0) &&
           (selectedPharmacy?.permission.key === 'ADD' || selectedPharmacy?.permission.key === 'allow_full_access') ? (
-            <Grid item xs={12} sm='auto' md='auto' lg={5}>
+            <Grid item size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', justifyContent: 'end' }}>
               <Button
+                sx={{ width: { xs: '100%', sm: '250px' } }}
                 fullWidth
                 disabled={selectedRows?.length === 0}
                 size='big'
@@ -566,15 +521,18 @@ export default function ShipmentRequests({ updateUrlParams }) {
             columns={columns}
             paginationModel={paginationModel}
             handleSortModel={handleSortModel}
-            setPaginationModel={setPaginationModel}
+            setPaginationModel={model => {
+              dispatch(setShipmentParams({ page: model.page, pageSize: model.pageSize }))
+            }}
             loading={loading}
-            searchValue={searchValue}
+            searchValue={search}
+            handleSearch={handleSearch}
             checkBoxOption={true}
             onRowSelectionModelChange={newSelection => {
-              const selectedData = indexedRows.filter(row => newSelection?.includes(row?.id))
-              setSelectedRows(selectedData)
+              // const selectedData = indexedRows.filter(row => newSelection?.includes(row?.id))
+              dispatch(setSelectedRows(newSelection))
             }}
-            selectedRows={selectedRows?.map(row => row?.id)}
+            selectedRows={selectedRows}
           />
         </Card>
 
@@ -631,7 +589,14 @@ export default function ShipmentRequests({ updateUrlParams }) {
           padding: '0px !important'
         }}
       >
-        <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
+        <Card
+          sx={{
+            mb: 6,
+            minWidth: '100%',
+
+            boxShadow: 'none !important'
+          }}
+        >
           <ShippedItems updateUrlParams={updateUrlParams} setTotalShippedCounts={setTotalShippedCounts} />
         </Card>
       </TabPanel>

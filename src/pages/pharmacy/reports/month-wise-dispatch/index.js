@@ -41,9 +41,10 @@ const MonthWiseDispatch = () => {
   const router = useRouter()
   const theme = useTheme()
 
-  const selectedStore = localStorage.getItem('selectedStore')
-  const storeObject = JSON.parse(selectedStore)
-  const storeId = storeObject?.id
+  // const selectedStore = localStorage.getItem('selectedStore')
+  // const storeObject = JSON.parse(selectedStore)
+  // const selectedPharmacy?.id = storeObject?.id
+
   const [loader, setLoader] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [openDoctorListDrawer, setOpenDoctorListDrawer] = useState(false)
@@ -148,7 +149,7 @@ const MonthWiseDispatch = () => {
         from_date: fromDate,
         to_date: toDate,
         q: doctorsearch,
-        store_id: storeId
+        store_id: selectedPharmacy?.id
       }
 
       const response = await getDoctorReportList(payload)
@@ -357,7 +358,7 @@ const MonthWiseDispatch = () => {
                 renderCell: params => {
                   const value = Number(params.value)
                   if (isNaN(value)) {
-                    return <span>{params.value}</span> 
+                    return <span>{params.value}</span>
                   }
 
                   const originalValue = Math.round(value)
@@ -546,7 +547,7 @@ const MonthWiseDispatch = () => {
         from_date: downloadFromDate,
         to_date: downloadToDate,
         q: searchbyDoctorname,
-        store_id: storeId
+        store_id: selectedPharmacy?.id
       }
 
       const response = await getDoctorReportList(payload)
@@ -652,13 +653,8 @@ const MonthWiseDispatch = () => {
 
       const wsData = [headers, ...finalRows.map(row => Object.values(row))]
 
-    
       const ws = utils.aoa_to_sheet(wsData)
-      ws['!cols'] = [
-        { wch: 20 },
-
-        ...listItem.columnData.map(() => ({ wch: 15 })) 
-      ]
+      ws['!cols'] = [{ wch: 20 }, ...listItem.columnData.map(() => ({ wch: 15 }))]
       const wb = utils.book_new()
       utils.book_append_sheet(wb, ws, 'Dispatch_Report')
 
@@ -711,9 +707,13 @@ const MonthWiseDispatch = () => {
                     >
                       Pharmacy Dashboard
                     </Typography>
-                    <Typography sx={{
-                      color: 'text.primary'
-                    }}>Month wise dispatch</Typography>
+                    <Typography
+                      sx={{
+                        color: 'text.primary'
+                      }}
+                    >
+                      Month wise dispatch
+                    </Typography>
                   </Breadcrumbs>
                 </Box>
               )}
@@ -903,7 +903,7 @@ const MonthWiseDispatch = () => {
         </>
       )}
     </>
-  );
+  )
 }
 
 export default MonthWiseDispatch

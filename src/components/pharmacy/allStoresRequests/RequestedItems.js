@@ -41,6 +41,8 @@ import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import { alpha } from '@mui/material'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import MUISelect from 'src/views/forms/form-fields/MUISelect'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -650,7 +652,6 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
     updateUrlParams({
       requestedItemsSubTab: requestedItemsSubTab
     })
-   
   }, [requestedItemsSubTab])
 
   const handleExport = async () => {
@@ -695,53 +696,75 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const pageContent = () => {
     return (
       <Box sx={{ mt: 6 }}>
-        <Box>
-          <Grid
-            container
-            spacing={2}
-            sx={{
-              display: 'flex',
-              flexWrap: { xs: 'wrap', md: 'nowrap' },
-              justifyContent: { xs: 'center', md: 'space-between' },
-              alignItems: 'center',
-              gap: { xs: 2, md: 0 }
-            }}
-          >
-            <Grid item size={{ xs: 12, sm: 12, md: 'auto', lg: 'auto', xl: 'auto' }}>
-              <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
-            </Grid>
-            <Grid item size={{ xs: 12, md: 2.5, lg: 2.5 }}>
-              <FormControl fullWidth size='small'>
-                <InputLabel>Controlled</InputLabel>
-                <Select
-                  value={controlledDrug}
-                  label='Controlled'
-                  onChange={e => {
-                    setControlledDrug(e.target.value)
-                  }}
-                >
-                  <MenuItem value='all'>All</MenuItem>
-                  <MenuItem value='1'>Controlled Substance</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item size={{ xs: 12, md: 2.5, lg: 2.5 }}>
-              <FormControl fullWidth size='small'>
-                <InputLabel>Priority</InputLabel>
-                <Select
-                  value={priority}
-                  label='Priority'
-                  onChange={e => {
-                    setPriority(e.target.value)
-                  }}
-                >
-                  <MenuItem value='all'>All</MenuItem>
-                  <MenuItem value='high'>High</MenuItem>
-                  <MenuItem value='emergency'>Emergency</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            {/* <Grid item xs={8} sm={8} md={3} lg={3}>
+        <Grid
+          container
+          spacing={3}
+          sx={{
+            display: 'flex',
+            flexWrap: { xs: 'wrap', md: 'nowrap' },
+
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          <Grid item size={{ xs: 12, md: 'auto' }}>
+            <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+          </Grid>
+          <Grid item size={{ xs: 12, md: 2.5, lg: 3 }}>
+            {/* <FormControl fullWidth size='small'>
+              <InputLabel>Controlled</InputLabel>
+              <Select
+                value={controlledDrug}
+                label='Controlled'
+                onChange={e => {
+                  setControlledDrug(e.target.value)
+                }}
+              >
+                <MenuItem value='all'>All</MenuItem>
+                <MenuItem value='1'>Controlled Substance</MenuItem>
+              </Select>
+            </FormControl> */}
+            <MUISelect
+              value={controlledDrug}
+              label='Controlled'
+              options={[
+                { id: 'all', name: 'All' },
+                { id: '1', name: 'Controlled' }
+              ]}
+              onChange={e => {
+                setControlledDrug(e.target.value)
+              }}
+            />
+          </Grid>
+          <Grid item size={{ xs: 12, md: 2.5, lg: 3 }}>
+            {/* <FormControl fullWidth size='small'>
+              <InputLabel>Priority</InputLabel>
+              <Select
+                value={priority}
+                label='Priority'
+                onChange={e => {
+                  setPriority(e.target.value)
+                }}
+              >
+                <MenuItem value='all'>All</MenuItem>
+                <MenuItem value='high'>High</MenuItem>
+                <MenuItem value='emergency'>Emergency</MenuItem>
+              </Select>
+            </FormControl> */}
+            <MUISelect
+              value={priority}
+              label='Priority'
+              options={[
+                { id: 'all', name: 'All' },
+                { id: 'high', name: 'High' },
+                { id: 'emergency', name: 'Emergency' }
+              ]}
+              onChange={e => {
+                setPriority(e.target.value)
+              }}
+            />
+          </Grid>
+          {/* <Grid item xs={8} sm={8} md={3} lg={3}>
               <TextField
                 variant='outlined'
                 size='small'
@@ -776,39 +799,31 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
             >
               <ExportButton />
             </Grid> */}
-            <Grid item xs={12} md={3} lg={3}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: { xs: 'row', md: 'row' },
-                  alignItems: 'center',
-                  width: '100%',
-                  gap: 2
-                }}
-              >
-                <TextField
-                  variant='outlined'
-                  size='small'
-                  placeholder='Search...'
-                  value={searchValue}
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{ borderRadius: '8px', flexGrow: 1 }}
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                        </InputAdornment>
-                      )
-                    }
-                  }}
-                />
-                <ExportButton loading={exportLoading} onClick={handleExport} disabled={total === 0 ? true : false} />
-              </Box>
+          <Grid
+            item
+            size={{ xs: 12, sm: 12, md: 5, lg: 3 }}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 3
+            }}
+          >
+            <MUISearch
+              onChange={e => handleSearch(e.target.value)}
+              onClear={() => handleSearch('')}
+              placeholder='Search...'
+              value={searchValue}
+            />
+
+            <Grid minWidth={'40px'}>
+              {/* this Grid is used for take the full width of the Export Button  */}
+
+              <ExportButton loading={exportLoading} onClick={handleExport} disabled={total === 0 ? true : false} />
             </Grid>
           </Grid>
-        </Box>
+        </Grid>
+
         <CommonTable
           // eslint-disable-next-line lines-around-comment
           onRowClick={handleRowClick}

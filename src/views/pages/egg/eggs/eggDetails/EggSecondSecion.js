@@ -23,7 +23,6 @@ import {
   TableContainer
 } from '@mui/material'
 import { Box } from '@mui/system'
-import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
 import { styled } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
@@ -37,6 +36,7 @@ import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 import { AddAssesment, EditAssesment, getWeightList } from 'src/lib/api/egg/egg'
 
@@ -511,33 +511,17 @@ const EggSecondSecion = ({
         </Box>
       </Box>
       <Box sx={{ px: 4, py: 2 }}>
-        <DataGrid
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            }
-          }}
+        <CommonTable
+          indexedRows={indexedRows === undefined ? [] : indexedRows}
+          total={total}
+          columns={columns}
+          paginationModel={paginationModel}
+          setPaginationModel={setPaginationModel}
+          loading={loading}
           columnVisibilityModel={{
             sl_no: false
           }}
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          autoHeight
-          pagination
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
-          columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
-          paginationModel={paginationModel}
-          // onSortModelChange={handleSortModel}
           slots={{ toolbar: ServerSideToolbarWithFilter }}
-          onPaginationModelChange={setPaginationModel}
-          loading={loading}
           slotProps={{
             baseButton: {
               variant: 'outlined'

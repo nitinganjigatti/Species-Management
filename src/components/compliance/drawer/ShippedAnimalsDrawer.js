@@ -278,7 +278,7 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }) => {
         </Box>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default ShippedAnimalsDrawer

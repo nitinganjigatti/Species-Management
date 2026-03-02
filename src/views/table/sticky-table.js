@@ -74,11 +74,11 @@ const StickyTableChild = ({
   const tableTotalHeight = defaultRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
 
   const [dynamicTableHeight, setDynamicTableHeight] = useState(
-    defaultRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
+    defaultRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0) + 2
   )
 
   // Calculate minimum height to prevent layout shift during loading
-  const minTableHeight = defaultRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
+  const minTableHeight = defaultRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0) + 2
   const finalTableHeight = loading ? minTableHeight : Math.max(dynamicTableHeight, minTableHeight)
 
   useEffect(() => {
@@ -87,7 +87,7 @@ const StickyTableChild = ({
         .slice(0, defaultRowsInView)
         .reduce((sum, ref) => sum + (ref?.offsetHeight || rowHeight), 0)
 
-      setDynamicTableHeight(totalVisibleHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0))
+      setDynamicTableHeight(totalVisibleHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0) + 2)
     }
   }, [filteredRows, defaultRowsInView])
 
@@ -406,6 +406,7 @@ const StickyTableChild = ({
               {isGrouped ? (
                 transformText(col?.headerName, col?.textTransform)
               ) : (
+
                 // <TableSortLabel
                 //   onClick={() => {
                 //     setSortStates(prevState => {
@@ -421,7 +422,7 @@ const StickyTableChild = ({
                 // >
                 //   {transformText(col?.headerName, col?.textTransform)}
                 // </TableSortLabel>
-                <>
+                (<>
                   {col?.sortable === false ? (
                     transformText(col?.headerName, col?.textTransform)
                   ) : (
@@ -446,7 +447,7 @@ const StickyTableChild = ({
                       {transformText(col?.headerName, col?.textTransform)}
                     </TableSortLabel>
                   )}
-                </>
+                </>)
               )}
               {/* Three-dot menu */}
               {modifyColumnPinning && (
@@ -485,10 +486,10 @@ const StickyTableChild = ({
                 <MenuItem onClick={() => handlePinClick('none')}>unpin</MenuItem>
               </Menu>
             </TableCell>
-          )
+          );
         })}
       </TableRow>
-    )
+    );
   }
 
   const renderSubHeaders = () => {
@@ -836,7 +837,7 @@ const StickyTableChild = ({
                       ...borderStyle,
                       ...col.columnStyle,
                       ...subCol?.subheaderStyle,
-                      borderBottom: filteredRows.length != rowIndex && '1px solid #DAE7DF'
+                      borderBottom: filteredRows.length - 1 !== rowIndex ? '1px solid #DAE7DF' : 'none'
                     }}
                   >
                     {/* {subCol.label || subCol.field} */}
@@ -869,7 +870,7 @@ const StickyTableChild = ({
                   ...col.columnStyle,
                   minHeight: '70px',
                   maxHeight: '70px',
-                  borderBottom: filteredRows.length != rowIndex && '1px solid #DAE7DF'
+                  borderBottom: filteredRows.length - 1 !== rowIndex ? '1px solid #DAE7DF' : 'none'
                 }}
               >
                 {col.renderCell ? col.renderCell({ row }) : row[col.field[0]]}
@@ -919,9 +920,10 @@ const StickyTableChild = ({
           >
             {/* Label for rows per page */}
             <Typography
-              variant='body2'
+              // variant='body2'
               sx={{
-                color: 'text.secondary'
+                color: theme.palette.customColors.paginationLabel
+                // color: theme.palette.customColors.MuiFieldBorder
               }}
             >
               Rows in view:
@@ -930,6 +932,7 @@ const StickyTableChild = ({
             {/* Dropdown for selecting the number */}
             <Select
               value={defaultRowsInView}
+
               // onChange={e => setDefaultRowsInView(e.target.value)}
               onChange={e => {
                 setUserChangedRowsInView(true)
@@ -940,11 +943,11 @@ const StickyTableChild = ({
               disableUnderline
               sx={{
                 fontSize: '0.875rem',
-                color: 'text.secondary',
+                color: theme.palette.customColors.paginationLabel,
                 minWidth: '0px !important',
                 width: '40px !important',
                 '& .MuiSelect-icon': {
-                  color: 'text.secondary',
+                  color: theme.palette.customColors.paginationLabel,
                   boxShadow: 'none !important', // ✅ forcefully remove any shadow
                   overflow: 'hidden',
                   maxHeight: 200 // optional: keeps menu compact

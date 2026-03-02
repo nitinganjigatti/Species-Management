@@ -1,30 +1,31 @@
 /* eslint-disable lines-around-comment */
 // ** MUI Imports
-import Grid from '@mui/material/Grid'
-import Card from '@mui/material/Card'
-import Table from '@mui/material/Table'
-import Divider from '@mui/material/Divider'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
-import CardContent from '@mui/material/CardContent'
-import { styled } from '@mui/material/styles'
-import TableContainer from '@mui/material/TableContainer'
-import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
-import FormHelperText from '@mui/material/FormHelperText'
-import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
+import {
+  Grid,
+  Card,
+  Table,
+  Divider,
+  TableRow,
+  TableHead,
+  TableBody,
+  Typography,
+  Box,
+  CardContent,
+  styled,
+  TableContainer,
+  TableCell,
+  Button,
+  IconButton,
+  FormHelperText,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  DialogActions,
+  DialogContent,
+  DialogContentText
+} from '@mui/material'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
@@ -55,7 +56,6 @@ import { AddItemsForm } from 'src/views/pages/pharmacy/return/add-items-form'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -69,12 +69,13 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 import Icon from 'src/@core/components/icon'
 import { boolean } from 'yup'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
-import { Stack } from '@mui/system'
+import { flexWrap, Stack } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import RenderUtility from 'src/utility/render'
 import { AddProductForm } from 'src/views/pages/pharmacy/utility/AddProductForm'
-
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 const editParamsInitialState = {
   // from_store_type: '',
   to_store_type: '',
@@ -689,134 +690,116 @@ const AddReturnRequest = () => {
         loader ? (
           <FallbackSpinner />
         ) : (
-          <Card>
-            <>
-              <Grid
-                container
-                size={{ xs: 12, sm: 12 }}
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}
-              >
-                <CardHeader
-                  avatar={
-                    <Icon
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        // Router.back('/pharmacy/return-product/request-list/')
-                        Router.back()
-                      }}
-                      icon='ep:back'
-                    />
-                  }
-                  title='Add Return Request'
+          <PageCardLayout
+            title='Add Return Request'
+            showIcon={true}
+            titleStyles={{ fontSize: '20px' }}
+            onIconClick={() => {
+              Router.back()
+            }}
+            
+          >
+              <Grid container>
+                <CommonDialogBox
+                  title={'Add Return Item'}
+                  dialogBoxStatus={show}
+                  formComponent={createForm()}
+                  close={closeDialog}
+                  show={showDialog}
                 />
               </Grid>
-              <CardContent>
-                <Grid container>
-                  <CommonDialogBox
-                    title={'Add Return Item'}
-                    dialogBoxStatus={show}
-                    formComponent={createForm()}
-                    close={closeDialog}
-                    show={showDialog}
-                  />
+            <form>
+              <Grid container spacing={5}>
+                <Grid size={{ xs: 12, sm: 12 }}>
+                  <Typography
+                    variant='subtitle2'
+                    sx={{ color: 'text.primary', letterSpacing: '.1px', fontSize: '16px' }}
+                  >
+                    Returned to :
+                  </Typography>
                 </Grid>
-              </CardContent>
-              <CardContent>
-                <form>
-                  <Grid container spacing={5}>
-                    <Grid item size={{ xs: 12, sm: 6 }}>
-                      <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
-                        <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
-                          <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                            Returned to :
-                          </Typography>
-                        </Grid>
-                        <FormControl fullWidth>
-                          <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
-                            Store*
-                          </InputLabel>
+                <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
+                  <FormControl fullWidth>
+                    <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
+                      Store*
+                    </InputLabel>
+                    <Select
+                      error={Boolean(errors.to_store_id)}
+                      value={editParams.to_store_id}
+                      label='Store*'
+                      disabled={id ? true : false}
+                      onChange={e => {
+                        setEditParams({
+                          ...editParams,
+                          to_store_id: e.target.value,
+                          to_store_type: storesType[filteredStoreType(e.target.value)]
+                        })
+                        setErrors({})
+                      }}
+                    >
+                      {toStocks?.map((item, index) => (
+                        <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                          {item?.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
 
-                          <Select
-                            error={Boolean(errors.to_store_id)}
-                            value={editParams.to_store_id}
-                            label='Store*'
-                            disabled={id ? true : false}
-                            onChange={e => {
-                              setEditParams({
-                                ...editParams,
-                                to_store_id: e.target.value,
-                                to_store_type: storesType[filteredStoreType(e.target.value)]
-                              })
-                              setErrors({})
-                            }}
-                          >
-                            {toStocks?.map((item, index) => (
-                              <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                                {item?.name}
-                              </MenuItem>
-                            ))}
-                          </Select>
+                    {errors.to_store_id && (
+                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                        This field is required
+                      </FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+                <Grid item size={{ xs: 12, sm: 6, lg: 6 }} sx={{ mb: 5 }}>
+                  <FormControl fullWidth>
+                    <SingleDatePicker
+                      fullWidth
+                      date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
+                      width={'100%'}
+                      value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
+                      name={'Date*'}
+                      onChangeHandler={date => {
+                        // setStores({ ...stores, date: date })
+                        setEditParams({ ...editParams, ro_date: formatDate(date) })
+                        setErrors({})
+                      }}
+                      customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
+                      isClearable={false}
+                      maxDate={new Date()}
+                    />
+                    {errors.ro_date && (
+                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                        This field is required
+                      </FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </form>
 
-                          {errors.to_store_id && (
-                            <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                              This field is required
-                            </FormHelperText>
-                          )}
-                        </FormControl>
-                      </Grid>
-                    </Grid>
-                    <Grid item size={{ xs: 12, sm: 6 }}>
-                      <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
-                        <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                          &nbsp;
-                        </Typography>
-                      </Grid>
-
-                      <Grid item size={{ xs: 12, sm: 12, lg: 12 }} sx={{ mx: 'auto', mb: 5 }}>
-                        <FormControl fullWidth>
-                          <SingleDatePicker
-                            fullWidth
-                            date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                            width={'100%'}
-                            value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                            name={'Date*'}
-                            onChangeHandler={date => {
-                              // setStores({ ...stores, date: date })
-                              setEditParams({ ...editParams, ro_date: formatDate(date) })
-                              setErrors({})
-                            }}
-                            customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
-                            isClearable={false}
-                            maxDate={new Date()}
-                          />
-                          {errors.ro_date && (
-                            <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                              This field is required
-                            </FormHelperText>
-                          )}
-                        </FormControl>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                </form>
-              </CardContent>
-            </>
-
-            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 6 }}>
-              <Box>
+            <Grid
+              container
+              spacing={3}
+              alignItems='center'
+              sx={{
+                py: 5
+              }}
+            >
+              <Grid item size={{ xs: 12, sm: 'auto', lg: 8 }}>
                 <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
                   Return Items
                 </Typography>
-
                 <Stack
-                  direction='row'
-                  spacing={6}
-                  divider={<Divider orientation='vertical' flexItem />}
-                  sx={{ textAlign: 'center' }}
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={{ xs: 0, sm: 6 }}
+                  divider={
+                    <Divider
+                      orientation='vertical'
+                      flexItem
+                      sx={{ display: { xs: 'none', sm: 'block' }, height: '20px' }}
+                    />
+                  }
                 >
                   <Typography
                     variant='body2'
@@ -827,25 +810,32 @@ const AddReturnRequest = () => {
                       {totalQty ? totalQty : '0'}
                     </Typography>
                   </Typography>
+
                   <Typography
                     variant='body2'
                     sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
                   >
-                    Total Return Value:
+                    Total Return Value:{' '}
                     <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
                       {Utility.formatAmountToReadableDigit(totalReturnItemsValue)}
                     </Typography>
                   </Typography>
                 </Stack>
-              </Box>
+              </Grid>
+              <Grid item sx={{ marginLeft: 'auto' }}>
+                <AddButtonContained
+                  title='Add Return Item'
+                  action={() => {
+                    handleSubmit()
+                  }}
+                  styles={{
+                    mr: 0
+                  }}
+                />
+              </Grid>
+            </Grid>
 
-              <AddButtonContained
-                title='Add Return Item'
-                action={() => {
-                  handleSubmit()
-                }}
-              />
-            </Box>
+            {/* </Box> */}
             {/* <Grid
             container
             spacing={6}
@@ -869,7 +859,7 @@ const AddReturnRequest = () => {
               <Box>
                 <Card
                   sx={{
-                    m: 6,
+                    my: 6,
                     border: '1px solid',
                     borderColor: 'customColors.customTableBorderBg',
                     boxShadow: 'none'
@@ -1017,7 +1007,7 @@ const AddReturnRequest = () => {
           </CardContent> */}
 
                 <Grid item size={{ xs: 12 }}>
-                  <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                     {id ? (
                       <RequestCancelButton
                         title='Cancel Request'
@@ -1185,7 +1175,7 @@ const AddReturnRequest = () => {
                 </Box>
               }
             />
-          </Card>
+          </PageCardLayout>
         )
       ) : (
         <>

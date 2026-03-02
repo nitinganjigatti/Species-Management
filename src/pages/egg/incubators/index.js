@@ -14,7 +14,6 @@ import {
   CardHeader,
   Typography
 } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
 import { debounce } from 'lodash'
 
@@ -23,6 +22,7 @@ import Utility from 'src/utility'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CustomChip from 'src/@core/components/mui/chip'
 import Icon from 'src/@core/components/icon'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import ErrorScreen from 'src/pages/Error'
 import AddIncubators from '../../../views/pages/egg/incubator/addIncubators'
 
@@ -76,6 +76,7 @@ const IncubatorsList = () => {
 
         const res = await getIncubatorList({ params })
         const rawData = res?.data?.data?.result || []
+
         const listWithId = rawData.map((el, i) => ({
           ...el,
           id: i + 1
@@ -290,6 +291,7 @@ const IncubatorsList = () => {
       // flex: 0.2,
       minWidth: 140,
       sortable: false,
+
       // align: 'center',
       field: 'active',
       headerName: 'Status',
@@ -299,7 +301,7 @@ const IncubatorsList = () => {
           size='small'
           label={params.row?.active === '1' ? 'Active' : 'InActive'}
           color={params.row?.active === '1' ? 'success' : 'error'}
-          sx={{
+          externalTableStyle={{
             height: 20,
             fontWeight: 600,
             borderRadius: '5px',
@@ -374,9 +376,10 @@ const IncubatorsList = () => {
 
   if (!nurseryPermission && !collectionPermission) return <ErrorScreen />
   if (loader) return <FallbackSpinner />
-  return (
+  
+return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+      <Breadcrumbs aria-label='breadcrumb' externalTableStyle={{ mb: 5 }}>
         <Typography color='inherit'>Egg</Typography>
         <Typography
           sx={{
@@ -433,7 +436,7 @@ const IncubatorsList = () => {
               value={defaultStatus}
               disablePortal
               id='status'
-              sx={{ width: 220 }}
+              externalTableStyle={{ width: 220 }}
               options={[
                 { label: 'All', key: 'all' },
                 { label: 'Active', key: 'only_active' },
@@ -476,8 +479,7 @@ const IncubatorsList = () => {
             />
           </FormControl>
         </Box>
-        <DataGrid
-          sx={{
+        <CommonTable           externalTableStyle={{
             '.MuiDataGrid-cell:focus': { outline: 'none' },
             '.MuiDataGrid-main': {
               border: '1px solid rgba(233, 233, 236, 1)',
@@ -491,19 +493,12 @@ const IncubatorsList = () => {
             '& .MuiDataGrid-row:hover': { cursor: 'pointer' }
           }}
           columnVisibilityModel={{ sl_no: false }}
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          autoHeight
-          pagination
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
+          indexedRows={indexedRows === undefined ? [] : indexedRows}
+          total={total}
           rowHeight={64}
           columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
           paginationModel={paginationModel}
-          onPaginationModelChange={setPaginationModel}
+          setPaginationModel={setPaginationModel}
           loading={loading}
           onCellClick={handleCellClick}
         />

@@ -13,6 +13,7 @@ import {
 
 const validationSchema = yup.object({
   airwaybillvalue: yup.string().required('Airway bill number is required'),
+
   // .test('valid-awb', 'Enter a valid 11-digit airway bill number', value => {
   //   const strippedValue = value.replace(/\s/g, '')
   //   return /^\d{11}$/.test(strippedValue)
@@ -27,13 +28,15 @@ const validationSchema = yup.object({
 
       if (value.type) {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/x-png', 'application/pdf']
-        return allowedTypes.includes(value.type)
+        
+return allowedTypes.includes(value.type)
       }
 
       if (value.file_original_name) {
         const ext = value.file_original_name.split('.').pop().toLowerCase()
         const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf']
-        return allowedExtensions.includes(ext)
+        
+return allowedExtensions.includes(ext)
       }
 
       return false
@@ -79,14 +82,16 @@ const ShipmentBasicDetails = React.forwardRef(
           { abortEarly: false }
         )
         setErrors({})
-        return true
+        
+return true
       } catch (validationErrors) {
         const formattedErrors = {}
         validationErrors.inner.forEach(error => {
           formattedErrors[error.path] = error.message
         })
         setErrors(formattedErrors)
-        return false
+        
+return false
       }
     }
 
@@ -158,6 +163,7 @@ const ShipmentBasicDetails = React.forwardRef(
       const isValid = await validateFields()
       if (isValid) {
         const isFileObject = uploadedFile instanceof File
+
         const transformedData = {
           //shipment_number: airwaybillvalue.replace(/\s+/g, '') || '',
           shipment_number: airwaybillvalue || '',
@@ -180,6 +186,7 @@ const ShipmentBasicDetails = React.forwardRef(
 
         try {
           setLoader(true)
+
           const response = id
             ? await updateShipmentBasicDetails(id, transformedData)
             : await addShipmentBasicDetails(transformedData)
@@ -191,17 +198,21 @@ const ShipmentBasicDetails = React.forwardRef(
             if (!isCalledViaRef) {
               setExpanded(['animals-details'])
             }
-            return true
+            
+return true
+
             //saveStatus === 'completed' ? router.push(`/compliance/documents/shipments`) : ''
           } else {
             setLoader(false)
             Toaster({ type: 'error', message: response?.message })
-            return false
+            
+return false
           }
         } catch (e) {
           setLoader(false)
           Toaster({ type: 'error', message: JSON.stringify(e) })
-          return false
+          
+return false
         }
       }
     }

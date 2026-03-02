@@ -2,7 +2,7 @@ import { alpha, Box, Tooltip, Typography, useTheme } from '@mui/material'
 import React from 'react'
 import Utility from 'src/utility'
 
-const AdmissionStatusCard = ({ type = 'admitted_on', value }) => {
+const AdmissionStatusCard = ({ type = 'admitted_on', value, isPatientDischarged }) => {
   const theme = useTheme()
 
   // Define value as styled JSX per config case
@@ -14,19 +14,24 @@ const AdmissionStatusCard = ({ type = 'admitted_on', value }) => {
           icon: '/images/hospital/HouseSimple-green.svg',
           iconBgColor: theme.palette.customColors.OnBackground,
           value: (
-            <Typography
-              sx={{
-                fontSize: '14px',
-                fontWeight: 500,
-                color: theme.palette.customColors.OnSurfaceVariant,
-                maxWidth: '200px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}
+            <Tooltip
+              title={`${Utility.convertUtcToLocalReadableDate(value)} • ${Utility.convertUTCToLocaltime(value)}`}
             >
-              {Utility.convertUTCToLocaltime(value)} <span>&bull;</span> {Utility.convertUtcToLocalReadableDate(value)}
-            </Typography>
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  maxWidth: '200px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {Utility.convertUtcToLocalReadableDate(value)} <span>&bull;</span>{' '}
+                {Utility.convertUTCToLocaltime(value)}
+              </Typography>
+            </Tooltip>
           )
         }
       case 'admitted_by':
@@ -35,19 +40,21 @@ const AdmissionStatusCard = ({ type = 'admitted_on', value }) => {
           icon: '/images/hospital/doctor-home.svg',
           iconBgColor: theme.palette.customColors.OnBackground,
           value: (
-            <Typography
-              sx={{
-                fontSize: '14px',
-                fontWeight: 500,
-                color: theme.palette.customColors.OnSurfaceVariant,
-                maxWidth: '200px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {value}
-            </Typography>
+            <Tooltip title={value}>
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  maxWidth: '300px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {value}
+              </Typography>
+            </Tooltip>
           )
         }
       case 'admitted_for':
@@ -56,19 +63,21 @@ const AdmissionStatusCard = ({ type = 'admitted_on', value }) => {
           icon: '/images/hospital/calender-yellow.svg',
           iconBgColor: alpha(theme.palette.customColors.Notes, 0.6),
           value: (
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 600,
-                color: theme.palette.customColors.OnSurfaceVariant,
-                maxWidth: '200px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {value}
-            </Typography>
+            <Tooltip title={value}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  maxWidth: '200px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {value}
+              </Typography>
+            </Tooltip>
           )
         }
       case 'holding_location':
@@ -77,19 +86,21 @@ const AdmissionStatusCard = ({ type = 'admitted_on', value }) => {
           icon: '/images/hospital/holding-enclosure-yellow.svg',
           iconBgColor: alpha(theme.palette.customColors.Notes, 0.6),
           value: (
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 600,
-                color: theme.palette.customColors.OnSurfaceVariant,
-                maxWidth: '200px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {value}
-            </Typography>
+            <Tooltip title={value}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  maxWidth: '300px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {value}
+              </Typography>
+            </Tooltip>
           )
         }
       case 'discharged_on':
@@ -98,19 +109,25 @@ const AdmissionStatusCard = ({ type = 'admitted_on', value }) => {
           icon: '/images/hospital/HouseSimple-red.svg',
           iconBgColor: alpha(theme.palette.customColors.TertiaryContainer, 0.4),
           value: (
-            <Typography
-              sx={{
-                fontSize: '14px',
-                fontWeight: 500,
-                color: theme.palette.customColors.OnSurfaceVariant,
-                maxWidth: '200px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}
+            <Tooltip
+              title={`${Utility.convertUtcToLocalReadableDate(value)} • ${Utility.convertUTCToLocaltime(value)}`}
             >
-              {Utility.convertUTCToLocaltime(value)} <span>&bull;</span> {Utility.convertUtcToLocalReadableDate(value)}
-            </Typography>
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: theme.palette.customColors.OnSurfaceVariant,
+
+                  maxWidth: '200px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {Utility.convertUtcToLocalReadableDate(value)} <span>&bull;</span>{' '}
+                {Utility.convertUTCToLocaltime(value)}
+              </Typography>
+            </Tooltip>
           )
         }
       case 'discharged_by':
@@ -119,19 +136,21 @@ const AdmissionStatusCard = ({ type = 'admitted_on', value }) => {
           icon: '/images/hospital/doctor-home-red.svg',
           iconBgColor: alpha(theme.palette.customColors.TertiaryContainer, 0.4),
           value: (
-            <Typography
-              sx={{
-                fontSize: '14px',
-                fontWeight: 500,
-                color: theme.palette.customColors.OnSurfaceVariant,
-                maxWidth: '200px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {value}
-            </Typography>
+            <Tooltip title={value}>
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  maxWidth: '300px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {value}
+              </Typography>
+            </Tooltip>
           )
         }
       default:
@@ -175,10 +194,10 @@ const AdmissionStatusCard = ({ type = 'admitted_on', value }) => {
         <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.neutralSecondary }}>
           {config.label}
         </Typography>
-        <Tooltip title={typeof value === 'string' ? value : ''}>
-          {/* Render the styled value directly */}
-          {config.value}
-        </Tooltip>
+        {/* <Tooltip title={typeof value === 'string' ? value : ''}> */}
+        {/* Render the styled value directly */}
+        {config.value}
+        {/* </Tooltip> */}
       </Box>
     </Box>
   )

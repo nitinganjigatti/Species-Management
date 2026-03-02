@@ -1,43 +1,34 @@
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CircularProgress,
-  Grid,
-  InputAdornment,
-  TextField,
-  Tooltip,
-  Typography
-} from '@mui/material'
+import { Grid, Tooltip, Typography } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { getPurchaseReport } from 'src/lib/api/pharmacy/reports'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import RenderUtility from 'src/utility/render'
-import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
+
 import Utility from 'src/utility'
 import { debounce } from 'lodash'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import Icon from 'src/@core/components/icon'
 
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import PurchaseFilterDrawer from 'src/views/pages/pharmacy/reports/PurchaseFilterDrawer'
 import { format, subMonths } from 'date-fns'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
-import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import ReportsPageSkeleton from 'src/views/utility/SkeletonLoading/ReportsPageSkeleton'
 
 const PurchaseReport = () => {
   const router = useRouter()
   const theme = useTheme()
   const { selectedPharmacy } = usePharmacyContext()
+  const authData = useContext(AuthContext)
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
@@ -57,6 +48,7 @@ const PurchaseReport = () => {
   const [selectAllSupplier, setSelectAllSupplier] = useState(false)
   const [users, setUsers] = useState([])
   const [selectAllUser, setSelectAllUser] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Supplier Name': [],
@@ -91,8 +83,8 @@ const PurchaseReport = () => {
 
     const getUserLists = async () => {
       try {
-        const userDetails = await readAsync('userDetails')
-        if (userDetails?.user?.zoos.length > 0) {
+        const userDetails = authData?.userData
+        if (userDetails?.user?.zoos?.length > 0) {
           let zoo_id = userDetails?.user?.zoos[0].zoo_id
           await getUserList({ zoo_id }).then(res => {
             if (res?.data?.length > 0) {
@@ -185,9 +177,13 @@ const PurchaseReport = () => {
           }
         })
         setLoading(false)
+        setPageLoading(false)
       } catch (e) {
         console.log(e)
         setLoading(false)
+        setPageLoading(false)
+      } finally {
+        setPageLoading(false)
       }
     },
     [paginationModel, filterDates]
@@ -249,8 +245,7 @@ const PurchaseReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.purchase_number}
@@ -290,8 +285,7 @@ const PurchaseReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.batch_no}
@@ -310,8 +304,7 @@ const PurchaseReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params.row.expiry_date)}
@@ -330,8 +323,7 @@ const PurchaseReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params.row.purchase_date)}
@@ -351,8 +343,7 @@ const PurchaseReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.qty ? Utility.formatNumber(params.row.qty) : 0}
@@ -373,8 +364,7 @@ const PurchaseReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatAmountToReadableDigit(params.row.net_unit_price)}
@@ -396,8 +386,7 @@ const PurchaseReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatAmountToReadableDigit(params.row.purchase_value)}
@@ -418,7 +407,6 @@ const PurchaseReport = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -444,7 +432,6 @@ const PurchaseReport = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -474,7 +461,6 @@ const PurchaseReport = () => {
                   color: theme.palette.customColors.customHeadingTextColor,
                   fontSize: '14px',
                   fontWeight: 400,
-                  fontFamily: 'Inter',
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
                   textOverflow: 'ellipsis',
@@ -493,7 +479,6 @@ const PurchaseReport = () => {
                   width: '100%',
                   fontSize: '14px',
                   color: theme.palette.text.secondary,
-                  fontFamily: 'Inter',
                   fontWeight: 400
                 }}
               >
@@ -522,7 +507,6 @@ const PurchaseReport = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -553,7 +537,6 @@ const PurchaseReport = () => {
                   color: theme.palette.customColors.customHeadingTextColor,
                   fontSize: '14px',
                   fontWeight: 400,
-                  fontFamily: 'Inter',
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
                   textOverflow: 'ellipsis',
@@ -572,7 +555,6 @@ const PurchaseReport = () => {
                   width: '100%',
                   fontSize: '14px',
                   color: theme.palette.text.secondary,
-                  fontFamily: 'Inter',
                   fontWeight: 400
                 }}
               >
@@ -763,22 +745,10 @@ const PurchaseReport = () => {
     <>
       {selectedPharmacy.type === 'central' ? (
         <>
-          <Card>
-            <CardHeader
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'flex-start',
-                alignItems: 'flex-start',
-                gap: { xs: 3, sm: 2 },
-                '& .MuiCardHeader-action': {
-                  width: { xs: '100% ', sm: 'auto' }
-                },
-                mx: { xs: -1, sm: 0 }
-              }}
-              title={RenderUtility.pageTitle('Purchase Report')}
-            />
-            <CardContent sx={{ paddingTop: '4px' }}>
+          {pageLoading ? (
+            <ReportsPageSkeleton />
+          ) : (
+            <PageCardLayout title={'Purchase Report'}>
               <Box
                 sx={{
                   display: 'flex',
@@ -807,29 +777,11 @@ const PurchaseReport = () => {
                       }}
                     >
                       <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
-                        <TextField
-                          variant='outlined'
-                          size='small'
+                        <MUISearch
                           placeholder='Search...'
                           value={searchValue}
                           onChange={e => handleSearch(e.target.value)}
-                          fullWidth
-                          sx={{
-                            borderRadius: '8px'
-                          }}
-                          slotProps={{
-                            input: {
-                              startAdornment: (
-                                <InputAdornment position='start'>
-                                  <Icon
-                                    icon='mi:search'
-                                    fontSize={24}
-                                    color={theme.palette.customColors.neutralSecondary}
-                                  />
-                                </InputAdornment>
-                              )
-                            }
-                          }}
+                          onClear={() => handleSearch('')}
                         />
                       </Grid>
 
@@ -842,7 +794,11 @@ const PurchaseReport = () => {
                           justifyContent: { sm: 'flex-end', xs: 'flex-end' }
                         }}
                       >
-                        <ExportButton loading={loading || exportLoading} onClick={handleExport} />
+                        <ExportButton
+                          loading={loading || exportLoading}
+                          onClick={handleExport}
+                          disabled={total === 0 ? true : false}
+                        />
                         <FilterButton
                           onClick={() => setOpenFilterDrawer(true)}
                           appliedFiltersCount={appliedFiltersCount}
@@ -878,8 +834,8 @@ const PurchaseReport = () => {
                   handleSortModel={handleSortModel}
                 />
               </Grid>
-            </CardContent>
-          </Card>
+            </PageCardLayout>
+          )}
           {openFilterDrawer && (
             <PurchaseFilterDrawer
               setOpenFilterDrawer={setOpenFilterDrawer}

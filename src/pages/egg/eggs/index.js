@@ -1108,7 +1108,11 @@ const EggList = () => {
               <span style={{ color: theme.palette.success.main }}>
                 {!isNaN(calculatePercentageChange(params.row.initial_weight, params.row.current_weight)) &&
                 calculatePercentageChange(params.row.initial_weight, params.row.current_weight) !== '0'
-                  ? `${calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%`
+                  ? `${parseFloat(
+                      parseFloat(
+                        calculatePercentageChange(params.row.initial_weight, params.row.current_weight)
+                      ).toFixed(3)
+                    )}%`
                   : ''}
               </span>
             </>
@@ -1139,7 +1143,12 @@ const EggList = () => {
                         : theme.palette.formContent.tertiary
                   }}
                 >
-                  {calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%
+                  {parseFloat(
+                    parseFloat(calculatePercentageChange(params.row.initial_weight, params.row.current_weight)).toFixed(
+                      3
+                    )
+                  )}
+                  %
                 </span>
               )}
           </Typography>
@@ -1161,7 +1170,7 @@ const EggList = () => {
             lineHeight: '19.36px'
           }}
         >
-          {params.row.initial_length ? params.row.initial_length : '-'}
+          {params.row.initial_length ? parseFloat(parseFloat(params.row.initial_length).toFixed(3)) : '-'}
         </Typography>
       )
     },

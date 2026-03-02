@@ -100,7 +100,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           .string()
           .required('Mobile Number is required')
           .test('is-valid-number', 'Only numbers are allowed', value => {
-            return /^\d*$/.test(value)
+            return /^\d*$/.test(value);
           })
           .test('is-valid-length', 'Mobile Number must be exactly 10 digits', value => {
             return value?.length === 10
@@ -130,7 +130,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           .string()
           .required('Mobile Number is required')
           .test('is-valid-number', 'Only numbers are allowed', value => {
-            return /^\d*$/.test(value)
+            return /^\d*$/.test(value);
           })
           .test('is-valid-length', 'Mobile Number must be exactly 10 digits', value => {
             return value?.length === 10

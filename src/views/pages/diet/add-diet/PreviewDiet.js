@@ -1158,6 +1158,7 @@ const StepPreviewDiet = ({
                         {formData.diet_type_name === 'By Gender' ? (
                           <>
                             <TableCell
+
                               //colSpan={12}
                               sx={{
                                 border: 'none',
@@ -1171,6 +1172,7 @@ const StepPreviewDiet = ({
                               <Typography>GENERIC</Typography>
                             </TableCell>
                             <TableCell
+
                               // colSpan={12}
                               sx={{
                                 border: 'none',
@@ -1262,6 +1264,7 @@ const StepPreviewDiet = ({
                               <Typography>Undetermined</Typography>
                             </TableCell>
                             <TableCell
+
                               // colSpan={12}
                               sx={{
                                 border: 'none',
@@ -1840,7 +1843,8 @@ const StepPreviewDiet = ({
 
                                                           return meal.quantity + (uomName ? ' ' + uomName : '')
                                                         }
-                                                        return null
+                                                        
+return null
                                                       })
                                                       .filter(Boolean)
 
@@ -1854,7 +1858,12 @@ const StepPreviewDiet = ({
                                                     meal.notes &&
                                                     meal.notes.trim() !== '' ? (
                                                       <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                        <img
+                                                          src='/icons/Notes.svg'
+                                                          alt='Grocery Icon'
+                                                          width='35px'
+                                                          draggable={false}
+                                                        />
                                                       </Typography>
                                                     ) : null
                                                   )
@@ -1968,6 +1977,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -1989,6 +1999,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2010,6 +2021,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2031,6 +2043,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2451,7 +2464,12 @@ const StepPreviewDiet = ({
                                                     meal.notes &&
                                                     meal.notes.trim() !== '' ? (
                                                       <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                        <img
+                                                          src='/icons/Notes.svg'
+                                                          alt='Grocery Icon'
+                                                          width='35px'
+                                                          draggable={false}
+                                                        />
                                                       </Typography>
                                                     ) : null
                                                   )
@@ -2565,6 +2583,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2586,6 +2605,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2607,6 +2627,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2628,6 +2649,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3008,7 +3030,12 @@ const StepPreviewDiet = ({
                                                     meal.notes &&
                                                     meal.notes.trim() !== '' ? (
                                                       <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                        <img
+                                                          src='/icons/Notes.svg'
+                                                          alt='Grocery Icon'
+                                                          width='35px'
+                                                          draggable={false}
+                                                        />
                                                       </Typography>
                                                     ) : null
                                                   )
@@ -3122,6 +3149,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3143,6 +3171,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3164,6 +3193,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3185,6 +3215,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3528,7 +3559,12 @@ const StepPreviewDiet = ({
                                                     meal.notes &&
                                                     meal.notes.trim() !== '' ? (
                                                       <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                        <img
+                                                          src='/icons/Notes.svg'
+                                                          alt='Grocery Icon'
+                                                          width='35px'
+                                                          draggable={false}
+                                                        />
                                                       </Typography>
                                                     ) : null
                                                   )
@@ -3643,6 +3679,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3664,6 +3701,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3685,6 +3723,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3706,6 +3745,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )

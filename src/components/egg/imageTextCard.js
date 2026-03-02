@@ -50,6 +50,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
           }}
         >
           {imgURl ? (
+
             // <img
             //   src={imgURl}
             //   alt='Default'
@@ -61,7 +62,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
             //     objectFit: imgURl.includes('class_images') && imgURl.endsWith('.svg') ? 'fill' : 'cover'
             //   }}
             // />
-            <FallbackAvatar
+            (<FallbackAvatar
               sx={{
                 width: '100%',
                 height: '100%',
@@ -72,7 +73,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
               variant='circular'
               src={imgURl}
               alt='Default'
-            />
+            />)
           ) : (
             <Icon icon='mdi:user' />
           )}
@@ -82,7 +83,6 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
           <img src={eggIcon} alt='' style={{ width: '100%', height: '100%' }} />
         </Box>
       </Box>
-
       <Box>
         {/* {eggCode && (
           <Typography
@@ -171,7 +171,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
             )} */}
       </Box>
     </Stack>
-  )
+  );
 }
 
 const TextCard = ({ egg_status }) => {

@@ -31,6 +31,7 @@ const CustomInput = ({
     if (type === 'email' || name === 'email' || name === 'username')
       return <Icon icon={'ic:outline-mail-outline'} fontSize={20} />
     if (type === 'password' || isOtp) return <Icon icon={'ic:outline-lock'} fontSize={20} />
+
     return <Icon icon={'ic:outline-mail-outline'} fontSize={20} />
   }
 
@@ -87,6 +88,7 @@ const CustomInput = ({
               <InputAdornment position='end'>
                 <IconButton
                   onClick={handleClickShowPassword}
+                  onMouseDown={event => event.preventDefault()}
                   edge='end'
                   sx={{
                     color: 'customColors.OnSurfaceVariant',
@@ -145,7 +147,7 @@ const CustomInput = ({
         </Typography>
       )}
     </Box>
-  );
+  )
 }
 
 export default CustomInput

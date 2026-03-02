@@ -7,11 +7,11 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers'
 import dayjs from 'dayjs'
 import Icon from 'src/@core/components/icon'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 import OptionsMenu from 'src/@core/components/option-menu'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { AuthContext } from 'src/context/AuthContext'
-import { DataGrid } from '@mui/x-data-grid'
 import { getSiteList, getTransferList } from 'src/lib/api/egg/dashboard'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
@@ -130,8 +130,7 @@ const TransferDetails = () => {
       width: 80,
       field: 'uid',
       headerName: 'SL.NO',
-      sortable: false,
-      disableColumnMenu: true,
+      sortable: false,: true,
       align: 'center',
       renderCell: params => (
         <Typography
@@ -149,10 +148,10 @@ const TransferDetails = () => {
     {
       width: 240,
       field: 'egg_number',
-      sortable: false,
-      disableColumnMenu: true,
+      sortable: false,: true,
       headerName: 'EGG NUMBER',
       renderCell: params => (
+
         // <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
         //   <Typography
         //     style={{
@@ -194,22 +193,22 @@ const TransferDetails = () => {
         //     {params.row.egg_status ? params.row.egg_status : '-'}
         //   </Typography>
         // </Box>
-        <SpeciesImageCard
+        (<SpeciesImageCard
           imgURl={params.row.default_icon}
           eggCondition={params.row.egg_condition}
           eggCode={params.row.egg_code}
           egg_status={params.row.egg_status}
+
           // defaultName={params.row.default_common_name}
           // completeName={params.row.complete_name}
           eggIcon={'/icons/Egg_icon.png'}
-        />
+        />)
       )
     },
     {
       width: 200,
       field: 'assigned_status',
       headerName: 'STATUS',
-      disableColumnMenu: true,
       sortable: false,
       renderCell: params => (
         <Tooltip title={params.row.assigned_status ? Utility?.toPascalSentenceCase(params.row.assigned_status) : '-'}>
@@ -251,8 +250,7 @@ const TransferDetails = () => {
     },
     {
       width: 250,
-      sortable: false,
-      disableColumnMenu: true,
+      sortable: false,: true,
       field: 'species',
       headerName: 'SPECIES',
       renderCell: params => (
@@ -320,8 +318,7 @@ const TransferDetails = () => {
     {
       width: 170,
       field: 'from_site_name',
-      sortable: false,
-      disableColumnMenu: true,
+      sortable: false,: true,
       headerName: 'TRANSFORMED FROM',
       renderCell: params => (
         <Tooltip title={params.row.from_site_name ? params.row.from_site_name : '-'}>
@@ -345,8 +342,7 @@ const TransferDetails = () => {
 
     {
       width: 140,
-      sortable: false,
-      disableColumnMenu: true,
+      sortable: false,: true,
       field: 'transfered_on',
       headerName: 'DATE',
       renderCell: params => (
@@ -367,8 +363,7 @@ const TransferDetails = () => {
 
     {
       width: 140,
-      sortable: false,
-      disableColumnMenu: true,
+      sortable: false,: true,
       field: 'to_site_name',
       headerName: 'RECEIVING AT',
       renderCell: params => (
@@ -393,8 +388,7 @@ const TransferDetails = () => {
 
     {
       width: 140,
-      sortable: false,
-      disableColumnMenu: true,
+      sortable: false,: true,
       field: 'created_at',
       headerName: 'DATE',
       renderCell: params => (
@@ -415,8 +409,7 @@ const TransferDetails = () => {
 
     {
       width: 160,
-      sortable: false,
-      disableColumnMenu: true,
+      sortable: false,: true,
       field: 'nursery_name',
       headerName: 'NURSERY',
       renderCell: params => (
@@ -592,7 +585,7 @@ const TransferDetails = () => {
           <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
-                sx={{
+                externalTableStyle={{
                   backgroundColor: '#fff',
                   borderRadius: '8px',
                   width: '100%',
@@ -634,7 +627,7 @@ const TransferDetails = () => {
             </Typography>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
-                sx={{
+                externalTableStyle={{
                   backgroundColor: '#fff',
                   borderRadius: '8px',
                   width: '100%',
@@ -670,7 +663,7 @@ const TransferDetails = () => {
               value={defaultFromSite}
               disablePortal
               id='fromSite'
-              sx={{
+              externalTableStyle={{
                 '& .css-jthw9v-MuiAutocomplete-root .MuiOutlinedInput-root': {
                   height: '40px',
                   borderRadius: '4px'
@@ -837,8 +830,7 @@ const TransferDetails = () => {
           </FormControl>
         </Grid> */}
       </Grid>
-      <DataGrid
-        sx={{
+      <CommonTable         externalTableStyle={{
           '.MuiDataGrid-cell:focus': {
             outline: 'none'
           },
@@ -868,21 +860,15 @@ const TransferDetails = () => {
         columnVisibilityModel={{
           sl_no: false
         }}
-        hideFooterSelectedRowCount
-        disableColumnSelector={true}
-        autoHeight
-        pagination
-        rows={indexedRows === undefined ? [] : indexedRows}
-        rowCount={total}
+        indexedRows={indexedRows === undefined ? [] : indexedRows}
+        total={total}
         rowHeight={72}
         columns={columns}
-        sortingMode='server'
-        paginationMode='server'
-        pageSizeOptions={[7, 10, 25, 50]}
         paginationModel={paginationModel}
-        onSortModelChange={handleSortModel}
+        handleSortModel={handleSortModel}
+
         // slots={{ toolbar: ServerSideToolbarWithFilter }}
-        onPaginationModelChange={setPaginationModel}
+        setPaginationModel={setPaginationModel}
         loading={loading}
 
         // slotProps={{

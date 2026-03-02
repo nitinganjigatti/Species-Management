@@ -7,11 +7,13 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const ObservationList = () => {
   const theme = useTheme()
+
   const mockAnimals = [
     {
       id: 1,
       sex: 'female',
       default_icon: '/images/cat-swimming.png',
+
       // local_identifier_name: 'BI23000123',
       common_name: 'Peach Fronted Conure',
       scientific_name: 'Psittacus vibrans',
@@ -146,4 +148,5 @@ const ObservationList = () => {
     </>
   )
 }
+
 export default ObservationList

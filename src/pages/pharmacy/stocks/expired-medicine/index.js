@@ -7,28 +7,17 @@ import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
-import Icon from 'src/@core/components/icon'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { ExportButton } from 'src/views/utility/render-snippets'
 
-import {
-  Card,
-  CardHeader,
-  Grid,
-  MenuItem,
-  Tooltip,
-  TextField,
-  FormControl,
-  Select,
-  InputLabel,
-  FormHelperText,
-  InputAdornment,
-  Box
-} from '@mui/material'
+import { Grid, Tooltip, Box } from '@mui/material'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
-
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import StockReportSkeleton from 'src/views/utility/SkeletonLoading/StockReportSkeleton'
 const ExpiredMedicine = () => {
   const theme = useTheme()
   const { selectedPharmacy } = usePharmacyContext()
@@ -41,9 +30,9 @@ const ExpiredMedicine = () => {
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
-  const [loading, setLoading] = useState(false)
 
   const [excelLoader, setExcelLoader] = useState(false)
+  const [tableLoader, setTableLoader] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -76,7 +65,7 @@ const ExpiredMedicine = () => {
     async (sort, q, column, selectedStoreId) => {
       let selectedStorePharmacy = selectedPharmacy.type === 'local' ? selectedPharmacy.id : selectedStoreId
       try {
-        setLoading(true)
+        setTableLoader(true)
 
         const params = {
           sort,
@@ -90,26 +79,22 @@ const ExpiredMedicine = () => {
         await getExpiredMedicine({ params }).then(res => {
           if (res?.list_items?.length > 0) {
             setTotal(parseInt(res?.total_count))
-            setRows(
-              loadServerRows(
-                paginationModel.page,
-                res?.list_items?.sort((a, b) => a?.stock_item_name?.localeCompare(b?.stock_item_name))
-              )
-            )
+            setRows(loadServerRows(paginationModel.page, res.list_items))
+            setTableLoader(true)
           } else {
             setTotal(0)
             setRows([])
           }
         })
-        setLoading(false)
+        setTableLoader(false)
       } catch (error) {
         console.log('error', error)
-        setLoading(false)
         setTotal(0)
         setRows([])
+        setTableLoader(false)
       }
     },
-    [paginationModel, selectedPharmacy.id, storeId]
+    [paginationModel, selectedPharmacy.id]
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, storeId)
@@ -182,28 +167,29 @@ const ExpiredMedicine = () => {
         </Box>
       )
     },
-    {
-      ...(storeId === 'all' && {
-        width: 200,
-        field: 'store_name',
-        headerName: 'Store Name',
-        renderCell: params => (
-          <Tooltip title={params.row.store_name} placement='top'>
-            <Typography
-              variant='body2'
-              sx={{
-                color: theme.palette.customColors.customHeadingTextColor,
-                fontSize: '14px',
-                fontWeight: 500,
-                fontFamily: 'Inter'
-              }}
-            >
-              {params.row.store_name}
-            </Typography>
-          </Tooltip>
-        )
-      })
-    },
+    ...(storeId === 'all'
+      ? [
+          {
+            width: 200,
+            field: 'store_name',
+            headerName: 'Store Name',
+            renderCell: params => (
+              <Tooltip title={params.row.store_name} placement='top'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: theme.palette.customColors.customHeadingTextColor,
+                    fontSize: '14px',
+                    fontWeight: 500
+                  }}
+                >
+                  {params.row.store_name}
+                </Typography>
+              </Tooltip>
+            )
+          }
+        ]
+      : []),
     {
       width: 250,
       minWidth: 100,
@@ -215,8 +201,7 @@ const ExpiredMedicine = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.batch_no}
@@ -247,8 +232,7 @@ const ExpiredMedicine = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params.row.expiry_date)}
@@ -259,6 +243,7 @@ const ExpiredMedicine = () => {
     {
       width: 250,
       minWidth: 100,
+      sortable: false,
       field: 'stock_qty',
       headerName: 'Qty',
       type: 'number',
@@ -270,8 +255,7 @@ const ExpiredMedicine = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.stock_qty}
@@ -283,28 +267,18 @@ const ExpiredMedicine = () => {
   const getDataToExport = async () => {
     try {
       setExcelLoader(true)
-      let selectedStorePharmacy = selectedPharmacy.type === 'local' ? selectedPharmacy.id : storeId
+      let selectedStorePharmacy = selectedPharmacy?.type === 'local' ? selectedPharmacy.id : storeId
 
       const params = {
         sort,
         q: searchValue,
         column: sortColumn,
-        ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy })
+        ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy }),
+        type: 'csv'
       }
-      const result = await getExpiredMedicine({ params })
-
-      if (result?.list_items.length > 0) {
-        const data = result?.list_items.map(el => {
-          return {
-            ['Medicine Name']: el?.stock_item_name,
-            ['Batch']: el?.batch_no,
-            ['Expire Date']: el?.expiry_date,
-            ['Quantity']: el?.stock_qty,
-            ['Store Name']: el?.store_name
-          }
-        })
-
-        Utility.exportToCSV(data, `expired_products_datetime ${Utility.convertUTCToLocal(new Date())}`)
+      const response = await getExpiredMedicine({ params })
+      if (response) {
+        Utility.downloadFileFromURL(response)
         setExcelLoader(false)
       } else {
         setExcelLoader(false)
@@ -316,139 +290,63 @@ const ExpiredMedicine = () => {
     }
   }
 
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
-  }
-  if (loading) {
-    return <FallbackSpinner />
-  }
-
- 
-
   return (
     <>
       {loader ? (
-        <FallbackSpinner />
+        <StockReportSkeleton ExpiredProducts selectedPharmacy={selectedPharmacy} />
       ) : (
         <>
-          <Card>
-            <CardHeader
-              sx={{
-                display: 'flex',
-                justifyContent: { xs: 'flex-start', sm: 'space-between' },
-                alignItems: { xs: 'flex-start', sm: 'flex-start' },
-                flexDirection: { xs: 'column', sm: 'row' },
-                '& .MuiCardHeader-title': {
-                  fontSize: { xs: '18px', sm: '20px', md: '24px' },
-                  flexGrow: 1
-                },
-                '& .MuiCardHeader-action': {
-                  mt: 3,
-                  width: { xs: '100% ', sm: 'auto' }
-                },
-                mx: { xs: -2, sm: 1 }
-              }}
-              title={RenderUtility.pageTitle('Expired Products')}
-
-              
-            />
-
-            <Grid
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', md: 'row' },
-                justifyContent: 'space-between',
-
-                mx: { xs: 2, sm: 6, md: 6, lg: 6 }
-              }}
-            >
-              <Grid item size={{ xs: 12, md: 8, lg: 8 }}>
-                <TextField
-                  variant='outlined'
-                  size='small'
-                  placeholder='Search...'
-                  value={searchValue}
+          <PageCardLayout title={'Expired Products'}>
+            <Grid container spacing={3} alignItems={'center'} justifyContent={'space-between'}>
+              <Grid item size={{ xs: 12, md: 3.5 }}>
+                <MUISearch
                   onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{
-                    borderRadius: '8px'
-                  }}
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                        </InputAdornment>
-                      )
-                    }
-                  }}
+                  onClear={() => handleSearch('')}
+                  value={searchValue}
                 />
               </Grid>
 
-              <Grid sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
-                {selectedPharmacy.type === 'central' && (
-                  <Grid item size={{ xs: 12, md: 4, lg: 4 }}>
-                    <FormControl
-                      sx={{
-                        width: { xs: '100%', md: 200, lg: 200 },
-                        mx: { xs: 0, md: 2, lg: 2 },
-                        my: { xs: 2, md: 0, lg: 0 }
-                      }}
-                    >
-                      <InputLabel id='controlled-select-label'>Stores</InputLabel>
-                      <Select
-                        onChange={e => {
-                          let id = e.target.value
-
-                          // const store = id === 'all' ? '' : id
-
-                          // const type = stores.find(el => el.id === id)?.type || ''
-
-                          // setStockType(type)
-                          setStoreId(id)
-
-                          // let storeId = id === 'all' ? 'all' : id
-                        }}
-                        label='Stores'
-                        value={storeId}
-                        id='controlled-select'
-                        labelId='controlled-select-label'
-                        sx={{ width: '100%' }}
-                        size='small'
-                      >
-                        <MenuItem value='all'>All</MenuItem>
-                        {stores.length > 0
-                          ? stores.map(el => {
-                              return (
-                                <MenuItem key={el.id} value={el.id}>
-                                  {el.name}
-                                </MenuItem>
-                              )
-                            })
-                          : null}
-                      </Select>
-                      <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
-                    </FormControl>
-                  </Grid>
-                )}
-
+              <Grid item size={{ xs: 12, sm: 12, md: 8 }}>
                 <Grid
-                  item
-                  size={{ xs: 12, md: 4, lg: 4 }}
+                  container
                   sx={{
-                    my: selectedPharmacy.type === 'central' ? 0 : 2
+                    display: 'flex',
+                    justifyContent: {
+                      xs: selectedPharmacy.type === 'central' ? 'space-between' : 'flex-end',
+                      md: 'flex-end'
+                    },
+                    alignItems: 'center',
+                    gap: '12px'
                   }}
                 >
-                  <ExportButton loading={excelLoader} onClick={getDataToExport} disabled={total === 0 ? true : false} />
+                  {selectedPharmacy.type === 'central' && (
+                    <Grid item size={{ xs: 'grow', md: 5 }}>
+                      <MUIAutocomplete
+                        value={storeId}
+                        label='Stores'
+                        valueType='id'
+                        onChange={e => {
+                          let id = e
+
+                          setStoreId(id)
+                        }}
+                        options={stores}
+                      />
+                    </Grid>
+                  )}
+
+                  <Grid item>
+                    <ExportButton
+                      loading={excelLoader}
+                      onClick={getDataToExport}
+                      disabled={total === 0 ? true : false}
+                    />
+                  </Grid>
                 </Grid>
               </Grid>
             </Grid>
 
-            <Grid
-              sx={{
-                mx: { xs: 2, sm: 5 }
-              }}
-            >
+            <Grid>
               <CommonTable
                 onRowClick={''}
                 indexedRows={indexedRows}
@@ -457,55 +355,11 @@ const ExpiredMedicine = () => {
                 paginationModel={paginationModel}
                 handleSortModel={handleSortModel}
                 setPaginationModel={setPaginationModel}
-                loading={loading}
+                loading={tableLoader}
                 searchValue={searchValue}
               />
             </Grid>
-
-            {/* <DataGrid
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
-              // columnVisibilityModel={{
-              //   id: false
-              // }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              total
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              disableColumnMenu
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-
-              // onRowClick={onRowClick}
-            /> */}
-          </Card>
+          </PageCardLayout>
         </>
       )}
     </>

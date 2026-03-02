@@ -1,42 +1,32 @@
 import { useTheme } from '@emotion/react'
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CircularProgress,
-  Grid,
-  InputAdornment,
-  TextField,
-  Tooltip,
-  Typography
-} from '@mui/material'
+import { Grid, Tooltip, Typography } from '@mui/material'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import { Box } from '@mui/system'
 import { format, subMonths } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AuthContext } from 'src/context/AuthContext'
 import { getDispenseReport } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
-import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import Icon from 'src/@core/components/icon'
 import DispenseReportFilterDrawer from 'src/views/pages/pharmacy/reports/DispenseReportFilterDrawer'
-import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
-import { readAsync } from 'src/lib/windows/utils'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import ReportsPageSkeleton from 'src/views/utility/SkeletonLoading/ReportsPageSkeleton'
 
 const DispenseReport = () => {
   const router = useRouter()
   const theme = useTheme()
 
   const { selectedPharmacy } = usePharmacyContext()
+  const authData = useContext(AuthContext)
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
@@ -55,6 +45,7 @@ const DispenseReport = () => {
   const [users, setUsers] = useState([])
   const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
   const [selectAllUser, setSelectAllUser] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -89,7 +80,7 @@ const DispenseReport = () => {
   useEffect(() => {
     const getUserLists = async () => {
       try {
-        const userDetails = await readAsync('userDetails')
+        const userDetails = authData?.userData
         if (userDetails?.user?.zoos.length > 0) {
           let zoo_id = userDetails?.user?.zoos[0].zoo_id
           await getUserList({ zoo_id }).then(res => {
@@ -158,9 +149,13 @@ const DispenseReport = () => {
           }
         })
         setLoading(false)
+        setPageLoading(false)
       } catch (e) {
         console.log(e)
         setLoading(false)
+        setPageLoading(false)
+      } finally {
+        setPageLoading(false)
       }
     },
     [paginationModel, filterDates, filteredData]
@@ -225,8 +220,7 @@ const DispenseReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.dispense_number}
@@ -266,8 +260,7 @@ const DispenseReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.batch_no}
@@ -286,8 +279,7 @@ const DispenseReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params.row.expiry_date)}
@@ -307,8 +299,7 @@ const DispenseReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.dispense_qty ? Utility.formatNumber(params.row.dispense_qty) : 0}
@@ -329,8 +320,7 @@ const DispenseReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatAmountToReadableDigit(params.row.net_unit_price)}
@@ -351,8 +341,7 @@ const DispenseReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatAmountToReadableDigit(params.row.dispense_value)}
@@ -373,7 +362,6 @@ const DispenseReport = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -399,7 +387,6 @@ const DispenseReport = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -434,7 +421,6 @@ const DispenseReport = () => {
                   color: 'text.primary',
                   fontSize: '14px',
                   fontWeight: 400,
-                  fontFamily: 'Inter',
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
                   textOverflow: 'ellipsis',
@@ -624,22 +610,10 @@ const DispenseReport = () => {
 
   return (
     <>
-      <Card>
-        <CardHeader
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'flex-start',
-            alignItems: 'flex-start',
-            gap: { xs: 3, sm: 2 },
-            '& .MuiCardHeader-action': {
-              width: { xs: '100% ', sm: 'auto' }
-            },
-            mx: { xs: -1, sm: 0 }
-          }}
-          title={RenderUtility.pageTitle('Dispense Report')}
-        />
-        <CardContent>
+      {pageLoading ? (
+        <ReportsPageSkeleton />
+      ) : (
+        <PageCardLayout title={'Dispense Report'}>
           <Box
             sx={{
               display: 'flex',
@@ -664,29 +638,10 @@ const DispenseReport = () => {
                   }}
                 >
                   <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
-                    <TextField
-                      variant='outlined'
-                      size='small'
-                      placeholder='Search...'
-                      value={searchValue}
+                    <MUISearch
                       onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        borderRadius: '8px'
-                      }}
-                      slotProps={{
-                        input: {
-                          startAdornment: (
-                            <InputAdornment position='start'>
-                              <Icon
-                                icon='mi:search'
-                                fontSize={24}
-                                color={theme.palette.customColors.neutralSecondary}
-                              />
-                            </InputAdornment>
-                          )
-                        }
-                      }}
+                      onClear={() => handleSearch('')}
+                      value={searchValue}
                     />
                   </Grid>
 
@@ -699,7 +654,11 @@ const DispenseReport = () => {
                       justifyContent: { sm: 'flex-end', xs: 'flex-end' }
                     }}
                   >
-                    <ExportButton loading={loading || exportLoading} onClick={handleExport} />
+                    <ExportButton
+                      loading={loading || exportLoading}
+                      onClick={handleExport}
+                      disabled={total === 0 ? true : false}
+                    />
                     <FilterButton onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={appliedFiltersCount} />
                   </Grid>
                 </Grid>
@@ -732,8 +691,8 @@ const DispenseReport = () => {
               handleSortModel={handleSortModel}
             />
           </Grid>
-        </CardContent>
-      </Card>
+        </PageCardLayout>
+      )}
       {openFilterDrawer && (
         <DispenseReportFilterDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}

@@ -168,7 +168,8 @@ const UserThemeOptions = () => {
         grey800: 'grey.800',
         OnSurface: '#006D35',
         rusticRed: '#4A0415', // Custom color name as not found color name in figma
-        amber: '#FFC107' // Custom color name as not found color name in figma
+        amber: '#FFC107', // Custom color name as not found color name in figma
+        paginationLabel: '#4C4E64DE'
       },
       primary: {
         // light: '#20DE67',

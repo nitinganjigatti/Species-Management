@@ -7,6 +7,7 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
+import { useTheme } from '@mui/material/styles'
 
 // ** ThirdParty Components
 import axios from 'axios'
@@ -127,6 +128,8 @@ const statusObj = {
 // ]
 
 const TableServerSide = ({ columns, getCall }) => {
+  const theme = useTheme()
+
   // ** States
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
@@ -134,6 +137,7 @@ const TableServerSide = ({ columns, getCall }) => {
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('full_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [rowSelectionModel, setRowSelectionModel] = useState([])
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -194,6 +198,45 @@ const TableServerSide = ({ columns, getCall }) => {
             outline: 'none'
           },
 
+          // Header styling - MUI X v8
+          '& .MuiDataGrid-columnHeaders': {
+            minHeight: '56px !important',
+            maxHeight: '56px !important'
+          },
+          '& .MuiDataGrid-columnHeaderTitle': {
+            fontWeight: 500
+          },
+
+          // Cell alignment - vertically center content
+          '& .MuiDataGrid-cell': {
+            display: 'flex',
+            alignItems: 'center',
+            lineHeight: 'normal'
+          },
+          '& .MuiDataGrid-columnHeader--alignCenter .MuiDataGrid-columnHeaderDraggableContainer': {
+            justifyContent: 'center'
+          },
+          '& .MuiDataGrid-columnHeader--alignRight .MuiDataGrid-columnHeaderDraggableContainer': {
+            justifyContent: 'flex-end'
+          },
+
+          // Column menu icon button styling
+          '& .MuiDataGrid-menuIcon': {
+            visibility: 'visible',
+            width: 'auto'
+          },
+          '& .MuiDataGrid-iconButtonContainer': {
+            visibility: 'visible',
+            width: 'auto'
+          },
+          '& .MuiDataGrid-menuIconButton': {
+            backgroundColor: 'transparent',
+            color: 'inherit',
+            '&:hover': {
+              backgroundColor: theme.palette.action.hover
+            }
+          },
+
           '& .MuiDataGrid-row:hover': {
             cursor: 'pointer'
           }
@@ -206,6 +249,8 @@ const TableServerSide = ({ columns, getCall }) => {
         rowCount={total}
         columns={columns}
         checkboxSelection
+        rowSelectionModel={rowSelectionModel}
+        onRowSelectionModelChange={setRowSelectionModel}
         sortingMode='server'
         paginationMode='server'
         pageSizeOptions={[7, 10, 25, 50]}
@@ -223,9 +268,9 @@ const TableServerSide = ({ columns, getCall }) => {
             onChange: event => handleSearch(event.target.value)
           }
         }}
-      />
+        showToolbar />
     </Card>
-  )
+  );
 }
 
 export default TableServerSide

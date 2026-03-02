@@ -4,6 +4,9 @@ import { useTheme } from '@emotion/react'
 
 const UserCard = ({ name, uid, image, radio, role }) => {
   const theme = useTheme()
+  const handleSelect = () => {
+    radio?.onChange?.()
+  }
 
   return (
     <Card
@@ -18,8 +21,19 @@ const UserCard = ({ name, uid, image, radio, role }) => {
         minHeight: 80, // to increase overall height
         px: 4,
         py: 7,
-        pb: 7
+        pb: 7,
+        cursor: 'pointer'
       }}
+      onClick={handleSelect}
+      onKeyDown={event => {
+        if (event.target !== event.currentTarget) return
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          handleSelect()
+        }
+      }}
+      tabIndex={0}
+      role='button'
     >
       <Box display='flex' alignItems='center' gap={4}>
         <Avatar
@@ -46,7 +60,13 @@ const UserCard = ({ name, uid, image, radio, role }) => {
       </Box>
       <Radio
         checked={radio?.checked}
-        onChange={radio?.onChange}
+        onChange={event => {
+          event.stopPropagation()
+          radio?.onChange?.()
+        }}
+        onClick={event => {
+          event.stopPropagation()
+        }}
         sx={{
           p: 0,
           color: '#64748B',

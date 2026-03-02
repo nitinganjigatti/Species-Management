@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
-
 import { getRequestItemsList } from 'src/lib/api/pharmacy/getRequestItemsList'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 
 import Tab from '@mui/material/Tab'
@@ -13,41 +11,33 @@ import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 
 // ** MUI Imports
-import Card from '@mui/material/Card'
-import Typography from '@mui/material/Typography'
-import Chip from '@mui/material/Chip'
-import Grid from '@mui/material/Grid'
+import { Box, Grid, Typography, Chip,} from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, TextField, Tooltip } from '@mui/material'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { AddButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
-import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem, InputAdornment } from '@mui/material'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
-import CommonTable from 'src/views/table/data-grid/CommonTable'
+
 import { AddButtonContained } from 'src/components/ButtonContained'
-import { margin, textAlign } from '@mui/system'
 import RenderUtility from 'src/utility/render'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
+import MUISelect from 'src/views/forms/form-fields/MUISelect'
+import { dateRangeOptions } from 'src/constants/PharmacyConstants'
+import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const RequestList = () => {
   const theme = useTheme()
   const [loader, setLoader] = useState(false)
 
   const { selectedPharmacy } = usePharmacyContext()
-
-  const handleEdit = id => {
-    Router.push({
-      pathname: '/pharmacy/request/add-request/',
-      query: { id: id, action: 'edit' }
-    })
-  }
   const router = useRouter()
 
   const updateUrlParams = params => {
@@ -98,7 +88,7 @@ const RequestList = () => {
       const response = await getStoreList({ params: { type: 'local', sort: 'asc' } })
       if (response?.data?.list_items?.length > 0) {
         response?.data?.list_items?.sort((a, b) => a.id - b.id)
-        setStores(response?.data?.list_items)
+        setStores([{ id: 'all', name: 'All' }, ...response?.data?.list_items])
 
         setLoader(false)
       } else {
@@ -112,44 +102,22 @@ const RequestList = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column, status, startDate, endDate, filterByStoreId, page, limit) => {
-      var params = {}
-
       try {
         setLoading(true)
 
-        // if (
-        //   ((startDate !== '' || startDate !== undefined) && (endDate !== '' || endDate !== undefined)) ||
-        //   ((filterDates?.startDate !== '' || filterDates?.startDate !== undefined) &&
-        //     (filterDates?.endDate !== '' || filterDates?.endDate !== undefined))
-        // )
-
-        if (
-          startDate ||
-          endDate // Checks if startDate and endDate are truthy (not empty or undefined)
-        ) {
-          params = {
-            type: 'request',
-            sort,
-            q,
-            column,
-            page: page ? page : paginationModel.page + 1,
-            limit: limit ? limit : paginationModel.pageSize,
-            status: filterSwitch === true ? 'completed' : status,
+        let params = {
+          type: 'request',
+          sort,
+          q,
+          column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          status: filterSwitch === true ? 'completed' : status,
+          ...((startDate || endDate) && {
             pending_days_start: startDate ? startDate : filterDates?.startDate,
-            pending_days_end: endDate ? endDate : filterDates?.endDate,
-            search_store: filterByStoreId === 'all' ? '' : filterByStoreId
-          }
-        } else {
-          params = {
-            type: 'request',
-            sort,
-            q,
-            column,
-            page: paginationModel.page + 1,
-            limit: paginationModel.pageSize,
-            status: filterSwitch === true ? 'completed' : status,
-            search_store: filterByStoreId === 'all' ? '' : filterByStoreId
-          }
+            pending_days_end: endDate ? endDate : filterDates?.endDate
+          }),
+          ...(filterByStoreId !== 'all' && { search_store: filterByStoreId })
         }
 
         await getRequestItemsList({ params: params }).then(res => {
@@ -307,11 +275,9 @@ const RequestList = () => {
                   pathname: '/pharmacy/request/add-request/'
                 })
               }
-
-              // sx={{
-              //   mt: { xs: 2, sm: 0 }, // Add top margin on small screens
-              //   alignSelf: { xs: 'flex-start', sm: 'center' } // Align to the left on small screens
-              // }}
+              styles = {{
+                margin: 0
+              }}
             />
           </>
         )}
@@ -446,8 +412,7 @@ const RequestList = () => {
             sx={{
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
+              fontWeight: 500
             }}
           >
             {params.row.request_number}
@@ -465,8 +430,7 @@ const RequestList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {selectedPharmacy?.type === 'central' ? params.row.to_store : params.row.from_store}
@@ -483,8 +447,7 @@ const RequestList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.daysFromToday(params.row.created_at)}
@@ -504,7 +467,7 @@ const RequestList = () => {
     //         color: theme.palette.customColors.customHeadingTextColor,
     //         fontSize: '14px',
     //         fontWeight: 500,
-    //         fontFamily: 'Inter'
+    //
     //       }}
     //     >
     //       {Utility.formatDisplayDate(params.row.request_date)}
@@ -522,8 +485,7 @@ const RequestList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params?.row?.last_shipping_date)}
@@ -544,8 +506,7 @@ const RequestList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row?.product_count}
@@ -566,8 +527,7 @@ const RequestList = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row?.pending_count}
@@ -703,164 +663,123 @@ const RequestList = () => {
         {loader ? (
           <FallbackSpinner />
         ) : (
-          <Card>
-            <CardHeader
+            <PageCardLayout
+              title = 'Request List'
+              action = {headerAction}>
+            <Grid
+              container
+              spacing={4}
               sx={{
                 display: 'flex',
-                justifyContent: 'space-between',
                 alignItems: 'center'
-
-                // px: { xs: 2, md: 5 }, // Responsive padding
-                // py: 2
-              }}
-              title={RenderUtility.pageTitle('Request List')}
-              action={headerAction}
-            />
-
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', md: 'row' },
-                justifyContent: { xs: 'center', md: 'space-between' },
-                alignItems: 'center',
-
-                // padding: '2px',
-                margin:
-                  selectedPharmacy?.type === 'local' ? '1rem 1.375rem 0px 1.375rem' : '0rem 1.375rem 0px 1.375rem',
-                gap: { xs: 2, md: 3 }
+ 
               }}
             >
-              <TextField
-                variant='outlined'
-                size='small'
-                placeholder='Search...'
-                value={searchValue}
-                onChange={e => handleSearch(e.target.value)}
-                fullWidth
-                sx={{
-                  borderRadius: '8px',
-                  width: { xs: '100%', md: '290px' }
-                }}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }
-                }}
-              />
-              {/* </Box> */}
-
+              <Grid size={{ xs: 12, sm: 12, md: 2.9, xl: 2.5}}>
+                <MUISearch
+                  width={'100%'}
+                  placeholder='Search...'
+                  value={searchValue}
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
+                  onClear={() => handleSearch('')}
+                />
+              </Grid>
               {/* Filters */}
-              <Grid
-                container
-                spacing={2}
-                sx={{
-                  display: 'flex',
-                  flexWrap: { xs: 'wrap', md: 'nowrap' },
-                  justifyContent: { xs: 'center', md: 'flex-end' },
-                  alignItems: 'center'
-
-                  // width: '100%'
-                }}
-              >
-                {/* Filter by Stores */}
-                {selectedPharmacy.type === 'central' && (
-                  <Grid
-                    item
-                    size={{ xs: 12 }}
-                    sx={{
-                      maxWidth: { xs: '100%', md: '250px' },
-                      width: '100%',
-                      height: '48px',
-                      mt: { xs: 2, md: 0 }
-                    }}
-                  >
-                    <FormControl fullWidth size='small'>
-                      <InputLabel>Filter by Stores</InputLabel>
-                      <Select
-                        value={filterByStoreId}
-                        label='Filter by Stores'
-                        onChange={e => {
-                          setTotal(0)
-                          setPaginationModel({ page: 0, pageSize: 50 })
-                          setFilterByStoreId(e.target.value)
-                          setSearchValue('')
-                        }}
-                      >
-                        <MenuItem value='all'>All</MenuItem>
-                        {stores.map(store => (
-                          <MenuItem key={store?.id} value={store?.id}>
-                            {store?.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                )}
-
-                {/* Filter by Days */}
+              {selectedPharmacy?.type === 'central' && (
                 <Grid
-                  item
-                  size={{ xs: 12, md: 'auto' }}
+                  size={{
+                    xs: 12,
+                    sm: 12,
+                    md: 3.5,
+                    lg: 2.9,
+                    xl: 2.5
+                  }}
                   sx={{
-                    maxWidth: { xs: '100%', md: '250px' },
-                    mt: { xs: 2, md: 0 },
-                    height: '48px',
-                    width: '100%'
+                    marginLeft: 'auto',
                   }}
                 >
-                  <FormControl fullWidth size='small'>
-                    <InputLabel>Filter by days</InputLabel>
-                    <Select
-                      value={selectDays}
-                      label='Filter by days'
-                      onChange={e => {
-                        filterByDays(e.target.value)
-                        setSelectDays(e.target.value)
-                      }}
-                    >
-                      <MenuItem value='all'>All</MenuItem>
-                      <MenuItem value='3'>3 Days</MenuItem>
-                      <MenuItem value='7'>3 to 7 Days</MenuItem>
-                      <MenuItem value='15'>7 to 15 Days</MenuItem>
-                      <MenuItem value='16'>15 Days</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
+                  <MUIAutocomplete
+                    value={filterByStoreId}
+                    label='Filter by Stores'
+                    valueType='id'
+                    onChange={newValue => {
+                      setTotal(0)
+                      setPaginationModel({ page: 0, pageSize: 50 })
 
-                {/* Completed Switch */}
-                {(status === 'all' || status === 'completed') && (
-                  <Grid
-                    item
-                    size={{ xs: 12, md: 'auto' }}
-                    sx={{
-                      height: '48px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: { xs: 'flex-start', md: 'flex-end' },
-                      width: { xs: '100%', md: 'auto' },
-                      ml: { xs: 2, sm: 3 }
+                      if (newValue === null) {
+                        setFilterByStoreId('all')
+                      } else {
+                        setFilterByStoreId(newValue)
+                      }
+                      setSearchValue('')
                     }}
-                  >
-                    <FormControlLabel
-                      control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                      label='Completed'
-                      labelPlacement='end'
-                      sx={{ mr: '0px' }}
-                    />
-                  </Grid>
-                )}
-              </Grid>
-            </Box>
+                    options={stores}
+                  />
+                </Grid>
+              )}
 
-            <Grid
-              sx={{
-                margin: '0px 1.375rem 0px 1.375rem'
-              }}
-            >
+              {/* Filter by Days */}
+              <Grid
+                size={{
+                  xs: 12,
+                  sm: 12,
+                  md: 'auto'
+                }}
+                sx={{
+                  ...(selectedPharmacy.type === 'local' && {
+                    marginLeft: 'auto'
+                  })
+                }}
+              >
+               <MUISelect
+                  value={selectDays}
+                  label='Filter by days'
+                  options={[
+                    { id: 'all', name: 'All' },
+                    { id: '3', name: '3 Days' },
+                    { id: '7', name: '3 to 7 Days' },
+                    { id: '15', name: '7 to 15 Days' },
+                    { id: '16', name: '15 Days' }
+                  ]}
+                  onChange={e=> {
+                    const value = e.target.value
+                    if (value=== null) {
+                      setSelectDays('all')
+                      filterByDays('all')
+                    } else {
+                      filterByDays(value)
+                      setSelectDays(value)
+                   }
+                 }
+              }/>
+                            
+              </Grid>
+
+              {/* Completed Switch */}
+              {(status === 'all' || status === 'completed') && (
+                <Grid item >
+                  <MUISwitch
+                    label='Completed'
+                    labelStyle={{
+                      color: theme.palette.customColors.customHeadingTextColor,
+                      fontSize: '14px',
+                      fontWeight: 400
+                    }}
+                    formControlStyle = {{
+                      margin: 0
+                    }}
+                    labelPlacement='end'
+                    defaultChecked={filterSwitch}
+                    onChange={e => {
+                      handleSwitchChange(e)
+                    }}
+                  />
+                </Grid>
+              )}
+            </Grid>
+            
+            <Grid>
               <CommonTable
                 onRowClick={onRowClick}
                 indexedRows={indexedRows}
@@ -873,7 +792,8 @@ const RequestList = () => {
                 searchValue={searchValue}
               />
             </Grid>
-          </Card>
+            </PageCardLayout>
+            
         )}
       </>
     )
@@ -881,11 +801,10 @@ const RequestList = () => {
 
   return (
     <>
-      <Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange} variant='scrollable' allowScrollButtonsMobile>
             <Tab
-              sx={{ ml: 3 }}
+              // sx={{ ml: 3 }}
               value='pending'
               label={<TabBadge label='Pending ' totalCount={status === 'pending' ? total : null} />}
             />
@@ -913,6 +832,7 @@ const RequestList = () => {
               label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
             />
           </TabList>
+           <Box sx={{ '& .MuiTabPanel-root': {p: 0, mt: 3}}}>
           <TabPanel value='pending'>{tableData()}</TabPanel>
           {/* <TabPanel value='completed'>{tableData()}</TabPanel> */}
           <TabPanel value='shipped'>{tableData()}</TabPanel>
@@ -924,8 +844,8 @@ const RequestList = () => {
           ) : (
             <TabPanel value='completed'>{tableData()}</TabPanel>
           )}
+          </Box>
         </TabContext>
-      </Grid>
     </>
   )
 }

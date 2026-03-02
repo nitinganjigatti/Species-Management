@@ -75,6 +75,7 @@ const AddIncubators = ({
   const fetchNurseryList = async (q = '', nurseryId) => {
     try {
       setNurseryLoader(true)
+
       const params = {
         page: 1,
         limit: 50,
@@ -96,6 +97,7 @@ const AddIncubators = ({
   const fetchRoomList = async (nurseryId, q = '') => {
     try {
       setRoomLoader(true)
+
       const params = {
         page: 1,
         limit: 50,

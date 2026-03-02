@@ -15,26 +15,9 @@ const MedicineScheduleView = ({ open, onClose, medicineData, onStopMedicine = ()
   const [administerModalOpen, setAdministerModalOpen] = useState(false)
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null)
 
-  const [timeSlots, setTimeSlots] = useState([
-    { id: 1, time: '07:00 AM', dosagePerKg: '10 mg/kg', totalDosage: '310 mg', isCompleted: false },
-    { id: 2, time: '11:00 AM', dosagePerKg: '10 mg/kg', totalDosage: '310 mg', isCompleted: false },
-    { id: 3, time: '04:00 PM', dosagePerKg: '10 mg/kg', totalDosage: '310 mg', isCompleted: false }
-  ])
+  const [timeSlots, setTimeSlots] = useState([])
 
-  const defaultMedicineData = {
-    name: 'Dolo 650 tablet',
-    medId: 'MED - 12345/25',
-    startDate: '1 Jan 2025',
-    endDate: '04 Jan 2025',
-    dosageCount: '3 Times',
-    frequency: 'Everyday',
-    duration: '3 days',
-    deliveryRoute: 'Oral',
-    notes: 'Lorem ipsum dolor sit amet consectetur adipiscin ipsum dolor...',
-    lastEdited: 'Last edited on 10:34 AM • 02 Jan 2025'
-  }
-
-  const medicine = medicineData || defaultMedicineData
+  const medicine = medicineData
 
   const handleClose = () => {
     onClose()

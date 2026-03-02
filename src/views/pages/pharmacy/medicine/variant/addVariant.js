@@ -5,22 +5,19 @@ import { useEffect, useCallback, Fragment } from 'react'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
-import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
-import FormControl from '@mui/material/FormControl'
-import FormHelperText from '@mui/material/FormHelperText'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import { RadioGroup, FormLabel, Radio } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 
 import Icon from 'src/@core/components/icon'
 import { getVariantById } from 'src/lib/api/pharmacy/variant'
-
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import ControlledRadioGroup from 'src/views/forms/form-fields/ControlledRadioGroup'
 
 const schema = yup.object().shape({
   // description: yup.string().required('Description is required'),
@@ -131,97 +128,42 @@ const AddVariant = props => {
       </Box>
       <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='unit_multiplier'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Unit Multiplier*'
-                  type='number'
-                  value={value}
-                  onChange={e => {
-                    const newValue = e.target.value
+          <ControlledTextField
+            name='unit_multiplier'
+            control={control}
+            required
+            type='number'
+            label='Unit Multiplier*'
+            placeholder='Unit Multiplier'
+            error={Boolean(errors.unit_multiplier)}
+            fullWidth
+            sx={{ mb: 6 }}
+          />
 
-                    if (!isNaN(newValue) && Number(newValue) >= 0) {
-                      onChange(newValue)
-                    } else {
-                      onChange('')
-                    }
-                  }}
-                  onKeyPress={e => {
-                    if (e.key === '-' || e.key === '+' || isNaN(Number(e.key))) {
-                      e.preventDefault()
-                    }
-                  }}
-                  placeholder='Unit Multiplier'
-                  error={Boolean(errors.unit_multiplier)}
-                  name='unit_multiplier'
-                  slotProps={{
-                    htmlInput: { min: 0 }
-                  }}
-                />
-              )}
-            />
-            {errors.unit_multiplier && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.unit_multiplier.message}</FormHelperText>
-            )}
-          </FormControl>
-
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='description'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Description'
-                  value={value}
-                  multiline
-                  rows={4}
-                  onChange={onChange}
-                  placeholder='Description'
-                  error={Boolean(errors.description)}
-                  name='description'
-                />
-              )}
-            />
-            {errors.description && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.description.message}</FormHelperText>
-            )}
-          </FormControl>
-
-          <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
-            <FormLabel>Status</FormLabel>
-            <Controller
-              name='active'
-              control={control}
-              rules={{ required: true }}
-              render={({ field }) => (
-                <RadioGroup row {...field} aria-label='gender' name='validation-basic-radio'>
-                  <FormControlLabel
-                    value='1'
-                    label='Active'
-                    sx={errors.active ? { color: 'error.main' } : null}
-                    control={<Radio sx={errors.active ? { color: 'error.main' } : null} />}
-                  />
-                  <FormControlLabel
-                    value='0'
-                    label='Inactive'
-                    sx={errors.active ? { color: 'error.main' } : null}
-                    control={<Radio sx={errors.active ? { color: 'error.main' } : null} />}
-                  />
-                </RadioGroup>
-              )}
-            />
-            {errors.radio && (
-              <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-radio'>
-                This field is required
-              </FormHelperText>
-            )}
-          </FormControl>
-          {/* ) : null} */}
+          <ControlledTextArea
+            control={control}
+            name={'description'}
+            label='Description'
+            errors={errors}
+            placeholder={'Description'}
+            disabled={submitLoader}
+            required
+            sx={{ mb: 6 }}
+          />
+          <ControlledRadioGroup
+            name='active'
+            control={control}
+            errors={errors}
+            label='Status'
+            required
+            options={[
+              { label: 'Active', value: '1' },
+              { label: 'Inactive', value: '0' }
+            ]}
+            row
+            gap={4}
+            sx={{ mb: 6 }}
+          />
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RenderSidebarFooter />
           </Box>

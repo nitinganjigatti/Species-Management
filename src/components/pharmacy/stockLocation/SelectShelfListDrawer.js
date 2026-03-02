@@ -1,6 +1,7 @@
 import { useTheme } from '@emotion/react'
 import {
   Button,
+  Card,
   CardContent,
   Checkbox,
   CircularProgress,
@@ -125,7 +126,11 @@ const SelectShelfListDrawer = ({
         anchor='right'
         open={open}
         sx={{
-          '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
+          '& .MuiDrawer-paper': {
+            width: ['100%', '562px']
+
+            //  height: '100vh',
+          },
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
@@ -135,7 +140,8 @@ const SelectShelfListDrawer = ({
       >
         <Box
           sx={{
-            bgcolor: '#FFF',
+            // bgcolor: '#FFF',
+            bgcolor: theme.palette.customColors.contrastText,
             borderRadius: '8px',
             overflow: 'hidden',
             width: '100%',
@@ -153,11 +159,20 @@ const SelectShelfListDrawer = ({
                 variant='h6'
                 sx={{
                   fontWeight: '500',
-                  color: '#1F515B'
-                }}>
+
+                  // color: '#1F515B'
+                  color: theme.palette.customColors.OnPrimaryContainer
+                }}
+              >
                 Choose Shelves
               </Typography>
-              <Typography variant='body2' sx={{ color: '#44544A' }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  //  color: '#44544A'
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
                 Select a Shelf from the list below
               </Typography>
             </Box>
@@ -177,7 +192,7 @@ const SelectShelfListDrawer = ({
                 input: {
                   startAdornment: (
                     <InputAdornment position='start'>
-                      <SearchIcon sx={{ color: '#1F515B' }} />
+                      <SearchIcon sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
                     </InputAdornment>
                   ),
                   endAdornment: searchTerm && (
@@ -186,20 +201,31 @@ const SelectShelfListDrawer = ({
                         size='small'
                         onClick={() => {
                           setSearchTerm('')
-                          fetchSections('')
+
+                          // fetchSections('')
                         }}
                       >
                         <Icon icon='mdi:close' fontSize={20} />
                       </IconButton>
                     </InputAdornment>
                   ),
-                  style: { background: '#EFF5F2', borderRadius: '4px', padding: '4px 8px', color: '#1F515B' }
+                  style: {
+                    // background: '#EFF5F2',
+                    background: theme.palette.customColors.lightBg,
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+
+                    // color: '#1F515B'
+                    color: theme.palette.customColors.OnPrimaryContainer
+
+                    // theme.palette.customColors.OnPrimaryContainer
+                  }
                 }
               }}
             />
           </Box>
           <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant='body2' sx={{ color: '#44544A' }}>
+            <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
               {loading ? '' : `Selected ${selectedShelves.length}/${shelvesData.length}`}
             </Typography>
             <Box
@@ -214,7 +240,7 @@ const SelectShelfListDrawer = ({
                   color:
                     selectedShelves.length === shelvesData.length && shelvesData.length > 0
                       ? theme.palette.primary.main
-                      : '#44544A',
+                      : theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '12px',
                   fontWeight: 600,
                   textTransform: 'none',
@@ -241,11 +267,11 @@ const SelectShelfListDrawer = ({
                     borderColor:
                       selectedShelves.length === shelvesData.length && shelvesData.length > 0
                         ? theme.palette.primary.main
-                        : '#44544A',
+                        : theme.palette.customColors.OnSurfaceVariant,
                     color:
                       selectedShelves.length === shelvesData.length && shelvesData.length > 0
                         ? theme.palette.primary.main
-                        : '#44544A'
+                        : theme.palette.customColors.OnSurfaceVariant
                   },
                   mr: 1
                 }}
@@ -282,17 +308,22 @@ const SelectShelfListDrawer = ({
                       mb: 4,
                       height: '70px',
                       border: '1px solid',
-                      borderColor: selectedShelves.includes(shelf.id) ? '#80E0A3' : '#C3CEC7',
+                      borderColor: selectedShelves.includes(shelf.id)
+                        ? '#80E0A3'
+                        : theme.palette.customColors.OutlineVariant,
                       borderRadius: '8px',
-                      bgcolor: selectedShelves.includes(shelf.id) ? '#E1F9ED' : 'transparent'
+                      bgcolor: selectedShelves.includes(shelf.id)
+                        ? theme.palette.customColors.OnBackground
+                        : 'transparent'
                     }}
                   >
                     <ListItemText
                       primary={shelf.name}
                       slotProps={{
-                        primary: { fontWeight: 'bold', color: '#1F515B' },
-                        secondary: { color: '#44544A' }
-                      }} />
+                        primary: { fontWeight: 'bold', color: theme.palette.customColors.OnPrimaryContainer },
+                        secondary: { color: theme.palette.customColors.OnSurfaceVariant }
+                      }}
+                    />
                     <Checkbox
                       checked={selectedShelves.includes(shelf.id)}
                       onChange={() => handleShelfCheckboxChange(shelf.id)}
@@ -310,20 +341,27 @@ const SelectShelfListDrawer = ({
               </CardContent>
             )}
           </Box>
+
           <Box
             sx={{
               p: 2,
               pt: 4,
+              pb: 4,
               position: 'sticky',
-              bottom: 0,
-              background: '#FFF',
+              background: theme.palette.customColors.contrastText,
               zIndex: 1
             }}
           >
             <Button
               variant='contained'
               fullWidth
-              sx={{ bgcolor: '#28A745', color: '#FFF', p: 2, borderRadius: '8px', '&:hover': { bgcolor: '#218838' } }}
+              sx={{
+                bgcolor: '#28A745',
+                color: theme.palette.customColors.contrastText,
+                p: 2,
+                borderRadius: '8px',
+                '&:hover': { bgcolor: '#218838' }
+              }}
               onClick={() => onSelectShelves(selectedShelves)}
               disabled={selectedShelves.length <= 0}
             >
@@ -333,7 +371,7 @@ const SelectShelfListDrawer = ({
         </Box>
       </Drawer>
     </>
-  );
+  )
 }
 
 export default SelectShelfListDrawer
