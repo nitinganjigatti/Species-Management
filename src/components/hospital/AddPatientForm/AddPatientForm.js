@@ -452,7 +452,9 @@ const AddPatientForm = ({ defaultTreatmentType, hospitalId }) => {
             admit_date: dayjs(data?.admission_date).format('YYYY-MM-DD'),
             admit_time: dayjs(data?.admission_time).format('HH:mm')
           }),
-          co_attend_doctor: data?.coAttendDoctor?.length ? data.coAttendDoctor.map(doc => doc.value).join(',') : ''
+          co_attend_doctor: data?.coAttendDoctor?.length
+  ? JSON.stringify(data.coAttendDoctor.map(doc => String(doc.value)))
+  : '[]'
         }
 
         const res = await addHospitalPatient(params)
