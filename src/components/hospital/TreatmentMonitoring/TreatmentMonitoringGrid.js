@@ -361,6 +361,8 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
           setOpenDeleteDialog(false)
           monitoringRefetch()
           refetchMonitoringParams()
+          // Refetch patient details when weight parameter is deleted to update animal card
+          if (paramData?.assessment_type_id === '1' && refetchPatient) refetchPatient()
         } else {
           setDeleteLoading(false)
           Toaster({ type: 'error', message: res?.message })

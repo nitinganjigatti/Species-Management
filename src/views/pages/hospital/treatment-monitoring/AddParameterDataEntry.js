@@ -747,6 +747,7 @@ const AddParameterDataEntry = ({
           measurementType={measurementType}
           unitsData={unitsData}
           interval={data?.interval}
+          refetchPatient={refetchPatient}
         />
       )}
     </>
