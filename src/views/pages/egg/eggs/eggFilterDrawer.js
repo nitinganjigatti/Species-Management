@@ -140,6 +140,20 @@ const EggFilterDrawer = ({
     [selectedOptions]
   )
 
+  const getTotalBadgeCount = useCallback(() => {
+    let count = 0
+    count += selectedOptions?.Stage?.length || 0
+    count += selectedOptions?.Nursery?.length || 0
+    count += selectedOptions?.Site?.length || 0
+    count += selectedOptions?.['Collected By']?.length || 0
+    count += selectedOptions?.['Discarded By']?.length || 0
+    count += selectedOptions?.['Security Check']?.length || 0
+    count += selectedOptions?.collected_date ? 1 : 0
+    count += selectedOptions?.discarded_Date ? 1 : 0
+
+    return count
+  }, [selectedOptions])
+
   useEffect(() => {
     // Reset states when tab_Value changes
     if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded') {
@@ -551,7 +565,13 @@ const EggFilterDrawer = ({
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Icon icon='mage:filter' fontSize={30} />
-          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter</Typography>
+          <Typography sx={{ fontSize: '24px', fontWeight: 500,mr:1 }}>
+            Filter  {getTotalBadgeCount() > 0  && '-'} </Typography> 
+           <StyledBadge
+              badgeContent={getTotalBadgeCount()}
+              color='primary'
+              sx={{ ml: 2, flexShrink: 0 }}
+            />
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
