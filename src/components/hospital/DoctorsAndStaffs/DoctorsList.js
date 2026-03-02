@@ -11,7 +11,7 @@ import {
   styled,
   Typography,
   useMediaQuery,
-  useTheme
+  useTheme,
 } from '@mui/material'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Add as AddIcon } from '@mui/icons-material'
@@ -23,25 +23,32 @@ import Icon from 'src/@core/components/icon'
 import AddStaffsDrawer from './AddStaffsDrawer'
 import Toaster from 'src/components/Toaster'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
+import { updateHospitalChiefDoctor } from 'src/lib/api/hospital/staff'
+import { removeHospitalChiefDoctor } from 'src/lib/api/hospital/staff'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
 import { useHospital } from 'src/context/HospitalContext'
+import Router from 'next/router'
+import { useRouter } from 'next/router'
+import hospital from 'src/pages/hospital/masters/hospital'
+import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 
 const DoctorsList = () => {
   const theme = useTheme()
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
-  const { selectedHospital } = useHospital()
-
+  const { selectedHospital, updateSelectedHospital } = useHospital()
+  const router = useRouter()
   const [searchValue, setSearchValue] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [openDrawer, setOpenDrawer] = useState(false)
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [selected, setSelected] = useState(null)
 
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 10
+    pageSize: 50
   })
 
   // debounce search to avoid excessive API calls
@@ -54,7 +61,9 @@ const DoctorsList = () => {
     return () => clearTimeout(handler)
   }, [searchValue])
 
-  const fetchHospitalStaff = useCallback(async () => {
+  
+
+  const fetchHospitalStaff = useCallback(async (isChecked) => {
     setLoading(true)
 
     try {
@@ -63,7 +72,9 @@ const DoctorsList = () => {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           q: debouncedSearch,
-          hospital_id: selectedHospital?.id
+          hospital_id: selectedHospital?.id,
+          user_id: selected,
+          is_hospital_chief_doctor: isChecked ? '1' : '0'
         }
       })
 
@@ -84,11 +95,12 @@ const DoctorsList = () => {
     } finally {
       setLoading(false)
     }
-  }, [paginationModel.page, paginationModel.pageSize, debouncedSearch, selectedHospital?.id])
+  }, [paginationModel.page, paginationModel.pageSize, debouncedSearch, selectedHospital?.id, selected])
 
   useEffect(() => {
     fetchHospitalStaff()
-  }, [fetchHospitalStaff])
+  }, [])
+
 
   const indexedRows = useMemo(() => {
     return rows.map((row, index) => {
@@ -103,6 +115,53 @@ const DoctorsList = () => {
     })
   }, [rows, paginationModel.page, paginationModel.pageSize])
 
+  const selectHospitalChiefDoctor = async user_id => {
+    try {
+      const params = {
+        action: 'add',
+        hospital_id: selectedHospital?.id,
+        hospital_chief_doctor: user_id
+      }
+      const response = await updateHospitalChiefDoctor(params)
+      if (response?.message && response?.success === true) {
+        Toaster({ type: 'success', message: response?.message })
+      }
+    } catch (error) {
+      Toaster({ type: 'error', message: error?.message })
+    }
+  }
+
+  const clearHospitalChiefDoctor = async user_id => {
+    try {
+      const params = {
+        action: 'delete',
+        hospital_id: selectedHospital?.id,
+        hospital_chief_doctor: user_id
+      }
+      const response = await removeHospitalChiefDoctor(params)
+      if (response?.message && response?.success === true) {
+        Toaster({ type: 'success', message: response?.message })
+      }
+    } catch (error) {
+      Toaster({ type: 'error', message: error?.message })
+    }
+  }
+
+    const handleSwitchChange = async (event, userId) => {
+    const isChecked = event.target.checked
+
+    try {
+      if (isChecked) {
+        await selectHospitalChiefDoctor(userId)
+      } else {
+        await clearHospitalChiefDoctor(userId)
+      }
+
+      fetchHospitalStaff(isChecked)
+    } catch (error) {
+      console.error(error)
+    }
+  }
   const columns = [
     {
       width: 80,
@@ -227,6 +286,20 @@ const DoctorsList = () => {
           <Typography sx={{ fontSize: '14px', fontWeight: 500, cursor: 'default' }}>{phoneNumber || '-'}</Typography>
         )
       }
+    },
+    {
+      minWidth: 180,
+      field: 'hospital_chief_doctor',
+      sortable: false,
+      headerName: 'Chief Doctor',
+      align: 'left',
+      headerAlign: 'left',
+      renderCell: params => (
+        <MUISwitch
+          checked={params.row.is_hospital_chief_doctor === '1'}
+          onChange={event => handleSwitchChange(event, params.row.user_id)}
+        />
+      )
     }
 
     // {
