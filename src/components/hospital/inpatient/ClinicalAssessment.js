@@ -651,6 +651,9 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
           recordedDateTime={recordedDateTime}
           setRecordedDateTime={setRecordedDateTime}
           isChanged={assessmentChangeState.hasChanges}
+          admittedDate={patientData?.admitted_at}
+          dischargedDate={patientData?.discharge_at}
+          isDischarged={patientData?.status === 'discharge'}
         />
       )}
 

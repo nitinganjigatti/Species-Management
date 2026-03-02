@@ -579,8 +579,8 @@ function AddClinicalAssessment() {
           setNotes={setNotes}
           onSave={addSymptomDetails}
           isSubmitLoading={isSubmitLoading}
-          admittedDate={patientData?.admit_date}
-          dischargedDate={patientData?.discharge_date}
+          admittedDate={patientData?.admitted_at}
+          dischargedDate={patientData?.discharge_at}
           isDischarged={patientData?.status === 'discharge'}
         />
       )}

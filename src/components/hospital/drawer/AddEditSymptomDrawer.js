@@ -84,7 +84,7 @@ const AddEditSymptomDrawer = ({
       setMaxDate(dayjs.utc(dischargedDate).local().endOf('day'))
     } else {
       setMinDate(admittedDate ? dayjs.utc(admittedDate).local().startOf('day') : null)
-      setMaxDate(null)
+      setMaxDate(dayjs()) // Set max date to current time for non-discharged animals
     }
 
     // Set initial value from selectedSymptom if available
@@ -288,6 +288,23 @@ const AddEditSymptomDrawer = ({
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
             >
+              Date & Time
+            </Typography>
+            <Box sx={{ mb: 6 }}>
+              <MUIDateTimePicker
+                value={recordedDateTime}
+                onChange={newValue => setRecordedDateTime(newValue)}
+                label=''
+                disabled={status === 'closed'}
+                minDateTime={minDate}
+                maxDateTime={maxDate}
+                ampm={true}
+              />
+            </Box>
+
+            <Typography
+              sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
+            >
               Status
             </Typography>
             <Select
@@ -422,23 +439,6 @@ const AddEditSymptomDrawer = ({
 
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
-            >
-              Date & Time
-            </Typography>
-            <Box sx={{ mb: 6 }}>
-              <MUIDateTimePicker
-                value={recordedDateTime}
-                onChange={newValue => setRecordedDateTime(newValue)}
-                label=''
-                disabled={status === 'closed'}
-                minDateTime={minDate}
-                maxDateTime={maxDate}
-                ampm={true}
-              />
-            </Box>
-
-            <Typography
-              sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1 }}
             >
               Notes
             </Typography>
