@@ -259,7 +259,8 @@ const HospitalDetails = () => {
             fontSize: '1rem',
             fontWeight: 400,
             pl: 1.4,
-            maxWidth: '220px'
+            maxWidth: '220px',
+            cursor: 'pointer'
           }}
         />
       )
@@ -297,7 +298,8 @@ const HospitalDetails = () => {
             fontSize: '1rem',
             fontWeight: 400,
             pl: 1.4,
-            maxWidth: '230px'
+            maxWidth: '230px',
+            cursor: 'pointer'
           }}
         />
       )
