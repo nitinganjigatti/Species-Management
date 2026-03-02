@@ -1,5 +1,17 @@
 import React from 'react'
-import { Box, Card, CardContent, Divider, Grid, useTheme, Button, Badge, Typography, Avatar, IconButton } from '@mui/material'
+import {
+  Box,
+  Card,
+  CardContent,
+  Divider,
+  Grid,
+  useTheme,
+  Button,
+  Badge,
+  Typography,
+  Avatar,
+  IconButton
+} from '@mui/material'
 import NecropsyDropdown from 'src/components/necropsy/NecropsyDropdown'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { AirportShuttle, ArrowBack } from '@mui/icons-material'
@@ -15,7 +27,8 @@ const NecropsyAnalytics = ({
   allowCarcassCollection,
   showCarcassTransferButton = true,
   showBackButton = false,
-  onBack
+  onBack,
+  title = 'Necropsy'
 }) => {
   const theme = useTheme()
 
@@ -32,13 +45,11 @@ const NecropsyAnalytics = ({
             <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 {showBackButton && (
-                  <IconButton
-                    onClick={onBack}
-                  >
+                  <IconButton onClick={onBack}>
                     <ArrowBack sx={{ color: theme.palette.customColors.OnSurfaceVariant }} />
                   </IconButton>
                 )}
-                {RenderUtility.pageTitle('Necropsy')}
+                {RenderUtility.pageTitle(title)}
               </Box>
               {allowCarcassCollection && showCarcassTransferButton && (
                 <Box
@@ -71,7 +82,7 @@ const NecropsyAnalytics = ({
                       }
                     }}
                   >
-                    <img src={'/images/necropsy/carcass_transfer.svg'} alt='Carcass Transfer icon' height={20} />
+                    <img src={'/images/necropsy/carcass_transfer_dark.svg'} alt='Carcass Transfer icon' height={20} />
                   </Badge>
                   <Typography
                     sx={{

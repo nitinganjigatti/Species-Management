@@ -318,7 +318,7 @@ const CarcassTransferCard = ({ filterDate }) => {
                     fontSize: '13px'
                   }
                 }}
-                placeholder='Search by transfer code, site...'
+                placeholder='Search by transfer ID'
               />
             </Box>
             <FilterButtonWithNotification onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={filterCount} />

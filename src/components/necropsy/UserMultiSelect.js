@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react'
-import { Box, Typography, Chip, Avatar, CircularProgress, useTheme } from '@mui/material'
+import { Box, Typography, Avatar, CircularProgress, useTheme, IconButton } from '@mui/material'
 import { Autocomplete, TextField } from '@mui/material'
+import Icon from 'src/@core/components/icon'
 import { debounce } from 'lodash'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { useAuth } from 'src/hooks/useAuth'
@@ -125,23 +126,48 @@ const UserMultiSelect = ({ selectedUsers = [], onChange, label = 'Search & Selec
         )}
       />
       {selectedUsers.length > 0 && (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
-          {selectedUsers.map(user => (
-            <Chip
-              key={user.user_id}
-              avatar={<Avatar src={user.user_profile_pic}>{user.user_name?.charAt(0)}</Avatar>}
-              label={user.user_name}
-              onDelete={disabled ? undefined : () => handleRemove(user.user_id)}
-              variant='outlined'
-              sx={{
-                borderColor: theme.palette.divider,
-                '& .MuiChip-label': {
-                  fontWeight: 500,
-                  fontSize: '13px'
-                }
-              }}
-            />
-          ))}
+        <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Typography sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.text.secondary }}>
+            Selected -{selectedUsers.length}
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            {selectedUsers.map(user => (
+              <Box
+                key={user.user_id}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  backgroundColor: theme.palette.grey[100],
+                  borderRadius: '50px',
+                  py: 0.5,
+                  pl: 0.5,
+                  pr: 1.5
+                }}
+              >
+                <Avatar src={user.user_profile_pic} sx={{ width: 28, height: 28, fontSize: '12px' }}>
+                  {user.user_name?.charAt(0)}
+                </Avatar>
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <Typography sx={{ fontSize: '12px', fontWeight: 500, lineHeight: 1.3 }}>{user.user_name}</Typography>
+                  {user.role_name && (
+                    <Typography sx={{ fontSize: '10px', color: 'text.secondary', lineHeight: 1.2 }}>
+                      {user.role_name}
+                    </Typography>
+                  )}
+                </Box>
+                {!disabled && (
+                  <IconButton
+                    size='small'
+                    onClick={() => handleRemove(user.user_id)}
+                    sx={{ p: 0, color: theme.palette.grey[400] }}
+                  >
+                    <Icon icon='mdi:close-circle' fontSize={16} />
+                  </IconButton>
+                )}
+              </Box>
+            ))}
+          </Box>
         </Box>
       )}
     </Box>

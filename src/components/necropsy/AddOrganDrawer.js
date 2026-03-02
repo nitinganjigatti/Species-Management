@@ -32,6 +32,8 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply, onTemplatesUpdated }) 
   const [editingTemplate, setEditingTemplate] = useState(null)
   const [openEditDrawer, setOpenEditDrawer] = useState(false)
   const [bodyPartsData, setBodyPartsData] = useState([])
+  const [searchMode, setSearchMode] = useState(false)
+  const [templateSearchText, setTemplateSearchText] = useState('')
 
   useEffect(() => {
     if (open) {
@@ -86,6 +88,8 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply, onTemplatesUpdated }) 
     setTemplateName('')
     setEditMode(false)
     setEditingTemplate(null)
+    setSearchMode(false)
+    setTemplateSearchText('')
   }
 
   const handleTemplateClick = template => {
@@ -366,7 +370,6 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply, onTemplatesUpdated }) 
             }}
           >
             <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-              <Icon icon='mdi:human-male' fontSize={32} color={theme.palette.primary.main} />
               <Typography
                 sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
               >
@@ -409,7 +412,7 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply, onTemplatesUpdated }) 
                 <Typography
                   sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Selected ({totalParts} parts in {selectedOrgans.length} categories)
+                  Selected ({totalParts})
                 </Typography>
                 <Box
                   sx={{
@@ -428,10 +431,7 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply, onTemplatesUpdated }) 
                         display: 'flex',
                         flexDirection: 'column',
                         gap: 2,
-                        p: 4,
-                        backgroundColor: theme.palette.customColors.OnPrimary,
-                        border: `1px solid ${theme.palette.customColors.SurfaceVariant}`,
-                        borderRadius: 1
+                        borderRadius: 0.5
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -444,17 +444,6 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply, onTemplatesUpdated }) 
                         >
                           {organ.label}
                         </Typography>
-                        <IconButton
-                          onClick={() => handleRemoveOrgan(organ.id)}
-                          size='small'
-                          sx={{
-                            '&:hover': {
-                              backgroundColor: theme.palette.error.light + '20'
-                            }
-                          }}
-                        >
-                          <Icon icon='zondicons:close-outline' color={theme.palette.customColors.Error} />
-                        </IconButton>
                       </Box>
                       {organ.parts?.length > 0 && (
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -470,7 +459,7 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply, onTemplatesUpdated }) 
                                 value={part.value || ''}
                                 onChange={e => handlePartDescriptionChange(organ.id, part.id, e.target.value)}
                                 sx={{
-                                  backgroundColor: theme.palette.customColors.Surface || theme.palette.grey[50],
+                                  backgroundColor: theme.palette.customColors.OnPrimary,
                                   '& .MuiOutlinedInput-root': {
                                     borderRadius: '4px',
                                     paddingRight: '40px'
@@ -483,19 +472,19 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply, onTemplatesUpdated }) 
                                 sx={{
                                   position: 'absolute',
                                   right: 8,
-                                  top: 8,
+                                  top: '50%',
+                                  transform: 'translateY(-50%)',
                                   p: 0.5,
-                                  backgroundColor: theme.palette.grey[200],
-                                  borderRadius: '50%',
                                   '&:hover': {
-                                    backgroundColor: theme.palette.error.light,
-                                    '& svg': {
-                                      color: `${theme.palette.common.white} !important`
-                                    }
+                                    backgroundColor: theme.palette.error.light + '20'
                                   }
                                 }}
                               >
-                                <Icon icon='mdi:close' fontSize={14} color={theme.palette.text.secondary} />
+                                <Icon
+                                  icon='zondicons:close-outline'
+                                  fontSize={24}
+                                  color={theme.palette.customColors.Error}
+                                />
                               </IconButton>
                             </Box>
                           ))}
@@ -605,39 +594,96 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply, onTemplatesUpdated }) 
                   >
                     Templates
                   </Typography>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      cursor: 'pointer',
-                      px: 2,
-                      py: 1,
-                      borderRadius: 1,
-                      backgroundColor: editMode ? theme.palette.primary.main : 'transparent',
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        backgroundColor: editMode ? theme.palette.primary.dark : theme.palette.action.hover
-                      }
-                    }}
-                    onClick={() => setEditMode(!editMode)}
-                  >
-                    <Icon
-                      icon='mdi:pencil-outline'
-                      fontSize={18}
-                      color={editMode ? theme.palette.common.white : theme.palette.customColors.OnSurfaceVariant}
-                    />
-                    <Typography
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box
                       sx={{
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        color: editMode ? theme.palette.common.white : theme.palette.customColors.OnSurfaceVariant
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        p: 1,
+                        borderRadius: 0.4,
+                        backgroundColor: searchMode ? theme.palette.customColors.OnBackground : 'transparent',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          backgroundColor: searchMode
+                            ? theme.palette.customColors.OnBackground
+                            : theme.palette.action.hover
+                        }
+                      }}
+                      onClick={() => {
+                        setSearchMode(!searchMode)
+                        if (searchMode) {
+                          setTemplateSearchText('')
+                        }
                       }}
                     >
-                      {editMode ? 'Done' : 'Edit'}
-                    </Typography>
+                      <Icon icon='mdi:magnify' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
+                    </Box>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        cursor: 'pointer',
+                        px: 2,
+                        py: 1,
+                        borderRadius: 1,
+                        backgroundColor: editMode ? theme.palette.primary.main : 'transparent',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          backgroundColor: editMode ? theme.palette.primary.dark : theme.palette.action.hover
+                        }
+                      }}
+                      onClick={() => setEditMode(!editMode)}
+                    >
+                      <Icon
+                        icon='mdi:pencil-outline'
+                        fontSize={18}
+                        color={editMode ? theme.palette.common.white : theme.palette.customColors.OnSurfaceVariant}
+                      />
+                      <Typography
+                        sx={{
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
+                          color: editMode ? theme.palette.common.white : theme.palette.customColors.OnSurfaceVariant
+                        }}
+                      >
+                        {editMode ? 'Done' : 'Edit'}
+                      </Typography>
+                    </Box>
                   </Box>
                 </Box>
+                {searchMode && (
+                  <TextField
+                    fullWidth
+                    size='small'
+                    placeholder='Search templates...'
+                    value={templateSearchText}
+                    onChange={e => setTemplateSearchText(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <Icon
+                          icon='mdi:magnify'
+                          fontSize={20}
+                          style={{ marginRight: 8 }}
+                          color={theme.palette.customColors.OnSurfaceVariant}
+                        />
+                      ),
+                      endAdornment: templateSearchText && (
+                        <IconButton size='small' onClick={() => setTemplateSearchText('')}>
+                          <Icon icon='mdi:close' fontSize={18} />
+                        </IconButton>
+                      )
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        backgroundColor: theme.palette.customColors.Surface || theme.palette.grey[50],
+                        borderRadius: 1
+                      }
+                    }}
+                  />
+                )}
                 {templateLoading ? (
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4, py: 2 }}>
                     {Array.from(new Array(6)).map((_, index) => (
@@ -653,42 +699,49 @@ const AddOrganDrawer = ({ open, setOpen, organs, onApply, onTemplatesUpdated }) 
                   </Box>
                 ) : (
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                    {templates.map((template, index) => {
-                      const templateId = template.id || template.template_id
-                      const isSelected = selectedTemplate === templateId
+                    {templates
+                      .filter(template => {
+                        if (!templateSearchText.trim()) return true
+                        const name = (template.name || template.template_name || '').toLowerCase()
 
-                      return (
-                        <Box
-                          key={templateId || index}
-                          onClick={() => handleTemplateClick(template)}
-                          sx={{
-                            p: 4,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            backgroundColor: editMode
-                              ? theme.palette.action.hover
-                              : isSelected
-                              ? theme.palette.customColors.OnBackground
-                              : theme.palette.customColors.OnPrimary,
-                            border: editMode
-                              ? `2px dashed ${theme.palette.primary.main}`
-                              : isSelected
-                              ? `2px solid ${theme.palette.primary.main}`
-                              : `1px solid ${theme.palette.customColors.SurfaceVariant}`,
-                            borderRadius: 1,
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            fontSize: '1rem',
-                            fontWeight: isSelected ? 600 : 400,
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease'
-                          }}
-                        >
-                          {editMode && <Icon icon='mdi:pencil' fontSize={16} color={theme.palette.primary.main} />}
-                          {template.name || template.template_name}
-                        </Box>
-                      )
-                    })}
+                        return name.includes(templateSearchText.trim().toLowerCase())
+                      })
+                      .map((template, index) => {
+                        const templateId = template.id || template.template_id
+                        const isSelected = selectedTemplate === templateId
+
+                        return (
+                          <Box
+                            key={templateId || index}
+                            onClick={() => handleTemplateClick(template)}
+                            sx={{
+                              p: 4,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                              backgroundColor: editMode
+                                ? theme.palette.action.hover
+                                : isSelected
+                                ? theme.palette.customColors.OnBackground
+                                : theme.palette.customColors.OnPrimary,
+                              border: editMode
+                                ? `2px dashed ${theme.palette.primary.main}`
+                                : isSelected
+                                ? `2px solid ${theme.palette.primary.main}`
+                                : `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                              borderRadius: 1,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontSize: '1rem',
+                              fontWeight: isSelected ? 600 : 400,
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            {editMode && <Icon icon='mdi:pencil' fontSize={16} color={theme.palette.primary.main} />}
+                            {template.name || template.template_name}
+                          </Box>
+                        )
+                      })}
                   </Box>
                 )}
               </Box>

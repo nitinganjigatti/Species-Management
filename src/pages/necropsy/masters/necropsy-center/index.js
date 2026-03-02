@@ -244,7 +244,7 @@ const NecropsyCenters = () => {
                 <Search
                   borderRadius='4px'
                   width='343px'
-                  placeholder='Search by medical Id / AID / animal identifier'
+                  placeholder='Search by necropsy center'
                   value={searchValue}
                   onClear={handleSearchClear}
                   onChange={e => handleSearch(e.target.value)}

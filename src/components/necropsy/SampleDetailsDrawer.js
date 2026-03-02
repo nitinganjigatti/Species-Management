@@ -60,10 +60,10 @@ const SampleDetailsDrawer = ({
   const renderTestCard = (test, index) => {
     const statusColor =
       test.testStatus === 'Completed'
-        ? theme.palette.success.main
+        ? theme.palette.primary.main
         : test.testStatus === 'In Progress'
-        ? theme.palette.warning.dark
-        : theme.palette.error.main
+        ? theme.palette.customColors.moderateSecondary
+        : theme.palette.customColors.Error
 
     const hasSubTests = test.subTestCount > 1
 
@@ -228,28 +228,63 @@ const SampleDetailsDrawer = ({
                           {log?.action}
                         </Typography>
                         {log?.reason && (
-                          <Typography
+                          <Box
                             sx={{
-                              fontSize: '0.75rem',
-                              fontWeight: 400,
-                              color: theme.palette.text.secondary,
-                              mt: 0.5
+                              mt: 1,
+                              pt: 1,
+                              borderTop: `1px solid ${theme.palette.divider}`
                             }}
                           >
-                            {log.reason}
-                          </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                color: theme.palette.customColors?.neutralSecondary,
+                                mb: 0.5
+                              }}
+                            >
+                              Reason
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: '0.8125rem',
+                                fontWeight: 400,
+                                color: theme.palette.customColors?.OnSurfaceVariant
+                              }}
+                            >
+                              {log.reason}
+                            </Typography>
+                          </Box>
                         )}
                         {log?.notes && (
-                          <Typography
+                          <Box
                             sx={{
-                              fontSize: '0.75rem',
-                              fontWeight: 400,
-                              color: theme.palette.text.secondary,
-                              mt: 0.5
+                              mt: 1,
+                              pt: 1,
+                              borderTop: log?.reason ? 'none' : `1px solid ${theme.palette.divider}`
                             }}
                           >
-                            {log.notes}
-                          </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                color: theme.palette.customColors?.neutralSecondary,
+                                mb: 0.5
+                              }}
+                            >
+                              Notes
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: '0.8125rem',
+                                fontWeight: 400,
+                                color: theme.palette.customColors?.OnSurfaceVariant,
+                                fontStyle: 'italic'
+                              }}
+                            >
+                              {log.notes}
+                            </Typography>
+                          </Box>
                         )}
                       </Box>
                     </TimelineContent>

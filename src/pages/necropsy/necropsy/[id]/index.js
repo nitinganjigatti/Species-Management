@@ -9,7 +9,7 @@ import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const NecropsyDetails = () => {
   const router = useRouter()
-  const { id, status = 'PENDING', view, taxonomy_id, species_name } = router.query
+  const { id, status = 'PENDING', view, taxonomy_id, species_name, scientific_name, species_image } = router.query
 
   if (!router.isReady || !id) return null
 
@@ -19,6 +19,8 @@ const NecropsyDetails = () => {
 
   const getStatusLabel = () => {
     switch (status?.toUpperCase()) {
+      case 'INCOMING':
+        return 'Incoming'
       case 'PENDING':
         return 'Pending'
       case 'DRAFT':
@@ -36,17 +38,16 @@ const NecropsyDetails = () => {
       <Box sx={{ p: 4 }}>
         <Box sx={{ mb: 3 }}>
           <Breadcrumbs>
-            <MuiLink
-              component={NextLink}
-              href='/necropsy/necropsy'
-              underline='hover'
-              color='inherit'
-            >
+            <MuiLink component={NextLink} href='/necropsy/necropsy' underline='hover' color='inherit'>
               Necropsy
             </MuiLink>
             <MuiLink
               component={NextLink}
-              href={isSpeciesView ? `/necropsy/necropsy?status=${status}&tab=species` : `/necropsy/necropsy?status=${status}`}
+              href={
+                isSpeciesView
+                  ? `/necropsy/necropsy?status=${status}&tab=species`
+                  : `/necropsy/necropsy?status=${status}`
+              }
               underline='hover'
               color='inherit'
             >
@@ -68,6 +69,8 @@ const NecropsyDetails = () => {
           <NecropsySpeciesListContent
             taxonomyId={effectiveTaxonomyId}
             speciesName={species_name ? decodeURIComponent(species_name) : ''}
+            scientificName={scientific_name ? decodeURIComponent(scientific_name) : ''}
+            speciesImage={species_image ? decodeURIComponent(species_image) : ''}
             status={status?.toUpperCase()}
           />
         ) : (

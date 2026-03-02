@@ -52,6 +52,7 @@ const CarcassTransferPage = () => {
           showCarcassTransferButton={false}
           showBackButton={showBackButton}
           onBack={handleBack}
+          title="Carcass Transfer"
         />
 
         <Box sx={{ mt: 6 }}>

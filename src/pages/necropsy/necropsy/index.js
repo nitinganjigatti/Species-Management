@@ -65,11 +65,11 @@ const getDefaultStatCards = theme => [
         sx={{
           width: 16,
           height: 16,
-          maskImage: 'url(/images/necropsy/carcass_transfer.svg)',
+          maskImage: 'url(/images/necropsy/carcass_transfer_dark.svg)',
           maskSize: 'contain',
           maskRepeat: 'no-repeat',
           maskPosition: 'center',
-          WebkitMaskImage: 'url(/images/necropsy/carcass_transfer.svg)',
+          WebkitMaskImage: 'url(/images/necropsy/carcass_transfer_dark.svg)',
           WebkitMaskSize: 'contain',
           WebkitMaskRepeat: 'no-repeat',
           WebkitMaskPosition: 'center',
@@ -331,7 +331,11 @@ const Necropsy = () => {
         router.push(
           `/necropsy/necropsy/${row.tsn}?view=species&status=${activeCard}&tab=species&taxonomy_id=${
             row.tsn
-          }&species_name=${encodeURIComponent(row.default_common_name || row.scientific_name || '')}`
+          }&species_name=${encodeURIComponent(
+            row.default_common_name || row.scientific_name || ''
+          )}&scientific_name=${encodeURIComponent(row.scientific_name || '')}&species_image=${encodeURIComponent(
+            row.default_icon || ''
+          )}`
         )
       }
     },

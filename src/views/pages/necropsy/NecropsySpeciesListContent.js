@@ -16,9 +16,28 @@ import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 import { getTransferStatus } from 'src/pages/necropsy/necropsy'
 
-const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
+const getNecropsyTitleByStatus = status => {
+  switch (status) {
+    case 'INCOMING':
+      return 'Incoming Necropsy'
+    case 'PENDING':
+      return 'Pending Necropsy'
+    case 'DRAFT':
+      return 'Draft Necropsy'
+    case 'COMPLETED':
+      return 'Completed Necropsy'
+    default:
+      return 'Necropsy'
+  }
+}
+
+const NecropsySpeciesListContent = ({ taxonomyId, speciesName, scientificName, speciesImage, status }) => {
   const theme = useTheme()
   const router = useRouter()
+
+  const handleBack = () => {
+    router.back()
+  }
 
   const authData = useContext(AuthContext)
   const userId = authData?.userData?.user?.user_id || ''
@@ -362,19 +381,26 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
   if ((loading || !selectedNecropsy?.id) && animalRows.length === 0 && !initialLoadDone) {
     return (
       <Box>
-        <NecropsyAnalytics filterDate={filterDate} setFilterDate={setFilterDate} showCarcassTransferButton={false} />
+        <NecropsyAnalytics
+          filterDate={filterDate}
+          setFilterDate={setFilterDate}
+          showCarcassTransferButton={false}
+          title={getNecropsyTitleByStatus(status)}
+          showBackButton={true}
+          onBack={handleBack}
+        />
 
-        <Card sx={{ mb: 3, mt: 6 }}>
-          <CardContent sx={{ p: 4 }}>
+        <Card sx={{ mb: 3, mt: 6, bgcolor: theme.palette.customColors?.bodyBg || '#F5F5F5' }}>
+          <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Skeleton variant='circular' width={48} height={48} />
                 <Box>
-                  <Skeleton variant='text' width={180} height={28} />
-                  <Skeleton variant='text' width={100} height={20} />
+                  <Skeleton variant='text' width={180} height={24} />
+                  <Skeleton variant='text' width={120} height={20} />
                 </Box>
               </Box>
-              <Skeleton variant='rectangular' width={100} height={32} sx={{ borderRadius: 1 }} />
+              <Skeleton variant='text' width={40} height={36} />
             </Box>
           </CardContent>
         </Card>
@@ -429,7 +455,14 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
   if (!selectedNecropsy?.id && initialLoadDone) {
     return (
       <Box>
-        <NecropsyAnalytics filterDate={filterDate} setFilterDate={setFilterDate} showCarcassTransferButton={false} />
+        <NecropsyAnalytics
+          filterDate={filterDate}
+          setFilterDate={setFilterDate}
+          showCarcassTransferButton={false}
+          title={getNecropsyTitleByStatus(status)}
+          showBackButton={true}
+          onBack={handleBack}
+        />
         <Card sx={{ mt: 6 }}>
           <CardContent sx={{ textAlign: 'center', py: 8 }}>
             <Typography sx={{ color: theme.palette.text.secondary, fontSize: '14px' }}>
@@ -443,13 +476,21 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
 
   return (
     <Box>
-      <NecropsyAnalytics filterDate={filterDate} setFilterDate={setFilterDate} showCarcassTransferButton={false} />
+      <NecropsyAnalytics
+        filterDate={filterDate}
+        setFilterDate={setFilterDate}
+        showCarcassTransferButton={false}
+        title={getNecropsyTitleByStatus(status)}
+        showBackButton={true}
+        onBack={handleBack}
+      />
 
-      <Card sx={{ mb: 3, mt: 6 }}>
-        <CardContent sx={{ p: 4 }}>
+      <Card sx={{ mb: 3, mt: 6, bgcolor: theme.palette.customColors?.displaybgPrimary }}>
+        <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Avatar
+                src={speciesImage}
                 sx={{
                   width: 48,
                   height: 48,
@@ -459,58 +500,42 @@ const NecropsySpeciesListContent = ({ taxonomyId, speciesName, status }) => {
                   fontWeight: 600
                 }}
               >
-                {speciesName?.charAt(0)?.toUpperCase() || 'S'}
+                {!speciesImage && (speciesName?.charAt(0)?.toUpperCase() || 'S')}
               </Avatar>
               <Box>
                 <Typography
                   sx={{
-                    fontSize: '18px',
+                    fontSize: '16px',
                     fontWeight: 600,
                     color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
                   }}
                 >
                   {speciesName || 'Species'}
                 </Typography>
-                <Typography
-                  sx={{
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
-                  }}
-                >
-                  {total} {total === 1 ? 'Animal' : 'Animals'}
-                </Typography>
+                {scientificName && (
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      fontWeight: 400,
+                      fontStyle: 'italic',
+                      color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+                    }}
+                  >
+                    {scientificName}
+                  </Typography>
+                )}
               </Box>
             </Box>
 
-            <Box
+            <Typography
               sx={{
-                px: 3,
-                py: 1,
-                borderRadius: 1,
-                bgcolor:
-                  status === 'INCOMING'
-                    ? theme.palette.customColors?.bodyBg
-                    : status === 'PENDING'
-                    ? theme.palette.customColors?.antzNotesLight
-                    : status === 'DRAFT'
-                    ? theme.palette.customColors?.avatarBackground
-                    : theme.palette.customColors?.OnBackground,
-                color:
-                  status === 'INCOMING'
-                    ? theme.palette.customColors?.addPrimary
-                    : status === 'PENDING'
-                    ? theme.palette.primary.dark
-                    : status === 'DRAFT'
-                    ? theme.palette.customColors?.Error
-                    : theme.palette.primary.main,
+                fontSize: '24px',
                 fontWeight: 600,
-                fontSize: '12px',
-                letterSpacing: '0.5px'
+                color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
               }}
             >
-              {status}
-            </Box>
+              {total}
+            </Typography>
           </Box>
         </CardContent>
       </Card>

@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback, memo } from 'react'
-import { Box, Drawer, IconButton, Typography, Skeleton, Tabs, Tab, Divider, Chip } from '@mui/material'
+import { Box, Drawer, IconButton, Typography, Skeleton, Tabs, Tab, Divider, Chip, Button, Alert } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
+import PhoneIcon from '@mui/icons-material/Phone'
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import RefreshIcon from '@mui/icons-material/Refresh'
 import Icon from 'src/@core/components/icon'
 import {
   getLabRequestDetails,
@@ -39,17 +42,22 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
   const [sampleLogs, setSampleLogs] = useState({})
   const [sampleLogsLoading, setSampleLogsLoading] = useState(false)
   const [sampleDialogTab, setSampleDialogTab] = useState(0)
+  const [error, setError] = useState(null)
 
   const fetchLabDetails = useCallback(async () => {
     if (!requestGuid) return
     setLoading(true)
+    setError(null)
     try {
       const response = await getLabRequestDetails(requestGuid)
       if (response?.success) {
         setLabDetails(response.data)
+      } else {
+        setError('Failed to load lab request details')
       }
     } catch (error) {
       console.error('Error fetching lab details:', error)
+      setError('Failed to load lab request details. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -192,31 +200,41 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
   }
 
   const getSummaryBackgroundColor = () => {
-    if (!labDetails) return alpha(theme.palette.warning.main, 0.15)
+    const antzNotesColor = theme.palette.customColors?.antzNotes
+    const primaryColor = theme.palette.primary.main
+    const tertiaryContainerColor = theme.palette.customColors?.TertiaryContainer
+
+    if (!labDetails) return alpha(antzNotesColor, 0.5) // notes with 50% opacity
 
     const allCompleted =
       labDetails.totalReceivedSamples === labDetails.totalSamples &&
       labDetails.totalTestsCompleted === labDetails.totalTests
-    const noneCompleted = labDetails.totalReceivedSamples === 0 && labDetails.totalTestsCompleted === 0
+    const noneStarted = labDetails.totalReceivedSamples === 0 && labDetails.totalTestsCompleted === 0
 
-    if (allCompleted) return alpha(theme.palette.success.main, 0.15)
-    if (noneCompleted) return alpha(theme.palette.error.light, 0.2)
+    // Use exact mobile colors with opacity (matching mobile backgroundColorCheck)
+    if (allCompleted) return alpha(primaryColor, 0.15) // primary with 15% opacity
+    if (noneStarted) return alpha(tertiaryContainerColor, 0.2) // tertiaryContainer with 20% opacity
 
-    return alpha(theme.palette.warning.main, 0.5)
+    return alpha(antzNotesColor, 0.5) // notes with 50% opacity (partial completion)
   }
 
   const getSummaryTextColor = () => {
-    if (!labDetails) return theme.palette.warning.main
+    const moderateSecondaryColor = theme.palette.customColors?.moderateSecondary
+    const primaryColor = theme.palette.primary.main
+    const tertiaryColor = theme.palette.customColors?.Tertiary
+
+    if (!labDetails) return moderateSecondaryColor // moderateSecondary
 
     const allCompleted =
       labDetails.totalReceivedSamples === labDetails.totalSamples &&
       labDetails.totalTestsCompleted === labDetails.totalTests
-    const noneCompleted = labDetails.totalReceivedSamples === 0 && labDetails.totalTestsCompleted === 0
+    const noneStarted = labDetails.totalReceivedSamples === 0 && labDetails.totalTestsCompleted === 0
 
-    if (allCompleted) return theme.palette.success.main
-    if (noneCompleted) return theme.palette.error.main
+    // Use exact mobile colors (matching mobile textColorCheck)
+    if (allCompleted) return primaryColor // primary
+    if (noneStarted) return tertiaryColor // tertiary
 
-    return theme.palette.warning.dark
+    return moderateSecondaryColor // moderateSecondary (partial completion)
   }
 
   const renderLoadingSkeleton = () => (
@@ -240,6 +258,8 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
   const renderHeader = () => {
     const isPriorityLow = (labDetails?.priority || '').toLowerCase() === 'low'
 
+    const priorityColor = isPriorityLow ? theme.palette.customColors?.Secondary : theme.palette.customColors?.Tertiary
+
     return (
       <Box sx={{ backgroundColor: theme.palette.background.paper }}>
         <Box sx={{ px: 4, pt: 2, pb: 3 }}>
@@ -249,21 +269,19 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
                 width: 32,
                 height: 32,
                 borderRadius: '8px',
-                backgroundColor: isPriorityLow
-                  ? theme.palette.secondary.main
-                  : theme.palette.customColors?.Tertiary || theme.palette.error.light,
+                backgroundColor: priorityColor,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
               }}
             >
-              <Icon icon='mdi:flask-outline' fontSize={18} color={theme.palette.customColors?.OnPrimary || '#fff'} />
+              <img src={'/images/necropsy/labtest_white.svg'} />
             </Box>
             <Typography
               sx={{
                 fontSize: '20px',
                 fontWeight: 600,
-                color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                color: theme.palette.customColors?.OnSurfaceVariant
               }}
             >
               {labDetails?.antz_lab_code || labCode || 'Lab Request'}
@@ -275,7 +293,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
               <Typography
                 sx={{
                   fontSize: '13px',
-                  color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+                  color: theme.palette.customColors?.neutralSecondary
                 }}
               >
                 Case ID:{' '}
@@ -283,7 +301,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
                   component='span'
                   sx={{
                     fontWeight: 600,
-                    color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                    color: theme.palette.customColors?.OnSurfaceVariant
                   }}
                 >
                   {labDetails.entity_code}
@@ -291,15 +309,13 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
               </Typography>
             )}
             {labDetails?.entity_code && labDetails?.created_at && (
-              <Typography sx={{ color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary }}>
-                &bull;
-              </Typography>
+              <Typography sx={{ color: theme.palette.customColors?.neutralSecondary }}>&bull;</Typography>
             )}
             {labDetails?.created_at && (
               <Typography
                 sx={{
                   fontSize: '13px',
-                  color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+                  color: theme.palette.customColors?.neutralSecondary
                 }}
               >
                 {Utility.convertUtcToLocalReadableDate(labDetails.created_at)} &bull;{' '}
@@ -313,7 +329,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
               <Typography
                 sx={{
                   fontSize: '14px',
-                  color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+                  color: theme.palette.customColors?.neutralSecondary
                 }}
               >
                 By
@@ -326,25 +342,60 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
                   px: 2,
                   py: 0.5,
                   borderRadius: '6px',
-                  backgroundColor: theme.palette.customColors?.avatarBackground || theme.palette.grey[100]
+                  backgroundColor: theme.palette.customColors?.SurfaceVariant
                 }}
               >
                 <PersonOutlineIcon
                   sx={{
                     fontSize: 20,
-                    color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                    color: theme.palette.customColors?.OnSurface
                   }}
                 />
                 <Typography
                   sx={{
                     fontSize: '14px',
                     fontWeight: 500,
-                    color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                    color: theme.palette.customColors?.OnSurface
                   }}
                 >
                   {labDetails.user_details.user_name}
                 </Typography>
               </Box>
+              {/* Contact Actions */}
+              <IconButton
+                size='small'
+                onClick={() => {
+                  const phoneNumber = labDetails.user_details.user_mobile_number
+                  if (phoneNumber) {
+                    window.open(`tel:${phoneNumber}`, '_self')
+                  }
+                }}
+                sx={{
+                  backgroundColor: theme.palette.customColors?.SurfaceVariant,
+                  '&:hover': {
+                    backgroundColor: theme.palette.customColors?.displaybgSecondary || theme.palette.grey[300]
+                  }
+                }}
+              >
+                <PhoneIcon sx={{ fontSize: 18, color: theme.palette.customColors?.OnSurface }} />
+              </IconButton>
+              <IconButton
+                size='small'
+                onClick={() => {
+                  const phoneNumber = labDetails.user_details.user_mobile_number
+                  if (phoneNumber) {
+                    window.open(`sms:${phoneNumber}`, '_self')
+                  }
+                }}
+                sx={{
+                  backgroundColor: theme.palette.customColors?.SurfaceVariant,
+                  '&:hover': {
+                    backgroundColor: theme.palette.customColors?.displaybgSecondary || theme.palette.grey[300]
+                  }
+                }}
+              >
+                <ChatBubbleOutlineIcon sx={{ fontSize: 18, color: theme.palette.customColors?.OnSurface }} />
+              </IconButton>
             </Box>
           )}
         </Box>
@@ -353,14 +404,14 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
 
         {labDetails?.entity_items?.length > 0 && (
           <>
-            <Box sx={{ px: 4, py: 3 }}>
+            <Box sx={{ px: 4 }}>
               {labDetails.entity_items.map((animal, index) => (
                 <Box
                   key={animal.animal_id || index}
                   sx={{
                     p: 2,
                     borderRadius: 1,
-                    backgroundColor: theme.palette.customColors?.avatarBackground || theme.palette.grey[50],
+                    backgroundColor: theme.palette.customColors?.OnPrimary,
                     mb: index < labDetails.entity_items.length - 1 ? 2 : 0
                   }}
                 >
@@ -368,7 +419,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
                 </Box>
               ))}
             </Box>
-            <Divider />
+            {/* <Divider /> */}
           </>
         )}
 
@@ -379,19 +430,19 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
                 mx: 4,
                 my: 2,
                 px: 3,
-                py: 1.5,
+                py: '12px',
                 borderRadius: '6px',
-                backgroundColor: alpha(theme.palette.warning.light, 0.3),
+                backgroundColor: alpha(theme.palette.customColors.antzNotes, 0.4),
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1.5
               }}
             >
-              <Icon icon='mdi:note-text' fontSize={18} color={theme.palette.warning.dark} />
+              <Icon icon='mdi:note-text' fontSize={18} color={theme.palette.customColors.moderateSecondary} />
               <Typography
                 sx={{
                   fontSize: '13px',
-                  color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                  color: theme.palette.customColors.OnSurfaceVariant
                 }}
                 noWrap
               >
@@ -421,7 +472,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
         <Typography
           sx={{
             fontSize: '14px',
-            color: theme.palette.customColors?.neutralPrimary || theme.palette.text.secondary
+            color: theme.palette.customColors?.neutralPrimary
           }}
         >
           Completed
@@ -434,7 +485,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
         <Typography
           sx={{
             fontSize: '14px',
-            color: theme.palette.customColors?.neutralPrimary || theme.palette.text.secondary
+            color: theme.palette.customColors?.neutralPrimary
           }}
         >
           Sample Received
@@ -444,12 +495,16 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
   )
 
   const renderTestCard = (test, index, clickable = true) => {
+    const primaryColor = theme.palette.primary.main
+    const moderateSecondaryColor = theme.palette.customColors?.moderateSecondary
+    const errorColor = theme.palette.customColors?.Error
+
     const statusColor =
       test.testStatus === 'Completed'
-        ? theme.palette.success.main
+        ? primaryColor
         : test.testStatus === 'In Progress'
-        ? theme.palette.warning.dark
-        : theme.palette.error.main
+        ? moderateSecondaryColor
+        : errorColor
 
     const hasSubTests = test.subTestCount > 1
 
@@ -481,7 +536,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
               sx={{
                 fontSize: '15px',
                 fontWeight: 500,
-                color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary,
+                color: theme.palette.customColors?.OnSurfaceVariant,
                 mb: 0.5
               }}
             >
@@ -490,7 +545,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
             <Typography
               sx={{
                 fontSize: '13px',
-                color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+                color: theme.palette.customColors?.neutralSecondary
               }}
             >
               {test.sampleName}
@@ -503,17 +558,51 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
   }
 
   const renderSampleCard = (sample, index) => {
+    const primaryColor = theme.palette.primary.main
+    const errorColor = theme.palette.customColors?.Error
+    const tertiaryColor = theme.palette.customColors?.Tertiary
+    const onPrimaryColor = theme.palette.customColors?.OnPrimary
+
     const statusBgColor =
       sample.overallStatus === 'received'
-        ? theme.palette.success.main
+        ? primaryColor
         : sample.overallStatus === 'rejected'
-        ? theme.palette.error.main
+        ? errorColor
         : 'transparent'
 
     const statusTextColor =
-      sample.overallStatus === 'received' || sample.overallStatus === 'rejected'
-        ? theme.palette.customColors?.OnPrimary || '#fff'
-        : theme.palette.warning.main
+      sample.overallStatus === 'received' || sample.overallStatus === 'rejected' ? onPrimaryColor : tertiaryColor
+
+    // Process departmentList to extract collection/rejection metadata (like mobile)
+    const departmentList = Array.isArray(sample?.departmentList) ? sample.departmentList : []
+
+    let collected_by = sample?.sampleCollectedBy ?? null
+    let collected_at = sample?.sampleCollectedAt ?? null
+    let rejected_at = sample?.rejectedCollectionAt ?? null
+    let rejected_by = sample?.rejectedCollectionBy ?? null
+    let rejected_lab = 'Lab'
+    let rejected_notes = sample?.rejected_notes ?? null
+    let rejected_reason = sample?.collectedRejectionReason ?? null
+
+    if (sample?.overallStatus === 'received' && departmentList.length) {
+      const receivedDepartment = departmentList.find(department => department?.isSampleReceived)
+      if (receivedDepartment) {
+        collected_by = receivedDepartment?.sampleReceivedBy ?? collected_by
+        collected_at = receivedDepartment?.sampleReceivedAt ?? collected_at
+      }
+    } else if (sample?.overallStatus === 'rejected') {
+      const rejectionDepartment = departmentList.find(department => department?.rejectedLab)
+      if (rejectionDepartment) {
+        collected_by = rejectionDepartment?.rejectedBy ?? rejected_by
+        collected_at = rejectionDepartment?.rejectedAt ?? rejected_at
+        rejected_lab = rejectionDepartment?.departmentName ?? rejected_lab
+        rejected_notes = rejectionDepartment?.rejectedNotes ?? rejected_notes
+        rejected_reason = rejectionDepartment?.rejectedReason ?? rejected_reason
+      } else {
+        collected_by = rejected_by
+        collected_at = rejected_at
+      }
+    }
 
     return (
       <Box
@@ -533,7 +622,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
             sx={{
               fontSize: '15px',
               fontWeight: 600,
-              color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+              color: theme.palette.customColors?.OnSurfaceVariant
             }}
           >
             {sample.sampleName}
@@ -548,12 +637,13 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
                 fontWeight: 600,
                 fontSize: '12px',
                 height: 24,
-                border: sample.overallStatus === 'pending' ? `1px solid ${theme.palette.warning.main}` : 'none'
+                border: sample.overallStatus === 'pending' ? `1px solid ${tertiaryColor}` : 'none'
               }}
             />
           )}
         </Box>
 
+        {/* Rejection Details - Enhanced like mobile */}
         {sample.overallStatus === 'rejected' && (
           <Box
             sx={{
@@ -570,9 +660,9 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
                 mb: 0.5
               }}
             >
-              Rejected by Lab
+              {rejected_lab ? `Rejected by ${rejected_lab}` : 'Rejected by Lab'}
             </Typography>
-            {sample.collectedRejectionReason && (
+            {rejected_reason && (
               <Typography
                 sx={{
                   fontSize: '13px',
@@ -580,8 +670,55 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
                   color: theme.palette.error.dark
                 }}
               >
-                {sample.collectedRejectionReason}
+                {rejected_reason}
               </Typography>
+            )}
+            {rejected_notes && (
+              <>
+                <Divider sx={{ my: 1, borderColor: alpha(theme.palette.error.main, 0.2) }} />
+                <Typography
+                  sx={{
+                    fontSize: '12px',
+                    color: theme.palette.error.dark,
+                    fontStyle: 'italic'
+                  }}
+                >
+                  {rejected_notes}
+                </Typography>
+              </>
+            )}
+          </Box>
+        )}
+
+        {/* Collection Metadata - For received or rejected samples */}
+        {(sample.overallStatus === 'received' || sample.overallStatus === 'rejected') && collected_by && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <PersonOutlineIcon sx={{ fontSize: 16, color: theme.palette.customColors?.neutralSecondary }} />
+              <Typography
+                sx={{
+                  fontSize: '12px',
+                  color: theme.palette.customColors?.neutralSecondary
+                }}
+              >
+                {collected_by}
+              </Typography>
+            </Box>
+            {collected_at && (
+              <>
+                <Typography sx={{ color: theme.palette.customColors?.neutralSecondary, fontSize: '12px' }}>
+                  &bull;
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: '12px',
+                    color: theme.palette.customColors?.neutralSecondary
+                  }}
+                >
+                  {Utility.convertUtcToLocalReadableDate(collected_at)} &bull;{' '}
+                  {Utility.convertUTCToLocaltime(collected_at)}
+                </Typography>
+              </>
             )}
           </Box>
         )}
@@ -591,7 +728,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
             <Typography
               sx={{
                 fontSize: '13px',
-                color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                color: theme.palette.customColors?.OnSurfaceVariant
               }}
             >
               Tests:
@@ -602,10 +739,10 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
                 fontWeight: 600,
                 color:
                   sample.totalTestsCompleted === sample.totalTests
-                    ? theme.palette.text.primary
+                    ? primaryColor
                     : sample.totalTestsCompleted > 0
-                    ? theme.palette.warning.dark
-                    : theme.palette.error.main
+                    ? theme.palette.customColors?.moderateSecondary
+                    : errorColor
               }}
             >
               {sample.totalTestsCompleted}/{sample.totalTests}
@@ -613,7 +750,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
             <Typography
               sx={{
                 fontSize: '13px',
-                color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                color: theme.palette.customColors?.OnSurfaceVariant
               }}
             >
               Completed
@@ -623,7 +760,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
             <Typography
               sx={{
                 fontSize: '13px',
-                color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+                color: theme.palette.customColors?.neutralSecondary
               }}
             >
               Departments{' '}
@@ -631,7 +768,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
                 component='span'
                 sx={{
                   fontWeight: 600,
-                  color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                  color: theme.palette.customColors?.OnSurfaceVariant
                 }}
               >
                 {sample.departmentCount || 0}
@@ -660,7 +797,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
         <Typography
           sx={{
             fontSize: '14px',
-            color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary,
+            color: theme.palette.customColors?.OnSurfaceVariant,
             mb: 2
           }}
         >
@@ -672,22 +809,20 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
           <Typography
             sx={{
               fontSize: '13px',
-              color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+              color: theme.palette.customColors?.neutralSecondary
             }}
           >
             {note.UserName}
           </Typography>
         )}
         {note.UserName && note.NotesDateTime && (
-          <Typography sx={{ color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary }}>
-            &bull;
-          </Typography>
+          <Typography sx={{ color: theme.palette.customColors?.neutralSecondary }}>&bull;</Typography>
         )}
         {note.NotesDateTime && (
           <Typography
             sx={{
               fontSize: '13px',
-              color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+              color: theme.palette.customColors?.neutralSecondary
             }}
           >
             {Utility.convertUtcToLocalReadableDate(note.NotesDateTime)} &bull;{' '}
@@ -740,7 +875,7 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
     switch (activeTab) {
       case 0:
         return (
-          <Box sx={{ py: 3 }}>
+          <Box sx={{ pb: 3 }}>
             {renderSummaryCards()}
             {labDetails?.testDetails?.length > 0 ? (
               <Box sx={{ mt: 3, mx: 3 }}>
@@ -844,15 +979,12 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
               sx={{
                 fontWeight: 600,
                 fontSize: '20px',
-                color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                color: theme.palette.customColors?.OnSurfaceVariant
               }}
             >
               Lab Request Details
             </Typography>
-            <IconButton
-              onClick={onClose}
-              sx={{ color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary }}
-            >
+            <IconButton onClick={onClose} sx={{ color: theme.palette.customColors?.OnSurfaceVariant }}>
               <Icon icon='mdi:close' />
             </IconButton>
           </Box>
@@ -861,6 +993,23 @@ const LabRequestDetailsDrawer = ({ open, onClose, requestGuid, labCode }) => {
         <Box sx={{ flex: 1, overflowY: 'auto' }}>
           {loading ? (
             renderLoadingSkeleton()
+          ) : error ? (
+            <Box sx={{ py: 10, px: 4, textAlign: 'center' }}>
+              <Alert
+                severity='error'
+                sx={{ mb: 3, justifyContent: 'center' }}
+                action={
+                  <Button color='error' size='small' startIcon={<RefreshIcon />} onClick={fetchLabDetails}>
+                    Retry
+                  </Button>
+                }
+              >
+                {error}
+              </Alert>
+              <Button variant='outlined' onClick={onClose} sx={{ mt: 2 }}>
+                Go Back
+              </Button>
+            </Box>
           ) : labDetails ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
               {renderHeader()}

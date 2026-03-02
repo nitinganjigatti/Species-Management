@@ -10,23 +10,22 @@ const composeNecropsyNavigation = (
   const necropsyListing = {
     title: 'Necropsy Dashboard',
     path: '/necropsy/necropsy',
-    icon: 'streamline-ultimate:laboratory-drug-file'
+    icon: <img src='/images/necropsy/necropsy_dark.svg' alt='Necropsy Icon' />,
+    activeIcon: <img src='/images/necropsy/necropsy_white.svg' alt='Necropsy Icon' />
   }
 
   const carcassTransfer = {
     title: 'Carcass Transfer',
     path: '/necropsy/carcass-transfer',
-    icon: 'tabler:transfer',
-    icon: <img src='/icons/egg_module_icons/Dashboard_Dark.svg' alt='Dashboard Icon' />,
-    activeIcon: <img src='/icons/egg_module_icons/Dashboard_White.svg' alt='Dashboard Icon' />
+    icon: <img src='/images/necropsy/carcass_transfer_dark.svg' alt='Carcass Transfer Icon' />,
+    activeIcon: <img src='/images/necropsy/carcass_transfer_white.svg' alt='Carcass Transfer Icon' />
   }
 
   const NecropsyMasterParent = {
     title: 'Masters',
     key: 'necropsy-masters',
     path: '/necropsy/masters',
-    icon: <img src='/icons/egg_module_icons/Dashboard_Dark.svg' alt='Dashboard Icon' />,
-    activeIcon: <img src='/icons/egg_module_icons/Dashboard_White.svg' alt='Dashboard Icon' />,
+    icon: 'tabler:settings',
     children: []
   }
 

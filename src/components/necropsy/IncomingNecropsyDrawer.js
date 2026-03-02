@@ -110,6 +110,7 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
   const [acceptLoading, setAcceptLoading] = useState(false)
   const [showChecklistDrawer, setShowChecklistDrawer] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [showMobileNumber, setShowMobileNumber] = useState(false)
 
   const handleCopyNumber = number => {
     navigator.clipboard.writeText(number)
@@ -500,28 +501,50 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
                       </IconButton>
                     </Box>
                     <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1 }}>
-                      <Icon icon='mdi:phone' fontSize={18} color={theme.palette.customColors?.OnPrimary} />
-                      <Typography
+                      <IconButton
+                        size='small'
+                        onClick={() => setShowMobileNumber(prev => !prev)}
                         sx={{
-                          fontSize: '14px',
-                          fontWeight: 500,
-                          color: theme.palette.customColors.OnPrimary
+                          color: theme.palette.customColors?.OnPrimary,
+                          '&:hover': { backgroundColor: alpha(theme.palette.customColors?.OnPrimary, 0.1) }
                         }}
                       >
-                        {necropsyData?.transfer_details?.user_mobile_number}
-                      </Typography>
-                      <Tooltip title={copied ? 'Copied!' : 'Copy number'}>
-                        <IconButton
-                          size='small'
-                          onClick={() => handleCopyNumber(necropsyData?.transfer_details?.user_mobile_number)}
+                        <Icon icon='mdi:phone' fontSize={18} />
+                      </IconButton>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          overflow: 'hidden',
+                          maxWidth: showMobileNumber ? '200px' : '0px',
+                          opacity: showMobileNumber ? 1 : 0,
+                          transition: 'max-width 0.3s ease-in-out, opacity 0.3s ease-in-out'
+                        }}
+                      >
+                        <Typography
                           sx={{
-                            color: theme.palette.customColors?.OnPrimary,
-                            '&:hover': { backgroundColor: alpha(theme.palette.customColors?.OnPrimary, 0.1) }
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            color: theme.palette.customColors.OnPrimary,
+                            whiteSpace: 'nowrap'
                           }}
                         >
-                          <Icon icon={copied ? 'mdi:check' : 'mdi:content-copy'} fontSize={18} />
-                        </IconButton>
-                      </Tooltip>
+                          {necropsyData?.transfer_details?.user_mobile_number}
+                        </Typography>
+                        <Tooltip title={copied ? 'Copied!' : 'Copy number'}>
+                          <IconButton
+                            size='small'
+                            onClick={() => handleCopyNumber(necropsyData?.transfer_details?.user_mobile_number)}
+                            sx={{
+                              color: theme.palette.customColors?.OnPrimary,
+                              '&:hover': { backgroundColor: alpha(theme.palette.customColors?.OnPrimary, 0.1) }
+                            }}
+                          >
+                            <Icon icon={copied ? 'mdi:check' : 'mdi:content-copy'} fontSize={18} />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </Box>
                   </>
                 )}
@@ -1003,12 +1026,12 @@ const IncomingNecropsyDrawer = ({ open, onClose, transferId, onAcceptSuccess, hi
                     Cancelled
                   </Typography>
                 </Box>
-              ) : !hideAcceptButton ? (
+              ) : !hideAcceptButton && btnStatusData?.show_accept_button === 1 ? (
                 <Button
                   variant='contained'
                   fullWidth
                   color='primary'
-                  disabled={btnStatusLoading || acceptLoading || btnStatusData?.show_accept_button === 0}
+                  disabled={btnStatusLoading || acceptLoading}
                   onClick={handleAcceptNecropsy}
                   sx={{ p: 3, fontWeight: 600, backgroundColor: theme.palette.primary.main }}
                 >

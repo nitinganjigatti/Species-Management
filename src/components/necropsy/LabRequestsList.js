@@ -366,8 +366,9 @@ const LabRequestsList = ({ animalId, mortalityId, mortalityCreatedAt }) => {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                     <Box
                       sx={{
-                        width: 32,
-                        height: 32,
+                        width: 34,
+                        height: 34,
+                        p: 1,
                         borderRadius: '50%',
                         backgroundColor: isPriorityLow
                           ? theme.palette.customColors?.Secondary
@@ -377,11 +378,12 @@ const LabRequestsList = ({ animalId, mortalityId, mortalityCreatedAt }) => {
                         justifyContent: 'center'
                       }}
                     >
-                      <Icon
+                      {/* <Icon
                         icon={isPriorityLow ? 'mdi:flask-outline' : 'mdi:test-tube'}
                         fontSize={18}
                         color={theme.palette.customColors?.OnPrimary}
-                      />
+                      /> */}
+                      <img src={'/images/necropsy/labtest_white.svg'} alt='Necropsy icon' height={20} />
                     </Box>
                     <Typography
                       sx={{
@@ -464,14 +466,32 @@ const LabRequestsList = ({ animalId, mortalityId, mortalityCreatedAt }) => {
                             minWidth: 36,
                             height: 30,
                             borderRadius: '6px',
-                            backgroundColor: alpha(theme.palette.error.main, 0.2),
+                            backgroundColor: alpha(theme.palette.primary.main, 0.15),
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             px: 1.5
                           }}
                         >
-                          <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.error.main }}>
+                          <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.primary.main }}>
+                            {testStatusCounts.completed}
+                          </Typography>
+                        </Box>
+                        <Box
+                          sx={{
+                            minWidth: 36,
+                            height: 30,
+                            borderRadius: '6px',
+                            backgroundColor: alpha(theme.palette.customColors.ErrorContainer, 0.5),
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            px: 1.5
+                          }}
+                        >
+                          <Typography
+                            sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.customColors.Tertiary }}
+                          >
                             {testStatusCounts.pending}
                           </Typography>
                         </Box>
@@ -480,31 +500,21 @@ const LabRequestsList = ({ animalId, mortalityId, mortalityCreatedAt }) => {
                             minWidth: 36,
                             height: 30,
                             borderRadius: '6px',
-                            backgroundColor: alpha(theme.palette.warning.main, 0.25),
+                            backgroundColor: alpha(theme.palette.customColors.antzNotes, 0.7),
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             px: 1.5
                           }}
                         >
-                          <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.warning.dark }}>
+                          <Typography
+                            sx={{
+                              fontSize: '14px',
+                              fontWeight: 600,
+                              color: theme.palette.customColors.moderateSecondary
+                            }}
+                          >
                             {testStatusCounts.inProgress}
-                          </Typography>
-                        </Box>
-                        <Box
-                          sx={{
-                            minWidth: 36,
-                            height: 30,
-                            borderRadius: '6px',
-                            backgroundColor: alpha(theme.palette.success.main, 0.15),
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            px: 1.5
-                          }}
-                        >
-                          <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.success.main }}>
-                            {testStatusCounts.completed}
                           </Typography>
                         </Box>
                       </Box>
@@ -536,7 +546,7 @@ const LabRequestsList = ({ animalId, mortalityId, mortalityCreatedAt }) => {
                             minWidth: 36,
                             height: 30,
                             borderRadius: '6px',
-                            backgroundColor: theme.palette.success.main,
+                            backgroundColor: theme.palette.primary.main,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -572,7 +582,7 @@ const LabRequestsList = ({ animalId, mortalityId, mortalityCreatedAt }) => {
                             minWidth: 36,
                             height: 30,
                             borderRadius: '6px',
-                            backgroundColor: theme.palette.error.main,
+                            backgroundColor: theme.palette.customColors.Error,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
