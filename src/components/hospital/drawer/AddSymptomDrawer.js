@@ -59,7 +59,7 @@ const AddSymptomDrawer = ({
     } else {
       setRecordedDateTime(dayjs())
       setMinDate(admittedDate ? dayjs.utc(admittedDate).local().startOf('day') : null)
-      setMaxDate(null) // No max date restriction for non-discharged animals
+      setMaxDate(dayjs()) // Set max date to current time for non-discharged animals
     }
   }, [open, isDischarged, admittedDate, dischargedDate])
 
@@ -108,6 +108,22 @@ const AddSymptomDrawer = ({
           sx={{ pt: 4, pb: 2, borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`, height: '100vh' }}
         >
           <Box sx={{ p: 5, background: theme.palette.common.white, px: 5 }}>
+            <Typography
+              sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 0 }}
+            >
+              Date & Time
+            </Typography>
+            <Box sx={{ mb: 6 }}>
+              <MUIDateTimePicker
+                value={recordedDateTime}
+                onChange={newValue => setRecordedDateTime(newValue)}
+                label=''
+                minDateTime={minDate}
+                maxDateTime={maxDate}
+                ampm={true}
+              />
+            </Box>
+
             <Box sx={{ display: 'flex', gap: 2, mt: 0 }}>
               <Box>
                 <Typography
@@ -207,22 +223,6 @@ const AddSymptomDrawer = ({
 
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
-            >
-              Date & Time
-            </Typography>
-            <Box sx={{ mb: 6 }}>
-              <MUIDateTimePicker
-                value={recordedDateTime}
-                onChange={newValue => setRecordedDateTime(newValue)}
-                label=''
-                minDateTime={minDate}
-                maxDateTime={maxDate}
-                ampm={true}
-              />
-            </Box>
-
-            <Typography
-              sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1 }}
             >
               Notes
             </Typography>
