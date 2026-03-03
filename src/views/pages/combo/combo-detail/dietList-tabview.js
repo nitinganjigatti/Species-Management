@@ -237,7 +237,6 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
                 }}
                 hideFooterSelectedRowCount
                 disableColumnSelector={true}
-
                 //checkboxSelection={true}
                 disableColumnMenu={true}
                 onRowSelectionModelChange={handleSelectionChange}
@@ -266,12 +265,12 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
                     tableValue: 'recipe-List'
                   }
                 }}
-              />
+                showToolbar />
             </div>
           </>
         )}
       </>
-    )
+    );
   }
 
   return (

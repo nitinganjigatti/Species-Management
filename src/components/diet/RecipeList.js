@@ -247,12 +247,11 @@ const RecipeList = props => {
           marginTop: fromrow !== 'rowedit_recipe' ? 30 : 12,
 
           //height: fromrow !== 'rowedit_recipe' ? '70%' : '80%',
-          height: fromrow !== 'rowedit_recipe' ? 'calc(100vh - 140px)' : '80%',
+          height: fromrow !== 'rowedit_recipe' ? 'calc(100vh - 120px)' : '80%',
           overflowY: 'auto',
           bgcolor: theme.palette.customColors.bodyBg,
           p: 4
         }}
-
         //onScroll={handleScroll}
         onScroll={fromrow !== 'rowedit_recipe' ? handleScroll : undefined}
       >

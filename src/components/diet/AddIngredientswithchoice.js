@@ -14,7 +14,9 @@ import {
   Avatar,
   Card,
   InputAdornment,
-  Tooltip
+  Tooltip,
+  Autocomplete,
+  Paper
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import ClearIcon from '@mui/icons-material/Clear'
@@ -23,11 +25,26 @@ import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
 import Divider from '@mui/material/Divider'
-import { Add, Remove } from '@mui/icons-material'
+import { Add, Remove, KeyboardArrowDown } from '@mui/icons-material'
 import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import { palette } from '@mui/system'
+
+const CustomPaper = props => {
+  const { children, isLoading, ...other } = props
+
+  return (
+    <Paper {...other}>
+      {children}
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+          <CircularProgress size={20} />
+        </Box>
+      )}
+    </Paper>
+  )
+}
 
 const AddIngredientswithChoice = props => {
   const {
@@ -58,7 +75,8 @@ const AddIngredientswithChoice = props => {
     sort,
     onLoadMore,
     loadingfeed,
-    feedtotalCount
+    feedtotalCount,
+    handleFeedSearch
   } = props
   const theme = useTheme()
   const menuRef = useRef(null)
@@ -70,6 +88,7 @@ const AddIngredientswithChoice = props => {
   const [cutSize, setCutSize] = useState({})
   const [size, setSize] = useState({})
   const [visibility, setVisibility] = useState([])
+  const [validationErrors, setValidationErrors] = useState([])
 
   const [selectedDays, setSelectedDays] = useState([])
 
@@ -114,11 +133,30 @@ const AddIngredientswithChoice = props => {
     }
   }, [feedType, loadingfeed])
 
-  const handleSidebarClose = () => {
+  const handleSidebarClose = async () => {
     setSearchValue('')
     parentHandleSidebarClose()
     setFeed('')
-    debouncedSearch('')
+    // debouncedSearch('')
+    setReachedEnd(true)
+    handleFeedSearch('')
+
+    try {
+      const params = { page: 1, limit: 20, q: '', sort, feed_type: '', status: 1 }
+      const res = await getIngredientList({ params })
+      if (res?.data?.result?.length > 0) {
+        setIngredientList(res.data.result)
+        setIngredientPage(1)
+        setTotalCount(res?.data?.total_count)
+        setReachedEnd(false)
+      } else {
+        setIngredientList([])
+        setReachedEnd(false)
+      }
+    } catch (error) {
+      console.error(error)
+      setReachedEnd(false)
+    }
   }
 
   const handleChangeTopFeed = async event => {
@@ -149,6 +187,7 @@ const AddIngredientswithChoice = props => {
   const handleClearFeed = async () => {
     setFeed('')
     setReachedEnd(true)
+    handleFeedSearch('')
 
     try {
       const params = { page: ingredientPage, q: searchValue, sort, feed_type: '', status: 1 }
@@ -202,6 +241,12 @@ const AddIngredientswithChoice = props => {
 
     if (newUom) {
       handelCardSelection(event, item, null, null, newUom, selectedDays)
+      setValidationErrors(prevErrors => {
+        if (prevErrors.includes(item.id)) {
+          return prevErrors.filter(id => id !== item.id)
+        }
+        return prevErrors
+      })
     }
   }
 
@@ -277,6 +322,13 @@ const AddIngredientswithChoice = props => {
     ) {
       toast.error('Please select a Cutsize', {
         duration: 1000
+      })
+      
+      const missingCutsizeCards = selectedCardIngchoice.filter(card => !size[card.ingredient_id])
+      setValidationErrors(prev => {
+        const newErrors = new Set(prev)
+        missingCutsizeCards.forEach(c => newErrors.add(c.ingredient_id))
+        return Array.from(newErrors)
       })
     } else if (selectedCardIngchoice.length >= 1) {
       if (allIngredientchoiceSelectedValues.some(all => all.mealid === checkid) && ingType === 'addingIndex') {
@@ -448,6 +500,8 @@ const AddIngredientswithChoice = props => {
 
         return newSize
       })
+      
+      setValidationErrors(prevErrors => prevErrors.filter(id => id !== itemId))
     }
   }
 
@@ -463,18 +517,28 @@ const AddIngredientswithChoice = props => {
 
   const handleDayClick = day => {
     if (day.id === 0) {
-      const allDayIds = Day.map(day => day.id)
-      setSelectedDays(allDayIds)
-    } else if (selectedDays.length === 7 && selectedDays.includes(0)) {
-      setSelectedDays(selectedDays.filter(selectedDayId => selectedDayId !== day.id))
-    } else if (selectedDays.length === 1 && selectedDays.includes(day.id)) {
-      return
-    } else if (day.id !== 0 && selectedDays.includes(0)) {
-      setSelectedDays(selectedDays.filter(selectedDayId => selectedDayId !== day.id && selectedDayId !== 0))
+      if (selectedDays.includes(0)) {
+        setSelectedDays([])
+      } else {
+        const allDayIds = Day.map(d => d.id)
+        setSelectedDays(allDayIds)
+      }
     } else {
-      const updatedSelection = selectedDays.includes(day.id)
-        ? selectedDays.filter(selectedDayId => selectedDayId !== day.id)
-        : [...selectedDays, day.id]
+      let updatedSelection = [...selectedDays]
+      if (updatedSelection.includes(day.id)) {
+        updatedSelection = updatedSelection.filter(id => id !== day.id && id !== 0)
+      } else {
+        updatedSelection.push(day.id)
+      }
+
+      const allStandardDays = Day.filter(d => d.id !== 0).map(d => d.id)
+      const hasAllStandardDays = allStandardDays.every(id => updatedSelection.includes(id))
+
+      if (hasAllStandardDays && !updatedSelection.includes(0)) {
+        updatedSelection.push(0)
+      } else if (!hasAllStandardDays && updatedSelection.includes(0)) {
+        updatedSelection = updatedSelection.filter(id => id !== 0)
+      }
 
       setSelectedDays(updatedSelection)
     }
@@ -483,6 +547,12 @@ const AddIngredientswithChoice = props => {
   const [listOfIngredient, setListOfIngredient] = useState([])
 
   const handelSetIngredient = () => {
+    const activeDays = selectedDays.filter(d => d !== 0)
+    if (activeDays.length === 0) {
+      toast.error('Please select at least one feeding day.')
+      return
+    }
+
     setShowDays(false)
     setOpenIngredientchoice(false)
 
@@ -536,6 +606,24 @@ const AddIngredientswithChoice = props => {
 
         setListOfIngredient(updatedListOfIngredient)
         onChange(updatedListOfIngredient)
+
+        setFeed('')
+        handleFeedSearch('')
+        setSearchValue('')
+        setReachedEnd(true)
+
+        const params = { page: 1, limit: 20, q: '', sort, feed_type: '', status: 1 }
+        getIngredientList({ params }).then(res => {
+          if (res?.data?.result?.length > 0) {
+            setIngredientList(res.data.result)
+            setIngredientPage(1)
+            setTotalCount(res?.data?.total_count)
+            setReachedEnd(false)
+          } else {
+            setIngredientList([])
+            setReachedEnd(false)
+          }
+        })
 
         toast.success('Item updated successfully!')
 
@@ -596,7 +684,25 @@ const AddIngredientswithChoice = props => {
 
         return updatedList
       })
+
+      setFeed('')
+      handleFeedSearch('')
       setSearchValue('')
+      setReachedEnd(true)
+
+      const params = { page: 1, limit: 20, q: '', sort, feed_type: '', status: 1 }
+      getIngredientList({ params }).then(res => {
+        if (res?.data?.result?.length > 0) {
+          setIngredientList(res.data.result)
+          setIngredientPage(1)
+          setTotalCount(res?.data?.total_count)
+          setReachedEnd(false)
+        } else {
+          setIngredientList([])
+          setReachedEnd(false)
+        }
+      })
+
       setSelectedCardIngredientchoice([])
       setVisibility([])
       setSelectFeed({})
@@ -604,7 +710,8 @@ const AddIngredientswithChoice = props => {
     }
   }
 
-  let sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+  // let sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+  let sortedIngredientList = [...ingredientList]
 
   if (fromrow !== '' && fromrow === 'rowedit_ingredientwithchoice') {
     sortedIngredientList = sortedIngredientList.filter(
@@ -692,36 +799,132 @@ const AddIngredientswithChoice = props => {
             </Box>
             <Box sx={{ width: '184px' }}>
               <FormControl fullWidth>
-                <InputLabel id='demo-simple-select-label'>Feed</InputLabel>
-                <Select
-                  labelId='demo-simple-select-label'
-                  id='demo-simple-select'
-                  value={feed}
-                  label='Feed'
-                  onChange={handleChangeTopFeed}
+                <Autocomplete
+                  value={feedType?.find(option => option?.id === feed) || null}
                   sx={{
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: theme.palette.customColors.Outline
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: theme.palette.customColors.Outline
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: theme.palette.primary.main
-                    },
-                    '&.Mui-focused .MuiSelect-select': {
-                      color: theme.palette.primary.main
-                    },
+                    width: '100%',
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: '0px'
+                      borderRadius: '8px',
+                      '& .MuiAutocomplete-endAdornment': {
+                        right: '16px'
+                      },
+                      '& fieldset': {
+                        borderColor: theme.palette.customColors.Outline
+                      },
+                      '&:hover fieldset': {
+                        borderColor: theme.palette.customColors.Outline
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: theme.palette.primary.main
+                      }
                     }
                   }}
-                  MenuProps={{
-                    PaperProps: {
-                      style: {
-                        maxHeight: 300,
-                        width: 184
-                      },
+                  size='medium'
+                  id='feed-autocomplete'
+                  options={feedType}
+                  getOptionLabel={option => option.feed_type_name || ''}
+                  isOptionEqualToValue={(option, value) => option.id === value?.id}
+                  onChange={(event, newValue) => {
+                    handleChangeTopFeed({ target: { value: newValue?.id || '' } })
+                  }}
+                  onInputChange={(event, newInputValue, reason) => {
+                    if (reason === 'input' || newInputValue === '') {
+                      handleFeedSearch(newInputValue)
+                    }
+                  }}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      label='Feed'
+                      variant='outlined'
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '8px',
+                          '& .MuiAutocomplete-endAdornment': {
+                            right: '16px'
+                          },
+                          '& fieldset': {
+                            borderColor: theme.palette.customColors.Outline
+                          },
+                          '&:hover fieldset': {
+                            borderColor: theme.palette.customColors.Outline
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: theme.palette.primary.main
+                          }
+                        },
+                        '& .MuiInputLabel-root': {
+                          '&.Mui-focused': {
+                            color: theme.palette.primary.main
+                          }
+                        }
+                      }}
+                    />
+                  )}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.id}>
+                      <Tooltip title={option?.feed_type_name || ''} arrow placement='right'>
+                        <Box
+                          // sx={{
+                          //   display: 'block',
+                          //   maxWidth: 200,
+                          //   overflowX: 'auto',
+                          //   whiteSpace: 'nowrap',
+                          //   scrollbarWidth: 'thin',
+                          //   '&::-webkit-scrollbar': {
+                          //     height: '6px'
+                          //   },
+                          //   '&::-webkit-scrollbar-thumb': {
+                          //     backgroundColor: theme.palette.grey[400],
+                          //     borderRadius: '3px'
+                          //   },
+                          //   '&::-webkit-scrollbar-thumb:hover': {
+                          //     backgroundColor: theme.palette.grey[600]
+                          //   }
+                          // }}
+
+                          sx={{
+                            maxWidth: 200,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {option?.feed_type_name}
+                        </Box>
+                      </Tooltip>
+                    </li>
+                  )}
+                  popupIcon={
+                    feed ? (
+                      <IconButton
+                        aria-label='clear feed selection'
+                        onClick={handleClearFeed}
+                        edge='end'
+                        size='small'
+                        sx={{
+                          position: 'absolute',
+                          right: '0px',
+                          '&:hover': {
+                            backgroundColor: 'transparent'
+                          }
+                        }}
+                      >
+                        <ClearIcon />
+                      </IconButton>
+                    ) : (
+                      <KeyboardArrowDown />
+                    )
+                  }
+                  loading={loadingfeed}
+                  loadingText='Loading...'
+                  disableClearable
+                  slots={{
+                    paper: CustomPaper
+                  }}
+                  slotProps={{
+                    listbox: {
                       onScroll: e => {
                         const { scrollTop, scrollHeight, clientHeight } = e.target
                         const nearBottom = scrollHeight - scrollTop - clientHeight < 20
@@ -729,62 +932,19 @@ const AddIngredientswithChoice = props => {
                         if (nearBottom && !loadingfeed && feedType.length < feedtotalCount) {
                           onLoadMore()
                         }
+                      },
+                      style: {
+                        maxHeight: 300
                       }
                     },
-                    //getContentAnchorEl: null,
-                    anchorOrigin: {
-                      vertical: 'bottom',
-                      horizontal: 'left'
-                    },
-                    transformOrigin: {
-                      vertical: 'top',
-                      horizontal: 'left'
+                    paper: {
+                      isLoading: loadingfeed,
+                      style: {
+                        width: 184
+                      }
                     }
                   }}
-                  endAdornment={
-                    feed ? (
-                      <InputAdornment position='end' sx={{ position: 'absolute', right: '30px' }}>
-                        <IconButton aria-label='clear feed selection' onClick={handleClearFeed} edge='end'>
-                          <ClearIcon />
-                        </IconButton>
-                      </InputAdornment>
-                    ) : (
-                      ''
-                    )
-                  }
-                >
-                  {feedType?.map(feedList => (
-                    <MenuItem
-                      key={feedList?.key}
-                      value={feedList?.id}
-                      sx={{
-                        display: 'block',
-                        maxWidth: 200,
-                        overflowX: 'auto',
-                        whiteSpace: 'nowrap',
-                        scrollbarWidth: 'thin',
-                        '&::-webkit-scrollbar': {
-                          height: '6px'
-                        },
-                        '&::-webkit-scrollbar-thumb': {
-                          backgroundColor: theme.palette.grey[400],
-                          borderRadius: '3px'
-                        },
-                        '&::-webkit-scrollbar-thumb:hover': {
-                          backgroundColor: theme.palette.grey[600]
-                        }
-                      }}
-                    >
-                      {feedList?.feed_type_name}
-                    </MenuItem>
-                  ))}
-
-                  {loadingfeed && (
-                    <MenuItem disabled sx={{ justifyContent: 'center' }}>
-                      Loading...
-                    </MenuItem>
-                  )}
-                </Select>
+                />
               </FormControl>
             </Box>
           </Box>
@@ -798,7 +958,8 @@ const AddIngredientswithChoice = props => {
             marginTop: 35,
             height: 'calc(100vh - 245px)',
             overflowY: 'auto',
-            bgcolor: theme.palette.customColors.bodyBg
+            bgcolor: theme.palette.customColors.bodyBg,
+            pb: '100px'
           }}
           onScroll={fromrow !== 'rowedit_ingredientwithchoice' ? handleScroll : undefined}
         >
@@ -815,9 +976,11 @@ const AddIngredientswithChoice = props => {
                   mx: '24px',
                   borderRadius: '8px',
                   my: 4,
-                  ...(selectedCardIngchoice.some(card => card.ingredient_id === item.id) && {
-                    border: `2px solid ${theme.palette.primary.main}`
-                  })
+                  border: validationErrors.includes(item.id) 
+                    ? '2px solid red' 
+                    : selectedCardIngchoice.some(card => card.ingredient_id === item.id)
+                      ? `2px solid ${theme.palette.primary.main}`
+                      : 'none'
                 }}
                 onClick={event => handelShowBottom(event, item, index)}
               >
@@ -1131,7 +1294,7 @@ const AddIngredientswithChoice = props => {
                 </>
               </Box>
             ))
-          ) : sortedIngredientList?.length <= 0 && searchValue ? (
+          ) : sortedIngredientList?.length <= 0 ? (
             <Box
               sx={{
                 display: 'flex',

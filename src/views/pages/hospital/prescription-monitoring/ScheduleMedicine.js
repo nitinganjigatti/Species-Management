@@ -289,7 +289,7 @@ export default function ScheduleMedicine({
           }}
         >
           <CircularProgress />
-          <Typography>Checking for adverse side effects...</Typography>
+          {/* <Typography>Checking for adverse side effects...</Typography> */}
         </Paper>
       </Box>
     )
@@ -475,13 +475,13 @@ export default function ScheduleMedicine({
                     label='Quantity*'
                     placeholder='Enter quantity'
                     type='number'
-                    selectWidth={{ xs: 80, sm: 80, md: 80, lg: 95 }}
+                    selectWidth={{ xs: 80, sm: 100, md: 100, lg: 120 }}
                     getOptionLabel={option => option.label}
                     getOptionValue={option => option.value}
                     sx={commonFieldStyles}
                     size='large'
                     required
-                    maxDecimals={2}
+                    maxDecimals={4}
                   />
                 </Grid>
 
@@ -651,6 +651,7 @@ export default function ScheduleMedicine({
             )}
 
             <Box sx={{ mb: 3 }}>
+              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 ,textAlign:'left'}}>Notes</Typography>
               <ControlledTextArea
                 fullWidth={true}
                 sx={{
@@ -726,7 +727,8 @@ export default function ScheduleMedicine({
                     />
                   </Grid>
                 </Grid>
-                <Box sx={{ mb: 3 }}>
+                <Box sx={{ mb: 3}}>
+                  <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2,textAlign:'left' }}>Notes</Typography>
                   <ControlledTextArea
                     fullWidth={true}
                     sx={{

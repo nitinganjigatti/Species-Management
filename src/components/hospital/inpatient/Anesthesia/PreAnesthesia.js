@@ -36,7 +36,7 @@ function PreAnesthesia({
 
   const normalizeName = name => {
     if (!name) return ''
-    return name.toLowerCase().replace(/\s+/g, '').trim()
+    return name.toLowerCase().replace(/\s+/g, '').trim();
   }
 
   const handleAddCustomItem = (newItem, currentItems) => {

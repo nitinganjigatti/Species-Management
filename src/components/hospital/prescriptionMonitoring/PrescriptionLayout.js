@@ -132,6 +132,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         medical_record_id: medicineDetails?.medical_record_id,
         prescription_id: medicineDetails?.medicine_id, // medicine_id
         type: 'prescription',
+        request_from: 'hospital_module',
         status: 'stop',
         note: data.note,
         side_effect: data.hasAdverseEffects === 'yes',
@@ -175,7 +176,9 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
       const payload = {
         administer_id: entryId,
-        group_prescription_id: medicineDetails?.group_prescription_id || medicineDetails?.prescription_id
+        group_prescription_id: medicineDetails?.group_prescription_id || medicineDetails?.prescription_id,
+        request_from: 'hospital_module',
+        hospital_id: hospital?.id || ''
       }
 
       const response = await undoPrescription(payload)
@@ -210,7 +213,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         animal_id: animal_id || '',
         medical_type: 'prescription',
         type: 'active',
-        medical_record_id: medical_record_id || '',
+        // medical_record_id: medical_record_id || '',
         generate_for_date: selectedDate,
         medical_record_id: isCurrentMedicalRecord ? medical_record_id : '',
         hospital_case_id: id || ''
@@ -252,7 +255,10 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         prescription_id: data?.id || medicineDetails?.prescription_id,
         date: data?.customDate || detailSelectedDate || selectedDate,
         group_prescription_id: data?.id || medicineDetails?.prescription_id,
-        administrative_ids: data?.administrative_ids || administrativeIds || ''
+        administrative_ids: data?.administrative_ids || administrativeIds || '',
+
+        // request_from: 'hospital',
+        hospital_id: hospital?.id || ''
 
         // medical_record_id: data?.medical_record_id || medicineDetails?.medical_record_id,
         // medicine_id: data?.medicine_id || medicineDetails?.medicine_id
@@ -347,6 +353,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
 
       // Process the form data based on action type
       const payload = {
+        hospital_id: hospital?.id || '',
         medical_record_id: JSON.stringify([medicineDetails?.medical_record_id]),
         medicine_id: JSON.stringify([selectedSlotData?.timeSlot?.medicine_id || medicineDetails?.medicine_id]),
         type: 'single',
@@ -426,7 +433,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       const wastageUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
         item => item.uom_abbr === formData?.wastageUnit
       )
-      
+
       const payload = {
         record_date: date
           ? `${date} ${toISTISOString(new Date()).replace('T', ' ').slice(11, 19)}`
@@ -621,6 +628,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       const medicalRecordIds = data?.map(item => item?.medical_record_id)
 
       const payload = {
+        hospital_id: hospital?.id || '',
         administer_date: selectedDate,
         type: 'single',
         request_from: 'hospital_module',
@@ -673,6 +681,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       )
 
       const payload = {
+        hospital_id: hospital?.id || '',
         medical_record_id: JSON.stringify(medicalRecordIds),
         medicine_id: data?.length > 1 ? JSON.stringify(medicineIds) : JSON.stringify([data[0]?.medicine_id]),
         type: 'single',
@@ -734,7 +743,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
               value: item.key,
               unit_name: item.label,
               uom_abbr: item.key
-            })) || [],
+            }))?.sort((a, b) => a.label?.localeCompare(b.label)) || [],
           prescriptionDuration: response?.data?.prescriptionDuration?.map(item => ({ ...item, value: item.key })) || [],
           prescriptionMeasurementType:
             response?.data?.prescriptionMeasurementType?.map(item => ({
@@ -747,7 +756,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
               ...item,
               label: item.delivery,
               value: item.route_abbr
-            })) || []
+            }))?.sort((a, b) => a.label?.localeCompare(b.label)) || []
         })
       } else {
         setMedicalMasterData([])
@@ -792,6 +801,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       const administerIds = JSON.stringify(selectedItems.map(item => item?.administritive_id).filter(Boolean))
 
       const payload = {
+        hospital_id: hospital?.id || '',
         medical_record_id: JSON.stringify([medicineDetails?.medical_record_id]),
         medicine_id: JSON.stringify([medicineData?.medicine_id]),
         type: 'single',
@@ -857,6 +867,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       const administerIds = JSON.stringify(selectedItems.map(item => item?.administritive_id).filter(Boolean))
 
       const payload = {
+        hospital_id: hospital?.id || '',
         medical_record_id: JSON.stringify([medicineDetails?.medical_record_id]),
         medicine_id: JSON.stringify([medicineData?.medicine_id]),
         type: 'single',
@@ -969,6 +980,18 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
     })
   }
 
+  const handleUpdateMedicine = async data => {
+    const today = new Date().toISOString().split('T')[0]
+    router.push({
+      pathname: `/hospital/inpatient/${id}/schedule-prescription`,
+      query: {
+        fromPage: 'editPrescription',
+        date: date ? date : today,
+        prescriptionId: medicineDetails?.prescription_id
+      }
+    })
+  }
+
   useEffect(() => {
     if (hospital?.id) fetchMedicalMasterData()
   }, [hospital?.id, fetchMedicalMasterData])
@@ -984,7 +1007,6 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
             category={category}
-
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -1063,7 +1085,6 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         label='Add Dosage'
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
-
         // isLoading={isAddNewDosageLoading}
         scheduleDosage={{
           data: {
@@ -1133,6 +1154,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         batchLoading={batchLoading}
         handleBatchSearch={handleBatchSearch}
         isControlledSubstance={medicineDetails?.controlled_substance == 1}
+        onUpdateMedicine={handleUpdateMedicine}
       />
       <AdministerOrSkipModal
         open={isAdministerOrSkipPopupOpen}

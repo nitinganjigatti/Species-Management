@@ -265,8 +265,8 @@ export const ProductDetail = ({
               )}
             </Grid>
           </div>
-        )
+        );
       })}
     </Grid>
-  )
+  );
 }

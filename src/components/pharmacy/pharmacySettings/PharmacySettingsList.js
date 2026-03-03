@@ -21,7 +21,9 @@ import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const PharmacySettingsList = () => {
   const { userData } = useContext(AuthContext)
-  const pharmacyRole = userData?.roles?.settings?.add_pharmacy
+  const { selectedPharmacy } = usePharmacyContext()
+
+  const pharmacyRole = userData?.roles?.settings?.add_pharmacy && selectedPharmacy?.type === 'central'
 
   const [tableData, setTableData] = useState([])
   const [usersList, setUsersList] = useState([])

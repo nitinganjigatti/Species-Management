@@ -58,7 +58,7 @@ const Slides = ({ sliderData }) => {
     return str
       .replace(/_/g, ' ') // Replace underscores with spaces
       .toLowerCase() // Convert the entire string to lowercase
-      .replace(/\b\w/g, char => char.toUpperCase()) // Capitalize the first letter of each word
+      .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize the first letter of each word
   }
 
   return (

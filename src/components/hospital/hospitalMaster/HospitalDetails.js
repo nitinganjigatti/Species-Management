@@ -15,6 +15,7 @@ import AddHospital from 'src/views/pages/hospital/masters/hospital/AddHospital'
 import { StatusChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { addHospitalMaster, getHospitalMaster } from 'src/lib/api/hospital/hospitalMaster'
+import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 
 const statusOptions = [
   { label: 'All Status', value: 'all' },
@@ -27,17 +28,21 @@ const HospitalDetails = () => {
   const router = useRouter()
   const queryClient = useQueryClient()
 
-  const { page, limit, q, active } = router.query
+  const { page, limit, q, active, sort_order, sort_by } = router.query
 
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [searchValue, setSearchValue] = useState(q || '')
+  const [sitesLoading, setSitesLoading] = useState(false)
+  const [sites, setSites] = useState([])
 
   const [filters, setFilters] = useState({
     page: page ? Number(page) : 1,
     limit: limit ? Number(limit) : 50,
-    q: q ?? '',
-    active: active !== undefined ? Number(active) : undefined
+    q: q || '',
+    active: active !== undefined ? Number(active) : undefined,
+    sort_order: sort_order || 'desc',
+    sort_by: sort_by || 'occupants'
   })
 
   //  URL update helper function
@@ -58,6 +63,32 @@ const HospitalDetails = () => {
     [router]
   )
 
+  // Fetch sites
+  const fetchSites = useCallback(async (q = '') => {
+    try {
+      setSitesLoading(true)
+      const params = { q, limit: 10, page_no: 1 }
+      const res = await getZooWiseSiteLists(params)
+      if (res?.success) {
+        const formatted = res?.data?.result?.map(item => ({
+          value: item?.site_id,
+          label: item?.site_name
+        }))
+        setSites(formatted)
+      } else {
+        setSites([])
+      }
+    } catch (error) {
+      console.error('Error fetchSites:', error?.message)
+    } finally {
+      setSitesLoading(false)
+    }
+  }, [])
+
+  const debouncedFetchSites = useMemo(() => {
+    return debounce(q => fetchSites(q), 500)
+  }, [fetchSites])
+
   const {
     data: hospitalData,
     isFetching: isLoadingHospitals,
@@ -70,7 +101,9 @@ const HospitalDetails = () => {
           page: filters.page,
           limit: filters.limit,
           q: filters.q,
-          ...(filters.active !== undefined ? { active: filters.active } : {})
+          ...(filters.active !== undefined ? { active: filters.active } : {}),
+          sort_order: filters.sort_order,
+          sort_by: filters.sort_by
         }
       }),
     onError: error => {
@@ -179,6 +212,19 @@ const HospitalDetails = () => {
     }
   }
 
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      const updated = {
+        ...filters,
+        sort_order: newModel[0].sort,
+        sort_by: newModel[0].field,
+        page: 1
+      }
+      setFilters(updated)
+      updateUrlParams(updated)
+    }
+  }
+
   //  Add serial numbers to each row based on current pagination
   const indexedRows = useMemo(() => {
     return rows.map((row, index) => ({
@@ -219,17 +265,15 @@ const HospitalDetails = () => {
       )
     },
     {
-      minWidth: 100,
-      field: 'total_rooms',
+      minWidth: 120,
+      field: 'rooms',
       headerName: 'Rooms',
-      sortable: false,
       renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.total_rooms ?? '-'}</StyledTypography>
     },
     {
-      minWidth: 120,
-      field: 'total_occupants',
+      minWidth: 150,
+      field: 'occupants',
       headerName: 'Occupants',
-      sortable: false,
       renderCell: params => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.total_occupants ?? '-'}</StyledTypography>
     },
     {
@@ -324,6 +368,22 @@ const HospitalDetails = () => {
     })
   }
 
+  // Fetch sites when drawer opens
+  useEffect(() => {
+    if (openDrawer) {
+      fetchSites('')
+    }
+  }, [openDrawer, fetchSites])
+
+  // cleanup debounced fetchSites on unmount
+  useEffect(() => {
+    return () => {
+      if (debouncedFetchSites?.cancel) {
+        debouncedFetchSites.cancel()
+      }
+    }
+  }, [debouncedFetchSites])
+
   // refetch on when filters updates
   useEffect(() => {
     if (!router.isReady) return
@@ -410,6 +470,7 @@ const HospitalDetails = () => {
           paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
           setPaginationModel={handlePaginationChange}
           getRowClassName={getRowClassName}
+          handleSortModel={handleSortModel}
           externalTableStyle={{
             '& .inactive-row': {
               backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.1),
@@ -426,6 +487,9 @@ const HospitalDetails = () => {
           handleSidebarClose={() => setOpenDrawer(false)}
           handleSubmitData={handleSubmitData}
           submitLoader={submitLoader}
+          sites={sites}
+          sitesLoading={sitesLoading}
+          onSiteSearch={debouncedFetchSites}
         />
       )}
     </>

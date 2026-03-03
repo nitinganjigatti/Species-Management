@@ -74,6 +74,7 @@ function UserAvatarDetails({
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
+                      maxWidth: '100%',
                       ...(selectedAvatarSize?.user_name || {})
                     }}
                   >
@@ -131,7 +132,14 @@ function UserAvatarDetails({
             )}
 
             {date && (
-              <Typography variant='caption' sx={{ lineHeight: 1.6667, ...(selectedAvatarSize?.date || {}) }}>
+              <Typography
+                variant='caption'
+                sx={{
+                  lineHeight: 1.6667,
+                  color: text_color ?? '',
+                  ...(selectedAvatarSize?.date || {})
+                }}
+              >
                 <span>
                   {dateType === 'created' ? (
                     <span style={{ color: theme.palette.customColors.neutralSecondary }}>

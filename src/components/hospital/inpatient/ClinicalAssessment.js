@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react'
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { Box, Button, Typography, CircularProgress } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import Search from 'src/views/utility/Search'
@@ -22,6 +22,10 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
@@ -34,7 +38,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [localSearch, setLocalSearch] = useState('')
-  const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true') 
+  const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true')
   const [records, setRecords] = useState([])
   const [tabCounts, setTabCounts] = useState({ Active: 0, Resolved: 0, All: 0 })
   const [total, setTotal] = useState(0)
@@ -51,6 +55,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const [noteRecord, setNoteRecord] = useState(null)
   const [isNotesOpen, setIsNotesOpen] = useState(false)
   const [activityLoader, setActivityLoader] = useState(false)
+  const [recordedDateTime, setRecordedDateTime] = useState(dayjs())
 
   const [clinicalAsmnt, setClinicalAsmnt] = useState('')
   const [prognosisVal, setPrognosisValue] = useState('')
@@ -77,7 +82,8 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
         med_id: selectedAssessment?.medical_record_id,
         type: 'DIAGNOSIS',
         note: notes || '',
-        note_id: noteRecord?.note_id || ''
+        note_id: noteRecord?.note_id || '',
+        hospital_case_id: id || ''
       }
       const response = await updateNotes(payload)
 
@@ -209,7 +215,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
           setRecords(prev => (pageNum === 1 ? newItems : [...prev, ...newItems]))
           setHasMore(newItems.length === PAGE_SIZE)
         } else {
-          throw new Error(res.message || 'Failed to fetch clinical assessments')
+          console.error(res.message || 'Failed to fetch clinical assessments')
         }
       } catch (error) {
         console.error('Error fetching clinical assessments:', error)
@@ -243,10 +249,64 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const handleTabChange = newValue => {
     setCurrentTab(newValue)
     setPage(1)
-    setRecords([])
+
+    //setRecords([])
   }
 
   const filteredRecords = records
+
+  const assessmentChangeState = useMemo(() => {
+    if (!selectedAssessment) {
+      return {
+        isClinicalAsmntChanged: false,
+        isPrognosisChanged: false,
+        isChronicChanged: false,
+        isStatusChanged: false,
+        isNotesChanged: false,
+        // isRecordedDateTimeChanged: false,
+        hasChanges: false
+      }
+    }
+
+    const isDiagnosis = clinicalAsmnt?.toLowerCase() === 'diagnosis'
+    const initialRecordedDateTime =
+      selectedAssessment?.additional_info?.recorded_date_time || selectedAssessment?.created_at || null
+
+    const isClinicalAsmntChanged =
+      clinicalAsmnt?.toLowerCase() !== selectedAssessment?.clinical_assessment?.toLowerCase()
+
+    const isPrognosisChanged = isDiagnosis
+      ? prognosisVal?.toLowerCase() !== selectedAssessment?.additional_info?.prognosis?.toLowerCase()
+      : false
+
+    const isChronicChanged = isDiagnosis ? chronicVal !== selectedAssessment?.additional_info?.isChronic : false
+
+    const isStatusChanged = status?.toLowerCase() !== selectedAssessment?.additional_info?.status?.toLowerCase()
+
+    const isNotesChanged = (notes || '').trim() !== (selectedAssessment?.additional_info?.note || '').trim()
+
+    // const isRecordedDateTimeChanged = initialRecordedDateTime
+    //   ? !dayjs(recordedDateTime).isSame(dayjs.utc(initialRecordedDateTime).local(), 'second')
+    //   : false
+
+    const hasChanges =
+      isClinicalAsmntChanged ||
+      isPrognosisChanged ||
+      isChronicChanged ||
+      isStatusChanged ||
+      isNotesChanged
+      // || isRecordedDateTimeChanged
+
+    return {
+      isClinicalAsmntChanged,
+      isPrognosisChanged,
+      isChronicChanged,
+      isStatusChanged,
+      isNotesChanged,
+      // isRecordedDateTimeChanged,
+      hasChanges
+    }
+  }, [selectedAssessment, clinicalAsmnt, prognosisVal, chronicVal, status, notes, recordedDateTime])
 
   // Get count based on current tab
   const getTabCount = currentTab => {
@@ -305,16 +365,16 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   }
 
   const updateAssessment = async () => {
-    // Check if any values have been modified
-    const isClinicalAsmntChanged =
-      clinicalAsmnt?.toLowerCase() !== selectedAssessment?.clinical_assessment?.toLowerCase()
+    const {
+      isClinicalAsmntChanged,
+      isPrognosisChanged,
+      isChronicChanged,
+      isStatusChanged,
+      isNotesChanged,
+      hasChanges
+    } = assessmentChangeState
 
-    const isPrognosisChanged =
-      prognosisVal?.toLowerCase() !== selectedAssessment?.additional_info?.prognosis?.toLowerCase()
-
-    const isChronicChanged = chronicVal !== selectedAssessment?.additional_info?.isChronic
-
-    const isStatusChanged = status?.toLowerCase() !== selectedAssessment?.additional_info?.status?.toLowerCase()
+    if (!hasChanges) return
 
     // Set is_system_generated to true if any value has changed
     const isSystemGenerated = isClinicalAsmntChanged || isPrognosisChanged || isChronicChanged || isStatusChanged
@@ -325,7 +385,9 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
       med_id: selectedAssessment?.medical_record_id || '',
       type: 'DIAGNOSIS',
       is_system_generated: isSystemGenerated,
-      animal_id: animal_id || ''
+      animal_id: animal_id || '',
+      hospital_case_id: id || '',
+      recorded_date_time: recordedDateTime.format('YYYY-MM-DD HH:mm:ss')
     }
 
     // Only add clinical_assessment if changed
@@ -349,7 +411,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
     }
 
     // Only add note if changed
-    if (notes) {
+    if (isNotesChanged) {
       payload.note = notes || ''
     }
 
@@ -575,7 +637,8 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
           status={status}
           setStatus={setStatus}
           setNotes={setNotes}
-          onSave={() => setIsSaveDialogOpen(true)}
+          isSubmitLoading={isSubmitLoading}
+          onSave={updateAssessment}
           activityListData={activityListData}
           activityLoader={activityLoader}
           isDeleting={isDeleting}
@@ -585,6 +648,9 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
           handleEditNoteClick={handleEditNoteClick}
           isNotesOpen={isNotesOpen}
           setIsNotesOpen={setIsNotesOpen}
+          recordedDateTime={recordedDateTime}
+          setRecordedDateTime={setRecordedDateTime}
+          isChanged={assessmentChangeState.hasChanges}
         />
       )}
 

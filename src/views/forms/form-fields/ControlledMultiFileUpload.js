@@ -352,7 +352,7 @@ const ControlledMultiFileUpload = ({
                 />
               ) : getFileIcon(file)?.image_path ? (
                 /* Icon image preview */
-                <Box
+                (<Box
                   component='img'
                   src={getFileIcon(file)?.image_path}
                   alt='file icon'
@@ -367,10 +367,10 @@ const ControlledMultiFileUpload = ({
                     enableImageFullScreen &&
                     setPreviewFile({ src: fileURL, type: getPreviewType(ext), name: file?.name })
                   }
-                />
+                />)
               ) : getFileIcon(file)?.icon ? (
                 /* Icon font preview */
-                <Box
+                (<Box
                   sx={{
                     width: 40,
                     height: 40,
@@ -391,9 +391,8 @@ const ControlledMultiFileUpload = ({
                     fontSize={40}
                     color={getFileIcon(file)?.icon_color || '#1976d2'}
                   />
-                </Box>
+                </Box>)
               ) : null}
-
               {/* Remove button */}
               <IconButton
                 size='small'
@@ -416,7 +415,7 @@ const ControlledMultiFileUpload = ({
                 <Icon icon='mdi:close' fontSize={18} />
               </IconButton>
             </Box>
-          )
+          );
         }
 
         return (
@@ -513,7 +512,7 @@ const ControlledMultiFileUpload = ({
         )
       }}
     />
-  )
+  );
 }
 
 export default ControlledMultiFileUpload

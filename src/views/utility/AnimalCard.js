@@ -2,11 +2,15 @@ import { Avatar, Skeleton, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import React, { useEffect, useState } from 'react'
+import Utility from 'src/utility'
 
-const AnimalCard = ({ data, size, edit }) => {
+const AnimalCard = ({ data, size, edit, valueColor }) => {
   const theme = useTheme()
   const [imageLoading, setImageLoading] = useState(true)
   const [src, setSrc] = useState(data?.default_icon)
+
+  // Get sex from either 'sex' or 'gender' field
+  const sex = (data?.sex || data?.gender)?.toLowerCase()
 
   useEffect(() => {
     setSrc(data?.default_icon)
@@ -82,17 +86,16 @@ const AnimalCard = ({ data, size, edit }) => {
         {avatarContent}
         <Avatar
           sx={{
-            width:
-              data?.sex?.toLowerCase() === 'undetermined' || data?.sex?.toLowerCase() === 'indeterminate' ? 32 : 24,
+            width: sex === 'undetermined' || sex === 'indeterminate' ? 32 : 24,
             height: 24,
             bgcolor:
               data?.type === 'group'
                 ? theme.palette.customColors.addPrimary
-                : data?.sex?.toLowerCase() === 'male'
+                : sex === 'male'
                 ? theme.palette.customColors.SecondaryContainer
-                : data?.sex?.toLowerCase() === 'female'
+                : sex === 'female'
                 ? theme.palette.customColors.AntzTertiary
-                : data?.sex?.toLowerCase() === 'undetermined' || data?.sex?.toLowerCase() === 'indeterminate'
+                : sex === 'undetermined' || sex === 'indeterminate'
                 ? theme.palette.customColors.displaybgSecondary
                 : theme.palette.customColors.SecondaryContainer,
             objectFit: 'contain',
@@ -106,15 +109,15 @@ const AnimalCard = ({ data, size, edit }) => {
           {/* Gender / Group initials */}
           {data?.type === 'group' ? (
             <Typography sx={{ fontSize: 14, color: theme.palette.primary.contrastText, fontWeight: 500 }}>G</Typography>
-          ) : data?.sex?.toLowerCase() === 'male' ? (
+          ) : sex === 'male' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSecondaryContainer }}>
               M
             </Typography>
-          ) : data?.sex?.toLowerCase() === 'female' ? (
+          ) : sex === 'female' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#4A0415' }}>F</Typography>
-          ) : data?.sex?.toLowerCase() === 'undetermined' ? (
+          ) : sex === 'undetermined' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.Error }}>UD</Typography>
-          ) : data?.sex?.toLowerCase() === 'indeterminate' ? (
+          ) : sex === 'indeterminate' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
               ID
             </Typography>
@@ -132,6 +135,20 @@ const AnimalCard = ({ data, size, edit }) => {
           gap: '2px'
         }}
       >
+        {(data?.mortality_date || data?.mortality_created_at) && (
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 600,
+              lineHeight: '16.94px',
+              color: theme.palette.customColors.Tertiary
+            }}
+          >
+            <span>Mortality Date : </span>
+            <span>{Utility.convertUtcToLocalReadableDate(data?.mortality_date || data?.mortality_created_at)}</span>
+            <span> &bull; </span> {Utility.convertUTCToLocaltime(data?.mortality_date || data?.mortality_created_at)}
+          </Typography>
+        )}
         {data?.local_identifier_name && data?.local_identifier_value && (
           <Box
             sx={{
@@ -141,7 +158,7 @@ const AnimalCard = ({ data, size, edit }) => {
           >
             <Typography
               sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
+                color: valueColor || theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '16px',
                 fontWeight: '600',
                 lineHeight: '19.36px',
@@ -157,7 +174,7 @@ const AnimalCard = ({ data, size, edit }) => {
               <Box
                 component='span'
                 sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
+                  color: valueColor || theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '14px',
                   fontWeight: 400,
                   background: '#37bd6924',
@@ -185,7 +202,7 @@ const AnimalCard = ({ data, size, edit }) => {
                 fontSize: size ?? '16px',
                 fontWeight: 600,
                 lineHeight: '19.36px',
-                color: theme.palette.customColors.OnSurfaceVariant,
+                color: valueColor || theme.palette.customColors.OnSurfaceVariant,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 maxWidth: edit ? '118px' : '200px'
@@ -197,7 +214,7 @@ const AnimalCard = ({ data, size, edit }) => {
               <Box
                 component='span'
                 sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
+                  color: valueColor || theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '14px',
                   fontWeight: 400,
                   background: '#37bd6924',
@@ -219,7 +236,7 @@ const AnimalCard = ({ data, size, edit }) => {
               fontSize: '16px',
               fontWeight: 600,
               lineHeight: '19.36px',
-              color: theme.palette.customColors.OnSurfaceVariant
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
             {data?.common_name || data?.default_common_name}
@@ -232,14 +249,28 @@ const AnimalCard = ({ data, size, edit }) => {
               fontSize: '13px',
               fontWeight: 500,
               fontStyle: 'italic',
-              color: theme.palette.customColors.OnSurfaceVariant
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
             {data?.scientific_name || data?.complete_name}
           </Typography>
         )}
 
-        {data?.age && (
+        {data?.age?.trim() && (
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 600,
+              lineHeight: '16.94px',
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            <span>Age : </span>
+            {data?.age}
+          </Typography>
+        )}
+
+        {data?.weight?.trim() && (
           <Typography
             sx={{
               fontSize: '14px',
@@ -248,8 +279,8 @@ const AnimalCard = ({ data, size, edit }) => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            <span>Age : </span>
-            {data?.age}
+            <span>Weight : </span>
+            {data?.weight}
           </Typography>
         )}
 
@@ -257,9 +288,9 @@ const AnimalCard = ({ data, size, edit }) => {
           <Typography
             variant='caption'
             sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant,
               fontSize: '14px',
-              bgcolor: '#DDEBE9',
+              bgcolor: theme.palette.customColors.displaybgSecondary,
               padding: '2px 4px',
               borderRadius: '4px',
               width: 'fit-content'
@@ -275,7 +306,7 @@ const AnimalCard = ({ data, size, edit }) => {
               fontSize: '14px',
               fontWeight: 600,
               lineHeight: '19.36px',
-              color: theme.palette.customColors.OnSurfaceVariant
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
             <span>Breed : </span>
@@ -288,7 +319,7 @@ const AnimalCard = ({ data, size, edit }) => {
               fontSize: '14px',
               fontWeight: 600,
               lineHeight: '19.36px',
-              color: theme.palette.customColors.OnSurfaceVariant
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
             <span>Variant : </span>
@@ -302,7 +333,7 @@ const AnimalCard = ({ data, size, edit }) => {
               fontSize: '14px',
               fontWeight: 600,
               lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
             <span> Encl : </span>
@@ -316,7 +347,7 @@ const AnimalCard = ({ data, size, edit }) => {
               fontSize: '14px',
               fontWeight: 600,
               lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
             <span>Sec : </span> {data?.section_name}
@@ -329,7 +360,7 @@ const AnimalCard = ({ data, size, edit }) => {
               fontSize: '14px',
               fontWeight: 600,
               lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
             <span>Site : </span>

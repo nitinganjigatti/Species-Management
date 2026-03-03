@@ -25,9 +25,17 @@ import Tab from '@mui/material/Tab'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { getDietDetails, getSpeciesList, getAnimalsList, getTaxonomyList } from 'src/lib/api/diet/dietList'
+import {
+  getDietDetails,
+  getSpeciesList,
+  getAnimalsList,
+  getTaxonomyList,
+  generateDietPdf
+} from 'src/lib/api/diet/dietList'
 import moment from 'moment'
 import { AuthContext } from 'src/context/AuthContext'
+import Toaster from 'src/components/Toaster'
+import Utility from 'src/utility'
 import Error404 from 'src/pages/404'
 import SpeciesMappedtoDiet from 'src/components/diet/SpeciesMappedtoDiet'
 import ListOfSpeciesMapped from 'src/components/diet/ListofSpeciesMapped'
@@ -35,6 +43,7 @@ import SpeciesMappedtoDietFilter from './speciesMappedFilter'
 import { useMediaQuery } from '@mui/material'
 import SpeciesAnimalsMapped from 'src/components/diet/Species_Animals_mapped'
 import EditAnimalSpeciesMapped from 'src/components/diet/EditAnimalsSpecies'
+import SelectSiteList from 'src/components/diet/SelectSiteList'
 
 const DietDetail = () => {
   const router = useRouter()
@@ -101,6 +110,11 @@ const DietDetail = () => {
   const [selectedSections, setSelectedSections] = useState([])
   const [taxonomyLoading, setTaxonomyLoading] = useState(false)
   const [speciesFilterLoading, setSpeciesFilterLoading] = useState(false)
+  const [checkForSite, setCheckForSite] = useState('')
+  const [siteId, setSiteID] = useState(null)
+  const [removeFilterTriggered, setRemoveFilterTriggered] = useState(false)
+  const [siteSpeciesTotalCount, setSiteSpeciesTotalCount] = useState('')
+  const [downloadingPdf, setDownloadingPdf] = useState(false)
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -113,7 +127,22 @@ const DietDetail = () => {
   }
 
   const handleSpeciesClick = value => {
-    setSelectionType(value)
+    setPageNo(1)
+    setTempSelectedSpecies([])
+    setSelectedSpecies([])
+    if (value === 'site_species') {
+      setSiteListDrawer(true)
+      setSelectionType(value)
+    } else {
+      setIsOpen(true)
+      setSelectionType(value)
+      setCheckForSite('')
+      setSiteID('')
+    }
+  }
+
+  const handleSingleSiteSelect = selectedSiteId => {
+    setSiteID(selectedSiteId)
     setIsOpen(true)
     setPageNo(1)
   }
@@ -122,6 +151,36 @@ const DietDetail = () => {
     setIsOpenTabs(true)
     setspeciesview(val)
     setSelectionType(type)
+    setCheckForSite('')
+    setSiteID('')
+  }
+
+  const handleDownloadPdf = async () => {
+    if (!dietDetails?.id) {
+      Toaster({ type: 'error', message: 'Diet ID not found' })
+      return
+    }
+
+    setDownloadingPdf(true)
+    try {
+      const response = await generateDietPdf(dietDetails.id)
+
+      if (response?.success && response?.data) {
+        // Use utility function to download the PDF
+        Utility.downloadFileFromURLWithBlob(
+          response?.data,
+          `diet_${dietDetails.id}_${dietDetails.diet_name || 'attachment'}`
+        )
+        Toaster({ type: 'success', message: response?.message || 'PDF downloaded successfully' })
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to generate PDF' })
+      }
+    } catch (error) {
+      console.error('Error downloading PDF:', error)
+      Toaster({ type: 'error', message: 'Failed to download PDF. Please try again.' })
+    } finally {
+      setDownloadingPdf(false)
+    }
   }
 
   const handleSelectedSpeciesChange = updatedSelectedSpecies => {
@@ -181,11 +240,20 @@ const DietDetail = () => {
 
       const commonParams = {
         page_no: pageNo,
-        limit: 15,
+        limit: 20,
         diet_id: id,
         ...(searchQuery && { q: searchQuery }),
         ...(type && { type }),
-        ...(selectedItems?.Site?.length > 0 && { site_ids: `[${selectedItems?.Site.join(',')}]` }),
+        group_by_site: selectionType === 'site_species',
+        ...(selectionType === 'species' &&
+          checkForSite === 'site_species' &&
+          siteId && {
+            site_id: siteId
+          }),
+
+        ...(selectedItems?.Site?.length > 0 && {
+          site_ids: `[${selectedItems.Site.join(',')}]`
+        }),
         ...(selectedItems?.Section?.length > 0 && { section_ids: `[${selectedItems?.Section.join(',')}]` }),
         ...(selectedItems?.Enclosure?.length > 0 && { enclosure_ids: `[${selectedItems?.Enclosure.join(',')}]` })
       }
@@ -195,7 +263,7 @@ const DietDetail = () => {
         setLoadingSpecies(true)
         const params = {
           page_no: pageNo,
-          limit: 15,
+          limit: 20,
           diet_id: id,
           ...(searchQuery && { q: searchQuery }),
           ...(selectedItems?.Taxonomy?.length > 0 && { species_ids: `[${selectedItems?.Taxonomy.join(',')}]` })
@@ -206,7 +274,6 @@ const DietDetail = () => {
         }
       } else if (selectionType === 'species') {
         // Params for species list with taxonomy_ids
-
         const params = {
           ...commonParams,
           ...(selectedItems?.Taxonomy?.length > 0 && { species_ids: `[${selectedItems?.Taxonomy.join(',')}]` })
@@ -214,17 +281,24 @@ const DietDetail = () => {
         res = await getSpeciesList(params)
       } else if (selectionType === 'animals') {
         // Params for animals list
-
         const params = {
           ...commonParams,
           ...(selectedItems?.Species?.length > 0 && { species_ids: `[${selectedItems?.Species.join(',')}]` })
         }
         res = await getAnimalsList(params)
+      } else if (selectionType === 'site_species') {
+        // Params for species list with taxonomy_ids
+        const params = {
+          ...commonParams,
+          ...(selectedItems?.Taxonomy?.length > 0 && { species_ids: `[${selectedItems?.Taxonomy.join(',')}]` })
+        }
+        res = await getSpeciesList(params)
       }
 
       if (res) {
         const resultData = res?.data?.result
         const totalCount = res?.data?.count
+        const sitespeciestotalCount = res?.data?.total_species_count
 
         if (resultData) {
           if (searchQuery && filterState === 'species') {
@@ -248,15 +322,17 @@ const DietDetail = () => {
             setsepeciescountforFilter(totalCount)
           }
 
-          if (pageNo === 1 && tempSelectedSpecies.length <= 0) {
+          if (pageNo === 1 || searchQuery !== '') {
             setspeciesData(resultData)
             setAllFetchedData(resultData)
             if (filterState === 'species' && !searchQuery) {
               setspeciesDataforFilter(resultData)
             }
-          } else if (filterState === '' && tempSelectedSpecies.length > 0) {
-            setspeciesData(resultData)
-          } else if (filterState === '') {
+          }
+          // else if (filterState === '' && tempSelectedSpecies.length > 0) {
+          //   setspeciesData(resultData)
+          // }
+          else if (filterState === '') {
             setspeciesData(prevData => {
               const combinedData = [...prevData, ...resultData]
 
@@ -302,6 +378,7 @@ const DietDetail = () => {
             setspeciesData([])
           }
           setspeciestotalcount(totalCount)
+          setSiteSpeciesTotalCount(sitespeciestotalCount)
 
           // Check if we've reached the end of available data
           if (resultData.length === 0 || resultData.length < totalCount) {
@@ -332,21 +409,33 @@ const DietDetail = () => {
         let res
         if (selectionType === 'animals' && filterState === 'species') {
           // Params for animals list
-          const params = { page_no: pageNo, q: search, diet_id: id, limit: 15 }
+          const params = { page_no: pageNo, q: search, diet_id: id, limit: 20 }
           res = await getSpeciesList(params)
         } else if (selectionType === 'species') {
           // Params for species list
-          const params = { q: search, page_no: pageNo, limit: 15, diet_id: id, ...(type && { type }) }
+          const params = {
+            q: search,
+            page_no: pageNo,
+            limit: 20,
+            diet_id: id,
+            ...(type && { type }),
+            ...(selectionType === 'species' &&
+              checkForSite === 'site_species' &&
+              siteId && {
+                site_id: siteId
+              })
+          }
           res = await getSpeciesList(params)
         } else if (selectionType === 'animals') {
           // Params for animals list
-          const params = { page_no: pageNo, q: search, diet_id: id, limit: 15, ...(type && { type }) }
+          const params = { page_no: pageNo, q: search, diet_id: id, limit: 20, ...(type && { type }) }
           res = await getAnimalsList(params)
         }
 
         if (res) {
           const resultData = res?.data?.result
           const totalCount = res?.data?.count
+          const sitespeciestotalCount = res?.data?.total_species_count
 
           if (resultData) {
             setspeciesData(prevData => {
@@ -377,7 +466,7 @@ const DietDetail = () => {
             })
 
             setspeciestotalcount(totalCount)
-
+            setSiteSpeciesTotalCount(sitespeciestotalCount)
             // Check if we've reached the end of available data
             if (resultData.length === 0 || resultData.length < totalCount) {
               setHasMoreData(false)
@@ -409,7 +498,7 @@ const DietDetail = () => {
     setTaxonomyLoading(true)
     try {
       setLoadingTaxonomy(true)
-      const params = { search: searchQuery, page_no: pageNoTaxonomy, limit: 15 }
+      const params = { search: searchQuery, page_no: pageNoTaxonomy, limit: 20 }
       const response = await getTaxonomyList(params)
       if (response?.data) {
         setTaxonomyList(prev => (pageNoTaxonomy === 1 ? response.data.result : [...prev, ...response.data.result]))
@@ -454,7 +543,12 @@ const DietDetail = () => {
   useEffect(() => {
     if (speciesview !== '' && speciesview !== 'select' && filterState !== 'species') {
       fetchList(searchQuery, 'mapped')
+    } else if (speciesview === 'select' && checkForSite === 'site_species') {
+      fetchList(searchQuery)
+    } else if (checkForSite === '' && speciesview === '') {
+      fetchList(searchQuery)
     } else if (speciesview === 'select') {
+      //fetchList(searchQuery)
     } else {
       fetchList(searchQuery)
     }
@@ -628,6 +722,132 @@ const DietDetail = () => {
     window.open(url, '_blank')
   }
 
+  const sharedProps = {
+    speciesData,
+    speciesview,
+    dietDetails,
+    searchQuery,
+    speciestotalcount,
+    loading,
+    isLoadingMore,
+    pageNo,
+    tempSelectedSpecies,
+    selectionType,
+    items,
+    tempSelectedItems,
+    selectedItems,
+    checkForSite,
+    siteId,
+    applyfilterCheck,
+    filterState,
+    siteSpeciesTotalCount,
+    selectedSpecies,
+    removeFilterTriggered,
+    openSiteListDrawer,
+    tabsforfilter,
+    activeTab,
+    searchTerm,
+
+    setSearchQuery,
+    setPageNo,
+    setTempSelectedSpecies,
+    setSelectionType,
+    setTempSelectedItems,
+    setSelectedItems,
+    setCheckForSite,
+    setFilterState,
+    setapplyfilterCheck,
+    setspeciesview,
+    setspeciesData,
+    setPrimaryStatus,
+    setIsOpen,
+    setIsOpennew,
+    setIsOpenTabsEdit,
+    setOpenFilterDrawer,
+    setRemoveFilterTriggered,
+    setSiteListDrawer,
+    setIsOpenTabs,
+    setSelectedSections,
+    setSelectedEnclosures,
+    setActiveTab,
+    setSearchTerm,
+    refreshDietDetails: getDietDetailsCallback,
+
+    handleScroll,
+    debouncedSearch,
+    debouncedFetchList,
+    refreshSpeciesData,
+    fetchList,
+
+    authData,
+    id
+  }
+
+  const speciesFilterProps = {
+    ...sharedProps,
+    openFilterDrawer,
+    sectionsData,
+    setSectionsData,
+    enclosuresData,
+    setEnclosuresData,
+    setSelectedSpeciesIds,
+    selectedSpeciesIds,
+    setSelectedTaxonomyIds,
+    selectedTaxonomyIds,
+    taxonomyList,
+    speciesDataforFilter,
+    handleScrollforFilter,
+    handleScrollforTaxonomy,
+    setFilteredTaxonomyList,
+    filteredTaxonomyList,
+    setTaxonomySearchQuery,
+    taxonomySearchQuery,
+    setItems,
+    debouncedFetchTaxonomyList,
+    selectedEnclosures,
+    selectedSections,
+    loadingTaxonomy,
+    loadingSpecies
+  }
+
+  // Create specific props for each component
+  const speciesMappedProps = {
+    ...sharedProps,
+    ...speciesFilterProps,
+    isOpen,
+    setSelectedSpecies
+  }
+
+  const listOfSpeciesProps = {
+    ...sharedProps,
+    isOpennew,
+    dietid: dietDetails?.id,
+    onSelectedSpeciesChange: handleSelectedSpeciesChange,
+    dietId: id,
+
+    setLoading
+  }
+
+  const speciesAnimalsProps = {
+    ...sharedProps,
+    isOpentab,
+    refreshDietDetails: getDietDetailsCallback
+  }
+
+  const editAnimalSpeciesProps = {
+    ...sharedProps,
+    isOpentabEdit,
+    primaryStatus,
+    setAllFetchedData,
+    allFetchedData,
+    setspeciestotalcount
+  }
+
+  const selectSiteListProps = {
+    ...sharedProps,
+    onSingleSelectClose: handleSingleSiteSelect
+  }
+
   return (
     <>
       {dietModule ? (
@@ -663,6 +883,8 @@ const DietDetail = () => {
                   handleSpeciesClicknew={handleSpeciesClicknew}
                   setapplyfilterCheck={setapplyfilterCheck}
                   authData={authData}
+                  onDownloadPdf={handleDownloadPdf}
+                  downloadingPdf={downloadingPdf}
                 />
                 <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', mt: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>
@@ -784,8 +1006,6 @@ const DietDetail = () => {
                                               position: isSmallDevice ? '' : 'sticky ',
                                               left: '160px',
                                               p: 0
-
-                                              // width: '580px'
                                             }}
                                             className='meal_dtl_hd'
                                           >
@@ -1027,9 +1247,6 @@ const DietDetail = () => {
                                                       background: theme.palette.primary.contrastText,
                                                       height: '185px',
                                                       pl: '1rem !important',
-
-                                                      //display: 'flex',
-                                                      //flexDirection: 'column',
                                                       justifyContent: 'center',
                                                       alignItems: 'center',
                                                       overflow: 'hidden'
@@ -1573,6 +1790,7 @@ const DietDetail = () => {
                                                                                   src='/icons/Notes.svg'
                                                                                   alt='Grocery Icon'
                                                                                   width='35px'
+                                                                                  draggable={false}
                                                                                 />
                                                                               </Tooltip>
                                                                             </Typography>
@@ -1691,6 +1909,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -1719,6 +1938,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -1745,6 +1965,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -1771,6 +1992,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -2256,6 +2478,7 @@ const DietDetail = () => {
                                                                                   src='/icons/Notes.svg'
                                                                                   alt='Grocery Icon'
                                                                                   width='35px'
+                                                                                  draggable={false}
                                                                                 />
                                                                               </Tooltip>
                                                                             </Typography>
@@ -2373,6 +2596,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -2401,6 +2625,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -2427,6 +2652,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -2453,6 +2679,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -2860,6 +3087,7 @@ const DietDetail = () => {
                                                                                   src='/icons/Notes.svg'
                                                                                   alt='Grocery Icon'
                                                                                   width='35px'
+                                                                                  draggable={false}
                                                                                 />
                                                                               </Tooltip>
                                                                             </Typography>
@@ -2980,6 +3208,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -3008,6 +3237,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -3034,6 +3264,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -3060,6 +3291,7 @@ const DietDetail = () => {
                                                                                               src='/icons/Notes.svg'
                                                                                               alt='Grocery Icon'
                                                                                               width='35px'
+                                                                                              draggable={false}
                                                                                             />
                                                                                           </Tooltip>
                                                                                         </Typography>
@@ -3408,6 +3640,7 @@ const DietDetail = () => {
                                                                                 src='/icons/Notes.svg'
                                                                                 alt='Grocery Icon'
                                                                                 width='35px'
+                                                                                draggable={false}
                                                                               />
                                                                             </Tooltip>
                                                                           </Typography>
@@ -3418,7 +3651,7 @@ const DietDetail = () => {
                                                               </Box>
                                                             </Box>
                                                           </TableCell>
-                                                          {dietDetails?.child?.length &&
+                                                          {dietDetails?.child?.length > 0 &&
                                                             dietDetails.child?.map((all, indexnew) => {
                                                               if (all !== 'Generic') {
                                                                 return (
@@ -3525,6 +3758,7 @@ const DietDetail = () => {
                                                                                             src='/icons/Notes.svg'
                                                                                             alt='Grocery Icon'
                                                                                             width='35px'
+                                                                                            draggable={false}
                                                                                           />
                                                                                         </Tooltip>
                                                                                       </Typography>
@@ -3553,6 +3787,7 @@ const DietDetail = () => {
                                                                                             src='/icons/Notes.svg'
                                                                                             alt='Grocery Icon'
                                                                                             width='35px'
+                                                                                            draggable={false}
                                                                                           />
                                                                                         </Tooltip>
                                                                                       </Typography>
@@ -3579,6 +3814,7 @@ const DietDetail = () => {
                                                                                             src='/icons/Notes.svg'
                                                                                             alt='Grocery Icon'
                                                                                             width='35px'
+                                                                                            draggable={false}
                                                                                           />
                                                                                         </Tooltip>
                                                                                       </Typography>
@@ -3605,6 +3841,7 @@ const DietDetail = () => {
                                                                                             src='/icons/Notes.svg'
                                                                                             alt='Grocery Icon'
                                                                                             width='35px'
+                                                                                            draggable={false}
                                                                                           />
                                                                                         </Tooltip>
                                                                                       </Typography>
@@ -3655,12 +3892,12 @@ const DietDetail = () => {
                                                       {itemd.notes}
                                                     </>
                                                   ) : (
-                                                    <></> // Render nothing if no notes are available
+                                                    (<></>) // Render nothing if no notes are available
                                                   )}
                                                 </TableCell>
                                               </TableRow>
                                             </>
-                                          )
+                                          );
                                         })}
                                       </TableBody>
                                     ) : (
@@ -3705,184 +3942,13 @@ const DietDetail = () => {
               </Box>
             </Box>
           )}
-          <SpeciesMappedtoDiet
-            isOpen={isOpen}
-            setIsOpen={setIsOpen}
-            speciesData={speciesData}
-            selectedSpecies={selectedSpecies}
-            setIsOpennew={setIsOpennew}
-            setspeciesview={setspeciesview}
-            speciesview={speciesview}
-            setOpenFilterDrawer={setOpenFilterDrawer}
-            selectedItems={selectedItems}
-            speciestotalcount={speciestotalcount}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            handleScroll={handleScroll}
-            loading={loading}
-            setPageNo={setPageNo}
-            isLoadingMore={isLoadingMore}
-            pageNo={pageNo}
-            tempSelectedSpecies={tempSelectedSpecies}
-            setTempSelectedSpecies={setTempSelectedSpecies}
-            selectionType={selectionType}
-            items={items}
-            setTempSelectedItems={setTempSelectedItems}
-            tempSelectedItems={tempSelectedItems}
-            setSelectedItems={setSelectedItems}
-            debouncedSearch={debouncedSearch}
-            setFilterState={setFilterState}
-            setActiveTab={setActiveTab}
-            applyfilterCheck={applyfilterCheck}
-            setSelectedEnclosures={setSelectedEnclosures}
-            setSelectedSections={setSelectedSections}
-            setSelectedSpeciesIds={setSelectedSpeciesIds}
-            setSelectedTaxonomyIds={setSelectedTaxonomyIds}
-          />
-          <ListOfSpeciesMapped
-            isOpennew={isOpennew}
-            setIsOpennew={setIsOpennew}
-            setIsOpen={setIsOpen}
-            dietid={dietDetails?.id}
-            speciesData={speciesData}
-            onSelectedSpeciesChange={handleSelectedSpeciesChange}
-            selectedSpecies={selectedSpecies}
-            speciesview={speciesview}
-            dietDetails={dietDetails}
-            dietId={id}
-            refreshSpeciesData={refreshSpeciesData}
-            refreshDietDetails={getDietDetailsCallback}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            speciestotalcount={speciestotalcount}
-            setspeciesview={setspeciesview}
-            handleScroll={handleScroll}
-            setLoading={setLoading}
-            loading={loading}
-            setPageNo={setPageNo}
-            isLoadingMore={isLoadingMore}
-            pageNo={pageNo}
-            tempSelectedSpecies={tempSelectedSpecies}
-            setTempSelectedSpecies={setTempSelectedSpecies}
-            setSelectedSpecies={setSelectedSpecies}
-            selectionType={selectionType}
-            setapplyfilterCheck={setapplyfilterCheck}
-          />
-          <SpeciesAnimalsMapped
-            setIsOpenTabs={setIsOpenTabs}
-            isOpentab={isOpentab}
-            setIsOpenTabsEdit={setIsOpenTabsEdit}
-            speciesData={speciesData}
-            speciesview={speciesview}
-            dietDetails={dietDetails}
-            refreshDietDetails={getDietDetailsCallback}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            speciestotalcount={speciestotalcount}
-            setspeciesview={setspeciesview}
-            handleScroll={handleScroll}
-            loading={loading}
-            setPageNo={setPageNo}
-            isLoadingMore={isLoadingMore}
-            pageNo={pageNo}
-            tempSelectedSpecies={tempSelectedSpecies}
-            items={items}
-            selectionType={selectionType}
-            setSelectionType={setSelectionType}
-            setPrimaryStatus={setPrimaryStatus}
-            debouncedFetchList={debouncedFetchList}
-            selectedItems={selectedItems}
-            setTempSelectedItems={setTempSelectedItems}
-            tempSelectedItems={tempSelectedItems}
-            setOpenFilterDrawer={setOpenFilterDrawer}
-            applyfilterCheck={applyfilterCheck}
-            setFilterState={setFilterState}
-            setSelectedItems={setSelectedItems}
-            setapplyfilterCheck={setapplyfilterCheck}
-            setSelectedSections={setSelectedSections}
-            setSelectedEnclosures={setSelectedEnclosures}
-            setspeciesData={setspeciesData}
-            authData={authData}
-          />
-          <EditAnimalSpeciesMapped
-            setIsOpenTabs={setIsOpenTabs}
-            setIsOpenTabsEdit={setIsOpenTabsEdit}
-            isOpentabEdit={isOpentabEdit}
-            speciesData={speciesData}
-            speciesview={speciesview}
-            dietDetails={dietDetails}
-            refreshDietDetails={getDietDetailsCallback}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            speciestotalcount={speciestotalcount}
-            setspeciesview={setspeciesview}
-            handleScroll={handleScroll}
-            loading={loading}
-            setPageNo={setPageNo}
-            isLoadingMore={isLoadingMore}
-            pageNo={pageNo}
-            tempSelectedSpecies={tempSelectedSpecies}
-            setTempSelectedSpecies={setTempSelectedSpecies}
-            setspeciesData={setspeciesData}
-            setSelectionType={setSelectionType}
-            selectionType={selectionType}
-            setPrimaryStatus={setPrimaryStatus}
-            primaryStatus={primaryStatus}
-            setAllFetchedData={setAllFetchedData}
-            allFetchedData={allFetchedData}
-            setspeciestotalcount={setspeciestotalcount}
-            debouncedFetchList={debouncedFetchList}
-          />
-          <SpeciesMappedtoDietFilter
-            setOpenFilterDrawer={setOpenFilterDrawer}
-            openFilterDrawer={openFilterDrawer}
-            tabsforfilter={tabsforfilter}
-            setActiveTab={setActiveTab}
-            activeTab={activeTab}
-            setSearchTerm={setSearchTerm}
-            searchTerm={searchTerm}
-            setSelectedItems={setSelectedItems}
-            selectedItems={selectedItems}
-            items={items}
-            setSiteListDrawer={setSiteListDrawer}
-            openSiteListDrawer={openSiteListDrawer}
-            setTempSelectedItems={setTempSelectedItems}
-            tempSelectedItems={tempSelectedItems}
-            sectionsData={sectionsData}
-            setSectionsData={setSectionsData}
-            enclosuresData={enclosuresData}
-            setEnclosuresData={setEnclosuresData}
-            setSelectedSpeciesIds={setSelectedSpeciesIds}
-            selectedSpeciesIds={selectedSpeciesIds}
-            setSelectedTaxonomyIds={setSelectedTaxonomyIds}
-            selectedTaxonomyIds={selectedTaxonomyIds}
-            taxonomyList={taxonomyList}
-            selectionType={selectionType}
-            debouncedSearch={debouncedSearch}
-            setSearchQuery={setSearchQuery}
-            searchQuery={searchQuery}
-            speciesDataforFilter={speciesDataforFilter}
-            handleScrollforFilter={handleScrollforFilter}
-            handleScrollforTaxonomy={handleScrollforTaxonomy}
-            setFilterState={setFilterState}
-            setspeciesData={setspeciesData}
-            setPageNo={setPageNo}
-            refreshSpeciesData={refreshSpeciesData}
-            setFilteredTaxonomyList={setFilteredTaxonomyList}
-            filteredTaxonomyList={filteredTaxonomyList}
-            setTaxonomySearchQuery={setTaxonomySearchQuery}
-            taxonomySearchQuery={taxonomySearchQuery}
-            setItems={setItems}
-            debouncedFetchTaxonomyList={debouncedFetchTaxonomyList}
-            setapplyfilterCheck={setapplyfilterCheck}
-            applyfilterCheck={applyfilterCheck}
-            setSelectedEnclosures={setSelectedEnclosures}
-            selectedEnclosures={selectedEnclosures}
-            setSelectedSections={setSelectedSections}
-            selectedSections={selectedSections}
-            loadingTaxonomy={loadingTaxonomy}
-            loadingSpecies={loadingSpecies}
-          />
+
+          <SpeciesMappedtoDiet {...speciesMappedProps} />
+          <ListOfSpeciesMapped {...listOfSpeciesProps} />
+          <SpeciesAnimalsMapped {...speciesAnimalsProps} />
+          <EditAnimalSpeciesMapped {...editAnimalSpeciesProps} />
+          <SpeciesMappedtoDietFilter {...speciesFilterProps} />
+          <SelectSiteList {...selectSiteListProps} />
         </>
       ) : (
         <>
@@ -3890,7 +3956,7 @@ const DietDetail = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default DietDetail

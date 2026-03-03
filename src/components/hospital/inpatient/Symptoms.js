@@ -100,8 +100,8 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
   const handleTabChange = newValue => {
     setCurrentTab(newValue)
     setPage(1)
-    setRecords([])
-    setRecordTypeCount({})
+    //setRecords([])
+    //setRecordTypeCount({})
   }
 
   useEffect(() => {

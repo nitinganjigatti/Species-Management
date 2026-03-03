@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react'
-import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem } from '@mui/material'
+import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem, alpha } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { differenceInDays } from 'date-fns'
 import { debounce } from 'lodash'
@@ -31,6 +31,10 @@ const HospitalInpatient = () => {
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
   const [filterDate, setFilterDate] = useState({})
+  const [rows, setRows] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [sortModel, setSortModel] = useState([])
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -45,6 +49,7 @@ const HospitalInpatient = () => {
 
   const applyFilters = selectedOptions => {
     setSelectedOptions(selectedOptions)
+    setFilters(prev => ({ ...prev, page: 1 }))
     setOpenFilterDrawer(false)
   }
 
@@ -70,10 +75,16 @@ const HospitalInpatient = () => {
     return new Date(dateString).toISOString().split('T')[0]
   }
 
-  const { data, isFetching, refetch } = useQuery({
-    queryKey: ['inpatients-listings', filters, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions],
-    queryFn: () =>
-      getIncomingPatients({
+  const fetchIncomingPatients = async () => {
+    if (!isHospitalAccessChecked || !selectedHospital?.id) return
+
+    try {
+      setLoading(true)
+
+      const activeSortModel = sortModel[0]
+      const sortParam = activeSortModel ? JSON.stringify({ [activeSortModel.field]: activeSortModel.sort }) : undefined
+
+      const res = await getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
         q: filters?.q,
@@ -83,17 +94,32 @@ const HospitalInpatient = () => {
         from_date: formatDate(filterDate.startDate),
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('Chief Veterinarian'),
-        origin_site: prepareFilterParams('Origin Site')
-      }),
-    enabled: !!(isHospitalAccessChecked && selectedHospital?.id)
-  })
+        origin_site: prepareFilterParams('Origin Site'),
+        sort: sortParam
+      })
 
-  const total = data?.data?.total || 0
-  const rows = data?.data?.records || []
+      setRows(res?.data?.records || [])
+      setTotal(res?.data?.total || 0)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  // useEffect(() => {
-  //   refetch()
-  // }, [refetch, selectedHospital?.id])
+  useEffect(() => {
+    fetchIncomingPatients()
+  }, [
+    filters.page,
+    filters.limit,
+    filters.q,
+    selectedVisitType,
+    selectedHospital?.id,
+    filterDate,
+    selectedOptions,
+    isHospitalAccessChecked,
+    sortModel
+  ])
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -140,6 +166,21 @@ const HospitalInpatient = () => {
   const handleSearchClear = () => {
     setSearchValue('')
     debouncedSearch('')
+  }
+
+  const handleSortModel = model => {
+    setSortModel(model)
+    setFilters(prev => ({ ...prev, page: 1 }))
+  }
+
+  const handleDateChange = (start, end) => {
+    setFilterDate({ startDate: start, endDate: end })
+    setFilters(prev => ({ ...prev, page: 1 }))
+  }
+
+  const handleVisitTypeChange = e => {
+    setSelectedVisitType(e.target.value)
+    setFilters(prev => ({ ...prev, page: 1 }))
   }
 
   const getSlNo = index => (filters.page - 1) * filters.limit + index + 1
@@ -189,6 +230,70 @@ const HospitalInpatient = () => {
       )
     },
     {
+      width: 180,
+      minWidth: 120,
+      field: 'health_status',
+      sortable: true,
+      headerName: 'HEALTH STATUS',
+      renderCell: params => {
+        const status = params.row.health_status || 'stable'
+        const isCritical = status === 'critical'
+        const capitalizedStatus = status.charAt(0).toUpperCase() + status.slice(1)
+
+        return (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+
+            }}
+          >
+            <Box sx={{
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              backgroundColor: isCritical ? alpha(theme.palette.error.main, 0.2) : theme.palette.customColors.OnBackground,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <Box sx={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                backgroundColor: isCritical ? theme.palette.customColors.Tertiary : theme.palette.primary.main
+              }}>
+
+              </Box>
+            </Box>
+            <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+
+              {capitalizedStatus}
+            </Typography>
+          </Box>
+        )
+      }
+    },
+    {
+      width: 180,
+      minWidth: 120,
+      field: 'case_code',
+      sortable: false,
+      headerName: 'CASE ID',
+      renderCell: params => (
+        <Typography
+          sx={{
+            fontSize: '14px',
+            color: theme.palette.customColors.OnSurfaceVariant,
+          }}
+        >
+          {params.row.case_code || 'N/A'}
+        </Typography>
+      )
+    },
+    {
       width: 300,
       minWidth: 20,
       field: 'purpose_of_visit',
@@ -235,7 +340,7 @@ const HospitalInpatient = () => {
       width: 200,
       minWidth: 20,
       field: 'admitted_at',
-      sortable: false,
+      sortable: true,
       headerName: 'Admission Date',
       align: 'left',
       headerAlign: 'left',
@@ -282,7 +387,7 @@ const HospitalInpatient = () => {
       renderCell: params => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.bed_name}
+            {params?.row?.bed_name || params?.row?.room_name ? `${params?.row?.bed_name}, ${params?.row?.room_name}` : '-'}
           </Typography>
         </>
       )
@@ -358,13 +463,13 @@ const HospitalInpatient = () => {
               <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
                 <CommonDateRangePickers
                   filterDates={filterDate}
-                  onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
+                  onChange={handleDateChange}
                 />
                 <Select
                   size='small'
                   value={selectedVisitType}
                   displayEmpty
-                  onChange={e => setSelectedVisitType(e.target.value)}
+                  onChange={handleVisitTypeChange}
                 >
                   {visitTypeOptions?.map((item, index) => (
                     <MenuItem key={index} value={item?.value}>
@@ -387,9 +492,10 @@ const HospitalInpatient = () => {
                 columns={columns}
                 indexedRows={indexedRows}
                 total={total}
-                loading={isFetching}
+                loading={loading}
                 paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
                 setPaginationModel={handlePaginationModelChange}
+                handleSortModel={handleSortModel}
                 searchValue=''
                 getRowHeight={() => 'auto'}
                 onRowClick={handleRowClick}

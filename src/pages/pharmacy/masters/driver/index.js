@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react'
-
 import { getDrivers, addDriver, updateDriver } from 'src/lib/api/pharmacy/driver'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
@@ -28,9 +27,6 @@ import { ExportButton } from 'src/views/utility/render-snippets'
 const Driver = () => {
   const theme = useTheme()
 
-  const [driversList, setDriversList] = useState([])
-  const [loader, setLoader] = useState(false)
-
   const editParamsInitialState = { id: null, name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
@@ -46,20 +42,6 @@ const Driver = () => {
 
   const authData = useContext(AuthContext)
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
-
-  const handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return
-    }
-
-    setOpenSnackbar(false)
-  }
-
-  const setAlertDefaults = ({ message, severity, status }) => {
-    setOpenSnackbar(status)
-    setSnackbarMessage(message)
-    setSeverity(severity)
-  }
 
   const addEventSidebarOpen = () => {
     setEditParams({ id: null, name: null, active: null })
@@ -139,25 +121,12 @@ const Driver = () => {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'active',
-    //   headerName: 'STATUS',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.active === '1' ? 'Active' : 'Inactive'}
-    //     </Typography>
-    //   )
-    // },
     {
       minWidth: 200,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
         <>
-          {/* {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
           {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -322,7 +291,7 @@ const Driver = () => {
     <>
       {pharmacyRole ? (
         <>
-          {loader ? (
+          {loading ? (
             <FallbackSpinner />
           ) : (
             <>

@@ -305,7 +305,7 @@ const BirthFields = ({
         </Grid>
       </Grid>
     </>
-  )
+  );
 }
 
 export default BirthFields

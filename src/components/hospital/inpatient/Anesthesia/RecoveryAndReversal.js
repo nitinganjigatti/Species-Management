@@ -429,16 +429,20 @@ function RecoveryAndReversal({
           </Grid>
           {recoveryType === 'Problem' && (
             <Grid size={{ xs: 12 }}>
+              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>
+                Describe the Problem
+              </Typography>
               <ControlledTextArea
                 name='recoveryAndReversal.describe_problem'
                 control={control}
-                placeholder='Describe the Problem'
+                placeholder='Enter the Problem'
                 fullWidth={true}
-                rows={1}
+                rows={2}
               />
             </Grid>
           )}
           <Grid size={{ xs: 12 }}>
+            <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>Notes</Typography>
             <ControlledTextArea
               name='recoveryAndReversal.notes'
               control={control}

@@ -11,7 +11,8 @@ import {
   Checkbox,
   Avatar,
   InputAdornment,
-  IconButton
+  IconButton,
+  Radio
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import React, { useState, useEffect } from 'react'
@@ -25,32 +26,80 @@ const SelectSiteList = ({
   setSearchTerm,
   searchTerm,
   tempSelectedItems,
-  setTempSelectedItems
+  setTempSelectedItems,
+  setSelectionType,
+  selectionType,
+  onSingleSelectClose,
+  setCheckForSite,
+  setTempSelectedSpecies,
+  setspeciesview,
+  checkForSite
 }) => {
   const theme = useTheme()
   const [pendingSelections, setPendingSelections] = useState({ Site: [] })
 
   const handleCloseDrawer = () => {
-    setSiteListDrawer(false)
-    setTempSelectedItems(pendingSelections)
+    if (selectionType === 'site_species') {
+      const selectedSiteId = pendingSelections?.Site[0]
+      onSingleSelectClose?.(selectedSiteId)
+      setSelectionType('species')
+      setCheckForSite('site_species')
+    } else {
+      setSiteListDrawer(false)
+      setTempSelectedItems(pendingSelections)
+      setCheckForSite('')
+    }
+
     setSearchTerm('')
   }
 
   const handleCloseDrawericon = () => {
+    if (checkForSite === 'site_species') {
+      setspeciesview('')
+    }
     setSiteListDrawer(false)
     setSearchTerm('')
   }
 
+  // const handleSiteCheckboxChange = site => {
+  //   if (selectionType == 'site_species') {
+  //     setPendingSelections({
+  //       ...pendingSelections,
+  //       Site: [site.site_id]
+  //     })
+  //     setTempSelectedSpecies([])
+  //   } else {
+  //     const isSelected = pendingSelections?.Site?.includes(site.site_id)
+
+  //     const updatedSelection = isSelected
+  //       ? pendingSelections?.Site?.filter(id => id !== site.site_id)
+  //       : [...pendingSelections.Site, site.site_id]
+
+  //     setPendingSelections({
+  //       ...pendingSelections,
+  //       Site: updatedSelection
+  //     })
+  //   }
+  // }
+
   const handleSiteCheckboxChange = site => {
-    const isSelected = pendingSelections?.Site?.includes(site.site_id)
+    setPendingSelections(prev => {
+      const currentSites = prev?.Site || []
 
-    const updatedSelection = isSelected
-      ? pendingSelections.Site.filter(id => id !== site.site_id)
-      : [...pendingSelections.Site, site.site_id]
+      if (selectionType === 'site_species') {
+        setTempSelectedSpecies([])
+        return {
+          ...prev,
+          Site: [site.site_id]
+        }
+      }
 
-    setPendingSelections({
-      ...pendingSelections,
-      Site: updatedSelection
+      const isSelected = currentSites.includes(site.site_id)
+
+      return {
+        ...prev,
+        Site: isSelected ? currentSites.filter(id => id !== site.site_id) : [...currentSites, site.site_id]
+      }
     })
   }
 
@@ -133,7 +182,7 @@ const SelectSiteList = ({
         </Box>
 
         {/* Search */}
-        <Box sx={{ p: 2, borderBottom: '1px solid #E0E0E0' }}>
+        <Box sx={{ p: 2, borderBottom: selectionType !== 'site_species' ? '1px solid #E0E0E0' : 'none' }}>
           <TextField
             fullWidth
             placeholder='Search'
@@ -173,60 +222,60 @@ const SelectSiteList = ({
           />
         </Box>
 
-        {/* Selected Count */}
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-            Selected {pendingSelections?.Site?.length} / {items?.Site?.length}
-          </Typography>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <Button
-              size='small'
+        {selectionType !== 'site_species' && (
+          <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+              Selected {pendingSelections?.Site?.length} / {items?.Site?.length}
+            </Typography>
+            <Box
               sx={{
-                color:
-                  pendingSelections?.Site?.length === items?.Site?.length
-                    ? theme.palette.primary.main
-                    : theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '12px',
-                fontWeight: 600,
-                textTransform: 'none',
-                p: 0
+                display: 'flex',
+                alignItems: 'center'
               }}
-              onClick={handleSelectAllSites}
             >
-              {/* {tempSelectedSpecies?.length === speciesData.length ? 'Select all' : 'Select all'} */}
-              Select all
-            </Button>
+              <Button
+                size='small'
+                sx={{
+                  color:
+                    pendingSelections?.Site?.length === items?.Site?.length
+                      ? theme.palette.primary.main
+                      : theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  p: 0
+                }}
+                onClick={handleSelectAllSites}
+              >
+                Select all
+              </Button>
 
-            <Checkbox
-              checked={
-                searchTerm
-                  ? filteredSites.length > 0 &&
-                    filteredSites.every(site => pendingSelections.Site.includes(site.site_id))
-                  : pendingSelections.Site.length === items.Site.length
-              }
-              onChange={handleSelectAllSites}
-              slotProps={{
-                root: { 'aria-label': 'Select all species' }
-              }}
-              sx={{
-                '&.Mui-checked': {
-                  color: theme.palette.primary.main
-                },
-                '& .MuiSvgIcon-root': {
-                  width: '19px',
-                  height: '19px',
-                  border: '2px dotted'
-                },
-                mr: 1
-              }}
-            />
+              <Checkbox
+                checked={
+                  searchTerm
+                    ? filteredSites.length > 0 &&
+                      filteredSites.every(site => pendingSelections.Site.includes(site.site_id))
+                    : pendingSelections.Site?.length === items?.Site?.length
+                }
+                onChange={handleSelectAllSites}
+                slotProps={{
+                  root: { 'aria-label': 'Select all species' }
+                }}
+                sx={{
+                  '&.Mui-checked': {
+                    color: theme.palette.primary.main
+                  },
+                  '& .MuiSvgIcon-root': {
+                    width: '19px',
+                    height: '19px',
+                    border: '2px dotted'
+                  },
+                  mr: 1
+                }}
+              />
+            </Box>
           </Box>
-        </Box>
+        )}
 
         {/* Sites List */}
         <Box
@@ -246,63 +295,70 @@ const SelectSiteList = ({
           }}
         >
           {filteredSites?.length > 0 ? (
-            filteredSites.map(site => (
-              <ListItem
-                key={site.site_id}
-                sx={{
-                  pr: 1.5,
-                  pl: 3,
-                  mb: 4,
-                  border: '1px solid',
-                  borderColor: pendingSelections?.Site?.includes(site.site_id)
-                    ? '#80E0A3'
-                    : theme.palette.customColors.OutlineVariant,
-                  borderRadius: '8px',
-                  bgcolor: pendingSelections?.Site?.includes(site.site_id)
-                    ? theme.palette.customColors.OnBackground
-                    : 'transparent',
-                  height: '70px'
-                }}
-              >
-                <ListItemAvatar>
-                  {/* <Avatar src={site?.site_image || '/icons/antz.svg'} variant='rounded' /> */}
-                  <FallbackAvatar
-                    src={site?.site_image}
-                    fallback='/images/housing/site-icon-colored.svg'
-                    variant='rounded'
-                    sx={{
-                      backgroundColor: theme.palette.customColors.displaybgPrimary,
-                      p: site?.site_image ? 0 : 2,
-                      height: '40px',
-                      width: '40px',
-                      borderRadius: '8px'
+            filteredSites.map(site => {
+              const isChecked =
+                selectionType === 'site_species'
+                  ? pendingSelections?.Site?.[0] === site.site_id
+                  : pendingSelections?.Site?.includes(site.site_id)
+
+              return (
+                <ListItem
+                  key={site.site_id}
+                  sx={{
+                    pr: 1.5,
+                    pl: 3,
+                    mb: 4,
+                    border: '1px solid',
+                    borderColor: pendingSelections?.Site?.includes(site.site_id)
+                      ? '#80E0A3'
+                      : theme.palette.customColors.OutlineVariant,
+                    borderRadius: '8px',
+                    bgcolor: pendingSelections?.Site?.includes(site.site_id)
+                      ? theme.palette.customColors.OnBackground
+                      : 'transparent',
+                    height: '70px'
+                  }}
+                >
+                  <ListItemAvatar>
+                    {/* <Avatar src={site?.site_image || '/icons/antz.svg'} variant='rounded' /> */}
+                    <FallbackAvatar
+                      src={site?.site_image}
+                      fallback='/images/housing/site-icon-colored.svg'
+                      variant='rounded'
+                      sx={{
+                        backgroundColor: theme.palette.customColors.displaybgPrimary,
+                        p: site?.site_image ? 0 : 2,
+                        height: '40px',
+                        width: '40px',
+                        borderRadius: '8px'
+                      }}
+                    />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={site?.site_name}
+                    //secondary={site.location || '-'}
+                    slotProps={{
+                      secondary: {
+                        sx: {
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }
+                      },
+                      primary: {
+                        sx: {
+                          fontWeight: 'bold',
+                          color: theme.palette.customColors.OnPrimaryContainer
+                        }
+                      }
                     }}
                   />
-                </ListItemAvatar>
-                <ListItemText
-                  primary={site?.site_name}
-
-                  //secondary={site.location || '-'}
-                  slotProps={{
-                    secondary: {
-                      sx: {
-                        color: theme.palette.customColors.OnSurfaceVariant
-                      }
-                    },
-                    primary: {
-                      sx: {
-                        fontWeight: 'bold',
-                        color: theme.palette.customColors.OnPrimaryContainer
-                      }
-                    }
-                  }}
-                />
-                <Checkbox
-                  checked={pendingSelections?.Site?.includes(site.site_id)}
-                  onChange={() => handleSiteCheckboxChange(site)}
-                />
-              </ListItem>
-            ))
+                  {selectionType === 'site_species' ? (
+                    <Radio checked={isChecked} onChange={() => handleSiteCheckboxChange(site)} />
+                  ) : (
+                    <Checkbox checked={isChecked} onChange={() => handleSiteCheckboxChange(site)} />
+                  )}
+                </ListItem>
+              )
+            })
           ) : (
             <Typography sx={{ textAlign: 'center', mt: 15 }}>No Site's found</Typography>
           )}
@@ -331,7 +387,9 @@ const SelectSiteList = ({
               '&:hover': { bgcolor: '#218838' }
             }}
             onClick={handleCloseDrawer}
-            disabled={pendingSelections?.Site?.length === 0}
+            disabled={
+              !pendingSelections || Object.keys(pendingSelections).length === 0 || pendingSelections?.Site?.length === 0
+            }
           >
             CONTINUE
           </Button>

@@ -8,7 +8,16 @@ export default function enforceModuleAccess(PageComponent, moduleKey) {
     const authData = useAuth(AuthContext)
     const router = useRouter()
 
-    const accessAllowed = authData?.userData?.roles?.settings?.[moduleKey]
+    // Support both single key (string) and multiple keys (array) with OR logic
+    const checkAccess = () => {
+      if (Array.isArray(moduleKey)) {
+        return moduleKey.some(key => authData?.userData?.roles?.settings?.[key])
+      }
+
+      return authData?.userData?.roles?.settings?.[moduleKey]
+    }
+
+    const accessAllowed = checkAccess()
 
     useEffect(() => {
       if (!accessAllowed) {

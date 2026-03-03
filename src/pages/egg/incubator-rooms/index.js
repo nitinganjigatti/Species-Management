@@ -14,7 +14,6 @@ import {
   FormControl,
   Tooltip
 } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
 import { debounce } from 'lodash'
 
@@ -23,6 +22,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import ErrorScreen from 'src/pages/Error'
 
 import Icon from 'src/@core/components/icon'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import CustomChip from 'src/@core/components/mui/chip'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
@@ -285,7 +285,7 @@ const RoomsList = () => {
           size='small'
           label={params.row?.active === '1' ? 'Active' : 'InActive'}
           color={params.row?.active === '1' ? 'success' : 'error'}
-          sx={{
+          externalTableStyle={{
             height: 20,
             fontWeight: 600,
             borderRadius: '5px',
@@ -359,7 +359,7 @@ const RoomsList = () => {
     //     //   size='small'
     //     //   label={params.row?.active === '1' ? 'Active' : 'InActive'}
     //     //   color={params.row?.active === '1' ? roleColors.active : roleColors.inactive}
-    //     //   sx={{
+    //     //   externalTableStyle={{
     //     //     height: 20,
     //     //     fontWeight: 600,
     //     //     borderRadius: '5px',
@@ -422,7 +422,7 @@ const RoomsList = () => {
         ) : (
           <>
             <Box>
-              <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+              <Breadcrumbs aria-label='breadcrumb' externalTableStyle={{ mb: 5 }}>
                 <Typography sx={{ cursor: 'pointer' }} color='inherit'>
                   Egg
                 </Typography>
@@ -474,7 +474,7 @@ const RoomsList = () => {
                         value={defaultNursery}
                         disablePortal
                         loading={nurseryLoading}
-                        sx={{ width: 220 }}
+                        externalTableStyle={{ width: 220 }}
                         id='nursery'
                         options={nurseryList?.length > 0 ? nurseryList : []}
                         getOptionLabel={option => option.nursery_name}
@@ -523,7 +523,7 @@ const RoomsList = () => {
                         name='status'
                         value={defaultStatus}
                         disablePortal
-                        sx={{ width: 220 }}
+                        externalTableStyle={{ width: 220 }}
                         id='status'
                         options={[
                           { label: 'Active', key: 'active' },
@@ -607,8 +607,20 @@ const RoomsList = () => {
                       </Stack>
                     </Box> */}
 
-                <DataGrid
-                  sx={{
+                <CommonTable
+                  indexedRows={indexedRows === undefined ? [] : indexedRows}
+                  total={total}
+                  columns={columns}
+                  paginationModel={paginationModel}
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  rowHeight={64}
+                  loading={loading}
+                  onCellClick={onCellClick}
+                  columnVisibilityModel={{
+                    sl_no: false
+                  }}
+                  externalTableStyle={{
                     paddingX: 4,
                     borderTopLeftRadius: '8px',
                     '& .MuiBox-root': {
@@ -624,30 +636,10 @@ const RoomsList = () => {
                     '.MuiDataGrid-cell:focus': {
                       outline: 'none'
                     },
-
                     '& .MuiDataGrid-row:hover': {
                       cursor: 'pointer'
                     }
                   }}
-                  columnVisibilityModel={{
-                    sl_no: false
-                  }}
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  autoHeight
-                  pagination
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  onPaginationModelChange={setPaginationModel}
-                  rowHeight={64}
-                  loading={loading}
-                  onCellClick={onCellClick}
                 />
               </Card>
             </Box>

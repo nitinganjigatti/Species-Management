@@ -41,6 +41,7 @@ const ComboCard = ({
   const [expandedIndex, setExpandedIndex] = useState([])
   const [size, setSize] = useState({})
   const [showErrors, setShowErrors] = useState(false)
+  const [validationErrors, setValidationErrors] = useState([])
 
   const Day = [
     { id: 0, name: 'All', isActive: true },
@@ -123,11 +124,14 @@ const ComboCard = ({
         if (selectedItem) {
           return {
             cardId: row.id,
-            days: Day.map(day => ({
-              id: day.id,
-              name: day.name,
-              isActive: selectedItem.days_of_week?.includes(day.id) || false
-            }))
+            days: Day.map(day => {
+              const allDaysSelected = Day.filter(d => d.id !== 0).every(d => selectedItem.days_of_week?.includes(d.id))
+              return {
+                id: day.id,
+                name: day.name,
+                isActive: day.id === 0 ? allDaysSelected : (selectedItem.days_of_week?.includes(day.id) || false)
+              }
+            })
           }
         } else {
           return {
@@ -163,11 +167,14 @@ const ComboCard = ({
       cardIds.forEach((cardId, index) => {
         updatedSelectedDays.push({
           cardId: cardId,
-          days: Day.map(day => ({
-            id: day.id,
-            name: day.name,
-            isActive: days[index]?.includes(day.id) ? true : false
-          }))
+          days: Day.map(day => {
+            const allDaysSelected = Day.filter(d => d.id !== 0).every(d => days[index]?.includes(d.id))
+            return {
+              id: day.id,
+              name: day.name,
+              isActive: day.id === 0 ? allDaysSelected : (days[index]?.includes(day.id) ? true : false)
+            }
+          })
         })
       })
 
@@ -289,54 +296,53 @@ const ComboCard = ({
         return card
       }
 
-      let lastSelectedDayId = null
+      const updatedCard = { ...card, days: [...card.days] }
 
-      const updatedCard = {
-        ...card,
-        days: card.days.map(day => {
-          if (dayId === 0) {
-            return {
-              ...day,
-              isActive: true
-            }
-          } else if (day.id === dayId) {
-            lastSelectedDayId = dayId
-
+      if (dayId === 0) {
+        // Toggle All
+        const isAllCurrentlyActive = card.days.find(d => d.id === 0)?.isActive
+        updatedCard.days = updatedCard.days.map(day => ({
+          ...day,
+          isActive: !isAllCurrentlyActive
+        }))
+      } else {
+        // Toggle specific day
+        updatedCard.days = updatedCard.days.map(day => {
+          if (day.id === dayId) {
             return {
               ...day,
               isActive: !day.isActive
             }
-          } else {
+          }
+          return day
+        })
+
+        // Check if all individual days are selected
+        const anyDayUnselected = updatedCard.days.filter(d => d.id !== 0).some(day => !day.isActive)
+        
+        // Update 'All' day status based on whether all other days are selected
+        updatedCard.days = updatedCard.days.map(day => {
+          if (day.id === 0) {
             return {
               ...day,
-              isActive: day.isActive
+              isActive: !anyDayUnselected
             }
           }
+          return day
         })
-      }
-
-      if (dayId === 0) {
-        updatedCard.days = updatedCard.days.map((day, index) => ({
-          ...day,
-          isActive: index !== 0
-        }))
-      }
-
-      const anyDayUnselected = updatedCard.days.slice(1).some(day => !day.isActive)
-      updatedCard.days[0].isActive = !anyDayUnselected
-
-      const allOtherDaysInactive = updatedCard.days.slice(1).every(day => !day.isActive)
-      if (lastSelectedDayId && allOtherDaysInactive) {
-        updatedCard.days = updatedCard.days.map(day => ({
-          ...day,
-          isActive: day.id === lastSelectedDayId
-        }))
       }
 
       return updatedCard
     })
 
     setSelectedDays(updatedDays)
+
+    // Remove validation error for this card if it now has at least one day selected
+    const updatedCard = updatedDays.find(c => c.cardId === cardId)
+    const activeDaysCount = updatedCard?.days.filter(d => d.isActive && d.id !== 0).length || 0
+    if (activeDaysCount > 0) {
+      setValidationErrors(prevErrors => prevErrors.filter(id => id !== cardId))
+    }
   }
 
   const handleCardClick = item => {
@@ -353,6 +359,7 @@ const ComboCard = ({
 
     if (index !== -1) {
       setSelectedCardCombo(prevValues => prevValues.filter(card => card.id !== item.id))
+      setValidationErrors(prevValues => prevValues.filter(id => id !== item.id))
     } else {
       setSelectedCardCombo(prevValues => {
         if (daysSelected) {
@@ -366,10 +373,24 @@ const ComboCard = ({
 
   const handleSelected = () => {
     if (selectedCardCombo.length === 0) {
-      toast.error('Combos are required.', {
+      toast.error('Mix(s) are required.', {
         duration: 1000
       })
 
+      return
+    }
+
+    const invalidCombos = selectedCardCombo.filter(item => {
+      const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
+      const activeDays = selectedDaysForItem?.days.filter(d => d.isActive && d.id !== 0) || []
+      
+      return activeDays.length === 0
+    })
+
+    if (invalidCombos.length > 0) {
+      toast.error('Please select at least one feeding day for each selected mix.')
+      setValidationErrors(invalidCombos.map(combo => combo.id))
+      
       return
     }
 
@@ -378,10 +399,15 @@ const ComboCard = ({
     )
 
     if (cardsWithMissingCutSize.length > 0) {
-      toast.error('Please select a cut size for all ingredients in the selected combo(s).', {
+      toast.error('Please select a cut size for all ingredients in the selected mix(s).', {
         duration: 1000
       })
       setShowErrors(true)
+      setValidationErrors(prev => {
+        const newErrors = new Set(prev)
+        cardsWithMissingCutSize.forEach(c => newErrors.add(c.id))
+        return Array.from(newErrors)
+      })
 
       return
     }
@@ -391,7 +417,7 @@ const ComboCard = ({
       const selectedDaysForItem = selectedDays?.find(selectedDay => selectedDay.cardId === item.id)
 
       const selectedDayNames = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.name) || []
-      const selectedDayId = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.id) || []
+      const selectedDayId = selectedDaysForItem?.days.filter(d => d.isActive && d.id !== 0).map(d => d.id) || []
 
       const cardRemarks = selectedCardCombo?.find(card => card.id === item.id)?.remarks || ''
 
@@ -473,7 +499,8 @@ const ComboCard = ({
 
   const filteredRecipeList = rows.filter(item => item.recipe_name.toLowerCase().includes(searchValue.toLowerCase()))
 
-  let sortedRecipeList = [...filteredRecipeList].sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
+  //let sortedRecipeList = [...filteredRecipeList].sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
+  let sortedRecipeList = [...filteredRecipeList]
 
   // Filter sortedRecipeList based on remarks and fromrow condition
   if (fromrow !== '' && fromrow === 'rowedit_combo') {
@@ -496,6 +523,20 @@ const ComboCard = ({
         }
       }
     }))
+
+    setValidationErrors(prevErrors => {
+      if (prevErrors.includes(item.id)) {
+        const updatedItemSizeInfo = {
+          ...(size[item.id] || {}),
+          [ingredient.ingredient_id]: { id: value }
+        }
+        const hasMissingCutSize = item.ingredients.some(ing => !updatedItemSizeInfo[ing.ingredient_id]?.id)
+        if (!hasMissingCutSize) {
+          return prevErrors.filter(id => id !== item.id)
+        }
+      }
+      return prevErrors
+    })
   }
 
   const calculateTotalQuantity = ingredients => {
@@ -507,7 +548,7 @@ const ComboCard = ({
   }
 
   return (
-    <Box>
+    <Box sx={{ pb: '100px' }}>
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
           <CircularProgress />
@@ -519,9 +560,11 @@ const ComboCard = ({
               <Box
                 sx={{
                   bgcolor: 'background.paper',
-                  border: selectedCardCombo?.some(card => card?.id === item?.id)
-                    ? `2px solid ${theme.palette.primary.main}`
-                    : theme.palette.customColors.OnPrimary,
+                  border: validationErrors.includes(item.id) 
+                    ? '2px solid red' 
+                    : selectedCardCombo?.some(card => card?.id === item?.id)
+                      ? `2px solid ${theme.palette.primary.main}`
+                      : theme.palette.customColors.OnPrimary,
                   boxShadow: 0,
                   mt: 4,
                   borderRadius: '10px',
@@ -840,20 +883,19 @@ const ComboCard = ({
 
       <Box
         sx={{
-          height: '100px',
-          ml: -4,
-
+          height: { xs: '80px', sm: '90px', md: '100px' },
           width: '100%',
-
           maxWidth: '562px',
           position: 'fixed',
           bottom: 0,
-
+          right: 0,
           px: 4,
           bgcolor: 'white',
+          display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          display: 'flex'
+          paddingBottom: 'env(safe-area-inset-bottom)',
+          zIndex: 9999
         }}
       >
         {fromrow === 'rowedit_combo' ? (

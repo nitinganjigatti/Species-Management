@@ -6,7 +6,7 @@ import {
   GET_TRADE_PARTIES_LIST
 } from 'src/constants/ApiConstant'
 
-import { axiosGet, axiosPost } from '/src/lib/api/utility'
+import { axiosGet, axiosPost } from '../../utility'
 
 export async function getDocumentTypeList(params) {
   const response = await axiosGet({

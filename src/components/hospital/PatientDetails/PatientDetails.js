@@ -58,6 +58,7 @@ const OtherTreatments = lazy(() => import('src/components/hospital/inpatient/Oth
 const PrescriptionLayout = lazy(() => import('src/components/hospital/prescriptionMonitoring/PrescriptionLayout'))
 const Anesthesia = lazy(() => import('src/components/hospital/inpatient/Anesthesia'))
 const InpatientSurgery = lazy(() => import('src/views/pages/hospital/inpatient/InpatientSurgery'))
+const PatientMedia = lazy(() => import('src/components/hospital/inpatient/PatientMedia'))
 const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'))
 
 const PatientDetails = ({ category }) => {
@@ -233,15 +234,16 @@ const PatientDetails = ({ category }) => {
   const tabConfig = useMemo(
     () => [
       { label: 'Overview', value: 'overview', component: InpatientOverview },
-      { label: 'Medical Summary', value: 'medicalSummary', component: InpatientMedicalSummary },
-      { label: 'Monitoring', value: 'treatmentMonitoring', component: TreatmentLayout },
       { label: 'Symptoms', value: 'symptoms', component: Symptoms },
       { label: 'Clinical Assessment', value: 'clinicalAssessment', component: ClinicalAssessment },
+      { label: 'Prescription', value: 'prescriptionMonitoring', component: PrescriptionLayout },
       { label: 'Clinical Notes', value: 'clinicalNotes', component: ClinicalNotes },
       { label: 'Other Treatments', value: 'otherTreatments', component: OtherTreatments },
-      { label: 'Prescription', value: 'prescriptionMonitoring', component: PrescriptionLayout },
+      { label: 'Monitoring', value: 'treatmentMonitoring', component: TreatmentLayout },
+      { label: 'Medical Summary', value: 'medicalSummary', component: InpatientMedicalSummary },
       { label: 'Anesthesia', value: 'anesthesia', component: Anesthesia },
       { label: 'Surgery', value: 'surgery', component: InpatientSurgery },
+      { label: 'Media', value: 'media', component: PatientMedia },
       { label: 'Discharge', value: 'discharge', component: InpatientDischarge }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -296,7 +298,7 @@ const PatientDetails = ({ category }) => {
       }
 
       // Leaving Discharge Tab  remove discharge_tab and  Update URL with the selected tab parameter
-      if (urlTab === 'discharge' && newValue !== 'discharge' && discharge_tab) {
+      if (urlTab === 'discharge' && newValue !== 'discharge') {
         // Clear discharge-related  context data
         resetState('transfer_medicines')
         resetState('transfer_temp_medicines')
@@ -371,7 +373,7 @@ const PatientDetails = ({ category }) => {
       }
 
       // Leaving Discharge Tab  remove discharge_tab and  Update URL with the selected tab parameter
-      if (urlTab === 'discharge' && newValue !== 'discharge' && discharge_tab) {
+      if (urlTab === 'discharge' && newValue !== 'discharge') {
         // Clear discharge-related  context data
         resetState('transfer_medicines')
         resetState('transfer_temp_medicines')
@@ -416,8 +418,12 @@ const PatientDetails = ({ category }) => {
   )
 
   const handleBack = useCallback(() => {
-    router.push('/hospital/inpatient')
-  }, [router])
+    if (category === 'Inpatient') {
+      router.push('/hospital/inpatient')
+    } else {
+      router.push('/hospital/outpatient')
+    }
+  }, [router, category])
 
   // Memoize selected component to avoid recalculation
   const { SelectedComponent, selectedLabel } = useMemo(() => {
@@ -603,7 +609,7 @@ const PatientDetails = ({ category }) => {
               color: theme.palette.primary.main
             }}
           />
-          <Typography
+          {/* <Typography
             sx={{
               fontSize: '16px',
               fontWeight: 500,
@@ -622,7 +628,7 @@ const PatientDetails = ({ category }) => {
             }}
           >
             Please wait while we verify your access to view this patient's details.
-          </Typography>
+          </Typography> */}
         </Box>
       ) : null}
 

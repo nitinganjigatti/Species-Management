@@ -24,21 +24,24 @@ const AddTreatmentDrawer = ({
 }) => {
   const theme = useTheme()
 
+  const resolveLabel = value => {
+    if (typeof value === 'string') return value
+
+    return value?.label || value?.value || ''
+  }
+
   const handleTreatmentInputChange = (value, reason) => {
     if (reason === 'input') {
-      onInputValueChange?.(value || '')
-      onSearchTreatment?.(value || '')
-      onChange('treatmentName', value || null)
+      const label = resolveLabel(value)
+      onInputValueChange?.(label)
+      onSearchTreatment?.(label)
+      onChange('treatmentName', label || null)
 
       return
     }
 
     if (reason === 'reset') {
-      if (typeof value === 'string') {
-        onInputValueChange?.(value)
-      } else if (value?.label) {
-        onInputValueChange?.(value.label)
-      }
+      onInputValueChange?.(resolveLabel(value))
 
       return
     }
@@ -53,15 +56,9 @@ const AddTreatmentDrawer = ({
   const handleTreatmentSelect = value => {
     onChange('treatmentName', value)
 
-    if (typeof value === 'string') {
-      onInputValueChange?.(value)
-      onSearchTreatment?.('')
-    } else if (value?.label) {
-      onInputValueChange?.(value.label)
-      onSearchTreatment?.('')
-    } else {
-      onInputValueChange?.('')
-    }
+    const label = resolveLabel(value)
+    onInputValueChange?.(label)
+    onSearchTreatment?.('')
   }
 
   const {
@@ -198,6 +195,7 @@ const AddTreatmentDrawer = ({
                 options={treatmentOptions}
                 loading={optionsLoading}
                 fullWidth
+                // clearOnBlur={false}
                 getOptionLabel={option => option?.label || option || ''}
                 isOptionEqualToValue={(option, value) =>
                   (option?.value && option?.value === value?.value) || option === value
@@ -229,24 +227,26 @@ const AddTreatmentDrawer = ({
                 }}
               />
             </Box>
-
-            <ControlledTextArea
-              name='notes'
-              control={control}
-              errors={errors}
-              required='Notes is required'
-              rows={4}
-              placeholder='Add notes'
-              onChangeOverride={event => onChange('notes', event?.target?.value || '')}
-              inputBackgroundColor={theme.palette.primary.contrastText}
-              sx={{
-                ...commonFieldStyles,
-                '& .MuiOutlinedInput-root': {
-                  ...(commonFieldStyles['& .MuiOutlinedInput-root'] || {}),
-                  minHeight: '120px'
-                }
-              }}
-            />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>Notes</Typography>
+              <ControlledTextArea
+                name='notes'
+                control={control}
+                errors={errors}
+                required='Notes is required'
+                rows={4}
+                placeholder='Add notes'
+                onChangeOverride={event => onChange('notes', event?.target?.value || '')}
+                inputBackgroundColor={theme.palette.primary.contrastText}
+                sx={{
+                  ...commonFieldStyles,
+                  '& .MuiOutlinedInput-root': {
+                    ...(commonFieldStyles['& .MuiOutlinedInput-root'] || {}),
+                    minHeight: '120px'
+                  }
+                }}
+              />
+            </Box>
           </Box>
         </Box>
 

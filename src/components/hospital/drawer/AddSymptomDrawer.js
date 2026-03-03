@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -15,6 +15,13 @@ import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import SideSheetActionButtons from '../SideSheetActionButtons'
+import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 const AddSymptomDrawer = ({
   open,
@@ -28,17 +35,41 @@ const AddSymptomDrawer = ({
   durationUnit,
   setDurationUnit,
   notes,
-  setNotes
+  setNotes,
+  admittedDate,
+  dischargedDate,
+  isDischarged
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
+  const [recordedDateTime, setRecordedDateTime] = useState(dayjs())
+  const [minDate, setMinDate] = useState(null)
+  const [maxDate, setMaxDate] = useState(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    // Set default date based on discharge status
+    if (isDischarged && dischargedDate) {
+      // Convert UTC discharge date to local time
+      const localDischargeDateTime = dayjs.utc(dischargedDate).local()
+      setRecordedDateTime(localDischargeDateTime)
+      setMinDate(dayjs.utc(admittedDate).local().startOf('day'))
+      setMaxDate(localDischargeDateTime.endOf('day'))
+    } else {
+      setRecordedDateTime(dayjs())
+      setMinDate(admittedDate ? dayjs.utc(admittedDate).local().startOf('day') : null)
+      setMaxDate(null) // No max date restriction for non-discharged animals
+    }
+  }, [open, isDischarged, admittedDate, dischargedDate])
 
   const handleSave = () => {
     onSave({
       severity,
       durationValue,
       durationUnit,
-      notes
+      notes,
+      recordedDateTime: recordedDateTime.format('YYYY-MM-DD HH:mm:ss')
     })
   }
 
@@ -102,7 +133,7 @@ const AddSymptomDrawer = ({
                     width: '260px',
                     '& .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',
-                      borderColor: getSymptomsSeverityColor(severity).color
+                      borderColor: `${getSymptomsSeverityColor(severity).color} !important`
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',
@@ -176,6 +207,22 @@ const AddSymptomDrawer = ({
 
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
+            >
+              Date & Time
+            </Typography>
+            <Box sx={{ mb: 6 }}>
+              <MUIDateTimePicker
+                value={recordedDateTime}
+                onChange={newValue => setRecordedDateTime(newValue)}
+                label=''
+                minDateTime={minDate}
+                maxDateTime={maxDate}
+                ampm={true}
+              />
+            </Box>
+
+            <Typography
+              sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1 }}
             >
               Notes
             </Typography>

@@ -251,7 +251,6 @@ const AdministerOrSkipSidesheet = ({
       }
 
       if (medicineData?.dosage) {
-        console.log('medicineData?.dosage', medicineData?.dosage)
 
         // Split only on the first space to handle cases like "6 today tesr"
         const firstSpaceIndex = medicineData.dosage.indexOf(' ')
@@ -266,16 +265,11 @@ const AdministerOrSkipSidesheet = ({
           unitRaw = ''
         }
 
-        console.log('value, unitRaw', value, unitRaw)
-
         updatedQuantity = value
-        console.log('foundUnit', unitRaw)
-        console.log('foundUnit', medicalMasterData?.prescriptionDosageMeasurementType)
 
         const foundUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
           item => item?.unit_name?.toLowerCase() === unitRaw.toLowerCase()
         )
-        console.log('foundUnit', foundUnit)
 
         // Ensure the unit object has the expected structure
         updatedQuantityUnit = foundUnit ? { ...foundUnit, value: foundUnit.key, label: foundUnit.unit_name } : null
@@ -451,7 +445,6 @@ const AdministerOrSkipSidesheet = ({
                       format='hh:mm A'
                       sx={{ backgroundColor: theme.palette.customColors.Surface, ...commonFieldStyles }}
                       error={errors.time}
-
                       // disabled={disableTimeField}
                       minTime={slotStart}
                       maxTime={slotEnd}
@@ -553,6 +546,9 @@ const AdministerOrSkipSidesheet = ({
                               </Grid>
 
                               <Grid size={{ xs: 12 }}>
+                                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>
+                                  Notes
+                                </Typography>
                                 <ControlledTextArea
                                   name='notes'
                                   control={control}
@@ -627,6 +623,9 @@ const AdministerOrSkipSidesheet = ({
                     <>
                       {/* Reason for Skip Section */}
                       <Grid size={{ xs: 12 }}>
+                        <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>
+                          Reason for Skipping
+                        </Typography>
                         <ControlledTextArea
                           name='skipReason'
                           control={control}

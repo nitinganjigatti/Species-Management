@@ -382,7 +382,10 @@ function InComingAndOutGoingShipments({ type }) {
         externalTableStyle={{
           '& .MuiDataGrid-cell': {
             paddingLeft: '16px',
-            paddingRight: '16px'
+            paddingRight: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            lineHeight: 'normal'
           }
         }}
       />

@@ -13,8 +13,8 @@ import { Select, MenuItem, FormControl, InputLabel } from '@mui/material'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 // ** Third Party Imports
-import format from 'date-fns/format'
-import subDays from 'date-fns/subDays'
+import { format } from 'date-fns/format'
+import { subDays } from 'date-fns/subDays'
 import DatePicker from 'react-datepicker'
 
 // ** Icon Imports

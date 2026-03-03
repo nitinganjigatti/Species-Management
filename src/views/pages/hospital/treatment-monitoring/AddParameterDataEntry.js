@@ -612,7 +612,7 @@ const AddParameterDataEntry = ({
                           >
                             <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                {(resType === 'numeric_scale' || 'list') && (
+                                {(resType === 'numeric_scale' || resType === 'list') && (
                                   <Typography
                                     sx={{
                                       fontSize: '1rem',
@@ -670,10 +670,10 @@ const AddParameterDataEntry = ({
 
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                               <UserAvatarDetails
-                                user_name={`${item?.user_first_name} ${item?.user_last_name}`}
-                                date={item?.created_at}
+                                user_name={item?.modified_by ? `${item?.modified_user_first_name} ${item?.modified_user_last_name}` : `${item?.user_first_name} ${item?.user_last_name}`}
+                                date={item?.modified_by ? item?.modified_at : item?.created_at}
                                 show_time
-                                profile_image={item?.user_profile_full_url}
+                                profile_image={item?.modified_by ? item?.modified_user_profile_full_url : item?.user_profile_full_url}
                               />
                               {item?.modified_by !== null ? (
                                 <Typography

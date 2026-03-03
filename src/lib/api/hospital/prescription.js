@@ -16,7 +16,8 @@ import {
   SCHEDULE_PRESCRIPTION,
   SKIP_PRESCRIPTION,
   STOP_PRESCRIPTION,
-  UNDO_PRESCRIPTION
+  UNDO_PRESCRIPTION,
+  VALIDATE_PRESCRIPTION_BEFORE_UPDATE
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
@@ -194,4 +195,16 @@ export async function getSecurityCheckForTransfer(siteId) {
   const response = await axiosGet({ url: `${GET_TRANSFER_CHECK}/${siteId}` })
 
   return response?.data
+}
+
+export async function validatePrescriptionUpdate(params) {
+  try {
+    const url = `${VALIDATE_PRESCRIPTION_BEFORE_UPDATE}`
+
+    const response = await axiosGet({ url, params })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error fetching medical master data:', error.message)
+  }
 }

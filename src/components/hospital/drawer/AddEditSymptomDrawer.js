@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -9,6 +9,7 @@ import {
   Drawer,
   Divider,
   InputAdornment,
+  FormControl,
   alpha
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
@@ -21,6 +22,14 @@ import { deleteNoteSymptoms } from 'src/lib/api/hospital/symptoms'
 import Utility from 'src/utility'
 import Toaster from 'src/components/Toaster'
 import EditNotes from '../inpatient/EditNotes'
+import { useRouter } from 'next/router'
+import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 const AddEditSymptomDrawer = ({
   open,
@@ -49,11 +58,48 @@ const AddEditSymptomDrawer = ({
   isUpdating,
   setIsDeleting,
   isDeleting,
+  isSubmitLoading,
   setActivityListData,
-  isChanged
+  isChanged,
+  isResolved,
+  admittedDate,
+  dischargedDate,
+  isDischarged
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
+  const router = useRouter()
+  const { id } = router.query
+  const [recordedDateTime, setRecordedDateTime] = useState(dayjs())
+  const [minDate, setMinDate] = useState(null)
+  const [maxDate, setMaxDate] = useState(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    // Set default date and restrictions based on discharge status
+    if (isDischarged && dischargedDate) {
+      // Convert UTC dates to local time
+      setMinDate(dayjs.utc(admittedDate).local().startOf('day'))
+      setMaxDate(dayjs.utc(dischargedDate).local().endOf('day'))
+    } else {
+      setMinDate(admittedDate ? dayjs.utc(admittedDate).local().startOf('day') : null)
+      setMaxDate(null)
+    }
+
+    // Set initial value from selectedSymptom if available
+    if (selectedSymptom?.additional_info?.recorded_date_time) {
+      // Parse as local time (not UTC)
+      const localDateTime = dayjs.utc(selectedSymptom?.additional_info?.recorded_date_time).local()
+      setRecordedDateTime(localDateTime)
+    } else if (selectedSymptom?.created_at) {
+      // Parse as UTC and convert to local time
+      const localDateTime = dayjs.utc(selectedSymptom.created_at).local()
+      setRecordedDateTime(localDateTime)
+    } else {
+      setRecordedDateTime(dayjs())
+    }
+  }, [open, selectedSymptom, isDischarged, admittedDate, dischargedDate])
 
   const handleSave = () => {
     onSave({
@@ -61,7 +107,8 @@ const AddEditSymptomDrawer = ({
       severity,
       durationValue,
       durationUnit,
-      notes
+      notes,
+      recordedDateTime: recordedDateTime.format('YYYY-MM-DD HH:mm:ss')
     })
   }
 
@@ -79,7 +126,7 @@ const AddEditSymptomDrawer = ({
       formattedTime: `${Utility.formatDisplayDate(activity?.created_at)} • ${Utility.convertUTCToLocaltime(
         activity?.created_at
       )}`,
-      note: activity.note || 'N/A'
+      note: activity.note || ''
     })) ||
     // .sort((a, b) => {
     //   return b.isSystemGenerated - a.isSystemGenerated
@@ -111,7 +158,8 @@ const AddEditSymptomDrawer = ({
         med_id: temporarilySelected?.medical_record_id,
         type: 'COMPLAINT',
         note: notes || '',
-        note_id: noteId || ''
+        note_id: noteId || '',
+        hospital_case_id: id || ''
       }
       const response = await updateNotes(payload)
 
@@ -208,12 +256,10 @@ const AddEditSymptomDrawer = ({
             </IconButton>
           </Box>
         </Box>
-
+          
         <Box
           sx={{
-            pb: 2,
-            borderBottom:
-              processedActivities?.length > 0 ? `1px solid ${theme.palette.customColors.OutlineVariant}` : 'none',
+            pb: 22,
             height: processedActivities?.length > 0 ? '-webkit-fill-available' : '80%'
           }}
         >
@@ -292,16 +338,16 @@ const AddEditSymptomDrawer = ({
                 <Select
                   value={severity}
                   onChange={e => setSeverity(e.target.value)}
+                  disabled={status === 'closed'}
                   sx={{
                     backgroundColor: getSymptomsSeverityColor(severity).bgColor,
-
                     fontWeight: 500,
                     height: 56,
                     borderRadius: '4px',
                     width: '260px',
                     '& .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',
-                      borderColor: getSymptomsSeverityColor(severity).color
+                      borderColor: `${getSymptomsSeverityColor(severity).color} !important`
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',
@@ -319,7 +365,6 @@ const AddEditSymptomDrawer = ({
                   <MenuItem value='Extreme'>Extreme</MenuItem>
                 </Select>
               </Box>
-              {console.log(durationValue, 'durationValue')}
               <Box>
                 <Typography
                   sx={{
@@ -334,6 +379,7 @@ const AddEditSymptomDrawer = ({
                 <TextField
                   type='number'
                   value={durationValue}
+                  disabled={status === 'closed'}
                   onChange={e => {
                     const val = e.target.value
                     if (val === '' || Number(val) >= 0) {
@@ -350,6 +396,7 @@ const AddEditSymptomDrawer = ({
                             value={durationUnit}
                             onChange={e => setDurationUnit(e.target.value)}
                             variant='standard'
+                            disabled={status === 'closed'}
                             disableUnderline
                             sx={{
                               fontSize: 14,
@@ -376,10 +423,28 @@ const AddEditSymptomDrawer = ({
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
             >
+              Date & Time
+            </Typography>
+            <Box sx={{ mb: 6 }}>
+              <MUIDateTimePicker
+                value={recordedDateTime}
+                onChange={newValue => setRecordedDateTime(newValue)}
+                label=''
+                disabled={status === 'closed'}
+                minDateTime={minDate}
+                maxDateTime={maxDate}
+                ampm={true}
+              />
+            </Box>
+
+            <Typography
+              sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1 }}
+            >
               Notes
             </Typography>
             <TextField
               placeholder='Add notes'
+              disabled={status === 'closed'}
               fullWidth
               multiline
               rows={3}
@@ -394,27 +459,30 @@ const AddEditSymptomDrawer = ({
             />
           </Box>
           {processedActivities?.length > 0 ? (
-            <>
+            <Box sx={{ pb: 20 }}>
               <Divider color={theme.palette.customColors.OutlineVariant} />
               <ActivityList
                 activities={processedActivities}
                 onEdit={handleEditActivity}
                 activityLoader={activityLoader}
               />
-            </>
+            </Box>
           ) : (
             ''
           )}
         </Box>
-        <SideSheetActionButtons
-          addLabel='UPDATE'
-          cancelLabel='CANCEL'
-          onAdd={handleSave}
-          onCancel={handleCancel}
-          width={260}
-          height={50}
-          isDisabled={!isChanged}
-        />
+        <Box sx={{ position: 'fixed', bottom: 0 }}>
+          <SideSheetActionButtons
+            addLabel='UPDATE'
+            cancelLabel='CANCEL'
+            onAdd={handleSave}
+            isSubmitLoading={isSubmitLoading}
+            onCancel={handleCancel}
+            width={260}
+            height={50}
+            isDisabled={!isChanged}
+          />
+        </Box>
       </Box>
 
       <EditNotes

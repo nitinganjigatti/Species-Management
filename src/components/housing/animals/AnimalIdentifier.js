@@ -476,7 +476,7 @@ const AnimalIdentifier = () => {
         ) : (
 
           // Show edit and delete options for active identifiers
-          <>
+          (<>
             <MenuItem
               onClick={() => {
                 setAddIdentifierDrawer(true)
@@ -507,11 +507,11 @@ const AnimalIdentifier = () => {
             >
               Delete Identifier
             </MenuItem>
-          </>
+          </>)
         )}
       </Menu>
     </Box>
-  )
+  );
 }
 
 export default AnimalIdentifier

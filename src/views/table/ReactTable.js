@@ -964,7 +964,7 @@ const ReactTable = ({
             >
               {isPlaceholder ? null : (
                 // <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box
+                (<Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
@@ -992,7 +992,6 @@ const ReactTable = ({
                     )}
                     {column.id !== '_select' && showPinIcon && <PushPinIcon sx={{ fontSize: 16, opacity: 0.7 }} />}
                   </Box>
-
                   {modifyColumnPinning && column.id !== '_select' && originalColumn.disablePinMenu !== true && (
                     <IconButton
                       size='small'
@@ -1002,13 +1001,13 @@ const ReactTable = ({
                       <MoreVertIcon fontSize='small' />
                     </IconButton>
                   )}
-                </Box>
+                </Box>)
               )}
             </TableCell>
-          )
+          );
         })}
       </TableRow>
-    ))
+    ));
   }
 
   // ---- Body ----

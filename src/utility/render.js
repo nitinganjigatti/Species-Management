@@ -145,16 +145,16 @@ export function renderUserAvatarDetails({
             {date && (
               <Typography variant='caption' sx={{ lineHeight: 1.6667, ...(selectedAvatarSize?.date || {}) }}>
                 <span>
-                  {show_time ? (
+                  {date ? (
                     <>
-                      {Utility.convertUTCToLocaltime(date)}
+                      {Utility.convertUtcToLocalReadableDate(date)}
                       <span> &bull; </span>
                     </>
                   ) : (
                     ''
                   )}
                 </span>
-                <span>{date ? Utility.convertUtcToLocalReadableDate(date) : ''}</span>
+                <span>{show_time ? Utility.convertUTCToLocaltime(date) : ''}</span>
               </Typography>
             )}
           </Box>

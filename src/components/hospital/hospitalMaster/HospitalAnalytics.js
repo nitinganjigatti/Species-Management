@@ -14,15 +14,15 @@ import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import styled from '@emotion/styled'
 
-const HospitalAnalytics = ({ isHospitalStatsLoading, isInitialLoading, hospitalDetails }) => {
+const HospitalAnalytics = ({ isHospitalStatsLoading, hospitalDetails }) => {
   const theme = useTheme()
-  const isBelowMd = useMediaQuery(theme.breakpoints.down('md')) // true for <1024px
-  const isBelowSm = useMediaQuery(theme.breakpoints.down('sm')) // true for <1024px
+  const isBelowMd = useMediaQuery(theme.breakpoints.down('md')) // screen width < 900px
+  const isBelowSm = useMediaQuery(theme.breakpoints.down('sm')) // screen width < 600px
 
   const StatBox = ({ label, value }) => (
     <Box>
       <StyledTypography>{label}</StyledTypography>
-      {isInitialLoading ? (
+      {isHospitalStatsLoading ? (
         <CircularProgress size={20} />
       ) : (
         <StyledTypography color={theme.palette.customColors.OnSurfaceVariant} fontSize={'1rem'} fontWeight={500}>
@@ -42,7 +42,6 @@ const HospitalAnalytics = ({ isHospitalStatsLoading, isInitialLoading, hospitalD
     >
       <CardContent sx={{ p: { xs: 2, sm: 4 } }}>
         <Grid container spacing={6} alignItems='center' justifyContent={isBelowMd && 'space-between'}>
-          {/* --- Hospital Name + User Details combined for <1024px --- */}
           {isBelowMd ? (
             <Grid size={{ xs: 12, sm: 12 }}>
               <Box
@@ -90,7 +89,7 @@ const HospitalAnalytics = ({ isHospitalStatsLoading, isInitialLoading, hospitalD
                           color: theme.palette.customColors.OnSurfaceVariant,
                           fontSize: '1rem',
                           fontWeight: 500,
-                          maxWidth: { xs: '230px', md: '200px' }
+                          maxWidth: { xs: '220px', sm: '240px' }
                         }}
                       />
                     )}
@@ -98,38 +97,41 @@ const HospitalAnalytics = ({ isHospitalStatsLoading, isInitialLoading, hospitalD
                 </Box>
 
                 {/* User Avatar beside Hospital Name */}
-                {isInitialLoading ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <>
-                    {isBelowMd && !isBelowSm && (
-                      <UserAvatarDetails
-                        user_name={
-                          hospitalDetails?.updated_by_name
-                            ? hospitalDetails?.updated_by_name
-                            : hospitalDetails?.created_by_name ?? '-'
-                        }
-                        date={
-                          hospitalDetails?.updated_by ? hospitalDetails?.updated_at : hospitalDetails?.created_at ?? '-'
-                        }
-                        show_time={false}
-                        size='medium'
-                        profile_image={
-                          hospitalDetails?.updated_by_name
-                            ? hospitalDetails?.updated_user_profile_pic
-                            : hospitalDetails?.profile_pic ?? '-'
-                        }
-                        dateType={hospitalDetails?.updated_by ? 'updated' : 'created'}
-                      />
-                    )}
-                  </>
-                )}
+                <Box>
+                  {isHospitalStatsLoading ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <>
+                      {isBelowMd && !isBelowSm && (
+                        <UserAvatarDetails
+                          user_name={
+                            hospitalDetails?.updated_by_name
+                              ? hospitalDetails?.updated_by_name
+                              : hospitalDetails?.created_by_name ?? '-'
+                          }
+                          date={
+                            hospitalDetails?.updated_by
+                              ? hospitalDetails?.updated_at
+                              : hospitalDetails?.created_at ?? '-'
+                          }
+                          show_time={false}
+                          size='medium'
+                          profile_image={
+                            hospitalDetails?.updated_by_name
+                              ? hospitalDetails?.updated_user_profile_pic
+                              : hospitalDetails?.profile_pic ?? '-'
+                          }
+                          dateType={hospitalDetails?.updated_by ? 'updated' : 'created'}
+                        />
+                      )}
+                    </>
+                  )}
+                </Box>
               </Box>
             </Grid>
           ) : (
             <>
-              {/* --- Original Layout for >=1024px --- */}
-              <Grid size={{ xs: 12, sm: 12, md: 4 }}>
+              <Grid size={{ xs: 12, sm: 12, md: 3.4 }}>
                 <Box
                   sx={{
                     display: 'flex',
@@ -153,7 +155,7 @@ const HospitalAnalytics = ({ isHospitalStatsLoading, isInitialLoading, hospitalD
                       }
                     }}
                   />
-                  <Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
                     <StyledTypography>Hospital Name</StyledTypography>
                     {isHospitalStatsLoading ? (
                       <CircularProgress size={20} />
@@ -165,7 +167,7 @@ const HospitalAnalytics = ({ isHospitalStatsLoading, isInitialLoading, hospitalD
                           color: theme.palette.customColors.OnSurfaceVariant,
                           fontSize: '1rem',
                           fontWeight: 500,
-                          maxWidth: { xs: '230px', md: '200px' }
+                          maxWidth: '100%'
                         }}
                       />
                     )}
@@ -175,50 +177,48 @@ const HospitalAnalytics = ({ isHospitalStatsLoading, isInitialLoading, hospitalD
             </>
           )}
 
-          {/* --- Stats Section --- */}
-          <Grid size={{ xs: 6, sm: 2, md: 1.5 }}>
-            <StatBox label='Total Rooms' value={hospitalDetails?.no_of_rooms ?? '-'} />
+          {/* Stats Section */}
+          <Grid size={{ xs: 6, sm: 2, md: 1.3 }}>
+            <StatBox label='Rooms' value={hospitalDetails?.active_room_count ?? '-'} />
           </Grid>
 
-          <Grid size={{ xs: 6, sm: 2, md: 1 }}>
-            <StatBox label='Beds' value={hospitalDetails?.no_of_bed ?? '-'} />
+          <Grid size={{ xs: 6, sm: 2, md: 1.3 }}>
+            <StatBox label='Enclosures' value={hospitalDetails?.active_bed_count ?? '-'} />
           </Grid>
 
-          <Grid size={{ xs: 6, sm: 2, md: 1.2 }}>
+          <Grid size={{ xs: 6, sm: 2, md: 1.3 }}>
             <StatBox label='Occupied' value={hospitalDetails?.no_of_occupied ?? '-'} />
           </Grid>
 
-          <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-            <Box>
-              <Typography
-                sx={{
-                  color: theme.palette.customColors.neutralSecondary,
-                  fontSize: '0.875rem'
+          <Grid size={{ xs: 6, sm: 3, md: 1.9 }}>
+            <Typography
+              sx={{
+                color: theme.palette.customColors.neutralSecondary,
+                fontSize: '0.875rem'
+              }}
+            >
+              Site
+            </Typography>
+            {isHospitalStatsLoading ? (
+              <CircularProgress size={20} />
+            ) : (
+              <TextEllipsisWithModal
+                enableDialog={false}
+                text={hospitalDetails?.site_name ?? '-'}
+                style={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '1rem',
+                  fontWeight: 500,
+                  maxWidth: '100%'
                 }}
-              >
-                Site
-              </Typography>
-              {isInitialLoading ? (
-                <CircularProgress size={20} />
-              ) : (
-                <TextEllipsisWithModal
-                  enableDialog={false}
-                  text={hospitalDetails?.site_name ?? '-'}
-                  style={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '1rem',
-                    fontWeight: 500,
-                    maxWidth: { xs: '230px', md: '200px' }
-                  }}
-                />
-              )}
-            </Box>
+              />
+            )}
           </Grid>
 
-          {/* --- User Avatar Details for large screens only --- */}
+          {/* User Avatar Details for large screens only */}
           {(!isBelowMd || isBelowSm) && (
-            <Grid size={{ xs: 6, sm: 3, md: 2.3 }}>
-              {isInitialLoading ? (
+            <Grid size={{ xs: 12, sm: 3, md: 2.8 }}>
+              {isHospitalStatsLoading ? (
                 <CircularProgress size={20} />
               ) : (
                 <UserAvatarDetails

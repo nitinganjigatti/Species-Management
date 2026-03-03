@@ -43,6 +43,7 @@ const commonFieldStyles = {
 export default function PrescriptionMedicineList({
   medicineList,
   temporarilySelectedMedicine,
+  handleClearMedicine,
   selectedMedicine,
   onSelect,
   searchQuery,
@@ -50,6 +51,7 @@ export default function PrescriptionMedicineList({
   handleClearSearch,
   handleScroll,
   loading,
+  paginationLoading,
   searching,
   error,
   prescribedMedicines = [],
@@ -89,7 +91,7 @@ export default function PrescriptionMedicineList({
 
     const isPrescribed =
       tab === 'discharge'
-        ? isEnclosureMedicineAdded(medicine.id.toString())
+        ? isEnclosureMedicineAdded(medicine.id.toString()) || isMedicinePrescribed(medicine?.id)
         : isDirectAdminister
         ? isMedicinePrescribed(medicine?.id)
         : // ? false  // Commented for now as per the updated requirement
@@ -126,7 +128,7 @@ export default function PrescriptionMedicineList({
           sx={commonFieldStyles}
           showIcons={false}
           onChangeOverride={value => {
-            if (value && !value.disabled) {
+            if (value && !value.disabled && !loading) {
               onSelect(value)
             }
           }}
@@ -135,10 +137,11 @@ export default function PrescriptionMedicineList({
           }}
           onItemClear={() => {
             handleClearSearch()
+            handleClearMedicine()
             setValue('selectedMedicine', null)
             setValue('selectedMedicineId', '')
           }}
-          getOptionDisabled={option => option.disabled}
+          getOptionDisabled={option => option.disabled || loading}
           getOptionLabel={option => {
             if (typeof option === 'string') return option
 
@@ -298,6 +301,7 @@ export default function PrescriptionMedicineList({
             const MedicineRow = (
               <Box
                 key={medicine?.id}
+                onClick={() => !isDisabled && !loading && onSelect(medicine)}
                 sx={{
                   background:
                     isSelected || isTemporarilySelected ? theme.palette.customColors.OnBackground : 'transparent',
@@ -307,23 +311,32 @@ export default function PrescriptionMedicineList({
                   display: 'flex',
                   alignItems: 'center',
                   borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  opacity: isDisabled ? 0.5 : 1,
-                  cursor: isDisabled ? 'not-allowed' : 'pointer',
-                  pointerEvents: isDisabled ? 'none' : 'auto'
+                  opacity: isDisabled || loading ? 0.5 : 1,
+                  cursor: isDisabled || loading ? 'not-allowed' : 'pointer',
+                  pointerEvents: isDisabled || loading ? 'none' : 'auto',
+                  '&:hover': {
+                    backgroundColor: !isDisabled && !loading
+                      ? isSelected || isTemporarilySelected
+                        ? theme.palette.customColors.OnBackground
+                        : theme.palette.action.hover
+                      : 'transparent'
+                  },
+                  transition: 'background-color 0.2s ease'
                 }}
               >
                 <FormControlLabel
                   control={
                     <Radio
                       checked={isSelected || isTemporarilySelected}
-                      onChange={() => !isDisabled && onSelect(medicine)}
                       disabled={isDisabled}
                       sx={{
                         transform: 'scale(0.8)',
-                        padding: '4px'
+                        padding: '4px',
+                        pointerEvents: 'none'
                       }}
                     />
                   }
+                  sx={{ pointerEvents: 'none' }}
 
                   // label={medicine?.name}
                   // sx={{
@@ -384,7 +397,7 @@ export default function PrescriptionMedicineList({
           })
         )}
 
-        {loading && !searching && <MedicineShimmer count={8} />}
+        {paginationLoading && !searching && <MedicineShimmer count={8} />}
       </Box>
     </Box>
   )

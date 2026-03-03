@@ -8,6 +8,7 @@ import { Controller, useForm } from 'react-hook-form'
 
 import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import Utility from 'src/utility'
 
 const EditTreatmentDrawer = ({
   open,
@@ -29,17 +30,30 @@ const EditTreatmentDrawer = ({
 }) => {
   const theme = useTheme()
 
+  const resolvedStartDate = dayjs.isDayjs(formData.startDate)
+    ? formData.startDate
+    : dayjs(Utility.convertUTCToLocal(formData.startDate))
+  const safeStartDate = resolvedStartDate.isValid() ? resolvedStartDate : dayjs(formData.startDate || undefined)
+
   const { control, reset } = useForm({
     defaultValues: {
       editNotes: formData.notes || '',
-      startDate: formData.startDate ? dayjs(formData.startDate) : dayjs()
+      startDate: safeStartDate
     }
   })
 
   useEffect(() => {
+    const updatedResolvedStartDate = dayjs.isDayjs(formData.startDate)
+      ? formData.startDate
+      : dayjs(Utility.convertUTCToLocal(formData.startDate))
+
+    const updatedSafeStartDate = updatedResolvedStartDate.isValid()
+      ? updatedResolvedStartDate
+      : dayjs(formData.startDate || undefined)
+
     reset({
       editNotes: formData.notes || '',
-      startDate: formData.startDate ? dayjs(formData.startDate) : dayjs()
+      startDate: updatedSafeStartDate
     })
   }, [formData.notes, formData.startDate, reset, open])
 
@@ -65,8 +79,14 @@ const EditTreatmentDrawer = ({
 
   const activeActivity = activityList.find(a => a.id === formData.activeActivityId)
   const originalStartDate = activeActivity ? activeActivity.treatment_start_date_time : null
-  const dateHasChanged = originalStartDate ? !dayjs(originalStartDate).isSame(dayjs(formData.startDate), 'day') : false
-  const isUpdateDisabled = isSubmitting || (!formData.notes && !dateHasChanged)
+
+  const dateHasChanged = originalStartDate
+    ? !dayjs(Utility.convertUTCToLocal(originalStartDate)).isSame(dayjs(formData.startDate), 'day')
+    : false
+
+  const trimmedNotes = (formData.notes || '').trim()
+  const isUpdateDisabled = isSubmitting || (!trimmedNotes && !dateHasChanged)
+  const isAddDisabled = isAdding || isSubmitting || !trimmedNotes
 
   const formatTreatmentName = name => {
     if (!name || typeof name !== 'string') return ''
@@ -157,7 +177,7 @@ const EditTreatmentDrawer = ({
                 <Controller
                   name='startDate'
                   control={control}
-                  defaultValue={formData.startDate ? dayjs(formData.startDate) : dayjs()}
+                  defaultValue={safeStartDate}
                   render={({ field }) => (
                     <MUIDatePicker
                       value={field.value}
@@ -186,23 +206,26 @@ const EditTreatmentDrawer = ({
                 />
               </Box>
 
-              <ControlledTextArea
-                name='editNotes'
-                control={control}
-                errors={{}}
-                disabled={isSubmitting || isAdding}
-                rows={4}
-                placeholder='Add notes'
-                onChangeOverride={event => onChange('notes', event?.target?.value || '')}
-                inputBackgroundColor={theme.palette.primary.contrastText}
-                sx={{
-                  ...commonFieldStyles,
-                  '& .MuiOutlinedInput-root': {
-                    ...(commonFieldStyles['& .MuiOutlinedInput-root'] || {}),
-                    minHeight: '120px'
-                  }
-                }}
-              />
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>Notes</Typography>
+                <ControlledTextArea
+                  name='editNotes'
+                  control={control}
+                  errors={{}}
+                  disabled={isSubmitting || isAdding}
+                  rows={4}
+                  placeholder='Add notes'
+                  onChangeOverride={event => onChange('notes', event?.target?.value || '')}
+                  inputBackgroundColor={theme.palette.primary.contrastText}
+                  sx={{
+                    ...commonFieldStyles,
+                    '& .MuiOutlinedInput-root': {
+                      ...(commonFieldStyles['& .MuiOutlinedInput-root'] || {}),
+                      minHeight: '120px'
+                    }
+                  }}
+                />
+              </Box>
             </Box>
           </Box>
 
@@ -468,7 +491,7 @@ const EditTreatmentDrawer = ({
               variant='contained'
               fullWidth
               onClick={onAdd}
-              disabled={isAdding || isSubmitting || !formData.notes}
+              disabled={isAddDisabled}
               sx={{
                 height: '56px',
                 borderRadius: '8px',

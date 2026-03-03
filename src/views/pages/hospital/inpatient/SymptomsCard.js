@@ -10,6 +10,7 @@ import AddEditSymptomDrawer from 'src/components/hospital/drawer/AddEditSymptomD
 import { updateSymptoms, getNotesListForSymptom } from 'src/lib/api/hospital/symptoms'
 import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import dayjs from 'dayjs'
 
 const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData, isDischared }) => {
   const theme = useTheme()
@@ -47,11 +48,15 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
           ? 'Moderate'
           : recordData?.additional_info?.severity
 
+      // Format recorded_date_time as string
+      const recordedDateTime = recordData?.additional_info?.recorded_date_time || recordData?.created_at
+      const localDateTime = dayjs(recordedDateTime).format('YYYY-MM-DD HH:mm:ss')
       setPreviousDetails({
         severity: mappedSeverity,
-        durationValue: recordData?.additional_info?.duration,
+        durationValue: recordData?.additional_info?.duration || 0,
         durationUnit: recordData?.additional_info?.duration_unit,
-        status: recordData?.status
+        status: recordData?.status,
+        recordedDateTime: localDateTime
       })
       setSeverity(mappedSeverity)
       setDurationValue(
@@ -101,7 +106,8 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
 
   const addSymptomDetails = details => {
     setPendingDetails(details)
-    setIsDeleteDialogOpen(true)
+    // setIsDeleteDialogOpen(true)
+    handleConfirmAddSymptom(details)
   }
 
   const isChanged =
@@ -110,13 +116,16 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
     previousDetails?.durationUnit !== durationUnit ||
     previousDetails?.status !== status
 
-  const canEnableButton = isChanged || notes?.trim()?.length > 0
-
-  const handleConfirmAddSymptom = async () => {
-    if (!pendingDetails) return
-
-    try {
-      setDeleteLoading(true)
+    const canEnableButton = isChanged || notes?.trim()?.length > 0
+    
+    const handleConfirmAddSymptom = async pendingDetails => {
+      if (!pendingDetails) return
+      
+      try {
+        setDeleteLoading(true)
+        
+        // Check if date/time was changed
+        const dateChanged = previousDetails?.recordedDateTime !== pendingDetails?.recordedDateTime
 
       const isSystemGenerated = isChanged ? true : false
 
@@ -127,10 +136,12 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
         type: 'COMPLAINT',
         is_system_generated: isSystemGenerated ? 1 : 0,
         severity: pendingDetails?.severity,
-        duration: pendingDetails?.durationValue || 0,
+        duration: pendingDetails?.durationValue == 0 ? '' : pendingDetails?.durationValue || '',
         duration_unit: pendingDetails?.durationUnit,
         status: pendingDetails?.status,
-        note: pendingDetails?.notes
+        note: pendingDetails?.notes,
+        hospital_case_id: id,
+        recorded_date_time: pendingDetails?.recordedDateTime || temporarilySelected?.additional_info?.recorded_date_time || new Date().toISOString()
       }
 
       const response = await updateSymptoms(payload)
@@ -167,7 +178,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
   const formatDurationUnit = (value, unit) => {
     if (!unit) return ''
 
-    return Number(value) === 1 || Number(value) === 0 ? unit.replace(/s$/i, '') : unit
+    return Number(value) === 1 || Number(value) === 0 ? unit.replace(/s$/i, '') : unit;
   }
 
   return (
@@ -417,6 +428,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
           setNoteId={setNoteId}
           noteId={noteId}
           onSave={addSymptomDetails}
+          isSubmitLoading={deleteLoading}
           activityListData={activityListData}
           activityLoader={activityLoader}
           temporarilySelected={temporarilySelected}
@@ -429,6 +441,9 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
           isDeleting={isDeleting}
           setActivityListData={setActivityListData}
           isChanged={canEnableButton}
+          admittedDate={patientData?.admitted_at}
+          dischargedDate={patientData?.discharge_at}
+          isDischarged={patientData?.status === 'discharge'}
         />
       )}
       {isDeleteDialogOpen && (

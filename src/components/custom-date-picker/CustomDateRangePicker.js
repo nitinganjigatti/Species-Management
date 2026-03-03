@@ -1,7 +1,7 @@
 import { useState, forwardRef } from 'react'
 import { Box, TextField } from '@mui/material'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
-import format from 'date-fns/format'
+import { format } from 'date-fns/format'
 import DatePicker from 'react-datepicker'
 import { addMonths, subMonths } from 'date-fns'
 

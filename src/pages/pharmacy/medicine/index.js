@@ -313,7 +313,7 @@ const ListOfMedicine = () => {
       sortable: false,
 
       renderCell: params => (
-        <Box onClick={e => e.stopPropagation()} sx={{ display: 'flex', alignItems: 'center' }}>
+        (<Box onClick={e => e.stopPropagation()} sx={{ display: 'flex', alignItems: 'center' }}>
           {selectedPharmacy.type === 'central' &&
             (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
               <>
@@ -333,7 +333,7 @@ const ListOfMedicine = () => {
                 </Tooltip>
               </>
             )}
-        </Box>
+        </Box>)
 
         //     // {selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') &&(<Box>
         //     //   <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
@@ -382,7 +382,6 @@ const ListOfMedicine = () => {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, status }) => {
-      let params = {}
       const activeStatus = status ?? statusFilter
       try {
         setLoading(true)

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import {
   Box,
   TextField,
@@ -10,9 +10,15 @@ import {
   Divider,
   Autocomplete,
   Chip,
-  CircularProgress
+  CircularProgress,
+  Collapse,
+  Skeleton
 } from '@mui/material'
+import NoDataFound from 'src/views/utility/NoDataFound'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import { useTheme, alpha } from '@mui/material/styles'
+import { Router, useRouter } from 'next/router'
 import { useFormContext, Controller, useFieldArray } from 'react-hook-form'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
@@ -20,6 +26,8 @@ import dayjs from 'dayjs'
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import utc from 'dayjs/plugin/utc'
+import Search from 'src/views/utility/Search'
+import { debounce, filter } from 'lodash'
 
 dayjs.extend(utc)
 
@@ -30,7 +38,14 @@ export default function BasicDetails({
   addLoader = false,
   selectedHospital,
   loadMoreDoctors = () => {},
-  loadingDoctors = false
+  loadingDoctors = false,
+  loadingVet = false,
+  loadingAnesthetist = false,
+  handleVetSearch = () => {},
+  handleAnesthetistSearch = () => {},
+  handleVetSelect = () => {},
+  handleAnesthetistSelect = () => {},
+  patientData = []
 }) {
   const {
     control,
@@ -38,10 +53,18 @@ export default function BasicDetails({
     setValue,
     formState: { errors }
   } = useFormContext()
+  const router = useRouter()
   const theme = useTheme()
   const [newPurpose, setNewPurpose] = useState('')
+  const [expanded, setExpanded] = useState(false)
+  const [showToggle, setShowToggle] = useState(false)
+  const [fullHeight, setFullHeight] = useState(0 || '')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchValue, setSearchValue] = useState('')
+  const [loading, setLoading] = useState(true)
   const [newPurposeError, setNewPurposeError] = useState('')
-
+  const contentRef = useRef(null)
+  const { id, anaesthesia_id } = router.query
   const timeUnits = [
     { label: 'hr', value: 'hr' },
     { label: 'min', value: 'min' }
@@ -55,7 +78,9 @@ export default function BasicDetails({
         shouldValidate: true
       })
     }
-    // setValue('basicDetails.location', selectedHospital?.name)
+    if (!anaesthesia_id) {
+      setValue('basicDetails.location', selectedHospital?.name)
+    }
   }, [anaesthesiaDateTimeValue, setValue])
 
   const commonTextFieldSx = {
@@ -78,7 +103,6 @@ export default function BasicDetails({
     }
   }
 
-  // Reusable slotProps for both Autocomplete components
   const autocompleteSlotProps = useMemo(
     () => ({
       tags: options => ({
@@ -154,6 +178,61 @@ export default function BasicDetails({
 
   const normalizePurpose = value => value.toLowerCase().replace(/\s+/g, '').trim()
 
+  const filteredPurposeOptions = purposeOptions.filter(purpose =>
+    purpose.name.toLowerCase().includes(searchValue.toLowerCase())
+  )
+
+  const debouncedMainSearch = useCallback(
+    debounce(val => {
+      setSearchValue(val)
+      setLoading(false)
+    }, 500),
+    [searchValue]
+  )
+
+  const handleSearch = e => {
+    const val = e.target.value
+    setSearchQuery(val)
+    setLoading(true)
+    debouncedMainSearch(val)
+  }
+
+  const handleSearchClear = () => {
+    setSearchQuery('')
+    setSearchValue('')
+    debouncedMainSearch('')
+    setLoading(false)
+  }
+
+  /*view more button appearance based on height */
+  useEffect(() => {
+    if (loading) return
+    if (filteredPurposeOptions.length === 0) return
+    if (!contentRef.current) return
+
+    const height = contentRef.current.scrollHeight
+    setFullHeight(height)
+    setShowToggle(height > 170)
+  }, [filteredPurposeOptions])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 1200)
+
+    return () => clearTimeout(timer)
+  }, [filteredPurposeOptions, loading])
+
+  let skeletonCount = 0
+
+  if (filteredPurposeOptions.length === 1) {
+    skeletonCount = 3
+  } else if (filteredPurposeOptions.length > 1) {
+    skeletonCount = Math.ceil(filteredPurposeOptions.length / 4) * 4
+  } else if (searchValue) {
+    skeletonCount = 9
+  }
+
   return addLoader ? (
     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
       <CircularProgress />
@@ -203,6 +282,8 @@ export default function BasicDetails({
                     value={value}
                     onChange={handleDateChange}
                     format='DD MMM YYYY · hh:mm A'
+                    minDateTime={dayjs.utc(patientData?.admitted_at).local()}
+                    maxDateTime={dayjs()}
                     slotProps={{
                       textField: {
                         fullWidth: true,
@@ -261,44 +342,52 @@ export default function BasicDetails({
           <Controller
             name='basicDetails.veterinarian_id'
             control={control}
-            render={({ field }) => (
-              <Autocomplete
-                multiple
-                openOnFocus
-                options={vetOptions}
-                getOptionLabel={option => option?.name || ''}
-                isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
-                loading={loadingDoctors}
-                value={
-                  Array.isArray(field.value)
-                    ? field.value.map(id => vetOptions.find(opt => opt.id === id)).filter(Boolean)
-                    : []
-                }
-                onChange={(_, newValue) => {
-                  const selectedIds = newValue.map(item => item.id)
-                  field.onChange(selectedIds)
-                }}
-                slotProps={{
-                  tags: autocompleteSlotProps.tags(vetOptions),
-                  listbox: autocompleteSlotProps.listbox
-                }}
-                renderOption={(props, option) => (
-                  <li {...props} key={option.id}>
-                    {option.name}
-                  </li>
-                )}
-                renderInput={params => (
-                  <TextField
-                    {...params}
-                    label='Veterinarian*'
-                    fullWidth
-                    error={!!errors?.basicDetails?.veterinarian_id}
-                    helperText={errors?.basicDetails?.veterinarian_id?.message}
-                    sx={commonTextFieldSx}
-                  />
-                )}
-              />
-            )}
+            render={({ field }) => {
+              return (
+                <Autocomplete
+                  multiple
+                  openOnFocus
+                  options={vetOptions}
+                  getOptionLabel={option => option?.name || ''}
+                  isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
+                  loading={loadingVet}
+                  value={field.value || []}
+                  filterOptions={x => x}
+                  onInputChange={(event, newInputValue) => {
+                    handleVetSearch(newInputValue, field.value || [])
+                  }}
+                  onChange={(_, newValue) => {
+                    const previousValue = field.value || []
+                    if (newValue.length > previousValue.length) {
+                      const newItem = newValue.find(
+                        item => !previousValue.some(prev => String(prev.id) === String(item.id))
+                      )
+                      if (newItem) handleVetSelect(newItem)
+                    }
+                    field.onChange(newValue)
+                  }}
+                  slotProps={{
+                    tags: autocompleteSlotProps.tags(vetOptions),
+                    listbox: autocompleteSlotProps.listbox
+                  }}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.id}>
+                      {option.name}
+                    </li>
+                  )}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      label='Veterinarian*'
+                      fullWidth
+                      error={!!errors?.basicDetails?.veterinarian_id}
+                      helperText={errors?.basicDetails?.veterinarian_id?.message}
+                      sx={commonTextFieldSx}
+                    />
+                  )}
+                />
+              )
+            }}
           />
         </Grid>
 
@@ -314,15 +403,21 @@ export default function BasicDetails({
                 options={anesthetistOptions}
                 getOptionLabel={option => option?.name || ''}
                 isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
-                loading={loadingDoctors}
-                value={
-                  Array.isArray(field.value)
-                    ? field.value.map(id => anesthetistOptions.find(opt => opt.id === id)).filter(Boolean)
-                    : []
-                }
+                loading={loadingAnesthetist}
+                value={field.value || []}
+                filterOptions={x => x}
+                onInputChange={(event, newInputValue) => {
+                  handleAnesthetistSearch(newInputValue, field.value || [])
+                }}
                 onChange={(_, newValue) => {
-                  const selectedIds = newValue.map(item => item.id)
-                  field.onChange(selectedIds)
+                  const previousValue = field.value || []
+                  if (newValue.length > previousValue.length) {
+                    const newItem = newValue.find(
+                      item => !previousValue.some(prev => String(prev.id) === String(item.id))
+                    )
+                    if (newItem) handleAnesthetistSelect(newItem)
+                  }
+                  field.onChange(newValue)
                 }}
                 slotProps={{
                   tags: autocompleteSlotProps.tags(anesthetistOptions),
@@ -352,19 +447,44 @@ export default function BasicDetails({
       <Divider sx={{ mt: 8 }} />
 
       <Box mt={5}>
-        <Typography
-          fontWeight={600}
-          mb={3}
-          sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: { sm: 'center' },
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: { xs: 3, md: 0 }
+          }}
         >
-          Purpose of Anesthesia*{' '}
-          <Typography
-            component='span'
-            sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.secondaryBg, pl: 4 }}
-          >
-            Select all that apply
-          </Typography>
-        </Typography>
+          <Box>
+            <Typography
+              fontWeight={600}
+              sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
+            >
+              Purpose of Anesthesia*{' '}
+              <Box sx={{ display: 'inline-flex', pl: { sm: 4 } }}>
+                <Typography
+                  sx={{
+                    justifyContent: 'flex-start',
+                    fontWeight: 400,
+                    fontSize: '16px',
+                    color: theme.palette.customColors.secondaryBg
+                  }}
+                >
+                  Select all that apply
+                </Typography>
+              </Box>
+            </Typography>
+          </Box>
+          <Box>
+            <Search
+              value={searchQuery}
+              onChange={handleSearch}
+              onClear={handleSearchClear}
+              width={{ sm: 230, md: 300 }}
+            />
+          </Box>
+        </Box>
 
         <Controller
           name='basicDetails.selected'
@@ -372,45 +492,121 @@ export default function BasicDetails({
           defaultValue={[]}
           render={({ field }) => (
             <>
-              <ToggleButtonGroup
-                value={field.value || []}
-                onChange={(_, newValues) => field.onChange(newValues)}
-                aria-label='Purpose of anesthesia'
-                sx={{
-                  flexWrap: 'wrap',
-                  gap: 3,
-                  mt: 1,
-                  display: 'flex',
-
-                  // border: errors.basicDetails?.purpose ? `1px solid ${theme.palette.error.main}` : 'none',
-                  borderRadius: '8px',
-                  p: errors.basicDetails?.purpose ? 1 : 0,
-                  '& .MuiToggleButton-root': {
-                    borderRadius: '8px',
-                    textTransform: 'none',
-                    fontSize: '14px',
-                    px: 4,
-                    py: 2.5,
-                    background: theme.palette.customColors.neutral05,
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    border: 'none'
-                  },
-                  '& .MuiToggleButton-root.Mui-selected': {
-                    bgcolor: theme.palette.customColors.OnPrimaryContainer,
-                    color: theme.palette.primary.contrastText
-                  },
-                  '& .MuiToggleButton-root.Mui-selected:hover': {
-                    bgcolor: theme.palette.primary.dark
-                  }
-                }}
-              >
-                {purposeOptions?.map(option => (
-                  <ToggleButton key={option.id ?? option.name} value={String(option.id)}>
-                    {option?.name}
-                  </ToggleButton>
-                ))}
-              </ToggleButtonGroup>
-
+              <Collapse in={!expanded || loading || showToggle} collapsedSize={showToggle ? 170 : 'auto'}>
+                {loading ? (
+                  <Grid
+                    container
+                    spacing={3}
+                    ref={contentRef}
+                    sx={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      maxHeight: !expanded ? 170 : fullHeight,
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      overflow: 'hidden',
+                      mt: 3
+                    }}
+                  >
+                    {[...Array(skeletonCount)].map((_, i) => (
+                      <Grid item key={i}>
+                        <Skeleton
+                          variant='rectangular'
+                          animation='wave'
+                          height={46}
+                          sx={{
+                            width: { xs: 200, lg: 240 },
+                            borderRadius: '8px'
+                          }}
+                        />
+                      </Grid>
+                    ))}
+                  </Grid>
+                ) : (
+                  <Box
+                    ref={contentRef}
+                    sx={{
+                      maxHeight: expanded ? fullHeight : 170,
+                      transition: 'max-height 0.3s ease',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 1,
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {filteredPurposeOptions.length > 0 ? (
+                      <ToggleButtonGroup
+                        value={field.value || []}
+                        onChange={(_, newValues) => field.onChange(newValues)}
+                        aria-label='Purpose of anesthesia'
+                        sx={{
+                          flexWrap: 'wrap',
+                          gap: 3,
+                          mt: 3,
+                          display: 'flex',
+                          borderRadius: '8px',
+                          p: errors.basicDetails?.purpose ? 1 : 0,
+                          '& .MuiToggleButton-root': {
+                            borderRadius: '8px',
+                            textTransform: 'none',
+                            fontSize: '14px',
+                            px: 4,
+                            py: 2.5,
+                            background: theme.palette.customColors.neutral05,
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            border: 'none'
+                          },
+                          '& .MuiToggleButton-root.Mui-selected': {
+                            bgcolor: theme.palette.customColors.OnPrimaryContainer,
+                            color: theme.palette.primary.contrastText
+                          },
+                          '& .MuiToggleButton-root.Mui-selected:hover': {
+                            bgcolor: theme.palette.primary.dark
+                          }
+                        }}
+                      >
+                        {filteredPurposeOptions.map(option => (
+                          <ToggleButton key={option.id ?? option.name} value={String(option.id)}>
+                            {option?.name}
+                          </ToggleButton>
+                        ))}
+                      </ToggleButtonGroup>
+                    ) : searchValue ? (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '100%',
+                          height: 200
+                        }}
+                      >
+                        <NoDataFound height={200} width={200} />
+                      </Box>
+                    ) : null}
+                  </Box>
+                )}
+              </Collapse>
+              {loading
+                ? null
+                : filteredPurposeOptions.length > 0 &&
+                  showToggle && (
+                    <Grid sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Typography
+                        onClick={() => setExpanded(prev => !prev)}
+                        sx={{
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          mt: 3,
+                          color: theme.palette.primary.main
+                        }}
+                      >
+                        {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                        {expanded ? 'View Less' : 'View More'}
+                      </Typography>
+                    </Grid>
+                  )}
               {errors.basicDetails?.selected && (
                 <Typography variant='caption' color={theme.palette.customColors.Error} sx={{ mt: 1, display: 'block' }}>
                   {String(errors.basicDetails?.selected?.message || 'Required')}

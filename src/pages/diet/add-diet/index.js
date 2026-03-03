@@ -157,23 +157,36 @@ const AddDiet = () => {
     }
   }
 
-  const fetchData = useCallback(async (pageNum = 1) => {
-    setLoadingFeed(true)
-    const params = { page: pageNum, limit: 20, status: 1 }
+  const [feedSearchValue, setFeedSearchValue] = useState('')
 
-    try {
-      const response = await getFeedTypeList(params)
-      const newData = response?.data?.result || []
-      const total = response?.data?.total_count || 0
+  const fetchData = useCallback(
+    async (pageNum = 1) => {
+      setLoadingFeed(true)
+      const params = { page: pageNum, limit: 20, status: 1, q: feedSearchValue }
 
-      setFeedTotalCount(total)
-      setFeedType(prev => (pageNum === 1 ? newData : [...prev, ...newData]))
-    } catch (error) {
-      console.log('error', error)
-    } finally {
-      setLoadingFeed(false)
-    }
-  }, [])
+      try {
+        const response = await getFeedTypeList(params)
+        const newData = response?.data?.result || []
+        const total = response?.data?.total_count || 0
+
+        setFeedTotalCount(total)
+        setFeedType(prev => (pageNum === 1 ? newData : [...prev, ...newData]))
+      } catch (error) {
+        console.log('error', error)
+      } finally {
+        setLoadingFeed(false)
+      }
+    },
+    [feedSearchValue]
+  )
+
+  const handleFeedSearch = useCallback(
+    debounce(val => {
+      setFeedSearchValue(val)
+      setPage(1)
+    }, 500),
+    []
+  )
 
   const IngredientTypeListSearch = debounce(async value => {
     try {
@@ -629,6 +642,7 @@ const AddDiet = () => {
             onLoadMore={handleLoadMore}
             loadingfeed={loadingfeed}
             feedtotalCount={feedtotalCount}
+            handleFeedSearch={handleFeedSearch}
           />
         )
       case 1:

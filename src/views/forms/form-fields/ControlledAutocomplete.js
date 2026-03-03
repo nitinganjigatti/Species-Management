@@ -1,5 +1,4 @@
-/* eslint-disable lines-around-comment */
-import React from 'react'
+import React, { useRef } from 'react'
 import { Controller } from 'react-hook-form'
 import {
   Autocomplete,
@@ -49,8 +48,12 @@ const ControlledAutocomplete = ({
   disabled = false,
   endAdornment = null,
   showLoader = false,
+
+  //clearOnBlur = false,
   maxTagsHeight = null
 }) => {
+  const searchInputRef = useRef('') // Store the search input value
+
   if (!options) return null
 
   const fieldError = get(errors, name)
@@ -72,6 +75,22 @@ const ControlledAutocomplete = ({
       label: String(val),
       value: String(val)
     }
+  }
+
+  const handleOnBlur = (event, item) => {
+    if (!searchInputRef.current || (!item?.value && !searchInputRef.current)) return
+    if (!item?.value && searchInputRef.current) {
+      onInputChange('')
+      searchInputRef.current = ''
+    } else if (
+      item?.value &&
+      searchInputRef.current &&
+      item?.label?.toLowerCase()?.trim() != searchInputRef.current?.toLowerCase()?.trim()
+    ) {
+      onInputChange(item?.label)
+      searchInputRef.current = item?.label?.toLowerCase()?.trim()
+    }
+    onBlur(event)
   }
   const icon = <CheckBoxOutlineBlankIcon fontSize='small' />
   const checkedIcon = <CheckBoxIcon fontSize='small' />
@@ -110,7 +129,7 @@ const ControlledAutocomplete = ({
             freeSolo={showIcons}
             disabled={disabled}
             selectOnFocus
-            clearOnBlur={false}
+            // clearOnBlur={true}
             handleHomeEndKeys
             options={options}
             getOptionLabel={getOptionLabel}
@@ -122,10 +141,12 @@ const ControlledAutocomplete = ({
 
               if (reason === 'clear') {
                 onItemClear()
+                searchInputRef.current = ""
                 normalizedValue = null
               }
 
               field.onChange(normalizedValue)
+              if (reason === 'clear' && !value) return
               onChangeOverride(normalizedValue)
 
               if (reason === 'createOption' && value) {
@@ -133,6 +154,12 @@ const ControlledAutocomplete = ({
               }
             }}
             onInputChange={(e, value, reason) => {
+              if (reason === 'clear' && !value) return
+              // Store the current search input value only when typing or clearing
+              if (reason === 'input' || reason === 'clear') {
+                searchInputRef.current = value || ''
+              }
+
               if (reason === 'input') {
                 onInputChange(value, reason)
               }
@@ -141,11 +168,13 @@ const ControlledAutocomplete = ({
               }
               if (reason === 'clear') {
                 onItemClear()
+
+                // Don't trigger API call on clear - just pass empty string
                 onInputChange('', reason)
               }
             }}
             onKeyUp={onKeyUp}
-            onBlur={onBlur}
+            onBlur={e => handleOnBlur(e, field.value)}
             loading={loading}
             noOptionsText='Type to search'
             // renderOption={renderOption}
@@ -243,123 +272,3 @@ const ControlledAutocomplete = ({
 }
 
 export default React.memo(ControlledAutocomplete)
-
-// Updated code
-
-// import React from 'react'
-// import { Controller } from 'react-hook-form'
-// import { Autocomplete, TextField, FormControl, FormHelperText } from '@mui/material'
-
-// const ControlledAutocomplete = ({
-//   name,
-//   label,
-//   control,
-//   errors,
-//   options = [],
-//   loading = false,
-//   required = false,
-//   fullWidth = true,
-//   onChangeOverride = () => {},
-//   onKeyUp = () => {},
-//   onItemClear = () => {},
-//   onBlur = () => {},
-//   onInputChange = () => {},
-//   getOptionLabel = option => option.label || '',
-//   isOptionEqualToValue = (option, value) => option.value === value?.value,
-//   renderOption = null,
-//   textFieldProps = {},
-//   autocompleteProps = {},
-//   formHelperTextBackgroundColor = 'inherit',
-//   inputBackgroundColor = 'inherit',
-//   sx = {},
-//   textFieldSx = {}
-// }) => {
-//   if (!options) return
-
-//   return (
-//     <FormControl fullWidth={fullWidth}>
-//       <Controller
-//         name={name}
-//         control={control}
-//         rules={{ required }}
-//         render={({ field, fieldState }) => {
-//           const fieldError = fieldState.error
-//           const helperText = fieldError?.message || fieldError?.value?.message ||''
-//           console.log('fieldError', fieldError)
-
-//           return (
-//             <>
-//               <Autocomplete
-//                 {...field}
-//                 options={options}
-//                 getOptionLabel={getOptionLabel}
-//                 value={field.value ?? null} // ensures Autocomplete is always controlled
-//                 isOptionEqualToValue={isOptionEqualToValue}
-//                 onChange={(e, value, reason) => {
-//                   field.onChange(value)
-//                   onChangeOverride(value)
-//                   if (reason === 'clear') {
-//                     onItemClear()
-//                   }
-//                 }}
-//                 onInputChange={(e, value, reason) => {
-//                   if (reason === 'input') {
-//                     onInputChange(value)
-//                   }
-//                 }}
-//                 onKeyUp={onKeyUp}
-//                 onBlur={onBlur}
-//                 loading={loading}
-//                 noOptionsText='Type to search'
-//                 renderOption={renderOption}
-//                 sx={{
-//                   '& .MuiInputBase-root': {
-//                     backgroundColor: inputBackgroundColor
-//                   },
-//                   ...sx
-//                 }}
-//                 {...autocompleteProps}
-//                 renderInput={params => (
-//                   <TextField
-//                     {...params}
-//                     label={label}
-//                     placeholder='Search & Select'
-//                     error={Boolean(fieldError)}
-//                     {...textFieldProps}
-//                     slotProps={{
-//                       ...textFieldProps.slotProps,
-//                       input: {
-//                         ...params.InputProps, // ensures dropdown arrow and anchor remain
-//                         ...(textFieldProps?.slotProps?.input || {}),
-//                         sx: {
-//                           ...params.InputProps?.sx,
-//                           ...textFieldProps?.slotProps?.input?.sx
-//                         }
-//                       },
-//                       inputLabel: {
-//                         ...params.InputLabelProps,
-//                         ...(textFieldProps?.slotProps?.inputLabel || {}),
-//                         sx: {
-//                           ...params.InputLabelProps?.sx,
-//                           ...textFieldProps?.slotProps?.inputLabel?.sx
-//                         }
-//                       }
-//                     }}
-//                     sx={{ ...textFieldSx }}
-//                   />
-//                 )}
-//               />
-//               {helperText && (
-//                 <FormHelperText error sx={{ ml: '14px' }}>
-//                   {helperText}
-//                 </FormHelperText>
-//               )}
-//             </>
-//           )
-//         }}
-//       />
-//     </FormControl>
-//   )
-// }
-
-// export default React.memo(ControlledAutocomplete)

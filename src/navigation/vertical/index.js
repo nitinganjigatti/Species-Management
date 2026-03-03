@@ -13,6 +13,8 @@ import reportNavigation from 'src/components/navigation/report'
 import medicalNavigation from 'src/components/navigation/medical'
 import housingNavigation from 'src/components/navigation/housing'
 import hospitalNavigation from 'src/components/navigation/hospital'
+import settingsNavigation from 'src/components/navigation/settings'
+import necropsyNavigation from 'src/components/navigation/necropsy'
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -37,13 +39,18 @@ const ComposeNavigation = () => {
 
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
-  const housingModule = authData?.userData?.roles?.settings?.enable_housing_in_web
+  const housingModuleWeb = authData?.userData?.roles?.settings?.enable_housing_in_web
+  const housingModule = authData?.userData?.roles?.settings?.enable_housing
   const housingModuleCluster = authData?.userData?.roles?.settings?.manage_cluster_permission
 
   const hospitalModule = authData?.userData?.roles?.settings?.add_hospital
   const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
 
   const userRole = authData?.userData?.roles?.role_name
+
+  const enableAddNecropsyReport = authData?.userData?.roles?.settings?.enable_add_necropsy_report
+  const allowCarcassCollection = authData?.userData?.roles?.settings?.allow_carcass_collection
+  const hasPermissionToAddNecropsyCenter = authData?.userData?.permission?.user_settings?.add_necropsy_center
 
   // console.log('labList', labList)
   const { selectedPharmacy } = usePharmacyContext()
@@ -90,7 +97,7 @@ const ComposeNavigation = () => {
     navigationArray.push(...pariveshNav)
   }
 
-  if (housingModule) {
+  if (housingModuleWeb) {
     const housingNav = housingNavigation(housingModuleCluster)
     navigationArray.push(...housingNav)
   }
@@ -107,6 +114,16 @@ const ComposeNavigation = () => {
   if (complianceModule) {
     const complianceNav = complianceNavigation()
     navigationArray.push(...complianceNav)
+  }
+
+  if (enableAddNecropsyReport || allowCarcassCollection || hasPermissionToAddNecropsyCenter) {
+    const necropsyNav = necropsyNavigation(hasPermissionToAddNecropsyCenter, allowCarcassCollection, enableAddNecropsyReport)
+    navigationArray.push(...necropsyNav)
+  }
+
+  if (housingModule || housingModuleWeb) {
+    const settingsNav = settingsNavigation()
+    navigationArray.push(...settingsNav)
   }
 
   return navigationArray

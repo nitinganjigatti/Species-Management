@@ -47,7 +47,10 @@ const shipmentSlice = createSlice({
     sort: 'asc',
     sortColumn: '',
     priority: 'all',
-    selectedRows: [],
+    selectedRows: {
+      type: 'include',
+      ids: new Set()
+    },
     dispatchedItems: []
   },
   reducers: {
@@ -71,12 +74,18 @@ const shipmentSlice = createSlice({
       state.sort = 'asc'
       state.sortColumn = ''
       state.priority = 'all'
-      state.selectedRows = []
+      state.selectedRows = {
+        type: 'include',
+        ids: new Set()
+      }
       state.dispatchedItems = []
     },
     clearDispatchedItems: state => {
       state.dispatchedItems = []
-      state.selectedRows = []
+      state.selectedRows = {
+        type: 'include',
+        ids: new Set()
+      }
     }
   },
   extraReducers: builder => {

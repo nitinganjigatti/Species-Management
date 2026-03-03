@@ -26,7 +26,8 @@ const AnimalDrawer = ({
   handleSortClick = () => {},
   module = 'housing',
   filters = {},
-  sortType
+  sortType,
+  filterCount
 }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
@@ -290,6 +291,7 @@ const AnimalDrawer = ({
                   bgColor={theme?.palette?.customColors?.OnPrimary}
                   border={`1px solid ${theme?.palette?.customColors?.OutlineVariant}`}
                   onClick={handleFilterClick}
+                  appliedFiltersCount={filterCount}
                 />
               </Grid>
               <Grid size={{ xs: 1, sm: 1 }}>
@@ -412,26 +414,28 @@ const AnimalDrawer = ({
             <Box display='flex' justifyContent='center' alignItems='center' flex={1}>
               <CircularProgress />
             </Box>
-          ) : module === 'hospital' && search.trim().length === 0 && !isFetching ? (
-            <Box
-              sx={{
-                backgroundColor: theme.palette.customColors.antzNotes,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                px: 4,
-                py: 4,
-                mt: 4,
-                borderRadius: 1
-              }}
-            >
-              <Typography
-                sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
-              >
-                Search animal by AID or animal identifier
-              </Typography>
-            </Box>
-          ) : (
+          ) 
+          // : module === 'hospital' && search.trim().length === 0 && !isFetching ? (
+          //   <Box
+          //     sx={{
+          //       backgroundColor: theme.palette.customColors.antzNotes,
+          //       display: 'flex',
+          //       alignItems: 'center',
+          //       justifyContent: 'center',
+          //       px: 4,
+          //       py: 4,
+          //       mt: 4,
+          //       borderRadius: 1
+          //     }}
+          //   >
+          //     <Typography
+          //       sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
+          //     >
+          //       Search animal by AID or animal identifier
+          //     </Typography>
+          //   </Box>
+          // ) 
+          : (
             <>
               {list.map(animal => (
                 <AnimalParentCard

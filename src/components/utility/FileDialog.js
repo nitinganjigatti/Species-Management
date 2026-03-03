@@ -56,6 +56,12 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
     } catch (error) {
       console.error('Download failed:', error?.message)
     } finally {
+    try {
+      await Utility.downloadFileFromURLWithBlob(src, title)
+      onClose()
+    } catch (error) {
+      console.error('Download failed:', error?.message)
+    } finally {
       setIsSubmitting(false)
     }
   }
@@ -111,9 +117,35 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
       )
     }
 
+    //  Unsupported URL shows only Download button
+    if (errorType === 'unsupported') {
+      return (
+        <Box sx={{ p: 10, textAlign: 'center' }}>
+          <LoadingButton
+            variant='contained'
+            loading={isSubmitting}
+            onClick={handleDownload}
+            endIcon={<Icon icon='mdi:download' width={24} height={24} />}
+            sx={{
+              px: 8,
+              py: 2,
+              borderRadius: '6px',
+              textTransform: 'none',
+              letterSpacing: 1,
+              fontSize: '1rem'
+            }}
+          >
+            Download File
+          </LoadingButton>
+        </Box>
+      )
+    }
+
     return (
       <Box
         sx={{
+          minHeight: '300px',
+          width: '100%',
           minHeight: '300px',
           width: '100%',
           display: 'flex',
@@ -167,6 +199,23 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
     </Box>
   )
 
+  // Loader
+  const loadingOverlay = (
+    <Box
+      sx={{
+        position: 'absolute',
+        inset: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1,
+        backgroundColor: theme.palette.background.paper
+      }}
+    >
+      <CircularProgress />
+    </Box>
+  )
+
   // Renders preview content based on file type
   const renderContent = () => {
     if (isError) return renderFallback()
@@ -175,8 +224,23 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
       case 'pdf':
         // Ensures the PDF fits the iframe width for consistent preview across browsers and iPad
         // const pdfUrl = `${src}#view=FitH`
+        // Ensures the PDF fits the iframe width for consistent preview across browsers and iPad
+        // const pdfUrl = `${src}#view=FitH`
 
         return (
+          <Box sx={{ width: '100%', height: '70vh', position: 'relative', overflow: 'hidden' }}>
+            {isLoading && loadingOverlay}
+            {!isError && (
+              <iframe
+                src={src}
+                title={title || 'PDF Preview'}
+                style={{
+                  border: 'none',
+                  width: '100%',
+                  height: '100%'
+                }}
+              />
+            )}
           <Box sx={{ width: '100%', height: '70vh', position: 'relative', overflow: 'hidden' }}>
             {isLoading && loadingOverlay}
             {!isError && (
@@ -210,6 +274,8 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
               alt={title || 'Image Preview'}
               onLoad={() => setIsLoading(false)}
               onError={handleLoadError}
+              onLoad={() => setIsLoading(false)}
+              onError={handleLoadError}
               style={{
                 maxWidth: '100%',
                 maxHeight: '70vh',
@@ -228,13 +294,17 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
+              justifyContent: 'center'
             }}
           >
+            {isLoading && loadingOverlay}
             {isLoading && loadingOverlay}
             <SignedMediaPlayer
               src={src}
               preload='auto'
               type='video'
+              onLoad={() => setIsLoading(false)}
+              onError={handleLoadError}
               onLoad={() => setIsLoading(false)}
               onError={handleLoadError}
               style={{
@@ -248,6 +318,16 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
 
       case 'audio':
         return (
+          <Box sx={{ p: 10, position: 'relative', height: '150px' }}>
+            {isLoading && loadingOverlay}
+            <SignedMediaPlayer
+              controls
+              src={src}
+              preload='auto'
+              height='auto'
+              onLoad={() => setIsLoading(false)}
+              onError={handleLoadError}
+            />
           <Box sx={{ p: 10, position: 'relative', height: '150px' }}>
             {isLoading && loadingOverlay}
             <SignedMediaPlayer
@@ -286,9 +366,12 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
   }
 
   // Resets loading and error state whenever dialog opens or file source changes
+  // Resets loading and error state whenever dialog opens or file source changes
   useEffect(() => {
     if (open) {
       setIsError(false)
+      setIsLoading(true)
+      setErrorType(null)
       setIsLoading(true)
       setErrorType(null)
     }
@@ -332,6 +415,11 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
           padding: '6px 24px'
         }}
       >
+        <Grid
+          container
+          spacing={2}
+          sx={{ mr: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'nowrap' }}
+        >
         <Grid
           container
           spacing={2}
