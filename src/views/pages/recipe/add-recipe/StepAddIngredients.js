@@ -307,6 +307,26 @@ const StepAddIngredients = ({
       })
     }
 
+    // Check for duplicate ingredients with same preparation and cut size
+    const seen = new Set()
+    let duplicateFound = false
+    data.by_quantity.forEach(item => {
+      if (item.ingredient_id && item.preparation_type_id && item.cut_size_id) {
+        const key = `${item.ingredient_id}-${item.preparation_type_id}-${item.cut_size_id}`
+        if (seen.has(key)) {
+          duplicateFound = true
+        }
+        seen.add(key)
+      }
+    })
+
+    if (duplicateFound) {
+      return Toaster({
+        type: 'error',
+        message: 'The same item with same preparation type and cut size is not allowed.'
+      })
+    }
+
     window.scrollTo(0, 0)
 
     Object.keys(defaultValues).forEach(field => {
