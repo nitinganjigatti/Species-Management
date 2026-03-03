@@ -38,7 +38,8 @@ function SpeciesCard({ species, edit }) {
                   ? '50%'
                   : 'unset'
             }}
-            src={imgSrc}
+            // src={imgSrc}
+            src={species?.default_icon || '/images/housing/species-icon-colored.svg'}
             alt={species.scientific_name}
             slotProps={{
               img: {
@@ -51,7 +52,7 @@ function SpeciesCard({ species, edit }) {
       )}
 
       <Box>
-        {species.primary_identifier_type && species.primary_identifier_value && (
+        {/* {species.primary_identifier_type && species.primary_identifier_value && (
           <Tooltip title={`${species.primary_identifier_type}: ${species.primary_identifier_value}`}>
             <Typography
               sx={{
@@ -69,7 +70,7 @@ function SpeciesCard({ species, edit }) {
               {species.primary_identifier_type}: {species.primary_identifier_value}
             </Typography>
           </Tooltip>
-        )}
+        )} */}
         {species.common_name && (
           <Tooltip title={species.common_name}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

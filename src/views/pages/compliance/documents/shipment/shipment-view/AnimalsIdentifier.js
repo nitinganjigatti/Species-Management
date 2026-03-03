@@ -5,6 +5,7 @@ import { useTheme } from '@mui/material/styles'
 const AnimalIdentifiers = ({ selectedExportData }) => {
   // Sample data for multiple cards
   const theme = useTheme()
+
   const animals = [
     ...(selectedExportData?.export?.flatMap(exportItem =>
       exportItem.species?.flatMap(species =>
@@ -18,7 +19,8 @@ const AnimalIdentifiers = ({ selectedExportData }) => {
     ) || []),
     ...(selectedExportData?.others?.flatMap(otherItem => {
       const speciesArray = Array.isArray(otherItem?.species) ? otherItem.species : [otherItem?.species].filter(Boolean)
-      return speciesArray.flatMap(species =>
+      
+return speciesArray.flatMap(species =>
         (species?.animals || []).map(animal => ({
           gender: animal.gender || '',
           species: species?.common_name || '-',
@@ -77,6 +79,7 @@ const AnimalIdentifiers = ({ selectedExportData }) => {
                   width: 40,
                   height: 40,
                   borderRadius: '4px'
+
                   //ml: 4
                 }}
               >

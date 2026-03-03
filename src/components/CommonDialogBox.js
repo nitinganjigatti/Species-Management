@@ -1,25 +1,12 @@
-// ** React Imports
-import { forwardRef } from 'react'
-
 // ** MUI Imports
-
-import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
-
 import Dialog from '@mui/material/Dialog'
-
 import IconButton from '@mui/material/IconButton'
-
 import Fade from '@mui/material/Fade'
-import DialogContent from '@mui/material/DialogContent'
+import { CardContent, CardHeader, CircularProgress } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { CardContent, CardHeader, CircularProgress, Divider } from '@mui/material'
-
-const Transition = forwardRef(function Transition(props, ref) {
-  return <Fade ref={ref} {...props} />
-})
 
 const CommonDialogBox = ({
   title,
@@ -38,9 +25,7 @@ const CommonDialogBox = ({
       maxWidth={dialogWithMaxWidth ? 'lg' : 'md'}
       height='auto'
       scroll='body'
-      // eslint-disable-next-line lines-around-comment
-      // onClose={() => close()}
-      TransitionComponent={Transition}
+      slots={{ transition: Fade }}
       onClose={(event, reason) => {
         if (reason !== 'backdropClick') {
           close()
@@ -48,14 +33,6 @@ const CommonDialogBox = ({
       }}
     >
       <Card sx={{ bgcolor: style }}>
-        {/* <Grid
-          container
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}
-        > */}
         {title && (
           <>
             <CardHeader
@@ -76,22 +53,8 @@ const CommonDialogBox = ({
           </>
         )}
 
-        <CardContent
-
-        // sx={{
-        //   position: 'relative',
-        //   height: 'auto'
-
-        // pb: theme => `${theme.spacing(8)} !important`,
-
-        // px: theme => [`${theme.spacing(5)} !important`, `${theme.spacing(15)} !important`],
-        // pt: theme => [`${theme.spacing(8)} !important`, `${theme.spacing(12.5)} !important`]
-        // }}
-        >
-          {/* <Grid container spacing={6}> */}
+        <CardContent>
           <>{formComponent ? formComponent : null}</>
-          {/* </Grid> */}
-          {/* </Grid> */}
         </CardContent>
       </Card>
     </Dialog>

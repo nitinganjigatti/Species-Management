@@ -17,6 +17,7 @@ const ObservationReport = () => {
   const [animalList, setAnimalList] = useState([])
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(0)
+
   //   const [showListing, setShowListing] = useState(true)
 
   // const fetchAnimalListing = async page => {
@@ -241,6 +242,7 @@ const ObservationReport = () => {
         <AnimalDrawer
           open={animalDrawer}
           onClose={handleClose}
+
           // animalList={animalList}
           // onLoad={loaderRef}
           // hasMore={hasMore}
@@ -249,4 +251,5 @@ const ObservationReport = () => {
     </>
   )
 }
+
 export default ObservationReport

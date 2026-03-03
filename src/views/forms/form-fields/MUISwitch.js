@@ -35,7 +35,13 @@ const StyledSwitch = styled(({ switchColor, size = 'medium', padding = 0, ...res
           '& + .MuiSwitch-track': {
             backgroundColor: trackColor,
             opacity: 1
+          },
+          '&.Mui-disabled + .MuiSwitch-track': {
+            opacity: 0.5
           }
+        },
+        '&.Mui-disabled + .MuiSwitch-track': {
+          opacity: 0.7
         }
       },
       '& .MuiSwitch-thumb': {
@@ -56,11 +62,14 @@ const StyledSwitch = styled(({ switchColor, size = 'medium', padding = 0, ...res
 )
 
 function MUISwitch(props) {
-  const { switchColor, label, size = 'medium', labelStyle = {}, ...rest } = props
+  const { switchColor, label, size = 'medium', labelStyle = {}, formControlStyle = {}, ...rest } = props
   if (label) {
     return (
       <FormControlLabel
         control={<StyledSwitch switchColor={switchColor} size={size} {...rest} />}
+        sx={{
+          ...formControlStyle
+        }}
         label={
           <Typography
             component='span'

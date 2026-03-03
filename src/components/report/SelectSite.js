@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 import { useTheme } from '@mui/material/styles'
 import {
@@ -57,15 +57,41 @@ const SelectSites = ({
     }
   }, [openSiteListDrawer])
 
+  const filteredSites = useMemo(() => {
+    const normalizedSiteData = Array.isArray(siteData) ? siteData : []
+    const normalizedSearchTerm = (searchTerm || '').toLowerCase()
+
+    return normalizedSiteData.filter(site => site.site_name?.toLowerCase().includes(normalizedSearchTerm))
+  }, [siteData, searchTerm])
+
+  const filteredSiteIds = useMemo(() => filteredSites.map(site => site.site_id), [filteredSites])
+  const filteredSelectedCount = useMemo(
+    () => filteredSiteIds.filter(id => pendingSelections?.Site?.includes(id)).length,
+    [filteredSiteIds, pendingSelections?.Site]
+  )
+  const areAllFilteredSelected = filteredSiteIds.length > 0 && filteredSelectedCount === filteredSiteIds.length
+  const isSomeFilteredSelected = filteredSelectedCount > 0 && !areAllFilteredSelected
+
   const handleSelectAllSites = () => {
-    const allSiteIds = siteData.map(site => site.site_id)
-    setPendingSelections({
-      ...pendingSelections,
-      Site: pendingSelections?.Site?.length === allSiteIds?.length ? [] : allSiteIds
+    if (!filteredSiteIds.length) return
+
+    setPendingSelections(prev => {
+      const currentSelection = Array.isArray(prev?.Site) ? prev.Site : []
+      const allSelected = filteredSiteIds.every(id => currentSelection.includes(id))
+
+      if (allSelected) {
+        return {
+          ...prev,
+          Site: currentSelection.filter(id => !filteredSiteIds.includes(id))
+        }
+      }
+
+      return {
+        ...prev,
+        Site: Array.from(new Set([...currentSelection, ...filteredSiteIds]))
+      }
     })
   }
-
-  const filteredSites = siteData.filter(site => site.site_name.toLowerCase().includes(searchTerm.toLowerCase()))
 
   return (
     <Drawer
@@ -155,7 +181,7 @@ const SelectSites = ({
 
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant='body2' sx={{ color: theme.palette.customColors.onSurfaceVariant }}>
-            Selected {pendingSelections?.Site?.length} / {siteData?.length}
+            Selected {filteredSelectedCount} / {filteredSites.length}
           </Typography>
           <Box
             sx={{
@@ -166,10 +192,7 @@ const SelectSites = ({
             <Button
               size='small'
               sx={{
-                color:
-                  pendingSelections?.Site?.length === siteData?.length
-                    ? theme.palette.primary.main
-                    : theme.palette.customColors.onSurfaceVariant,
+                color: areAllFilteredSelected ? theme.palette.primary.main : theme.palette.customColors.onSurfaceVariant,
                 fontSize: '12px',
                 fontWeight: 600,
                 textTransform: 'none',
@@ -181,7 +204,8 @@ const SelectSites = ({
             </Button>
 
             <Checkbox
-              checked={pendingSelections?.Site?.length === siteData?.length}
+              checked={areAllFilteredSelected}
+              indeterminate={isSomeFilteredSelected}
               onChange={handleSelectAllSites}
               slotProps={{
                 'aria-label': 'Select all species'
@@ -221,22 +245,35 @@ const SelectSites = ({
             [...filteredSites]
               .sort((a, b) => a.site_name.localeCompare(b.site_name))
               .map(site => {
+                const isSelected = pendingSelections?.Site?.includes(site.site_id)
+
+                const handleToggleSite = () => {
+                  handleSiteCheckboxChange(site)
+                }
+
                 return (
                   <ListItem
                     key={site.site_id}
+                    onClick={handleToggleSite}
+                    onKeyDown={event => {
+                      if (event.target !== event.currentTarget) return
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        handleToggleSite()
+                      }
+                    }}
+                    tabIndex={0}
+                    role='button'
                     sx={{
                       pr: 1.5,
                       pl: 3,
                       mb: 4,
                       border: '1px solid',
-                      borderColor: pendingSelections?.Site?.includes(site.site_id)
-                        ? theme.palette.primary.main
-                        : theme.palette.customColors.OutlineVariant,
+                      borderColor: isSelected ? theme.palette.primary.main : theme.palette.customColors.OutlineVariant,
                       borderRadius: '8px',
-                      bgcolor: pendingSelections?.Site?.includes(site.site_id)
-                        ? theme.palette.customColors.OnBackground
-                        : 'transparent',
-                      height: '70px'
+                      bgcolor: isSelected ? theme.palette.customColors.OnBackground : 'transparent',
+                      height: '70px',
+                      cursor: 'pointer'
                     }}
                   >
                     <ListItemAvatar>
@@ -266,8 +303,12 @@ const SelectSites = ({
                       }}
                     />
                     <Checkbox
-                      checked={pendingSelections?.Site?.includes(site.site_id)}
-                      onChange={() => handleSiteCheckboxChange(site)}
+                      checked={isSelected}
+                      onClick={event => {
+                        event.stopPropagation()
+                        handleToggleSite()
+                      }}
+                      inputProps={{ 'aria-label': 'Select site' }}
                     />
                   </ListItem>
                 )

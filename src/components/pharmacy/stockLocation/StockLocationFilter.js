@@ -187,7 +187,6 @@ const StockLocationFilter = ({
                   bgcolor: '#FFFFFF',
                   p: '16px',
                   borderRadius: '8px',
-                  width: '345px',
                   height: 'calc(100vh - 185px)',
                   overflowY: 'auto',
                   '&::-webkit-scrollbar': {

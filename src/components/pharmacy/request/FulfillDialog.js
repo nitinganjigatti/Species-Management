@@ -903,17 +903,12 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                         style={{
                                           Width: '100%!important',
                                           padding: '0px',
-                                          margin: '5px',
-                                          background: 'white'
+                                          margin: '5px'
                                         }}
                                       >
                                         <Box
                                           sx={{
-                                            backgroundColor: '#0000000D',
                                             width: '100%',
-
-                                            // minWidth: '196px !important',
-                                            // height: '71px !important',
                                             padding: '8px !important',
                                             borderRadius: '4px',
                                             display: 'flex',
@@ -1010,10 +1005,12 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             name={`product_batches[${index}].expiry_date`}
                             label='Expiry Date*'
                             control={control}
+
+                            sx={{ backgroundColor: theme.palette.customColors.OnPrimary, borderRadius: '10px' }}
                             errors={errors}
                             readOnly={true}
                             dateReader={true}
-                            inputBackgroundColor={theme.palette.customColors.OnPrimary}
+
                           />
                         </Grid>
                       )}

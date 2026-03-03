@@ -15,7 +15,7 @@ export async function getClinicalNotes({ animalId, params }) {
 
     return response?.data
   } catch (error) {
-    console.error('Error fetching clinical notes:', error.message)
+    console.error('Error fetching clinical notes:', error?.message || error)
   }
 }
 
@@ -28,16 +28,16 @@ export async function deleteClinicalNotes(noteId) {
 
     return response?.data
   } catch (error) {
-    console.error('Error deleting clinical note:', error.message)
+    console.error('Error deleting clinical note:', error?.message || error)
   }
 }
 
-export async function addClinicalNotes({ payLoad }) {
+export async function addClinicalNotes({ payload }) {
   try {
-    const response = await axiosFormPost({ url: `${CREATE_CLINICAL_NOTES}`, body: payLoad })
+    const response = await axiosFormPost({ url: `${CREATE_CLINICAL_NOTES}`, body: payload })
 
     return response?.data
   } catch (error) {
-    console.error('Error adding clinical note:', error.message)
+    console.error('Error adding clinical note:', error?.message || error)
   }
 }

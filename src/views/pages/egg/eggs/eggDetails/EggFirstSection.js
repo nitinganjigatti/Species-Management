@@ -262,6 +262,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         borderBottomRightRadius: '8px',
                         borderBottomLeftRadius: '8px',
                         position: 'relative',
+
                         // top: eggDetails?.default_common_name && eggDetails?.complete_name ? '-57px' : '-20px',
                         top: '-57px',
                         backgroundColor: theme.palette.primary.neutralTeritary,

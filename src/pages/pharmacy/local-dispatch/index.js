@@ -1,33 +1,28 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { getLocalDispatchItemsList } from 'src/lib/api/pharmacy/directDispatch'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import CardHeader from '@mui/material/CardHeader'
 import { debounce } from 'lodash'
-import Tab from '@mui/material/Tab'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
-import TabList from '@mui/lab/TabList'
-import { usePharmacyContext } from 'src/context/PharmacyContext'
-import Chip from '@mui/material/Chip'
-import Grid from '@mui/material/Grid'
-import { useTheme } from '@emotion/react'
-import useMediaQuery from '@mui/material/useMediaQuery'
 
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
-import Typography from '@mui/material/Typography'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import {TabList, TabContext, TabPanel} from "@mui/lab"
+
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { useTheme } from '@emotion/react'
 import Router from 'next/router'
-import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material'
 import { useRouter } from 'next/router'
 
+import { Box, Typography,  Tab, useMediaQuery, Chip, Grid, } from '@mui/material'
+
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
-import Utility from 'src/utility'
-import CommonTable from 'src/views/table/data-grid/CommonTable'
-import RenderUtility from 'src/utility/render'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+
+
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
+
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const DirectDispatchList = () => {
   const theme = useTheme()
@@ -204,6 +199,9 @@ const DirectDispatchList = () => {
               })
             }
             fullWidth='fullWidth'
+            styles = {{
+              mr: 0
+            }}
           />
         )}
     </div>
@@ -237,7 +235,6 @@ const DirectDispatchList = () => {
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
             fontWeight: 500,
-            fontFamily: 'Inter'
           }}
         >
           {params.row.request_number}
@@ -275,7 +272,6 @@ const DirectDispatchList = () => {
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
             fontWeight: 500,
-            fontFamily: 'Inter'
           }}
         >
           {params.row.to_store}
@@ -308,7 +304,7 @@ const DirectDispatchList = () => {
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
             fontWeight: 500,
-            fontFamily: 'Inter'
+            
           }}
         >
           {params.row.total_qty}
@@ -328,7 +324,7 @@ const DirectDispatchList = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 500,
-              fontFamily: 'Inter'
+      
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -343,7 +339,7 @@ const DirectDispatchList = () => {
                     <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
                   </Box>
                   <Box sx={{ color: 'warning.main', mr: 2 }}>
-                    {/ added for partial shipping /}
+                    {/* {/ added for partial shipping /} */}
                     <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
                   </Box>
                 </>
@@ -374,13 +370,13 @@ const DirectDispatchList = () => {
       field: 'created_by_user_name',
       headerName: 'Dispatched by ',
       renderCell: params => (
-        <>
+        (<>
           <UserAvatarDetails
             profile_image={params?.row?.user_created_profile_pic}
             user_name={params?.row?.created_by_user_name}
             date={params?.row?.request_date}
           />
-        </>
+        </>)
 
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
         //   {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
@@ -442,102 +438,66 @@ const DirectDispatchList = () => {
         {loader ? (
           <FallbackSpinner />
         ) : (
-          <Card>
-            <CardHeader
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'flex-start',
-                alignItems: 'flex-start',
-                gap: { xs: 2, sm: 0 },
-                '& .MuiCardHeader-action': {
-                  width: { xs: '100% ', sm: 'auto' }
-                },
-                mx: { xs: -2, sm: 0 }
-              }}
-              title={RenderUtility.pageTitle('Local Dispatch List')}
-              action={headerAction}
-            />
-            <Box
-              sx={{
-                mx: { xs: 2, sm: 3, md: 5 }
-              }}
-            >
-              <Grid container spacing={3}>
-                <Grid
-                  item
-                  size={{ xs: 12, sm: 6 }}
-                  spacing={3}
-                  sx={{
-                    gap: 3
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      height: '40px',
-                      width: { xs: '100%', sm: '270px' }
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      value={searchValue}
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box>
+          <>
+          <PageCardLayout
+            title = "Local Dispatch List"
+            action = {headerAction}>
+              <Grid
+                container
+                spacing={4}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <Grid size={{ xs: 12, sm: 4, md: 3, xl: 2.5 }} >
+                  <MUISearch
+                    width={'100%'}
+                    placeholder='Search...'
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    onClear={() => handleSearch('')}
+                  />
                 </Grid>
-
                 {(status === 'all' || status === 'completed') && (
-                  <Grid
-                    item
-                    size={{ xs: 12, sm: 6 }}
-                    sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
-                  >
-                    <FormControlLabel
-                      control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                  <Grid size={{ xs: 'auto' }}>
+                    <MUISwitch
                       label='Completed'
+                      labelStyle={{
+                        color: theme.palette.customColors.customHeadingTextColor,
+                        fontSize: '14px',
+                        fontWeight: 400
+                      }}
+                      formControlStyle={{
+                        margin: 0
+                      }}
                       labelPlacement='end'
-                      sx={{ marginRight: 1 }}
+                      defaultChecked={filterSwitch}
+                      onChange={e => {
+                        handleSwitchChange(e)
+                      }}
                     />
                   </Grid>
                 )}
               </Grid>
-            </Box>
 
-            <Grid
-              sx={{
-                mx: { xs: 2, sm: 3, md: 5 }
-              }}
-            >
-              <CommonTable
-                onRowClick={onRowClick}
-                indexedRows={indexedRows}
-                total={total}
-                columns={columns}
-                paginationModel={paginationModel}
-                handleSortModel={handleSortModel}
-                setPaginationModel={setPaginationModel}
-                loading={loading}
-                searchValue={searchValue}
-              />
-            </Grid>
-          </Card>
+              <Grid>
+                <CommonTable
+                  onRowClick={onRowClick}
+                  indexedRows={indexedRows}
+                  total={total}
+                  columns={columns}
+                  paginationModel={paginationModel}
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  loading={loading}
+                  searchValue={searchValue}
+                />
+              </Grid>
+              </PageCardLayout>
+              </>
         )}
       </>
     )
@@ -547,6 +507,7 @@ const DirectDispatchList = () => {
     <Grid>
       <TabContext value={status}>
         <TabList variant='scrollable' allowScrollButtonsMobile onChange={handleChange} aria-label='simple tabs example'>
+          
           <Tab value='pending' label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />} />
           <Tab value='shipped' label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />} />
           <Tab
@@ -561,6 +522,7 @@ const DirectDispatchList = () => {
         </TabList>
 
         {/* Tab Panels */}
+        <Box sx={{width: '100%', '& .MuiTabPanel-root': {p: 0, mt: 3}}}>
         <TabPanel value='pending'>{tableData()}</TabPanel>
         <TabPanel value='shipped'>{tableData()}</TabPanel>
         <TabPanel value='disputed'>{tableData()}</TabPanel>
@@ -570,6 +532,7 @@ const DirectDispatchList = () => {
         ) : (
           <TabPanel value='completed'>{tableData()}</TabPanel>
         )}
+        </Box>
       </TabContext>
     </Grid>
   )

@@ -32,11 +32,11 @@ const schema = yup.object().shape({
   prefix: yup.string().trim().required('Bed code is required'),
   no_of_bed: yup
     .number()
-    .typeError('Number of beds must be a number')
-    .required('Number of beds is required')
-    .positive('Number of beds must be greater than zero')
-    .integer('Number of beds must be an integer')
-    .required('Number of beds required')
+    .typeError('Number of Enclosures must be a number')
+    .required('Number of Enclosures is required')
+    .positive('Number of Enclosures must be greater than zero')
+    .integer('Number of Enclosures must be an integer')
+    .required('Number of Enclosures required')
 })
 
 const defaultValues = {
@@ -185,8 +185,8 @@ const AddEnclosures = props => {
                   name={'no_of_bed'}
                   control={control}
                   errors={errors}
-                  label={'Number of Beds*'}
-                  placeholder={'Enter Number of Beds'}
+                  label={'Number of Enclosures*'}
+                  placeholder={'Enter Number of Enclosures'}
                   fullWidth
                 />
               </Grid>

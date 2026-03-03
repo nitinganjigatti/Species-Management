@@ -1,60 +1,132 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo, useCallback, useRef } from 'react'
 import { useTheme } from '@emotion/react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { addClinicalNotes, deleteClinicalNotes, getClinicalNotes } from 'src/lib/api/hospital/clinicalNotesApi'
 import InpatientClinicalNotes from 'src/views/pages/hospital/inpatient/InpatientClinicalNotes'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+
+const STORAGE_KEY = 'medical_record_data'
 
 const ClinicalNotes = ({ patientData }) => {
   const [isSubmitLoading, setIsSubmitLoading] = useState(false)
   const [selectedItemToDelete, setSelectedItemToDelete] = useState(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
-  const router = useRouter()
   const theme = useTheme()
+  const router = useRouter()
+  const { id } = router.query
+
   const queryClient = useQueryClient()
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
+  const animal_id = medicalRecordData?.animal_id
 
-  const { animal_id } = router.query
+  // Query parameters for fetching clinical notes
+  const queryParams = useMemo(
+    () => ({
+      type: 'all',
+      limit: 10,
+      hospital_case_id: id,
+      medical_type: 'clinical_notes'
+    }),
+    []
+  )
 
-  const params = {
-    type: 'all',
-    page_no: 1,
-    medical_type: 'clinical_notes'
+  // Fetch clinical notes with pagination
+  const fetchClinicalNotes = async ({ pageParam = 1 }) => {
+    try {
+      const res = await getClinicalNotes({
+        animalId: animal_id,
+        params: { ...queryParams, page: pageParam }
+      })
+
+      return {
+        total_count: res?.data?.total_count,
+        data: res?.data?.result || []
+      }
+    } catch (error) {
+      console.error('Error fetching clinical notes:', error?.message || error)
+    }
   }
 
-  //  Fetch clinical notes for a specific animal based on the ID from URL params
+  // Pagination function for infinite scroll
+  const getNextPage = (lastPage, pages) => {
+    const totalCount = Number(lastPage?.total_count) || 0
+    const fetchedCount = pages?.reduce((sum, page) => sum + (page?.data?.length || 0), 0)
+
+    return fetchedCount < totalCount ? pages?.length + 1 : undefined
+  }
+
+  //  Fetch clinical notes
   const {
-    data: clinicalNotesData,
+    data: clinicalNotesData = [],
     isFetching,
-    refetch
-  } = useQuery({
-    queryKey: ['clinicalNotes', animal_id, params],
-    queryFn: () => getClinicalNotes({ animalId: animal_id, params }),
-    select: res => res?.data?.result || [],
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteQuery({
+    queryKey: ['clinicalNotes', animal_id, queryParams],
+    queryFn: fetchClinicalNotes,
+    getNextPageParam: getNextPage,
     enabled: !!animal_id,
     refetchOnWindowFocus: false, //Avoid unnecessary refetching when switching tabs
     onError: error => {
-      Toaster({ type: 'error', message: error?.message || 'Failed to fetch data' })
+      console.error('Fetching Error:', error?.message || error)
     }
   })
 
+  // Combine all pages of data
+  const allClinicalEntries = useMemo(() => {
+    return clinicalNotesData?.pages?.flatMap(page => page?.data || []) || []
+  }, [clinicalNotesData])
+
+  const canFetchNotes = !!animal_id
+  const isInitialLoading = !canFetchNotes || (isLoading && !clinicalNotesData?.pages?.length)
+
+  // infinite scroll observer
+  const observer = useRef()
+
+  const lastClinicalNoteRef = useCallback(
+    node => {
+      if (isFetchingNextPage || !hasNextPage) return
+      if (observer.current) observer.current.disconnect()
+
+      observer.current = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && hasNextPage) {
+          fetchNextPage()
+        }
+      })
+
+      if (node) observer.current.observe(node)
+    },
+    [isFetchingNextPage, hasNextPage, fetchNextPage]
+  )
+
   // Handle submission of new clinical notes
-  const handleSubmitData = async payLoad => {
+  const handleSubmitData = async payload => {
     setIsSubmitLoading(true)
     try {
-      const response = await addClinicalNotes({ payLoad })
+      const response = await addClinicalNotes({ payload })
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Note created successfully' })
-        await refetch()
+        Toaster({ type: 'success', message: response?.message || 'Note added successfully' })
+        queryClient.invalidateQueries(['clinicalNotes'])
+
+        return true
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
+        console.error('Submit Error:', response?.message)
+        Toaster({ type: 'error', message: response?.message || 'Note failed to add' })
+
+        return false
       }
     } catch (error) {
-      console.error('Submit Error:', error)
-      Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' })
+      console.error('Submit Error:', error?.message || error)
+
+      return false
     } finally {
       setIsSubmitLoading(false)
     }
@@ -66,18 +138,18 @@ const ClinicalNotes = ({ patientData }) => {
     onSuccess: async response => {
       Toaster({ type: 'success', message: response?.message || 'Note deleted successfully' })
 
-      queryClient.invalidateQueries(['clinicalNotes', animal_id])
+      queryClient.invalidateQueries(['clinicalNotes'])
       handleDeleteDialogClose()
     },
     onError: error => {
-      console.error('Delete Error:', error)
+      console.error('Delete Error:', error?.message || error)
       Toaster({ type: 'error', message: error?.message || 'An error occurred while deleting' })
     }
   })
 
   // Trigger delete dialog by selecting a note
   const handleDeleteNote = noteId => {
-    const selectedNote = clinicalNotesData?.find(item => item?.note_id === noteId)
+    const selectedNote = allClinicalEntries?.find(item => item?.note_id === noteId)
 
     if (selectedNote?.note_id) {
       setSelectedItemToDelete(selectedNote)
@@ -93,18 +165,23 @@ const ClinicalNotes = ({ patientData }) => {
 
   // Confirm and proceed with deletion
   const handleConfirmDeleteNote = () => {
-    if (!selectedItemToDelete?.note_id) return
-    deleteClinicalNotesMutation.mutate(selectedItemToDelete?.note_id)
+    if (selectedItemToDelete?.note_id) {
+      deleteClinicalNotesMutation.mutate(selectedItemToDelete.note_id)
+    }
   }
 
   return (
     <>
       <InpatientClinicalNotes
-        clinicalNotesData={clinicalNotesData}
+        clinicalNotesData={allClinicalEntries}
         onSubmitNote={handleSubmitData}
         isSubmitting={isSubmitLoading}
         onDeleteNote={handleDeleteNote}
-        isLoading={isFetching}
+        // isLoading={isFetching && allClinicalEntries?.length === 0}
+        isInitialLoading={isInitialLoading}
+        lastClinicalNoteRef={lastClinicalNoteRef}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
         patientData={patientData}
       />
 

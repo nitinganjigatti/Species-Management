@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 import { Box, Checkbox, IconButton, Radio } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
@@ -9,9 +9,24 @@ const SelectableSpeciesCard = ({
   selected,
   borderColor,
   onClick,
-  selectionType = 'checkbox' 
+  selectionType = 'checkbox'
 }) => {
   const theme = useTheme()
+  const interactive = selectionType !== 'cross'
+
+  const handleToggle = () => {
+    if (!interactive) return
+    onClick?.()
+  }
+
+  const handleKeyDown = event => {
+    if (!interactive) return
+    if (event.target !== event.currentTarget) return
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      handleToggle()
+    }
+  }
 
   return (
     <Box
@@ -21,18 +36,22 @@ const SelectableSpeciesCard = ({
         border: selected
           ? `1px solid ${borderColor ? borderColor : theme.palette.primary.main}`
           : '1px solid transparent',
-        backgroundColor: 'white'
+        backgroundColor: 'white',
+        cursor: interactive ? 'pointer' : 'default'
       }}
+      onClick={interactive ? handleToggle : undefined}
+      onKeyDown={interactive ? handleKeyDown : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      role={interactive ? 'button' : undefined}
     >
       <Box
         sx={{
           display: 'flex',
           width: '100%',
           padding: 0,
-          alignItems: 'stretch' 
+          alignItems: 'stretch'
         }}
       >
-        
         <Box sx={{ flex: 1, px: 4, py: 3 }}>
           <SpeciesCard
             species={{
@@ -57,13 +76,38 @@ const SelectableSpeciesCard = ({
           }}
         >
           {selectionType === 'checkbox' && (
-            <Checkbox onClick={onClick} edge='end' checked={selected} tabIndex={-1} disableRipple />
+            <Checkbox
+              edge='end'
+              checked={selected}
+              tabIndex={-1}
+              disableRipple
+              onClick={event => {
+                event.stopPropagation()
+              }}
+              onChange={() => handleToggle()}
+            />
           )}
           {selectionType === 'radio' && (
-            <Radio onClick={onClick} edge='end' checked={selected} tabIndex={-1} disableRipple />
+            <Radio
+              edge='end'
+              checked={selected}
+              tabIndex={-1}
+              disableRipple
+              onClick={event => {
+                event.stopPropagation()
+              }}
+              onChange={() => handleToggle()}
+            />
           )}
           {selectionType === 'cross' && (
-            <IconButton sx={{ pr: 2 }} edge='end' onClick={onClick}>
+            <IconButton
+              sx={{ pr: 2 }}
+              edge='end'
+              onClick={event => {
+                event.stopPropagation()
+                onClick?.()
+              }}
+            >
               <CloseIcon />
             </IconButton>
           )}
@@ -73,4 +117,4 @@ const SelectableSpeciesCard = ({
   )
 }
 
-export default SelectableSpeciesCard;
+export default SelectableSpeciesCard

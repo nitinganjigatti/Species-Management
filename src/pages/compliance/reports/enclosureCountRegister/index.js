@@ -1,19 +1,8 @@
 import { useTheme } from '@emotion/react'
-import {
-  Box,
-  Card,
-  CardHeader,
-  CircularProgress,
-  IconButton,
-  Tooltip,
-  Typography,
-  Skeleton,
-  Autocomplete,
-  TextField
-} from '@mui/material'
+import { Box, Card, CardHeader, CircularProgress, IconButton, Tooltip, Typography, Skeleton } from '@mui/material'
 import { useRouter } from 'next/router'
 import debounce from 'lodash/debounce'
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { AuthContext } from 'src/context/AuthContext'
@@ -26,7 +15,6 @@ import StickyTable from 'src/views/table/sticky-table'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
-import { getEnclosureList } from 'src/lib/api/diet/dietList'
 
 const EnclosureCountRegister = () => {
   const theme = useTheme()
@@ -41,10 +29,14 @@ const EnclosureCountRegister = () => {
   const [searchInput, setSearchInput] = useState(router.query.q || '')
   const [isDownloading, setIsDownloading] = useState(false)
   const [siteLoader, setSiteLoader] = useState(false)
-  const [enclosuresLoading, setEnclosuresLoading] = useState(false)
   const [enclosuresData, setEnclosuresData] = useState([])
-  const [selectedEnclosure, setSelectedEnclosure] = useState(null)
-  const [enclosureSearch, setEnclosureSearch] = useState('')
+  const [selectedEnclosures, setSelectedEnclosures] = useState([])
+  const [siteSummaryLabel, setSiteSummaryLabel] = useState('-')
+  const [siteExtraCount, setSiteExtraCount] = useState(null)
+  const [siteExtraNames, setSiteExtraNames] = useState([])
+  const [enclosureSummaryLabel, setEnclosureSummaryLabel] = useState('-')
+  const [enclosureExtraCount, setEnclosureExtraCount] = useState(null)
+  const [enclosureExtraNames, setEnclosureExtraNames] = useState([])
 
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const tabsForfilter = ['Site', 'Report Type']
@@ -58,6 +50,7 @@ const EnclosureCountRegister = () => {
   const [selectedItems, setSelectedItems] = useState({
     Site: [],
     Section: [],
+    Enclosure: [],
     reportType: ''
   })
   const [tempSelectedItems, setTempSelectedItems] = useState(selectedItems)
@@ -78,10 +71,8 @@ const EnclosureCountRegister = () => {
     pageSize: parseInt(router.query.limit) || 50
   })
 
-  const prevStatKeyRef = useRef({ siteKey: '', type: '', sectionKey: '' })
+  const prevStatKeyRef = useRef({ siteKey: '', type: '', sectionKey: '', enclosureKey: '' })
   const lastFetchKeyRef = useRef('')
-  const sectionId = selectedItems?.Section?.[0] || null
-
   // ----- derived keys -----
   const siteIdsArr = (
     selectedItems?.Site?.length
@@ -91,15 +82,17 @@ const EnclosureCountRegister = () => {
       : []
   ).map(String)
   const siteKey = siteIdsArr.join(',')
+
   const typeKey =
     selectedItems?.reportType === 'individual' ? 'individual' : selectedItems?.reportType ? 'species-wise' : ''
   const sectionKey = (selectedItems?.Section || []).join(',')
+  const enclosureKey = (selectedItems?.Enclosure || []).join(',')
 
   const fetchKey = [
     siteKey,
     typeKey,
     sectionKey,
-    selectedEnclosure?.enclosure_id || '', // <— NEW
+    enclosureKey,
     searchValue,
     paginationModel?.page,
     paginationModel?.pageSize
@@ -108,44 +101,6 @@ const EnclosureCountRegister = () => {
   const reportCardEventHandler = () => {
     setOpenFilterDrawer(!openFilterDrawer)
   }
-
-  const fetchEnclosures = useCallback(
-    async (q = '', sid = sectionId, sk = siteKey) => {
-      // Need at least some scope: section OR site
-      if (!sid && !sk) return
-
-      setEnclosuresLoading(true)
-      try {
-        const params = { q }
-        if (sid) params.section_id = sid
-        else params.site_id = sk // fallback when no section selected
-
-        const res = await getEnclosureList(params)
-        const list = res?.data?.result || []
-        setEnclosuresData(list) // expects { enclosure_id, user_enclosure_name }
-      } catch (err) {
-        console.error('Error fetching enclosures:', err)
-        setEnclosuresData([])
-      } finally {
-        setEnclosuresLoading(false)
-      }
-    },
-    [sectionId, siteKey]
-  )
-  // Debounced server search
-  const debouncedEnclosureSearch = useMemo(
-    () => debounce(q => fetchEnclosures(q, sectionId, siteKey), 400),
-    [fetchEnclosures, sectionId, siteKey]
-  )
-
-  useEffect(() => () => debouncedEnclosureSearch.cancel(), [debouncedEnclosureSearch])
-
-  // When section OR site changes, preload the list
-  useEffect(() => {
-    setSelectedEnclosure(null)
-    setEnclosuresData([])
-    if (sectionId || siteKey) fetchEnclosures('', sectionId, siteKey)
-  }, [sectionId, siteKey, fetchEnclosures])
 
   const siteList = useCallback(
     async (q = '') => {
@@ -180,6 +135,10 @@ const EnclosureCountRegister = () => {
     }
   }, [selectedItems?.Site, siteData])
 
+  useEffect(() => {
+    setSelectedEnclosures(selectedItems?.Enclosure || [])
+  }, [selectedItems?.Enclosure])
+
   // Fetch list data — ensure single call when generating
   useEffect(() => {
     if (!siteKey || !typeKey) return
@@ -195,13 +154,15 @@ const EnclosureCountRegister = () => {
       response_type: 'json'
     }
     if (sectionKey) params.section_id = sectionKey
-    if (selectedEnclosure?.enclosure_id) params.enclosure_id = selectedEnclosure.enclosure_id
+    if (enclosureKey) params.enclosure_id = enclosureKey
 
     let canceled = false
+
     const statKeyChanged =
       prevStatKeyRef.current.siteKey !== siteKey ||
       prevStatKeyRef.current.type !== typeKey ||
-      prevStatKeyRef.current.sectionKey !== sectionKey
+      prevStatKeyRef.current.sectionKey !== sectionKey ||
+      prevStatKeyRef.current.enclosureKey !== enclosureKey
 
     if (statKeyChanged) {
       setRegisterStats(null)
@@ -213,20 +174,25 @@ const EnclosureCountRegister = () => {
         if (canceled) return
         if (res?.success) {
           const animals = res?.data?.animals || []
+
           const rows = animals.map((item, idx) => {
             if (selectedItems?.reportType === 'individual') {
               return {
                 id: item.animal_id || idx + 1 + (paginationModel.page || 0) * (paginationModel.pageSize || 50),
                 sl_no: idx + 1 + (paginationModel.page || 0) * (paginationModel.pageSize || 50),
                 animal_id: item.animal_id || null,
-                common_name: item['Common Name'] || item.common_name || '-',
-                scientific_name: item['Scientific Name'] || item.scientific_name || '-',
-                default_icon: item.default_icon || '-',
-                enclosureName: item.user_enclosure_name || '-',
-                user_enclosure_name: item.user_enclosure_name || '-',
+                common_name: item['Common Name'] || item.common_name || '',
+                scientific_name: item['Scientific Name'] || item.scientific_name || '',
+                default_icon: item.default_icon || '',
+                enclosureName: item.user_enclosure_name || '',
+                user_enclosure_name: item.user_enclosure_name || '',
+                breed_name: item.breed_name || '',
+                morph_name: item.morph_name || '',
+                type: item.type || '',
                 sex: item.sex || '-',
                 primary_identifier_type: item.primary_identifier_type || null,
                 primary_identifier_value: item.primary_identifier_value || null,
+
                 // Map to AnimalCard expected keys
                 local_identifier_name: item.primary_identifier_type || null,
                 local_identifier_value: item.primary_identifier_value || null
@@ -237,12 +203,13 @@ const EnclosureCountRegister = () => {
             return {
               id: idx + 1 + (paginationModel.page || 0) * (paginationModel.pageSize || 50),
               sl_no: idx + 1 + (paginationModel.page || 0) * (paginationModel.pageSize || 50),
-              common_name: item['Common Name'] || item.common_name || '-',
-              scientific_name: item['Scientific Name'] || item.scientific_name || '-',
+              common_name: item['Common Name'] || item.common_name || '',
+              scientific_name: item['Scientific Name'] || item.scientific_name || '',
               default_icon: item.default_icon,
-              enclosureName: item.user_enclosure_name || '-',
-              user_enclosure_name: item.user_enclosure_name || '-',
+              enclosureName: item.user_enclosure_name || '',
+              user_enclosure_name: item.user_enclosure_name || '',
               male: Number(item.male_count || 0),
+
               female: Number(item.female_count || 0),
               others: Number(item.other_count || 0),
               total: Number(item.total_count || 0),
@@ -256,14 +223,14 @@ const EnclosureCountRegister = () => {
           setTotal(Number(res?.data?.stats?.total_count))
           if (statKeyChanged) {
             setRegisterStats(res?.data?.stats || null)
-            prevStatKeyRef.current = { siteKey, type: typeKey, sectionKey }
+            prevStatKeyRef.current = { siteKey, type: typeKey, sectionKey, enclosureKey }
           }
         } else {
           setIndexedRows([])
           setTotal(0)
           if (statKeyChanged) {
             setRegisterStats(null)
-            prevStatKeyRef.current = { siteKey, type: typeKey, sectionKey }
+            prevStatKeyRef.current = { siteKey, type: typeKey, sectionKey, enclosureKey }
           }
         }
       } catch (err) {
@@ -317,7 +284,20 @@ const EnclosureCountRegister = () => {
       headerName: 'ENCLOSURE NAME',
       sortable: false,
       renderCell: params => (
-        <Tooltip title={params.row.enclosureName} placement='top'>
+        <Tooltip
+          title={params.row.enclosureName}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             variant='body2'
             sx={{
@@ -348,7 +328,20 @@ const EnclosureCountRegister = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Tooltip title={params.row.male} placement='top'>
+        <Tooltip
+          title={params.row.male}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -378,7 +371,20 @@ const EnclosureCountRegister = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Tooltip title={params.row.female} placement='top'>
+        <Tooltip
+          title={params.row.female}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -408,7 +414,20 @@ const EnclosureCountRegister = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Tooltip title={params.row.others} placement='top'>
+        <Tooltip
+          title={params.row.others}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -438,7 +457,20 @@ const EnclosureCountRegister = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Tooltip title={params.row.total} placement='top'>
+        <Tooltip
+          title={params.row.total}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -479,7 +511,20 @@ const EnclosureCountRegister = () => {
       headerName: 'ENCLOSURE NAME',
       sortable: false,
       renderCell: params => (
-        <Tooltip title={params.row.enclosureName} placement='top'>
+        <Tooltip
+          title={params.row.enclosureName}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               fontSize: '16px',
@@ -508,7 +553,20 @@ const EnclosureCountRegister = () => {
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Tooltip title={params.row.gender || params.row.sex} placement='top'>
+        <Tooltip
+          title={params.row.gender || params.row.sex}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               fontSize: '16px',
@@ -540,13 +598,14 @@ const EnclosureCountRegister = () => {
 
     const params = {
       site_id: siteIdsArr.join(','),
-      type: selectedItems?.reportType === 'individual' ? 'individual-wise' : 'species-wise',
+      type: selectedItems?.reportType === 'individual' ? 'individual' : 'species-wise',
       q: searchValue || '',
       page: (paginationModel?.page || 0) + 1,
       limit: paginationModel?.pageSize || 50,
       response_type: 'pdf'
     }
     if (selectedItems?.Section?.length > 0) params.section_id = selectedItems.Section.join(',')
+    if (selectedItems?.Enclosure?.length > 0) params.enclosure_id = selectedItems.Enclosure.join(',')
 
     try {
       setIsDownloading(true)
@@ -574,8 +633,16 @@ const EnclosureCountRegister = () => {
 
     // Clear filters and temporary selections
     setSelectedSections([])
-    setSelectedItems({ Site: [], Section: [], reportType: '' })
-    setTempSelectedItems({ Site: [], Section: [], reportType: '' })
+    setSelectedEnclosures([])
+    setEnclosuresData([])
+    setSelectedItems({ Site: [], Section: [], Enclosure: [], reportType: '' })
+    setTempSelectedItems({ Site: [], Section: [], Enclosure: [], reportType: '' })
+    setSiteSummaryLabel('-')
+    setSiteExtraCount(null)
+    setSiteExtraNames([])
+    setEnclosureSummaryLabel('-')
+    setEnclosureExtraCount(null)
+    setEnclosureExtraNames([])
 
     // Reset search and pagination
     setSearchValue('')
@@ -583,7 +650,7 @@ const EnclosureCountRegister = () => {
     setPaginationModel({ page: 0, pageSize: 50 })
 
     // Remove site/section params from URL
-    const { site_id, section_id, ...rest } = router.query
+    const { site_id, section_id, enclosure_id, ...rest } = router.query
     router.push(
       {
         pathname: router.pathname,
@@ -594,6 +661,59 @@ const EnclosureCountRegister = () => {
     )
   }
 
+  useEffect(() => {
+    const names = registerStats?.site_name
+    const list = Array.isArray(names) ? names.filter(Boolean) : names ? [names] : []
+
+    if (!list.length) {
+      setSiteSummaryLabel('-')
+      setSiteExtraCount(null)
+      setSiteExtraNames([])
+      return
+    }
+
+    const visibleList = list.slice(0, 4)
+    const extras = list.slice(4)
+
+    setSiteSummaryLabel(visibleList.join(', '))
+    setSiteExtraNames(extras)
+    setSiteExtraCount(extras.length > 0 ? extras.length : null)
+  }, [registerStats?.site_name])
+
+  useEffect(() => {
+    const names = registerStats?.enclosure_name
+    const list = Array.isArray(names) ? names.filter(Boolean) : names ? [names] : []
+
+    if (!list.length) {
+      setEnclosureSummaryLabel('-')
+      setEnclosureExtraCount(null)
+      setEnclosureExtraNames([])
+      return
+    }
+
+    const visibleList = list.slice(0, 4)
+    const extras = list.slice(4)
+
+    setEnclosureSummaryLabel(visibleList.join(', '))
+    setEnclosureExtraNames(extras)
+    setEnclosureExtraCount(extras.length > 0 ? extras.length : null)
+  }, [registerStats?.enclosure_name])
+
+  const siteNamesList = Array.isArray(registerStats?.site_name)
+    ? registerStats.site_name.filter(Boolean)
+    : registerStats?.site_name
+    ? [registerStats.site_name]
+    : []
+  const siteLabelPrefix = siteNamesList.length > 1 ? 'Sites' : 'Site'
+
+  const enclosureNamesList = Array.isArray(registerStats?.enclosure_name)
+    ? registerStats.enclosure_name.filter(Boolean)
+    : registerStats?.enclosure_name
+    ? [registerStats.enclosure_name]
+    : []
+  const hasEnclosureNames = enclosureNamesList.length > 0
+  const enclosureLabelPrefix = enclosureNamesList.length > 1 ? 'Enclosures' : 'Enclosure'
+
   const headerAction = (
     <Box sx={{ display: 'flex', gap: '24px' }}>
       <DownloadReport
@@ -603,7 +723,7 @@ const EnclosureCountRegister = () => {
       />
       <Box
         sx={{
-          backgroundColor: '#0000000D',
+          backgroundColor: theme.palette.customColors.mdAntzNeutral,
           height: '32px',
           width: '32px',
           display: 'flex',
@@ -623,6 +743,7 @@ const EnclosureCountRegister = () => {
   const applySearchDebounced = useCallback(
     debounce(val => {
       setSearchValue(val)
+
       // Reset page after settling search
       setPaginationModel(prev => ({ ...prev, page: 0 }))
     }, 600),
@@ -672,9 +793,9 @@ const EnclosureCountRegister = () => {
                   inputStyle={{ padding: '10px 12px' }}
                   textFielsSX={{
                     height: '40px',
-                    '& fieldset': { borderColor: '#C3CEC7' },
-                    '&:hover fieldset': { borderColor: '#C3CEC7' },
-                    '&.Mui-focused fieldset': { borderColor: '#C3CEC7' }
+                    '& fieldset': { borderColor: theme.palette.customColors.OutlineVariant },
+                    '&:hover fieldset': { borderColor: theme.palette.customColors.OutlineVariant },
+                    '&.Mui-focused fieldset': { borderColor: theme.palette.customColors.OutlineVariant }
                   }}
                   sx={{
                     gap: '4px',
@@ -683,45 +804,6 @@ const EnclosureCountRegister = () => {
                       fontWeight: 400
                     }
                   }}
-                />
-
-                <Autocomplete
-                  value={selectedEnclosure}
-                  disablePortal
-                  loading={enclosuresLoading}
-                  options={enclosuresData}
-                  getOptionLabel={opt => opt?.user_enclosure_name || ''}
-                  isOptionEqualToValue={(opt, val) => String(opt?.enclosure_id) === String(val?.enclosure_id)}
-                  onChange={(_, val) => setSelectedEnclosure(val || null)}
-                  openOnFocus
-                  onOpen={() => {
-                    if (!enclosuresData.length) fetchEnclosures('', sectionId, siteKey)
-                  }}
-                  onInputChange={(_, val, reason) => {
-                    if (reason === 'input') debouncedEnclosureSearch(val)
-                  }}
-                  filterOptions={x => x}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      label='Enclosure'
-                      placeholder='Search & Select'
-                      sx={{
-                        width: 260,
-                        '& .MuiOutlinedInput-root': {
-                          height: 40,
-                          padding: 0,
-                          borderRadius: '4px',
-                          '& .MuiOutlinedInput-notchedOutline': { borderColor: '#C3CEC7' },
-                          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#C3CEC7' },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.primary.main },
-                          '& .MuiAutocomplete-input': { padding: '8px 12px', fontSize: 14 }
-                        },
-                        '& .MuiInputLabel-root': { top: '50%', transform: 'translate(14px, -50%) scale(1)' },
-                        '& .MuiInputLabel-shrink': { top: 0, transform: 'translate(14px, -9px) scale(0.75)' }
-                      }}
-                    />
-                  )}
                 />
               </Box>
             </Box>
@@ -752,7 +834,24 @@ const EnclosureCountRegister = () => {
                       fontFamily: 'Inter'
                     }}
                   >
-                    Site: <span style={{ fontWeight: 500 }}>{registerStats?.site_name || '-'}</span>
+                    {siteLabelPrefix}: <span style={{ fontWeight: 500 }}>{siteSummaryLabel}</span>
+                    {siteExtraCount !== null && siteExtraNames.length > 0 && (
+                      <Tooltip title={siteExtraNames.join(', ')} arrow placement='top'>
+                        <Typography
+                          sx={{
+                            cursor: 'pointer',
+                            fontWeight: 700,
+                            fontSize: 16,
+                            color: theme.palette.primary.main,
+                            display: 'inline'
+                          }}
+                          component='span'
+                        >
+                          {' '}
+                          +{siteExtraCount}
+                        </Typography>
+                      </Tooltip>
+                    )}
                   </Typography>
                   <Typography
                     sx={{
@@ -763,19 +862,54 @@ const EnclosureCountRegister = () => {
                       fontFamily: 'Inter'
                     }}
                   >
-                    Sections: <span style={{ fontWeight: 500 }}>{registerStats?.total_sections || '-'}</span>
+                    {registerStats?.section_name ? 'Section' : 'Total Section Count'}:{' '}
+                    <span style={{ fontWeight: 500 }}>
+                      {registerStats?.section_name || registerStats?.total_sections || '-'}
+                    </span>
                   </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: '14px',
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      fontWeight: 400,
-                      letterSpacing: 0,
-                      fontFamily: 'Inter'
-                    }}
-                  >
-                    Total Enclosures: <span style={{ fontWeight: 500 }}>{registerStats?.total_enclosures || '-'}</span>
-                  </Typography>
+                  {hasEnclosureNames ? (
+                    <Typography
+                      sx={{
+                        fontSize: '14px',
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        fontWeight: 400,
+                        letterSpacing: 0,
+                        fontFamily: 'Inter'
+                      }}
+                    >
+                      {enclosureLabelPrefix}: <span style={{ fontWeight: 500 }}>{enclosureSummaryLabel}</span>
+                      {enclosureExtraCount !== null && enclosureExtraNames.length > 0 && (
+                        <Tooltip title={enclosureExtraNames.join(', ')} arrow placement='top'>
+                          <Typography
+                            component='span'
+                            sx={{
+                              cursor: 'pointer',
+                              fontWeight: 700,
+                              fontSize: 16,
+                              color: theme.palette.primary.main,
+                              display: 'inline'
+                            }}
+                          >
+                            {' '}
+                            +{enclosureExtraCount}
+                          </Typography>
+                        </Tooltip>
+                      )}
+                    </Typography>
+                  ) : (
+                    <Typography
+                      sx={{
+                        fontSize: '14px',
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        fontWeight: 400,
+                        letterSpacing: 0,
+                        fontFamily: 'Inter'
+                      }}
+                    >
+                      Total Enclosure Count:{' '}
+                      <span style={{ fontWeight: 500 }}>{registerStats?.total_enclosures || '-'}</span>
+                    </Typography>
+                  )}
                 </>
               )}
             </Box>
@@ -814,7 +948,7 @@ const EnclosureCountRegister = () => {
             <ReportCard
               subtitle='No Site selected'
               description='Select any Site to view its report'
-              buttonText='SELECT SITE'
+              buttonText='SELECT SITE & REPORT TYPE'
               addHandler={reportCardEventHandler}
             />
           </Card>
@@ -842,6 +976,10 @@ const EnclosureCountRegister = () => {
           setTempSelectedItems={setTempSelectedItems}
           sectionsData={sectionsData}
           setSectionsData={setSectionsData}
+          selectedEnclosures={selectedEnclosures}
+          setSelectedEnclosures={setSelectedEnclosures}
+          enclosuresData={enclosuresData}
+          setEnclosuresData={setEnclosuresData}
         />
       )}
     </>

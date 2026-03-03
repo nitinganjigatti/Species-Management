@@ -7,45 +7,30 @@ import {
   deleteStoreById,
   checkCentralPharmacy
 } from 'src/lib/api/pharmacy/getStoreList'
-import TableWithFilter from 'src/components/TableWithFilter'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
-
-// ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, TextField } from '@mui/material'
+import { Box, Tooltip, IconButton, Typography, Button, Grid } from '@mui/material'
+
 import { debounce } from 'lodash'
 
-import Router from 'next/router'
 import AddStore from 'src/views/pages/pharmacy/store/store/addStore'
 
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { column, position } from 'stylis'
-
-import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
-import { AddButton } from 'src/components/Buttons'
-import { useTheme } from '@emotion/react'
 
+import { useTheme } from '@emotion/react'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
-
 import toast from 'react-hot-toast'
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
-import RenderUtility from 'src/utility/render'
-import DialogContentText from '@mui/material/DialogContentText'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { LoadingButton } from '@mui/lab'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const ListOfStores = () => {
   const theme = useTheme()
@@ -71,7 +56,6 @@ const ListOfStores = () => {
     severity: '',
     message: ''
   })
-
 
   const addEventSidebarOpen = () => {
     setEditParams({ id: null, name: null, status: null })
@@ -99,7 +83,6 @@ const ListOfStores = () => {
     setDeleteStore(false)
   }
 
-
   const columns = [
     {
       minWidth: 100,
@@ -121,8 +104,7 @@ const ListOfStores = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.type}
@@ -139,8 +121,7 @@ const ListOfStores = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.name}
@@ -157,8 +138,7 @@ const ListOfStores = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.latitude ? params.row.latitude : '-'}
@@ -175,8 +155,7 @@ const ListOfStores = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.logitude ? params.row.logitude : '-'}
@@ -189,17 +168,18 @@ const ListOfStores = () => {
       field: 'site_name',
       headerName: 'Site Name',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.site_name ? params.row.site_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500
+            }}
+          >
+            {params.row.site_name ? params.row.site_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
 
@@ -213,8 +193,7 @@ const ListOfStores = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.status
@@ -270,6 +249,7 @@ const ListOfStores = () => {
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -294,6 +274,8 @@ const ListOfStores = () => {
         })
         setLoading(false)
       } catch (e) {
+        setTotal(0)
+        setRows([])
         setLoading(false)
       }
     },
@@ -333,7 +315,12 @@ const ListOfStores = () => {
     <div>
       {pharmacyRole && (
         <Grid item>
-          <AddButtonContained title='Add Pharmacy' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+          <AddButtonContained
+            title='Add Pharmacy'
+            styles={{ margin: 0 }}
+            action={() => addEventSidebarOpen()}
+            fullWidth='fullWidth'
+          />
         </Grid>
       )}
     </div>
@@ -475,6 +462,29 @@ const ListOfStores = () => {
     sl_no: getSlNo(index)
   }))
 
+  const handleExport = async () => {
+    const params = {
+      q: searchValue,
+      sort: sort,
+      column: sortColumn,
+      is_access: 1,
+      response_type: 'csv'
+    }
+
+    try {
+      setExportLoading(true)
+      const response = await getStoreList({ params })
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response?.data)
+        setExportLoading(false)
+      }
+    } catch (error) {
+      setExportLoading(false)
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
   return (
     <>
       {pharmacyRole ? (
@@ -483,65 +493,28 @@ const ListOfStores = () => {
             <FallbackSpinner />
           ) : (
             <>
-              <Card>
-                <CardHeader
-                  sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start', 
-                    alignItems: 'flex-start', 
-                    gap: { xs: 3, sm: 0 },
-                    '& .MuiCardHeader-action': {
-                      width: { xs: '100% ', sm: 'auto' }
-                    }
-                  }}
-                  title={RenderUtility.pageTitle('Pharmacy List')}
-                  action={headerAction}
-                />
-                <Grid
-                  item
-                  sx={{
-                    mx: { xs: 4 },
-                    ml: { md: 4 }
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      height: '40px',
-                      width: {
-                        xs: '100%',
-                        sm: '250px'
-                      }
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
+              <PageCardLayout title={'Pharmacy List'} action={headerAction}>
+                <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                  <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                    <MUISearch
                       sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
+                        width: {
+                          xs: '100%',
+                          sm: '250px'
                         }
                       }}
+                      width={'100%'}
+                      placeholder='Search...'
+                      value={searchValue}
+                      onChange={e => handleSearch(e.target.value)}
+                      onClear={() => handleSearch('')}
                     />
-                  </Box>
+                  </Grid>
+                  <Grid>
+                    <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} />
+                  </Grid>
                 </Grid>
-                <Grid
-                  sx={{
-                    mx: 4
-                  }}
-                >
+                <Grid>
                   <CommonTable
                     onRowClick={''}
                     indexedRows={indexedRows}
@@ -554,38 +527,7 @@ const ListOfStores = () => {
                     searchValue={searchValue}
                   />
                 </Grid>
-                {/* <DataGrid
-                  columnVisibilityModel={{
-                    sl_no: false
-                  }}
-                  autoHeight
-                  pagination
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbar }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  disableColumnMenu
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-                      onChange: event => handleSearch(event.target.value)
-                    }
-                  }}
-                /> */}
-              </Card>
+              </PageCardLayout>
               <AddStore
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}
@@ -630,7 +572,7 @@ const ListOfStores = () => {
                         icon='material-symbols:delete-outline-rounded'
                       />
                     ) : (
-                      <>
+                      (<>
                         <Icon
                           style={{
                             cursor: 'pointer',
@@ -653,7 +595,7 @@ const ListOfStores = () => {
                           }}
                           icon='heroicons:no-symbol-16-solid'
                         />
-                      </>
+                      </>)
 
                       // <Icon
                       //   style={{
@@ -791,7 +733,6 @@ const ListOfStores = () => {
                   </>
                 }
               />
-             
             </>
           )}
         </>
@@ -801,7 +742,7 @@ const ListOfStores = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default ListOfStores

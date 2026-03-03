@@ -201,6 +201,7 @@ const UploadReports = ({
           reset(defaultValues)
           Toaster({ type: 'error', message: response.message })
         }
+
         // Reset the form after successful submission
       } catch (error) {
         console.error(error)
@@ -223,6 +224,7 @@ const UploadReports = ({
                   <input
                     multiple
                     type='file'
+
                     // accept='*/*'
                     accept={allowedTypes}
                     onChange={e => handleInputImageChange(e)}

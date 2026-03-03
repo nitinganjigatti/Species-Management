@@ -389,6 +389,7 @@ const EnclosureWiseSpecies = ({ drawerType, setDrawerType, drawerData, setDrawer
           }}
         >
           <CommonTable
+
             // onRowClick={handleRowClick}
             indexedRows={indexedRows}
             total={total}

@@ -55,15 +55,16 @@ const AnimalList = () => {
   const [headerList, setHeaderList] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
+
   // const [speciesList, setSpeciesList] = useState([])
   const [isLoader, setIsLoader] = useState(false)
 
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
-      { label: 'Class', key: 'include_class', checked: false },
-      { label: 'Order', key: 'include_order', checked: false },
-      { label: 'Family', key: 'include_family', checked: false },
-      { label: 'Genus', key: 'include_genus', checked: false }
+      { label: 'Class', key: 'include_class', checked: true },
+      { label: 'Order', key: 'include_order', checked: true },
+      { label: 'Family', key: 'include_family', checked: true },
+      { label: 'Genus', key: 'include_genus', checked: true }
     ],
     Housing: [
       { label: 'Site', key: 'include_site', checked: false },
@@ -79,13 +80,13 @@ const AnimalList = () => {
     include_enclosure: 0,
     include_section: 0,
     include_cluster: 0,
-    include_class: 0,
+    include_class: 1,
     include_organization: 0,
-    include_order: 0,
-    include_family: 0,
-    include_genus: 0,
+    include_order: 1,
+    include_family: 1,
+    include_genus: 1,
     include_site: 0,
-    include_genus: 0
+    include_genus: 1
   })
 
   const handleClick = event => {
@@ -114,6 +115,7 @@ const AnimalList = () => {
   }
 
   const initialLoad = useRef(true)
+  const lastFetchKeyRef = useRef('')
 
   const open = Boolean(anchorEl)
   const id = open ? 'filter-popover' : undefined
@@ -128,10 +130,16 @@ const AnimalList = () => {
         delete updatedParams.site_ids
         delete updatedParams.sids
 
-        return updatedParams
+        return {
+          ...updatedParams,
+          include_class: 1,
+          include_order: 1,
+          include_family: 1,
+          include_genus: 1
+        }
       })
     }
-  }, [router.pathname])
+  }, [router.pathname, animalId])
 
   // useEffect(() => {
   //   const fetchSpeciesList = async () => {
@@ -204,7 +212,7 @@ const AnimalList = () => {
       } else {
         setDataList([])
         setTotal(0)
-        toast.error('Something went wrong')
+        toast.error(response?.message)
       }
     } catch (error) {
       toast.error('Error connecting to the server')
@@ -266,9 +274,18 @@ const AnimalList = () => {
 
   useEffect(() => {
     if (!animalId && reports_module && enable_animal_report) {
+      const fetchKey = JSON.stringify({
+        params: apiFilterParams,
+        page: paginationModel.page,
+        pageSize: paginationModel.pageSize
+      })
+
+      if (lastFetchKeyRef.current === fetchKey) return
+
+      lastFetchKeyRef.current = fetchKey
       fetchData(apiFilterParams, paginationModel)
     }
-  }, [fetchData, apiFilterParams])
+  }, [fetchData, apiFilterParams, paginationModel, reports_module, enable_animal_report, animalId])
 
   const getSpecificAnimal = async (id, options = {}) => {
     try {
@@ -321,7 +338,7 @@ const AnimalList = () => {
       } else {
         setTotal(0)
         setAnimalList([])
-        toast.error('Something went wrong')
+        toast.error(response?.message)
       }
     } catch (error) {
       toast.error('Error connecting to the server')
@@ -342,7 +359,8 @@ const AnimalList = () => {
         ...prevData,
         [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
       }
-      return updatedData
+      
+return updatedData
     })
   }
 
@@ -350,13 +368,15 @@ const AnimalList = () => {
     if (text.length > maxLength) {
       return <>{`${text.substring(0, maxLength)}...`}</>
     }
-    return text
+    
+return text
   }
 
   const getSpecificTotalSelectedFilters = selectedOptions => {
     return Object.values(selectedOptions).filter(items => {
       const filtered = items.filter(item => item !== 'All Sites' && item !== 'All Organizations')
-      return filtered.length > 0
+      
+return filtered.length > 0
     }).length
   }
 
@@ -365,9 +385,8 @@ const AnimalList = () => {
   // }
 
   const getTotalSelectedFilters = selectedOptions => {
-    return Object.values(selectedOptions)
-      .filter(selected => selected.length > 0)
-      .flat().length
+    return Object.values(selectedOptions || {}).filter(selected => Array.isArray(selected) && selected.length > 0)
+      .length
   }
 
   const columns = headerList.map(header => {

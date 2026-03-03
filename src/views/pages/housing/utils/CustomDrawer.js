@@ -7,14 +7,25 @@ const CustomDrawer = ({ open, onClose, title, icon, children, backgroundColor })
   const theme = useTheme()
 
   return (
-    <Drawer open={open} onClose={onClose} anchor='right' variant='temporary'>
+    <Drawer
+      open={open}
+      onClose={onClose}
+      anchor='right'
+      variant='temporary'
+      slotProps={{
+        paper: {
+          sx: {
+            backgroundColor: backgroundColor ?? theme.palette.customColors.Background
+          }
+        }
+      }}
+    >
       <Box
         sx={{
           width: 570,
           maxWidth: '100vw',
           minHeight: '100vh',
-          p: theme.spacing(4, 5),
-          backgroundColor: backgroundColor ?? theme.palette.customColors.Background
+          p: theme.spacing(4, 5)
         }}
       >
         {/* Header */}

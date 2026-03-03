@@ -3,36 +3,28 @@ import React, { useState, useEffect, useCallback, useContext } from 'react'
 import TableWithFilter from 'src/components/TableWithFilter'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { DataGrid } from '@mui/x-data-grid'
-import CardHeader from '@mui/material/CardHeader'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import Chip from '@mui/material/Chip'
-
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
-
-import TabContext from '@mui/lab/TabContext'
-import TabList from '@mui/lab/TabList'
-import Tab from '@mui/material/Tab'
-import TabPanel from '@mui/lab/TabPanel'
 import {
   Box,
-  Button,
-  Card,
   CardContent,
-  CircularProgress,
   FormControl,
   Grid,
-  InputAdornment,
   InputLabel,
   MenuItem,
   Select,
-  TextField,
-  Tooltip,
+  Tab,
+  Chip,
+  Typography,
+  IconButton,
   debounce
 } from '@mui/material'
+
+// ** Icon Imports
+import Icon from 'src/@core/components/icon'
+import TabContext from '@mui/lab/TabContext'
+import TabList from '@mui/lab/TabList'
+import TabPanel from '@mui/lab/TabPanel'
 
 import {
   addNonExistingProductStatus,
@@ -41,11 +33,9 @@ import {
   getNonExistingProductList
 } from 'src/lib/api/pharmacy/newMedicine'
 import { useRouter } from 'next/router'
-import { AddButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import { ProductDetail } from 'src/views/pages/pharmacy/product/product-details'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { useTheme } from '@emotion/react'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -54,9 +44,10 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained, ExcelExportButton } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import { AuthContext } from 'src/context/AuthContext'
-import { width } from '@mui/system'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 export default function NewProductList() {
   const theme = useTheme()
@@ -66,8 +57,6 @@ export default function NewProductList() {
     const newQuery = { ...router.query, ...params }
     router.replace({ pathname: router.pathname, query: newQuery }, undefined)
   }, [])
-
-  
 
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
@@ -103,7 +92,6 @@ export default function NewProductList() {
         toast.success(toastMessage)
         setShow(false)
 
-      
         if (status === 'Cancelled' || 'Approved' || 'Rejected') {
           fetchTableData({
             sort,
@@ -120,7 +108,7 @@ export default function NewProductList() {
             filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId,
             page: paginationModel?.page,
             limit: paginationModel?.pageSize
-          }) 
+          })
         } else {
           fetchTableData({
             sort,
@@ -169,8 +157,7 @@ export default function NewProductList() {
             sx={{
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
+              fontWeight: 500
             }}
           >
             {params?.row?.request_number}
@@ -190,8 +177,7 @@ export default function NewProductList() {
             sx={{
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
+              fontWeight: 500
             }}
           >
             {params?.row?.to_store_name}
@@ -212,8 +198,7 @@ export default function NewProductList() {
               sx={{
                 color: theme.palette.customColors.customHeadingTextColor,
                 fontSize: '14px',
-                fontWeight: 500,
-                fontFamily: 'Inter'
+                fontWeight: 500
               }}
             >
               {item?.product_name}
@@ -234,8 +219,7 @@ export default function NewProductList() {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params?.row?.priority}
@@ -253,8 +237,7 @@ export default function NewProductList() {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params?.row?.requested_user_name}
@@ -277,8 +260,7 @@ export default function NewProductList() {
               sx={{
                 color: theme.palette.customColors.customHeadingTextColor,
                 fontSize: '14px',
-                fontWeight: 500,
-                fontFamily: 'Inter'
+                fontWeight: 500
               }}
             >
               {item?.quantity}
@@ -299,8 +281,7 @@ export default function NewProductList() {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params?.row?.created_at)}
@@ -318,8 +299,7 @@ export default function NewProductList() {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params?.row?.status}
@@ -343,6 +323,7 @@ export default function NewProductList() {
   const [rows, setRows] = useState([])
   const [status, setStatus] = useState(router.query.status || 'Approved')
   const [excelLoader, setExcelLoader] = useState(false)
+  const [dialogBoxLoader, setDialogBoxLoader] = useState(false)
 
   const handleChange = (event, newValue) => {
     setTotal(0)
@@ -352,13 +333,12 @@ export default function NewProductList() {
 
     setStatus(newValue)
 
-   
     fetchTableData({
       sort,
       q: '',
       column: sortColumn,
-      status: newValue, 
-      filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId, 
+      status: newValue,
+      filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId,
       page: 1,
       limit: paginationModel.pageSize,
       filterDates
@@ -389,8 +369,8 @@ export default function NewProductList() {
           sort,
           q,
           column,
-          page: page || paginationModel.page + 1, 
-          limit: limit || paginationModel.pageSize, 
+          page: page || paginationModel.page + 1,
+          limit: limit || paginationModel.pageSize,
           type: status,
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
@@ -400,7 +380,7 @@ export default function NewProductList() {
         await getNonExistingProductList({ params }).then(res => {
           if (res?.data?.length > 0) {
             setTotal(parseInt(res?.count, 10))
-            setRows(loadServerRows(params.page - 1, res?.data)) 
+            setRows(loadServerRows(params.page - 1, res?.data))
           } else {
             setTotal(0)
             setRows([])
@@ -414,7 +394,7 @@ export default function NewProductList() {
         setLoading(false)
       }
     },
-    [paginationModel.page, paginationModel.pageSize, filterDates] 
+    [paginationModel.page, paginationModel.pageSize, filterDates]
   )
 
   const handleSortModel = async newModel => {
@@ -443,6 +423,9 @@ export default function NewProductList() {
             title='Add Product'
             action={() => router.push('/pharmacy/new-product-request/request-product/')}
             fullWidth='fullWidth'
+            styles={{
+              margin: 0
+            }}
           />
         )}
     </>
@@ -555,6 +538,7 @@ export default function NewProductList() {
 
   const onRowClick = async params => {
     console.log('Status', params)
+    setDialogBoxLoader(true)
     setShow(true)
     setSelectedPharmacyId(params?.row?.to_store)
     setItemId(params.id)
@@ -563,8 +547,12 @@ export default function NewProductList() {
         setProductDetails(res?.data)
         setPrescriptionImages(res?.data?.prescription_images)
         setDetailsData(res?.data?.request_item_details)
+        setDialogBoxLoader(false)
       })
-      .catch(err => console.log(err))
+      .catch(err => {
+        setDialogBoxLoader(false)
+        console.log(err)
+      })
   }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -585,31 +573,14 @@ export default function NewProductList() {
         type: status,
         pharmacy: filterByPharmacyId === 'all' ? '' : filterByPharmacyId,
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+        response_type: 'csv'
       }
 
       const response = await getNonExistingProductList({ params })
-      console.log('Response inventory>', response)
-      setExcelLoader(false)
-      if (response?.success === true && response?.data?.length > 0) {
-        const data = response?.data
-          ?.map(el => {
-            return el.request_items.map(item => ({
-              ['Request Number']: el?.request_number,
-              ['Store Name']: el?.to_store_name,
-              ['status']: el?.status,
-              ['Product Name']: item.product_name,
-              ['Quantity']: item.quantity,
-              ['Priority']: item.priority,
-              ['Created At']: Utility.formatDisplayDate(el?.created_at)
-                ? Utility.formatDisplayDate(el?.created_at)
-                : 'NA',
-              ['Requested User']: el?.requested_user_name ? el?.requested_user_name : 'NA'
-            }))
-          })
-          .flat()
-
-        Utility.exportToCSV(data, 'Existing_ProductList')
+      if (response?.success === true && response?.data) {
+        Utility.downloadFileFromURL(response?.data, Utility.extractHoursAndMinutes)
+        setExcelLoader(false)
       } else {
         toast.error('No data available for export')
         console.log('No data available for export.')
@@ -642,91 +613,70 @@ export default function NewProductList() {
   const tableData = () => {
     return (
       <>
-        <Card sx={{ cursor: 'pointer' }}>
-          <CardHeader
-            title={RenderUtility.pageTitle('New Product Request List')}
-            action={headerAction}
-            sx={{
+        <PageCardLayout
+          title='New Product Request List'
+          action={headerAction}
+          headerStyles={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between',
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            '&.MuiCardHeader-action': {
               display: 'flex',
-              justifyContent: { xs: 'flex-start', sm: 'space-between' },
-              alignItems: { xs: 'flex-start', sm: 'flex-start' },
               flexDirection: { xs: 'column', sm: 'row' },
-              '& .MuiCardHeader-title': {
-                fontSize: { xs: '18px', sm: '20px', md: '24px' },
-                flexGrow: 1
-              },
-              gap: { xs: 3, sm: 0 },
-              '& .MuiCardHeader-action': {
-                width: { xs: '100% ', sm: 'auto' },
-                mb: filterByPharmacyId || searchValue || excelLoader ? { xs: 3, sm: 3 } : 0
-              },
-              mx: { xs: -1, sm: 1 },
-              mt: 1
-            }}
-          />
-
-          <Box
+              justifyContent: { xs: 'flex-start', sm: 'flex-end' },
+              gap: 2,
+              width: { xs: '100%', sm: 'auto' }
+            }
+          }}
+        >
+          <Grid
+            container
+            spacing={4}
             sx={{
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: { xs: 'wrap', sm: 'nowrap' }, 
-              mx: { xs: 3, md: 5 },
-              gap: { sm: 2 }
+              justifyContent: 'space-between'
             }}
           >
-           
-            <Grid item size={{ xs: 12, sm: 4, md: 3 }} sx={{ mb: { xs: 3, sm: 0 }, width: { xs: '100%', sm: 'auto' } }}>
+            <Grid item size={{ xs: 12, sm: 12, md: 'auto' }}>
               <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
             </Grid>
 
-          
-
-            <Box
+            <Grid
+              size={{
+                xs: 12,
+                sm: 12,
+                md: 2.5,
+                lg: 3,
+                xl: 2.5
+              }}
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: { xs: 'flex-end', sm: 'flex-end' },
-                flexWrap: { xs: 'wrap', sm: 'nowrap' },
-                mt: { xs: 1, sm: 0 }
+                marginLeft: 'auto'
               }}
             >
-              <TextField
-                variant='outlined'
-                size='small'
+              <MUISearch
                 placeholder='Search...'
                 value={searchValue}
                 onChange={e => handleSearch(e.target.value)}
-                sx={{
-                  flex: 1,
-                  mr: { sm: 2 },
-                  borderRadius: '8px',
-                  minWidth: 250
-
-                }}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }
-                }}
+                fullWidth
+                onClear={() => handleSearch('')}
               />
+            </Grid>
 
-
-              <FormControl
-                size='small'
-                sx={{
-                  mt: { xs: 4, sm: 0 },
-
-                  // mr: { sm: 2 },
-                  // ml: { xs: 2 },
-                  minWidth: { xs: '230px', sm: '10px' }, 
-                  flex: { xs: 1, sm: 'auto' }
-                }}
-              >
+            <Grid
+              size={{
+                xs: 12,
+                sm: 12,
+                md: 3,
+                lg: 3,
+                xl: 2.5
+              }}
+              sx={{
+                display: 'flex',
+                gap: '16px'
+              }}
+            >
+              <FormControl fullWidth size='small'>
                 <InputLabel>Filter by Pharmacy</InputLabel>
                 <Select
                   value={filterByPharmacyId}
@@ -766,16 +716,16 @@ export default function NewProductList() {
                   ))} */}
                 </Select>
               </FormControl>
-
-              <Box sx={{ mt: { xs: 4, sm: 0 }, ml: { xs: 2 } }}>
+              <Grid size={{ xs: 'auto' }}>
                 <ExportButton
                   loading={excelLoader}
                   onClick={getProductRequestToExport}
                   disabled={total === 0 ? true : false}
                 />
-              </Box>
+              </Grid>
+            </Grid>
 
-              {/* <Tooltip title='Export'>
+            {/* <Tooltip title='Export'>
                 <>
                   {excelLoader ? (
                     <Box
@@ -816,36 +766,28 @@ export default function NewProductList() {
                   )}
                 </>
               </Tooltip> */}
-            </Box>
-          </Box>
-
-          <Grid
-            sx={{
-              mx: { xs: 2, md: 5 },
-              mt: { xs: -1 }
-            }}
-          >
+            {/* </Box> */}
+            {/* </Box> */}
+          </Grid>
+          <Grid>
             <CommonTable
               onRowClick={onRowClick}
               indexedRows={indexedRows}
               total={total}
               columns={columns}
-              paginationModel={paginationModel} 
+              paginationModel={paginationModel}
               setPaginationModel={model => {
-             
                 setPaginationModel(model)
                 console.log(model, 'model')
 
-             
                 const { page, pageSize } = model
 
-              
                 fetchTableData({
                   sort,
                   q: searchValue,
                   column: sortColumn,
                   status,
-                  page: page + 1, 
+                  page: page + 1,
                   limit: pageSize,
                   filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId
                 })
@@ -863,72 +805,76 @@ export default function NewProductList() {
               loading={loading}
             />
           </Grid>
-        </Card>
+        </PageCardLayout>
         {show && (
           <>
-            <CardContent>
-              <Grid container>
-                <CommonDialogBox
-                  title={
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}
-                    >
-                      <div>Product Details - {productDetails?.request_number}</div>
-                      {selectedPharmacy.type === 'local' &&
-                        selectedPharmacyId == selectedPharmacy.id &&
-                        (selectedPharmacy.permission.key === 'allow_full_access' ||
-                          selectedPharmacy.permission.key === 'ADD') &&
-                        productDetails?.status === 'Pending' && (
-                          <Grid
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'flex-end',
-                              justifyContent: 'flex-end'
-                            }}
-                          >
-                            <IconButton
-                              size='small'
-                              sx={{ mr: 0.5 }}
-                              aria-label='Edit'
-                              onClick={() => handleEdit(itemId)}
+            {dialogBoxLoader ? (
+              <FallbackSpinner />
+            ) : (
+              <CardContent>
+                <Grid container>
+                  <CommonDialogBox
+                    title={
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <div>Product Details - {productDetails?.request_number}</div>
+                        {selectedPharmacy.type === 'local' &&
+                          selectedPharmacyId == selectedPharmacy.id &&
+                          (selectedPharmacy.permission.key === 'allow_full_access' ||
+                            selectedPharmacy.permission.key === 'ADD') &&
+                          productDetails?.status === 'Pending' && (
+                            <Grid
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'flex-end',
+                                justifyContent: 'flex-end'
+                              }}
                             >
-                              <Icon icon='mdi:pencil-outline' />
-                            </IconButton>
-                          </Grid>
-                        )}
-                    </div>
-                  }
-                  dialogBoxStatus={show}
-                  formComponent={
-                    <ProductDetail
-                      setShow={setShow}
-                      statusCall={statusCall}
-                      submitLoader={submitLoader}
-                      detailsData={detailsData}
-                      handleRequestStatus={handleRequestStatus}
-                      prescriptionImages={prescriptionImages}
-                      reasonText={reasonText}
-                      setReasonText={setReasonText}
-                      imgUrl={imgUrl}
-                      itemId={itemId}
-                      handleEdit={handleEdit}
-                      productDetails={productDetails}
-                      selectedPharmacyId={selectedPharmacyId}
-                    />
-                  }
-                  close={() => {
-                    setShow(false)
-                    setProductDetails({})
-                    setDetailsData([])
-                  }}
-                  show={() => setShow(true)}
-                />
-              </Grid>
-            </CardContent>
+                              <IconButton
+                                size='small'
+                                sx={{ mr: 0.5 }}
+                                aria-label='Edit'
+                                onClick={() => handleEdit(itemId)}
+                              >
+                                <Icon icon='mdi:pencil-outline' />
+                              </IconButton>
+                            </Grid>
+                          )}
+                      </div>
+                    }
+                    dialogBoxStatus={show}
+                    formComponent={
+                      <ProductDetail
+                        setShow={setShow}
+                        statusCall={statusCall}
+                        submitLoader={submitLoader}
+                        detailsData={detailsData}
+                        handleRequestStatus={handleRequestStatus}
+                        prescriptionImages={prescriptionImages}
+                        reasonText={reasonText}
+                        setReasonText={setReasonText}
+                        imgUrl={imgUrl}
+                        itemId={itemId}
+                        handleEdit={handleEdit}
+                        productDetails={productDetails}
+                        selectedPharmacyId={selectedPharmacyId}
+                      />
+                    }
+                    close={() => {
+                      setShow(false)
+                      setProductDetails({})
+                      setDetailsData([])
+                    }}
+                    show={() => setShow(true)}
+                  />
+                </Grid>
+              </CardContent>
+            )}
           </>
         )}
       </>
@@ -943,7 +889,6 @@ export default function NewProductList() {
         <TabContext value={status}>
           <TabList variant='scrollable' allowScrollButtonsMobile onChange={handleChange}>
             <Tab
-              sx={{ ml: { xs: 1, sm: 3 } }} 
               value='Approved'
               label={<TabBadge label='Approved' totalCount={status === 'Approved' ? total : null} />}
             />
@@ -962,11 +907,17 @@ export default function NewProductList() {
               label={<TabBadge label='Rejected' totalCount={status === 'Rejected' ? total : null} />}
             />
           </TabList>
-          <TabPanel value='Approved'>{tableData()}</TabPanel>
-          <TabPanel value='Pending'>{tableData()}</TabPanel>
+          <Box
+            sx={{
+              '& .MuiTabPanel-root': { p: 0, mt: 3 }
+            }}
+          >
+            <TabPanel value='Approved'>{tableData()}</TabPanel>
+            <TabPanel value='Pending'>{tableData()}</TabPanel>
 
-          <TabPanel value='Cancelled'>{tableData()}</TabPanel>
-          <TabPanel value='Rejected'>{tableData()}</TabPanel>
+            <TabPanel value='Cancelled'>{tableData()}</TabPanel>
+            <TabPanel value='Rejected'>{tableData()}</TabPanel>
+          </Box>
         </TabContext>
       )}
     </>

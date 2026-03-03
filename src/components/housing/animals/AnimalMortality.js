@@ -129,9 +129,9 @@ const AnimalMortality = ({ animalDetails }) => {
       label: 'Discovered Time and Date',
       value: (
         <>
-          {Utility?.convertUTCToLocaltime(mortality?.discovered_date)}
-          <span style={{ margin: '0 8px', color: '#aaa' }}>•</span>
           {Utility?.formatDisplayDate(mortality?.discovered_date)}
+          <span style={{ margin: '0 8px', color: '#aaa' }}>•</span>
+          {Utility?.convertUTCToLocaltime(mortality?.discovered_date)}
         </>
       )
     },

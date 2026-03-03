@@ -98,7 +98,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
           .string()
           .required('Mobile Number is required')
           .test('is-valid-number', 'Only numbers are allowed', value => {
-            return /^\d*$/.test(value)
+            return /^\d*$/.test(value);
           })
           .test('is-valid-length', 'Mobile Number must be exactly 10 digits', value => {
             return value?.length === 10
@@ -127,7 +127,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
           .string()
           .required('Mobile Number is required')
           .test('is-valid-number', 'Only numbers are allowed', value => {
-            return /^\d*$/.test(value)
+            return /^\d*$/.test(value);
           })
           .test('is-valid-length', 'Mobile Number must be exactly 10 digits', value => {
             return value?.length === 10
@@ -722,7 +722,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                     item
                     size={{ xs: 12, sm: 6 }}
                     sx={{
-                      mb: 6
+                     mb: {sm: 6}
                     }}
                   >
                     <FormControl fullWidth>
@@ -750,7 +750,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                   item
                   size={{ xs: 12, sm: deliveryType.Ship ? 3 : 6 }}
                   sx={{
-                    mb: 6
+                    mb:  6
                   }}
                 >
                   <FormControl fullWidth>
@@ -1080,7 +1080,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
             </form>
             <Box sx={{ mt: 6 }}>
               {dispatchedItems?.length > 0 ? (
-                <Grid size={{ xs: 12, sm: 12, md: 12 }} sx={{ mb: 14 }}>
+                <Grid size={{ xs: 12, sm: 12, md: 12 }} sx={{ mb: 14, }}>
                   <TableBasic
                     columns={columns}
                     rows={dispatchedItems}

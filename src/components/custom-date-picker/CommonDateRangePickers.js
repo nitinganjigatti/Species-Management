@@ -285,7 +285,9 @@ const CommonDateRangePickers = ({
             // borderRadius: '4px',
             borderRadius: '4px 0 0 4px',
             width: '40px',
-            height: '40px',
+            minHeight: '40px',
+            maxHeight: '200px',
+            alignSelf: 'stretch',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'

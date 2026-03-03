@@ -36,6 +36,7 @@ const BasicDetailsAddEdit = ({
   setErrors
 }) => {
   const theme = useTheme()
+
   const handleAirwaybillChange = event => {
     // let inputValue = event.target.value.replace(/\D/g, '')
     // if (inputValue.length > 11) inputValue = inputValue.slice(0, 11)
@@ -62,6 +63,7 @@ const BasicDetailsAddEdit = ({
     setUploadedFile(file)
     setErrors(prev => ({ ...prev, uploadedFile: null }))
   }
+
   const handleChange = e => {
     setTransportType(e.target.value)
   }

@@ -52,7 +52,17 @@ const SpeciesMappedtoDiet = ({
   setSelectedEnclosures,
   setSelectedSpeciesIds,
   setSelectedTaxonomyIds,
-  speciesview
+  speciesview,
+  checkForSite,
+  setSelectionType,
+  authData,
+  setPrimaryStatus,
+  setIsOpenTabsEdit,
+  setSelectedSpecies,
+  setCheckForSite,
+  fetchList,
+  removeFilterTriggered,
+  setRemoveFilterTriggered
 }) => {
   const listInnerRef = useRef(null)
   const theme = useTheme()
@@ -95,13 +105,18 @@ const SpeciesMappedtoDiet = ({
     setSelectedEnclosures([])
     setSelectedSpeciesIds([])
     setSelectedTaxonomyIds([])
+
+    if (checkForSite === 'site_species') {
+      setSelectionType('site_species')
+      setSelectedSpecies([])
+      setTempSelectedSpecies([])
+    }
   }
 
   const handleSelectedclick = val => {
     if (val === 'select') {
       setIsOpennew(true)
-
-      // setIsOpen(false)
+      setCheckForSite('')
       setspeciesview(val)
     } else {
       setIsOpennew(true)
@@ -153,27 +168,44 @@ const SpeciesMappedtoDiet = ({
         Section: [],
         Enclosure: []
       }))
+      setRemoveFilterTriggered(true)
     }
     setSelectedEnclosures([])
     setSelectedSections([])
   }
 
   useEffect(() => {
-    if (speciesData.length > 0 && tempSelectedSpecies.length > 0) {
-      const idField = selectionType === 'species' ? 'species_id' : 'animal_id'
-
-      // Create a Set of all valid IDs from speciesData
-      const validIds = new Set(speciesData.map(item => item[idField]))
-
-      // Filter tempSelectedSpecies to only keep IDs that exist in speciesData
-      const filteredSelectedSpecies = tempSelectedSpecies.filter(id => validIds.has(id))
-
-      // Only update state if there were invalid IDs that needed to be removed
-      if (filteredSelectedSpecies.length !== tempSelectedSpecies.length) {
-        setTempSelectedSpecies(filteredSelectedSpecies)
-      }
+    if (removeFilterTriggered && isOpen) {
+      fetchList(searchQuery)
+      setRemoveFilterTriggered(false)
     }
-  }, [speciesData])
+  }, [removeFilterTriggered])
+
+  const handleEditclick = () => {
+    setIsOpenTabsEdit(true)
+    setPrimaryStatus({})
+    setspeciesview('details')
+    setSelectionType('species')
+  }
+
+  // useEffect(() => {
+  //   if (speciesData.length > 0 && tempSelectedSpecies.length > 0) {
+  //     const idField = selectionType === 'species' ? 'species_id' : 'animal_id'
+
+  //     // Create a Set of all valid IDs from speciesData
+  //     const validIds = new Set(speciesData.map(item => item[idField]))
+
+  //     // Filter tempSelectedSpecies to only keep IDs that exist in speciesData
+  //     const filteredSelectedSpecies = tempSelectedSpecies.filter(id => validIds.has(id))
+
+  //     // Only update state if there were invalid IDs that needed to be removed
+  //     if (filteredSelectedSpecies.length !== tempSelectedSpecies.length) {
+  //       setTempSelectedSpecies(filteredSelectedSpecies)
+  //     }
+  //   }
+  // }, [speciesData])
+
+  const hasMappedSpecies = speciesData?.some(item => item.mapped_to_diet === true)
 
   return (
     <Drawer
@@ -211,12 +243,19 @@ const SpeciesMappedtoDiet = ({
           </Typography>
         </Box>
 
-        <Box
-          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mr: '14px', mt: '4px' }}
-          onClick={handelClose}
-        >
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mr: '14px', mt: '4px' }}>
+          {authData?.userData?.roles?.settings?.assign_diet === true &&
+          checkForSite === 'site_species' &&
+          hasMappedSpecies &&
+          !loading ? (
+            <IconButton size='small' sx={{ color: theme.palette.primary.light, mr: 5 }}>
+              <Icon icon='mdi:pencil-outline' fontSize={24} onClick={handleEditclick} />
+            </IconButton>
+          ) : (
+            ''
+          )}
           <IconButton size='small' sx={{ color: theme.palette.primary.light }}>
-            <Icon icon='mdi:close' fontSize={24} />
+            <Icon icon='mdi:close' fontSize={24} onClick={handelClose} />
           </IconButton>
         </Box>
       </Box>
@@ -328,7 +367,7 @@ const SpeciesMappedtoDiet = ({
                       const speciesCount = selectedItems.Species?.length || 0
                       const taxonomyCount = selectedItems.Taxonomy?.length || 0
 
-                      return speciesCount > 0 ? siteCount + speciesCount : siteCount + taxonomyCount
+                      return [siteCount, speciesCount, taxonomyCount].filter(count => count > 0).length
                     })()}
                   </span>
                 )}

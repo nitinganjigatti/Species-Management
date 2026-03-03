@@ -68,6 +68,7 @@ const SpeciesDetailsContainer = ({
 
     return imgPath?.default
   }
+
   const handleAnimalClick = (speciesdata, type) => {
     setanimalDetailsDrawerOpen(true)
     setAnimalDetails(speciesdata)
@@ -76,9 +77,11 @@ const SpeciesDetailsContainer = ({
 
   const SpeciesRow = ({ species, type }) => (
     <Box
+
       //key={idx}
       display='flex'
       justifyContent='space-between'
+
       // py={2}
       sx={{
         borderBottom: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
@@ -164,7 +167,8 @@ const SpeciesDetailsContainer = ({
 
       return sum + (isNaN(totalCount) ? male + female + undetermined : totalCount)
     }, 0)
-    return (
+    
+return (
       <>
         <Box>
           {/* Export Header */}
@@ -295,6 +299,7 @@ const SpeciesDetailsContainer = ({
                       maxWidth: '180px',
                       height: '40px',
                       pt: 2
+
                       // color: 'inherit'
                     }}
                   >
