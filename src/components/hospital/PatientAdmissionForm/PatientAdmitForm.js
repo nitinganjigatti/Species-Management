@@ -69,7 +69,7 @@ const defaultValues = {
   admission_time: dayjs()
 }
 
-const PatientAdmitForm = hospitalId => {
+const PatientAdmitForm = ()=> {
   const theme = useTheme()
   const router = useRouter()
   const authData = useContext(AuthContext)
@@ -177,7 +177,8 @@ const PatientAdmitForm = hospitalId => {
     resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onChange',
-    reValidateMode: 'onChange'
+    reValidateMode: 'onChange',
+    defaultValues
   })
 
   const [selectedDoctor, setSelectedDoctor] = useState(null)
@@ -193,7 +194,7 @@ const PatientAdmitForm = hospitalId => {
   const [loading, setLoading] = useState(false)
   const [bedsLoading, setBedsLoading] = useState(false)
   const [searchEnclosure, setSearchEnclosure] = useState('')
-  const [searchAttendVet, setSearchAttendVet] = useState('')
+  const [searchAttendDoctor, setSearchAttendDoctor] = useState('')
   const [hasPermission, setHasPermission] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [openAddRoomDrawer, setOpenAddRoomDrawer] = useState(false)
@@ -365,46 +366,43 @@ const PatientAdmitForm = hospitalId => {
 
   const filteredAttendingDoctors = attendingDoctors.filter(item => item.value !== selectedDoctor?.id)
 
-  const getUserLists = async (query = '') => {
-    setLoading(true)
-    try {
-      const params = {
-        q: searchAttendVet,
-        page_no: paginationModel.page + 1,
-        limit: paginationModel.pageSize,
-        hospital_id: selectedHospital?.id
-      }
-      if (query.trim() !== '') {
-        params.q = query
-      }
-      await getHospitalStaff({ params: { hospital_id: hospitalId, ...params } }).then(res => {
-        if (res?.success === true) {
-          const chiefs = res?.data?.records
-            .filter(item => item?.is_hospital_chief_doctor === '1')
-            .map(item => ({
-              name: item?.user_full_name,
-              id: item?.user_id,
-              default_icon: item?.user_profile_pic,
-              role_name: item?.role_name
-            }))
-
-          if (chiefs.length === 1) {
-            const singleDoctor = chiefs[0]
-            setSelectedDoctor(singleDoctor)
-            setValue('selectedDoctor', singleDoctor)
-
-            clearErrors('selectedDoctor')
+  
+    const getUserLists = async () => {
+      setLoading(true)
+      try {
+        const res = await getHospitalStaff({
+          params: {
+            q: searchAttendDoctor,
+            page_no: paginationModel.page + 1,
+            limit: paginationModel.pageSize,
+            hospital_id: selectedHospital?.id
           }
-          console.log('Chiefs', chiefs)
-        } else {
-          setDoctors([])
-        }
-      })
-    } catch (error) {
-      console.log('user error', error)
+        })
+          if (res?.success === true) {
+            const chiefs = res?.data?.records
+              .filter(item => item?.is_hospital_chief_doctor === '1')
+              .map(item => ({
+                name: item?.user_full_name,
+                id: item?.user_id,
+                default_icon: item?.user_profile_pic,
+                role_name: item?.role_name
+              }))
+  
+            if (chiefs.length === 1 && selectedHospital?.id) {
+              const singleDoctor = chiefs[0]
+              setSelectedDoctor(singleDoctor)
+              setValue('selectedDoctor', singleDoctor)
+  
+              clearErrors('selectedDoctor')
+            }
+          } else {
+            setDoctors([])
+          }
+      } catch (error) {
+        console.log('user error', error)
+      }
+      setLoading(false)
     }
-    setLoading(false)
-  }
 
   useEffect(() => {
     getUserLists()
@@ -414,7 +412,7 @@ const PatientAdmitForm = hospitalId => {
     try {
       const response = await getHospitalStaff({
         params: {
-          q: searchAttendVet,
+          q: searchAttendDoctor,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           hospital_id: selectedHospital?.id
@@ -428,7 +426,6 @@ const PatientAdmitForm = hospitalId => {
         }))
 
         setAttendingDoctors(mappedData)
-        console.log('Data', mappedData)
       }
     } catch (error) {
       console.error('Error fetching hospital staff:', error?.message)
@@ -444,7 +441,7 @@ const PatientAdmitForm = hospitalId => {
 
   useEffect(() => {
     getStaffList()
-  }, [searchAttendVet])
+  }, [searchAttendDoctor])
 
   const selectedDate = watch('admission_date')
 
@@ -560,7 +557,7 @@ const PatientAdmitForm = hospitalId => {
 
   const debouncedEnclosureSearch = React.useMemo(() => debounce(val => setSearchEnclosure(val), 1000), [])
 
-  const debouncedAttendingVetSearch = React.useMemo(() => debounce(val => setSearchAttendVet(val), 1000), [])
+  const debouncedAttendingVetSearch = React.useMemo(() => debounce(val => setSearchAttendDoctor(val), 1000), [])
 
   useEffect(() => {
     if (selectedDoctor && doctors.length === 1) {
@@ -904,7 +901,6 @@ const PatientAdmitForm = hospitalId => {
                               onChange={(event, newValue, reason) => {
                                 setAttendingSelectedDoctors(newValue)
                                 field.onChange(newValue)
-                                console.log(newValue)
                               }}
                               onInputChange={(event, value, reason) => {
                                 if (reason === 'clear') {

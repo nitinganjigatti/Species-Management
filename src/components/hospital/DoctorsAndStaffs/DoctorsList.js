@@ -23,8 +23,8 @@ import Icon from 'src/@core/components/icon'
 import AddStaffsDrawer from './AddStaffsDrawer'
 import Toaster from 'src/components/Toaster'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
-import { updateHospitalChiefDoctor } from 'src/lib/api/hospital/staff'
-import { removeHospitalChiefDoctor } from 'src/lib/api/hospital/staff'
+import { addChiefDoctor } from 'src/lib/api/hospital/staff'
+import { removeChiefDoctor } from 'src/lib/api/hospital/staff'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
 import { useHospital } from 'src/context/HospitalContext'
 import Router from 'next/router'
@@ -36,7 +36,7 @@ const DoctorsList = () => {
   const theme = useTheme()
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
-  const { selectedHospital, updateSelectedHospital } = useHospital()
+  const { selectedHospital } = useHospital()
   const router = useRouter()
   const [searchValue, setSearchValue] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -73,8 +73,7 @@ const DoctorsList = () => {
           limit: paginationModel.pageSize,
           q: debouncedSearch,
           hospital_id: selectedHospital?.id,
-          user_id: selected,
-          is_hospital_chief_doctor: isChecked ? '1' : '0'
+          user_id: selected
         }
       })
 
@@ -115,14 +114,14 @@ const DoctorsList = () => {
     })
   }, [rows, paginationModel.page, paginationModel.pageSize])
 
-  const selectHospitalChiefDoctor = async user_id => {
+  const addHospitalChiefDoctor = async user_id => {
     try {
       const params = {
         action: 'add',
         hospital_id: selectedHospital?.id,
         hospital_chief_doctor: user_id
       }
-      const response = await updateHospitalChiefDoctor(params)
+      const response = await addChiefDoctor(params)
       if (response?.message && response?.success === true) {
         Toaster({ type: 'success', message: response?.message })
       }
@@ -131,14 +130,14 @@ const DoctorsList = () => {
     }
   }
 
-  const clearHospitalChiefDoctor = async user_id => {
+  const removeHospitalChiefDoctor = async user_id => {
     try {
       const params = {
         action: 'delete',
         hospital_id: selectedHospital?.id,
         hospital_chief_doctor: user_id
       }
-      const response = await removeHospitalChiefDoctor(params)
+      const response = await removeChiefDoctor(params)
       if (response?.message && response?.success === true) {
         Toaster({ type: 'success', message: response?.message })
       }
@@ -152,9 +151,9 @@ const DoctorsList = () => {
 
     try {
       if (isChecked) {
-        await selectHospitalChiefDoctor(userId)
+        await addHospitalChiefDoctor(userId)
       } else {
-        await clearHospitalChiefDoctor(userId)
+        await removeHospitalChiefDoctor(userId)
       }
 
       fetchHospitalStaff(isChecked)

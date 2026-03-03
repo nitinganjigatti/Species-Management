@@ -130,7 +130,7 @@ const schema = yup.object().shape({
   // patient_status: yup.boolean().required('Patient Status is Required')
 })
 
-const AddPatientForm = ({ defaultTreatmentType, hospitalId }) => {
+const AddPatientForm = ({ defaultTreatmentType }) => {
   const theme = useTheme()
 
   const router = useRouter()
@@ -173,7 +173,7 @@ const AddPatientForm = ({ defaultTreatmentType, hospitalId }) => {
   const [loading, setLoading] = useState(false)
   const [isSortBottomSheetOpen, setIsSortBottomSheetOpen] = useState(false)
   const [searchRoom, setSearchRoom] = useState('')
-  const [searchAttendVet, setSearchAttendVet] = useState('')
+  const [searchAttendDoctor, setSearchAttendDoctor] = useState('')
   const [staffLoading, setStaffLoading] = useState(false)
   const [attendingSelectedDoctors, setAttendingSelectedDoctors] = useState([])
   const [openAddRoomDrawer, setOpenAddRoomDrawer] = useState(false)
@@ -322,15 +322,15 @@ const AddPatientForm = ({ defaultTreatmentType, hospitalId }) => {
 
   const debouncedEnclosureSearch = React.useMemo(() => debounce(val => setSearchEnclosure(val), 1000), [])
 
-  const debouncedAttendingVetSearch = React.useMemo(() => debounce(val => setSearchAttendVet(val), 1000), [])
+  const debouncedAttendingVetSearch = React.useMemo(() => debounce(val => setSearchAttendDoctor(val), 1000), [])
 
-  useEffect(() => {
-    if (selectedDoctor && doctors.length === 1) {
-      handleDoctorSelection(doctors[0])
-      setSelectedDoctor(doctors)
-      setValue('doctors', doctors)
-    }
-  }, [doctors])
+  // useEffect(() => {
+  //   if (selectedDoctor && doctors.length === 1) {
+  //     handleDoctorSelection(doctors[0])
+  //     setSelectedDoctor(doctors)
+  //     setValue('doctors', doctors)
+  //   }
+  // }, [doctors])
 
   useEffect(() => {
     const getAnimalIds = async () => {
@@ -369,19 +369,17 @@ const AddPatientForm = ({ defaultTreatmentType, hospitalId }) => {
     }
   }
 
-  const getUserLists = async (query = '') => {
+  const getUserLists = async () => {
     setLoading(true)
     try {
-      const params = {
-        q: searchAttendVet,
-        page_no: paginationModel.page + 1,
-        limit: paginationModel.pageSize,
-        hospital_id: selectedHospital?.id
-      }
-      if (query.trim() !== '') {
-        params.q = query
-      }
-      await getHospitalStaff({ params: { hospital_id: hospitalId, ...params } }).then(res => {
+      const res = await getHospitalStaff({
+        params: {
+          q: searchAttendDoctor,
+          page_no: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          hospital_id: selectedHospital?.id
+        }
+      })
         if (res?.success === true) {
           const chiefs = res?.data?.records
             .filter(item => item?.is_hospital_chief_doctor === '1')
@@ -392,18 +390,16 @@ const AddPatientForm = ({ defaultTreatmentType, hospitalId }) => {
               role_name: item?.role_name
             }))
 
-          if (chiefs.length === 1) {
+          if (chiefs.length === 1 && selectedHospital?.id) {
             const singleDoctor = chiefs[0]
             setSelectedDoctor(singleDoctor)
             setValue('selectedDoctor', singleDoctor)
 
             clearErrors('selectedDoctor')
           }
-          console.log('Chiefs', chiefs)
         } else {
           setDoctors([])
         }
-      })
     } catch (error) {
       console.log('user error', error)
     }
@@ -412,14 +408,14 @@ const AddPatientForm = ({ defaultTreatmentType, hospitalId }) => {
 
   useEffect(() => {
     getUserLists()
-  }, [])
+  }, [searchAttendDoctor])
   const onSubmit = async data => {
     const valid = await trigger()
     if (!valid) {
       setSubmitLoader(false)
 
       return
-    } else {
+    } 
       setSubmitLoader(true)
       try {
         const params = {
@@ -478,7 +474,7 @@ const AddPatientForm = ({ defaultTreatmentType, hospitalId }) => {
         console.error(error?.message, 'Cannot Add-Patient')
         setSubmitLoader(false)
       }
-    }
+    
   }
 
   const handleAnimalSelection = animal => {
@@ -493,7 +489,7 @@ const AddPatientForm = ({ defaultTreatmentType, hospitalId }) => {
     try {
       const response = await getHospitalStaff({
         params: {
-          q: searchAttendVet,
+          q: searchAttendDoctor,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           hospital_id: selectedHospital?.id
@@ -522,7 +518,7 @@ const AddPatientForm = ({ defaultTreatmentType, hospitalId }) => {
 
   useEffect(() => {
     getStaffList()
-  }, [searchAttendVet])
+  }, [searchAttendDoctor])
 
   const handleDoctorSelection = doctor => {
     setSelectedDoctor(doctor)
@@ -985,7 +981,6 @@ const AddPatientForm = ({ defaultTreatmentType, hospitalId }) => {
 
                             setAttendingSelectedDoctors(newValue)
                             field.onChange(newValue)
-                            console.log(newValue)
                           }}
                           noOptionsText='No available attending vets...'
                           renderInput={params => (

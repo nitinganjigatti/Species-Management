@@ -885,6 +885,10 @@ export const HOSPITAL_STATUS_UPDATE = 'v1/hospital/status/update'
 
 export const GET_HOSPITAL_STAFF = 'v1/hospital/staff'
 
+export const ADD_CHIEF_DOCTOR = 'v1/hospital/chief/doctor'
+
+export const REMOVE_CHIEF_DOCTOR = 'v1/hospital/chief/doctor'
+
 //Hospital beds
 
 export const GET_HOSPITAL_BED = `v1/hospital/bed/list`
@@ -974,10 +978,6 @@ export const DELETE_ANESTHESIA_MEDICATION = `v1/hospital/anaesthesia/medication/
 export const DELETE_VITAL_MONITORING = `v1/hospital/anaesthesia/vital-monitoring-time-slot/delete`
 
 export const UPDATE_ANIMAL_HEALTH_STATUS = 'v1/hospital/update-animal-health-status'
-
-export const UPDATE_HOSPITAL_CHIEF_DOCTOR = 'v1/hospital/chief/doctor'
-
-export const REMOVE_HOSPITAL_CHIEF_DOCTOR = 'v1/hospital/chief/doctor'
 
 export const GET_UPCOMING_VACCINATION_RECORDS = 'v1/vaccination/deworming/animal/pending/report'
 

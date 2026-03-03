@@ -1,6 +1,6 @@
 import { GET_HOSPITAL_STAFF } from 'src/constants/ApiConstant'
-import { UPDATE_HOSPITAL_CHIEF_DOCTOR } from "src/constants/ApiConstant";
-import { REMOVE_HOSPITAL_CHIEF_DOCTOR } from 'src/constants/ApiConstant';
+import { ADD_CHIEF_DOCTOR } from "src/constants/ApiConstant";
+import { REMOVE_CHIEF_DOCTOR } from 'src/constants/ApiConstant';
 import { axiosGet, axiosPost } from '../utility'
 
 
@@ -10,9 +10,9 @@ export const getHospitalStaff = async ({ params }) => {
   return response?.data
 }
 
-export const updateHospitalChiefDoctor = async params => {
+export const addChiefDoctor = async params => {
   try {
-  const url = `${UPDATE_HOSPITAL_CHIEF_DOCTOR}`
+  const url = `${ADD_CHIEF_DOCTOR}`
   const response = await axiosPost({url: url, body: params})
   return response?.data
 } catch (error){
@@ -21,9 +21,9 @@ export const updateHospitalChiefDoctor = async params => {
 }
 }
 
-export const removeHospitalChiefDoctor = async params => {
+export const removeChiefDoctor = async params => {
   try {
-    const url = `${REMOVE_HOSPITAL_CHIEF_DOCTOR}`
+    const url = `${REMOVE_CHIEF_DOCTOR}`
     const response = await axiosPost({url: url, body: params})
     return response?.data
   } catch (error){

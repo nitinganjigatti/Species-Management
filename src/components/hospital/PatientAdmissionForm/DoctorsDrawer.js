@@ -21,17 +21,18 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId, doctors, set
       if (query.trim() !== '') {
         params.q = query
       }
-      await getHospitalStaff({ params: { hospital_id: hospitalId, ...params } }).then(res => {
+      await getHospitalStaff({ params: { hospital_id: hospitalId, is_hospital_chief_doctor: '1',...params } }).then(res => {
         console.log(res)
         if (res?.success === true) {
           const records = res?.data?.records || []
 
           setDoctors(
-            records.filter(item => item?.is_hospital_chief_doctor === '1').map(item => ({
+            records.map(item => ({
               name: item?.user_full_name,
               id: item?.user_id,
               default_icon: item?.user_profile_pic,
-              role_name: item?.role_name
+              role_name: item?.role_name,
+              is_hospital_chief_doctor: '1'
             }))
           )
         } else {
@@ -47,7 +48,6 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId, doctors, set
   useEffect(() => {
     getUserLists()
   }, [])
-  console.log("Is array:", Array.isArray(doctors))
 
   const debouncedSearch = useCallback(
     debounce(query => {
