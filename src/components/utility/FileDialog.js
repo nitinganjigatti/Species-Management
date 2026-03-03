@@ -1,114 +1,146 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { Dialog, DialogTitle, DialogContent, IconButton, Typography, Box, useTheme, Button } from '@mui/material'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+  Typography,
+  Box,
+  useTheme,
+  Button,
+  CircularProgress,
+  Grid
+} from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { LoadingButton } from '@mui/lab'
+import { useAuth } from 'src/hooks/useAuth'
 import SignedMediaPlayer from './SignedMediaPlayer'
 import TextEllipsisWithModal from '../TextEllipsisWithModal'
-import { Grid } from '@mui/system'
+import Utility from 'src/utility'
+import { EXTENSION_TYPE_MAP } from 'src/constants/Constants'
 
-const isIOS =
-  typeof window !== 'undefined' &&
-  (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
-    (navigator.userAgent.includes('Mac') && 'ontouchend' in document))
-
-// FileDialog component for previewing and downloading various file types
 const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
   const theme = useTheme()
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isError, setIsError] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorType, setErrorType] = useState(null) // broken | unsupported
 
-  const handleDownload = e => {
+  // Derive file type from title if not explicitly provided
+  const derivedFileType = useMemo(() => {
+    if (type) return type
+    if (!title) return 'other'
+    const ext = title?.split('.').pop().toLowerCase() || ''
+
+    return EXTENSION_TYPE_MAP[ext] || 'other'
+  }, [type, title])
+  const { userData } = useAuth()
+
+  // Derive file icon if not explicitly provided
+  const derivedFileIcon = useMemo(() => {
+    if (fileIcon) return fileIcon
+    const imgPath = userData?.settings?.DEFAULT_IMAGE_MASTER || {}
+
+    return imgPath?.[derivedFileType] || imgPath?.default || {}
+  }, [fileIcon, derivedFileType, userData])
+
+  const handleDownload = async e => {
     e.preventDefault()
     if (!src) return
 
     setIsSubmitting(true)
-
-    // Create a temporary link to trigger download
-    const link = document.createElement('a')
-    link.href = src
-    link.download = title || 'file'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    // Simulate a short loading delay before closing dialog
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      await Utility.downloadFileFromURLWithBlob(src, title)
       onClose()
-    }, 500)
+    } catch (error) {
+      console.error('Download failed:', error?.message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  // const getImages = async src => {
-  //   try {
-  //     const response = await fetch(src)
+  // Checks whether the file URL is reachable
+  const checkURLExists = async url => {
+    try {
+      const response = await fetch(url)
 
-  //     //  {
-  //     //   method: 'GET',
+      return response.ok
+    } catch {
+      return false
+    }
+  }
 
-  //     //   // Important for Safari + signed URLs
-  //     //   headers: {
-  //     //     Range: 'bytes=0-'
-  //     //   },
-  //     //   credentials: 'omit'
-  //     // })
+  // Determines if the error is due to a broken URL or unsupported preview format
+  const handleLoadError = async () => {
+    setIsLoading(false)
 
-  //     // Accept both 200 and 206
-  //     if (!response.ok && response.status !== 206) {
-  //       throw new Error(`HTTP error! status: ${response.status}`)
-  //     }
+    const exists = await checkURLExists(src)
 
-  //     const contentType = response.headers.get('content-type')
+    if (exists) {
+      setErrorType('unsupported')
+    } else {
+      setErrorType('broken')
+    }
 
-  //     if (!contentType) {
-  //       throw new Error('Missing Content-Type header')
-  //     }
-
-  //     // Optional: validate media type
-  //     if (!contentType.startsWith('image/') && !contentType.startsWith('video/')) {
-  //       throw new Error(`Unsupported media type: ${contentType}`)
-  //     }
-
-  //     const blob = await response.blob()
-
-  //     // Create a local object URL (Safari-safe)
-  //     return URL.createObjectURL(blob)
-  //   } catch (error) {
-  //     console.error('Error fetching media:', error)
-
-  //     return null
-  //   }
-  // }
+    setIsError(true)
+  }
 
   const renderFallback = () => {
+    //  Unsupported URL shows only Download button
+    if (errorType === 'unsupported') {
+      return (
+        <Box sx={{ p: 10, textAlign: 'center' }}>
+          <LoadingButton
+            variant='contained'
+            loading={isSubmitting}
+            onClick={handleDownload}
+            endIcon={<Icon icon='mdi:download' width={24} height={24} />}
+            sx={{
+              px: 8,
+              py: 2,
+              borderRadius: '6px',
+              textTransform: 'none',
+              letterSpacing: 1,
+              fontSize: '1rem'
+            }}
+          >
+            Download File
+          </LoadingButton>
+        </Box>
+      )
+    }
+
     return (
       <Box
         sx={{
+          minHeight: '300px',
+          width: '100%',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: fileIcon?.bg_color || theme.palette.action.hover,
-          minHeight: '300px',
-          width: '100%',
+          backgroundColor: theme.palette.action.hover,
           p: 10,
           gap: 4
         }}
       >
-        {type == 'image' ? (
+        {derivedFileType == 'image' ? (
           <Icon icon='mdi:image-off-outline' fontSize={80} color={theme.palette.text.secondary} />
-        ) : fileIcon?.image_path ? (
+        ) : derivedFileType == 'video' ? (
+          <Icon icon='mdi:video-off-outline' fontSize={80} color={theme.palette.text.secondary} />
+        ) : derivedFileIcon?.image_path ? (
           <Box
             component='img'
-            src={fileIcon?.image_path}
+            src={derivedFileIcon?.image_path}
             alt='file icon'
             sx={{ width: 100, height: 100, objectFit: 'contain' }}
           />
         ) : (
           <Icon
-            icon={fileIcon?.icon || 'mdi:file'}
+            icon={derivedFileIcon?.icon || 'mdi:file'}
             fontSize={80}
-            color={fileIcon?.icon_color || theme.palette.primary.main}
+            color={derivedFileIcon?.icon_color || theme.palette.primary.main}
           />
         )}
         <Typography variant='body1' color='text.secondary' sx={{ fontWeight: 500 }}>
@@ -118,63 +150,70 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
     )
   }
 
+  // Loader
+  const loadingOverlay = (
+    <Box
+      sx={{
+        position: 'absolute',
+        inset: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1,
+        backgroundColor: theme.palette.background.paper
+      }}
+    >
+      <CircularProgress />
+    </Box>
+  )
+
   // Renders preview content based on file type
   const renderContent = () => {
     if (isError) return renderFallback()
 
-    switch (type) {
+    switch (derivedFileType) {
       case 'pdf':
-        // Standard PDF parameters for better browser compatibility
-        const pdfUrl = `${src}#view=FitH`
+        // Ensures the PDF fits the iframe width for consistent preview across browsers and iPad
+        // const pdfUrl = `${src}#view=FitH`
 
         return (
-          <Box
-            sx={{
-              height: '70vh',
-              width: '100%',
-              overflowY: 'auto',
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
-            <iframe
-              src={pdfUrl}
-              title={title || 'PDF Preview'}
-              scrolling='yes'
-              width='100%'
-              height='100%'
-              onError={() => {
-                setIsError(true)
-              }}
-              style={{
-                border: 'none',
-                width: '100%',
-                height: '100%',
-                minHeight: '70vh',
-                display: 'block'
-              }}
-            />
+          <Box sx={{ width: '100%', height: '70vh', position: 'relative', overflow: 'hidden' }}>
+            {isLoading && loadingOverlay}
+            {!isError && (
+              <iframe
+                src={src}
+                title={title || 'PDF Preview'}
+                style={{
+                  border: 'none',
+                  width: '100%',
+                  height: '100%'
+                }}
+              />
+            )}
           </Box>
         )
       case 'image':
         return (
           <Box
             sx={{
+              width: '100%',
+              minHeight: '300px',
+              position: 'relative',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              width: '100%'
+              justifyContent: 'center'
             }}
           >
+            {isLoading && loadingOverlay}
             <img
               src={src}
               alt={title || 'Image Preview'}
+              onLoad={() => setIsLoading(false)}
+              onError={handleLoadError}
               style={{
-                width: '100%',
+                maxWidth: '100%',
                 maxHeight: '70vh',
                 objectFit: 'contain'
-              }}
-              onError={() => {
-                setIsError(true)
               }}
             />
           </Box>
@@ -183,17 +222,21 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
         return (
           <Box
             sx={{
+              width: '100%',
+              minHeight: '300px',
+              position: 'relative',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              width: '100%'
+              justifyContent: 'center'
             }}
           >
+            {isLoading && loadingOverlay}
             <SignedMediaPlayer
               src={src}
               preload='auto'
               type='video'
-              onError={() => setIsError(true)}
+              onLoad={() => setIsLoading(false)}
+              onError={handleLoadError}
               style={{
                 width: '100%',
                 maxHeight: '70vh',
@@ -205,8 +248,16 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
 
       case 'audio':
         return (
-          <Box sx={{ p: 10 }}>
-            <SignedMediaPlayer controls src={src} preload='auto' height='auto' onError={() => setIsError(true)} />
+          <Box sx={{ p: 10, position: 'relative', height: '150px' }}>
+            {isLoading && loadingOverlay}
+            <SignedMediaPlayer
+              controls
+              src={src}
+              preload='auto'
+              height='auto'
+              onLoad={() => setIsLoading(false)}
+              onError={handleLoadError}
+            />
           </Box>
         )
       default:
@@ -234,12 +285,41 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
     }
   }
 
-  // Reset error state when modal opens or src changes
+  // Resets loading and error state whenever dialog opens or file source changes
   useEffect(() => {
     if (open) {
       setIsError(false)
+      setIsLoading(true)
+      setErrorType(null)
     }
   }, [open, src])
+
+  // Pre-check PDF accessibility to detect broken links before rendering preview
+  useEffect(() => {
+    if (!open || derivedFileType !== 'pdf' || !src) return
+
+    let active = true
+
+    const validatePdf = async () => {
+      setIsLoading(true)
+
+      const exists = await checkURLExists(src)
+
+      if (!exists && active) {
+        setErrorType('broken')
+        setIsError(true)
+        setIsLoading(false)
+      } else if (active) {
+        setIsLoading(false)
+      }
+    }
+
+    validatePdf()
+
+    return () => {
+      active = false
+    }
+  }, [open, src, derivedFileType])
 
   // Dialog UI with title and content
   return (
@@ -252,9 +332,13 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
           padding: '6px 24px'
         }}
       >
-        <Grid container spacing={2} sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
+        <Grid
+          container
+          spacing={2}
+          sx={{ mr: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'nowrap' }}
+        >
           <Grid
-            size={{ sm: type == 'pdf' ? 8 : 11, md: type == 'pdf' ? 9 : 11 }}
+            size={{ sm: derivedFileType == 'pdf' ? 8 : 11, md: derivedFileType == 'pdf' ? 9 : 11 }}
             sx={{ display: 'flex', justifyContent: 'center' }}
           >
             <TextEllipsisWithModal
@@ -270,10 +354,10 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
           </Grid>
 
           <Grid
-            size={{ sm: type == 'pdf' ? 4 : 1, md: type == 'pdf' ? 3 : 1 }}
+            size={{ sm: derivedFileType == 'pdf' ? 4 : 1, md: derivedFileType == 'pdf' ? 3 : 1 }}
             sx={{ display: 'flex', justifyContent: 'end', gap: 3 }}
           >
-            {type == 'pdf' && (
+            {derivedFileType === 'pdf' && errorType !== 'broken' && (
               <Button
                 variant='contained'
                 onClick={() => window.open(src, '_blank')}
@@ -310,4 +394,5 @@ export default FileDialog
  * - src: string — Source URL of the file to preview or download
  * - title?: string — Optional title shown at the top of the dialog
  * - type: string — File type ('pdf', 'image', 'video', 'audio', or fallback)
+ * - fileIcon: object - containing icon and bg_color for the file
  */
