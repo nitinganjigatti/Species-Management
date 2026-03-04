@@ -293,6 +293,7 @@ const DoctorsList = () => {
       headerName: 'Chief Doctor',
       align: 'left',
       headerAlign: 'left',
+      flex: 1,
       renderCell: params => (
         <MUISwitch
           checked={params.row.is_hospital_chief_doctor === '1'}
@@ -397,6 +398,19 @@ const DoctorsList = () => {
                   paginationModel={paginationModel}
                   setPaginationModel={setPaginationModel}
                   loading={loading}
+                  // externalTableStyle={
+                  //   {'& .MuiDataGrid-cell': {
+                  //     // display: 'flex',
+                  //     // alignItems: 'center',
+                  //     // lineHeight: 'normal'
+                  //   },
+                  // '& .MuiDataGrid-cell:focus': {
+                  //   outline: 'none'
+                  // },
+                  // '& .MuiDataGrid-cell:focus-within': {
+                  //   outline: 'none'
+                  // }}
+                  // }
                 />
               </Grid>
             </CardContent>
