@@ -1105,9 +1105,9 @@ const AddSurgeryRecord = () => {
     payload.append('end_time', getSafeString(formatTimeValue(formValues.endTime)))
 
     const surgeryId = getSurgeryIdentifier(formValues.procedure)
-    const secondarySurgeonString = formValues.secondarySurgeon?.length
-      ? formValues.secondarySurgeon.map(doc => doc.value).join(',')
-      : ''
+    const secondarySurgeonString = formValues?.secondarySurgeon?.length
+  ? JSON.stringify(formValues?.secondarySurgeon.map(doc => String(doc.value)))
+  : '[]'
 
     payload.append('surgery_id', getSafeString(surgeryId))
     payload.append('type_of_surgery', getSafeString(formValues.typeOfSurgery))
