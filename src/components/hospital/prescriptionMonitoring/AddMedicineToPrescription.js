@@ -834,7 +834,7 @@ export default function AddMedicineToPrescription() {
         }
 
         const params = {
-          q: query,
+          product_search: query,
           page_no: pageNo,
           screen: 'Medicine'
 
