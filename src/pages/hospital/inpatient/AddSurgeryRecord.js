@@ -1,16 +1,30 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { useRouter } from 'next/router'
 
-import { Breadcrumbs, Typography, Card, Box, Button, IconButton, Grid, Tooltip, Collapse } from '@mui/material'
+import {
+  Breadcrumbs,
+  Typography,
+  Card,
+  Box,
+  Button,
+  IconButton,
+  Grid,
+  Tooltip,
+  Collapse,
+  Autocomplete,
+  TextField
+} from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import { Icon } from '@iconify/react'
+import { useHospital } from 'src/context/HospitalContext'
 
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { useQuery } from '@tanstack/react-query'
+import { debounce } from 'lodash'
 
 dayjs.extend(customParseFormat)
 
@@ -40,6 +54,7 @@ import {
   getSurgeryMaster
 } from 'src/lib/api/hospital/surgeryMaster'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
+import { borderRadius } from '@mui/system'
 
 const FORM_ID = 'add-surgery-record-form'
 
@@ -324,17 +339,27 @@ const AddSurgeryRecord = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [prefillDetail, setPrefillDetail] = useState(null)
   const [procedureSearchTerm, setProcedureSearchTerm] = useState('')
+  const [searchAttendDoctor, setSearchAttendDoctor] = useState('')
   const [openAddSurgeryDrawer, setOpenAddSurgeryDrawer] = useState(false)
   const [isSurgerySaving, setIsSurgerySaving] = useState(false)
   const [localProcedureOptions, setLocalProcedureOptions] = useState([])
   const [surgeonSearchTerm, setSurgeonSearchTerm] = useState('')
   const [doctors, setDoctors] = useState([])
+  const [attendingDoctors, setAttendingDoctors] = useState([])
   const [doctorsPage, setDoctorsPage] = useState(1)
   const [hasMoreDoctors, setHasMoreDoctors] = useState(true)
   const [doctorsLoading, setDoctorsLoading] = useState(false)
   const [careInstructionsExpanded, setCareInstructionsExpanded] = useState(false)
   const [formResetKey, setFormResetKey] = useState(0)
   const [showNavWarning, setShowNavWarning] = useState(false)
+  const [staffLoading, setStaffLoading] = useState(false)
+  const [selectedDoctor, setSelectedDoctor] = useState(null)
+  const [selectedAttendingDoctors, setselectedAttendingDoctors] = useState([])
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10
+  })
+
   const [pendingRoute, setPendingRoute] = useState(null)
   const isNavigatingRef = useRef(false)
   const selectedDate = watch('date')
@@ -349,6 +374,10 @@ const AddSurgeryRecord = () => {
   }, [startTimeValue])
   const debouncedProcedureSearchTerm = useDebounce(procedureSearchTerm, 400)
   const debouncedSurgeonSearchTerm = useDebounce(surgeonSearchTerm, 400)
+  const debouncedAttendingDoctorSearch = useDebounce(searchAttendDoctor, 400)
+
+  const { selectedHospital } = useHospital()
+
   const parseUtcDateToLocalDayjs = useCallback(value => {
     if (!value) return null
 
@@ -561,7 +590,6 @@ const AddSurgeryRecord = () => {
 
     return Array.from(unique.values())
   }, [surgeryMasterResponse, localProcedureOptions])
-
   const getDoctorList = useCallback(async (hospitalId, pageNo = 1, searchTerm = '') => {
     if (!hospitalId) return
 
@@ -570,38 +598,54 @@ const AddSurgeryRecord = () => {
       const params = {
         hospital_id: hospitalId,
         page_no: pageNo,
-        limit: 10
+        limit: 10,
+        is_hospital_chief_doctor: '1'
       }
+
       if (searchTerm.trim()) {
         params.q = searchTerm.trim()
       }
+
       const res = await getHospitalStaff({ params })
-      const data = res?.data
+      if (res?.success === true) {
+        const data = res?.data
 
-      if (!data?.records?.length) {
-        setHasMoreDoctors(pageNo > 1)
-        if (pageNo === 1) setDoctors([])
-        return
+        if (!data?.records?.length) {
+          setHasMoreDoctors(pageNo > 1)
+          if (pageNo === 1) setDoctors([])
+          return
+        }
+
+        const mapped = data.records.map(item => ({
+          id: String(item.user_id),
+          name: item.user_full_name
+        }))
+
+        if (!prefilledRef.current && mapped.length === 1 && selectedHospital?.id) {
+          const prefilledDoc = {
+            value: mapped[0].id,
+            label: mapped[0].name
+          }
+
+          setValue('surgeon', prefilledDoc)
+          setSelectedDoctor(prefilledDoc)
+          clearErrors('surgeon')
+
+          prefilledRef.current = true
+        }
+
+        if (pageNo === 1) {
+          setDoctors(mapped)
+        } else {
+          setDoctors(prev => {
+            const merged = [...prev, ...mapped]
+            return Array.from(new Map(merged.map(item => [item.id, item])).values())
+          })
+        }
+
+        setHasMoreDoctors(data.current_page < data.total_pages)
+        setDoctorsPage(data.current_page)
       }
-
-      const mapped = data.records.map(item => ({
-        id: String(item.user_id),
-        name: item.user_full_name,
-        default_icon: item.user_profile_pic,
-        role_name: item.role_name
-      }))
-
-      if (pageNo === 1) {
-        setDoctors(mapped)
-      } else {
-        setDoctors(prev => {
-          const merged = [...prev, ...mapped]
-          return Array.from(new Map(merged.map(item => [item.id, item])).values())
-        })
-      }
-
-      setHasMoreDoctors(data.current_page < data.total_pages)
-      setDoctorsPage(data.current_page)
     } catch (e) {
       console.error(e)
       Toaster({ type: 'error', message: 'Failed to load doctors' })
@@ -609,6 +653,43 @@ const AddSurgeryRecord = () => {
       setDoctorsLoading(false)
     }
   }, []) // Empty dependency array for useCallback as it's a stable function definition
+
+  const getStaffList = async (searchTerm = '') => {
+    try {
+      if (!selectedHospital?.id) return
+
+      const params = {
+        page_no: paginationModel.page + 1,
+        limit: paginationModel.pageSize,
+        hospital_id: selectedHospital.id
+      }
+
+      if (searchTerm.trim()) {
+        params.q = searchTerm.trim()
+      }
+
+      const response = await getHospitalStaff({ params })
+
+      if (response?.success && response?.data?.records) {
+        const mappedData = response.data.records.map(item => ({
+          value: String(item.user_id),
+          label: item.user_full_name
+        }))
+
+        setAttendingDoctors(mappedData)
+      }
+    } catch (error) {
+      console.error('Error fetching hospital staff:', error?.message)
+    } finally {
+      setStaffLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!selectedHospital?.id) return
+
+    getStaffList(debouncedAttendingDoctorSearch)
+  }, [debouncedAttendingDoctorSearch, selectedHospital?.id])
 
   useEffect(() => {
     const hospitalId = patientData?.hospital_id
@@ -625,11 +706,26 @@ const AddSurgeryRecord = () => {
     getDoctorList(patientData?.hospital_id, doctorsPage + 1, debouncedSurgeonSearchTerm)
   }
 
-  const surgeonOptions = useMemo(
-    () => doctors.map(d => ({ label: d.name, value: d.id, default_icon: d.default_icon })),
-    [doctors]
-  )
+  const handleSurgeonSelect = doctor => {
+    setSelectedDoctor(doctor)
+    setValue('surgeon', doctor)
+    clearErrors('surgeon')
+  }
+
+  const surgeonOptions = useMemo(() => {
+    return doctors.map(d => ({
+      label: d.name,
+      value: d.id,
+      is_hospital_chief_doctor: d.is_hospital_chief_doctor === '1'
+    }))
+  }, [doctors])
   const doctorOptions = doctors
+
+  const filteredAttending = useMemo(() => {
+    if (!selectedDoctor?.value) return attendingDoctors
+
+    return attendingDoctors.filter(d => d.value !== selectedDoctor.value)
+  }, [attendingDoctors, selectedDoctor])
 
   useEffect(() => {
     if (!isEditMode || !resolvedHospitalCaseId || !surgeryRecordId) return
@@ -790,6 +886,14 @@ const AddSurgeryRecord = () => {
     setProcedureSearchTerm('')
   }, [])
 
+  const handleAttendingDoctorInputChange = useCallback((event, value, reason) => {
+    if (reason === 'input') {
+      setSearchAttendDoctor(value)
+    } else {
+      setSearchAttendDoctor('')
+    }
+  }, [])
+
   const handleCreateSurgery = useCallback(
     async values => {
       const formData = new FormData()
@@ -864,8 +968,12 @@ const AddSurgeryRecord = () => {
     }
   }, [])
 
+  const prefilledRef = useRef(false)
+
   const handleSurgeonClear = useCallback(() => {
+    setSelectedDoctor(null)
     setSurgeonSearchTerm('')
+    prefilledRef.current = true
   }, [])
 
   const surgeonGetOptionLabel = useCallback(option => option?.label || '', [])
@@ -997,6 +1105,9 @@ const AddSurgeryRecord = () => {
     payload.append('end_time', getSafeString(formatTimeValue(formValues.endTime)))
 
     const surgeryId = getSurgeryIdentifier(formValues.procedure)
+    const secondarySurgeonString = formValues.secondarySurgeon?.length
+      ? formValues.secondarySurgeon.map(doc => doc.value).join(',')
+      : ''
 
     payload.append('surgery_id', getSafeString(surgeryId))
     payload.append('type_of_surgery', getSafeString(formValues.typeOfSurgery))
@@ -1008,6 +1119,7 @@ const AddSurgeryRecord = () => {
     payload.append('care_activity_restrictions', getSafeString(formValues.restrictions))
     payload.append('additional_notes', getSafeString(formValues.additionalNotes))
     payload.append('duration', getSafeString(formValues.duration))
+    payload.append('secondary_surgeon', secondarySurgeonString)
 
     if (Array.isArray(formValues.attachments)) {
       formValues.attachments.forEach(file => {
@@ -1059,6 +1171,8 @@ const AddSurgeryRecord = () => {
       return patientData?.animal_detail?.animal_id
     }
   }
+
+  // const filteredAttending = attendingVet.filter(item => item.value !== doctors?.id)
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -1259,7 +1373,7 @@ const AddSurgeryRecord = () => {
                   onItemClear={handleSurgeonClear}
                   getOptionLabel={surgeonGetOptionLabel}
                   isOptionEqualToValue={surgeonIsOptionEqualToValue}
-                  onChangeOverride={() => clearErrors?.('surgeon')}
+                  onChangeOverride={handleSurgeonSelect}
                 />
               </Grid>
               <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
@@ -1367,6 +1481,38 @@ const AddSurgeryRecord = () => {
                   errors={errors}
                   borderRadius='4px'
                   onChangeOverride={() => clearErrors?.('surgicalApproach')}
+                />
+              </Grid>
+              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+                <Controller
+                  name='secondarySurgeon'
+                  control={control}
+                  defaultValue={[]}
+                  render={({ field }) => (
+                    <Autocomplete
+                      multiple
+                      options={filteredAttending}
+                      value={selectedAttendingDoctors}
+                      loading={staffLoading}
+                      filterSelectedOptions
+                      getOptionLabel={option => option?.label || ''}
+                      isOptionEqualToValue={(option, value) => option.value === value?.value}
+                      noOptionsText='No available attending vets...'
+                      onChange={(event, newValue) => {
+                        setselectedAttendingDoctors(newValue)
+                        field.onChange(newValue)
+                      }}
+                      onInputChange={handleAttendingDoctorInputChange}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '4px'
+                        }
+                      }}
+                      renderInput={params => (
+                        <TextField {...params} label='Attending Veterinarian' placeholder='Search & Select' />
+                      )}
+                    />
+                  )}
                 />
               </Grid>
             </Grid>
