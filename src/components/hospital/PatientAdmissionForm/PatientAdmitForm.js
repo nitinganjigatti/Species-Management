@@ -149,7 +149,7 @@ const PatientAdmitForm = ()=> {
         if (createdAt && dayjs(admission_date).isSame(createdAt, 'day')) {
           if (selectedTime.isBefore(createdAt)) {
             return this.createError({
-              message: `Time cannot be before the transfer request time (${createdAt.format('hh:mm A')})`
+              message: `Time cannot be equal to or before the transfer request time (${createdAt.format('hh:mm A')})`
             })
           }
         }
