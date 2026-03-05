@@ -45,11 +45,13 @@ const DoctorsList = () => {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [selected, setSelected] = useState(null)
+  // const [sortColumn, setSortColumn] = useState(router.query.column || '')
+  // const [sort, setSort] = useState('asc')
 
   const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: 50
-  })
+      page: parseInt(router.query.page) || 0,
+      pageSize: parseInt(router.query.limit) || 50
+    })
 
   // debounce search to avoid excessive API calls
   useEffect(() => {
@@ -63,7 +65,7 @@ const DoctorsList = () => {
 
   
 
-  const fetchHospitalStaff = useCallback(async (isChecked) => {
+  const fetchHospitalStaff = useCallback(async () => {
     setLoading(true)
 
     try {
@@ -72,8 +74,7 @@ const DoctorsList = () => {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           q: debouncedSearch,
-          hospital_id: selectedHospital?.id,
-          user_id: selected
+          hospital_id: selectedHospital?.id
         }
       })
 
@@ -98,10 +99,10 @@ const DoctorsList = () => {
 
   useEffect(() => {
     fetchHospitalStaff()
-  }, [])
+  }, [paginationModel.page, paginationModel.pageSize])
 
 
-  const indexedRows = useMemo(() => {
+    const indexedRows = useMemo(() => {
     return rows.map((row, index) => {
       const phone = row?.user_mobile_number ? `${row?.user_country_code || ''}${row?.user_mobile_number}` : ''
 
@@ -113,6 +114,7 @@ const DoctorsList = () => {
       }
     })
   }, [rows, paginationModel.page, paginationModel.pageSize])
+
 
   const addHospitalChiefDoctor = async user_id => {
     try {
@@ -161,6 +163,29 @@ const DoctorsList = () => {
       console.error(error)
     }
   }
+
+// const handleSortModel = newModel => {
+//   if (!newModel.length) return
+
+//   const newSort = newModel[0].sort 
+//   const newColumn = newModel[0].field 
+
+//   setSort(newSort)
+//   setSortColumn(newColumn)
+
+//   if (newColumn === 'hospital_chief_doctor') {
+//     const sortedData = [...rows].sort((a, b) => {
+//       if (newSort === 'asc') {
+//         return Number(a.is_hospital_chief_doctor) - Number(b.is_hospital_chief_doctor)
+//       } else {
+//         return Number(b.is_hospital_chief_doctor) - Number(a.is_hospital_chief_doctor)
+//       }
+//     })
+
+//     setRows(sortedData)
+//     return
+//   }
+// }
   const columns = [
     {
       width: 80,
@@ -289,7 +314,6 @@ const DoctorsList = () => {
     {
       minWidth: 180,
       field: 'hospital_chief_doctor',
-      sortable: false,
       headerName: 'Chief Doctor',
       align: 'left',
       headerAlign: 'left',
@@ -398,6 +422,7 @@ const DoctorsList = () => {
                   paginationModel={paginationModel}
                   setPaginationModel={setPaginationModel}
                   loading={loading}
+                  // handleSortModel={handleSortModel}
                   // externalTableStyle={
                   //   {'& .MuiDataGrid-cell': {
                   //     // display: 'flex',

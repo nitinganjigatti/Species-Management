@@ -354,7 +354,7 @@ const AddSurgeryRecord = () => {
   const [showNavWarning, setShowNavWarning] = useState(false)
   const [staffLoading, setStaffLoading] = useState(false)
   const [selectedDoctor, setSelectedDoctor] = useState(null)
-  const [selectedAttendingDoctors, setselectedAttendingDoctors] = useState([])
+  const [selectedAttendingDoctors, setSelectedAttendingDoctors] = useState([])
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 10
@@ -497,7 +497,7 @@ const AddSurgeryRecord = () => {
 
       setValue('secondarySurgeon', secondarySurgeonOptions)
 
-      setselectedAttendingDoctors(secondarySurgeonOptions)
+      setSelectedAttendingDoctors(secondarySurgeonOptions)
 
       const existingAttachments = Array.isArray(detail?.attachments)
         ? detail.attachments.map(item => ({
@@ -632,7 +632,6 @@ const AddSurgeryRecord = () => {
           }))
 
         const attendingDoctor = data.records
-          .filter(item => item.is_hospital_chief_doctor === '0')
           .map(item => ({
             value: String(item.user_id),
             label: item.user_full_name
@@ -689,6 +688,21 @@ const AddSurgeryRecord = () => {
     getDoctorList(hospitalId, 1, debouncedAttendingDoctorSearch)
   }, [debouncedAttendingDoctorSearch, selectedHospital?.id])
 
+  //same person cannot be selected as chief and attending
+  useEffect(() => {
+  if (!selectedDoctor?.value) return
+
+  setSelectedAttendingDoctors(prev => {
+    const updated = prev.filter(
+      attendingDoctor => String(attendingDoctor.value) !== String(selectedDoctor.value)
+    )
+
+    setValue("secondarySurgeon", updated) 
+
+    return updated
+  })
+}, [selectedDoctor, setValue])
+
   useEffect(() => {
     const hospitalId = patientData?.hospital_id
     if (!hospitalId) {
@@ -719,7 +733,7 @@ const AddSurgeryRecord = () => {
   }, [doctors])
   const doctorOptions = doctors
 
-  const filteredAttending = useMemo(() => {
+  const filteredAttendingDoctors = useMemo(() => {
     if (!selectedDoctor?.value) return attendingDoctors
 
     return attendingDoctors.filter(
@@ -1174,8 +1188,6 @@ const AddSurgeryRecord = () => {
     }
   }
 
-  // const filteredAttending = attendingVet.filter(item => item.value !== doctors?.id)
-
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <Breadcrumbs aria-label='breadcrumb'>
@@ -1493,7 +1505,7 @@ const AddSurgeryRecord = () => {
                   render={({ field }) => (
                     <Autocomplete
                       multiple
-                      options={filteredAttending}
+                      options={filteredAttendingDoctors}
                       value={field.value}
                       loading={staffLoading}
                       filterSelectedOptions
@@ -1501,7 +1513,7 @@ const AddSurgeryRecord = () => {
                       isOptionEqualToValue={(option, value) => option.value === value?.value}
                       noOptionsText='No available attending vets...'
                       onChange={(event, newValue) => {
-                        setselectedAttendingDoctors(newValue)
+                        setSelectedAttendingDoctors(newValue)
                         field.onChange(newValue)
                       }}
                       onInputChange={handleAttendingDoctorInputChange}
