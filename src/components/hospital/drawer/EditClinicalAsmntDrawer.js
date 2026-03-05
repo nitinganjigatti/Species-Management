@@ -119,7 +119,7 @@ const EditClinicalAsmntDrawer = ({
   }
 
   const processedActivities =
-    activityListData?.diagnosis_notes?.map(activity => ({
+    activityListData?.diagnosis_notes?.map((activity, index) => ({
       ...activity,
       isSystemGenerated: activity?.is_system_generated === 1,
       oldSeverity: activity?.notes_dump?.old_data?.severity || '',
@@ -127,7 +127,9 @@ const EditClinicalAsmntDrawer = ({
       oldPrognosis: activity?.notes_dump?.old_data?.prognosis || '',
       newPrognosis: activity?.notes_dump?.new_data?.prognosis || '',
       createdBy: activity?.created_by_user_name || '',
-      formattedTime: `${Utility.convertUtcToLocalReadableDate(
+      formattedTime: activityListData?.diagnosis_notes?.length === index + 1 ? `${Utility.convertUtcToLocalReadableDate(
+        activityListData?.recorded_date_time
+      )} • ${Utility.convertUTCToLocaltime(activityListData?.recorded_date_time)}` : `${Utility.convertUtcToLocalReadableDate(
         activity?.modified_at || activity.created_at
       )} • ${Utility.convertUTCToLocaltime(activity?.modified_at || activity?.created_at)}`,
       note: activity.note || '',

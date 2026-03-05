@@ -117,13 +117,15 @@ const AddEditSymptomDrawer = ({
   }
 
   const processedActivities =
-    activityListData?.complaint_notes?.map(activity => ({
+    activityListData?.complaint_notes?.map((activity, index) => ({
       ...activity,
       isSystemGenerated: activity?.is_system_generated === 1,
       oldSeverity: activity?.notes_dump?.old_data?.severity || '',
       newSeverity: activity?.notes_dump?.new_data?.severity || '',
       createdBy: activity?.created_by_user_name || '',
-      formattedTime: `${Utility.formatDisplayDate(activity?.created_at)} • ${Utility.convertUTCToLocaltime(
+      formattedTime: activityListData?.complaint_notes?.length === index + 1 ? `${Utility.convertUtcToLocalReadableDate(activityListData?.recorded_date_time)} • ${Utility.convertUTCToLocaltime(
+        activityListData?.recorded_date_time
+      )}` : `${Utility.convertUtcToLocalReadableDate(activity?.created_at)} • ${Utility.convertUTCToLocaltime(
         activity?.created_at
       )}`,
       note: activity.note || ''
