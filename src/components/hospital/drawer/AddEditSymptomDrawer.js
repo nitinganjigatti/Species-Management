@@ -285,22 +285,26 @@ const AddEditSymptomDrawer = ({
               {Utility.convertUTCToLocaltime(selectedSymptom?.latest_note?.modified_at || selectedSymptom?.created_at)}
             </Typography>
 
-            <Typography
-              sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
-            >
-              Date & Time
-            </Typography>
-            <Box sx={{ mb: 6 }}>
-              <MUIDateTimePicker
-                value={recordedDateTime}
-                onChange={newValue => setRecordedDateTime(newValue)}
-                label=''
-                disabled={status === 'closed'}
-                minDateTime={minDate}
-                maxDateTime={maxDate}
-                ampm={true}
-              />
-            </Box>
+            {!selectedSymptom && (
+              <>
+                <Typography
+                  sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
+                >
+                  Date & Time
+                </Typography>
+                <Box sx={{ mb: 6 }}>
+                  <MUIDateTimePicker
+                    value={recordedDateTime}
+                    onChange={newValue => setRecordedDateTime(newValue)}
+                    label=''
+                    disabled={status === 'closed'}
+                    minDateTime={minDate}
+                    maxDateTime={maxDate}
+                    ampm={true}
+                  />
+                </Box>
+              </>
+            )}
 
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}

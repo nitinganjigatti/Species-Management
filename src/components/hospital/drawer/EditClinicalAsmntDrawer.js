@@ -16,7 +16,7 @@ import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import ActivityList from 'src/views/pages/hospital/symptoms/ActivityList'
 import SideSheetActionButtons from '../SideSheetActionButtons'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
-import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
+// import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
 import { useRouter } from 'next/router'
 import Utility from 'src/utility'
 import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
@@ -207,7 +207,7 @@ const EditClinicalAsmntDrawer = ({
               {selectedSymptom?.created_by_user_name} • {Utility.formatDisplayDate(selectedSymptom?.created_at)}
             </Typography>
 
-            <Typography
+            {/* <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
             >
               Date & Time
@@ -221,7 +221,7 @@ const EditClinicalAsmntDrawer = ({
                 maxDateTime={maxDate}
                 ampm={true}
               />
-            </Box>
+            </Box> */}
 
             <Box sx={{ display: 'flex', gap: 2, mt: 6 }}>
               <Box>
