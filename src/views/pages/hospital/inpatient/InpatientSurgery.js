@@ -412,12 +412,17 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
 
   const surgeryDetailItems = useMemo(() => {
     const detail = activeDetail || {}
+    const secondarySurgeons =
+      detail.secondary_surgeons?.length > 0
+        ? detail.secondary_surgeons.map(surgeon => surgeon.user_full_name).join(', ')
+        : '--'
 
     return [
       { label: 'Procedure Name', value: detail.surgery_name || '--' },
       { label: 'Surgical Approach', value: detail.surgical_approach || '--' },
       { label: 'Type Of Surgery', value: detail.type_of_surgery || '--' },
-      { label: 'Name Of Surgeon', value: detail.name_of_surgeon || '--' }
+      { label: 'Name Of Surgeon', value: detail.name_of_surgeon || '--' },
+      { label: detail.secondary_surgeons?.length > 1? 'Attending Veterinarians': 'Attending Veterinarian', value: secondarySurgeons || '--' }
     ]
   }, [activeDetail])
 
@@ -693,7 +698,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
               {error ? (
                 <Typography sx={{ color: theme.palette.error.main }}>{error}</Typography>
               ) : (
-                (<Box
+                <Box
                   sx={{
                     width: '100%',
                     display: 'flex',
@@ -707,7 +712,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                     isDischarged={patientDischarged}
                     btnAction={handleAddSurgeryRecord}
                   />
-                </Box>)
+                </Box>
                 // <NoDataFound variant='Seal' height={300} width={300} />
               )}
             </Box>

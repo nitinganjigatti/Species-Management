@@ -489,6 +489,16 @@ const AddSurgeryRecord = () => {
         shouldDirty: false,
         shouldTouch: false
       })
+      const secondarySurgeonOptions =
+        detail?.secondary_surgeons?.map(item => ({
+          label: item.user_full_name,
+          value: item.user_id
+        })) || []
+
+      setValue('secondarySurgeon', secondarySurgeonOptions)
+
+      setselectedAttendingDoctors(secondarySurgeonOptions)
+
       const existingAttachments = Array.isArray(detail?.attachments)
         ? detail.attachments.map(item => ({
             id: item?.id,
@@ -598,8 +608,7 @@ const AddSurgeryRecord = () => {
       const params = {
         hospital_id: hospitalId,
         page_no: pageNo,
-        limit: 10,
-        is_hospital_chief_doctor: '1'
+        limit: 10
       }
 
       if (searchTerm.trim()) {
@@ -615,16 +624,24 @@ const AddSurgeryRecord = () => {
           if (pageNo === 1) setDoctors([])
           return
         }
+        const chiefDoctor = data.records
+          .filter(item => item.is_hospital_chief_doctor === '1')
+          .map(item => ({
+            id: String(item.user_id),
+            name: item.user_full_name
+          }))
 
-        const mapped = data.records.map(item => ({
-          id: String(item.user_id),
-          name: item.user_full_name
-        }))
+        const attendingDoctor = data.records
+          .filter(item => item.is_hospital_chief_doctor === '0')
+          .map(item => ({
+            value: String(item.user_id),
+            label: item.user_full_name
+          }))
 
-        if (!prefilledRef.current && mapped.length === 1 && selectedHospital?.id) {
+        if (!prefilledRef.current && chiefDoctor.length === 1 && selectedHospital?.id) {
           const prefilledDoc = {
-            value: mapped[0].id,
-            label: mapped[0].name
+            value: chiefDoctor[0].id,
+            label: chiefDoctor[0].name
           }
 
           setValue('surgeon', prefilledDoc)
@@ -635,11 +652,16 @@ const AddSurgeryRecord = () => {
         }
 
         if (pageNo === 1) {
-          setDoctors(mapped)
+          setDoctors(chiefDoctor)
+          setAttendingDoctors(attendingDoctor)
         } else {
           setDoctors(prev => {
-            const merged = [...prev, ...mapped]
+            const merged = [...prev, ...chiefDoctor]
             return Array.from(new Map(merged.map(item => [item.id, item])).values())
+          })
+          setAttendingDoctors(prev => {
+            const merged = [...prev, ...attendingDoctor]
+            return Array.from(new Map(merged.map(item => [item.value, item])).values())
           })
         }
 
@@ -654,41 +676,17 @@ const AddSurgeryRecord = () => {
     }
   }, []) // Empty dependency array for useCallback as it's a stable function definition
 
-  const getStaffList = async (searchTerm = '') => {
-    try {
-      if (!selectedHospital?.id) return
 
-      const params = {
-        page_no: paginationModel.page + 1,
-        limit: paginationModel.pageSize,
-        hospital_id: selectedHospital.id
-      }
-
-      if (searchTerm.trim()) {
-        params.q = searchTerm.trim()
-      }
-
-      const response = await getHospitalStaff({ params })
-
-      if (response?.success && response?.data?.records) {
-        const mappedData = response.data.records.map(item => ({
-          value: String(item.user_id),
-          label: item.user_full_name
-        }))
-
-        setAttendingDoctors(mappedData)
-      }
-    } catch (error) {
-      console.error('Error fetching hospital staff:', error?.message)
-    } finally {
-      setStaffLoading(false)
-    }
-  }
-
+  
   useEffect(() => {
     if (!selectedHospital?.id) return
+    const hospitalId = patientData?.hospital_id
+    if (!hospitalId) {
+      setDoctors([])
+      return
+    }
 
-    getStaffList(debouncedAttendingDoctorSearch)
+    getDoctorList(hospitalId, 1, debouncedAttendingDoctorSearch)
   }, [debouncedAttendingDoctorSearch, selectedHospital?.id])
 
   useEffect(() => {
@@ -724,8 +722,12 @@ const AddSurgeryRecord = () => {
   const filteredAttending = useMemo(() => {
     if (!selectedDoctor?.value) return attendingDoctors
 
-    return attendingDoctors.filter(d => d.value !== selectedDoctor.value)
-  }, [attendingDoctors, selectedDoctor])
+    return attendingDoctors.filter(
+      doctor =>
+        String(doctor.value) !== String(selectedDoctor.value) &&
+        !selectedAttendingDoctors?.some(secondary => String(secondary.value) === String(doctor.value))
+    )
+  }, [attendingDoctors, selectedDoctor, selectedAttendingDoctors])
 
   useEffect(() => {
     if (!isEditMode || !resolvedHospitalCaseId || !surgeryRecordId) return
@@ -1106,8 +1108,8 @@ const AddSurgeryRecord = () => {
 
     const surgeryId = getSurgeryIdentifier(formValues.procedure)
     const secondarySurgeonString = formValues?.secondarySurgeon?.length
-  ? JSON.stringify(formValues?.secondarySurgeon.map(doc => String(doc.value)))
-  : '[]'
+      ? JSON.stringify(formValues?.secondarySurgeon.map(doc => String(doc.value)))
+      : '[]'
 
     payload.append('surgery_id', getSafeString(surgeryId))
     payload.append('type_of_surgery', getSafeString(formValues.typeOfSurgery))
@@ -1354,7 +1356,7 @@ const AddSurgeryRecord = () => {
               </Typography>
             </Typography>
             <Grid container spacing={'24px'}>
-              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+              <Grid item size={{ xs: 12, sm: 6, md: 6, lg: 6 }}>
                 <ControlledAutocomplete
                   sx={{
                     '& .MuiOutlinedInput-root': {
@@ -1376,7 +1378,7 @@ const AddSurgeryRecord = () => {
                   onChangeOverride={handleSurgeonSelect}
                 />
               </Grid>
-              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+              <Grid item size={{ xs: 12, sm: 6, md: 6, lg: 6 }}>
                 <Tooltip
                   title={(() => {
                     // Get the selected value from the form
@@ -1451,7 +1453,7 @@ const AddSurgeryRecord = () => {
                   </Box>
                 </Tooltip>
               </Grid>
-              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+              <Grid item size={{ xs: 12, sm: 6, md: 6, lg: 6 }}>
                 <ControlledTextField
                   sx={{
                     '& .MuiOutlinedInput-root': {
@@ -1467,7 +1469,7 @@ const AddSurgeryRecord = () => {
                   onChangeOverride={() => clearErrors?.('typeOfSurgery')}
                 />
               </Grid>
-              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+              <Grid item size={{ xs: 12, sm: 6, md: 6, lg: 6 }}>
                 <ControlledTextField
                   sx={{
                     '& .MuiOutlinedInput-root': {
@@ -1483,7 +1485,7 @@ const AddSurgeryRecord = () => {
                   onChangeOverride={() => clearErrors?.('surgicalApproach')}
                 />
               </Grid>
-              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+              <Grid item size={{ xs: 12, sm: 12, md: 12, lg: 12 }}>
                 <Controller
                   name='secondarySurgeon'
                   control={control}
@@ -1492,7 +1494,7 @@ const AddSurgeryRecord = () => {
                     <Autocomplete
                       multiple
                       options={filteredAttending}
-                      value={selectedAttendingDoctors}
+                      value={field.value}
                       loading={staffLoading}
                       filterSelectedOptions
                       getOptionLabel={option => option?.label || ''}
