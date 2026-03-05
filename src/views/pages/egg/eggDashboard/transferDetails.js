@@ -130,7 +130,7 @@ const TransferDetails = () => {
       width: 80,
       field: 'uid',
       headerName: 'SL.NO',
-      sortable: false,: true,
+      sortable: false,
       align: 'center',
       renderCell: params => (
         <Typography
@@ -148,7 +148,7 @@ const TransferDetails = () => {
     {
       width: 240,
       field: 'egg_number',
-      sortable: false,: true,
+      sortable: false,
       headerName: 'EGG NUMBER',
       renderCell: params => (
 
@@ -250,7 +250,7 @@ const TransferDetails = () => {
     },
     {
       width: 250,
-      sortable: false,: true,
+      sortable: false,
       field: 'species',
       headerName: 'SPECIES',
       renderCell: params => (
@@ -318,7 +318,7 @@ const TransferDetails = () => {
     {
       width: 170,
       field: 'from_site_name',
-      sortable: false,: true,
+      sortable: false,
       headerName: 'TRANSFORMED FROM',
       renderCell: params => (
         <Tooltip title={params.row.from_site_name ? params.row.from_site_name : '-'}>
@@ -342,7 +342,7 @@ const TransferDetails = () => {
 
     {
       width: 140,
-      sortable: false,: true,
+      sortable: false,
       field: 'transfered_on',
       headerName: 'DATE',
       renderCell: params => (
@@ -363,7 +363,7 @@ const TransferDetails = () => {
 
     {
       width: 140,
-      sortable: false,: true,
+      sortable: false,
       field: 'to_site_name',
       headerName: 'RECEIVING AT',
       renderCell: params => (
@@ -388,7 +388,7 @@ const TransferDetails = () => {
 
     {
       width: 140,
-      sortable: false,: true,
+      sortable: false,
       field: 'created_at',
       headerName: 'DATE',
       renderCell: params => (
@@ -409,7 +409,7 @@ const TransferDetails = () => {
 
     {
       width: 160,
-      sortable: false,: true,
+      sortable: false,
       field: 'nursery_name',
       headerName: 'NURSERY',
       renderCell: params => (
