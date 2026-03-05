@@ -473,12 +473,13 @@ export default function AddMedicineToPrescription() {
         const response = await getMedicineBatches(params)
         if (response?.success) {
           setBatchList(response?.data?.result || [])
-        } else {
-          setBatchList([])
-        }
+        } 
+        // else {
+        //   setBatchList([])
+        // }
       } catch (error) {
         console.error('Error fetching medicine batches:', error.message)
-        setBatchList([])
+        // setBatchList([])
       } finally {
         setBatchLoading(false)
       }
@@ -999,7 +1000,7 @@ export default function AddMedicineToPrescription() {
         medical_type: 'prescription',
         type: 'active',
         generate_for_date: new Date().toISOString().split('T')[0],
-        medical_record_id: medical_record_id || medicalRecordId || '',
+        // medical_record_id: medical_record_id || medicalRecordId || '',
         hospital_case_id: id || ''
       }
 
@@ -1268,6 +1269,7 @@ export default function AddMedicineToPrescription() {
           ? [
               {
                 id: selectedBatch?.id,
+                batch_id: selectedBatch?.id,
                 label: '',
                 selectedAnimal: [
                   {
@@ -1283,7 +1285,8 @@ export default function AddMedicineToPrescription() {
                 frequencyValue: data.frequency,
                 frequencyId: frequency?.id,
 
-                totalAnimal: []
+                totalAnimal: [],
+                // [`BATCH_${selectedBatch.id}`] : data.batchImage?.[0] ? data.batchImage[0] : []
               }
             ]
           : []
@@ -1364,9 +1367,9 @@ export default function AddMedicineToPrescription() {
             request_from: 'hospital_module',
             dose_type: 'fixed_dose',
             files: data.batchImage ? data.batchImage : [],
-            1: data.batchImage ? data.batchImage : []
           }
-        ])
+        ]),
+        [selectedBatch ? `BATCH_${selectedBatch.id}` : 'BATCH_0']: data.batchImage?.[0] ? data.batchImage[0] : []
       }
 
       const response = await addDirectAdministerPrescription(payload)
