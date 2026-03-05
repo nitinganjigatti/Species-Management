@@ -145,11 +145,12 @@ const PatientAdmitForm = ()=> {
           .set('minute', dayjs(value).minute())
           .set('second', 0)
 
-        // Must not be before the transfer request time (on the same day)
+        // Must not be before the transfer request time minus 1 minute (on the same day)
         if (createdAt && dayjs(admission_date).isSame(createdAt, 'day')) {
-          if (selectedTime.isBefore(createdAt)) {
+          const minAllowedTime = createdAt.subtract(1, 'minute')
+          if (selectedTime.isBefore(minAllowedTime)) {
             return this.createError({
-              message: `Time cannot be equal to or before the transfer request time (${createdAt.format('hh:mm A')})`
+              message: `Time cannot be before the transfer request time (${minAllowedTime.format('hh:mm A')})`
             })
           }
         }
@@ -459,7 +460,7 @@ const PatientAdmitForm = ()=> {
     const isToday = dayjs(selectedDate).isSame(now, 'day')
 
     if (isCreatedDate) {
-      minTime = createdAtLocal
+      minTime = createdAtLocal.subtract(1, 'minute')
     }
     if (isToday) {
       maxTime = now
