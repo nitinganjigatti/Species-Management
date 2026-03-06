@@ -4,26 +4,21 @@ import { useState, useEffect, useCallback, Fragment, useContext } from 'react'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
-
-import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
-import FormControl from '@mui/material/FormControl'
-import FormHelperText from '@mui/material/FormHelperText'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
-import { RadioGroup, FormLabel, FormControlLabel, Radio, InputLabel, Select, MenuItem, Button } from '@mui/material'
-
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 
 import Icon from 'src/@core/components/icon'
 import { getStoreById } from 'src/lib/api/pharmacy/getStoreList'
 
-
 import { AuthContext } from 'src/context/AuthContext'
-
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import ControlledRadioGroup from 'src/views/forms/form-fields/ControlledRadioGroup'
 
 const schema = yup.object().shape({
   name: yup
@@ -33,14 +28,14 @@ const schema = yup.object().shape({
     .required('Pharmacy Name is Required'),
 
   // type: yup.string().required('Type is Required'),
-  site_id: yup.string().nullable(),
+  site_id: yup.array(),
   status: yup.string().required('Status is Required')
 })
 
 const defaultValues = {
   name: '',
   type: '',
-  site_id: '',
+  site_id: [],
   latitude: '',
   logitude: '',
   status: 'active'
@@ -91,7 +86,7 @@ const AddStore = props => {
     const payload = {
       name,
       type,
-      site_id,
+      site_id: site_id?.map(item => item?.value),
       latitude,
       logitude,
       status
@@ -103,7 +98,12 @@ const AddStore = props => {
     async id => {
       const response = await getStoreById(id)
       if (response?.success) {
-        reset(response.data)
+        const data = {
+          ...response?.data,
+          site_id: response?.data?.site_ids?.map(site => ({ label: site?.label, value: site?.value }))
+        }
+
+        reset(data)
       } else {
       }
     },
@@ -128,6 +128,11 @@ const AddStore = props => {
       </Fragment>
     )
   }
+
+  const siteOptions = authData?.userData?.user?.zoos[0]?.sites?.map(site => ({
+    label: site?.site_name,
+    value: site?.site_id
+  }))
 
   return (
     <Drawer
@@ -161,160 +166,64 @@ const AddStore = props => {
       </Box>
       <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='name'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Pharmacy Name*'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Pharmacy Name'
-                  error={Boolean(errors.name)}
-                  name='name'
-                />
-              )}
-            />
-            {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
-          </FormControl>
-          {/* <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.type)}>
-            <FormLabel>Type</FormLabel>
-            <Controller
-              name='type'
-              control={control}
-              rules={{ required: true }}
-              render={({ field }) => (
-                <RadioGroup row {...field} aria-label='type' name='validation-basic-type'>
-                  <FormControlLabel
-                    value='local'
-                    label='Local'
-                    sx={errors.type ? { color: 'error.main' } : null}
-                    control={<Radio sx={errors.type ? { color: 'error.main' } : null} />}
-                  />
-                  <FormControlLabel
-                    value='central'
-                    label='Central'
-                    sx={errors.type ? { color: 'error.main' } : null}
-                    control={<Radio sx={errors.type ? { color: 'error.main' } : null} />}
-                  />
-                </RadioGroup>
-              )}
-            />
-            {errors.type && (
-              <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-type'>
-                {errors?.type?.message}
-              </FormHelperText>
-            )}
-          </FormControl> */}
+          <ControlledTextField
+            name='name'
+            control={control}
+            label='Pharmacy Name'
+            placeholder='Pharmacy Name'
+            errors={errors}
+            required
+            sx={{ mb: 6 }}
+          />
 
           {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-            <FormControl fullWidth sx={{ mb: 6 }}>
-              <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
-                Site
-              </InputLabel>
-              <Controller
-                name='site_id'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <Select
-                    name='site_id'
-                    value={value}
-                    label='Site'
-                    onChange={onChange}
-                    error={Boolean(errors?.gst_slab)}
-                    labelId='site_id'
-                    MenuProps={{
-                      PaperProps: {
-                        style: {
-                          maxHeight: 300,
-                          width: 'auto'
-                        }
-                      }
-                    }}
-                  >
-                    {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
-                      return (
-                        <MenuItem key={index} value={item?.site_id}>
-                          {item?.site_name}
-                        </MenuItem>
-                      )
-                    })}
-                  </Select>
-                )}
-              />
-              {errors?.site_id && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>
-              )}
-            </FormControl>
+            <ControlledAutocomplete
+              sx={{ mb: 6 }}
+              name='site_id'
+              label='Select sites'
+              control={control}
+              errors={errors}
+              options={siteOptions}
+              multiple
+              getOptionLabel={option => option.label}
+              isOptionEqualToValue={(option, value) => option.value === value?.value}
+            />
           )}
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='latitude'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Latitude'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Latitude'
-                  error={Boolean(errors.latitude)}
-                  name='latitude'
-                />
-              )}
-            />
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='logitude'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Longitude'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Longitude'
-                  error={Boolean(errors.logitude)}
-                  name='logitude'
-                />
-              )}
-            />
-          </FormControl>
+
+          <ControlledTextField
+            name='latitude'
+            control={control}
+            label='Latitude'
+            placeholder='Latitude'
+            errors={errors}
+            required
+            sx={{ mb: 6 }}
+          />
+          <ControlledTextField
+            name='logitude'
+            control={control}
+            label='Longitude'
+            placeholder='Longitude'
+            errors={errors}
+            required
+            sx={{ mb: 6 }}
+          />
 
           {editParams?.id !== null && watch('type') === 'local' ? (
-            <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
-              <FormLabel>Status</FormLabel>
-              <Controller
-                name='status'
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <RadioGroup row {...field} aria-label='gender' name='validation-basic-radio'>
-                    <FormControlLabel
-                      value='active'
-                      label='Active'
-                      sx={errors.status ? { color: 'error.main' } : null}
-                      control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
-                    />
-                    <FormControlLabel
-                      value='inactive'
-                      label='Inactive'
-                      sx={errors.status ? { color: 'error.main' } : null}
-                      control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
-                    />
-                  </RadioGroup>
-                )}
-              />
-              {errors.radio && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-radio'>
-                  This field is required
-                </FormHelperText>
-              )}
-            </FormControl>
+            <ControlledRadioGroup
+              name='status'
+              control={control}
+              errors={errors}
+              label='Status'
+              required
+              options={[
+                { label: 'Active', value: 'active' },
+                { label: 'Inactive', value: 'inactive' }
+              ]}
+              row
+              gap={4}
+              sx={{ mb: 6 }}
+            />
           ) : null}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RenderSidebarFooter />

@@ -59,6 +59,7 @@ const SelectAnimalsDrawer = ({
           type: 'error',
           message: 'Cannot select male animals (count is 0)'
         })
+
         return false
       }
       if (counts.female > 0 && Number(speciesData.female_count || 0) === 0) {
@@ -66,6 +67,7 @@ const SelectAnimalsDrawer = ({
           type: 'error',
           message: 'Cannot select female animals (count is 0)'
         })
+
         return false
       }
       if (counts.undeterminate > 0 && Number(speciesData.undeterminate_count || 0) === 0) {
@@ -73,6 +75,7 @@ const SelectAnimalsDrawer = ({
           type: 'error',
           message: 'Cannot select unknown animals (count is 0)'
         })
+
         return false
       }
 
@@ -81,6 +84,7 @@ const SelectAnimalsDrawer = ({
           type: 'error',
           message: `Cannot select more than ${speciesData.male_count} male animals`
         })
+
         return false
       }
       if (counts.female > Number(speciesData.female_count || 0)) {
@@ -88,6 +92,7 @@ const SelectAnimalsDrawer = ({
           type: 'error',
           message: `Cannot select more than ${speciesData.female_count} female animals`
         })
+
         return false
       }
       if (counts.undeterminate > Number(speciesData.undeterminate_count || 0)) {
@@ -95,6 +100,7 @@ const SelectAnimalsDrawer = ({
           type: 'error',
           message: `Cannot select more than ${speciesData.undeterminate_count} unknown animals`
         })
+
         return false
       }
     }
@@ -192,106 +198,128 @@ const SelectAnimalsDrawer = ({
               Animals with identifier ({animalLists.length})
             </Typography>
             {animalLists?.length > 0 ? (
-              animalLists.map(animal => (
-                <Box
-                  key={animal.id}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    // padding: '12px',
-                    backgroundColor: theme.palette.customColors.OnPrimary,
-                    border: '1px solid #E5E5E5',
-                    borderRadius: '8px'
-                  }}
-                >
-                  <Avatar
-                    sx={{
-                      backgroundColor:
-                        animal.gender === 'male'
-                          ? alpha(theme.palette.customColors.SecondaryContainer, 0.5)
-                          : animal.gender === 'female'
-                          ? alpha(theme.palette.customColors.customDropdownColor, 0.15)
-                          : animal.gender === 'unknown'
-                          ? theme.palette.customColors.displaybgSecondary
-                          : '',
-                      color:
-                        animal.gender === 'male'
-                          ? theme.palette.customColors.addPrimary
-                          : animal.gender === 'female'
-                          ? theme.palette.customColors.customDropdownColor
-                          : animal.gender === 'unknown'
-                          ? theme.palette.customColors.OnPrimaryContainer
-                          : '',
-                      fontWeight: '500',
-                      marginRight: '16px',
-                      fontSize: '14px',
-                      width: 40,
-                      height: 40,
-                      borderRadius: '4px',
-                      ml: 4
-                    }}
-                  >
-                    {animal.gender === 'male'
-                      ? 'M'
-                      : animal.gender === 'female'
-                      ? 'F'
-                      : animal.gender === 'unknown'
-                      ? 'U'
-                      : ''}
-                  </Avatar>
+              animalLists.map(animal => {
+                const isSelected = selectedAnimals.some(a => a.id === animal.id)
+                const handleToggle = () => handleCheckboxChange(animal)
 
-                  <Box sx={{ flexGrow: 1 }}>
-                    <Typography
-                      sx={{ fontWeight: '400', color: theme.palette.customColors.secondaryBg, fontSize: '14px' }}
-                    >
-                      Species :{' '}
-                      <span
-                        style={{
-                          color: theme.palette.customColors.OnSurfaceVariant,
-                          fontSize: '14px',
-                          fontWeight: 500
-                        }}
-                      >
-                        {commonNameValue ? commonNameValue : 'N/A'}
-                      </span>
-                    </Typography>
-
-                    <Typography
-                      sx={{ fontWeight: '400', color: theme.palette.customColors.secondaryBg, fontSize: '14px' }}
-                    >
-                      {animal.identifier_type} :{' '}
-                      <span
-                        style={{
-                          color: theme.palette.customColors.OnSurfaceVariant,
-                          fontSize: '14px',
-                          fontWeight: 500
-                        }}
-                      >
-                        {animal.identifier_value}
-                      </span>
-                    </Typography>
-                  </Box>
-
+                return (
                   <Box
+                    key={animal.id}
+                    onClick={handleToggle}
+                    onKeyDown={event => {
+                      if (event.target !== event.currentTarget) return
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        handleToggle()
+                      }
+                    }}
+                    tabIndex={0}
+                    role='button'
                     sx={{
-                      background: theme.palette.customColors.Surface,
-                      borderLeft: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      height: '68px',
-                      width: '45px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      borderTopRightRadius: '8px',
-                      borderBottomRightRadius: '8px'
+                      // padding: '12px',
+                      backgroundColor: theme.palette.customColors.OnPrimary,
+                      border: '1px solid #E5E5E5',
+                      borderRadius: '8px',
+                      cursor: 'pointer'
                     }}
                   >
-                    <Checkbox
-                      checked={selectedAnimals.some(a => a.id === animal.id)}
-                      onChange={() => handleCheckboxChange(animal)}
-                    />
+                    <Avatar
+                      sx={{
+                        backgroundColor:
+                          animal.gender === 'male'
+                            ? alpha(theme.palette.customColors.SecondaryContainer, 0.5)
+                            : animal.gender === 'female'
+                            ? alpha(theme.palette.customColors.customDropdownColor, 0.15)
+                            : animal.gender === 'unknown'
+                            ? theme.palette.customColors.displaybgSecondary
+                            : '',
+                        color:
+                          animal.gender === 'male'
+                            ? theme.palette.customColors.addPrimary
+                            : animal.gender === 'female'
+                            ? theme.palette.customColors.customDropdownColor
+                            : animal.gender === 'unknown'
+                            ? theme.palette.customColors.OnPrimaryContainer
+                            : '',
+                        fontWeight: '500',
+                        marginRight: '16px',
+                        fontSize: '14px',
+                        width: 40,
+                        height: 40,
+                        borderRadius: '4px',
+                        ml: 4
+                      }}
+                    >
+                      {animal.gender === 'male'
+                        ? 'M'
+                        : animal.gender === 'female'
+                        ? 'F'
+                        : animal.gender === 'unknown'
+                        ? 'U'
+                        : ''}
+                    </Avatar>
+
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography
+                        sx={{ fontWeight: '400', color: theme.palette.customColors.secondaryBg, fontSize: '14px' }}
+                      >
+                        Species :{' '}
+                        <span
+                          style={{
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            fontSize: '14px',
+                            fontWeight: 500
+                          }}
+                        >
+                          {commonNameValue ? commonNameValue : 'N/A'}
+                        </span>
+                      </Typography>
+
+                      <Typography
+                        sx={{ fontWeight: '400', color: theme.palette.customColors.secondaryBg, fontSize: '14px' }}
+                      >
+                        {animal.identifier_type} :{' '}
+                        <span
+                          style={{
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            fontSize: '14px',
+                            fontWeight: 500
+                          }}
+                        >
+                          {animal.identifier_value}
+                        </span>
+                      </Typography>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        background: theme.palette.customColors.Surface,
+                        borderLeft: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        height: '68px',
+                        width: '45px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderTopRightRadius: '8px',
+                        borderBottomRightRadius: '8px'
+                      }}
+                    >
+                      <Checkbox
+                        checked={isSelected}
+                        onClick={event => {
+                          event.stopPropagation()
+                        }}
+                        onChange={event => {
+                          event.stopPropagation()
+                          handleToggle()
+                        }}
+                      />
+                    </Box>
                   </Box>
-                </Box>
-              ))
+                )
+              })
             ) : (
               <Typography
                 sx={{

@@ -62,7 +62,6 @@ const StockReportDetails = props => {
           height: '100%'
         }}
       >
-       
         <Box
           sx={{
             position: 'sticky',
@@ -158,7 +157,7 @@ const StockReportDetails = props => {
                       <br /> <strong>{product.po_no}</strong>
                     </Typography>
                     <Typography sx={{ fontSize: '14px', fontWeight: 400 }}>
-                      Date <br />
+                      Purchase Date <br />
                       <strong>{Utility.formatDisplayDate(product.po_date)}</strong>
                     </Typography>
                   </Box>
@@ -195,7 +194,7 @@ const StockReportDetails = props => {
         </Box>
       </Box>
     </Drawer>
-  );
+  )
 }
 
 export default StockReportDetails

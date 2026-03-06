@@ -14,6 +14,8 @@ import axios from 'axios'
 
 // ** Config
 import authConfig from 'src/configs/auth'
+import { useQueryClient } from '@tanstack/react-query'
+import { useHospital } from './HospitalContext'
 
 const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 
@@ -42,6 +44,9 @@ const AuthProvider = ({ children }) => {
   const [loginLoading, setLoginLoading] = useState(defaultProvider.loginLoading)
   const { setSelectedParivesh, setOrganizationList } = usePariveshContext()
   const { selectedPharmacy, setSelectedPharmacy } = usePharmacyContext()
+  const { updateSelectedHospital, updateHospitalStats } = useHospital()
+
+  const queryClient = useQueryClient()
 
   // ** Hooks
   const router = useRouter()
@@ -159,27 +164,46 @@ const AuthProvider = ({ children }) => {
         }
       } else {
         setLoading(false)
+        logOutUser()
+        router.replace('/login')
       }
     }
     initAuth()
   }, [])
 
-  const logOutUser = () => {
-    localStorage.removeItem('userData')
-    localStorage.removeItem('userDetails')
-    localStorage.removeItem('refreshToken')
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('provider')
-    localStorage.removeItem('selectedStore')
-    localStorage.removeItem('selectedParivesh')
+  const logOutUser = async () => {
+    // localStorage.removeItem('userData')
+    // localStorage.removeItem('userDetails')
+    // localStorage.removeItem('refreshToken')
+    // localStorage.removeItem('accessToken')
+    // localStorage.removeItem('provider')
+    // localStorage.removeItem('selectedStore')
+    // localStorage.removeItem('selectedParivesh')
 
-    debugger
+    // 1. Cancel all ongoing queries FIRST and clear the cache (prevents race conditions)
+    await queryClient.cancelQueries()
+    queryClient.clear()
+
+    // 2. Clear ALL TanStack Query cache (queries + mutations) -> Fallback
+    queryClient.getQueryCache().clear()
+    queryClient.getMutationCache().clear()
+
+    // 3. Clear localStorage and sessionStorage
+    localStorage.clear()
+    sessionStorage.clear()
+
+    // 4. Clear all state
     setUser(null)
     setUserData(null)
     setSelectedPharmacy('')
     setSelectedParivesh('')
     setOrganizationList([])
     setLoading(false)
+    updateSelectedHospital(null)
+    updateHospitalStats(null)
+
+    // 5. Remove the specific auth token (optional, but good for consistency)
+    window.localStorage.removeItem(authConfig.storageTokenKeyName)
   }
 
   const handleLogin = (params, errorCallback) => {
@@ -208,7 +232,12 @@ const AuthProvider = ({ children }) => {
       .post(url, params)
       .then(async response => {
         setLoginLoading(false)
-        if (response?.data?.message !== 'Invalid Username/Email or Password') {
+
+        if (
+          response?.data?.message !== 'Invalid Username/Email or Password' &&
+          response?.data?.message !== 'This Account Has Been Suspended !!' &&
+          response?.data?.success !== false
+        ) {
           console.log('login response', response?.data)
           window.localStorage.setItem(authConfig?.storageTokenKeyName, response?.data?.token)
           const returnUrl = router.query.returnUrl
@@ -275,7 +304,7 @@ const AuthProvider = ({ children }) => {
           const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
           router.replace(redirectURL)
         } else {
-          if (errorCallback) errorCallback(err)
+          if (errorCallback) errorCallback(response?.data?.message)
         }
       })
       .catch(err => {
@@ -284,21 +313,44 @@ const AuthProvider = ({ children }) => {
       })
   }
 
-  const handleLogout = () => {
-    setUser(null)
-    setUserData(null)
-    setSelectedPharmacy('')
-    setSelectedParivesh('')
-    setOrganizationList([])
-    localStorage.removeItem('userData')
-    localStorage.removeItem('userDetails')
-    localStorage.removeItem('refreshToken')
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('provider')
-    localStorage.removeItem('selectedStore')
-    localStorage.removeItem('selectedParivesh')
-    window.localStorage.removeItem(authConfig.storageTokenKeyName)
-    router.push('/login')
+  const handleLogout = async () => {
+    try {
+      // 1. Cancel all ongoing queries FIRST and clear the cache (prevents race conditions)
+      await queryClient.cancelQueries()
+      queryClient.clear()
+
+      // 2. Clear ALL TanStack Query cache (queries + mutations)
+      queryClient.getQueryCache().clear()
+      queryClient.getMutationCache().clear()
+
+      // 3. Clear localStorage and sessionStorage
+      localStorage.clear()
+      sessionStorage.clear()
+
+      // 4. Clear all state
+      setUser(null)
+      setUserData(null)
+      setSelectedPharmacy('')
+      setSelectedParivesh('')
+      setOrganizationList([])
+      updateSelectedHospital(null)
+      updateHospitalStats(null)
+
+      // 5. Remove the specific auth token (optional, but good for consistency)
+      window.localStorage.removeItem(authConfig.storageTokenKeyName)
+
+      // 6. Navigate to login
+      router.push('/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+
+      // Fallback: Force clear everything even if something fails
+      localStorage.clear()
+      sessionStorage.clear()
+      setUser(null)
+      setUserData(null)
+      router.push('/login')
+    }
   }
 
   const values = {

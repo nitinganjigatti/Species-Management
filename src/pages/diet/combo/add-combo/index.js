@@ -231,6 +231,7 @@ const AddCombo = () => {
             id: item.ingredient_id,
             ingredient_name: item.ingredient_name
           }))
+
           // ...data.by_quantity.map(item => ({
           //   id: item.ingredient_id,
           //   ingredient_name: item.ingredient_name

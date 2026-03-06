@@ -297,7 +297,7 @@ const ListOfGst = () => {
                       onChange: event => handleSearch(event.target.value)
                     }
                   }}
-                />
+                  showToolbar />
               </Card>
               <AddGstSlabs
                 drawerWidth={400}
@@ -323,7 +323,7 @@ const ListOfGst = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default ListOfGst

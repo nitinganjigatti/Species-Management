@@ -104,12 +104,36 @@ const composeComplianceNavigation = () => {
     path: '/compliance/reports/dailyReport'
   }
 
+  const medicalJournalReport = {
+    title: 'Medical Journal Report',
+    path: '/compliance/reports/medicalJournalReport'
+  }
+
+  const animalStockReport = {
+    title: 'Animal Stock Report',
+    path: '/compliance/reports/animalStockReport'
+  }
+
+  const animalHistoryReport = {
+    title: 'Animal History Report',
+    path: '/compliance/reports/animalHistoryReport'
+  }
+
   // Add all items under Documents
   documentsParent.children.push(exports, imports, shipments, species, mastersParent, reportsParent)
 
   mastersParent.children.push(masterdocuments, masterimports, masterexports)
 
-  reportsParent.children.push(observation, keeperDiary, biologistDiary, enclosureCountRegister, dailyReport)
+  reportsParent.children.push(
+    observation,
+    keeperDiary,
+    biologistDiary,
+    enclosureCountRegister,
+    dailyReport
+    // medicalJournalReport,
+    // animalStockReport,
+    // animalHistoryReport
+  )
 
   const complianceNavigation = [complianceTitle, documentsParent]
 

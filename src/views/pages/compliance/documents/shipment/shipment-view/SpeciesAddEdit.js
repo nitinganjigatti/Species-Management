@@ -361,6 +361,7 @@ const SpeciesAddEdit = ({
                               key={idx}
                               display='flex'
                               justifyContent='space-between'
+
                               // py={2}
                               sx={{
                                 borderBottom: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
@@ -692,6 +693,7 @@ const SpeciesAddEdit = ({
             setexportPermitDrawerOpen(false)
             setSearchValue('')
           }}
+
           //onSelect={handleSpeciesSelect}
           handleSearch={handleSearch}
           exportsList={exportsList}

@@ -358,6 +358,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                             render={({ field: { value, onChange } }) => (
                               <>
                                 <Autocomplete
+
                                   //value={value || value?._id}
                                   value={getValues(`diet_types[${index}].unit.value`) || null}
                                   disablePortal

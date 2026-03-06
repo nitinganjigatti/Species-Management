@@ -78,6 +78,7 @@ const DashboardNotes = ({ notesData }) => {
             sx={{
               display: 'flex',
               alignItems: 'center',
+              gap: '6px',
               mx: 1.2
             }}
           >

@@ -1,28 +1,31 @@
 /* eslint-disable lines-around-comment */
 // ** MUI Imports
-import Grid from '@mui/material/Grid'
-import Card from '@mui/material/Card'
-import Table from '@mui/material/Table'
-import Divider from '@mui/material/Divider'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
-import CardContent from '@mui/material/CardContent'
 import { styled, useTheme } from '@mui/material/styles'
-import TableContainer from '@mui/material/TableContainer'
-import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader, InputAdornment, alpha } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
-import FormHelperText from '@mui/material/FormHelperText'
-import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-import Autocomplete from '@mui/material/Autocomplete'
 import Router from 'next/router'
+import {
+  Grid,
+  Card,
+  Table,
+  Divider,
+  TableRow,
+  TableHead,
+  TableBody,
+  Typography,
+  Box,
+  CardContent,
+  TableContainer,
+  TableCell,
+  Button,
+  InputAdornment,
+  alpha,
+  IconButton,
+  FormHelperText,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
+} from '@mui/material'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import { debounce, flatMap } from 'lodash'
@@ -53,7 +56,7 @@ import {
 } from 'src/lib/api/pharmacy/getPurchaseList'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
-import Utility from 'src/utility'
+import Utility, { downloadPDF } from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import PurchaseItemForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm'
@@ -66,12 +69,11 @@ import { useDropzone } from 'react-dropzone'
 import Image from 'next/image'
 import UploadIcon from 'public/images/upload_invoice_icon.png'
 import TotalAmountIcon from 'public/images/amount_summary.png'
-import { borderRadius, getValue } from '@mui/system'
 import { getVariantFOrProduct, getVariants } from 'src/lib/api/pharmacy/variant'
 import PurchaseInvoiceUpload from './PurchaseInvoiceUpload'
 import { v4 as uuidv4 } from 'uuid'
 import { ExportButton } from 'src/views/utility/render-snippets'
-
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -1499,17 +1501,11 @@ const AddPurchaseForm = () => {
   const printInventory = async purchaseId => {
     try {
       setInvoicePrintLoader(true)
-      const printInvoice = await printPurchaseInvoice(purchaseId)
-      if (printInvoice?.success && printInvoice?.data) {
-        // window.open(printInvoice?.data, '_blank')
-        Utility?.downloadFileFromURL(printInvoice?.data, 'Invoice.Pdf')
-
-        toast.success(printInvoice?.message)
-        setInvoicePrintLoader(false)
-      } else {
-        toast.error(printInvoice?.message)
-        setInvoicePrintLoader(false)
-      }
+      await downloadPDF({
+        apiCall: printPurchaseInvoice,
+        params: purchaseId,
+        fileName: `Purchase_Invoice${Date.now()}.pdf`
+      })
     } catch (error) {
       toast.error(error?.message)
       setInvoicePrintLoader(false)
@@ -1519,169 +1515,160 @@ const AddPurchaseForm = () => {
   }
 
   return (
-    <Card>
-      <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Grid item size={{ xs: 12, sm: 5 }}>
-          <CardHeader
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              width: '100%'
-            }}
-            avatar={
-              <Icon
-                style={{ cursor: 'pointer' }}
-                onClick={() => {
-                  if (navigatedFrom === 'stockReport') {
-                    Router.push('/pharmacy/stocks/stocksReport/')
-                  } else {
-                    Router.back()
-                  }
-                }}
-                icon='ep:back'
-              />
-            }
-            title={id ? 'Edit Inventory ' : 'Add Inventory'}
-          />
-        </Grid>
-        <Grid
-          item
-          size={{ xs: 12, sm: 6 }}
-          sx={{
-            display: 'flex',
-            flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'row' },
-            justifyContent: { xs: 'space-between', md: 'flex-end', xl: 'flex-end', sm: 'flex-end' },
-            alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'center', xs: 'start' },
-            columnGap: 2,
-            mx: { xs: 2, lg: 5, md: 5, xl: 5, sm: 5 },
-            mb: { xs: 2, lg: 0, md: 0, xl: 0, sm: 0 },
-            mr: 2,
-            rowGap: { xs: 3, lg: 0, md: 0, xl: 0, sm: 0 }
-          }}
-        >
+    <PageCardLayout
+      showIcon={true}
+      onIconClick={() => {
+        if (navigatedFrom === 'stockReport') {
+          Router.push('/pharmacy/stocks/stocksReport/')
+        } else {
+          Router.back()
+        }
+      }}
+      title={id ? 'Edit Inventory ' : 'Add Inventory'}
+      titleStyles={{
+        fontSize: '20px'
+      }}
+      action={
+        <Grid container spacing = {{xs: 3, sm: 0}}> 
           {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
+            <Grid size = {{xs: 12, sm: 'auto'}} >
             <AddButton
               title='Process Invoice'
               action={() => {
                 resetFelids()
                 setInvoiceUploadDialog(true)
               }}
+              styles={{
+                margin: 0,
+                width: '100%'
+              }}
             />
+            </Grid>
           )}
+             
           {authData?.userData?.roles?.settings?.add_pharmacy && (
             <>
+            <Grid size = {{xs: 12, sm: 'auto'}} sx = {{ml: {xs: 0, sm: 3}}} >
               <AddButton
                 title='Add Supplier'
                 action={() => {
                   setSupplierDialog(true)
                 }}
+                styles = {{
+                  margin: 0,
+                  width: '100%'
+                }}
               />
-              {/* {id && (
+            </Grid>
+              <Grid>
+              {id && (
                 <ExportButton
                   tooltip='Download  Invoice'
-                  disabled={true}
                   loading={invoicePrintLoader}
                   onClick={() => printInventory(id)}
+                  sx = {{ml: 3}}
                 />
-              )} */}
+              )}
+            
+              </Grid>
             </>
           )}
         </Grid>
-      </Grid>
-      <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-        <CardContent>
-          <Divider sx={{ mb: '16px', mt: -2 }} />
-          <Typography sx={{ fontSize: '16px', fontWeight: 500, mb: '16px' }}>Supplier Details</Typography>
-          <Grid container spacing={5}>
-            {/* <Grid item xs={12} sm={6}> */}
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <FormControl fullWidth>
-                <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
-                <Controller
-                  name='supplier_id'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      // name='supplier_id'
-                      // value={value}
-                      // onChange={(e, val) => {
-                      //   onChange(e.target.value)
-                      // }}
-                      label='Supplier*'
-                      // disabled={!!id}
-                      error={Boolean(errors.supplier_id)}
-                    >
-                      {suppliers?.map(item => (
-                        <MenuItem key={item.id} disabled={item.status === 'inactive'} value={item.id}>
-                          {item.company_name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-                {errors?.supplier_id && <FormHelperText error>{errors.supplier_id.message}</FormHelperText>}
-              </FormControl>
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='po_date'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { onChange, value } }) => (
-                    <SingleDatePicker
-                      name='Purchase Date*'
-                      fullWidth
-                      maxDate={new Date()}
-                      date={value ? parseFormattedDate(value) : null}
-                      width={'100%'}
-                      onChangeHandler={date => {
-                        let formatted = formatDate(date)
-                        onChange(formatted)
-                      }}
-                      customInput={<CustomInput label='Purchase Date*' error={Boolean(errors.po_date)} />}
-                      isClearable={false}
-                    />
-                  )}
-                />
-                {errors.po_date && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    {errors.po_date.message}
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='po_no'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type='text'
-                      name='po_no'
-                      disabled={id ? true : false}
-                      error={Boolean(errors.po_no)}
-                      label='Purchase Invoice Number*'
-                    />
-                  )}
-                />
-                {errors.po_no && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    {errors.po_no.message}
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
+      }
 
-            {/* <Grid item size={{xs: 12, sm: 6}}>
+    >
+      <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+        <Divider sx={{ mb: '16px', mt: -2 }} />
+        <Typography sx={{ fontSize: '16px', fontWeight: 500, mb: '16px' }}>Supplier Details</Typography>
+        <Grid container spacing={5}>
+          {/* <Grid item xs={12} sm={6}> */}
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <FormControl fullWidth>
+              <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
+              <Controller
+                name='supplier_id'
+                control={control}
+                rules={{ required: true }}
+                defaultValue=''
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    // name='supplier_id'
+                    // value={value}
+                    // onChange={(e, val) => {
+                    //   onChange(e.target.value)
+                    // }}
+                    label='Supplier*'
+                    // disabled={!!id}
+                    error={Boolean(errors.supplier_id)}
+                  >
+                    {suppliers?.map(item => (
+                      <MenuItem key={item.id} disabled={item.status === 'inactive'} value={item.id}>
+                        {item.company_name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
+              />
+              {errors?.supplier_id && <FormHelperText error>{errors.supplier_id.message}</FormHelperText>}
+            </FormControl>
+          </Grid>
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <FormControl fullWidth>
+              <Controller
+                name='po_date'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { onChange, value } }) => (
+                  <SingleDatePicker
+                    name='Purchase Date*'
+                    fullWidth
+                    maxDate={new Date()}
+                    date={value ? parseFormattedDate(value) : null}
+                    width={'100%'}
+                    onChangeHandler={date => {
+                      let formatted = formatDate(date)
+                      onChange(formatted)
+                    }}
+                    customInput={<CustomInput label='Purchase Date*' error={Boolean(errors.po_date)} />}
+                    isClearable={false}
+                  />
+                )}
+              />
+              {errors.po_date && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  {errors.po_date.message}
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <FormControl fullWidth>
+              <Controller
+                name='po_no'
+                control={control}
+                rules={{ required: true }}
+                defaultValue=''
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    type='text'
+                    name='po_no'
+                    disabled={id ? true : false}
+                    error={Boolean(errors.po_no)}
+                    label='Purchase Invoice Number*'
+                  />
+                )}
+              />
+              {errors.po_no && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  {errors.po_no.message}
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+
+          {/* <Grid item size={{xs: 12, sm: 6}}>
               <FormControl fullWidth>
                 <InputLabel error={Boolean(errors.supplier_id)}>Byy*</InputLabel>
                 <Controller
@@ -1712,102 +1699,102 @@ const AddPurchaseForm = () => {
                 {errors?.supplier_id && <FormHelperText error>{errors.supplier_id.message}</FormHelperText>}
               </FormControl>
             </Grid> */}
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='purchase_order_no'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type='text'
-                      name='purchase_order_no'
-                      // disabled={id ? true : false}
-                      error={Boolean(errors.purchase_order_no)}
-                      label='Purchase order number'
-                    />
-                  )}
-                />
-              </FormControl>
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='requested_by'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type='text'
-                      name='requested_by'
-                      // disabled={id ? true : false}
-                      error={Boolean(errors.requested_by)}
-                      label='Requested by'
-                    />
-                  )}
-                />
-              </FormControl>
-            </Grid>
-
-            {/* Upload Docs */}
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <Box sx={{ display: 'flex', gap: '12px' }}>
-                <Box sx={{ width: '100%' }}>
-                  <input
-                    type='file'
-                    accept='.png,.jpg,.jpeg,.pdf'
-                    onChange={e => handleInputImageChange(e)}
-                    style={{ display: 'none' }}
-                    name='invoice_transcript'
-                    ref={fileInputRef}
-                    multiple={true}
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <FormControl fullWidth>
+              <Controller
+                name='purchase_order_no'
+                control={control}
+                rules={{ required: true }}
+                defaultValue=''
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    type='text'
+                    name='purchase_order_no'
+                    // disabled={id ? true : false}
+                    error={Boolean(errors.purchase_order_no)}
+                    label='Purchase order number'
                   />
+                )}
+              />
+            </FormControl>
+          </Grid>
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <FormControl fullWidth>
+              <Controller
+                name='requested_by'
+                control={control}
+                rules={{ required: true }}
+                defaultValue=''
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    type='text'
+                    name='requested_by'
+                    // disabled={id ? true : false}
+                    error={Boolean(errors.requested_by)}
+                    label='Requested by'
+                  />
+                )}
+              />
+            </FormControl>
+          </Grid>
 
-                  <Box
-                    {...getRootProps({ className: 'dropzone' })}
-                    onClick={handleAddImageClick}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      height: 56,
+          {/* Upload Docs */}
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <Box sx={{ display: 'flex', gap: '12px' }}>
+              <Box sx={{ width: '100%' }}>
+                <input
+                  type='file'
+                  accept='.png,.jpg,.jpeg,.pdf'
+                  onChange={e => handleInputImageChange(e)}
+                  style={{ display: 'none' }}
+                  name='invoice_transcript'
+                  ref={fileInputRef}
+                  multiple={true}
+                />
 
-                      border: `1px dashed `,
-                      borderColor: theme?.palette?.primary?.dark,
-                      borderRadius: 1,
+                <Box
+                  {...getRootProps({ className: 'dropzone' })}
+                  onClick={handleAddImageClick}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    height: 56,
 
-                      padding: '10px'
-                    }}
-                  >
-                    <Image alt={'filename'} src={UploadIcon} width={24} height={24} />
+                    border: `1px dashed `,
+                    borderColor: theme?.palette?.primary?.dark,
+                    borderRadius: 1,
 
-                    <Typography sx={{ color: theme?.palette?.primary?.dark, fontSize: '16px', fontWeight: 500 }}>
-                      Upload invoice
-                    </Typography>
-                  </Box>
+                    padding: '10px'
+                  }}
+                >
+                  <Image alt={'filename'} src={UploadIcon} width={24} height={24} />
+
+                  <Typography sx={{ color: theme?.palette?.primary?.dark, fontSize: '16px', fontWeight: 500 }}>
+                    Upload invoice
+                  </Typography>
                 </Box>
-                {fileArr?.length > 0 ? (
-                  <Box
-                    onClick={() => setOpenDocsDrawer(true)}
-                    sx={{
-                      bgcolor: theme.palette.customColors.displaybgPrimary,
-                      p: 1,
-                      width: '65px',
+              </Box>
+              {fileArr?.length > 0 ? (
+                <Box
+                  onClick={() => setOpenDocsDrawer(true)}
+                  sx={{
+                    bgcolor: theme.palette.customColors.displaybgPrimary,
+                    p: 1,
+                    width: '65px',
 
-                      borderRadius: '8px',
-                      alignItems: 'center',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      position: 'relative'
-                    }}
-                  >
-                    {fileArr?.length == 1 ? (
-                      <>
-                        {/* <Box
+                    borderRadius: '8px',
+                    alignItems: 'center',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    position: 'relative'
+                  }}
+                >
+                  {fileArr?.length == 1 ? (
+                    <>
+                      {/* <Box
                           size='small'
                           onClick={e => removeSelectedImage(e, 0)}
                           sx={{
@@ -1821,31 +1808,31 @@ const AddPurchaseForm = () => {
                         >
                           <Icon icon='solar:close-square-bold' width='20px' height='20px' color={'#7A8684'} />
                         </Box> */}
-                        <Box sx={{ width: '38px', height: '38px', mt: 1 }}>
-                          <img
-                            src={defaultIcon?.document?.image_path ? defaultIcon?.document?.image_path : null}
-                            alt={'Docs ICon'}
-                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                          />
-                        </Box>
-                      </>
-                    ) : (
-                      <Box
-                        sx={{
-                          px: fileArr?.length >= 10 ? 2 : 2.6,
-                          py: 1,
-                          borderRadius: '50%',
-                          bgcolor: theme.palette.customColors.OnPrimarycontainer10
-                        }}
-                      >
-                        <Typography sx={{ color: theme.palette.primary.main }}> {fileArr?.length}</Typography>
+                      <Box sx={{ width: '38px', height: '38px', mt: 1 }}>
+                        <img
+                          src={defaultIcon?.document?.image_path ? defaultIcon?.document?.image_path : null}
+                          alt={'Docs ICon'}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                        />
                       </Box>
-                    )}
-                  </Box>
-                ) : null}
-              </Box>
+                    </>
+                  ) : (
+                    <Box
+                      sx={{
+                        px: fileArr?.length >= 10 ? 2 : 2.6,
+                        py: 1,
+                        borderRadius: '50%',
+                        bgcolor: theme.palette.customColors.OnPrimarycontainer10
+                      }}
+                    >
+                      <Typography sx={{ color: theme.palette.primary.main }}> {fileArr?.length}</Typography>
+                    </Box>
+                  )}
+                </Box>
+              ) : null}
+            </Box>
 
-              {/* <Grid item md={12} sm={12} xs={12}>
+            {/* <Grid item md={12} sm={12} xs={12}>
                   {fileSrc && fileSrc.length > 0 && (
                     <Box sx={{ display: 'flex', mt: 2 }}>
                       {fileSrc.map((src, index) => (
@@ -1894,48 +1881,230 @@ const AddPurchaseForm = () => {
                     </Box>
                   )}
                 </Grid> */}
-            </Grid>
           </Grid>
-          {/* Freight Charge */}
+        </Grid>
+        {/* Freight Charge */}
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px', mt: '16px' }}>
-            <Typography sx={{ fontSize: '16px', fontWeight: 500 }}>Freight Charges</Typography>
-            {showFreight ? (
-              <Icon
-                icon='fluent:subtract-circle-48-regular'
-                width='20px'
-                height='20px'
-                // margineTop={-2}
-                color={theme.palette.customColors.addPrimary}
-                onClick={() => setShowFreight(false)}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px', mt: '16px' }}>
+          <Typography sx={{ fontSize: '16px', fontWeight: 500 }}>Freight Charges</Typography>
+          {showFreight ? (
+            <Icon
+              icon='fluent:subtract-circle-48-regular'
+              width='20px'
+              height='20px'
+              // margineTop={-2}
+              color={theme.palette.customColors.addPrimary}
+              onClick={() => setShowFreight(false)}
+            />
+          ) : (
+            <Icon
+              icon='lets-icons:add-ring'
+              width='20px'
+              height='20px'
+              color={theme.palette.primary.main}
+              onClick={() => setShowFreight(true)}
+            />
+          )}
+        </Box>
+        <Grid container spacing={5}>
+          {/* Freight Charges Input */}
+
+          <Grid
+            item
+            size={{ xs: 12, sm: 4, md: 4, lg: 4 }}
+            sx={{
+              mt: showFreight ? '16px' : 0,
+              height: showFreight ? 'auto' : 0,
+              opacity: showFreight ? 1 : 0,
+              visibility: showFreight ? 'visible' : 'hidden',
+              transition: 'height 0.3s ease, opacity 0.3s ease, visibility 0.3s ease'
+            }}
+          >
+            <FormControl fullWidth>
+              <Controller
+                name='freight_charges'
+                control={control}
+                rules={{ required: true }}
+                defaultValue=''
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    type='text'
+                    name='freight_charges'
+                    // disabled={id ? true : false}
+                    label='Freight Charges'
+                    onChange={e => {
+                      field.onChange(e) // Update form state
+                      const freightCharges = e.target.value
+                      const gstPercent = getValues('freight_gst')
+                      const total = calculateFreightChargesWithGst(freightCharges, gstPercent)
+                      setTotalFreightCharges(total)
+                    }}
+                  />
+                )}
               />
-            ) : (
-              <Icon
-                icon='lets-icons:add-ring'
-                width='20px'
-                height='20px'
-                color={theme.palette.primary.main}
-                onClick={() => setShowFreight(true)}
+            </FormControl>
+          </Grid>
+
+          {/* GST Input */}
+          <Grid
+            item
+            size={{ xs: 12, sm: 4, md: 4, lg: 4 }}
+            sx={{
+              mt: showFreight ? '16px' : 0,
+              height: showFreight ? 'auto' : 0,
+              opacity: showFreight ? 1 : 0,
+              visibility: showFreight ? 'visible' : 'hidden',
+              transition: 'height 0.3s ease, opacity 0.3s ease, visibility 0.3s ease'
+            }}
+          >
+            <FormControl fullWidth>
+              <Controller
+                name='freight_gst'
+                control={control}
+                rules={{ required: true }}
+                defaultValue=''
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    type='text'
+                    name='freight_gst'
+                    // disabled={id ? true : false}
+                    label='GST %'
+                    onChange={e => {
+                      field.onChange(e) // Update form state
+                      const gstPercent = e.target.value
+                      const freightCharges = getValues('freight_charges')
+                      const total = calculateFreightChargesWithGst(freightCharges, gstPercent)
+                      setTotalFreightCharges(total)
+                    }}
+                  />
+                )}
               />
-            )}
-          </Box>
-          <Grid container spacing={5}>
-            {/* Freight Charges Input */}
+            </FormControl>
+          </Grid>
 
-            <Grid
-              item
-              size={{ xs: 12, sm: 4, md: 4, lg: 4 }}
+          <Grid
+            item
+            size={{ xs: 12, sm: 4, md: 4, lg: 4 }}
+            sx={{
+              mt: showFreight ? '16px' : 0,
+              height: showFreight ? 'auto' : 0,
+              opacity: showFreight ? 1 : 0,
+              visibility: showFreight ? 'visible' : 'hidden',
+              transition: 'height 0.3s ease, opacity 0.3s ease, visibility 0.3s ease'
+            }}
+          >
+            <Box
               sx={{
-                mt: showFreight ? '16px' : 0,
-                height: showFreight ? 'auto' : 0,
-                opacity: showFreight ? 1 : 0,
-                visibility: showFreight ? 'visible' : 'hidden',
-                transition: 'height 0.3s ease, opacity 0.3s ease, visibility 0.3s ease'
+                bgcolor: theme.palette.neutral05,
+                p: '16px',
+                bgcolor: theme.palette.customColors.neutral05,
+                borderRadius: '8px'
               }}
             >
-              <FormControl fullWidth>
+              <Typography sx={{ fontSize: '16px', fontWeight: 400 }}>
+                Total fright charge - {totalFreightCharges?.toFixed(2)}
+              </Typography>
+            </Box>
+          </Grid>
+
+          <Grid item size={{ xs: 12, sm: 12, md: 12, lg: 12 }}>
+            <Divider />
+          </Grid>
+
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <FormControl fullWidth>
+              <Controller
+                name='additional_charges'
+                control={control}
+                rules={{ required: true }}
+                defaultValue=''
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    type='text'
+                    name='additional_charges'
+                    // disabled={id ? true : false}
+                    // error={Boolean(errors.additional_charges)}
+                    label='Additional Charges'
+                    onChange={e => {
+                      const value = e.target.value
+
+                      // Check if the value is numeric
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        field.onChange(e) // Update form state with react-hook-form
+                        setAdditionalCharges(value) // Update local state with numeric value
+                      }
+                    }}
+                  />
+                )}
+              />
+            </FormControl>
+          </Grid>
+
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <FormControl fullWidth>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {/* Dropdown for "+" or "-" */}
+                <FormControl size='small' sx={{ width: '70px', height: '56px' }}>
+                  <Select
+                    labelId='roundup_select'
+                    value={roundup_select}
+                    sx={{
+                      width: '100%',
+                      height: '56px',
+                      borderTopRightRadius: 0,
+                      borderBottomRightRadius: 0,
+                      bgcolor: theme.palette.customColors.neutral05,
+                      color: theme.palette.customColors.OnPrimaryContainer, // Text value color
+                      '& .MuiSelect-icon': {
+                        color: theme.palette.customColors.OnPrimaryContainer // Dropdown icon color
+                      },
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderRight: '0' // Default: no right border
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderRight: '1px solid', // Show right border on hover
+                        borderColor: theme.palette.primary.main // Color of the border
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderRight: '2px solid', // Show right border on focus
+                        borderColor: theme.palette.primary.main // Color of the border when focused
+                      }
+                    }}
+                    onChange={handleRoundupChange}
+                  >
+                    <MenuItem value='+'>
+                      <Typography
+                        sx={{
+                          fontSize: '24px',
+                          // fontWeight: 500,
+                          mt: -1,
+                          color: theme.palette.customColors.OnPrimaryContainer
+                        }}
+                      >
+                        +
+                      </Typography>
+                    </MenuItem>
+                    <MenuItem value='-'>
+                      <Typography
+                        sx={{
+                          fontSize: '24px',
+                          // fontWeight: 500,
+                          mt: -1,
+                          color: theme.palette.customColors.OnPrimaryContainer
+                        }}
+                      >
+                        -
+                      </Typography>
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+
+                {/* TextField for Roundup Value */}
                 <Controller
-                  name='freight_charges'
+                  name='round_off'
                   control={control}
                   rules={{ required: true }}
                   defaultValue=''
@@ -1943,266 +2112,82 @@ const AddPurchaseForm = () => {
                     <TextField
                       {...field}
                       type='text'
-                      name='freight_charges'
-                      // disabled={id ? true : false}
-                      label='Freight Charges'
-                      onChange={e => {
-                        field.onChange(e) // Update form state
-                        const freightCharges = e.target.value
-                        const gstPercent = getValues('freight_gst')
-                        const total = calculateFreightChargesWithGst(freightCharges, gstPercent)
-                        setTotalFreightCharges(total)
-                      }}
-                    />
-                  )}
-                />
-              </FormControl>
-            </Grid>
-
-            {/* GST Input */}
-            <Grid
-              item
-              size={{ xs: 12, sm: 4, md: 4, lg: 4 }}
-              sx={{
-                mt: showFreight ? '16px' : 0,
-                height: showFreight ? 'auto' : 0,
-                opacity: showFreight ? 1 : 0,
-                visibility: showFreight ? 'visible' : 'hidden',
-                transition: 'height 0.3s ease, opacity 0.3s ease, visibility 0.3s ease'
-              }}
-            >
-              <FormControl fullWidth>
-                <Controller
-                  name='freight_gst'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type='text'
-                      name='freight_gst'
-                      // disabled={id ? true : false}
-                      label='GST %'
-                      onChange={e => {
-                        field.onChange(e) // Update form state
-                        const gstPercent = e.target.value
-                        const freightCharges = getValues('freight_charges')
-                        const total = calculateFreightChargesWithGst(freightCharges, gstPercent)
-                        setTotalFreightCharges(total)
-                      }}
-                    />
-                  )}
-                />
-              </FormControl>
-            </Grid>
-
-            <Grid
-              item
-              size={{ xs: 12, sm: 4, md: 4, lg: 4 }}
-              sx={{
-                mt: showFreight ? '16px' : 0,
-                height: showFreight ? 'auto' : 0,
-                opacity: showFreight ? 1 : 0,
-                visibility: showFreight ? 'visible' : 'hidden',
-                transition: 'height 0.3s ease, opacity 0.3s ease, visibility 0.3s ease'
-              }}
-            >
-              <Box
-                sx={{
-                  bgcolor: theme.palette.neutral05,
-                  p: '16px',
-                  bgcolor: theme.palette.customColors.neutral05,
-                  borderRadius: '8px'
-                }}
-              >
-                <Typography sx={{ fontSize: '16px', fontWeight: 400 }}>
-                  Total fright charge - {totalFreightCharges?.toFixed(2)}
-                </Typography>
-              </Box>
-            </Grid>
-
-            <Grid item size={{ xs: 12, sm: 12, md: 12, lg: 12 }}>
-              <Divider />
-            </Grid>
-
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='additional_charges'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type='text'
-                      name='additional_charges'
-                      // disabled={id ? true : false}
-                      // error={Boolean(errors.additional_charges)}
-                      label='Additional Charges'
+                      name='round_off'
+                      label='Roundup Value'
+                      fullWidth
                       onChange={e => {
                         const value = e.target.value
 
                         // Check if the value is numeric
                         if (/^\d*\.?\d*$/.test(value)) {
                           field.onChange(e) // Update form state with react-hook-form
-                          setAdditionalCharges(value) // Update local state with numeric value
+                          setRoundUpValue(e.target.value) // Update local state with numeric value
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          sx: {
+                            borderTopLeftRadius: 0,
+                            borderBottomLeftRadius: 0
+                          }
                         }
                       }}
                     />
                   )}
                 />
-              </FormControl>
-            </Grid>
+              </Box>
+            </FormControl>
+          </Grid>
 
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <FormControl fullWidth>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  {/* Dropdown for "+" or "-" */}
-                  <FormControl size='small' sx={{ width: '70px', height: '56px' }}>
-                    <Select
-                      labelId='roundup_select'
-                      value={roundup_select}
-                      sx={{
-                        width: '100%',
-                        height: '56px',
-                        borderTopRightRadius: 0,
-                        borderBottomRightRadius: 0,
-                        bgcolor: theme.palette.customColors.neutral05,
-                        color: theme.palette.customColors.OnPrimaryContainer, // Text value color
-                        '& .MuiSelect-icon': {
-                          color: theme.palette.customColors.OnPrimaryContainer // Dropdown icon color
-                        },
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderRight: '0' // Default: no right border
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderRight: '1px solid', // Show right border on hover
-                          borderColor: theme.palette.primary.main // Color of the border
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderRight: '2px solid', // Show right border on focus
-                          borderColor: theme.palette.primary.main // Color of the border when focused
-                        }
-                      }}
-                      onChange={handleRoundupChange}
-                    >
-                      <MenuItem value='+'>
-                        <Typography
-                          sx={{
-                            fontSize: '24px',
-                            // fontWeight: 500,
-                            mt: -1,
-                            color: theme.palette.customColors.OnPrimaryContainer
-                          }}
-                        >
-                          +
-                        </Typography>
-                      </MenuItem>
-                      <MenuItem value='-'>
-                        <Typography
-                          sx={{
-                            fontSize: '24px',
-                            // fontWeight: 500,
-                            mt: -1,
-                            color: theme.palette.customColors.OnPrimaryContainer
-                          }}
-                        >
-                          -
-                        </Typography>
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
-
-                  {/* TextField for Roundup Value */}
-                  <Controller
-                    name='round_off'
-                    control={control}
-                    rules={{ required: true }}
-                    defaultValue=''
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        type='text'
-                        name='round_off'
-                        label='Roundup Value'
-                        fullWidth
-                        onChange={e => {
-                          const value = e.target.value
-
-                          // Check if the value is numeric
-                          if (/^\d*\.?\d*$/.test(value)) {
-                            field.onChange(e) // Update form state with react-hook-form
-                            setRoundUpValue(e.target.value) // Update local state with numeric value
-                          }
-                        }}
-                        slotProps={{
-                          input: {
-                            sx: {
-                              borderTopLeftRadius: 0,
-                              borderBottomLeftRadius: 0
-                            }
-                          }
-                        }}
-                      />
-                    )}
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <FormControl fullWidth>
+              <Controller
+                name='description'
+                control={control}
+                defaultValue=''
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label='Comment'
+                    // onChange={e => {
+                    //   setEditParams({
+                    //     ...editParams,
+                    //     description: e.target.value
+                    //   })
+                    //   setErrors({})
+                    // }}
                   />
-                </Box>
-              </FormControl>
-            </Grid>
-
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='description'
-                  control={control}
-                  defaultValue=''
-                  rules={{ required: true }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label='Comment'
-                      // onChange={e => {
-                      //   setEditParams({
-                      //     ...editParams,
-                      //     description: e.target.value
-                      //   })
-                      //   setErrors({})
-                      // }}
-                    />
-                  )}
-                />
-                {errors.description && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
                 )}
-              </FormControl>
-            </Grid>
-          </Grid>
-        </CardContent>
-        <Divider sx={{ mx: '20px' }} />
-        <CardContent>
-          <Grid container>
-            <Grid
-              item
-              size={{ xs: 12, sm: 12 }}
-              sx={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                alignItems: 'center'
-              }}
-            >
-              <AddButton
-                title='Add Inventory Item'
-                action={() => {
-                  handlePurchaseSubmit()
-                }}
               />
-            </Grid>
+              {errors.description && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  This field is required
+                </FormHelperText>
+              )}
+            </FormControl>
           </Grid>
-        </CardContent>
+        </Grid>
+        <Divider
+          sx={{
+            my: '20px'
+          }}
+        />
+        <Grid container sx={{ display: 'flex', py: 5, justifyContent: 'flex-end'}}>
+          <Grid item size = {{xs: 12, sm: 'auto'}}>
+            <AddButton
+              title='Add Inventory Item'
+              action={() => {
+                handlePurchaseSubmit()
+              }}
+              styles={{
+                margin: 0,
+                 width: '100%'
+              }}
+            />
+          </Grid>
+        </Grid>
+
 
         {editParams.purchase_created_by === 'invoice_upload' && (
           <Typography sx={{ color: 'error.main', mx: 6, mb: 2 }}>
@@ -2211,7 +2196,7 @@ const AddPurchaseForm = () => {
         )}
         <Box
           sx={{
-            mx: '20px',
+            // mx: '20px',
             borderRadius: '8px',
             border: '1px solid',
             borderColor: theme?.palette?.customColors?.lightBg
@@ -2237,7 +2222,7 @@ const AddPurchaseForm = () => {
               }}
               aria-label='simple table'
             >
-              <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
+              <TableHead sx={{ backgroundColor: theme?.palette?.customColors?.tableHeaderBg  }}>
                 <TableRow>
                   <TableCell rowSpan={2} sx={{ minWidth: 20 }}>
                     SL.No
@@ -2854,7 +2839,11 @@ const AddPurchaseForm = () => {
         </Grid>
 
         <Grid item size={{ xs: 12 }}>
-          <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+          <Box 
+            sx={{ 
+              float: 'right', 
+              my: 4, 
+             }}>
             <LoadingButton
               // disabled={editParams.purchase_details.length > 0 && inputValue ? false : true}
               disabled={
@@ -2969,8 +2958,8 @@ const AddPurchaseForm = () => {
           setInvoiceUploadDialog(true)
         }}
       />
-    </Card>
-  )
+    </PageCardLayout>
+  );
 }
 
 export default AddPurchaseForm

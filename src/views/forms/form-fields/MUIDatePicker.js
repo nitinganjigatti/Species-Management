@@ -15,6 +15,7 @@ const locale = 'en' // e.g., 'fr', 'de', 'hi', etc.
 const MUIDatePicker = ({
   value,
   onChange,
+  onAccept,
   label = 'Select Date',
   minDate,
   maxDate,
@@ -24,7 +25,7 @@ const MUIDatePicker = ({
   error = false,
   helperText = '',
   sx = {},
-  size
+  size = 'medium'
 }) => {
   dayjs.locale(locale)
 
@@ -33,6 +34,7 @@ const MUIDatePicker = ({
       <DatePicker
         value={value}
         onChange={onChange}
+        onAccept={onAccept}
         label={label}
         disabled={disabled}
         views={views && views}
@@ -42,6 +44,7 @@ const MUIDatePicker = ({
         slotProps={{
           textField: {
             fullWidth: true,
+            size: size,
             error,
             helperText,
             size,

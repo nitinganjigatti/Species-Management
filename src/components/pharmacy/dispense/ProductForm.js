@@ -31,6 +31,7 @@ import { da } from 'date-fns/locale'
 import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
 import RenderUtility from 'src/utility/render'
+import BatchOption from 'src/views/pages/pharmacy/utility/BatchOption'
 
 function ProductForm({
   closeDialog,
@@ -875,7 +876,7 @@ function ProductForm({
 
         <Box sx={{ mb: 4 }}>
           <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '14px', fontWeight: 400 }}>
-            Dispense Quantity
+            Total Dispense Quantity: {totalQuantity}
           </Typography>
 
           {/* {totalQuantity > 0 && ( */}
@@ -884,7 +885,7 @@ function ProductForm({
               variant='body2'
               sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
             >
-              Total Dispense Quantity:{' '}
+              Total Dispense Price:{' '}
               <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
                 {/* {Utility.formatAmountToReadableDigit(watch('stock_id')?.unit_price)} */}
                 {Utility.formatAmountToReadableDigit(unitPrice * totalQuantity) || 0}
@@ -904,9 +905,9 @@ function ProductForm({
             }}
           >
             {fields.map((field, index) => (
-              <Grid container spacing={3} key={field?.id} sx={{ mb: 2, mt: 2 }}>
-                <Grid item size={{ xs: 12, sm: 12, md: 3.5 }}>
-                  <FormControl fullWidth sx={{ width: 'full', minWidth: 230 }}>
+              <Grid container spacing={2} key={field?.id} sx={{ mb: 2, mt: 3 }}>
+                <Grid item size={{ xs: 12, sm: 3.4, md: 3.5 }}>
+                  <FormControl fullWidth sx={{ width: 'full' }}>
                     <Controller
                       fullWidth
                       sx={{ width: '100%' }}
@@ -949,70 +950,10 @@ function ProductForm({
                             />
                           )}
                           renderOption={(props, option) => {
-                            const { key, ...otherProps } = props
 
                             return (
-                              <Box
-                                component='li'
-                                key={key}
-                                {...otherProps}
-                                sx={{
-                                  border: '1px solid transparent',
-                                  '&:last-child': {
-                                    borderBottom: 'none'
-                                  },
-                                  m: 3,
-                                  '&:hover': {
-                                    border: `1px solid ${theme.palette.customColors.neutral05}`
-                                  },
-                                  borderRadius: '2px'
-                                }}
-                              >
-                                <Box sx={{ p: 1 }}>
-                                  <Typography
-                                    variant='body2'
-                                    sx={{
-                                      color: 'customColors.customHeadingTextColor',
-                                      fontWeight: 600
-                                    }}
-                                  >
-                                    {option.label}
-                                  </Typography>
-                                  <Typography
-                                    variant='body2'
-                                    sx={{
-                                      color: 'customColors.neutralSecondary'
-                                    }}
-                                  >
-                                    Expiry Date: {Utility.formatDisplayDate(option?.expiry_date)}
-                                  </Typography>
-                                  <Typography
-                                    variant='body2'
-                                    sx={{
-                                      color: 'primary.main'
-                                    }}
-                                  >
-                                    Availability: {option?.qty}
-                                  </Typography>
-                                </Box>
-                              </Box>
-                            )
-                          }}
-                          slots={{
-                            paper: ({ children, ...props }) => (
-                              <Paper
-                                {...props}
-                                elevation={3}
-                                sx={{
-                                  mt: 1,
-                                  '& .MuiAutocomplete-listbox': {
-                                    p: 0,
-                                    maxHeight: '300px'
-                                  }
-                                }}
-                              >
-                                {children}
-                              </Paper>
+                              <BatchOption key={option.value} option={option} {...props} />
+
                             )
                           }}
                         />
@@ -1036,7 +977,7 @@ function ProductForm({
                     )}
                   </FormControl>
                 </Grid>
-                <Grid item size={{ xs: 12, sm: 12, md: 3.5 }}>
+                <Grid item size={{ xs: 12, sm: 3.4, md: 3.5 }}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].multiplier`}
@@ -1067,7 +1008,7 @@ function ProductForm({
                     />
                   </FormControl>
                 </Grid>
-                <Grid item size={{ xs: 12, sm: 12, md: 3.5 }}>
+                <Grid item size={{ xs: 12, sm: 3.4, md: 3.5 }}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].qty`}
@@ -1116,7 +1057,7 @@ function ProductForm({
                 </Grid>
                 <Grid
                   item
-                  size={{ xs: 12, sm: 12, md: 1.5 }}
+                  size={{ xs: 12, sm: 1.5, md: 1.5 }}
                   sx={{
                     display: 'flex',
                     justifyContent: { xs: 'flex-start', md: 'flex-end' },
@@ -1143,14 +1084,16 @@ function ProductForm({
               padding: 2,
               borderRadius: 1,
               display: 'flex',
-              flexDirection: { md: 'row', lg: 'row', sm: 'column', xs: 'column' },
+              flexDirection: { md: 'row', lg: 'row', sm: 'row', xs: 'column' },
 
               justifyContent: 'space-around',
 
-              alignItems: 'center'
+              alignItems: 'center',
+              mb: 2,
+              mt: 3
             }}
           >
-            <Grid item size={{ xs: 12, sm: 12, md: 3.5 }}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='batch_no'
@@ -1253,7 +1196,7 @@ function ProductForm({
                 />
               </FormControl>
             </Grid>
-            <Grid item size={{ xs: 12, sm: 12, md: 4 }}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='multiplier'
@@ -1278,7 +1221,7 @@ function ProductForm({
                 </Controller>
               </FormControl>
             </Grid>
-            <Grid item size={{ xs: 12, sm: 12, md: 4 }}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='qty'

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react'
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { Box, Button, Typography, CircularProgress } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import Search from 'src/views/utility/Search'
@@ -8,20 +8,37 @@ import { useRouter } from 'next/router'
 import ClinicalAssessmentCard from '../../../views/pages/hospital/inpatient/ClinicalAssessmentCard'
 import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
 import debounce from 'lodash/debounce'
-import { getClinicalAssessments, updateClinicalAssessment } from 'src/lib/api/hospital/clinicalAssessment'
+import {
+  deleteNote,
+  getClinicalAssessments,
+  getNotes,
+  updateClinicalAssessment,
+  updateNotes
+} from 'src/lib/api/hospital/clinicalAssessment'
 import EditClinicalAsmntDrawer from '../drawer/EditClinicalAsmntDrawer'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
 
 const PAGE_SIZE = 10
+const STORAGE_KEY = 'medical_record_data'
 
-const ClinicalAssessment = () => {
+const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const router = useRouter()
+  const { data } = useDynamicStateContext()
+  const { id, isCurrentMedicalRecordOnly } = router.query
+  const medicalRecordData = data[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [localSearch, setLocalSearch] = useState('')
-  const [currentRecordOnly, setCurrentRecordOnly] = useState(false)
+  const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true')
   const [records, setRecords] = useState([])
   const [tabCounts, setTabCounts] = useState({ Active: 0, Resolved: 0, All: 0 })
   const [total, setTotal] = useState(0)
@@ -32,19 +49,116 @@ const ClinicalAssessment = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isSubmitLoading, setIsSubmitLoading] = useState(false)
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false)
+  const [activityListData, setActivityListData] = useState()
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [noteRecord, setNoteRecord] = useState(null)
+  const [isNotesOpen, setIsNotesOpen] = useState(false)
+  const [activityLoader, setActivityLoader] = useState(false)
+  const [recordedDateTime, setRecordedDateTime] = useState(dayjs())
 
   const [clinicalAsmnt, setClinicalAsmnt] = useState('')
   const [prognosisVal, setPrognosisValue] = useState('')
   const [chronicVal, setChronicVal] = useState(false)
-  const [notes, setNotes] = useState('')
   const [status, setStatus] = useState('active')
+  const [notes, setNotes] = useState('')
   const [temporarilySelected, setTemporarilySelected] = useState(null)
 
-  const { id, animal_id, medical_record_id } = router.query
+  const animal_id = medicalRecordData?.animal_id
+  const medical_record_id = medicalRecordData?.medical_record_id
+  const isDischared = overviewData?.status === 'discharge'
 
   const theme = useTheme()
 
   const tabs = ['Active', 'Resolved', 'All']
+
+  const handleUpdateNotes = async newNotes => {
+    if (!selectedAssessment) return
+    setIsUpdating(true)
+
+    try {
+      const payload = {
+        main_id: selectedAssessment?.main_diagnosis_id,
+        med_id: selectedAssessment?.medical_record_id,
+        type: 'DIAGNOSIS',
+        note: notes || '',
+        note_id: noteRecord?.note_id || '',
+        hospital_case_id: id || ''
+      }
+      const response = await updateNotes(payload)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Notes updated successfully.' })
+        setNotes('')
+        setIsNotesOpen(false)
+        setNoteRecord(null)
+        setIsDrawerOpen(false)
+
+        fetchClinicalAssessments(1, searchQuery, getStatusFilter())
+
+        // Optionally refresh activity list
+        // const notesResponse = await getNotes({
+        //   entity: 'diagnosis',
+        //   medical_id: selectedAssessment?.medical_record_id,
+        //   record_id: selectedAssessment?.main_diagnosis_id
+        // })
+        // if (notesResponse?.success) {
+        //   setActivityListData(notesResponse?.data || [])
+        // }
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to update notes.' })
+      }
+    } catch (error) {
+      console.error('Error updating notes:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleDeleteNotes = async () => {
+    if (!selectedAssessment) return
+    setIsDeleting(true)
+
+    try {
+      const payload = {
+        entity: 'diagnosis',
+        medical_id: selectedAssessment?.medical_record_id,
+        record_id: selectedAssessment?.main_diagnosis_id
+      }
+      const response = await deleteNote(noteRecord?.note_id, payload)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Notes deleted successfully.' })
+        setNotes('')
+        setIsNotesOpen(false)
+        setNoteRecord(null)
+        setIsDrawerOpen(false)
+
+        fetchClinicalAssessments(1, searchQuery, getStatusFilter())
+
+        // Optionally refresh activity list
+        // const notesResponse = await getNotes({
+        //   entity: 'diagnosis',
+        //   medical_id: selectedAssessment?.medical_record_id,
+        //   record_id: selectedAssessment?.main_diagnosis_id
+        // })
+        // if (notesResponse?.success) {
+        //   setActivityListData(notesResponse?.data || [])
+        // }
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to delete notes.' })
+      }
+    } catch (error) {
+      console.error('Error deleting notes:', error)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleEditNoteClick = item => {
+    setNoteRecord(item)
+    setNotes(item?.note || '')
+  }
 
   // Debounced search
   const debouncedSearch = useRef(
@@ -82,13 +196,15 @@ const ClinicalAssessment = () => {
           medical_type: 'diagnosis',
           page_no: pageNum,
           limit: PAGE_SIZE,
+          animal_id: animal_id || '',
+          hospital_case_id: id || '',
           q: search,
           medical_record_id: currentRecordOnly && medical_record_id ? medical_record_id : ''
         })
 
         if (res.success) {
           const newItems = res.data?.result || []
-          const totalCount = parseInt(res.data?.totalMedicalRecordCount || 0)
+          const totalCount = parseInt(res.data?.total_count || 0)
 
           setTotal(totalCount)
           setTabCounts({
@@ -99,7 +215,7 @@ const ClinicalAssessment = () => {
           setRecords(prev => (pageNum === 1 ? newItems : [...prev, ...newItems]))
           setHasMore(newItems.length === PAGE_SIZE)
         } else {
-          throw new Error(res.message || 'Failed to fetch clinical assessments')
+          console.error(res.message || 'Failed to fetch clinical assessments')
         }
       } catch (error) {
         console.error('Error fetching clinical assessments:', error)
@@ -110,7 +226,7 @@ const ClinicalAssessment = () => {
         setIsLoading(false)
       }
     },
-    [currentRecordOnly, id]
+    [currentRecordOnly, id, animal_id]
   )
 
   // Load more function for infinite scroll
@@ -127,16 +243,70 @@ const ClinicalAssessment = () => {
 
   // Fetch data when tab, search, or currentRecordOnly changes
   useEffect(() => {
-    fetchClinicalAssessments(1, searchQuery, getStatusFilter())
-  }, [searchQuery, currentTab, currentRecordOnly, fetchClinicalAssessments, getStatusFilter])
+    if (animal_id) fetchClinicalAssessments(1, searchQuery, getStatusFilter())
+  }, [searchQuery, currentTab, currentRecordOnly, fetchClinicalAssessments, getStatusFilter, animal_id])
 
   const handleTabChange = newValue => {
     setCurrentTab(newValue)
     setPage(1)
-    setRecords([])
+
+    //setRecords([])
   }
 
   const filteredRecords = records
+
+  const assessmentChangeState = useMemo(() => {
+    if (!selectedAssessment) {
+      return {
+        isClinicalAsmntChanged: false,
+        isPrognosisChanged: false,
+        isChronicChanged: false,
+        isStatusChanged: false,
+        isNotesChanged: false,
+        // isRecordedDateTimeChanged: false,
+        hasChanges: false
+      }
+    }
+
+    const isDiagnosis = clinicalAsmnt?.toLowerCase() === 'diagnosis'
+    const initialRecordedDateTime =
+      selectedAssessment?.additional_info?.recorded_date_time || selectedAssessment?.created_at || null
+
+    const isClinicalAsmntChanged =
+      clinicalAsmnt?.toLowerCase() !== selectedAssessment?.clinical_assessment?.toLowerCase()
+
+    const isPrognosisChanged = isDiagnosis
+      ? prognosisVal?.toLowerCase() !== selectedAssessment?.additional_info?.prognosis?.toLowerCase()
+      : false
+
+    const isChronicChanged = isDiagnosis ? chronicVal !== selectedAssessment?.additional_info?.isChronic : false
+
+    const isStatusChanged = status?.toLowerCase() !== selectedAssessment?.additional_info?.status?.toLowerCase()
+
+    const isNotesChanged = (notes || '').trim() !== (selectedAssessment?.additional_info?.note || '').trim()
+
+    // const isRecordedDateTimeChanged = initialRecordedDateTime
+    //   ? !dayjs(recordedDateTime).isSame(dayjs.utc(initialRecordedDateTime).local(), 'second')
+    //   : false
+
+    const hasChanges =
+      isClinicalAsmntChanged ||
+      isPrognosisChanged ||
+      isChronicChanged ||
+      isStatusChanged ||
+      isNotesChanged
+      // || isRecordedDateTimeChanged
+
+    return {
+      isClinicalAsmntChanged,
+      isPrognosisChanged,
+      isChronicChanged,
+      isStatusChanged,
+      isNotesChanged,
+      // isRecordedDateTimeChanged,
+      hasChanges
+    }
+  }, [selectedAssessment, clinicalAsmnt, prognosisVal, chronicVal, status, notes, recordedDateTime])
 
   // Get count based on current tab
   const getTabCount = currentTab => {
@@ -152,14 +322,17 @@ const ClinicalAssessment = () => {
     }
   }
 
-  const handleAssessmentClick = assessment => {
-    setSelectedAssessment(assessment)
+  const handleAssessmentClick = async assessment => {
+    setSelectedAssessment({
+      ...assessment,
+      additional_info: { ...assessment.additional_info, isChronic: assessment.additional_info.isChronic ? 'Yes' : 'No' }
+    })
     setTemporarilySelected(assessment)
     setClinicalAsmnt(assessment?.additional_info?.clinical_assessment || 'primary')
     setPrognosisValue(
       assessment?.additional_info?.prognosis
         ? Utility.capitalizeFirstLetter(assessment.additional_info.prognosis)
-        : 'Good'
+        : 'Favourable'
     )
     setChronicVal(assessment?.additional_info?.isChronic ? 'Yes' : 'No')
     setNotes(assessment?.additional_info?.note || '')
@@ -167,20 +340,79 @@ const ClinicalAssessment = () => {
       assessment?.additional_info?.status ? Utility.capitalizeFirstLetter(assessment.additional_info.status) : 'Active'
     )
     setIsDrawerOpen(true)
+    try {
+      setActivityLoader(true)
+
+      const params = {
+        entity: 'diagnosis',
+        medical_id: assessment?.medical_record_id || '',
+        record_id: assessment?.main_diagnosis_id || ''
+      }
+
+      const response = await getNotes(params)
+
+      if (response?.success) {
+        setActivityListData(response?.data || [])
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to fetch notes.' })
+      }
+    } catch (error) {
+      console.error('Error fetching notes for symptom:', error)
+      Toaster({ type: 'error', message: 'An error occurred while fetching notes.' })
+    } finally {
+      setActivityLoader(false)
+    }
   }
 
   const updateAssessment = async () => {
+    const {
+      isClinicalAsmntChanged,
+      isPrognosisChanged,
+      isChronicChanged,
+      isStatusChanged,
+      isNotesChanged,
+      hasChanges
+    } = assessmentChangeState
+
+    if (!hasChanges) return
+
+    // Set is_system_generated to true if any value has changed
+    const isSystemGenerated = isClinicalAsmntChanged || isPrognosisChanged || isChronicChanged || isStatusChanged
+
+    // Base payload with required fields
     const payload = {
-      main_id: selectedAssessment?.id || '',
-      med_id: medical_record_id || '',
-      type: clinicalAsmnt?.toUpperCase() || '',
-      is_system_generated: false,
+      main_id: selectedAssessment?.main_diagnosis_id || '',
+      med_id: selectedAssessment?.medical_record_id || '',
+      type: 'DIAGNOSIS',
+      is_system_generated: isSystemGenerated,
       animal_id: animal_id || '',
-      note: notes || '',
-      clinical_assessment: clinicalAsmnt?.toLowerCase() || '',
-      prognosis: prognosisVal.toLowerCase() || 'good',
-      isChronic: chronicVal === 'Yes',
-      status: status?.toLowerCase() || ''
+      hospital_case_id: id || '',
+      recorded_date_time: recordedDateTime.format('YYYY-MM-DD HH:mm:ss')
+    }
+
+    // Only add clinical_assessment if changed
+    if (isClinicalAsmntChanged) {
+      payload.clinical_assessment = clinicalAsmnt?.toLowerCase() || ''
+    }
+
+    // Only add prognosis if changed and clinical assessment is diagnosis
+    if (isPrognosisChanged && clinicalAsmnt?.toLowerCase() === 'diagnosis') {
+      payload.prognosis = prognosisVal.toLowerCase()
+    }
+
+    // Only add chronic if changed and clinical assessment is diagnosis
+    if (isChronicChanged && clinicalAsmnt?.toLowerCase() === 'diagnosis') {
+      payload.chronic = chronicVal === 'Yes' ? 1 : 0
+    }
+
+    // Only add status if changed
+    if (isStatusChanged) {
+      payload.status = status?.toLowerCase() === 'inactive' ? 'resolved' : 'active'
+    }
+
+    // Only add note if changed
+    if (isNotesChanged) {
+      payload.note = notes || ''
     }
 
     setIsSubmitLoading(true)
@@ -194,154 +426,197 @@ const ClinicalAssessment = () => {
         setIsDrawerOpen(false)
         setIsSaveDialogOpen(false)
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Something went wrong' }) // TODO: Replace with actual error message
+        Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
       }
     } catch (error) {
       console.error('Submit Error:', error)
-      Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' }) // TODO: Replace with actual error message
+      Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' })
     } finally {
       setIsSubmitLoading(false)
     }
   }
 
+  const handleRouterNavigation = () => {
+    if (category === 'Outpatients') {
+      router.push({
+        pathname: `/hospital/outpatient/${id}/add-clinical-assessment`
+      })
+    } else {
+      router.push({
+        pathname: `/hospital/inpatient/${id}/add-clinical-assessment`
+      })
+    }
+  }
+
+  const handleRecordOnlyChange = e => {
+    setRecords([])
+    setPage(1)
+    setCurrentRecordOnly(e.target.checked)
+
+    // Update URL query parameter
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, isCurrentMedicalRecordOnly: e.target.checked }
+      },
+      undefined,
+      { shallow: true } // Prevents full page refresh
+    )
+  }
+
   return (
-    <Box>
+    <Box sx={{ mt: 6 }}>
       {/* Header with Tabs and Controls */}
-      <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mt: 6,
-            flexWrap: 'wrap',
-            rowGap: 4
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box
-              sx={{
-                flex: '1 1 auto',
-                minWidth: 0,
-                overflowX: 'auto',
-                scrollbarColor: 'transparent transparent',
-                columnGap: 4
-              }}
-            >
-              <Box sx={{ display: 'inline-flex', gap: 3, pr: 1, alignItems: 'center' }}>
-                {tabs.map(tab => (
-                  <Box
-                    key={tab}
-                    onClick={() => handleTabChange(tab)}
-                    sx={{
-                      flexShrink: 0,
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      px: '16px',
-                      py: '8px',
-                      borderRadius: '8px',
-                      backgroundColor:
-                        currentTab === tab ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <Typography
+      {tabCounts?.All !== 0 || searchQuery.trim().length > 0 ? (
+        <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              rowGap: 4
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box
+                sx={{
+                  flex: '1 1 auto',
+                  minWidth: 0,
+                  overflowX: 'auto',
+                  scrollbarColor: 'transparent transparent',
+                  columnGap: 4
+                }}
+              >
+                <Box sx={{ display: 'inline-flex', gap: 3, pr: 1, alignItems: 'center' }}>
+                  {tabs.map(tab => (
+                    <Box
+                      key={tab}
+                      onClick={() => handleTabChange(tab)}
                       sx={{
-                        color:
-                          currentTab === tab
-                            ? theme.palette.primary.contrastText
-                            : theme.palette.customColors.neutralPrimary,
-                        whiteSpace: 'nowrap'
+                        flexShrink: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        px: '16px',
+                        py: '8px',
+                        borderRadius: '8px',
+                        backgroundColor:
+                          currentTab === tab ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
+                        cursor: 'pointer'
                       }}
                     >
-                      {`${tab} ${
-                        tab === 'Active'
-                          ? ` - ${getTabCount('Active')}`
-                          : tab === 'Resolved'
-                          ? ` - ${getTabCount('Resolved')}`
-                          : tab === 'All'
-                          ? ` - ${getTabCount('All')}`
-                          : ''
-                      }`}
-                    </Typography>
-                  </Box>
-                ))}
+                      <Typography
+                        sx={{
+                          color:
+                            currentTab === tab
+                              ? theme.palette.primary.contrastText
+                              : theme.palette.customColors.neutralPrimary,
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {`${tab} ${
+                          tab === 'Active'
+                            ? ` - ${getTabCount('Active')}`
+                            : tab === 'Resolved'
+                            ? ` - ${getTabCount('Resolved')}`
+                            : tab === 'All'
+                            ? ` - ${getTabCount('All')}`
+                            : ''
+                        }`}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
               </Box>
             </Box>
-          </Box>
 
-          <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Search
-              value={localSearch}
-              onChange={e => {
-                const value = e.target.value
-                setLocalSearch(value)
-                debouncedSearch(value)
-              }}
-              onClear={() => {
-                setLocalSearch('')
-                debouncedSearch('')
-              }}
+            <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+              <Search
+                value={localSearch}
+                onChange={e => {
+                  const value = e.target.value
+                  setLocalSearch(value)
+                  debouncedSearch(value)
+                }}
+                onClear={() => {
+                  setLocalSearch('')
+                  debouncedSearch('')
+                }}
+              />
+              {!isDischared && (
+                <Button variant='contained' startIcon={<AddIcon />} onClick={handleRouterNavigation}>
+                  ADD NEW
+                </Button>
+              )}
+            </Box>
+          </Box>
+          <Box>
+            <MUISwitch
+              label='Current Medical Record Only'
+              checked={currentRecordOnly}
+              onChange={handleRecordOnlyChange}
+              size='small'
+              sx={{ ml: 2.6 }}
             />
-            <Button
-              variant='contained'
-              startIcon={<AddIcon />}
-              onClick={() =>
-                router.push(
-                  `/hospital/inpatient/${id}/add-clinical-assessment?animalId=${animal_id}&medicalRecordId=${medical_record_id}`
-                )
-              }
-            >
-              ADD NEW
-            </Button>
           </Box>
         </Box>
-
-        <MUISwitch
-          label='Current Medical Record Only'
-          checked={currentRecordOnly}
-          onChange={e => setCurrentRecordOnly(e.target.checked)}
-          size='small'
-          sx={{ ml: 2.6 }}
-        />
-      </Box>
+      ) : !isLoading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <MUISwitch
+            label='Current Medical Record Only'
+            checked={currentRecordOnly}
+            onChange={handleRecordOnlyChange}
+            size='small'
+            sx={{ ml: 2.6 }}
+          />
+        </Box>
+      ) : null}
 
       {/* Records List */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {filteredRecords.map((record, index) => (
+        {/* Loading State */}
+        {isLoading && (filteredRecords?.length === 0 || !hasMore) && <ClinicalAssessmentShimmer count={5} />}
+        {filteredRecords?.map((record, index) => (
           <ClinicalAssessmentCard
             key={record.id || index}
             record={record}
-            isDifferential={record.clinical_assessment === 'differential'}
+            patientData={patientData}
+            isDifferential={record.clinical_assessment === 'tentative'}
             isResolved={record.additional_info?.status === 'closed'}
-            handleClick={() => handleAssessmentClick(record)}
+            isDischared={isDischared}
+            handleClick={() => (isDischared ? null : handleAssessmentClick(record))}
           />
         ))}
 
-        {/* Loading State */}
-        {isLoading && filteredRecords.length === 0 && (
-          <Box display='flex' justifyContent='center' py={4}>
-            <CircularProgress />
-          </Box>
-        )}
-
         {/* Infinite Scroll Loader */}
         {(isLoading || hasMore) && filteredRecords.length > 0 && (
-          <Box ref={loaderRef} display='flex' justifyContent='center' py={2}>
-            <CircularProgress />
+          <Box ref={loaderRef}>
+            <ClinicalAssessmentShimmer count={1} />
           </Box>
         )}
 
         {/* Empty State */}
         {!isLoading && filteredRecords.length === 0 && (
-          <Typography sx={{ textAlign: 'center', mt: 4, color: theme.palette.text.secondary }}>
-            No clinical assessments found
-          </Typography>
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          >
+            <NoMedicalData
+              btnText={'ADD NEW CLINICAL ASSESSMENT'}
+              text={'All Added Clinical Assessments Will Appear here'}
+              isDischarged={isDischared}
+              btnAction={handleRouterNavigation}
+            />
+          </Box>
         )}
 
         {/* End of List */}
-        {!hasMore && filteredRecords.length > 0 && (
+        {!hasMore && filteredRecords.length > 10 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
             No more assessments to load
           </Typography>
@@ -362,7 +637,20 @@ const ClinicalAssessment = () => {
           status={status}
           setStatus={setStatus}
           setNotes={setNotes}
-          onSave={() => setIsSaveDialogOpen(true)}
+          isSubmitLoading={isSubmitLoading}
+          onSave={updateAssessment}
+          activityListData={activityListData}
+          activityLoader={activityLoader}
+          isDeleting={isDeleting}
+          isUpdating={isUpdating}
+          handleUpdateNotes={handleUpdateNotes}
+          handleDeleteNotes={handleDeleteNotes}
+          handleEditNoteClick={handleEditNoteClick}
+          isNotesOpen={isNotesOpen}
+          setIsNotesOpen={setIsNotesOpen}
+          recordedDateTime={recordedDateTime}
+          setRecordedDateTime={setRecordedDateTime}
+          isChanged={assessmentChangeState.hasChanges}
         />
       )}
 

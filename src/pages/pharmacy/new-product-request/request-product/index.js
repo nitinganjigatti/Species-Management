@@ -269,7 +269,6 @@ export default function AddProduct() {
       ]
     }
 
-
     let response
 
     try {
@@ -284,7 +283,6 @@ export default function AddProduct() {
         const toastMessage = id ? 'Product Updated Successfully' : 'New Product Created Successfully'
         toast.success(toastMessage)
         router.back()
-
       } else {
         setSubmitLoader(false)
       }
@@ -303,7 +301,6 @@ export default function AddProduct() {
       setConfirmationBox(true)
     } else {
       router.back()
-
     }
   }
 
@@ -434,8 +431,6 @@ export default function AddProduct() {
       handleCancelDialogBox()
     } else {
       router.back()
-
-    
     }
   }
 
@@ -453,8 +448,6 @@ export default function AddProduct() {
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
                       isDirty || imgSrcChange || previousPrescriptionLength ? handleCancelDialogBox() : router.back()
-
-                  
                     }}
                     icon='ep:back'
                   />
@@ -540,9 +533,13 @@ export default function AddProduct() {
                       </FormControl>
                     </Grid>
                   </Grid>
-                  <Grid container size={{ xs: 12 }} sx={{
-                    mt: 4
-                  }}>
+                  <Grid
+                    container
+                    size={{ xs: 12 }}
+                    sx={{
+                      mt: 4
+                    }}
+                  >
                     <Grid container spacing={6}>
                       {
                         <Grid item size={{ xs: 12, sm: 6 }}>
@@ -673,9 +670,9 @@ export default function AddProduct() {
                           <Box
                             sx={{
                               display: 'flex',
-                              alignItems: 'center', 
-                              flexWrap: 'wrap', 
-                              gap: 2 
+                              alignItems: 'center',
+                              flexWrap: 'wrap',
+                              gap: 2
                             }}
                           >
                             <img
@@ -692,8 +689,8 @@ export default function AddProduct() {
 
                             <Typography
                               sx={{
-                                marginTop: { xs: '8px', sm: 0 }, 
-                                wordBreak: 'break-word' 
+                                marginTop: { xs: '8px', sm: 0 },
+                                wordBreak: 'break-word'
                               }}
                             >
                               {responseImage ? responseImage.slice(-10) : displayFile}
@@ -702,7 +699,7 @@ export default function AddProduct() {
                             <Box
                               sx={{
                                 cursor: 'pointer',
-                                marginTop: { xs: '8px', sm: 0 } 
+                                marginTop: { xs: '8px', sm: 0 }
                               }}
                             >
                               <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()} />
@@ -711,13 +708,11 @@ export default function AddProduct() {
                         )}
 
                         <Grid
-                          item
-                          size={{ xs: 12, sm: 12 }}
                           sx={{
                             position: 'relative',
-                            width: { xs: '100%', sm: '300px' }, 
-                            height: '50px'
-
+                            width: { xs: '100%', sm: '300px' },
+                            height: '50px',
+                            my: 2
                           }}
                         >
                           <input
@@ -778,13 +773,11 @@ export default function AddProduct() {
                         <Typography sx={{ mb: 4 }}>Prescription Images</Typography>
                         <Grid
                           item
-                          size={{ xs: 12, sm: 12 }}
                           sx={{
                             position: 'relative',
-                            width: '300px', 
-                            height: '50px', 
-                          
-                            marginTop: '20px'
+                            width: '300px',
+                            height: '50px',
+                            my: 2
                           }}
                         >
                           <input
@@ -797,9 +790,9 @@ export default function AddProduct() {
                               position: 'absolute',
                               top: 0,
                               left: 0,
-                              width: '100%', 
+                              width: '100%',
                               height: '100%',
-                              opacity: 0, 
+                              opacity: 0,
                               cursor: 'pointer',
                               zIndex: 2
                             }}
@@ -808,10 +801,10 @@ export default function AddProduct() {
                             styles={{
                               position: 'absolute',
                               top: '0px',
-                              left: '10px', 
-                              width: '100%', 
-                              height: '100%', 
-                              zIndex: 1 
+                              left: '10px',
+                              width: '100%',
+                              height: '100%',
+                              zIndex: 1
                             }}
                             title='Add Prescription'
                           />
@@ -839,10 +832,11 @@ export default function AddProduct() {
                       display: 'flex',
                       justifyContent: 'flex-end',
                       alignItems: 'center'
-                    }}>
+                    }}
+                  >
                     {id && (
                       <Button
-                        styles={{ color: theme.palette.error.dark, border: '1px solid red', margin: '5px' }}
+                        styles={{ color: theme.palette.error.dark, margin: '5px' }}
                         onClick={() => handleCancelChange()}
                         size='large'
                         variant='outlined'
@@ -873,5 +867,5 @@ export default function AddProduct() {
         </>
       )}
     </>
-  );
+  )
 }

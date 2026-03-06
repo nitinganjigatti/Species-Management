@@ -54,6 +54,14 @@ export const axiosFormPost = async ({ url, body, pharmacy }) => {
   return axios.post(completeUrl, body, { headers })
 }
 
+export const axiosDelete = async ({ url, params, pharmacy }) => {
+  const headers = await GetAPIHeader({ pharmacy })
+  const completeUrl = `${base_url}${url}`
+  headers['Content-Type'] = 'application/json'
+
+  return axios.delete(completeUrl, { headers: headers, params: params })
+}
+
 export const axiosGetExternal = async ({ url, params, pharmacy }) => {
   const headers = await GetAPIHeader({ pharmacy })
   const completeUrl = `https://mocki.io/v1/${url}`

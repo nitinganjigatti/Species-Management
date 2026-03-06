@@ -1,28 +1,13 @@
 import { useTheme } from '@emotion/react'
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CircularProgress,
-  FormControlLabel,
-  Grid,
-  InputAdornment,
-  Switch,
-  TextField,
-  Tooltip,
-  Typography
-} from '@mui/material'
+import { Grid, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { getReturnReport } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
-import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
-import Icon from 'src/@core/components/icon'
+
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { debounce } from 'lodash'
 import ReturnReportDrawer from 'src/views/pages/pharmacy/reports/ReturnReportDrawer'
@@ -31,6 +16,10 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import ReportsPageSkeleton from 'src/views/utility/SkeletonLoading/ReportsPageSkeleton'
 
 const ReturnReport = () => {
   const router = useRouter()
@@ -57,6 +46,7 @@ const ReturnReport = () => {
   const [expired, setExpired] = useState(false)
   const [pharmacyList, setPharmacyList] = useState([])
   const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
 
   const [selectedOptions, setSelectedOptions] = useState({
     Pharmacy: [],
@@ -176,9 +166,13 @@ const ReturnReport = () => {
           }
         })
         setLoading(false)
+        setPageLoading
       } catch (e) {
         console.log(e)
         setLoading(false)
+        setPageLoading
+      } finally {
+        setPageLoading(false)
       }
     },
     [paginationModel, filterDates, filteredData]
@@ -243,8 +237,7 @@ const ReturnReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.return_number}
@@ -263,8 +256,7 @@ const ReturnReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.shipment_id}
@@ -304,8 +296,7 @@ const ReturnReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.batch_no}
@@ -324,8 +315,7 @@ const ReturnReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params.row.expiry_date)}
@@ -344,8 +334,7 @@ const ReturnReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params.row.return_date)}
@@ -365,8 +354,7 @@ const ReturnReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row?.return_qty ? Utility.formatNumber(params.row.return_qty) : 0}
@@ -387,8 +375,7 @@ const ReturnReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatAmountToReadableDigit(params.row.net_unit_price)}
@@ -409,8 +396,7 @@ const ReturnReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatAmountToReadableDigit(params.row.return_value)}
@@ -429,8 +415,7 @@ const ReturnReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {selectedPharmacy?.type === 'central' ? params.row.from_store : params.row.to_store}
@@ -451,7 +436,7 @@ const ReturnReport = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
+
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -480,7 +465,6 @@ const ReturnReport = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -625,17 +609,15 @@ const ReturnReport = () => {
   }
 
   const headerAction = (
-    <div>
-      <Grid item>
-        <FormControlLabel
-          control={
-            <Switch sx={{ mr: { sm: 5 }, mt: { xs: 1, sm: 1 } }} checked={expired} onChange={handleSwitchChange} />
-          }
-          labelPlacement='start'
-          label='Expired'
-        />
-      </Grid>
-    </div>
+    <MUISwitch
+      label='Expired'
+      labelPlacement='start'
+      defaultChecked={expired}
+      onChange={handleSwitchChange}
+      formControlStyle={{
+        margin: 0
+      }}
+    />
   )
 
   const handleExport = async () => {
@@ -728,24 +710,10 @@ const ReturnReport = () => {
 
   return (
     <>
-      <Card>
-        <CardHeader
-          sx={{
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 2,
-            [theme.breakpoints.down('sm')]: {
-              flexDirection: 'row',
-              justifyContent: 'space-between'
-            }
-          }}
-          title={RenderUtility.pageTitle('Return Report')}
-          action={headerAction}
-        />
-        <CardContent sx={{ paddingTop: '4px' }}>
+      {pageLoading ? (
+        <ReportsPageSkeleton ReturnReportPage />
+      ) : (
+        <PageCardLayout title={'Return Report'} action={headerAction}>
           <Box
             sx={{
               display: 'flex',
@@ -770,29 +738,11 @@ const ReturnReport = () => {
                   }}
                 >
                   <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
-                    <TextField
-                      variant='outlined'
-                      size='small'
+                    <MUISearch
                       placeholder='Search...'
                       value={searchValue}
                       onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        borderRadius: '8px'
-                      }}
-                      slotProps={{
-                        input: {
-                          startAdornment: (
-                            <InputAdornment position='start'>
-                              <Icon
-                                icon='mi:search'
-                                fontSize={24}
-                                color={theme.palette.customColors.neutralSecondary}
-                              />
-                            </InputAdornment>
-                          )
-                        }
-                      }}
+                      onClear={() => handleSearch('')}
                     />
                   </Grid>
 
@@ -805,7 +755,11 @@ const ReturnReport = () => {
                       justifyContent: 'flex-end'
                     }}
                   >
-                    <ExportButton loading={loading || exportLoading} onClick={handleExport} />
+                    <ExportButton
+                      loading={loading || exportLoading}
+                      onClick={handleExport}
+                      disabled={total === 0 ? true : false}
+                    />
                     <FilterButton onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={appliedFiltersCount} />
                   </Grid>
                 </Grid>
@@ -838,8 +792,8 @@ const ReturnReport = () => {
               handleSortModel={handleSortModel}
             />
           </Grid>
-        </CardContent>
-      </Card>
+        </PageCardLayout>
+      )}
       {openFilterDrawer && (
         <ReturnReportDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}

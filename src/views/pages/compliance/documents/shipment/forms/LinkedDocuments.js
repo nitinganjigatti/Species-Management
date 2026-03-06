@@ -6,7 +6,8 @@ import { useTheme } from '@mui/material/styles'
 const SectionBlock = ({ title, type, data }) => {
   const [expanded, setExpanded] = useState(false)
   const theme = useTheme()
-  return (
+  
+return (
     <Box
       sx={{
         border: `1px solid ${theme.palette.customColors.OutlineVariant}`,

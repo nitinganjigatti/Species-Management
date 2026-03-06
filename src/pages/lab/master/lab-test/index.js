@@ -398,6 +398,27 @@ const LabTest = () => {
 
                 '& .MuiDataGrid-row:hover': {
                   cursor: 'pointer'
+                },
+                // Header styling - match theme
+                '& .MuiDataGrid-columnHeaders': {
+                  backgroundColor: theme.palette.customColors.customTableHeaderBg,
+                  color: theme.palette.customColors.customHeadingTextColor,
+                  minHeight: '56px !important',
+                  maxHeight: '56px !important'
+                },
+                '& .MuiDataGrid-columnHeader': {
+                  backgroundColor: theme.palette.customColors.customTableHeaderBg,
+                  color: theme.palette.customColors.customHeadingTextColor
+                },
+                '& .MuiDataGrid-columnHeaderTitle': {
+                  color: theme.palette.customColors.customHeadingTextColor,
+                  fontWeight: 500
+                },
+                // Cell alignment - vertically center content
+                '& .MuiDataGrid-cell': {
+                  display: 'flex',
+                  alignItems: 'center',
+                  lineHeight: 'normal'
                 }
               }}
               columnVisibilityModel={{
@@ -430,7 +451,7 @@ const LabTest = () => {
                 }
               }}
               onCellClick={handleCellClick}
-            />
+              showToolbar />
           </Card>
           {openDrawer && (
             <AddLabTest
@@ -463,7 +484,7 @@ const LabTest = () => {
         <Error404></Error404>
       )}
     </>
-  )
+  );
 }
 
 export default LabTest

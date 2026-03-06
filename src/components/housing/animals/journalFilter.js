@@ -15,7 +15,7 @@ import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 
 const JournalFilterSheet = ({
@@ -130,7 +130,8 @@ const JournalFilterSheet = ({
             if (activeCategory === 'Categories') {
                 return option?.categoryName?.toLowerCase().includes(searchValue.toLowerCase())
             }
-            return true
+            
+return true
         }) || []
 
 
@@ -321,6 +322,7 @@ const JournalFilterSheet = ({
                                                 <Box onClick={() => handleToggleOption(option.categoryId, activeCategory)} key={index} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', mb: 2 }}>
                                                     <Checkbox
                                                         checked={(selectedOptions[activeCategory] || []).includes(option.categoryId)}
+
                                                     // onChange={() => handleToggleOption(option.categoryId, activeCategory)}
                                                     />
                                                     <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
@@ -378,7 +380,7 @@ const JournalFilterSheet = ({
                 </LoadingButton>
             </Box>
         </Drawer>
-    )
+    );
 }
 
 export default JournalFilterSheet

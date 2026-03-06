@@ -352,6 +352,7 @@ const DashboardFilter = ({
                           disableUnderline: false
                         }
                       }}
+
                       // InputProps={{
                       //   disableUnderline: false
                       // }}
@@ -397,6 +398,7 @@ const DashboardFilter = ({
                             'aria-label': 'controlled'
                           }
                         }}
+
                         //inputProps={{ 'aria-label': 'controlled' }}
                       />
                       <Typography

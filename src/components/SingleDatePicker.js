@@ -34,7 +34,7 @@ const SingleDatePicker = ({
     <DatePickerWrapper>
       <DatePicker
         disabled={disabled ? disabled : null}
-        showIcon
+        // showIcon
         selected={date}
         dateFormat={dateFormat}
         id='form-layouts-separator-date'

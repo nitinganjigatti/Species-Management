@@ -211,7 +211,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
                   )}
                 </FormControl>
               </Grid>
-              <Grid size={{ xs: 12, sm: 6.17, md: 4.99, lg: 3.77 }}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <FormControl fullWidth>
                   {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
                   {console.log(uomList, 'uomList')}
@@ -239,7 +239,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
                         renderInput={params => (
                           <TextField
                             {...params}
-                            label='Select unit of measurement (UOM) *'
+                            label='Select UOM *'
                             placeholder='Search & Select'
                             error={Boolean(errors.portion_uom_id)}
                             sx={{
@@ -296,7 +296,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
             </Grid>
             <Grid item xs={12} sm={3.2}>
               <FormControl fullWidth>
-                
+
                 {console.log(uomList, 'uomList')}
                 <Controller
                   name='nutrional_uom_id'
@@ -379,6 +379,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
                 <Button
                   color='secondary'
                   variant='outlined'
+
                   // startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                   sx={{ mr: 6 }}
                   onClick={cancelBack}

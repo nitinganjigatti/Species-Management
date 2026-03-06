@@ -197,30 +197,12 @@ const StepAddIngredients = ({
   }
 
   const removeIngredientButton = index => {
-    console.log(index, 'index')
-
     return (
       <Box
         style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '15px' }}
         className='ing_byperc'
         onClick={() => {
           removeIngredients(index)
-        }}
-      >
-        <Icon icon='material-symbols:cancel' />
-      </Box>
-    )
-  }
-
-  const removebyQuantityButton = index => {
-    console.log(index, 'index')
-
-    return (
-      <Box
-        style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '35px' }}
-        className='ing_byquan'
-        onClick={() => {
-          removeByQuantity(index)
         }}
       >
         <Icon icon='material-symbols:cancel' />
@@ -306,17 +288,52 @@ const StepAddIngredients = ({
   }, [])
 
   const onSubmit = async data => {
-    data.by_percentage = data.by_percentage.filter(
+    const filteredPercentage = data.by_percentage.filter(
       item => item.ingredient_id || item.quantity || item.preparation_type_id
     )
-    data.by_quantity = data.by_quantity.filter(
-      item => item.ingredient_id || item.quantity || item.preparation_type_id || item.uom_id
-    )
+
+    let hasError = false
+    let firstErrorIndex = -1
+
+    if (filteredPercentage.length === 0) {
+      setError('by_percentage.0.ingredient_id', { type: 'manual', message: 'Ingredient is required' })
+      setError('by_percentage.0.quantity', { type: 'manual', message: 'Quantity is required' })
+      setError('by_percentage.0.preparation_type_id', { type: 'manual', message: 'Preparation type is required' })
+      hasError = true
+      firstErrorIndex = 0
+    }
+
+    data.by_percentage.forEach((item, index) => {
+      const isAnyFilled = item.ingredient_id || item.quantity || item.preparation_type_id
+      const isAllFilled = item.ingredient_id && item.quantity && item.preparation_type_id
+
+      if (isAnyFilled && !isAllFilled) {
+        hasError = true
+        if (firstErrorIndex === -1) firstErrorIndex = index
+        if (!item.ingredient_id)
+          setError(`by_percentage.${index}.ingredient_id`, { type: 'manual', message: 'Ingredient is required' })
+        if (!item.quantity)
+          setError(`by_percentage.${index}.quantity`, { type: 'manual', message: 'Quantity is required' })
+        if (!item.preparation_type_id)
+          setError(`by_percentage.${index}.preparation_type_id`, {
+            type: 'manual',
+            message: 'Preparation type is required'
+          })
+      }
+    })
+
+    if (hasError) {
+      Toaster({
+        type: 'error',
+        message: 'Please fill in all mandatory fields'
+      })
+
+      return
+    }
 
     // Check for duplicate ingredients with same preparation type
     const checkRepeated = new Set()
-
-    const hasDuplicates = data.by_percentage.some(item => {
+    const hasDuplicates = filteredPercentage.some(item => {
       const key = `${item.ingredient_id}_${item.preparation_type_id}`
       if (checkRepeated.has(key)) {
         return true
@@ -327,83 +344,44 @@ const StepAddIngredients = ({
     })
 
     if (hasDuplicates) {
-      window.scrollTo(0, 0)
-
       return Toaster({
         type: 'error',
-        message: 'The same ingredient with the same preparation type is not allowed'
+        message: 'The same item with the same preparation type is not allowed'
       })
     }
 
-    const findFirstIncompleteIndex = (array, keys) => {
-      return array.findIndex(item => keys.some(key => !item[key]))
-    }
+    const totalQuantity = filteredPercentage.reduce((acc, curr) => acc + parseFloat(curr.quantity || 0), 0)
 
-    const isByPercentageValid = data.by_percentage.every(
-      item => item.ingredient_id && item.quantity && item.preparation_type_id
-    )
-
-    const isByQuantityValid = data.by_quantity.every(
-      item => item.ingredient_id && item.quantity && item.uom_id && item.preparation_type_id
-    )
-
-    if (data.by_percentage.length === 0) {
-      window.scrollTo(0, 0)
-
-      return Toaster({
-        type: 'error',
-        message: 'Please fill in all fields for By Percentage'
-      })
-    }
-
-    if (data.by_percentage.length > 0 && !isByPercentageValid) {
-      const firstIncompleteIndex = findFirstIncompleteIndex(data.by_percentage, [
-        'ingredient_id',
-        'quantity',
-        'preparation_type_id'
-      ])
-      window.scrollTo(0, 0)
-
-      return Toaster({
-        type: 'error',
-        message: `Please fill in all fields in By Percentage at index ${firstIncompleteIndex + 1}.`
-      })
-    }
-
-    if (calculateTotalQuantity() > 100 && data.by_percentage.length > 0) {
-      window.scrollTo(0, 0)
-
+    if (totalQuantity > 100 && filteredPercentage.length > 0) {
       return Toaster({
         type: 'error',
         message: 'Please review and adjust percentages before adding new ingredients'
       })
-    } else if (calculateTotalQuantity() < 100 && data.by_percentage.length > 0) {
-      window.scrollTo(0, 0)
-
+    } else if (totalQuantity < 100 && filteredPercentage.length > 0) {
       return Toaster({
         type: 'error',
         message: 'Percentage added should be equal to 100%'
       })
-    } else {
-      window.scrollTo(0, 0)
-      Object.keys(defaultValues).forEach(field => {
-        clearErrors(field)
-      })
+    }
 
-      try {
-        await schema.validate(data, { abortEarly: false })
-        const imageData = await handleImageUpload()
+    const filteredByQuantity = data.by_quantity.filter(
+      item => item.ingredient_id || item.quantity || item.preparation_type_id || item.uom_id
+    )
 
-        const formDataWithImage = {
-          ...data,
-          recipe_image: uploadedImage
-        }
-        handleNext(formDataWithImage)
-      } catch (validationErrors) {
-        validationErrors.inner.forEach(error => {
-          setError(error.path, { message: error.message })
-        })
+    try {
+      await schema.validate(data, { abortEarly: false })
+
+      const formDataWithImage = {
+        ...data,
+        by_percentage: filteredPercentage,
+        by_quantity: filteredByQuantity,
+        recipe_image: uploadedImage
       }
+      handleNext(formDataWithImage)
+    } catch (validationErrors) {
+      validationErrors.inner.forEach(error => {
+        setError(error.path, { message: error.message })
+      })
     }
   }
 
@@ -458,32 +436,33 @@ const StepAddIngredients = ({
     }
   }, [fieldsByQuantity, fieldsIngredients, appendByQuantity, appendIngredients])
 
-  const ScrollToFieldError = ({ errors, index }) => {
+  const ScrollToFieldError = ({ errors }) => {
     useEffect(() => {
-      if (!errors) return
+      if (!errors || Object.keys(errors).length === 0) return
 
       const firstErrorField = Object.keys(errors)[0]
-      const errorElement = document.querySelector(`input[name="${firstErrorField}"]`)
 
-      if (errorElement) {
-        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      if (firstErrorField === 'by_percentage' && errors.by_percentage) {
+        const firstIndex = Object.keys(errors.by_percentage)
+          .map(Number)
+          .sort((a, b) => a - b)
+          .find(index => errors.by_percentage[index])
+
+        if (firstIndex !== undefined) {
+          const element = document.getElementById('test' + firstIndex)
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+        }
+      } else {
+        const element = document.getElementsByName(firstErrorField)[0]
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        } else if (firstErrorField === 'recipe_name') {
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
       }
     }, [errors])
-    const firstErrorField = Object.keys(errors)[0]
-
-    if (firstErrorField === 'by_percentage') {
-      const errorElement = document.getElementById('test' + index)
-
-      if (errorElement) {
-        window.scroll(0, 250)
-      }
-    } else if (firstErrorField === 'by_quantity') {
-      const errorElement = document.getElementById('testnew' + index)
-
-      if (errorElement) {
-        window.scrollTo(0, 700)
-      }
-    }
 
     return null
   }
@@ -589,7 +568,6 @@ const StepAddIngredients = ({
               <Grid container spacing={5} sx={{ px: 0, py: 0 }}>
                 {fieldsIngredients.map((field, index) => (
                   <Grid container spacing={5} sx={{ px: 0, py: 1 }} key={field.id} id={'test' + index}>
-                    <ScrollToFieldError errors={errors} index={index} />
 
                     <Grid size={{ xs: 12, sm: 3.6 }}>
                       <FormControl fullWidth>
@@ -834,6 +812,7 @@ const StepAddIngredients = ({
         addEventSidebarOpen={openDrawer}
         handleSidebarClose={handleSidebarClose}
         handleSubmitData={handleSubmitData}
+
         //resetForm={resetForm}
         submitLoader={submitLoader}
         editParams={editParams}

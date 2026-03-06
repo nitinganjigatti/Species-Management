@@ -30,6 +30,7 @@ const leftMenu = [
   { id: 2, name: 'Batch' },
   { id: 3, name: 'Nursery' },
   { id: 4, name: 'Security status' },
+
   // { id: 5, name: 'Condition' },
   { id: 6, name: 'Reason' },
   { id: 7, name: 'Site' }
@@ -120,9 +121,11 @@ const DashboardFilter = ({
   const NurseryList = async q => {
     try {
       setLoading(true)
+
       const params = {
         // type: ['length', 'weight'],
         search: q ? q : ''
+
         // page: 1,
         // limit: 50
       }
@@ -153,6 +156,7 @@ const DashboardFilter = ({
   const getTaxonomyListFunc = async q => {
     try {
       setLoading(true)
+
       const params = {
         q: q ? q : ''
       }
@@ -559,6 +563,7 @@ const DashboardFilter = ({
                     getOptionsForMenu(selectedMenu)?.map((option, index) => (
                       <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                         <Checkbox
+
                           // checked={selectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
                           checked={tempSelectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
                           onChange={() => handleCheckboxChange(option.id, option.name)}

@@ -1,6 +1,7 @@
 import React from 'react'
 import { useTheme } from '@mui/material/styles'
-import { Box, Avatar, Typography, Grid, Tooltip } from '@mui/material'
+import { Box, Avatar, Typography, Grid, Tooltip, CircularProgress } from '@mui/material'
+import AnimalDetailsShimmer from 'src/views/pages/hospital/inpatient/shimmer/AnimalDetailsShimmer'
 
 export default function AnimalDetails({
   image,
@@ -11,9 +12,17 @@ export default function AnimalDetails({
   identifierName,
   admittedDays,
   location,
-  vet
+  vet,
+  isLoading,
+  backgroundColor,
+  marginSpacing
 }) {
   const theme = useTheme()
+
+  if (isLoading) {
+    return <AnimalDetailsShimmer />
+  }
+
   return (
     <Box
       sx={{
@@ -23,7 +32,9 @@ export default function AnimalDetails({
         display: 'flex',
         flexDirection: { xs: 'column', md: 'row' },
         alignItems: { xs: 'flex-start', md: 'center' },
-        gap: { xs: 4, md: 12 }
+        gap: { xs: 4, md: 12 },
+        background: backgroundColor ? backgroundColor : theme.palette.common.white,
+        m: marginSpacing ? marginSpacing : 'unset'
       }}
     >
       <Box
@@ -42,7 +53,10 @@ export default function AnimalDetails({
             width: 58,
             height: 58,
             borderRadius: '8px',
-            flexShrink: 0
+            flexShrink: 0,
+            '& .MuiAvatar-img': {
+              objectFit: 'contain'
+            }
           }}
         />
         <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
@@ -149,12 +163,23 @@ export default function AnimalDetails({
           </Tooltip>
         </Grid>
         <Grid item size={{ xs: 6, md: 3 }}>
-          <Typography
-            variant='caption'
-            sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '14px', fontWeight: 400 }}
-          >
-            Consulting Veterinarian
-          </Typography>
+          <Tooltip title='Consulting Veterinarian'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: theme.palette.customColors.secondaryBg,
+                fontSize: '14px',
+                fontWeight: 400,
+                display: 'block',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                mb: 1.5
+              }}
+            >
+              Consulting Veterinarian
+            </Typography>
+          </Tooltip>
           <Tooltip title={vet}>
             <Typography
               sx={{

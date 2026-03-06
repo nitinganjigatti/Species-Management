@@ -306,11 +306,12 @@ const SiteDrawer = ({
           zIndex: 123
         }}
       >
-        <Box sx={{ flex: 1 }}>
+        {/* <Box sx={{ flex: 1 }}>
           <Typography sx={{ width: '100%', textAlign: 'start' }}>12 result</Typography>
-        </Box>
+        </Box> */}
         <LoadingButton
           sx={{ flex: 1 }}
+
           // fullWidth
           variant='outlined'
           size='large'

@@ -9,8 +9,8 @@ import TextField from '@mui/material/TextField'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 
 // ** Third Party Imports
-import format from 'date-fns/format'
-import addDays from 'date-fns/addDays'
+import { format } from 'date-fns/format'
+import { addDays } from 'date-fns/addDays'
 import DatePicker from 'react-datepicker'
 
 const MultipleDatePicker = ({ popperPlacement, handleOnChangeRange }) => {

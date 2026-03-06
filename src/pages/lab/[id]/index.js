@@ -1017,6 +1017,7 @@ const RequestDetails = () => {
                             size='small'
                             labelId='demo-simple-select-label'
                             id='demo-simple-select'
+
                             // defaultValue={'awaiting_sample'}
                             value={headerStatus}
                             onChange={e => handleHeaderDropdown(e)}
