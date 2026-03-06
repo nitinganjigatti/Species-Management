@@ -45,7 +45,11 @@ import {
   ANIMAL_DIET_LIST,
   ANIMAL_HISTORY,
   ANIMAL_MEDIA,
-  ANIMAL_JOURNAL_LOGS
+  ANIMAL_JOURNAL_LOGS,
+  GET_INCHARGE_LIST,
+  ADD_INCHARGE,
+  GET_USERS_LIST,
+  GET_USERS_ROLE_LIST
 } from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
@@ -316,6 +320,31 @@ export async function getAnimalMedia(params) {
 
 export async function getAnimalHistory(params) {
   const response = await axiosGet({ url: `${ANIMAL_HISTORY}`, params })
+
+  return response?.data
+}
+
+
+export async function getInchargeList(params) {
+  const response = await axiosGet({ url: `${GET_INCHARGE_LIST}`, params })
+
+  return response?.data
+}
+
+export async function addIncharge(params) {
+  const response = await axiosPost({ url: `${ADD_INCHARGE}`, body: params })
+
+  return response?.data
+}
+
+export async function getUsersRoleList(params) {
+  const response = await axiosGet({ url: `${GET_USERS_ROLE_LIST}`, params })
+
+  return response?.data
+}
+
+export async function getUsersList(params) {
+  const response = await axiosGet({ url: `${GET_USERS_LIST}`, params })
 
   return response?.data
 }

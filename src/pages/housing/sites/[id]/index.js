@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, Typography, Tabs, Tab, Card } from '@mui/material'
+import { Box, Breadcrumbs, Typography, Tabs, Tab, Card, useTheme } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
@@ -9,6 +9,7 @@ import SpeciesListing from 'src/components/housing/sites/speciesListing'
 import MortalityListing from 'src/components/housing/sites/mortalityListing'
 import AnimalTreatmentListing from 'src/components/housing/sites/AnimalTreatmentListing'
 import MediaListing from 'src/components/housing/sites/MediaListing'
+import InchargeListing from 'src/components/housing/sites/InchargeListing'
 
 import { useQuery } from '@tanstack/react-query'
 import { getSpecificSiteAnalytics } from 'src/lib/api/housing'
@@ -27,13 +28,15 @@ const tabConfig = [
     label: 'Animals Under Treatment',
     value: 'animalTreatment',
     component: AnimalTreatmentListing
-  }
+  },
+  { label: 'Incharges', value: 'incharges', component: InchargeListing }
 ]
 
 const SiteDetails = () => {
   const router = useRouter()
   const { id } = router.query
   const auth = useAuth()
+  const theme = useTheme()
 
   const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
   const addSectionAccess = auth?.userData?.roles?.settings?.housing_add_section
@@ -130,16 +133,12 @@ const SiteDetails = () => {
     }
   ]
 
-  const handleHousingClick = () => {
-    router.back()
-  }
-
   const selected = tabConfig.find(tab => tab.value === selectedTab)
   const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
 
   useEffect(() => {
     // Updating URL with tab parameter when tab changes
-    router.push(
+    router.replace(
       {
         pathname: router.pathname,
         query: { ...router.query, tab: selectedTab }
@@ -161,10 +160,10 @@ const SiteDetails = () => {
       <Box>
         {/* Breadcrumb */}
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleHousingClick}>
+          <Typography onClick={() => router.back()} sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}>
             Site
           </Typography>
-          <Typography color='text.primary'>Site Details</Typography>
+          <Typography color={theme.palette.text.primary}>Site Details</Typography>
         </Breadcrumbs>
 
         {/* Insights */}

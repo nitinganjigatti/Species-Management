@@ -570,6 +570,14 @@ export const GET_SECTION_FOR_ENCLOSURE = `zoos/getsections`
 
 export const GET_PARENT_ENCLOSURE = `/enclosures`
 
+export const GET_INCHARGE_LIST = 'get-incharge-list'
+
+export const ADD_INCHARGE = 'add-incharge'
+
+export const GET_USERS_LIST = 'get-userswith-access'
+
+export const GET_USERS_ROLE_LIST = 'role/list'
+
 // Compliance  module
 
 export const GET_DOCUMENT_TYPE_LIST = 'v1/document-types'
