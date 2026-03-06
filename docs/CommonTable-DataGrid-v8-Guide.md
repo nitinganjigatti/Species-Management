@@ -16,7 +16,8 @@
 6. [Header Select All / Deselect All](#6-header-select-all--deselect-all)
 7. [Custom Row ID (`getRowId`)](#7-custom-row-id-getrowid)
 8. [Previous Approach (TableServerSide)](#8-previous-approach-tableserverside)
-9. [Troubleshooting](#9-troubleshooting)
+9. [Migration: DataGrid → CommonTable](#9-migration-datagrid--commontable)
+10. [Troubleshooting](#10-troubleshooting)
 
 ---
 
@@ -379,7 +380,353 @@ useEffect(() => {
 
 ---
 
-## 9. Troubleshooting
+## 9. Migration: DataGrid → CommonTable
+
+This section covers migrating from raw MUI DataGrid v8 components to CommonTable.
+
+### Why Migrate to CommonTable?
+
+- **Consistent styling** across the application
+- **Simplified v8 selection model** - work with plain arrays instead of `{ type, ids: Set }`
+- **Centralized configuration** - pagination, sorting, and selection logic in one place
+- **Better developer experience** - less boilerplate code
+
+### Prop Mapping Reference
+
+| DataGrid Prop | CommonTable Prop | Notes |
+|---|---|---|
+| `rows` | `indexedRows` | Same array of row objects with `id` field |
+| `columns` | `columns` | Same column definitions |
+| `loading` | `loading` | Same |
+| `rowCount` | `total` | Total count for server-side pagination |
+| `paginationModel` | `paginationModel` | Same `{ page, pageSize }` |
+| `onPaginationModelChange` | `setPaginationModel` | Same callback |
+| `sortingMode` | N/A | Always `'server'` in CommonTable |
+| `paginationMode` | N/A | Always `'server'` in CommonTable |
+| `onSortModelChange` | `handleSortModel` | Same callback |
+| `checkboxSelection` | `checkBoxOption` | **Important:** Different prop name |
+| `rowSelectionModel` | `selectedRows` | Pass plain array of IDs |
+| `onRowSelectionModelChange` | `onRowSelectionModelChange` | **Important:** Receives plain array, not v8 format |
+| `isRowSelectable` | ❌ Not supported | Handle in `onRowSelectionModelChange` instead |
+| `onRowClick` | `onRowClick` | Same |
+| `onCellClick` | `onCellClick` | Same |
+| `hideFooterPagination` | `hideFooterPagination` | Same |
+| `hideFooter` | `hideFooter` | Same |
+| `autoHeight` | N/A | Always `true` in CommonTable |
+| `disableColumnSelector` | N/A | Always `true` in CommonTable |
+| `disableColumnMenu` | N/A | Always `true` in CommonTable |
+| `sx` | `externalTableStyle` | Use for custom styles |
+| `slotProps` | ❌ Not supported | N/A |
+| `getRowId` | `getRowId` | Same - for custom row ID extraction |
+| `getRowClassName` | `getRowClassName` | Same - for conditional row styling |
+| `rowHeight` | `rowHeight` | Default is `52` in CommonTable |
+| `getRowHeight` | `getRowHeight` | Same |
+| `pageSizeOptions` | `pageSizeOptions` | Default is `[7, 10, 25, 50, 100]` |
+
+### Step-by-Step Migration
+
+#### Step 1: Import CommonTable
+
+```jsx
+// OLD
+import { DataGrid } from '@mui/x-data-grid'
+
+// NEW
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+```
+
+#### Step 2: Update the Component
+
+**Before (DataGrid):**
+```jsx
+<DataGrid
+  checkboxSelection={permissions?.perform_tests || permissions?.allow_full_access}
+  onRowSelectionModelChange={handleRowSelection}
+  isRowSelectable={params => {
+    if (params.row.status.includes('completed')) {
+      return false
+    }
+    return true
+  }}
+  sx={{
+    '& .MuiDataGrid-row:hover .customButton': {
+      display: 'block'
+    }
+  }}
+  autoHeight
+  hideFooterPagination
+  hideFooterSelectedRowCount
+  rows={indexedRows === undefined ? [] : indexedRows}
+  rowCount={total}
+  columns={columns}
+  onSortModelChange={handleSortModel}
+  loading={loading}
+  slotProps={{
+    baseButton: {
+      variant: 'outlined'
+    }
+  }}
+/>
+```
+
+**After (CommonTable):**
+```jsx
+<CommonTable
+  checkBoxOption={
+    Boolean(permissions?.perform_tests || permissions?.allow_full_access)
+  }
+  selectedRows={selectedRow}
+  onRowSelectionModelChange={handleRowSelection}
+  indexedRows={indexedRows === undefined ? [] : indexedRows}
+  total={total}
+  columns={columns}
+  paginationModel={paginationModel}
+  setPaginationModel={setPaginationModel}
+  handleSortModel={handleSortModel}
+  loading={loading}
+  hideFooterPagination={true}
+  externalTableStyle={{
+    '& .MuiDataGrid-row:hover .customButton': {
+      display: 'block'
+    }
+  }}
+/>
+```
+
+### Key Changes to Note
+
+#### 1. Checkbox Selection Prop Name
+
+**❌ Wrong:**
+```jsx
+<CommonTable checkboxSelection={true} />
+```
+
+**✅ Correct:**
+```jsx
+<CommonTable checkBoxOption={true} />
+```
+
+**💡 Tip:** Wrap in `Boolean()` to ensure proper boolean value:
+```jsx
+<CommonTable
+  checkBoxOption={Boolean(permissions?.can_edit || permissions?.admin)}
+/>
+```
+
+#### 2. Selection Model Format
+
+DataGrid v8 uses `{ type: 'include' | 'exclude', ids: Set<GridRowId> }`, but CommonTable handles this internally.
+
+**DataGrid v8:**
+```jsx
+// You receive this complex format
+onRowSelectionModelChange={(newSelection) => {
+  // newSelection = { type: 'include', ids: Set(1, 2, 3) }
+  const ids = Array.from(newSelection.ids)
+  setSelectedRows(ids)
+}}
+```
+
+**CommonTable:**
+```jsx
+// You receive plain array of IDs
+onRowSelectionModelChange={(newIds) => {
+  // newIds = [1, 2, 3]
+  setSelectedRows(newIds)
+}}
+```
+
+#### 3. isRowSelectable Not Supported
+
+CommonTable doesn't support `isRowSelectable`. If you need to restrict selection:
+
+**Option A: Filter in the callback**
+```jsx
+const handleRowSelection = (rowSelectionModel) => {
+  // Filter out completed rows
+  const validSelections = rows
+    .filter(row => rowSelectionModel.includes(row.id))
+    .filter(row => !row.status.includes('completed'))
+    .map(row => row.id)
+
+  setSelectedRow(validSelections)
+}
+```
+
+**Option B: Handle in UI layer**
+```jsx
+// Disable checkboxes visually using externalTableStyle
+externalTableStyle={{
+  '& .MuiDataGrid-row.completed-row .MuiCheckbox-root': {
+    visibility: 'hidden'
+  }
+}}
+```
+
+#### 4. Remove Unsupported Props
+
+Remove these props when migrating:
+- `slotProps` - Not used by CommonTable
+- `hideFooterSelectedRowCount` - Handled automatically
+- `autoHeight` - Always `true` in CommonTable
+- `disableColumnSelector`, `disableColumnMenu` - Always disabled
+
+### Migration Checklist
+
+- [ ] Import `CommonTable` instead of `DataGrid`
+- [ ] Change `checkboxSelection` → `checkBoxOption`
+- [ ] Change `rows` → `indexedRows`
+- [ ] Change `rowCount` → `total`
+- [ ] Add `selectedRows` prop with state value
+- [ ] Update `onRowSelectionModelChange` to receive plain array
+- [ ] Change `sx` → `externalTableStyle`
+- [ ] Add `paginationModel` and `setPaginationModel` if not present
+- [ ] Remove `isRowSelectable` (handle logic elsewhere if needed)
+- [ ] Remove `slotProps`
+- [ ] Remove `hideFooterSelectedRowCount`
+- [ ] Wrap checkbox boolean in `Boolean()` for clarity
+- [ ] Test checkbox selection
+- [ ] Test "Select All" functionality
+- [ ] Test pagination and sorting
+
+### Common Migration Issues
+
+#### Issue 1: Checkboxes Not Appearing
+
+**Cause:** Using `checkboxSelection` instead of `checkBoxOption`
+
+**Fix:**
+```jsx
+// ❌ Wrong
+<CommonTable checkboxSelection={true} />
+
+// ✅ Correct
+<CommonTable checkBoxOption={true} />
+```
+
+#### Issue 2: Selection Model Type Error
+
+**Cause:** Trying to pass v8 format `{ type, ids: Set }` to `selectedRows`
+
+**Fix:**
+```jsx
+// ❌ Wrong
+const [selectedRows, setSelectedRows] = useState({ type: 'include', ids: new Set() })
+
+// ✅ Correct
+const [selectedRows, setSelectedRows] = useState([])
+```
+
+#### Issue 3: Rows Not Selectable After Migration
+
+**Cause:** Missing `selectedRows` prop or incorrect callback
+
+**Fix:**
+```jsx
+// ❌ Wrong - Missing selectedRows prop
+<CommonTable
+  checkBoxOption={true}
+  onRowSelectionModelChange={setSelectedRow}
+/>
+
+// ✅ Correct
+<CommonTable
+  checkBoxOption={true}
+  selectedRows={selectedRow}
+  onRowSelectionModelChange={setSelectedRow}
+/>
+```
+
+### Real-World Migration Example
+
+**File:** `src/pages/lab/request/[id]/index.js`
+
+**Before:**
+```jsx
+<DataGrid
+  checkboxSelection={
+    permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests
+  }
+  onRowSelectionModelChange={handleRowSelection}
+  isRowSelectable={params => {
+    if (
+      (permissions?.view &&
+        permissions?.transfer_tests === false &&
+        permissions?.perform_tests === false) ||
+      (permissions?.perform_tests === true &&
+        params.row.status.includes('completed'))
+    ) {
+      return false
+    }
+    return true
+  }}
+  sx={{
+    '& .MuiDataGrid-row:hover .customButton': {
+      display: 'block'
+    },
+    '& .MuiDataGrid-row .customButton': {
+      display: 'none'
+    }
+  }}
+  autoHeight
+  hideFooterPagination
+  hideFooterSelectedRowCount
+  rows={indexedRows === undefined ? [] : indexedRows}
+  rowCount={total}
+  columns={columns}
+  onSortModelChange={handleSortModel}
+  loading={loading}
+  slotProps={{
+    baseButton: { variant: 'outlined' }
+  }}
+/>
+```
+
+**After:**
+```jsx
+<CommonTable
+  checkBoxOption={
+    Boolean(permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests)
+  }
+  selectedRows={selectedRow}
+  onRowSelectionModelChange={handleRowSelection}
+  onCellClick={onCellClick}
+  indexedRows={indexedRows === undefined ? [] : indexedRows}
+  total={total}
+  columns={columns}
+  handleSortModel={handleSortModel}
+  loading={loading}
+  hideFooterPagination={true}
+  disablePagination={true}
+  externalTableStyle={{
+    '& .MuiDataGrid-row:hover .customButton': {
+      display: 'block'
+    },
+    '& .MuiDataGrid-row .customButton': {
+      display: 'none'
+    },
+    '& .MuiDataGrid-row.Mui-selected': {
+      backgroundColor: 'white !important'
+    }
+  }}
+/>
+```
+
+**Changes Made:**
+1. ✅ Changed `checkboxSelection` → `checkBoxOption` with `Boolean()` wrapper
+2. ✅ Added `selectedRows={selectedRow}` prop
+3. ✅ Changed `rows` → `indexedRows`
+4. ✅ Changed `rowCount` → `total`
+5. ✅ Changed `sx` → `externalTableStyle`
+6. ✅ Removed `isRowSelectable` (handled in `handleRowSelection` callback)
+7. ✅ Removed `slotProps`
+8. ✅ Removed `hideFooterSelectedRowCount`
+9. ✅ Added `disablePagination={true}` for no pagination
+
+---
+
+## 10. Troubleshooting
 
 ### Error: "requires all rows to have a unique `id` property"
 
