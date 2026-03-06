@@ -1,49 +1,75 @@
-import React, { useState, useMemo } from 'react'
-import { Box, Button, Typography,  useMediaQuery, useTheme } from '@mui/material'
-import { Add as AddIcon } from '@mui/icons-material'
+import React, { useState, useMemo ,useEffect} from 'react'
+import { Box, Typography, useTheme, useMediaQuery } from '@mui/material'
 import styled from '@emotion/styled'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
-import InchargeDrawer from '../utils/InchargeDrawer'
-import { getInchargeList } from 'src/lib/api/housing'
-import { useAuth } from 'src/hooks/useAuth'
-import { Incharge, InchargeFilters } from 'src/types/housing/incharge'
+import { getUsersList } from 'src/lib/api/housing'
+import { UserWithAccess } from 'src/types/housing/incharge'
 import { GridColDef } from '@mui/x-data-grid'
+import Search from 'src/views/utility/Search'
+import { debounce } from 'lodash'
 
-const InchargeListing = () => {
+const UsersListing = () => {
   const router = useRouter()
   const { id } = router.query
   const theme = useTheme()
-  const authData: any = useAuth()
-  const addSiteAccess = authData?.userData?.permission?.user_settings?.add_sites
-  const loggedinUserId = authData?.userData?.user?.user_id
 
-  const [openDrawer, setOpenDrawer] = useState<boolean>(false)
+  const [filters, setFilters] = useState({
+    page_no: 1,
+    limit: 10,
+    search: ''
+  })
+  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [searchInput, setSearchInput] = useState<string>('')
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
 
-  // Fetch incharge list
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ['incharge-list', id],
+  // Fetch users list
+  const { data, isFetching } = useQuery({
+    queryKey: ['users-list', id, filters.page_no, filters.search],
     queryFn: () =>
-      getInchargeList({
-        ref_id: id,
-        ref_type: 'site'
-      }),
-    enabled: !!id
+      getUsersList({type: 'site',id,page_no: filters.page_no,search: filters.search}),
+    enabled: !!id,
+    placeholderData: keepPreviousData
   })
 
-  // Memoized incharge data for the table
-  const rows: Incharge[] = useMemo(() => data?.data?.incharges || [], [data])
-  const total = useMemo(() => data?.data?.total_count || 0, [data])
-  const userInList = useMemo(
-    () => rows?.some((item: Incharge) => item?.user_id === loggedinUserId),
-    [rows, loggedinUserId]
-  )
+  // user data for the table
+  const rows: UserWithAccess[] = data?.data?.result || []
+  const total = data?.data?.total_count || 0
 
+  // Debounced search
+  const debouncedSearch = useMemo(() => debounce(setSearchQuery, 500), [])
+  
+    useEffect(() => {
+      return () => {
+        debouncedSearch.cancel()
+      }
+    }, [debouncedSearch])
+
+  // Input change handler
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearchInput(value)
+    debouncedSearch(value)
+  }
+
+  // Sync debounced search to filters
+useEffect(() => {
+  setFilters(prev => ({
+    ...prev,
+    search: searchQuery,
+    page_no: 1
+  }))
+}, [searchQuery])
+  
+  // Clear search input handler
+  const handleSearchClear = () => {
+    setSearchInput('')
+    debouncedSearch('')
+  }
   const columns: GridColDef[] = [
     {
       field: 'id',
@@ -58,14 +84,14 @@ const InchargeListing = () => {
     },
     {
       field: 'name',
-      headerName: 'Inchargers Name',
-      minWidth: 500,
+      headerName: 'Users Name',
+      minWidth: 400,
       sortable: false,
       renderCell: params => (
         <Box sx={{ pl: 1.4 }}>
           <UserAvatarDetails
-            user_name={`${params?.row?.user_first_name} ${params?.row?.user_last_name}`}
-            profile_image={params?.row?.user_profile_pic}
+            user_name={params?.row?.full_name}
+            profile_image={params?.row?.profile_pic}
             size='medium'
           />
         </Box>
@@ -85,10 +111,13 @@ const InchargeListing = () => {
     {
       field: 'phone',
       headerName: 'Phone',
-      minWidth: 180,
+      minWidth: 200,
       sortable: false,
       renderCell: params => {
-        const phoneNumber = params.row.user_mobile_number
+        const rawPhoneNumber = params.row.mobile_number
+        const phoneNumber = rawPhoneNumber?.split('-')?.[1]
+          ? rawPhoneNumber
+          : null
         let pressTimer: NodeJS.Timeout
 
         const handleLongPress = () => {
@@ -149,72 +178,61 @@ const InchargeListing = () => {
     }
   ]
 
-  // Index rows for pagination
-  const indexedRows = useMemo(() => {
-    return rows?.map((row: Incharge, index: number) => ({
-      ...row,
-      id: row.user_id,
-      sl_no: index + 1
+const indexedRows = useMemo(() => {
+  return rows?.map((row: any, index: number) => ({
+    ...row,
+    id: row.user_id || row.id || `user-row-${index}`,
+    sl_no: (filters.page_no - 1) * filters.limit + index + 1
+  }))
+}, [rows, filters.page_no, filters.limit])
+
+  // Pagination change handler
+  const handlePaginationChange = (model: { page: number; pageSize: number }) => {
+    setFilters(prev => ({
+      ...prev,
+      page_no: model.page + 1
     }))
-  }, [rows])
+  } 
 
   return (
     <>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', my: 4 }}>
-        <ListingHeader title='Site Incharge List' totalCount={total} />
-
-        {userInList && addSiteAccess && (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              gap: 4,
-              flexWrap: 'wrap'
-            }}
-          >
-            <Button
-              variant='contained'
-              startIcon={<AddIcon />}
-              sx={{ py: 2, px: 3, borderRadius: '4px' }}
-              onClick={() => setOpenDrawer(true)}
-            >
-              Choose Site Manager
-            </Button>
-          </Box>
-        )}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', my: 4}}>
+        <ListingHeader title='Users List' totalCount={total} />
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: 4,
+            flexWrap: 'wrap'
+          }}
+        >
+          <Search
+            width='300px'
+            placeholder='Search by name'
+            value={searchInput}
+            onChange={handleSearchChange}
+            onClear={handleSearchClear}
+            inputStyle={{ py: '12px', px: '12px' }}
+          />
+        </Box>
       </Box>
-      <Box sx={{ mt: 4 }}>
+    
+
         <CommonTable
           columns={columns}
           indexedRows={indexedRows}
           rowHeight={60}
           total={total}
-          loading={isLoading}
-          disablePagination={true}
-          hideFooterPagination={true}
+          loading={isFetching}
+          paginationModel={{ page: filters.page_no - 1, pageSize: filters.limit }}
+          setPaginationModel={handlePaginationChange}
         />
-      </Box>
-      {openDrawer && (
-        <InchargeDrawer
-          openDrawer={openDrawer}
-          closeDrawer={() => setOpenDrawer(false)}
-          selectedUsers={rows}
-          title='Select Site Manager'
-          confirmLabel='Choose Site Manager'
-          showFilter={true}
-          onSelect={(selectedUsers: Incharge[]) => {
-            if (selectedUsers && selectedUsers.length > 0) {
-              refetch()
-            }
-          }}
-        />
-      )}
     </>
   )
 }
 
-export default React.memo(InchargeListing)
+export default React.memo(UsersListing)
 
 const StyledTypography = styled(Typography)<{ fontWeight?: number | string; fontSize?: string; color?: string }>(
   ({ theme, fontWeight, fontSize, color, sx }) => ({

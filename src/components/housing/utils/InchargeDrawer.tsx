@@ -141,9 +141,15 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
 
   // Toggle user selection
   const handleToggleSelection = (user: User) => {
+    const isSelected = selectedIncharges.some((item: Incharge) => item.user_id === user.user_id)
+    if (!isSelected && selectedIncharges.length >= 10) {
+      Toaster({ type: 'error', message: 'Maximum 10 users can be selected' })
+      return
+    }
+
     setSelectedIncharges((prev: Incharge[]) => {
-      const isSelected = prev.some((item: Incharge) => item.user_id === user.user_id)
-      if (isSelected) {
+      const currentlySelected = prev.some((item: Incharge) => item.user_id === user.user_id)
+      if (currentlySelected) {
         return prev.filter((item: Incharge) => item.user_id !== user.user_id)
       } else {
         return [...prev, user as unknown as Incharge]
@@ -153,6 +159,11 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
 
   // Submit selected users 
   const handleConfirm = async () => {
+    if (selectedIncharges.length > 10) {
+      Toaster({ type: 'error', message: 'Maximum 10 users can be selected' })
+      return
+    }
+
     const payload = {
       ref_id: id,
       ref_type: 'site',

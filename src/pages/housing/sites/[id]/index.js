@@ -10,6 +10,8 @@ import MortalityListing from 'src/components/housing/sites/mortalityListing'
 import AnimalTreatmentListing from 'src/components/housing/sites/AnimalTreatmentListing'
 import MediaListing from 'src/components/housing/sites/MediaListing'
 import InchargeListing from 'src/components/housing/sites/InchargeListing'
+import UsersListing from 'src/components/housing/sites/UsersListing'
+
 
 import { useQuery } from '@tanstack/react-query'
 import { getSpecificSiteAnalytics } from 'src/lib/api/housing'
@@ -29,6 +31,7 @@ const tabConfig = [
     value: 'animalTreatment',
     component: AnimalTreatmentListing
   },
+  { label: 'Users', value: 'users', component: UsersListing },
   { label: 'Incharges', value: 'incharges', component: InchargeListing }
 ]
 
