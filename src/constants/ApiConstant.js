@@ -975,7 +975,11 @@ export const DELETE_VITAL_MONITORING = `v1/hospital/anaesthesia/vital-monitoring
 
 export const UPDATE_ANIMAL_HEALTH_STATUS = 'v1/hospital/update-animal-health-status'
 
-export const GET_UPCOMING_VACCINATION_RECORDS = 'v1/vaccination/deworming/animal/pending/report'
+export const GET_UPCOMING_VACCINATION_DEWORMING_RECORDS = 'v1/vaccination/deworming/animal/upcoming/report'
+
+export const GET_PENDING_VACCINATION_DEWORMING_RECORDS = 'v1/vaccination/deworming/animal/pending/report'
+
+export const GET_COMPLETED_VACCINATION_DEWORMING_RECORDS = 'v1/vaccination/deworming/animal/completed/report'
 
 // Necropsy
 
