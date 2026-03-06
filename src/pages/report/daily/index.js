@@ -34,7 +34,7 @@ import {
   getAnimalAssessment,
   getEnclosureAssessment,
   getDailyFoodWastageReport,
-  getUpcomingVaccinationRecords
+  getVaccinationRecords
 } from 'src/lib/api/report'
 
 const Animal = () => {
@@ -156,10 +156,13 @@ const Animal = () => {
         response = await getEnclosureAssessment(params)
       } else if (type === 'food_wastage') {
         response = await getDailyFoodWastageReport(params)
-      } else if (type === 'upcoming_vaccination' || type === 'upcoming_deworming') {
+      } else if (
+        ['upcoming_vaccination', 'upcoming_deworming', 'pending_vaccination', 'pending_deworming', 'completed_vaccination', 'completed_deworming'].includes(type)
+      ) {
+        const [status, category] = type.split('_')
         params.response_type = 'excel'
-        params.type = type === 'upcoming_vaccination' ? 'vaccination' : 'deworming'
-        response = await getUpcomingVaccinationRecords(params)
+        params.type = category
+        response = await getVaccinationRecords(status, params)
       } else {
         response = await getAnimalReport(params)
       }
