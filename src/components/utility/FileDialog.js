@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   Dialog,
   DialogTitle,
@@ -13,16 +13,38 @@ import {
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { LoadingButton } from '@mui/lab'
+import { useAuth } from 'src/hooks/useAuth'
 import SignedMediaPlayer from './SignedMediaPlayer'
 import TextEllipsisWithModal from '../TextEllipsisWithModal'
 import Utility from 'src/utility'
+import { EXTENSION_TYPE_MAP } from 'src/constants/Constants'
 
 const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
   const theme = useTheme()
+  const { userData } = useAuth()
+  console.log('src', src)
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isError, setIsError] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [errorType, setErrorType] = useState(null) // broken | unsupported
+
+  // Derive file type from title if not explicitly provided
+  const derivedFileType = useMemo(() => {
+    if (type) return type
+    if (!title) return 'other'
+    const ext = title?.split('.').pop().toLowerCase() || ''
+
+    return EXTENSION_TYPE_MAP[ext] || 'other'
+  }, [type, title])
+
+  // Derive file icon if not explicitly provided
+  const derivedFileIcon = useMemo(() => {
+    if (fileIcon) return fileIcon
+    const imgPath = userData?.settings?.DEFAULT_IMAGE_MASTER || {}
+
+    return imgPath?.[derivedFileType] || imgPath?.default || {}
+  }, [fileIcon, derivedFileType, userData])
 
   const handleDownload = async e => {
     e.preventDefault()
@@ -104,22 +126,22 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
           gap: 4
         }}
       >
-        {type == 'image' ? (
+        {derivedFileType == 'image' ? (
           <Icon icon='mdi:image-off-outline' fontSize={80} color={theme.palette.text.secondary} />
-        ) : type == 'video' ? (
+        ) : derivedFileType == 'video' ? (
           <Icon icon='mdi:video-off-outline' fontSize={80} color={theme.palette.text.secondary} />
-        ) : fileIcon?.image_path ? (
+        ) : derivedFileIcon?.image_path ? (
           <Box
             component='img'
-            src={fileIcon?.image_path}
+            src={derivedFileIcon?.image_path}
             alt='file icon'
             sx={{ width: 100, height: 100, objectFit: 'contain' }}
           />
         ) : (
           <Icon
-            icon={fileIcon?.icon || 'mdi:file'}
+            icon={derivedFileIcon?.icon || 'mdi:file'}
             fontSize={80}
-            color={fileIcon?.icon_color || theme.palette.primary.main}
+            color={derivedFileIcon?.icon_color || theme.palette.primary.main}
           />
         )}
         <Typography variant='body1' color='text.secondary' sx={{ fontWeight: 500 }}>
@@ -148,9 +170,10 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
 
   // Renders preview content based on file type
   const renderContent = () => {
+    if (!src) return renderFallback()
     if (isError) return renderFallback()
 
-    switch (type) {
+    switch (derivedFileType) {
       case 'pdf':
         // Ensures the PDF fits the iframe width for consistent preview across browsers and iPad
         // const pdfUrl = `${src}#view=FitH`
@@ -275,7 +298,7 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
 
   // Pre-check PDF accessibility to detect broken links before rendering preview
   useEffect(() => {
-    if (!open || type !== 'pdf' || !src) return
+    if (!open || derivedFileType !== 'pdf' || !src) return
 
     let active = true
 
@@ -298,7 +321,7 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
     return () => {
       active = false
     }
-  }, [open, src, type])
+  }, [open, src, derivedFileType])
 
   // Dialog UI with title and content
   return (
@@ -317,7 +340,7 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
           sx={{ mr: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'nowrap' }}
         >
           <Grid
-            size={{ sm: type == 'pdf' ? 8 : 11, md: type == 'pdf' ? 9 : 11 }}
+            size={{ sm: derivedFileType == 'pdf' ? 8 : 11, md: derivedFileType == 'pdf' ? 9 : 11 }}
             sx={{ display: 'flex', justifyContent: 'center' }}
           >
             <TextEllipsisWithModal
@@ -333,10 +356,10 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
           </Grid>
 
           <Grid
-            size={{ sm: type == 'pdf' ? 4 : 1, md: type == 'pdf' ? 3 : 1 }}
+            size={{ sm: derivedFileType == 'pdf' ? 4 : 1, md: derivedFileType == 'pdf' ? 3 : 1 }}
             sx={{ display: 'flex', justifyContent: 'end', gap: 3 }}
           >
-            {type === 'pdf' && errorType !== 'broken' && (
+            {derivedFileType === 'pdf' && errorType !== 'broken' && (
               <Button
                 variant='contained'
                 onClick={() => window.open(src, '_blank')}
@@ -372,6 +395,6 @@ export default FileDialog
  * - onClose: function — Callback to close the dialog
  * - src: string — Source URL of the file to preview or download
  * - title?: string — Optional title shown at the top of the dialog
- * - type: string — File type ('pdf', 'image', 'video', 'audio', or fallback)
- * - fileIcon: object - containing icon and bg_color for the file
+ * - type?: string — Optional File type ('pdf', 'image', 'video', 'audio', or fallback)
+ * - fileIcon?: object - Optional containing icon and bg_color for the file
  */
