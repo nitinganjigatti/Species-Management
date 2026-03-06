@@ -68,25 +68,25 @@ const InpatientClinicalNotes = props => {
   }
 
   // after fetch if no data shows empty state
-  if (!isInitialLoading && clinicalNotesData?.length === 0 && status == 'discharge') {
-    return (
-      <Box
-        sx={{
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          mt: 6
-        }}
-      >
-        <NoMedicalData isDischarged={true} />
-      </Box>
-    )
-  }
+  // if (!isInitialLoading && clinicalNotesData?.length === 0 && status == 'discharge') {
+  //   return (
+  //     <Box
+  //       sx={{
+  //         width: '100%',
+  //         display: 'flex',
+  //         justifyContent: 'center',
+  //         alignItems: 'center',
+  //         mt: 6
+  //       }}
+  //     >
+  //       <NoMedicalData isDischarged={true} />
+  //     </Box>
+  //   )
+  // }
 
   return (
     <>
-      {status == 'admitted' && (
+      {(status == 'admitted' || status == 'discharge') && (
         <Box
           sx={{
             p: 6,
@@ -183,7 +183,7 @@ const InpatientClinicalNotes = props => {
                     {data?.note?.replace(/\\n/g, '\n') || 'NA'}
                   </Typography>
 
-                  {status == 'admitted' && (
+                  {(status == 'admitted' || status == 'discharge') && (
                     <IconButton
                       onClick={() => onDeleteNote(data?.note_id)}
                       sx={{ color: theme.palette.customColors.Tertiary, p: 0, ml: 3 }}

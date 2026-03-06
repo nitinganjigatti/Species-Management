@@ -242,7 +242,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
               </Box>
             </Box>
 
-            {!isDischared && (
+            {/* {!isDischared && ( */}
               <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
                 <Search
                   value={searchQuery}
@@ -253,7 +253,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
                   ADD NEW
                 </Button>
               </Box>
-            )}
+            {/* )} */}
           </Box>
           <Box>
             <MUISwitch
@@ -304,7 +304,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
             <NoMedicalData
               btnText={'ADD NEW SYMPTOM'}
               text={'All Added SYMPTOMS Will Appear here'}
-              isDischarged={isDischared}
+              // isDischarged={isDischared}
               btnAction={handleRouterNavigation}
             />
           </Box>

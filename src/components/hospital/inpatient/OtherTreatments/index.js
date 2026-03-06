@@ -172,14 +172,18 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
   const [isAddDrawerOpen, setAddDrawerOpen] = useState(false)
   const [isEditDrawerOpen, setEditDrawerOpen] = useState(false)
 
+  const getDefaultStartDate = () => {
+    return patientData?.discharge_at ? dayjs(patientData.discharge_at) : dayjs()
+  }
+
   const [formData, setFormData] = useState({
-    startDate: dayjs(),
+    startDate: getDefaultStartDate(),
     treatmentName: null,
     notes: ''
   })
 
   const [editFormData, setEditFormData] = useState({
-    startDate: dayjs(),
+    startDate: getDefaultStartDate(),
     notes: '',
     activeActivityId: null
   })
@@ -203,7 +207,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     setSelectedTreatmentActivities([])
     setSelectedTreatment(null)
     setEditFormData({
-      startDate: dayjs(),
+      startDate: patientData?.discharge_at ? dayjs(patientData.discharge_at) : dayjs(),
       notes: '',
       activeActivityId: null
     })
@@ -211,7 +215,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     setIsDeletingTreatment(false)
     setIsAddingTreatmentNote(false)
     setTreatmentActivitiesLoading(false)
-  }, [])
+  }, [patientData?.discharge_at])
 
   const totalTreatments = useMemo(
     () => treatmentGroups.reduce((sum, group) => sum + group.treatments.length, 0),
@@ -229,11 +233,11 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     setTreatmentInputValue('')
     setTreatmentOptionsLoading(false)
     setFormData({
-      startDate: dayjs(),
+      startDate: patientData?.discharge_at ? dayjs(patientData.discharge_at) : dayjs(),
       treatmentName: null,
       notes: ''
     })
-  }, [])
+  }, [patientData?.discharge_at])
 
   const fetchTreatments = useCallback(async () => {
     if (!animalId) return
@@ -291,6 +295,21 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
   useEffect(() => {
     fetchTreatments()
   }, [fetchTreatments])
+
+  useEffect(() => {
+    const defaultDate = patientData?.discharge_at ? dayjs(patientData.discharge_at) : dayjs()
+    setFormData(prev => ({
+      ...prev,
+      startDate: defaultDate
+    }))
+    // Only update editFormData when drawer is closed
+    if (!isEditDrawerOpen) {
+      setEditFormData(prev => ({
+        ...prev,
+        startDate: defaultDate
+      }))
+    }
+  }, [patientData?.discharge_at, isEditDrawerOpen])
 
   useEffect(() => {
     if (!isAddDrawerOpen) {
@@ -654,7 +673,8 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         >
           Treatments {totalTreatments > 0 ? ` - ${totalTreatments}` : ''}
         </Typography>
-        {!patientDischarged && !isTreatmentsLoading && treatmentGroups.length > 0 && (
+        {/* {!patientDischarged && !isTreatmentsLoading && treatmentGroups.length > 0 && ( */}
+        {!isTreatmentsLoading && treatmentGroups.length > 0 && (
           <Button
             variant='contained'
             startIcon={<AddIcon />}
@@ -702,7 +722,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
             <NoMedicalData
               btnText={'ADD NEW TREATMENT'}
               text={'All Added Treatments Will Appear here'}
-              isDischarged={patientDischarged}
+              // isDischarged={patientDischarged}
               btnAction={handleOpenAddDrawer}
             />
           </Box>)
@@ -941,6 +961,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         onInputValueChange={setTreatmentInputValue}
         isSubmitting={isCreatingTreatment}
         admissionDate={dayjs(patientData?.admitted_at)}
+        dischargedDate={patientData?.discharge_at ? dayjs(patientData.discharge_at) : null}
       />
       <EditTreatmentDrawer
         open={isEditDrawerOpen}
@@ -959,6 +980,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         formatTimestamp={formatTimestamp}
         formatShortDate={formatShortDate}
         admissionDate={dayjs(patientData?.admitted_at)}
+        dischargedDate={patientData?.discharge_at ? dayjs(patientData.discharge_at) : null}
       />
       <DialogConfirmationDialog
         open={isDeleteDialogOpen}

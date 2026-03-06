@@ -544,11 +544,11 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
                   debouncedSearch('')
                 }}
               />
-              {!isDischared && (
+              {/* {!isDischared && ( */}
                 <Button variant='contained' startIcon={<AddIcon />} onClick={handleRouterNavigation}>
                   ADD NEW
                 </Button>
-              )}
+              {/* )} */}
             </Box>
           </Box>
           <Box>
@@ -609,7 +609,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
             <NoMedicalData
               btnText={'ADD NEW CLINICAL ASSESSMENT'}
               text={'All Added Clinical Assessments Will Appear here'}
-              isDischarged={isDischared}
+              // isDischarged={isDischared}
               btnAction={handleRouterNavigation}
             />
           </Box>

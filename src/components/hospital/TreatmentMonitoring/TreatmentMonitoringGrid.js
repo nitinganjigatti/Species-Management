@@ -714,7 +714,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
               <NoMedicalData
                 btnText={'Add Monitoring'}
                 text={'All Added Treatments Will Appear here'}
-                isDischarged={isPatientDischarged}
+                // isDischarged={isPatientDischarged}
                 btnAction={() => setAddParameterDrawerOpen(true)}
               />
             </Box>
