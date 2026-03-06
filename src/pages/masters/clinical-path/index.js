@@ -7,8 +7,12 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Icon from 'src/@core/components/icon'
 import { AddButtonContained } from 'src/components/ButtonContained'
-
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import Utility from 'src/utility'
+import toast from 'react-hot-toast'
+import AddClinicalPathDrawer from 'src/views/pages/masters/AddClinicalPathDrawer'
+import { getAssesmentList } from 'src/lib/api/hospital/anesthesia'
+import { addAssessmentMastersByType, updateAssessmentMastersByType } from 'src/lib/api/medical/masters'
 
 function ClinicalPath() {
   const [rows, setRows] = useState([])
@@ -18,7 +22,7 @@ function ClinicalPath() {
   const theme = useTheme()
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [sort, setSort] = useState('asc')
-  const [sortColumn, setSortColumn] = useState('label')
+  const [sortColumn, setSortColumn] = useState('name')
   const [exportLoading, setExportLoading] = useState(false)
 
   // drawer :
@@ -28,34 +32,23 @@ function ClinicalPath() {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
 
-  const router = useRouter()
-
-  const handleRowClick = params => {
-    router.push(`/masters/monitor/${params.row.assessment_category_id}`)
-  }
-
   const fetchTableData = useCallback(
-    async (sortValue = sort, qValue = searchValue, columnValue = sortColumn, pageValue = paginationModel.page) => {
+    async (sort, q, column) => {
       try {
         setLoading(true)
 
-        // Plain query params
         const params = {
-          cat_id: router.query.id,
-          sort: sortValue,
-          q: qValue,
-          column: columnValue,
-          page: pageValue + 1,
-          limit: paginationModel.pageSiz,
-          ref_type: 'animal'
+          sort,
+          q,
+          column,
+          limit: paginationModel.pageSize,
+          page: paginationModel.page + 1,
+          type: 'clin_path'
         }
-
-        // Send queryParams directly, not nested in { params: ... }
-        const res = await 'api'(params)
-
+        const res = await getAssesmentList(params)
         if (res?.success) {
-          setRows(res?.data || [])
-          setTotal(res?.data?.length || 0)
+          setRows(res?.data?.records || [])
+          setTotal(res?.data?.total || 0)
         }
       } catch (error) {
         console.error(error)
@@ -63,7 +56,7 @@ function ClinicalPath() {
         setLoading(false)
       }
     },
-    [router.query.id, paginationModel.page, paginationModel.pageSize, sort, searchValue, sortColumn]
+    [paginationModel]
   )
 
   useEffect(() => {
@@ -72,95 +65,119 @@ function ClinicalPath() {
 
   const indexedRows = rows.map((row, index) => ({
     ...row,
-    id: row.assessment_category_id,
+    id: row.id,
     sl_no: paginationModel.page * paginationModel.pageSize + index + 1
   }))
 
+  const handleSubmitData = async payload => {
+    try {
+      setLoading(true)
+      setSubmitLoader(true)
+
+      var response
+      if (editParams?.id !== null) {
+        response = await updateAssessmentMastersByType(payload)
+      } else {
+        response = await addAssessmentMastersByType(payload)
+      }
+
+      if (response?.success) {
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+        toast.success(response?.message)
+
+        await fetchTableData()
+      } else {
+        if (response?.message && typeof response.message === 'object') {
+          Object.values(response.message).forEach(msg => {
+            toast.error(msg)
+          })
+        } else {
+          toast.error(response?.message || 'Something went wrong')
+        }
+        setSubmitLoader(false)
+        setLoading(false)
+      }
+      setLoading(false)
+    } catch (e) {
+      setSubmitLoader(false)
+    } finally {
+      setSubmitLoader(false)
+      setLoading(false)
+      setSearchValue('')
+    }
+  }
+
   const searchTableData = useCallback(
-    debounce(q => {
+    debounce(async (sort, q, column) => {
       setSearchValue(q)
-      setPaginationModel(prev => ({ ...prev, page: 0 })) // reset page on search
-      fetchTableData(sort, q, sortColumn, 0)
-    }, 500),
-    [sort, sortColumn, fetchTableData]
+      try {
+        await fetchTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
   )
 
   const handleSearch = value => {
-    // searchTableData(value)
-  }
-
-  const handleExport = async (
-    sortValue = sort,
-    qValue = searchValue,
-    columnValue = sortColumn,
-    pageValue = paginationModel.page
-  ) => {
-    // const params = {
-    //   cat_id: router.query.id,
-    //   sort: sortValue,
-    //   q: qValue,
-    //   column: columnValue,
-    //   page: pageValue + 1,
-    //   limit: paginationModel.pageSize
-
-    //   // response_type: 'csv'
-    // }
-    // try {
-    //   setExportLoading(true)
-    //   const response = await getAssessmentCategoriesList({ params })
-    //   if (response?.success && response?.data) {
-    //     Utility.downloadFileFromURL(response?.data)
-    //     setExportLoading(false)
-    //   }
-    // } catch (error) {
-    //   setExportLoading(false)
-    // } finally {
-    //   setExportLoading(false)
-    // }
-
-    alert('export will implement waiting for API ')
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumn)
   }
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const newSort = newModel[0].sort
-      const newColumn = newModel[0].field
-
-      setSort(newSort)
-      setSortColumn(newColumn)
-      setPaginationModel(prev => ({ ...prev, page: 0 })) // reset page
-      fetchTableData(newSort, searchValue, newColumn, 0)
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
     }
   }
 
-  const handleEdit = async (id, name, status) => {
-    setEditParams({ id: id, name: name, status: status })
+  const handleEdit = async (id, name) => {
+    setEditParams({ id: id, name: name })
     setOpenDrawer(true)
+  }
+
+  const handleExport = async ({ q = searchValue }) => {
+    const params = { response_type: 'csv', sort: sort, column: sortColumn, q, type: 'clin_path' }
+
+    try {
+      setExportLoading(true)
+
+      const response = await getAssesmentList(params)
+      if (response?.success && response?.data.download_url) {
+        Utility.downloadFileFromURL(response.data?.download_url)
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setExportLoading(false)
+    }
   }
 
   const columns = [
     {
-      flex: 0.2,
-      minWidth: 80,
+      width: 120,
       field: 'sl_no',
       headerName: 'SL.NO',
 
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
+        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor, pl: '10px' }}>
           {params.row.sl_no}.
         </Typography>
       )
     },
     {
-      flex: 0.4,
-      minWidth: 150,
-      field: 'label',
+      minWidth: 350,
+      field: 'name',
       headerName: 'NAME',
 
       // color: theme.palette.customColors.customHeadingTextColor,
 
       renderCell: params => (
-        <Tooltip title={params.row.label}>
+        <Tooltip title={params.row.name}>
           <Typography
             variant='body2'
             sx={{
@@ -169,53 +186,30 @@ function ClinicalPath() {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              color: theme.palette.customColors.customHeadingTextColor
+              color: theme.palette.customColors.customHeadingTextColor,
+              pl: '6px'
             }}
           >
-            {params.row.label}
+            {params.row.name}
           </Typography>
         </Tooltip>
       )
     },
 
     {
-      flex: 0.2,
-      minWidth: 120,
-      field: 'active',
-      headerName: 'STATUS',
-
-      // color: theme.palette.customColors.customHeadingTextColor,
-      renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '14px',
-            fontWeight: 500,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            color: theme.palette.customColors.customHeadingTextColor
-          }}
-          variant='body2'
-        >
-          {params.row.active === '1' ? 'Active' : 'Inactive'}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 80,
+      minWidth: 150,
       field: 'action',
       headerName: 'Action',
       color: theme.palette.customColors.customHeadingTextColor,
       renderCell: params => (
         <Box key={params.index}>
-          {params?.row?.zoo_id === '0' ? null : (
+          {params?.row?.is_selected !== '0' ? null : (
             <IconButton
               size='small'
               onClick={e => {
                 e.stopPropagation()
 
-                handleEdit()
+                handleEdit(params.row.id, params.row.name)
               }}
             >
               <Icon icon='mdi:pencil-outline' />
@@ -228,8 +222,8 @@ function ClinicalPath() {
 
   const headerAction = (
     <AddButtonContained
-      title='Add Clinical Path'
-      action={() => setOpenDrawer(true)}
+      title='Add ClinicalPath'
+      action={() => (setOpenDrawer(true), setResetForm(true), setEditParams({ id: null, name: null }))}
       fullWidth='fullWidth'
       styles={{
         margin: 0
@@ -238,7 +232,7 @@ function ClinicalPath() {
   )
 
   return (
-    <PageCardLayout title=' Clinical Path' action={headerAction}>
+    <PageCardLayout title=' ClinicalPath' action={headerAction}>
       <Grid container>
         <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
           <Grid item size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
@@ -259,20 +253,6 @@ function ClinicalPath() {
             <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} />
           </Grid>
         </Grid>
-        {/* <Grid item size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
-          <MUISearch
-            sx={{
-              width: {
-                xs: '100%',
-                sm: '250px'
-              }
-            }}
-            placeholder='Search...'
-            value={searchValue}
-            onChange={e => handleSearch(e.target.value)}
-            onClear={() => handleSearch('')}
-          />
-        </Grid> */}
 
         <Grid item size={{ xs: 12 }}>
           <CommonTable
@@ -283,10 +263,22 @@ function ClinicalPath() {
             searchValue={searchValue}
             paginationModel={paginationModel}
             handleSortModel={handleSortModel}
-            onRowClick={handleRowClick}
             setPaginationModel={setPaginationModel}
           />
         </Grid>
+        <AddClinicalPathDrawer
+          drawerWidth={400}
+          addEventSidebarOpen={openDrawer}
+          handleSidebarClose={() => {
+            console.log('close event clicked')
+            setOpenDrawer(false)
+            setResetForm(true)
+          }}
+          editParams={editParams}
+          resetForm={resetForm}
+          handleSubmitData={handleSubmitData}
+          submitLoader={submitLoader}
+        />
       </Grid>
     </PageCardLayout>
   )

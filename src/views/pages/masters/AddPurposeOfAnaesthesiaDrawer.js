@@ -16,19 +16,19 @@ import { useForm } from 'react-hook-form'
 // ** Icons
 import Icon from 'src/@core/components/icon'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import AddTreatmentDrawer from 'src/components/hospital/inpatient/OtherTreatments/AddTreatmentDrawer'
 
 // Validation Schema
 const schema = yup.object().shape({
-  name: yup.string().required('Delivery Name is Required')
+  name: yup.string().required('Purpose is Required')
 })
 
-// Default Form Values
+// Default Form Value
 const defaultValues = {
-  name: '',
-  status: 'active'
+  name: ''
 }
 
-const AddDeliveryRouteDrawer = ({
+const AddPurposeOfAnaesthesiaDrawer = ({
   addEventSidebarOpen,
   handleSidebarClose,
   handleSubmitData,
@@ -50,7 +50,8 @@ const AddDeliveryRouteDrawer = ({
   const onSubmit = async values => {
     const payload = {
       id: editParams?.id || null,
-      delivery: values.name
+      name: values.name,
+      type: 'purpose'
     }
 
     console.log('FINAL API PAYLOAD:', payload)
@@ -77,7 +78,6 @@ const AddDeliveryRouteDrawer = ({
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}
     >
-      {/* Header */}
       <Box
         sx={{
           display: 'flex',
@@ -85,25 +85,24 @@ const AddDeliveryRouteDrawer = ({
           p: 4
         }}
       >
-        <Typography variant='h6'>{editParams?.id ? 'Edit' : 'Add'} Delivery</Typography>
+        <Typography variant='h6'>{editParams?.id ? 'Edit' : 'Add'} Purpose</Typography>
 
         <IconButton size='small' onClick={handleSidebarClose}>
           <Icon icon='mdi:close' fontSize={20} />
         </IconButton>
       </Box>
-
-      {/* Body */}
       <Box sx={{ p: 6 }}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <ControlledTextField
             sx={{ mb: 6 }}
             name='name'
             control={control}
-            placeholder='Delivery Name'
+            placeholder='Purpose Of Anaesthesia '
+            label='Purpose Of Anaesthesia '
             error={Boolean(errors.name)}
           />
           <LoadingButton fullWidth size='large' type='submit' variant='contained' loading={submitLoader}>
-            Submit
+            SUBMIT
           </LoadingButton>
         </form>
       </Box>
@@ -111,4 +110,4 @@ const AddDeliveryRouteDrawer = ({
   )
 }
 
-export default AddDeliveryRouteDrawer
+export default AddPurposeOfAnaesthesiaDrawer

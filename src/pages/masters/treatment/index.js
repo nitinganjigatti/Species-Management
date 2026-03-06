@@ -1,6 +1,5 @@
 import { Box, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import { debounce } from 'lodash'
-import { useRouter } from 'next/router'
 import { useCallback, useEffect, useState } from 'react'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -8,21 +7,13 @@ import { ExportButton } from 'src/views/utility/render-snippets'
 import Icon from 'src/@core/components/icon'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
-import {
-  getMedicalDeliveryRoute,
-  addDeliveryRoute,
-  updateDeliveryRoute,
-  addTreatmentMasters,
-  updateTreatmentMasters
-} from 'src/lib/api/medical/masters'
 import Utility from 'src/utility'
 import toast from 'react-hot-toast'
 import AddTreatmentMastersDrawer from 'src/views/pages/masters/AddTreatmentMastersDrawer'
 import {
-  createTreatmentRecord,
-  getTreatmentList,
+  addTreatmentMasters,
   getTreatmentMasterList,
-  updateTreatmentRecord
+  updateTreatmentMasters
 } from 'src/lib/api/hospital/treatmentMaster'
 
 function Treatment() {
@@ -37,49 +28,20 @@ function Treatment() {
   const [exportLoading, setExportLoading] = useState(false)
 
   // drawer :
-  const editParamsInitialState = { id: null, name: null }
+
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
-  const [editParams, setEditParams] = useState(editParamsInitialState)
-
-  const router = useRouter()
-
-  // const fetchTableData = useCallback(async () => {
-  //   try {
-  //     setLoading(true)
-  //     console.log('aaaa', searchValue)
-
-  //     const params = {
-  //       sort,
-  //       q: searchValue,
-  //       column: sortColumn,
-  //       limit: paginationModel.pageSize,
-  //       page: paginationModel.page + 1
-  //     }
-  //     console.log('aaa', params)
-
-  //     // await getTreatmentMasterList({ params }).then(res => {
-  //     const res = await getTreatmentMasterList(params)
-  //     if (res?.success && res?.data) {
-  //       setRows(res?.data?.records || [])
-  //       setTotal(res?.data?.total || 0)
-  //     }
-
-  //     setLoading(false)
-  //   } catch (e) {
-  //     setLoading(false)
-  //   }
-  // }, [paginationModel])
+  const [editParams, setEditParams] = useState({ id: null, treatment_name: null })
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async (sort, searchValue, column) => {
       try {
         setLoading(true)
 
         const params = {
           sort,
-          q,
+          q: searchValue,
           column,
           limit: paginationModel.pageSize,
           page: paginationModel.page + 1
@@ -100,7 +62,7 @@ function Treatment() {
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData()
+    fetchTableData(sort, searchValue, sortColumn)
   }, [fetchTableData])
 
   const indexedRows = rows.map((row, index) => ({
@@ -114,7 +76,6 @@ function Treatment() {
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, column)
-        console.log('aaaaa', q)
       } catch (error) {
         console.error(error)
       }
@@ -124,29 +85,26 @@ function Treatment() {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, sortColumn, paginationModel)
   }
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const newSort = newModel[0].sort
-      const newColumn = newModel[0].field
-
-      setSort(newSort)
-      setSortColumn(newColumn)
-      setPaginationModel(prev => ({ ...prev, page: 0 }))
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
     }
   }
 
-  const handleEdit = async (id, name) => {
-    setEditParams({ id: id, name: name })
+  const handleEdit = async (id, treatment_name) => {
+    setEditParams({ id: id, treatment_name: treatment_name })
     setOpenDrawer(true)
   }
 
   const columns = [
     {
-      flex: 0.2,
-      minWidth: 80,
+      width: 120,
       field: 'sl_no',
       headerName: 'SL.NO',
 
@@ -157,8 +115,7 @@ function Treatment() {
       )
     },
     {
-      flex: 0.4,
-      minWidth: 150,
+      width: 350,
       field: 'treatment_name',
       headerName: 'NAME',
 
@@ -182,14 +139,12 @@ function Treatment() {
     },
 
     {
-      flex: 0.2,
-      minWidth: 80,
+      width: 150,
       field: 'action',
       headerName: 'Action',
       color: theme.palette.customColors.customHeadingTextColor,
       renderCell: params => (
         <Box key={params.index}>
-          {/* {params?.row?.zoo_id === '0' || params?.row?.zoo_id == null ? null : ( */}
           <IconButton
             size='small'
             onClick={e => {
@@ -199,14 +154,13 @@ function Treatment() {
           >
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
-          {/* )} */}
         </Box>
       )
     }
   ]
 
   const addEventSidebarOpen = () => {
-    setEditParams({ id: null })
+    setEditParams({ id: null, treatment_name: null })
     setResetForm(true)
     setOpenDrawer(true)
   }
@@ -223,7 +177,6 @@ function Treatment() {
   )
 
   const handleSubmitData = async payload => {
-    console.log('payload', payload)
     try {
       setLoading(true)
       setSubmitLoader(true)
@@ -243,18 +196,11 @@ function Treatment() {
 
         await fetchTableData()
       } else {
-        // setSubmitLoader(false)
-        // console.log('test')
-        // toast.success(response?.message)
-
-        // Check if message is an object (validation errors)
         if (response?.message && typeof response.message === 'object') {
-          // Loop through each field and show an error toast
           Object.values(response.message).forEach(msg => {
             toast.error(msg)
           })
         } else {
-          // Fallback: if it's a string
           toast.error(response?.message || 'Something went wrong')
         }
         setSubmitLoader(false)
@@ -270,16 +216,14 @@ function Treatment() {
     }
   }
 
-  const handleExport = async ({ sort_by = sortColumn, sort_order = sort, q = searchValue }) => {
-    const params = { response_type: 'csv', sort_by, sort_order, q }
+  const handleExport = async ({ column = sortColumn, q = searchValue }) => {
+    const params = { response_type: 'csv', column, sort, q }
 
     try {
       setExportLoading(true)
 
       const response = await getTreatmentMasterList(params)
       if (response?.success && response?.data?.download_url) {
-        console.log('aaa', response)
-
         Utility.downloadFileFromURL(response?.data?.download_url)
       }
     } catch (error) {
@@ -327,9 +271,9 @@ function Treatment() {
           drawerWidth={400}
           addEventSidebarOpen={openDrawer}
           handleSidebarClose={() => {
-            console.log('close event clicked')
             setOpenDrawer(false)
             setResetForm(true)
+            setEditParams({ id: null, treatment_name: null })
           }}
           editParams={editParams}
           resetForm={resetForm}

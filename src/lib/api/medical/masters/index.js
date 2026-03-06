@@ -1,11 +1,15 @@
 import {
+  ADD_ASSESSMENT_MASTERS,
+  ADD_ASSESSMENT_MASTERS_BY_TYPE,
   ADD_MEASUREMENT_UNITS,
   ADD_MEDICAL_DELIVERY_ROUTE,
-  ADD_TREATMENT_MASTERS,
+  GET_MEASUREMENT_BASE_UOM,
+  GET_MEASUREMENT_UNITS_MASTERS,
   GET_MEDICAL_DELIVERY_ROUTE_LIST,
+  UPDATE_ASSESSMENT_MASTERS,
+  UPDATE_ASSESSMENT_MASTERS_BY_TYPE,
   UPDATE_MEASUREMENT_UNITS,
-  UPDATE_MEDICAL_DELIVERY_ROUTE,
-  UPDATE_TREATMENT_MASTERS
+  UPDATE_MEDICAL_DELIVERY_ROUTE
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../../utility'
 
@@ -181,26 +185,50 @@ export const updateDeliveryRoute = async payload => {
   return response?.data
 }
 
-export const addTreatmentMasters = async payload => {
-  const response = await axiosFormPost({ url: `${ADD_TREATMENT_MASTERS}`, body: payload })
+export async function getMeasurementUnitsMasters({ params }) {
+  const response = await axiosGet({ url: `${GET_MEASUREMENT_UNITS_MASTERS}`, params })
 
-  return response?.data
-}
-
-export const updateTreatmentMasters = async payload => {
-  const response = await axiosFormPost({ url: `${UPDATE_TREATMENT_MASTERS}`, body: payload })
-
-  return response?.data
+  return response.data
 }
 
 export const addMeasurementUnits = async payload => {
-  const response = await axiosFormPost({ url: `${ADD_MEASUREMENT_UNITS}`, body: payload })
+  const response = await axiosPost({ url: `${ADD_MEASUREMENT_UNITS}`, body: payload })
 
   return response?.data
 }
 
 export const updateMeasurementUnits = async payload => {
   const response = await axiosFormPost({ url: `${UPDATE_MEASUREMENT_UNITS}`, body: payload })
+
+  return response?.data
+}
+
+export async function getMeasurementBaseUOM({ params }) {
+  const response = await axiosGet({ url: `${GET_MEASUREMENT_BASE_UOM}`, params })
+
+  return response.data
+}
+
+export const addAssessmentMastersByType = async payload => {
+  const response = await axiosFormPost({ url: `${ADD_ASSESSMENT_MASTERS_BY_TYPE}`, body: payload })
+
+  return response?.data
+}
+
+export const updateAssessmentMastersByType = async payload => {
+  const response = await axiosFormPost({ url: `${UPDATE_ASSESSMENT_MASTERS_BY_TYPE}`, body: payload })
+
+  return response?.data
+}
+
+export const addAssessmentMasters = async payload => {
+  const response = await axiosPost({ url: `${ADD_ASSESSMENT_MASTERS}`, body: payload })
+
+  return response?.data
+}
+
+export const updateAssessmentMasters = async payload => {
+  const response = await axiosPost({ url: `${UPDATE_ASSESSMENT_MASTERS}`, body: payload })
 
   return response?.data
 }

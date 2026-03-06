@@ -19,15 +19,16 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 
 // Validation Schema
 const schema = yup.object().shape({
-  treatment_name: yup.string().required('Treatment Name is Required')
+  name: yup.string().required('Delivery Name is Required')
 })
 
 // Default Form Values
 const defaultValues = {
-  treatment_name: ''
+  name: '',
+  status: 'active'
 }
 
-const AddTreatmentMastersDrawer = ({
+const AddDeliveryRouteDrawer = ({
   addEventSidebarOpen,
   handleSidebarClose,
   handleSubmitData,
@@ -48,10 +49,9 @@ const AddTreatmentMastersDrawer = ({
 
   const onSubmit = async values => {
     const payload = {
-      treatment_master_id: editParams?.id || null,
-      treatment_name: values.treatment_name
+      id: editParams?.id || null,
+      delivery: values.name
     }
-
     await handleSubmitData(payload)
   }
 
@@ -62,7 +62,7 @@ const AddTreatmentMastersDrawer = ({
 
     if (editParams?.id) {
       reset({
-        treatment_name: editParams?.treatment_name || ''
+        name: editParams?.name || ''
       })
     }
   }, [resetForm, editParams, reset])
@@ -81,22 +81,21 @@ const AddTreatmentMastersDrawer = ({
           p: 4
         }}
       >
-        <Typography variant='h6'>{editParams?.id ? 'Edit' : 'Add'} Treatment</Typography>
+        <Typography variant='h6'>{editParams?.id ? 'Edit' : 'Add'} Delivery</Typography>
 
         <IconButton size='small' onClick={handleSidebarClose}>
           <Icon icon='mdi:close' fontSize={20} />
         </IconButton>
       </Box>
-
       <Box sx={{ p: 6 }}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <ControlledTextField
             sx={{ mb: 6 }}
-            name='treatment_name'
+            name='name'
             control={control}
-            placeholder='Treatment Name'
-            label='Treatment Name'
-            error={Boolean(errors.treatment_name)}
+            placeholder='Delivery Name'
+            label='Delivery Name'
+            error={Boolean(errors.name)}
           />
           <LoadingButton fullWidth size='large' type='submit' variant='contained' loading={submitLoader}>
             Submit
@@ -107,4 +106,4 @@ const AddTreatmentMastersDrawer = ({
   )
 }
 
-export default AddTreatmentMastersDrawer
+export default AddDeliveryRouteDrawer

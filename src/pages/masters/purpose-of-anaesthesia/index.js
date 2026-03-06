@@ -1,16 +1,17 @@
 import { Box, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import { debounce } from 'lodash'
-import { useRouter } from 'next/router'
 import { useCallback, useEffect, useState } from 'react'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Icon from 'src/@core/components/icon'
 import { AddButtonContained } from 'src/components/ButtonContained'
-
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
-import { getAssesmentList } from 'src/lib/api/hospital/anesthesia'
 import Utility from 'src/utility'
+import toast from 'react-hot-toast'
+import AddPurposeOfAnaesthesiaDrawer from 'src/views/pages/masters/AddPurposeOfAnaesthesiaDrawer'
+import { getAssesmentList } from 'src/lib/api/hospital/anesthesia'
+import { addAssessmentMastersByType, updateAssessmentMastersByType } from 'src/lib/api/medical/masters'
 
 function PurposeOfAnaesthesia() {
   const [rows, setRows] = useState([])
@@ -30,8 +31,6 @@ function PurposeOfAnaesthesia() {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
 
-  const router = useRouter()
-
   const fetchTableData = useCallback(
     async (sort, q, column) => {
       try {
@@ -45,17 +44,13 @@ function PurposeOfAnaesthesia() {
           page: paginationModel.page + 1,
           type: 'purpose'
         }
-
-        // Send queryParams directly, not nested in { params: ... }
         const res = await getAssesmentList(params)
 
-        console.log('aaa', res)
         if (res?.success) {
           setRows(res?.data?.records || [])
           setTotal(res?.data?.total || 0)
         }
-      } catch (error) {
-        console.error(error)
+      } catch {
       } finally {
         setLoading(false)
       }
@@ -65,7 +60,7 @@ function PurposeOfAnaesthesia() {
 
   useEffect(() => {
     fetchTableData()
-  }, [fetchTableData])
+  }, [])
 
   const indexedRows = rows.map((row, index) => ({
     ...row,
@@ -73,12 +68,52 @@ function PurposeOfAnaesthesia() {
     sl_no: paginationModel.page * paginationModel.pageSize + index + 1
   }))
 
+  const handleSubmitData = async payload => {
+    try {
+      setLoading(true)
+      setSubmitLoader(true)
+      setSearchValue('')
+
+      var response
+      if (editParams?.id !== null) {
+        response = await updateAssessmentMastersByType(payload)
+      } else {
+        response = await addAssessmentMastersByType(payload)
+      }
+
+      if (response?.success) {
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+        toast.success(response?.message)
+
+        await fetchTableData()
+      } else {
+        if (response?.message && typeof response.message === 'object') {
+          Object.values(response.message).forEach(msg => {
+            toast.error(msg)
+          })
+        } else {
+          toast.error(response?.message || 'Something went wrong')
+        }
+        setSubmitLoader(false)
+        setLoading(false)
+      }
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+    } finally {
+      setSubmitLoader(false)
+      setLoading(false)
+    }
+  }
+
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, column)
-        console.log('aaaaa', q)
       } catch (error) {
         console.error(error)
       }
@@ -98,37 +133,15 @@ function PurposeOfAnaesthesia() {
 
       setSort(newSort)
       setSortColumn(newColumn)
-      setPaginationModel(prev => ({ ...prev, page: 0 })) // reset page
+      setPaginationModel(prev => ({ ...prev, page: 0 }))
       fetchTableData(newSort, searchValue, newColumn, 0)
     }
   }
 
-  const handleEdit = async (id, name, status) => {
-    setEditParams({ id: id, name: name, status: status })
+  const handleEdit = async (id, name) => {
+    setEditParams({ id: id, name: name })
     setOpenDrawer(true)
   }
-
-  // const handleExport = async () => {
-  //   const params = {
-  //     sort,
-
-  //     type: 'purpose',
-  //     response_type: 'csv'
-  //   }
-  //   try {
-  //     setExportLoading(true)
-
-  //     const response = await getAssesmentList(params)
-  //     if (response?.success && response?.data) {
-  //       console.log('aaa', response)
-  //       Utility.downloadFileFromURL(response.data)
-  //     }
-  //   } catch (error) {
-  //     console.error(error)
-  //   } finally {
-  //     setExportLoading(false)
-  //   }
-  // }
 
   const handleExport = async ({ q = searchValue }) => {
     const params = { response_type: 'csv', sort: sort, column: sortColumn, q, type: 'purpose' }
@@ -149,11 +162,9 @@ function PurposeOfAnaesthesia() {
 
   const columns = [
     {
-      flex: 0.2,
-      minWidth: 80,
+      width: 120,
       field: 'sl_no',
       headerName: 'SL.NO',
-
       renderCell: params => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
           {params.row.sl_no}.
@@ -161,13 +172,9 @@ function PurposeOfAnaesthesia() {
       )
     },
     {
-      flex: 0.4,
-      minWidth: 150,
+      width: 350,
       field: 'name',
       headerName: 'NAME',
-
-      // color: theme.palette.customColors.customHeadingTextColor,
-
       renderCell: params => (
         <Tooltip title={params.row.name}>
           <Typography
@@ -187,49 +194,25 @@ function PurposeOfAnaesthesia() {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 120,
-    //   field: 'active',
-    //   headerName: 'STATUS',
-
-    //   // color: theme.palette.customColors.customHeadingTextColor,
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         fontSize: '14px',
-    //         fontWeight: 500,
-    //         overflow: 'hidden',
-    //         textOverflow: 'ellipsis',
-    //         whiteSpace: 'nowrap',
-    //         color: theme.palette.customColors.customHeadingTextColor
-    //       }}
-    //       variant='body2'
-    //     >
-    //       {params.row.active === '1' ? 'Active' : 'Inactive'}
-    //     </Typography>
-    //   )
-    // },
     {
-      flex: 0.2,
-      minWidth: 80,
+      width: 150,
       field: 'action',
       headerName: 'Action',
       color: theme.palette.customColors.customHeadingTextColor,
       renderCell: params => (
         <Box key={params.index}>
-          {/* {params?.row?.zoo_id === '0' ? null : ( */}
-          <IconButton
-            size='small'
-            onClick={e => {
-              e.stopPropagation()
+          {params?.row?.is_selected !== '0' ? null : (
+            <IconButton
+              size='small'
+              onClick={e => {
+                e.stopPropagation()
 
-              handleEdit()
-            }}
-          >
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-          {/* )} */}
+                handleEdit(params?.row?.id, params?.row?.name)
+              }}
+            >
+              <Icon icon='mdi:pencil-outline' />
+            </IconButton>
+          )}
         </Box>
       )
     }
@@ -238,7 +221,7 @@ function PurposeOfAnaesthesia() {
   const headerAction = (
     <AddButtonContained
       title='Add Purpose'
-      action={() => setOpenDrawer(true)}
+      action={() => (setOpenDrawer(true), setEditParams({ id: null, name: null }), setResetForm(true))}
       fullWidth='fullWidth'
       styles={{
         margin: 0
@@ -281,6 +264,19 @@ function PurposeOfAnaesthesia() {
             setPaginationModel={setPaginationModel}
           />
         </Grid>
+        <AddPurposeOfAnaesthesiaDrawer
+          drawerWidth={400}
+          addEventSidebarOpen={openDrawer}
+          handleSidebarClose={() => {
+            setOpenDrawer(false)
+            setResetForm(true)
+            setEditParams({ id: null, value: null })
+          }}
+          editParams={editParams}
+          resetForm={resetForm}
+          handleSubmitData={handleSubmitData}
+          submitLoader={submitLoader}
+        />
       </Grid>
     </PageCardLayout>
   )

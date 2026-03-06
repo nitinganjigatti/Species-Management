@@ -9,10 +9,9 @@ import Icon from 'src/@core/components/icon'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import { getMedicalDeliveryRoute, addDeliveryRoute, updateDeliveryRoute } from 'src/lib/api/medical/masters'
-import AddDeliveryRouteDrawer from 'src/views/pages/masters/AddDeliveryRoute'
 import Utility from 'src/utility'
 import toast from 'react-hot-toast'
-import { width } from '@mui/system'
+import AddDeliveryRouteDrawer from 'src/views/pages/masters/AddDeliveryRouteDrawer'
 
 function DeliveryRoute() {
   const [rows, setRows] = useState([])
@@ -60,7 +59,7 @@ function DeliveryRoute() {
   )
 
   useEffect(() => {
-    fetchTableData()
+    fetchTableData(sort, searchValue, sortColumn)
   }, [fetchTableData])
 
   const indexedRows = rows.map((row, index) => ({
@@ -74,26 +73,22 @@ function DeliveryRoute() {
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, column)
-      } catch (error) {
-        console.error(error)
-      }
+      } catch (error) {}
     }, 1000),
     []
   )
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, sortColumn, paginationModel)
   }
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const newSort = newModel[0].sort
-      const newColumn = newModel[0].field
-
-      setSort(newSort)
-      setSortColumn(newColumn)
-      setPaginationModel(prev => ({ ...prev, page: 0 }))
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
     }
   }
 
@@ -104,11 +99,9 @@ function DeliveryRoute() {
 
   const columns = [
     {
-      width: 100,
-
+      width: 120,
       field: 'sl_no',
       headerName: 'SL.NO',
-
       renderCell: params => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor, pl: '10px' }}>
           {params.row.sl_no}.
@@ -116,11 +109,9 @@ function DeliveryRoute() {
       )
     },
     {
-      minWidth: 300,
-
+      width: 350,
       field: 'delivery',
       headerName: 'NAME',
-
       renderCell: params => (
         <Tooltip title={params.row.delivery}>
           <Typography
@@ -142,7 +133,7 @@ function DeliveryRoute() {
     },
 
     {
-      width: 100,
+      width: 140,
       field: 'action',
       headerName: 'Action',
       color: theme.palette.customColors.customHeadingTextColor,
@@ -182,7 +173,6 @@ function DeliveryRoute() {
   )
 
   const handleSubmitData = async payload => {
-    console.log('payload', payload)
     try {
       setLoading(true)
       setSubmitLoader(true)
@@ -202,18 +192,11 @@ function DeliveryRoute() {
 
         await fetchTableData()
       } else {
-        // setSubmitLoader(false)
-        // console.log('test')
-        // toast.success(response?.message)
-
-        // Check if message is an object (validation errors)
         if (response?.message && typeof response.message === 'object') {
-          // Loop through each field and show an error toast
           Object.values(response.message).forEach(msg => {
             toast.error(msg)
           })
         } else {
-          // Fallback: if it's a string
           toast.error(response?.message || 'Something went wrong')
         }
         setSubmitLoader(false)
@@ -221,11 +204,11 @@ function DeliveryRoute() {
       }
       setLoading(false)
     } catch (e) {
-      console.log(e)
       setSubmitLoader(false)
     } finally {
       setSubmitLoader(false)
       setLoading(false)
+      setSearchValue('')
     }
   }
 
@@ -239,8 +222,7 @@ function DeliveryRoute() {
       if (response?.success && response?.data) {
         Utility.downloadFileFromURL(response.data)
       }
-    } catch (error) {
-      console.error(error)
+    } catch {
     } finally {
       setExportLoading(false)
     }
@@ -284,7 +266,6 @@ function DeliveryRoute() {
           drawerWidth={400}
           addEventSidebarOpen={openDrawer}
           handleSidebarClose={() => {
-            console.log('close event clicked')
             setOpenDrawer(false)
             setResetForm(true)
           }}
