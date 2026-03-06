@@ -1,4 +1,5 @@
 /* eslint-disable lines-around-comment */
+import { useMemo, useCallback } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@emotion/react'
 
@@ -26,9 +27,56 @@ const CommonTable = ({
   getRowHeight,
   handleSearch,
   hideFooter = false,
-  getRowClassName // New prop for conditional row styling
+  getRowClassName, // New prop for conditional row styling
+  getRowId
 }) => {
   const theme = useTheme()
+
+  /**
+   * selectionModel — Adapts consumer's selectedRows array to DataGrid v8 format.
+   *
+   * DataGrid v8 expects: { type: 'include' | 'exclude', ids: Set<GridRowId> }
+   * Consumers pass:      plain array of IDs [1, 2, 3] or row objects [{ id: 1, ... }]
+   *
+   * This converts the consumer array → v8 format so checkboxes render correctly.
+   */
+  const selectionModel = useMemo(() => {
+    if (!Array?.isArray(selectedRows) || selectedRows?.length === 0) {
+      return { type: 'include', ids: new Set() }
+    }
+    const ids = selectedRows?.map(row => (typeof row === 'object' && row !== null ? row?.id : row))
+    return { type: 'include', ids: new Set(ids) }
+  }, [selectedRows])
+
+  /**
+   * handleSelectionChange — Converts DataGrid v8 selection callback back to a plain ID array.
+   *
+   * DataGrid v8 fires this with: { type: 'include' | 'exclude', ids: Set<GridRowId> }
+   *   - type 'include': only the IDs in the Set are selected (normal click)
+   *   - type 'exclude': ALL visible rows are selected EXCEPT the IDs in the Set (header "Select All")
+   *
+   * This converts it back to a plain array of IDs [1, 2, 3] and passes it
+   * to the consumer's onRowSelectionModelChange callback.
+   */
+  const handleSelectionChange = useCallback(
+    newModel => {
+      if (!onRowSelectionModelChange) return
+
+      let selectedIds = []
+
+      if (newModel?.type === 'exclude') {
+        // "Select All" was clicked — all visible rows selected, minus any unchecked ones
+        const excludedIds = newModel?.ids || new Set()
+        selectedIds = (indexedRows || []).map(row => row.id)?.filter(id => !excludedIds?.has(id))
+      } else {
+        // Normal selection — only the checked row IDs
+        selectedIds = newModel?.ids ? Array?.from(newModel?.ids) : []
+      }
+
+      onRowSelectionModelChange(selectedIds)
+    },
+    [onRowSelectionModelChange, indexedRows]
+  )
 
   return (
     <DataGrid
@@ -187,11 +235,13 @@ const CommonTable = ({
       onRowClick={onRowClick ? onRowClick : null}
       checkboxSelection={checkBoxOption ? true : false}
       {...(checkBoxOption && {
-        onRowSelectionModelChange: onRowSelectionModelChange || (() => {}),
-        rowSelectionModel: selectedRows || []
+        onRowSelectionModelChange: handleSelectionChange,
+        rowSelectionModel: selectionModel,
+        keepNonExistentRowsSelected: true
       })}
       getRowHeight={getRowHeight ? getRowHeight : null}
       getRowClassName={getRowClassName ? getRowClassName : undefined}
+      {...(getRowId && { getRowId })}
     />
   )
 }
