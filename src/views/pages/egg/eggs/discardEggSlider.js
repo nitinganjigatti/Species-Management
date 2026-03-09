@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   Drawer,
@@ -49,6 +49,19 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const [filterList, setFilterList] = useState([])
   const [selectedOptions, setSelectedOptions] = useState(initFilters())
   const [applyFilters, setApplyFilters] = useState(initFilters())
+  const activeFilterCount = useMemo(() => {
+    if (!applyFilters) return 0
+
+    return Object.entries(applyFilters).reduce((count, [key, value]) => {
+      if (key === 'selecteMenu') return count
+
+      if (Array.isArray(value) && value.length > 0) {
+        return count + 1
+      }
+
+      return count
+    }, 0)
+  }, [applyFilters])
 
   function initFilters() {
     return {
@@ -139,7 +152,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     setSelectedOptions(initFilters())
     setFilterList([])
     setPage(1)
-    DiscardList(1, '', '', '')
+    // DiscardList(1, '', '', '')
   }
 
   const handleSearch = value => {
@@ -320,12 +333,12 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 display: 'flex',
                 justifyContent: 'center',
                 gap: 1,
-                width: filterList?.length > 0 ? '50px' : '34px',
+                width: activeFilterCount > 0 ? '50px' : '34px',
                 height: '36px',
                 border: 1,
                 borderRadius: '6px',
                 borderColor: theme.palette.customColors.OutlineVariant,
-                bgcolor: filterList?.length > 0 ? theme?.palette.primary.dark : null,
+                bgcolor: activeFilterCount > 0 ? theme?.palette.primary.dark : null,
                 alignItems: 'center',
                 cursor: 'pointer'
               }}
@@ -334,12 +347,12 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               <Icon
                 icon='fluent:filter-16-filled'
                 fontSize={20}
-                color={filterList?.length > 0 ? theme.palette.primary.contrastText : 'Black'}
+                color={activeFilterCount > 0 ? theme.palette.primary.contrastText : 'Black'}
               />
 
-              {filterList?.length > 0 && (
+              {activeFilterCount > 0 && (
                 <Typography sx={{ color: theme.palette.primary.contrastText, fontSize: '14px', fontWeight: 400 }}>
-                  {filterList?.length}
+                  {activeFilterCount}
                 </Typography>
               )}
             </Box>
@@ -367,6 +380,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   value={search}
                   onChange={e => {
                     setPage(1)
+
                     // setSearch(e.target.value)
                     handleSearch(e.target.value)
                   }}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useContext, useLayoutEffect } from 'react'
-import { Drawer, IconButton, TextField, Typography, CircularProgress, Box } from '@mui/material'
+import { Drawer, IconButton, TextField, Typography, CircularProgress, Box, Checkbox } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { useTheme } from '@mui/material/styles'
 import debounce from 'lodash/debounce'
@@ -9,8 +9,8 @@ import SpeciesCard from 'src/views/utility/SpeciesCard'
 import { getTaxonomyListForReport } from 'src/lib/api/report'
 
 function AssessmentSpeciesListingDrawer({
-  selectedSpecie,
-  setSelectedSpecie,
+  selectedSpecies = [],
+  setSelectedSpecies,
   openspeciesFilter,
   setOpenspeciesFilter
 }) {
@@ -22,7 +22,7 @@ function AssessmentSpeciesListingDrawer({
   const authData = useContext(AuthContext)
   const zoo_id = authData.userData.user.zoos[0]?.zoo_id
 
-  const [tempSelectedSpecie, setTempSelectedSpecie] = useState(selectedSpecie || null)
+  const [tempSelectedSpecies, setTempSelectedSpecies] = useState(selectedSpecies || [])
 
   const [searchValue, setSearchValue] = useState('')
   const [speciesList, setSpeciesList] = useState([])
@@ -42,8 +42,13 @@ function AssessmentSpeciesListingDrawer({
 
   useEffect(() => {
     window.addEventListener('resize', measureHeights)
+
     return () => window.removeEventListener('resize', measureHeights)
   }, [])
+
+  useEffect(() => {
+    setTempSelectedSpecies(selectedSpecies || [])
+  }, [selectedSpecies, openspeciesFilter])
 
   const fetchSpecies = async (q = '', pageNum = 1, isNewSearch = false) => {
     if (loading) return
@@ -95,6 +100,16 @@ function AssessmentSpeciesListingDrawer({
     const value = e.target.value
     setSearchValue(value)
     debouncedSearch(value)
+  }
+
+  const toggleSpeciesSelection = specie => {
+    setTempSelectedSpecies(prev => {
+      const exists = prev.some(selected => selected?.tsn_id === specie.tsn_id)
+      if (exists) {
+        return prev.filter(selected => selected?.tsn_id !== specie.tsn_id)
+      }
+      return [...prev, specie]
+    })
   }
 
   const handleScroll = () => {
@@ -205,11 +220,11 @@ function AssessmentSpeciesListingDrawer({
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {speciesList.length > 0 &&
             speciesList.map((item, index) => {
-              const isSelected = tempSelectedSpecie?.tsn_id === item.tsn_id
+              const isSelected = tempSelectedSpecies?.some(species => species?.tsn_id === item.tsn_id)
               return (
                 <Box
                   key={index}
-                  onClick={() => setTempSelectedSpecie(item)}
+                  onClick={() => toggleSpeciesSelection(item)}
                   sx={{
                     bgcolor: theme.palette.primary.contrastText,
                     borderRadius: '8px',
@@ -233,31 +248,12 @@ function AssessmentSpeciesListingDrawer({
                       borderBottomRightRadius: '8px'
                     }}
                   >
-                    <Box
-                      sx={{
-                        height: '18px',
-                        width: '18px',
-                        padding: '3px',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        border: `1.5px solid ${
-                          isSelected ? theme.palette.primary.main : theme.palette.customColors.neutralSecondary
-                        }`
-                      }}
-                    >
-                      {isSelected && (
-                        <Box
-                          sx={{
-                            height: '10px',
-                            width: '10px',
-                            borderRadius: '50%',
-                            bgcolor: isSelected ? theme.palette.primary.main : 'transparent'
-                          }}
-                        />
-                      )}
-                    </Box>
+                    <Checkbox
+                      checked={isSelected}
+                      onClick={e => e.stopPropagation()}
+                      onChange={() => toggleSpeciesSelection(item)}
+                      color='primary'
+                    />
                   </Box>
                 </Box>
               )
@@ -278,6 +274,7 @@ function AssessmentSpeciesListingDrawer({
           position: 'sticky', // sticky works inside the Drawer column; avoids layout jumps
           bottom: 0,
           minHeight: '106px',
+
           // height: { xs: 88, sm: 96, md: 106 }, // responsive heights
           px: 4,
           bgcolor: 'white',
@@ -303,12 +300,12 @@ function AssessmentSpeciesListingDrawer({
         }}
       >
         <LoadingButton
-          disabled={!tempSelectedSpecie?.tsn_id}
+          disabled={loading}
           sx={{ height: '58px', width: '100%' }}
           variant='contained'
           size='large'
           onClick={() => {
-            setSelectedSpecie(tempSelectedSpecie)
+            setSelectedSpecies(tempSelectedSpecies)
             setOpenspeciesFilter(false)
           }}
         >

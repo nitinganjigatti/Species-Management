@@ -28,7 +28,7 @@ import { getPurchaseDetailsList } from 'src/lib/api/pharmacy/getMedicineList'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { v4 as uuidv4 } from 'uuid'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 const formatDate = dateString => {
   const date = new Date(dateString)
   const year = date.getFullYear()
@@ -446,39 +446,19 @@ function Purchase({ tabValue, updateUrlParams }) {
           alignItems: 'center'
         }}
       >
-        <Grid item size={{ xs: 12, sm: 12, md: 'auto', lg: 'auto' }} sx={{ width: '100%' }}>
+        <Grid item size={{ xs: 12, sm: 12, md: 'auto', lg: 'auto' }}>
           <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
         </Grid>
+
         <Grid item size={{ xs: 12, sm: 12, md: 3, lg: 3 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              borderRadius: '8px',
-              padding: '0 8px',
-              height: '40px',
-              width: '100%'
-            }}
-          >
-            <Icon icon='mi:search' fontSize={24} color={theme => theme.palette.customColors.neutralSecondary} />
-            <TextField
-              variant='outlined'
-              value={searchValue}
-              placeholder='Search...'
-              onChange={e => handleSearch(e.target.value)}
-              fullWidth
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  border: 'none',
-                  padding: '0',
-                  '& fieldset': {
-                    border: 'none'
-                  }
-                }
-              }}
-            />
-          </Box>
+          <MUISearch
+            width={'100%'}
+            placeholder='Search...'
+            value={searchValue}
+            onChange={e => handleSearch(e.target.value)}
+            fullWidth
+            onClear={() => handleSearch('')}
+          />
         </Grid>
       </Grid>
       <Grid>

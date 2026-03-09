@@ -17,16 +17,22 @@ const ControlledSelect = ({
   isOptionDisabled = () => false,
   onChangeExtra = () => {},
   disabled = false,
-  sx = {}
+  sx = {
+    color: 'text.primary',
+    '.MuiSelect-select': {
+      color: 'text.primary'
+    }
+  },
+  formControlSx = {}
 }) => {
   const fieldError = get(errors, name)
 
   return (
-    <FormControl size={size} fullWidth={fullWidth} error={Boolean(fieldError)}>
+    <FormControl size={size} fullWidth={fullWidth} error={Boolean(fieldError)} sx={formControlSx}>
       <InputLabel
         id={`${name}-label`}
         sx={{
-          color: fieldError ? 'error.main' : 'text.primary',
+          color: fieldError ? 'error.main' : 'text.secondary',
           '&.Mui-focused': {
             color: fieldError ? 'error.main' : 'primary.main'
           }

@@ -1,6 +1,7 @@
 import { Button, styled, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useState, useEffect, useRef } from 'react'
+import Utility from 'src/utility'
 
 const HorizontalDateNav = ({
   dates = null,
@@ -13,7 +14,8 @@ const HorizontalDateNav = ({
   disabledDates = [],
   indicatorColor = '#ff5722',
   containerStyle = {},
-  dateButtonStyle = {}
+  dateButtonStyle = {},
+  isLoading = false
 }) => {
   const [internalSelectedDate, setInternalSelectedDate] = useState(selectedDate)
   const scrollAreaRef = useRef(null)
@@ -22,60 +24,59 @@ const HorizontalDateNav = ({
   const generateDates = () => {
     if (dates) return dates
 
-    const generatedDates = []
-    const start = startDate || new Date()
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    // const generatedDates = []
+    // const start = startDate || new Date()
+    // const today = new Date()
+    // today.setHours(0, 0, 0, 0)
 
-    for (let i = 1; i < numberOfDays - 1; i++) {
-      const currentDate = new Date(start)
-      currentDate.setDate(start.getDate() + i)
+    // for (let i = 1; i < numberOfDays - 1; i++) {
+    //   const currentDate = new Date(start)
+    //   currentDate.setDate(start.getDate() + i)
 
-      const isDisabled = disabledDates.some(d => d.toDateString() === currentDate.toDateString())
-      const hasIndicator = specialDates.some(d => d.toDateString() === currentDate.toDateString())
+    //   const isDisabled = disabledDates.some(d => d.toDateString() === currentDate.toDateString())
+    //   const hasIndicator = specialDates.some(d => d.toDateString() === currentDate.toDateString())
 
-      generatedDates.push({
-        date: currentDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
-        day: currentDate.toLocaleDateString('en-US', { weekday: 'short' }),
-        fullDate: currentDate,
-        isToday: false,
-        hasIndicator,
-        isDisabled,
-        indicatorColor: hasIndicator ? indicatorColor : undefined
-      })
-    }
+    //   generatedDates.push({
+    //     date: currentDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
+    //     day: currentDate.toLocaleDateString('en-US', { weekday: 'short' }),
+    //     fullDate: currentDate,
+    //     isToday: false,
+    //     hasIndicator,
+    //     isDisabled,
+    //     indicatorColor: hasIndicator ? indicatorColor : undefined
+    //   })
+    // }
 
-    const prevDate = new Date(today)
-    prevDate.setDate(prevDate.getDate() - 1)
+    // const prevDate = new Date(today)
+    // prevDate.setDate(prevDate.getDate() - 1)
 
-    generatedDates.push({
-      date: prevDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
-      day: prevDate.toLocaleDateString('en-US', { weekday: 'short' }),
-      fullDate: prevDate,
-      isToday: false,
-      hasIndicator: false,
-      isDisabled: false
-    })
+    // generatedDates.push({
+    //   date: prevDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
+    //   day: prevDate.toLocaleDateString('en-US', { weekday: 'short' }),
+    //   fullDate: prevDate,
+    //   isToday: false,
+    //   hasIndicator: false,
+    //   isDisabled: false
+    // })
 
-    generatedDates.push({
-      date: today.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
-      day: today.toLocaleDateString('en-US', { weekday: 'short' }),
-      fullDate: today,
-      isToday: true,
-      hasIndicator: true,
-      indicatorColor: '#ff0000',
-      isDisabled: false
-    })
+    // generatedDates.push({
+    //   date: today.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
+    //   day: today.toLocaleDateString('en-US', { weekday: 'short' }),
+    //   fullDate: today,
+    //   isToday: true,
+    //   hasIndicator: true,
+    //   indicatorColor: '#ff0000',
+    //   isDisabled: false
+    // })
 
-    return generatedDates
+    // return generatedDates
   }
 
   const dateItems = generateDates()
   const displayYear = year || new Date().getFullYear()
 
   const handleDateClick = dateItem => {
-    if (dateItem.isDisabled) return
-    setInternalSelectedDate(dateItem.date)
+    setInternalSelectedDate(dateItem)
     onDateSelect(dateItem)
   }
 
@@ -88,7 +89,7 @@ const HorizontalDateNav = ({
   // Auto-scroll to current date on component mount
   useEffect(() => {
     const scrollToCurrentDate = () => {
-      const currentDateButton = dateButtonRefs.current[currentSelectedDate]
+      const currentDateButton = dateButtonRefs.current[selectedDate]
       const scrollArea = scrollAreaRef.current
 
       if (currentDateButton && scrollArea) {
@@ -109,64 +110,82 @@ const HorizontalDateNav = ({
     const timeoutId = setTimeout(scrollToCurrentDate, 100)
 
     return () => clearTimeout(timeoutId)
-  }, [currentSelectedDate, dateItems])
+  }, [selectedDate, dateItems])
+
+  // Render shimmer UI when loading
+  if (isLoading) {
+    return (
+      <ScrollContainer style={containerStyle}>
+        <ShimmerYearLabel />
+        <DateScrollArea ref={scrollAreaRef}>
+          {Array.from({ length: 4 }).map((_, index) => (
+            <ShimmerDateButton key={index} />
+          ))}
+        </DateScrollArea>
+      </ScrollContainer>
+    )
+  }
 
   return (
     <ScrollContainer style={containerStyle}>
       <YearLabel>{displayYear}</YearLabel>
       <DateScrollArea ref={scrollAreaRef}>
-        {dateItems.map((dateItem, index) => (
-          <DateButton
-            key={`${dateItem.date}-${index}`}
-            ref={el => (dateButtonRefs.current[dateItem.date] = el)}
-            isSelected={currentSelectedDate === dateItem.date}
-            hasIndicator={dateItem.hasIndicator}
-            indicatorColor={dateItem.indicatorColor || indicatorColor}
-            disabled={dateItem.isDisabled}
-            onClick={() => handleDateClick(dateItem)}
-            style={dateButtonStyle}
-            sx={{
-              '&:hover':
-                currentSelectedDate === dateItem.date
-                  ? {}
-                  : {
-                      backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                      transform: 'translateY(-1px)'
-                    }
-            }}
-          >
-            <Box display='flex' alignItems='center' gap={2}>
-              {dateItem.hasIndicator && (
-                <Box
+        {dateItems?.length > 0 ? (
+          dateItems?.map((dateItem, index) => (
+            <DateButton
+              key={dateItem}
+              ref={el => (dateButtonRefs.current[dateItem] = el)}
+              isSelected={selectedDate === dateItem}
+              // hasIndicator={dateItem.hasIndicator}
+              indicatorColor={indicatorColor}
+              // disabled={dateItem.isDisabled}
+              onClick={() => handleDateClick(dateItem)}
+              style={dateButtonStyle}
+              sx={{
+                '&:hover':
+                  selectedDate === dateItem
+                    ? {}
+                    : {
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                        transform: 'translateY(-1px)'
+                      }
+              }}
+            >
+              <Box display='flex' alignItems='center' gap={2}>
+                {Utility.formatDisplayDate(dateItem) === Utility.formatDisplayDate(new Date()) && (
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      backgroundColor: indicatorColor
+                    }}
+                  />
+                )}
+                <Typography
+                  variant='body2'
+                  fontWeight={400}
                   sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    backgroundColor: dateItem.indicatorColor || indicatorColor
+                    color: selectedDate === dateItem ? '#FFF' : '#44544A'
                   }}
-                />
-              )}
-              <Typography
-                variant='body2'
-                fontWeight={400}
-                sx={{
-                  color: currentSelectedDate === dateItem.date ? '#FFF' : '#44544A'
-                }}
-              >
-                {dateItem.date}
-              </Typography>
-            </Box>
-            <Typography
+                >
+                  {Utility.formatDisplayDate(dateItem)}
+                </Typography>
+              </Box>
+              {/* <Typography
               variant='body2'
               fontWeight={400}
               sx={{
-                color: currentSelectedDate === dateItem.date ? '#FFF' : '#44544A'
+                color: currentSelectedDate === dateItem ? '#FFF' : '#44544A'
               }}
             >
-              {dateItem.day}
-            </Typography>
-          </DateButton>
-        ))}
+              {dateItem}
+            </Typography> */}
+            </DateButton>
+          ))
+        ) : (
+          <Typography>No dates found</Typography>
+        )}
       </DateScrollArea>
     </ScrollContainer>
   )
@@ -234,7 +253,7 @@ const YearLabel = styled(Typography)(({ theme }) => ({
   // }
 }))
 
-const DateButton = styled(Button, {
+const DateButton = styled(Box, {
   shouldForwardProp: prop => !['isSelected', 'hasIndicator', 'indicatorColor'].includes(prop)
 })(({ theme, isSelected, hasIndicator, indicatorColor }) => {
   const baseStyles = {
@@ -265,6 +284,11 @@ const DateButton = styled(Button, {
     '&.MuiButton-root': {
       minHeight: 0 // Ensure MUI doesn't override
     },
+    '&:hover': {
+      backgroundColor: isSelected ? theme.palette.customColors.OnPrimaryContainer : 'rgba(0, 0, 0, 0.04)',
+      color: isSelected ? theme.palette.customColors.OnSurfaceVariant : theme.palette.customColors.OnSurfaceVariant,
+      cursor: 'pointer'
+    },
     '&:disabled': {
       backgroundColor: 'transparent',
       color: theme.palette.text.disabled,
@@ -282,7 +306,7 @@ const DateButton = styled(Button, {
       width: 8,
       height: 8,
       borderRadius: '50%',
-      backgroundColor: indicatorColor || theme.palette.customColors.error.main,
+      backgroundColor: indicatorColor || theme.palette.customColors?.error?.main,
       opacity: hasIndicator ? 1 : 0,
       transition: 'opacity 0.2s ease'
     }
@@ -292,3 +316,57 @@ const DateButton = styled(Button, {
 
   return baseStyles
 })
+
+// Shimmer UI Components
+const ShimmerYearLabel = styled(Box)(({ theme }) => ({
+  fontSize: '20px',
+  fontWeight: 500,
+  backgroundColor: theme.palette.grey[300],
+  color: 'transparent',
+  height: '100%',
+  borderRadius: theme.spacing(0.75),
+  minWidth: '82px',
+  flexShrink: 0,
+  position: 'absolute',
+  top: '50%',
+  transform: 'translateY(-50%)',
+  zIndex: 1,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  animation: 'shimmer 1.5s infinite linear',
+  background: `linear-gradient(90deg, ${theme.palette.grey[300]} 25%, ${theme.palette.grey[200]} 50%, ${theme.palette.grey[300]} 75%)`,
+  backgroundSize: '200% 100%'
+}))
+
+const ShimmerDateButton = styled(Box)(({ theme }) => ({
+  width: 120,
+  minWidth: 120,
+  height: '16px',
+  borderRadius: '4px',
+  marginLeft: '4px',
+  backgroundColor: theme.palette.grey[300],
+  animation: 'shimmer 1.5s infinite linear',
+  background: `linear-gradient(90deg, ${theme.palette.grey[300]} 25%, ${theme.palette.grey[200]} 50%, ${theme.palette.grey[300]} 75%)`,
+  backgroundSize: '200% 100%',
+  flexShrink: 0
+}))
+
+// Add shimmer animation keyframes
+const styles = `
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+`
+
+// Inject styles
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style')
+  styleSheet.innerText = styles
+  document.head.appendChild(styleSheet)
+}

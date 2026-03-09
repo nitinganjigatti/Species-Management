@@ -35,3 +35,9 @@ yarn-error.log*
 
 #Ignore package-lock.json
 package-lock.json
+yarn.lock
+public/reports/*
+
+.cursor
+.vscode
+.vscode/*

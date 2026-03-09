@@ -14,7 +14,9 @@ const ControlledTimePicker = ({
   ampm = true,
   minutesStep = 1,
   sx = {},
-  size = 'large'
+  size = 'large',
+  minTime = null,
+  maxTime = null
 }) => {
   return (
     <Controller
@@ -35,6 +37,8 @@ const ControlledTimePicker = ({
           size={size}
           helperText={error?.message}
           sx={sx}
+          minTime={minTime}
+          maxTime={maxTime}
         />
       )}
     />

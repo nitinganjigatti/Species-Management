@@ -132,6 +132,7 @@ const UserDrawer = ({
     const selectedUser = list.find(user => user.user_id === selected)
     setUserDetail(selectedUser)
     onClose()
+
     // console.log('Selected user data:', selectedUser)
   }
 

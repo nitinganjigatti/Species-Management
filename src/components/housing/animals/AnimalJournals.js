@@ -106,6 +106,7 @@ const AnimalJournals = () => {
       setUsers(Users?.data)
     } catch (error) {
       console.error(String(error) || 'Failed to fetch user data.')
+
       // Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
     }
   }
@@ -410,7 +411,7 @@ const AnimalJournals = () => {
                                   </span>
                                 </Typography>
                               </Tooltip>
-                            )
+                            );
                           })}
 
                         {item.createdBy && (
@@ -447,7 +448,7 @@ const AnimalJournals = () => {
           </Box>
         ))}
       </Box>
-    )
+    );
   }
 
   const handleSelection = async (selectedIDs, category) => {

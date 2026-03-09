@@ -59,6 +59,7 @@ const SelectAnimalsDrawer = ({
           type: 'error',
           message: 'Cannot select male animals (count is 0)'
         })
+
         return false
       }
       if (counts.female > 0 && Number(speciesData.female_count || 0) === 0) {
@@ -66,6 +67,7 @@ const SelectAnimalsDrawer = ({
           type: 'error',
           message: 'Cannot select female animals (count is 0)'
         })
+
         return false
       }
       if (counts.undeterminate > 0 && Number(speciesData.undeterminate_count || 0) === 0) {
@@ -73,6 +75,7 @@ const SelectAnimalsDrawer = ({
           type: 'error',
           message: 'Cannot select unknown animals (count is 0)'
         })
+
         return false
       }
 
@@ -81,6 +84,7 @@ const SelectAnimalsDrawer = ({
           type: 'error',
           message: `Cannot select more than ${speciesData.male_count} male animals`
         })
+
         return false
       }
       if (counts.female > Number(speciesData.female_count || 0)) {
@@ -88,6 +92,7 @@ const SelectAnimalsDrawer = ({
           type: 'error',
           message: `Cannot select more than ${speciesData.female_count} female animals`
         })
+
         return false
       }
       if (counts.undeterminate > Number(speciesData.undeterminate_count || 0)) {
@@ -95,6 +100,7 @@ const SelectAnimalsDrawer = ({
           type: 'error',
           message: `Cannot select more than ${speciesData.undeterminate_count} unknown animals`
         })
+
         return false
       }
     }

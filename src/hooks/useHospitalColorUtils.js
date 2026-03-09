@@ -6,11 +6,11 @@ const useHospitalColorUtils = () => {
 
   const getSeverityColor = severity => {
     switch (severity) {
-      case 'Guarded':
-        return { bgColor: theme.palette.customColors.displaybgPrimary, color: theme.palette.customColors.addPrimary }
       case 'Favourable':
+        return { bgColor: theme.palette.customColors.displaybgPrimary, color: theme.palette.customColors.addPrimary }
+      case 'Guarded':
         return {
-          bgColor: alpha(theme.palette.customColors.moderateSecondary, 0.2),
+          bgColor: alpha(theme.palette.customColors.Notes, 0.7),
           color: theme.palette.customColors.moderateSecondary
         }
       case 'Doubtful':
@@ -34,7 +34,7 @@ const useHospitalColorUtils = () => {
     switch (type) {
       case 'Diagnosis':
         return theme.palette.customColors.displaybgPrimary
-      case 'Differential':
+      case 'Tentative':
         return theme.palette.customColors.antzNotes
       default:
         return 'default'
@@ -43,9 +43,9 @@ const useHospitalColorUtils = () => {
 
   const getSymptomsSeverityColor = severity => {
     switch (severity) {
-      case 'Low':
+      case 'Mild':
         return { bgColor: theme.palette.customColors.displaybgPrimary, color: theme.palette.customColors.addPrimary }
-      case 'Medium':
+      case 'Moderate':
         return {
           bgColor: alpha(theme.palette.customColors.moderateSecondary, 0.2),
           color: theme.palette.customColors.moderateSecondary
@@ -56,7 +56,10 @@ const useHospitalColorUtils = () => {
           color: theme.palette.customColors.Tertiary
         }
       case 'Extreme':
-        return { bgColor: alpha(theme.palette.customColors.Error, 0.06), color: theme.palette.customColors.Error }
+        return {
+          bgColor: alpha(theme.palette.customColors.ErrorContainer, 0.4),
+          color: theme.palette.customColors.Error
+        }
       default:
         return { bgColor: theme.palette.customColors.displaybgPrimary, color: theme.palette.customColors.addPrimary }
     }

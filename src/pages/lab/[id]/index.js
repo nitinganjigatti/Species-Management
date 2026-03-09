@@ -30,7 +30,6 @@ import {
   IconButton,
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
-import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
 
 import moment from 'moment'
@@ -53,6 +52,7 @@ import MedicalRecordNotes from 'src/components/lab/request/MedicalRecordNotes'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import AnimalSideSheet from 'src/views/pages/lab/AnimalSideSheet'
 import CommentSideSheet from 'src/views/pages/lab/CommentSideSheet'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 import {
   GetRequestDetails,
@@ -1017,6 +1017,7 @@ const RequestDetails = () => {
                             size='small'
                             labelId='demo-simple-select-label'
                             id='demo-simple-select'
+
                             // defaultValue={'awaiting_sample'}
                             value={headerStatus}
                             onChange={e => handleHeaderDropdown(e)}
@@ -1104,52 +1105,27 @@ const RequestDetails = () => {
                 )}
             </Box>
 
-            <DataGrid
-              checkboxSelection={
-                permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests
+            <CommonTable
+              checkBoxOption={
+                Boolean(permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests)
               }
+              selectedRows={selectedRow}
               onRowSelectionModelChange={handleRowSelection}
-              isRowSelectable={params => {
-                if (
-                  (permissions?.view &&
-                    permissions?.transfer_tests === false &&
-                    permissions?.perform_tests === false &&
-                    permissions?.allow_upload_reports === false &&
-                    permissions?.allow_full_access === false) ||
-                  (permissions?.perform_tests === true &&
-                    permissions?.allow_upload_reports === false &&
-                    permissions?.allow_full_access === false &&
-                    params.row.status.includes('completed')) ||
-                  (permissions?.perform_tests === false &&
-                    permissions?.transfer_tests === true &&
-                    permissions?.allow_upload_reports === false &&
-                    permissions?.allow_full_access === false &&
-                    params.row.status.includes('completed'))
-                ) {
-                  return false
-                } else {
-                  return true
-                }
-              }}
-              sx={{
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
+              columns={columns}
+              paginationModel={paginationModel}
+              setPaginationModel={setPaginationModel}
+              handleSortModel={handleSortModel}
+              loading={loading}
+              hideFooterPagination={true}
+              disablePagination={true}
+              externalTableStyle={{
                 '& .MuiDataGrid-row:hover .customButton': {
                   display: 'block'
                 },
                 '& .MuiDataGrid-row .customButton': {
                   display: 'none'
-                }
-              }}
-              autoHeight
-              hideFooterPagination
-              hideFooterSelectedRowCount
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              onSortModelChange={handleSortModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
                 }
               }}
             />

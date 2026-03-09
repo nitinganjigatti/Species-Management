@@ -127,6 +127,7 @@ const SelectEnclosureList = ({
     <Drawer
       anchor='right'
       open={open}
+
       //onClose={onClose}
       sx={{
         '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100%' },
@@ -329,7 +330,7 @@ const SelectEnclosureList = ({
                       /> */}
                         <FallbackAvatar
                           src={enclosure?.default_icon}
-                          fallback='/images/housing/site-icon-colored.svg'
+                          fallback='/images/housing/enclosure-icon-colored.svg'
                           variant='rounded'
                           sx={{
                             backgroundColor: theme.palette.customColors.displaybgPrimary,
@@ -342,6 +343,7 @@ const SelectEnclosureList = ({
                       </ListItemAvatar>
                       <ListItemText
                         primary={enclosure.user_enclosure_name}
+
                         //secondary={enclosure.location || '-'}
                         slotProps={{
                           primary: {
@@ -356,12 +358,6 @@ const SelectEnclosureList = ({
                             }
                           }
                         }}
-
-                        // primaryTypographyProps={{
-                        //   fontWeight: 'bold',
-                        //   color: theme.palette.customColors.OnPrimaryContainer
-                        // }}
-                        // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                       />
                       <Checkbox
                         checked={isSelected}

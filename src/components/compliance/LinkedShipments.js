@@ -49,7 +49,6 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
       >
         Total Shipped: {totalShipped}/{totalAllowed} Animals
       </Typography>
-
       {shipments.map((shipment, index) => (
         <Box
           key={index}
@@ -215,7 +214,6 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
           ))}
         </Box>
       ))}
-
       <ShippedAnimalsDrawer
         open={openDrawer}
         onClose={handleCloseDrawer}
@@ -224,7 +222,7 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
         selectedExportData={selectedExportData}
       />
     </Box>
-  )
+  );
 }
 
 export default LinkedShipments

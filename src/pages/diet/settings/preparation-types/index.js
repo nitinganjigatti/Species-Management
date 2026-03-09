@@ -1,10 +1,10 @@
 import { Card, CardHeader, Box, debounce } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import React, { useCallback, useEffect, useState } from 'react'
 import { AddButton } from 'src/components/Buttons'
 import Icon from 'src/@core/components/icon'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import UserSnackbar from 'src/components/utility/snackbar'
 import {
@@ -227,86 +227,18 @@ const PreparationTypes = () => {
     <>
       <Card>
         <CardHeader title='Preparation Type List' action={headerAction} sx={{ px: 5 }} />
-        {/* <DataGrid
-          columnVisibilityModel={{
-            id: false
-          }}
-          autoHeight
-          pagination
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
+        <CommonTable
+          indexedRows={indexedRows === undefined ? [] : indexedRows}
+          total={total}
           columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
           paginationModel={paginationModel}
-          onSortModelChange={handleSortModel}
-          slots={{ toolbar: ServerSideToolbar }}
-          onPaginationModelChange={setPaginationModel}
+          handleSortModel={handleSortModel}
+          setPaginationModel={setPaginationModel}
           loading={loading}
-          slotProps={{
-            baseButton: {
-              variant: 'outlined'
-            },
-            toolbar: {
-              value: searchValue,
-              clearSearch: () => handleSearch(''),
-              onChange: event => handleSearch(event.target.value)
-            }
-          }}
-        /> */}
-
-        <DataGrid
           columnVisibilityModel={{
             id: false
           }}
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            },
-            '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: theme.palette.customColors.customTableHeaderBg,
-              color: theme.palette.customColors.customHeadingTextColor
-            },
-            '.MuiDataGrid-virtualScroller': {
-              overflowX: 'auto'
-            },
-            '.MuiDataGrid-main': {
-              borderLeft: '1px solid #0000000D',
-              borderRight: '1px solid #0000000D',
-              marginLeft: '20px',
-              marginRight: '20px',
-              borderRadius: '8px',
-              border: '1px solid rgba(233, 233, 236, 1)'
-            },
-            '& .MuiDataGrid-footerContainer': {
-              borderTop: 'none'
-            },
-
-            '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
-              borderBottom: 'none'
-            }
-          }}
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          autoHeight
-          pagination
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
-          columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50, 100]}
-          paginationModel={paginationModel}
-          onSortModelChange={handleSortModel}
           slots={{ toolbar: ServerSideToolbarWithFilter }}
-          onPaginationModelChange={setPaginationModel}
-          loading={loading}
           slotProps={{
             baseButton: {
               variant: 'outlined'
@@ -317,10 +249,14 @@ const PreparationTypes = () => {
               onChange: event => handleSearch(event.target.value)
             }
           }}
-          onCellClick={''}
+          externalTableStyle={{
+            '.MuiDataGrid-main': {
+              marginLeft: '20px',
+              marginRight: '20px'
+            }
+          }}
         />
       </Card>
-
       <AddPreparationType
         drawerWidth={400}
         addEventSidebarOpen={openDrawer}
@@ -332,7 +268,7 @@ const PreparationTypes = () => {
       />
       <UserSnackbar status={openSnackbar} message={snackbarMessage} severity={severity} handleClose={handleClose} />
     </>
-  )
+  );
 }
 
 export default PreparationTypes

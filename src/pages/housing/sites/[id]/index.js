@@ -189,7 +189,12 @@ const SiteDetails = () => {
               return
             }
           }}
-          // onMessageClick={() => console.log('Message clicked')}
+          onMessageClick={() => {
+            const phoneNumber = data?.data?.incharges?.[0]?.user_mobile_number || ''
+            if (phoneNumber) {
+              window.open(`sms:${phoneNumber}`)
+            } else return
+          }}
           error={error}
           statsData={statsData}
         />

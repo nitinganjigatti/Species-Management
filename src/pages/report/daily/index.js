@@ -1,4 +1,4 @@
-import { forwardRef, useState, useRef, useContext, useEffect } from 'react'
+import { useState, useContext, useEffect } from 'react'
 
 import {
   Box,
@@ -7,8 +7,11 @@ import {
   CardHeader,
   Checkbox,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
-  FormHelperText,
   Popover,
   TextField,
   Typography
@@ -18,8 +21,10 @@ import { useTheme } from '@emotion/react'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 import Toaster from 'src/components/Toaster'
+import Utility from 'src/utility'
 
 import {
   getAnimalReport,
@@ -28,7 +33,8 @@ import {
   getMedicalReport,
   getAnimalAssessment,
   getEnclosureAssessment,
-  getDailyFoodWastageReport
+  getDailyFoodWastageReport,
+  getUpcomingVaccinationRecords
 } from 'src/lib/api/report'
 
 const Animal = () => {
@@ -38,47 +44,38 @@ const Animal = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [startDate, setStartDate] = useState(null)
   const [endDate, setEndDate] = useState(null)
-  const [errors, setErrors] = useState({})
   const [reportData, setReportData] = useState([])
   const [downloadingRowId, setDownloadingRowId] = useState(null)
+  const [upcomingDialogOpen, setUpcomingDialogOpen] = useState(false)
+  const [upcomingEndDate, setUpcomingEndDate] = useState(null)
+  const [upcomingReportType, setUpcomingReportType] = useState(null)
 
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
   const enable_daily_report = authData?.userData?.permission?.user_settings?.enable_daily_report
 
-  const startDateRef = useRef()
-  const endDateRef = useRef()
-
   useEffect(() => {
-    const yesterday = new Date()
-
-    const year = yesterday.getFullYear()
-    const month = String(yesterday.getMonth() + 1).padStart(2, '0') // Months are zero-based
-    const day = String(yesterday.getDate()).padStart(2, '0')
-    const formattedDate = `${year}-${month}-${day}`
+    const today = new Date()
+    const formattedDate = Utility.formatDate(today)
 
     setStartDate(formattedDate)
     setEndDate(formattedDate)
   }, [])
 
-  const CustomInput = forwardRef(({ ...props }, ref) => {
-    return <TextField inputRef={ref} {...props} />
-  })
-
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
-      { label: 'Class', key: 'include_class', checked: false },
-      { label: 'Order', key: 'include_order', checked: false },
-      { label: 'Family', key: 'include_family', checked: false },
-      { label: 'Genus', key: 'include_genus', checked: false }
+      { label: 'Class', key: 'include_class', checked: true },
+      { label: 'Order', key: 'include_order', checked: true },
+      { label: 'Family', key: 'include_family', checked: true },
+      { label: 'Genus', key: 'include_genus', checked: true }
     ]
   })
 
   const [apiFilterParams, setApiFilterParams] = useState({
-    include_class: 0,
-    include_order: 0,
-    include_family: 0,
-    include_genus: 0
+    include_class: 1,
+    include_order: 1,
+    include_family: 1,
+    include_genus: 1
   })
 
   const jsonToCsv = jsonData => {
@@ -105,10 +102,7 @@ const Animal = () => {
             limit: paginationModel.pageSize
           })
           if (Array.isArray(response)) {
-            const modifiedResponse = [
-              ...response,
-              { id: 12, title: 'Food Wastage', key: 'food_wastage', action: 'Download' }
-            ]
+            const modifiedResponse = [...response]
             setReportData(modifiedResponse)
           } else {
             console.error('error >')
@@ -137,13 +131,17 @@ const Animal = () => {
     }
   }
 
-  const getDataToExport = async type => {
+  const getDataToExport = async (type, customStartDate = null, customEndDate = null) => {
     try {
       const params = { type: type, ...apiFilterParams }
-      if (startDate) {
+      if (customStartDate) {
+        params.start_date = customStartDate
+      } else if (startDate) {
         params.start_date = startDate
       }
-      if (endDate) {
+      if (customEndDate) {
+        params.end_date = customEndDate
+      } else if (endDate) {
         params.end_date = endDate
       }
       params.response_type = 'csv'
@@ -158,6 +156,10 @@ const Animal = () => {
         response = await getEnclosureAssessment(params)
       } else if (type === 'food_wastage') {
         response = await getDailyFoodWastageReport(params)
+      } else if (type === 'upcoming_vaccination' || type === 'upcoming_deworming') {
+        params.response_type = 'excel'
+        params.type = type === 'upcoming_vaccination' ? 'vaccination' : 'deworming'
+        response = await getUpcomingVaccinationRecords(params)
       } else {
         response = await getAnimalReport(params)
       }
@@ -181,35 +183,13 @@ const Animal = () => {
     setAnchorEl(null)
   }
 
-  const handleStartDateChange = dateString => {
-    const date = new Date(dateString)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    const formattedDate = `${year}-${month}-${day}`
-
-    setStartDate(formattedDate)
-
-    if (endDate && new Date(formattedDate) > new Date(endDate)) {
-      setErrors(prevErrors => ({ ...prevErrors, startDate: true }))
+  const handleDateRangeChange = (rangeStartDate, rangeEndDate) => {
+    if (rangeStartDate && rangeEndDate) {
+      setStartDate(Utility.formatDate(rangeStartDate))
+      setEndDate(Utility.formatDate(rangeEndDate))
     } else {
-      setErrors(prevErrors => ({ ...prevErrors, startDate: false }))
-    }
-  }
-
-  const handleEndDateChange = dateString => {
-    const date = new Date(dateString)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    const formattedDate = `${year}-${month}-${day}`
-
-    setEndDate(formattedDate)
-
-    if (startDate && new Date(formattedDate) < new Date(startDate)) {
-      setErrors(prevErrors => ({ ...prevErrors, endDate: true }))
-    } else {
-      setErrors(prevErrors => ({ ...prevErrors, endDate: false }))
+      setStartDate('')
+      setEndDate('')
     }
   }
 
@@ -236,6 +216,49 @@ const Animal = () => {
 
       return updatedData
     })
+  }
+
+  const handleUpcomingEndDateChange = dateString => {
+    const date = new Date(dateString)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const formattedDate = `${year}-${month}-${day}`
+    setUpcomingEndDate(formattedDate)
+  }
+
+  const handleUpcomingDialogClose = () => {
+    setUpcomingDialogOpen(false)
+    setUpcomingEndDate(null)
+    setUpcomingReportType(null)
+  }
+
+  const handleUpcomingDownload = async () => {
+    if (!upcomingEndDate) {
+      Toaster({ type: 'error', message: 'Please select an end date' })
+      return
+    }
+    const today = new Date()
+    const year = today.getFullYear()
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+    const day = String(today.getDate()).padStart(2, '0')
+    const todayFormatted = `${year}-${month}-${day}`
+
+    setUpcomingDialogOpen(false)
+    setDownloadingRowId(upcomingReportType)
+    try {
+      await getDataToExport(upcomingReportType, todayFormatted, upcomingEndDate)
+    } finally {
+      setDownloadingRowId(null)
+      setUpcomingEndDate(null)
+      setUpcomingReportType(null)
+    }
+  }
+
+  const getUpcomingReportTitle = type => {
+    if (!type) return 'Upcoming Report'
+    const reportName = type.replace('upcoming_', '').replace(/_/g, ' ')
+    return `Upcoming ${reportName.charAt(0).toUpperCase() + reportName.slice(1)} Report`
   }
 
   const reportRows = reportData
@@ -265,16 +288,25 @@ const Animal = () => {
       renderCell: params => {
         const handleExport = params => {
           const { row } = params
+          if (row.date_type === 'future') {
+            setUpcomingReportType(row.key)
+            setUpcomingDialogOpen(true)
+            return
+          }
           setDownloadingRowId(row.id)
           getDataToExport(row.key)
             .then(() => setDownloadingRowId(null))
             .catch(() => setDownloadingRowId(null))
         }
 
+        const isFutureReport = params.row.date_type === 'future'
+        const isDownloading =
+          downloadingRowId === params.row.id || (isFutureReport && downloadingRowId === params.row.key)
+
         return (
           <Button
             variant='contained'
-            disabled={downloadingRowId === params.row.id}
+            disabled={isDownloading}
             onClick={() => handleExport(params)}
             sx={{
               width: '120px',
@@ -284,11 +316,7 @@ const Animal = () => {
               justifyContent: 'center'
             }}
           >
-            {downloadingRowId === params.row.id ? (
-              <CircularProgress size={20} sx={{ color: 'white' }} />
-            ) : (
-              params.row.action
-            )}
+            {isDownloading ? <CircularProgress size={20} sx={{ color: 'white' }} /> : params.row.action}
           </Button>
         )
       }
@@ -323,59 +351,9 @@ const Animal = () => {
             }}
           >
             <Box sx={{ display: 'flex', gap: 3 }}>
-              <FormControl fullWidth>
-                <SingleDatePicker
-                  value={startDate}
-                  name='FromDate*'
-                  onChange={handleStartDateChange}
-                  customInput={
-                    <TextField
-                      label='Start Date*'
-                      error={Boolean(errors.startDate)}
-                      sx={{
-                        '& .MuiInputBase-input': {
-                          mt: 1,
-                          height: '25px',
-                          padding: '8px'
-                        }
-                      }}
-                    />
-                  }
-                  maxDate={new Date()}
-                  ref={startDateRef}
-                />
-                {errors.startDate && (
-                  <FormHelperText sx={{ color: 'error.main' }}>Start date should be less than end date</FormHelperText>
-                )}
-              </FormControl>
-
-              <FormControl fullWidth>
-                <SingleDatePicker
-                  value={endDate}
-                  name='EndDate*'
-                  onChange={handleEndDateChange}
-                  customInput={
-                    <TextField
-                      label='End Date*'
-                      error={Boolean(errors.endDate)}
-                      sx={{
-                        '& .MuiInputBase-input': {
-                          mt: 1,
-                          height: '25px',
-                          padding: '8px'
-                        }
-                      }}
-                    />
-                  }
-                  maxDate={new Date()}
-                  ref={endDateRef}
-                />
-                {errors.endDate && (
-                  <FormHelperText sx={{ color: 'error.main' }}>
-                    End date should be greater than start date
-                  </FormHelperText>
-                )}
-              </FormControl>
+              <Box sx={{ minWidth: 0 }}>
+                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={{ startDate, endDate }} />
+              </Box>
 
               <Box>
                 <Button
@@ -488,6 +466,42 @@ const Animal = () => {
               scrollbarSize={10}
             />
           </Box>
+
+          <Dialog open={upcomingDialogOpen} onClose={handleUpcomingDialogClose}>
+            <DialogTitle>{getUpcomingReportTitle(upcomingReportType)}</DialogTitle>
+            <DialogContent>
+              <Typography sx={{ mb: 2 }}>Select till when you need the report. Start date will be today.</Typography>
+              <FormControl fullWidth>
+                <SingleDatePicker
+                  value={upcomingEndDate}
+                  name='EndDate*'
+                  onChange={handleUpcomingEndDateChange}
+                  customInput={
+                    <TextField
+                      label='End Date*'
+                      fullWidth
+                      sx={{
+                        '& .MuiInputBase-input': {
+                          mt: 1,
+                          height: '25px',
+                          padding: '8px'
+                        }
+                      }}
+                    />
+                  }
+                  minDate={new Date()}
+                />
+              </FormControl>
+            </DialogContent>
+            <DialogActions>
+              <Button variant='outlined' onClick={handleUpcomingDialogClose}>
+                Cancel
+              </Button>
+              <Button variant='contained' onClick={handleUpcomingDownload} disabled={!upcomingEndDate}>
+                Download
+              </Button>
+            </DialogActions>
+          </Dialog>
         </Card>
       ) : (
         <>

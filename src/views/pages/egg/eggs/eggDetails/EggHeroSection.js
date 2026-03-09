@@ -414,6 +414,7 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
       </Box>
       <Box>
         <IconButton
+
           // disabled={
           //   Number(eggDetails?.action_to_be_taken) === 5 ||
           //   (Number(eggDetails?.action_to_be_taken) === 6 && Number(eggDetails?.discard_status) !== 2) ||

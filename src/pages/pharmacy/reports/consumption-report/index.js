@@ -1,16 +1,5 @@
 import { useTheme } from '@emotion/react'
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CircularProgress,
-  Grid,
-  InputAdornment,
-  TextField,
-  Tooltip,
-  Typography
-} from '@mui/material'
+import { Grid, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
@@ -18,8 +7,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { getConsumptionReport } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
-import Icon from 'src/@core/components/icon'
-import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/ConsumptionReportDrawer'
@@ -27,6 +14,9 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { format, subMonths } from 'date-fns'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import ReportsPageSkeleton from 'src/views/utility/SkeletonLoading/ReportsPageSkeleton'
 
 const productTypes = [
   { id: 'allopathy', name: 'Allopathy' },
@@ -57,6 +47,7 @@ const ConsumptionReport = () => {
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
   const [selectAllProductTypes, setSelectAllProductTypes] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
 
   const [filteredData, setFilteredData] = useState({
     pharmacy: []
@@ -182,9 +173,13 @@ const ConsumptionReport = () => {
           }
         })
         setLoading(false)
+        setPageLoading(false)
       } catch (e) {
         console.log(e)
         setLoading(false)
+        setPageLoading(false)
+      } finally {
+        setPageLoading(false)
       }
     },
     [paginationModel, filterDates, filteredData]
@@ -270,7 +265,6 @@ const ConsumptionReport = () => {
                   color: theme.palette.customColors.customHeadingTextColor,
                   fontSize: '14px',
                   fontWeight: 400,
-                  fontFamily: 'Inter',
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
                   textOverflow: 'ellipsis',
@@ -289,7 +283,6 @@ const ConsumptionReport = () => {
                   width: '100%',
                   fontSize: '14px',
                   color: theme.palette.text.secondary,
-                  fontFamily: 'Inter',
                   fontWeight: 400
                 }}
               >
@@ -328,8 +321,7 @@ const ConsumptionReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.total_consumption_quantity ? Utility.formatNumber(params.row.total_consumption_quantity) : 0}
@@ -365,8 +357,7 @@ const ConsumptionReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatAmountToReadableDigit(params.row.total_consumption_cost)}
@@ -402,8 +393,7 @@ const ConsumptionReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.available_qty ? Utility.formatNumber(params.row.available_qty) : 0}
@@ -424,7 +414,6 @@ const ConsumptionReport = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -453,7 +442,6 @@ const ConsumptionReport = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -634,22 +622,10 @@ const ConsumptionReport = () => {
 
   return (
     <>
-      <Card>
-        <CardHeader
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'flex-start',
-            alignItems: 'flex-start',
-            gap: { xs: 3, sm: 2 },
-            '& .MuiCardHeader-action': {
-              width: { xs: '100% ', sm: 'auto' }
-            },
-            mx: { xs: -1, sm: 0 }
-          }}
-          title={RenderUtility.pageTitle('Consumption Report')}
-        />
-        <CardContent sx={{ paddingTop: '4px' }}>
+      {pageLoading ? (
+        <ReportsPageSkeleton />
+      ) : (
+        <PageCardLayout title={'Consumption Report'}>
           <Box
             sx={{
               display: 'flex',
@@ -666,29 +642,18 @@ const ConsumptionReport = () => {
               </Grid>
 
               <Grid item size={{ xs: 12, sm: 7 }}>
-                <Grid container spacing={2} sx={{
-                  justifyContent: { xs: 'flex-end' }
-                }}>
+                <Grid
+                  container
+                  spacing={2}
+                  sx={{
+                    justifyContent: { xs: 'flex-end' }
+                  }}
+                >
                   <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
-                    <TextField
-                      variant='outlined'
-                      size='small'
-                      placeholder='Search...'
-                      value={searchValue}
+                    <MUISearch
                       onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        borderRadius: '8px'
-                      }}
-                      slotProps={{
-                        input: {
-                          startAdornment: (
-                            <InputAdornment position='start'>
-                              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                            </InputAdornment>
-                          )
-                        }
-                      }}
+                      onClear={() => handleSearch('')}
+                      value={searchValue}
                     />
                   </Grid>
 
@@ -738,8 +703,8 @@ const ConsumptionReport = () => {
               handleSortModel={handleSortModel}
             />
           </Grid>
-        </CardContent>
-      </Card>
+        </PageCardLayout>
+      )}
       {openFilterDrawer && (
         <ConsumptionReportDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}
@@ -754,7 +719,7 @@ const ConsumptionReport = () => {
         />
       )}
     </>
-  );
+  )
 }
 
 export default ConsumptionReport

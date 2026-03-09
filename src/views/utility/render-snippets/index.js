@@ -11,7 +11,8 @@ export const ExportButton = ({
   icon = 'ic:round-download',
   iconSize = 20,
   disabled = false,
-  bgcolor
+  bgcolor,
+  sx = {}
 }) => {
   const theme = useTheme()
 
@@ -27,7 +28,8 @@ export const ExportButton = ({
           bgcolor: bgcolor ? bgcolor : theme?.palette.customColors?.lightBg,
           alignItems: 'center',
           cursor: disabled ? '' : 'pointer',
-          opacity: disabled ? 0.5 : 1
+          opacity: disabled ? 0.5 : 1,
+          ...sx
         }}
         onClick={disabled ? undefined : onClick}
       >
@@ -75,20 +77,23 @@ export const FilterButton = ({
   appliedFiltersCount,
   iconSize = 24,
   icon = 'mage:filter',
-  placement = 'bottom'
+  placement = 'bottom',
+  bgColor,
+  border
 }) => {
   const theme = useTheme()
 
   return (
-    <Tooltip placement={placement}>
+    <Tooltip title={tooltip} placement={placement}>
       <Box
         sx={{
+          border: border ? border : 'none',
           display: 'flex',
           justifyContent: 'center',
           width: '40px',
           height: '40px',
           borderRadius: '4px',
-          bgcolor: theme?.palette.customColors?.lightBg,
+          bgcolor: bgColor ? bgColor : theme?.palette.customColors?.lightBg,
           alignItems: 'center',
           cursor: 'pointer'
         }}
@@ -109,7 +114,9 @@ export const SaveTemplateButton = ({
   fontSize = '16px',
   onClick = () => {},
   loading = false,
-  loadingText = 'Saving...'
+  loadingText = 'Saving...',
+  iconSize,
+  sx = {}
 }) => {
   const theme = useTheme()
 
@@ -118,13 +125,21 @@ export const SaveTemplateButton = ({
       <Box>
         <Button
           onClick={onClick}
-          startIcon={<Icon icon={'material-symbols:save-outline-sharp'} color={theme.palette.customColors.OnSurface} />}
+          startIcon={
+            <Icon
+              icon={'material-symbols:save-outline-sharp'}
+              color={theme.palette.customColors.OnSurface}
+              width={iconSize}
+              height={iconSize}
+            />
+          }
           sx={{
             display: 'flex',
             alignItems: 'center',
             color: `${fontColor ? fontColor : theme.palette.customColors.OnSurface}`,
             fontSize: fontSize,
-            fontWeight: fontWeight
+            fontWeight: fontWeight,
+            ...sx
           }}
         >
           {loading ? loadingText : text}

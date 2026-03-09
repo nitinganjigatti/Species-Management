@@ -413,9 +413,7 @@ const ListOfStocksByBatch = () => {
                         }
                       }
                     }}
-
-                    
-                  />
+                    showToolbar />
                 ) : loading ? (
                   <LinearProgress />
                 ) : null}
@@ -427,7 +425,7 @@ const ListOfStocksByBatch = () => {
         <Error404></Error404>
       )}
     </>
-  )
+  );
 }
 
 export default ListOfStocksByBatch

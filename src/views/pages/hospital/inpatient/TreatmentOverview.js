@@ -2,9 +2,11 @@ import React from 'react'
 import { Box, Typography, Grid, Avatar, Divider, Tooltip } from '@mui/material'
 import { MonitorHeart, Assignment, LocalPharmacy, Image, PictureAsPdf, Add } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
+import { useRouter } from 'next/router'
 
-const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor }) => {
+const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor, navigateTo }) => {
   const theme = useTheme()
+  const router = useRouter()
 
   return (
     <Box
@@ -15,8 +17,10 @@ const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor }) =
         padding: '1rem 1rem 1rem 2rem',
         minHeight: '80px',
         borderRadius: '8px',
-        backgroundColor
+        backgroundColor,
+        cursor: 'pointer'
       }}
+      onClick={() => router.push(navigateTo)}
     >
       <Box
         sx={{
@@ -75,11 +79,14 @@ const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor }) =
 
 const HealthcareOverview = ({ data }) => {
   const theme = useTheme()
+  const router = useRouter()
+  const { id } = router.query
 
   const statsData = [
     {
       icon: '/icons/hospital/TreatmentMonitoring.svg',
       count: data?.treatment_monitoring,
+      navigateTo: `/hospital/inpatient/${id}?tab=treatmentMonitoring`,
       label: 'Treatment Monitoring',
       color: theme.palette.customColors.Error,
       backgroundColor: '#FFD3D333'
@@ -87,6 +94,7 @@ const HealthcareOverview = ({ data }) => {
     {
       icon: '/icons/hospital/ActiveSymptoms.svg',
       count: data?.active_diagnosis_count,
+      navigateTo: `/hospital/inpatient/${id}?tab=clinicalAssessment`,
       label: 'Active Clinical assessment',
       color: theme.palette.primary.dark,
       backgroundColor: '#FCF4AE99'
@@ -94,6 +102,7 @@ const HealthcareOverview = ({ data }) => {
     {
       icon: '/icons/hospital/ActiveClinicalAassesment.svg',
       count: data?.active_complaints_count,
+      navigateTo: `/hospital/inpatient/${id}?tab=symptoms`,
       label: 'Active Symptoms',
       color: theme.palette.primary.main,
       backgroundColor: '#E1F9EDCC'
@@ -101,6 +110,7 @@ const HealthcareOverview = ({ data }) => {
     {
       icon: '/icons/hospital/Prescription.svg',
       count: data?.active_prescriptions_count,
+      navigateTo: `/hospital/inpatient/${id}?tab=prescriptionMonitoring`,
       label: 'Prescription',
       color: theme.palette.customColors.addPrimary,
       backgroundColor: theme.palette.customColors.bodyBg

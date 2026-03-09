@@ -1,28 +1,25 @@
-import { Card, CardHeader, Grid, TextField, Tooltip, Typography } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
+import { Avatar, Box, Card, CardContent, CardHeader, Grid, Icon, Tooltip, Typography } from '@mui/material'
+
 import Router from 'next/router'
 import { debounce } from 'lodash'
-import React, { useCallback, useEffect, useState, useRef } from 'react'
-import FallbackSpinner from 'src/@core/components/spinner'
+import React, { useCallback, useEffect, useState } from 'react'
 import { getScrewList } from 'src/lib/api/pharmacy/escrow'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { Box } from '@mui/system'
-import Icon from 'src/@core/components/icon'
 import { useRouter } from 'next/router'
 
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+
+import MUISelect from 'src/views/forms/form-fields/MUISelect'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import StockReportSkeleton from 'src/views/utility/SkeletonLoading/StockReportSkeleton'
 
 function Escrow({ value }) {
   const router = useRouter()
 
   const theme = useTheme()
-
-
-  const [loader, setLoader] = useState(false)
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
@@ -30,6 +27,7 @@ function Escrow({ value }) {
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
   const [sortColumn, setSortColumn] = useState(router.query.sortColumn || 'name')
   const [total, setTotal] = useState(0)
+  const [PageLoading, setPageLoading] = useState(true)
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page, 10) - 1 || 0,
@@ -42,6 +40,12 @@ function Escrow({ value }) {
     return data
   }
   const { selectedPharmacy } = usePharmacyContext()
+
+  // const { control, handleSubmit, watch } = useForm({
+  //   defaultValues: {
+  //     stockType: 'dispute'
+  //   }
+  // })
 
   const onRowClick = params => {
     var data = params.row
@@ -99,8 +103,7 @@ function Escrow({ value }) {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.request_number}
@@ -120,7 +123,7 @@ function Escrow({ value }) {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
+
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -145,8 +148,7 @@ function Escrow({ value }) {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.quantity}
@@ -166,7 +168,7 @@ function Escrow({ value }) {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
+
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -191,7 +193,6 @@ function Escrow({ value }) {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -216,8 +217,7 @@ function Escrow({ value }) {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.batch_no}
@@ -237,8 +237,7 @@ function Escrow({ value }) {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params?.row?.status === 'Dispatched' ? 'Transit' : 'Dispute'}
@@ -258,8 +257,7 @@ function Escrow({ value }) {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.no_of_days_exist === '0'
@@ -270,7 +268,6 @@ function Escrow({ value }) {
         </Typography>
       )
     }
-
   ]
 
   const fetchScrewTableData = useCallback(async ({ sort, searchValue, column, type, page, pageSize }) => {
@@ -279,9 +276,9 @@ function Escrow({ value }) {
 
       const params = {
         sort,
-        q: searchValue, 
+        q: searchValue,
         column,
-        page: page + 1, 
+        page: page + 1,
         limit: pageSize,
         type
       }
@@ -301,6 +298,7 @@ function Escrow({ value }) {
       console.error(e)
     } finally {
       setLoading(false)
+      setPageLoading(false)
     }
   }, [])
 
@@ -313,7 +311,7 @@ function Escrow({ value }) {
       page: paginationModel.page,
       pageSize: paginationModel.pageSize
     })
-  }, [sort, searchValue, sortColumn, stockType, paginationModel.page, paginationModel.pageSize])
+  }, [sort, selectedPharmacy, searchValue, sortColumn, stockType, paginationModel.page, paginationModel.pageSize])
 
   useEffect(() => {
     router.replace({
@@ -322,7 +320,7 @@ function Escrow({ value }) {
         ...router.query,
         stockType,
         value,
-        page: paginationModel.page + 1, 
+        page: paginationModel.page + 1,
         pageSize: paginationModel.pageSize,
         searchValue,
         sort,
@@ -330,35 +328,6 @@ function Escrow({ value }) {
       }
     })
   }, [stockType, paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn])
-
-  // const handleSearch = useCallback(
-  //   debounce(value => {
-  //     setSearchValue(value)
-  //     setPaginationModel(prevModel => ({
-  //       ...prevModel,
-  //       page: 0
-  //     }))
-
-  //     router.replace({
-  //       pathname: router.pathname,
-  //       query: {
-  //         ...router.query,
-  //         searchValue: value,
-  //         page: 1 // Update to 1-indexed for the URL
-  //       }
-  //     })
-  //   }, 300), // Adjust debounce delay to a reasonable value (e.g., 300ms)
-  //   [router]
-  // )
-
-  // const handleSortModel = useCallback(newModel => {
-  //   if (newModel.length) {
-  //     setSort(newModel[0].sort)
-  //     setSortColumn(newModel[0].field)
-
-  //     // Reset to the first page (0) on new sort
-  //   }
-  // }, [])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -371,38 +340,6 @@ function Escrow({ value }) {
   const filterByStockType = useCallback(type => {
     setStockType(type)
   }, [])
-
-  // const handleSearch = useCallback(
-  //   debounce(value => {
-  //     setSearchValue(value)
-
-  //     // Reset to the first page (0) on new search
-  //     setPaginationModel(prevModel => ({ ...prevModel, page: 0 }))
-  //   }, 500),
-  //   []
-  // )
-  // const handleSearch = useCallback(
-  //   debounce(value => {
-  //     setSearchValue(value)
-
-  //     // Reset to the first page (page 0 in your `paginationModel`)
-  //     setPaginationModel(prevModel => ({
-  //       ...prevModel,
-  //       page: 0
-  //     }))
-
-  //     // Update the URL query parameters
-  //     router.replace({
-  //       pathname: router.pathname,
-  //       query: {
-  //         ...router.query,
-  //         searchValue: value,
-  //         page: 1 // Update to 1-indexed for the URL
-  //       }
-  //     })
-  //   }, 300), // Adjust debounce delay to a reasonable value (e.g., 300ms)
-  //   [router]
-  // )
 
   const handleSearch = useCallback(
     debounce(value => {
@@ -417,10 +354,10 @@ function Escrow({ value }) {
         query: {
           ...router.query,
           searchValue: value,
-          page: 1 
+          page: 1
         }
       })
-    }, 40), 
+    }, 40),
     [router]
   )
 
@@ -428,122 +365,72 @@ function Escrow({ value }) {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      setPaginationModel(prevModel => ({ ...prevModel, page: 0 })) 
+      setPaginationModel(prevModel => ({ ...prevModel, page: 0 }))
     }
   }, [])
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
+      {PageLoading ? (
+        <StockReportSkeleton Escrow />
       ) : (
         <>
-          <Card>
-            <CardHeader
+          <PageCardLayout title={'Escrow List'}>
+            <Grid
+              container
+              spacing={3}
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'flex-start',
-                alignItems: 'flex-start',
-                gap: { xs: 2, sm: 0 }
-              }}
-              title={RenderUtility.pageTitle('Escrow List')}
-            />
-
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', md: 'row' },
-                justifyContent: { xs: 'center', md: 'space-between' },
-                width: '100%',
-                padding: '8px',
-                gap: { xs: 2, md: 3 }
+                justifyContent: 'space-between'
               }}
             >
-             
-              <Grid item size={{ xs: 8 }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '8px',
-                    padding: '0 8px',
-                    height: '40px',
-                    width: { xs: '98%', md: '292px', sm: '96%' },
-                    marginBottom: { xs: 2, md: 0 },
-                    marginLeft: { xs: 1.6, md: 4, sm: 3 }
-                  }}
-                >
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-                  <TextField
-                    variant='outlined'
-                    value={searchValue}
-                    placeholder='Search...'
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
-                      }
-                    }}
-                  />
-                </Box>
-              </Grid>
-
-            
-              <FormControl
-                size='small'
+              <Grid
+                item
+                size={{ xs: 12, sm: 5, md: 6 }}
                 sx={{
-                  width: { xs: '98%', md: '240px', sm: '96%' },
-                  mr: { sm: 3.5, xs: 0 },
-                  ml: { xs: 1, sm: 3 },
-                  height: '50px'
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: { xs: '100%', sm: '250px' }
                 }}
               >
-                <InputLabel id='demo-simple-select-label'>Filter by stock type</InputLabel>
-                <Select
-                  size='small'
+                <MUISearch
+                  onChange={e => handleSearch(e.target.value)}
+                  onClear={() => handleSearch('')}
+                  value={searchValue}
+                />
+              </Grid>
+              <Grid
+                item
+                size={{ xs: 12, sm: 6 }}
+                sx={{
+                  display: 'flex',
+                  justifyContent: { xs: 'flex-start', sm: 'flex-end' },
+                  width: { xs: '100%', sm: '250px' }
+                }}
+              >
+                <MUISelect
+                  sx={{
+                    width: {
+                      xs: '100%',
+                      sm: '240px'
+                    }
+                  }}
                   value={stockType}
                   label='Filter by stock type'
+                  options={[
+                    { id: 'all', name: 'All' },
+                    { id: 'transit', name: 'Transit' },
+                    { id: 'dispute', name: 'Dispute' }
+                  ]}
                   onChange={e => {
                     filterByStockType(e.target.value)
                     setStockType(e.target.value)
                   }}
-                >
-                  <MenuItem value='all'>All</MenuItem>
-                  <MenuItem value='transit'>Transit</MenuItem>
-                  <MenuItem value='dispute'>Dispute</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
+                />
+              </Grid>
+            </Grid>
 
-            {/* <FormControl size='small' sx={{ ml: 4, my: 2 }}>
-              <InputLabel id='demo-simple-select-label'>Filter by stock type</InputLabel>
-              <Select
-                size='small'
-                value={stockType}
-                label='Filter by stock type'
-                onChange={e => {
-                  filterByStockType(e.target.value)
-                  setStockType(e.target.value)
-                }}
-              >
-                <MenuItem value='all'>All</MenuItem>
-                <MenuItem value='transit'>Transit</MenuItem>
-                <MenuItem value='dispute'>Dispute</MenuItem>
-              </Select>
-            </FormControl> */}
-
-            <Grid
-              sx={{
-                mx: { xs: 2, sm: 4.5 }
-              }}
-            >
+            <Grid>
               <CommonTable
                 onRowClick={onRowClick}
                 indexedRows={indexedRows}
@@ -556,39 +443,7 @@ function Escrow({ value }) {
                 searchValue={searchValue}
               />
             </Grid>
-            {/*
-            <DataGrid
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              disableColumnMenu
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => {
-                    setSearchValue(event.target.value)
-
-                    return handleSearch(event.target.value)
-                  }
-                }
-              }}
-              onRowClick={onRowClick}
-            /> */}
-          </Card>
+          </PageCardLayout>
         </>
       )}
     </>

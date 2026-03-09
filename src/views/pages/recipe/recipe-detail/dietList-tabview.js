@@ -265,12 +265,12 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
                     tableValue: 'recipe-List'
                   }
                 }}
-              />
+                showToolbar />
             </div>
           </>
         )}
       </>
-    )
+    );
   }
 
   return (

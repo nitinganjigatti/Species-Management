@@ -719,19 +719,19 @@ const DailyReport = () => {
                   options={observationList?.length > 0 ? observationList : []}
                   getOptionLabel={option => option.type_name}
                   isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                onChange={(e, val) => {
-                  setDefaultObservationType(val ?? null)
-                  const options = Array.isArray(val?.child_observation) ? val.child_observation : []
-                  const normalized = options
-                    .map(item => ({
-                      id: String(item?.id ?? item?.value ?? item?.key ?? item?.type_name ?? ''),
-                      type_name: item?.type_name || item?.name || item?.label || item?.key || ''
-                    }))
-                    .filter(item => item.type_name)
-                  setSubObservationOptions(normalized)
-                  setSelectedSubObservations([])
-                  setPaginationModel(prev => ({ ...prev, page: 0 }))
-                }}
+                  onChange={(e, val) => {
+                    setDefaultObservationType(val ?? null)
+                    const options = Array.isArray(val?.child_observation) ? val.child_observation : []
+                    const normalized = options
+                      .map(item => ({
+                        id: String(item?.id ?? item?.value ?? item?.key ?? item?.type_name ?? ''),
+                        type_name: item?.type_name || item?.name || item?.label || item?.key || ''
+                      }))
+                      .filter(item => item.type_name)
+                    setSubObservationOptions(normalized)
+                    setSelectedSubObservations([])
+                    setPaginationModel(prev => ({ ...prev, page: 0 }))
+                  }}
                   clearOnEscape
                   disableClearable={false}
                   renderInput={params => (
@@ -779,116 +779,116 @@ const DailyReport = () => {
                         }
                       }}
 
-                    // error={Boolean(errors.nursery)}
-                  />
-                )}
-              />
+                      // error={Boolean(errors.nursery)}
+                    />
+                  )}
+                />
 
-              <Autocomplete
-                multiple
-                value={selectedSubObservations}
-                disablePortal
-                disableCloseOnSelect
-                id='sub-observation-type'
-                loading={observationListLoader}
-                options={subObservationOptions}
-                getOptionLabel={option => option.type_name}
-                isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                renderOption={(props, option, { selected }) => (
-                  <li {...props}>
-                    <Checkbox
-                      checked={selected}
+                <Autocomplete
+                  multiple
+                  value={selectedSubObservations}
+                  disablePortal
+                  disableCloseOnSelect
+                  id='sub-observation-type'
+                  loading={observationListLoader}
+                  options={subObservationOptions}
+                  getOptionLabel={option => option.type_name}
+                  isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                  renderOption={(props, option, { selected }) => (
+                    <li {...props}>
+                      <Checkbox
+                        checked={selected}
+                        sx={{
+                          mr: 1,
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          '&.Mui-checked': {
+                            color: theme.palette.primary.main
+                          }
+                        }}
+                      />
+                      <Typography sx={{ fontSize: 14, color: theme.palette.customColors.OnSurfaceVariant }}>
+                        {option?.type_name}
+                      </Typography>
+                    </li>
+                  )}
+                  onChange={(e, val) => {
+                    setSelectedSubObservations(val || [])
+                    setPaginationModel(prev => ({ ...prev, page: 0 }))
+                  }}
+                  renderTags={(value, getTagProps) => {
+                    if (!value.length) return null
+                    const names = value.map(item => item?.type_name).filter(Boolean)
+                    const label = names.join(', ')
+
+                    return (
+                      <Typography
+                        component='span'
+                        sx={{
+                          fontSize: 14,
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          pointerEvents: 'none'
+                        }}
+                      >
+                        {label}
+                      </Typography>
+                    )
+                  }}
+                  clearOnEscape
+                  disableClearable={false}
+                  disabled={!defaultObservationType || subObservationOptions.length === 0}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      label='Sub-Observation Types'
+                      placeholder={selectedSubObservations.length ? '' : 'Search & Select'}
                       sx={{
-                        mr: 1,
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        '&.Mui-checked': {
-                          color: theme.palette.primary.main
+                        width: '100%',
+                        '& .MuiOutlinedInput-root': {
+                          height: 40,
+                          padding: '0 8px',
+                          borderRadius: '4px',
+                          alignItems: 'center',
+                          flexWrap: 'nowrap',
+                          overflow: 'hidden',
+                          cursor: 'text',
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme.palette.customColors.OutlineVariant
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme.palette.customColors.OutlineVariant
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme.palette.primary.main
+                          },
+                          '& .MuiAutocomplete-input': {
+                            padding: '8px 4px',
+                            fontSize: 14,
+                            minWidth: 0,
+                            width: selectedSubObservations.length ? 0 : 'auto'
+                          },
+                          '& .MuiAutocomplete-input::placeholder': {
+                            opacity: selectedSubObservations.length ? 0 : 1
+                          },
+                          '& .MuiAutocomplete-endAdornment': {
+                            top: '50%',
+                            transform: 'translateY(-50%)'
+                          }
+                        },
+                        '& .MuiInputLabel-root': {
+                          top: '50%',
+                          transform: 'translate(14px, -50%) scale(1)'
+                        },
+                        '& .MuiInputLabel-shrink': {
+                          top: 0,
+                          transform: 'translate(14px, -9px) scale(0.75)'
                         }
                       }}
                     />
-                    <Typography sx={{ fontSize: 14, color: theme.palette.customColors.OnSurfaceVariant }}>
-                      {option?.type_name}
-                    </Typography>
-                  </li>
-                )}
-                onChange={(e, val) => {
-                  setSelectedSubObservations(val || [])
-                  setPaginationModel(prev => ({ ...prev, page: 0 }))
-                }}
-                renderTags={(value, getTagProps) => {
-                  if (!value.length) return null
-                  const names = value.map(item => item?.type_name).filter(Boolean)
-                  const label = names.join(', ')
-
-                  return (
-                    <Typography
-                      component='span'
-                      sx={{
-                        fontSize: 14,
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        pointerEvents: 'none'
-                      }}
-                    >
-                      {label}
-                    </Typography>
-                  )
-                }}
-                clearOnEscape
-                disableClearable={false}
-                disabled={!defaultObservationType || subObservationOptions.length === 0}
-                renderInput={params => (
-                  <TextField
-                    {...params}
-                    label='Sub-Observation Types'
-                    placeholder={selectedSubObservations.length ? '' : 'Search & Select'}
-                    sx={{
-                      width: '100%',
-                      '& .MuiOutlinedInput-root': {
-                        height: 40,
-                        padding: '0 8px',
-                        borderRadius: '4px',
-                        alignItems: 'center',
-                        flexWrap: 'nowrap',
-                        overflow: 'hidden',
-                        cursor: 'text',
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.customColors.OutlineVariant
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.customColors.OutlineVariant
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.primary.main
-                        },
-                        '& .MuiAutocomplete-input': {
-                          padding: '8px 4px',
-                          fontSize: 14,
-                          minWidth: 0,
-                          width: selectedSubObservations.length ? 0 : 'auto'
-                        },
-                        '& .MuiAutocomplete-input::placeholder': {
-                          opacity: selectedSubObservations.length ? 0 : 1
-                        },
-                        '& .MuiAutocomplete-endAdornment': {
-                          top: '50%',
-                          transform: 'translateY(-50%)'
-                        }
-                      },
-                      '& .MuiInputLabel-root': {
-                        top: '50%',
-                        transform: 'translate(14px, -50%) scale(1)'
-                      },
-                      '& .MuiInputLabel-shrink': {
-                        top: 0,
-                        transform: 'translate(14px, -9px) scale(0.75)'
-                      }
-                    }}
-                  />
-                )}
-              />
+                  )}
+                />
 
                 <Box sx={{ minWidth: 0 }}>
                   <CommonDateRangePickers

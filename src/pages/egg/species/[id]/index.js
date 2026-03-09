@@ -1,9 +1,9 @@
 import { Box } from '@mui/system'
 import React, { useEffect, useState, useCallback, useContext, forwardRef } from 'react'
-import { DataGrid } from '@mui/x-data-grid'
 import Router, { useRouter } from 'next/router'
 import FallbackSpinner from 'src/@core/components/spinner'
 import Icon from 'src/@core/components/icon'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import format from 'date-fns/format'
 import addDays from 'date-fns/addDays'
 import DatePicker from 'react-datepicker'
@@ -412,6 +412,7 @@ const SpeciesDetail = () => {
       const eggnumberByColumn = columns.find(column => column.field === 'egg_code')
       if (eggnumberByColumn) {
         eggnumberByColumn.renderCell = params => (
+
           // <Box sx={{ display: 'flex', alignItems: 'center' }}>
           //   <Avatar
           //     variant='square'
@@ -449,13 +450,13 @@ const SpeciesDetail = () => {
           //     </Typography>
           //   </Box>
           // </Box>
-          <SpeciesImageCard
+          (<SpeciesImageCard
             imgURl={params.row.default_icon}
             eggCondition={params.row.egg_condition}
             eggCode={params.row.egg_code}
             egg_status={params.row.egg_status}
             eggIcon={params.row.image ? params.row.image : '/icons/Egg_icon.png'}
-          />
+          />)
         )
       }
 
@@ -499,9 +500,10 @@ const SpeciesDetail = () => {
           </Typography>
         )
       }
+
       // console.log(customData, 'customData')
 
-      const rows = customData.map(data => ({
+      const indexedRows= customData.map(data => ({
         id: data.id,
         no: data.no,
         egg_code: data.egg_code,
@@ -780,17 +782,13 @@ const SpeciesDetail = () => {
             {/* {console.log(rows, 'rows')} */}
             <div style={rows.length > 1 ? { height: 900, width: '100%' } : { height: 400, width: '100%' }}>
               {/* {console.log(data, 'data')} */}
-              <DataGrid
-                rowHeight={72}
-                rows={rows}
+              <CommonTable                 rowHeight={72}
+                indexedRows={rows}
                 columns={data.columns}
-                pagination
-                paginationMode='server'
-                rowCount={total}
+                total={total}
                 paginationModel={paginationModel}
-                pageSizeOptions={[7, 10, 25, 50]}
                 slots={{ toolbar: ServerSideToolbarWithFilter }}
-                onPaginationModelChange={setPaginationModel}
+                setPaginationModel={setPaginationModel}
                 loading={loading}
                 slotProps={{
                   baseButton: {
@@ -801,14 +799,13 @@ const SpeciesDetail = () => {
                     clearSearch: () => handleSearch(''),
                     onChange: event => handleSearch(event.target.value)
                   }
-                }}
-              />
+                }} />
             </div>
           </Card>
         </>
       )}
     </>
-  )
+  );
 }
 
 export default SpeciesDetail

@@ -290,6 +290,11 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/store/rackList'
   }
 
+  const pharmacySettings = {
+    title: 'Pharmacy Settings',
+    path: '/pharmacy/store/pharmacy-settings'
+  }
+
   const dispense = {
     title: 'Dispense',
     path: '/pharmacy/dispense',
@@ -373,6 +378,11 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/reports/all-requested-items'
   }
 
+  const reconciliationReport = {
+    title: 'Reconciliation Report',
+    path: '/pharmacy/reports/reconciliation-report'
+  }
+
   const rackAndShelves = {
     icon: 'tabler:settings-spark',
     title: 'Racks And Shelves',
@@ -413,6 +423,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   reportsParent.children.push(returnReport)
   reportsParent.children.push(shipmentReport)
   reportsParent.children.push(dispenseReport)
+  reportsParent.children.push(reconciliationReport)
 
   const pharmacyNavigationArray = []
 
@@ -437,7 +448,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     // directDispatchParent.children.push(directDispatchList)
     // stockParent.children.push(stockReport)
     settingsParent.children.push(
-      rackList
+      rackList,
+      pharmacySettings
 
       // uom,
       // productForm,
