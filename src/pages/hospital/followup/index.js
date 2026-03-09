@@ -76,10 +76,10 @@ const HospitalFollowUp = () => {
     setFilters({
       page: parseInt(page),
       limit: parseInt(limit),
-      q
+      q: q
     })
 
-    setSearchValue(q)
+    // setSearchValue(q)
   }, [router.query])
 
   const prepareFilterParams = key => {
