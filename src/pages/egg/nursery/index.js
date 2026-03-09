@@ -212,7 +212,7 @@ const NurseryList = () => {
           size='small'
           label={params.row?.active === '1' ? 'Active' : 'InActive'}
           color={params.row?.active === '1' ? 'success' : 'error'}
-          externalTableStyle={{
+          sx={{
             height: 20,
             fontWeight: 600,
             borderRadius: '5px',
@@ -302,10 +302,10 @@ const NurseryList = () => {
   const handleCellClick = params => router.push(`/egg/nursery/${params.row.id}`)
 
   if (!nurseryPermission && !collectionPermission) return <ErrorScreen />
-  
-return (
+
+  return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' externalTableStyle={{ mb: 5 }}>
+      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Typography sx={{ cursor: 'pointer' }} color='inherit'>
           Egg
         </Typography>
@@ -360,7 +360,7 @@ return (
                 value={defaultSite}
                 disablePortal
                 id='site'
-                externalTableStyle={{ width: 220 }}
+                sx={{ width: 220 }}
                 options={userData?.user?.zoos[0].sites}
                 getOptionLabel={option => option?.site_name || ''}
                 isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
@@ -422,7 +422,6 @@ return (
           handleSortModel={handleSortModel}
           loading={loading}
           onCellClick={handleCellClick}
-
           // columnVisibilityModel={{
           //   sl_no: false
           // }}

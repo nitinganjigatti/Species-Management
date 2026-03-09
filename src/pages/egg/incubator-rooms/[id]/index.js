@@ -398,7 +398,7 @@ const RoomDetails = () => {
           size='small'
           label={params.row?.active === '1' ? 'Active' : 'InActive'}
           color={params.row?.active === '1' ? 'success' : 'error'}
-          externalTableStyle={{
+          sx={{
             height: 20,
             fontWeight: 600,
             borderRadius: '5px',
@@ -532,7 +532,7 @@ const RoomDetails = () => {
           </CardContent>
         ) : (
           <Box>
-            <Breadcrumbs aria-label='breadcrumb' externalTableStyle={{ mb: 5 }}>
+            <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
               <Typography sx={{ cursor: 'pointer' }} color='inherit'>
                 Egg
               </Typography>
@@ -664,7 +664,7 @@ const RoomDetails = () => {
                     name='availibility'
                     value={defaultAvailibility}
                     disablePortal
-                    externalTableStyle={{ width: 220 }}
+                    sx={{ width: 220 }}
                     id='availibility'
                     options={availibilityList?.length > 0 ? availibilityList : []}
                     getOptionLabel={option => option.label}

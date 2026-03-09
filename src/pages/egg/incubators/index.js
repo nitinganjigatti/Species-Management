@@ -301,7 +301,7 @@ const IncubatorsList = () => {
           size='small'
           label={params.row?.active === '1' ? 'Active' : 'InActive'}
           color={params.row?.active === '1' ? 'success' : 'error'}
-          externalTableStyle={{
+          sx={{
             height: 20,
             fontWeight: 600,
             borderRadius: '5px',
@@ -379,7 +379,7 @@ const IncubatorsList = () => {
   
 return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' externalTableStyle={{ mb: 5 }}>
+      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Typography color='inherit'>Egg</Typography>
         <Typography
           sx={{
@@ -436,7 +436,7 @@ return (
               value={defaultStatus}
               disablePortal
               id='status'
-              externalTableStyle={{ width: 220 }}
+              sx={{ width: 220 }}
               options={[
                 { label: 'All', key: 'all' },
                 { label: 'Active', key: 'only_active' },
