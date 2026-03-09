@@ -1032,6 +1032,45 @@ export default function AddMedicineToPrescription() {
     }
   }, [debouncedBatchSearch, debouncedSearch])
 
+  // Prefill prescription dates based on patient discharge status
+  useEffect(() => {
+    if (patientData?.discharge_at) {
+      // Convert UTC dates to local time
+      const dischargeDate = dayjs(Utility.convertUTCToLocal(patientData.discharge_at))
+      const admittedDate = patientData?.admitted_at
+        ? dayjs(Utility.convertUTCToLocal(patientData.admitted_at))
+        : null
+
+      // For Direct Administer - prefill start date with admitted date, end date with discharge date
+      if (selectMedicineType === 'Direct Administer') {
+        // For direct administration, set start date to admitted date if not already set
+        if (!prescriptionStartDate || prescriptionStartDate === '') {
+          if (admittedDate) {
+            setValue('prescriptionStartDate', admittedDate)
+          } else {
+            // Fallback to discharge date if admitted date is not available
+            setValue('prescriptionStartDate', dischargeDate)
+          }
+        }
+
+        // For regular intervals (not one-time), set end date to discharge date
+        if (!isOneTimeFrequency) {
+          setValue('prescriptionEndDate', dischargeDate)
+        }
+      }
+
+      // For Schedule - prefill start date with admitted date if not already set
+      if (selectMedicineType === 'Schedule' && (!prescriptionStartDate || prescriptionStartDate === '')) {
+        if (admittedDate) {
+          setValue('prescriptionStartDate', admittedDate)
+        } else {
+          // Fallback to discharge date if admitted date is not available
+          setValue('prescriptionStartDate', dischargeDate)
+        }
+      }
+    }
+  }, [patientData?.discharge_at, patientData?.admitted_at, selectMedicineType, isOneTimeFrequency, prescriptionStartDate, setValue])
+
   function toISTISOString(date, includeCurrentTime = false) {
     if (!date) return ''
 
@@ -1847,6 +1886,84 @@ export default function AddMedicineToPrescription() {
 
   const prescriptionSubmitHandler = handleSubmit(
     async data => {
+      // Validate dates for discharged patients
+      if (patientData?.discharge_at) {
+        // Convert UTC discharge date to local time for comparison
+        const dischargeDate = dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).endOf('day')
+        const isOneTime = data.frequency === '2' || data.frequency === 2
+
+        // For Direct Administer - validate that dates don't exceed discharge date
+        if (data.selectMedicineType === 'Direct Administer') {
+          if (data.prescriptionStartDate) {
+            const startDate = dayjs(data.prescriptionStartDate).startOf('day')
+            if (startDate.isAfter(dischargeDate)) {
+              Toaster({
+                type: 'error',
+                message: `Prescription start date cannot be after the discharge date (${dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).format('DD MMM YYYY')})`
+              })
+              return
+            }
+          }
+
+          // For regular intervals, also validate end date
+          if (!isOneTime && data.prescriptionEndDate) {
+            const endDate = dayjs(data.prescriptionEndDate).endOf('day')
+            if (endDate.isAfter(dischargeDate)) {
+              Toaster({
+                type: 'error',
+                message: `Prescription end date cannot be after the discharge date (${dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).format('DD MMM YYYY')})`
+              })
+              return
+            }
+          }
+        }
+
+        // For Schedule - validate that start date doesn't exceed discharge date
+        if (data.selectMedicineType === 'Schedule' && data.prescriptionStartDate) {
+          const startDate = dayjs(data.prescriptionStartDate).startOf('day')
+          if (startDate.isAfter(dischargeDate)) {
+            Toaster({
+              type: 'error',
+              message: `Prescription start date cannot be after the discharge date (${dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).format('DD MMM YYYY')})`
+            })
+            return
+          }
+        }
+
+        // For Schedule - validate that end date doesn't exceed discharge date (if calculated end date exists)
+        if (data.selectMedicineType === 'Schedule' && !isOneTime) {
+          // The end date will be calculated based on start date and duration
+          // We need to validate the calculated end date against discharge date
+          if (data.prescriptionStartDate && data.dosageDuration?.value && data.dosageDuration?.unit) {
+            // Parse the duration
+            const durationValue = data.dosageDuration.value
+            const durationUnit = data.dosageDuration.unit.toLowerCase()
+
+            const startDate = dayjs(data.prescriptionStartDate).startOf('day')
+            let calculatedEndDate
+
+            // Calculate end date based on duration unit
+            if (durationUnit === 'days') {
+              calculatedEndDate = startDate.add(durationValue - 1, 'day').endOf('day')
+            } else if (durationUnit === 'weeks') {
+              calculatedEndDate = startDate.add(durationValue * 7 - 1, 'day').endOf('day')
+            } else if (durationUnit === 'months') {
+              calculatedEndDate = startDate.add(durationValue, 'month').subtract(1, 'day').endOf('day')
+            } else {
+              calculatedEndDate = startDate.add(durationValue - 1, 'day').endOf('day')
+            }
+
+            if (calculatedEndDate.isAfter(dischargeDate)) {
+              Toaster({
+                type: 'error',
+                message: `Prescription duration extends beyond the discharge date (${dayjs(patientData.discharge_at).format('DD MMM YYYY')}). Please adjust the duration.`
+              })
+              return
+            }
+          }
+        }
+      }
+
       const interval = medicalMasterData?.intervalList?.find(item => item?.value === data?.interval)
       const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
 
@@ -2194,6 +2311,7 @@ export default function AddMedicineToPrescription() {
               stopDate={medicineDetail?.stop_date}
               reset={reset}
               loadingSideEffects={sideEffectMedicinesLoading}
+              patientData={patientData}
             />
           </Grid>
         </Grid>
