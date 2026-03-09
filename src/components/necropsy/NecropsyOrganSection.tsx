@@ -214,8 +214,8 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
   const handleSaveTemplate = async (): Promise<void> => {
     if (!templateName.trim()) {
       Toaster({ type: 'error', message: 'Please enter a template name' })
-      
-return
+
+      return
     }
 
     setSaveLoading(true)
@@ -357,9 +357,6 @@ return
                           backgroundColor: theme.palette.customColors.OnPrimary,
                           '& .MuiOutlinedInput-root': {
                             borderRadius: '4px'
-                          },
-                          '& .MuiOutlinedInput-input': {
-                            padding: '4px 8px'
                           }
                         }}
                         InputProps={{

@@ -40,7 +40,15 @@ const AnimalDrawer = ({
   const [horizontalNavList, setHorizontalNavList] = useState([])
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
-  const debouncedSearch = useMemo(() => debounce(setSearch, 500), [])
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce(value => {
+        clearAnimalQuery()
+        setSearch(value)
+      }, 500),
+    []
+  )
 
   useEffect(() => {
     const getAnimalsHorizontalNavigation = async () => {
@@ -118,6 +126,33 @@ const AnimalDrawer = ({
           column: sortType?.column,
           include_dead_animal: 0,
           ignore_permission: 1
+        }
+
+        const res = await getNewAnimalListWithFilters(params)
+
+        return {
+          animals: res?.data || [],
+          nextPage: res?.data?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+          total_animal_count: res?.total_count || 0
+        }
+      }
+      if (module === 'medical') {
+        const params = {
+          page_no: pageParam,
+          ...(search.trim() && { filter_aid_local_identifier: search }),
+          limit: PAGE_SIZE,
+          list_type: 'animals',
+          type: 'single',
+          animal_list_type: activeTab,
+          gender: filters?.Gender || [],
+          tsn_id: filters?.Species || [],
+          site_id: filters?.Site || [],
+          section_id: filters?.Section || [],
+          enclosure_id: filters?.Enclosure || [],
+          sort: sortType?.sort || 'asc',
+          column: sortType?.column || 'animal_id',
+          include_dead_animal: 0,
+          ignore_permission: 0
         }
 
         const res = await getNewAnimalListWithFilters(params)
@@ -206,16 +241,13 @@ const AnimalDrawer = ({
   const handleSearchChange = e => {
     const value = e.target.value
     setLocalSearch(value)
-
-    clearAnimalQuery()
     debouncedSearch(value)
   }
 
   const handleSearchClear = () => {
     setLocalSearch('')
-    debouncedSearch('')
-
     clearAnimalQuery()
+    setSearch('')
   }
 
   const handleTabClick = tabValue => {
@@ -414,28 +446,27 @@ const AnimalDrawer = ({
             <Box display='flex' justifyContent='center' alignItems='center' flex={1}>
               <CircularProgress />
             </Box>
-          ) 
-          // : module === 'hospital' && search.trim().length === 0 && !isFetching ? (
-          //   <Box
-          //     sx={{
-          //       backgroundColor: theme.palette.customColors.antzNotes,
-          //       display: 'flex',
-          //       alignItems: 'center',
-          //       justifyContent: 'center',
-          //       px: 4,
-          //       py: 4,
-          //       mt: 4,
-          //       borderRadius: 1
-          //     }}
-          //   >
-          //     <Typography
-          //       sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
-          //     >
-          //       Search animal by AID or animal identifier
-          //     </Typography>
-          //   </Box>
-          // ) 
-          : (
+          ) : (
+            // : module === 'hospital' && search.trim().length === 0 && !isFetching ? (
+            //   <Box
+            //     sx={{
+            //       backgroundColor: theme.palette.customColors.antzNotes,
+            //       display: 'flex',
+            //       alignItems: 'center',
+            //       justifyContent: 'center',
+            //       px: 4,
+            //       py: 4,
+            //       mt: 4,
+            //       borderRadius: 1
+            //     }}
+            //   >
+            //     <Typography
+            //       sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
+            //     >
+            //       Search animal by AID or animal identifier
+            //     </Typography>
+            //   </Box>
+            // )
             <>
               {list.map(animal => (
                 <AnimalParentCard

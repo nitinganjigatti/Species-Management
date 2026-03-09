@@ -1,7 +1,20 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { useTheme } from '@emotion/react'
-import { Avatar, Box, Card, CardHeader, CircularProgress, Grid, IconButton, Tooltip, Typography } from '@mui/material'
+import {
+  Autocomplete,
+  Avatar,
+  Box,
+  Card,
+  CardHeader,
+  Checkbox,
+  CircularProgress,
+  Grid,
+  IconButton,
+  TextField,
+  Tooltip,
+  Typography
+} from '@mui/material'
 import { debounce } from 'lodash'
 import { format, subMonths } from 'date-fns'
 
@@ -17,7 +30,7 @@ import ReportCard from 'src/views/pages/report/ReportCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalView from 'src/views/pages/compliance/reports/biologists/ReportAnimalView'
 
-import { getDiaryReportList, getUserListing } from 'src/lib/api/compliance/reports'
+import { getDiaryReportList, getObservationMasterType, getUserListing } from 'src/lib/api/compliance/reports'
 import { useRouter } from 'next/router'
 
 const KeeperDiaryReport = () => {
@@ -55,6 +68,29 @@ const KeeperDiaryReport = () => {
     pageSize: 50
   })
 
+  const [defaultObservationType, setDefaultObservationType] = useState(null)
+  const [observationListLoader, setObservationListLoader] = useState(false)
+  const [observationList, setObservationList] = useState([])
+  const [subObservationOptions, setSubObservationOptions] = useState([])
+  const [selectedSubObservations, setSelectedSubObservations] = useState([])
+
+  const fetchObservationMasterType = useCallback(async () => {
+    if (observationList.length) return
+    try {
+      setObservationListLoader(true)
+      const res = await getObservationMasterType({ params: {} })
+      setObservationList(res?.data || [])
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setObservationListLoader(false)
+    }
+  }, [observationList.length])
+
+  useEffect(() => {
+    fetchObservationMasterType()
+  }, [fetchObservationMasterType])
+
   useEffect(() => {
     if (router.query.user_id && !userDetail) {
       const fetchUser = async () => {
@@ -87,6 +123,9 @@ const KeeperDiaryReport = () => {
   }
 
   const getUserKeeperReport = async q => {
+    const childObservationIds = selectedSubObservations
+      .map(item => item?.id)
+      .filter(item => item !== undefined && item !== null && item !== '')
     setLoading(true)
 
     const params = {
@@ -96,7 +135,9 @@ const KeeperDiaryReport = () => {
       user_id: userDetail?.user_id || router.query.user_id,
       page_no: paginationModel.page + 1,
       limit: paginationModel.pageSize,
-      report_type: 'json'
+      report_type: 'json',
+      ...(defaultObservationType?.id && { observation_type: defaultObservationType?.id }),
+      ...(childObservationIds.length && { child_observation_ids: childObservationIds })
     }
 
     const response = await getDiaryReportList(params)
@@ -410,7 +451,7 @@ const KeeperDiaryReport = () => {
             <UserSelectionCard user={userDetail} />
           </Box>
 
-          <Box
+          {/* <Box
             sx={{
               display: 'flex',
               flexDirection: { sm: 'row', xs: 'column' },
@@ -440,6 +481,238 @@ const KeeperDiaryReport = () => {
                 useCustomText={true}
                 customText='Select a Date Range'
               />
+            </Box>
+          </Box> */}
+
+          <Box
+            sx={{
+              px: 5,
+              display: 'grid',
+              gap: '16px',
+              alignItems: 'center',
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(2, minmax(0, 1fr))',
+                md: 'repeat(4, minmax(0, 1fr))'
+              }
+            }}
+          >
+            <Search
+              onClear={() => {
+                setSearchValue('')
+                debouncedSearch('')
+              }}
+              onChange={handleSearchChange}
+              placeholder='Search by Entity or observation type'
+              value={searchValue}
+              inputStyle={{ py: '10px', px: '12px' }}
+              width='100%'
+              textFielsSX={{
+                height: '40px',
+                '& fieldset': { borderColor: theme.palette.customColors.OutlineVariant },
+                '&:hover fieldset': { borderColor: theme.palette.customColors.OutlineVariant },
+                '&.Mui-focused fieldset': { borderColor: theme.palette.customColors.OutlineVariant }
+              }}
+              sx={{
+                gap: '4px',
+                '& .MuiInputBase-input::placeholder': {
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  lineHeight: '100%',
+                  letterSpacing: '0%',
+                  color: theme.palette.customColors.OutlineVariant
+                }
+              }}
+            />
+            <Box sx={{ display: 'contents' }}>
+              <Autocomplete
+                value={defaultObservationType}
+                disablePortal
+                // disabled={isEdit || incubatorDetail}
+                id='nursery'
+                loading={observationListLoader}
+                options={observationList?.length > 0 ? observationList : []}
+                getOptionLabel={option => option.type_name}
+                isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                onChange={(e, val) => {
+                  setDefaultObservationType(val ?? null)
+                  const options = Array.isArray(val?.child_observation) ? val.child_observation : []
+
+                  const normalized = options
+                    .map(item => ({
+                      id: String(item?.id ?? item?.value ?? item?.key ?? item?.type_name ?? ''),
+                      type_name: item?.type_name || item?.name || item?.label || item?.key || ''
+                    }))
+                    .filter(item => item.type_name)
+                  setSubObservationOptions(normalized)
+                  setSelectedSubObservations([])
+                  setPaginationModel(prev => ({ ...prev, page: 0 }))
+                }}
+                clearOnEscape
+                disableClearable={false}
+                renderInput={params => (
+                  <TextField
+                    // onChange={e => {
+                    //   searchNursery(e.target.value)
+                    // }}
+                    {...params}
+                    label='Observation Type'
+                    placeholder='Search & Select'
+                    sx={{
+                      width: '100%',
+
+                      /* ---- OUTER INPUT WRAPPER (outlined root) ---- */
+                      '& .MuiOutlinedInput-root': {
+                        height: 40,
+                        padding: 0, // wrapper padding zero, inner input pe actual padding
+                        borderRadius: '4px',
+
+                        /* real border is the notchedOutline fieldset */
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.customColors.OutlineVariant
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.customColors.OutlineVariant
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.primary.main
+                        },
+
+                        /* ---- INNER INPUT (text area) ---- */
+                        '& .MuiAutocomplete-input': {
+                          padding: '8px 12px', // top/bottom = 8, left/right = 12
+                          fontSize: 14
+                        }
+                      },
+
+                      '& .MuiInputLabel-root': {
+                        top: '50%', // vertical align
+                        transform: 'translate(14px, -50%) scale(1)' // center label
+                      },
+                      '& .MuiInputLabel-shrink': {
+                        top: 0,
+                        transform: 'translate(14px, -9px) scale(0.75)' // focus/value hone par default float
+                      }
+                    }}
+
+                    // error={Boolean(errors.nursery)}
+                  />
+                )}
+              />
+
+              <Autocomplete
+                multiple
+                value={selectedSubObservations}
+                disablePortal
+                disableCloseOnSelect
+                id='sub-observation-type'
+                loading={observationListLoader}
+                options={subObservationOptions}
+                getOptionLabel={option => option.type_name}
+                isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                renderOption={(props, option, { selected }) => (
+                  <li {...props}>
+                    <Checkbox
+                      checked={selected}
+                      sx={{
+                        mr: 1,
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        '&.Mui-checked': {
+                          color: theme.palette.primary.main
+                        }
+                      }}
+                    />
+                    <Typography sx={{ fontSize: 14, color: theme.palette.customColors.OnSurfaceVariant }}>
+                      {option?.type_name}
+                    </Typography>
+                  </li>
+                )}
+                onChange={(e, val) => {
+                  setSelectedSubObservations(val || [])
+                  setPaginationModel(prev => ({ ...prev, page: 0 }))
+                }}
+                renderTags={(value, getTagProps) => {
+                  if (!value.length) return null
+                  const names = value.map(item => item?.type_name).filter(Boolean)
+                  const label = names.join(', ')
+
+                  return (
+                    <Typography
+                      component='span'
+                      sx={{
+                        fontSize: 14,
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        pointerEvents: 'none'
+                      }}
+                    >
+                      {label}
+                    </Typography>
+                  )
+                }}
+                clearOnEscape
+                disableClearable={false}
+                disabled={!defaultObservationType || subObservationOptions.length === 0}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    label='Sub-Observation Types'
+                    placeholder={selectedSubObservations.length ? '' : 'Search & Select'}
+                    sx={{
+                      width: '100%',
+                      '& .MuiOutlinedInput-root': {
+                        height: 40,
+                        padding: '0 8px',
+                        borderRadius: '4px',
+                        alignItems: 'center',
+                        flexWrap: 'nowrap',
+                        overflow: 'hidden',
+                        cursor: 'text',
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.customColors.OutlineVariant
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.customColors.OutlineVariant
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.primary.main
+                        },
+                        '& .MuiAutocomplete-input': {
+                          padding: '8px 4px',
+                          fontSize: 14,
+                          minWidth: 0,
+                          width: selectedSubObservations.length ? 0 : 'auto'
+                        },
+                        '& .MuiAutocomplete-input::placeholder': {
+                          opacity: selectedSubObservations.length ? 0 : 1
+                        },
+                        '& .MuiAutocomplete-endAdornment': {
+                          top: '50%',
+                          transform: 'translateY(-50%)'
+                        }
+                      },
+                      '& .MuiInputLabel-root': {
+                        top: '50%',
+                        transform: 'translate(14px, -50%) scale(1)'
+                      },
+                      '& .MuiInputLabel-shrink': {
+                        top: 0,
+                        transform: 'translate(14px, -9px) scale(0.75)'
+                      }
+                    }}
+                  />
+                )}
+              />
+              <Box sx={{ minWidth: 0 }}>
+                <CommonDateRangePickers
+                  filterDates={filterDates}
+                  onChange={handleDateRangeChange}
+                  useCustomText={true}
+                  customText='Select a Date Range'
+                />
+              </Box>
             </Box>
           </Box>
 
