@@ -1,4 +1,4 @@
-const composeMedicalNavigation = ({ userSettings }) => {
+const composeMedicalNavigation = ({ userSettings, medicalAccess }) => {
   const Title = {
     sectionTitle: 'Medical'
   }
@@ -21,12 +21,20 @@ const composeMedicalNavigation = ({ userSettings }) => {
     path: '/medical/masters/diagnosis'
   }
 
+  const recordsItem = {
+    title: 'Records',
+    path: '/medical/records',
+    icon: 'tabler:stethoscope'
+  }
+
   const medicalNavigationArray = []
 
   if (userSettings?.medical_add_complaints || userSettings?.medical_add_diagnosis) {
     medicalNavigationArray.push(Title)
   }
-
+  if (medicalAccess) {
+    medicalNavigationArray.push(recordsItem)
+  }
   if (userSettings?.medical_add_complaints) {
     mastersMedicalParent.children.push(complaints)
   }
@@ -34,13 +42,11 @@ const composeMedicalNavigation = ({ userSettings }) => {
     mastersMedicalParent.children.push(diagnosis)
   }
 
-  // medicalNavigationArray.push(Title)
-  // mastersMedicalParent.children.push(complaints, diagnosis)
-    medicalNavigationArray.push(mastersMedicalParent)
+  medicalNavigationArray.push(mastersMedicalParent)
 
   return medicalNavigationArray
 }
 
-const medicalNavigation = ({ userSettings }) => composeMedicalNavigation({ userSettings })
+const medicalNavigation = ({ userSettings, medicalAccess }) => composeMedicalNavigation({ userSettings, medicalAccess })
 
 export default medicalNavigation

@@ -522,6 +522,7 @@ declare module 'src/views/utility/AnimalCard' {
     valueColor?: string
     showSpecies?: boolean
     showEnclosure?: boolean
+    sx?: SxProps
     [key: string]: unknown
   }
 
@@ -571,10 +572,7 @@ declare module 'src/components/ProtectedRoute' {
   import { FC, ComponentType } from 'react'
   import { NextPage } from 'next'
 
-  function enforceModuleAccess<P extends object>(
-    Component: NextPage<P> | ComponentType<P>,
-    settingKey: string
-  ): FC<P>
+  function enforceModuleAccess<P extends object>(Component: NextPage<P> | ComponentType<P>, settingKey: string): FC<P>
 
   export default enforceModuleAccess
 }
@@ -605,4 +603,80 @@ declare module 'src/components/drawers/FilterContent' {
 
   const FilterContent: FC<FilterContentProps>
   export default FilterContent
+}
+
+declare module 'src/views/utility/Layout/PageCardLayout' {
+  import { FC, ReactNode } from 'react'
+  import { SxProps } from '@mui/material'
+
+  interface PageCardLayoutProps {
+    title?: string | ReactNode
+    subtitle?: string
+    onClickOfSubtitle?: (() => void) | null
+    showIcon?: boolean
+    icon?: string
+    onIconClick?: (() => void) | null
+    action?: ReactNode
+    cardStyles?: SxProps
+    headerStyles?: SxProps
+    contentStyles?: SxProps
+    headerLayoutStyles?: SxProps
+    titleStyles?: SxProps
+    subtitleStyles?: SxProps
+    headerTextContainerStyles?: SxProps
+    iconStyles?: SxProps
+    actionStyles?: SxProps
+    headerLeftSectionStyles?: SxProps
+    breadcrumbs?: ReactNode
+    children?: ReactNode
+    [key: string]: unknown
+  }
+
+  const PageCardLayout: FC<PageCardLayoutProps>
+  export default PageCardLayout
+}
+
+declare module 'src/views/utility/DynamicBreadcrumbs' {
+  import { FC } from 'react'
+  import { SxProps } from '@mui/material'
+
+  interface BreadcrumbItem {
+    title: string
+    href?: string
+    onClick?: () => void
+    active?: boolean
+    segment?: string
+  }
+
+  interface DynamicBreadcrumbsProps {
+    pageItems?: (string | BreadcrumbItem)[]
+    sx?: SxProps
+    lastBreadcrumbLabel?: string
+    disableRoot?: boolean
+    hiddenSegments?: string[]
+    nonClickableSegments?: string[]
+    [key: string]: unknown
+  }
+
+  const DynamicBreadcrumbs: FC<DynamicBreadcrumbsProps>
+  export default DynamicBreadcrumbs
+}
+
+declare module 'src/views/pages/compliance/utility' {
+  import { FC, ReactNode } from 'react'
+  import { SxProps } from '@mui/material'
+
+  interface DownloadReportProps {
+    isDownloading?: boolean
+    handleDownloadReport?: () => void
+    customDownloadingText?: string
+    customeMainText?: string
+    containerStyles?: SxProps
+    imgSrc?: string
+    imgAlt?: string
+    imgStyle?: Record<string, unknown>
+    [key: string]: unknown
+  }
+
+  export const DownloadReport: FC<DownloadReportProps>
 }

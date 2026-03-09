@@ -7,13 +7,13 @@ function UserAvatarDetails({
   profile_image,
   user_name,
   date,
-  text_color,
-  description,
-  role,
-  crby_width,
+  text_color = '',
+  description = '',
+  role = '',
+  crby_width = '',
   size = 'large',
   show_time = false,
-  dateType
+  dateType = ''
 }) {
   const theme = useTheme()
 
