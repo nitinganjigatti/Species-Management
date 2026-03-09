@@ -594,7 +594,7 @@ const SpeciesDetail = () => {
               <Box sx={{ display: 'flex', gap: '8px', flexWrap: 'wrap', pl: 3 }}>
                 <Box>
                   <Autocomplete
-                    externalTableStyle={{
+                    sx={{
                       width: 250,
                       m: 2,
                       ml: 2
@@ -636,7 +636,7 @@ const SpeciesDetail = () => {
 
                 <Box>
                   <Autocomplete
-                    externalTableStyle={{
+                    sx={{
                       width: 250,
                       m: 2,
                       ml: 2
@@ -677,7 +677,7 @@ const SpeciesDetail = () => {
                 </Box>
                 <Box>
                   <Autocomplete
-                    externalTableStyle={{
+                    sx={{
                       width: 250,
                       m: 2,
                       ml: 2
@@ -718,7 +718,7 @@ const SpeciesDetail = () => {
                 </Box>
                 <Box>
                   <Autocomplete
-                    externalTableStyle={{
+                    sx={{
                       width: 250,
                       m: 2,
                       ml: 2
