@@ -476,6 +476,8 @@ export const COMPLIANCE_DAILY_REPORT = 'v1/get/daily/report'
 
 export const OBSERVATION_MASTER_TYPE = 'observation/master-type'
 
+export const OBSERVATION_MASTER_LIST = 'master/observation/list'
+
 export const LAB_MORTALITY_REASON = 'masters/mannerofDeath'
 
 export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteattachmentforanimal'
@@ -528,6 +530,22 @@ export const SECTION_INSIGHTS = 'zoos/section/details'
 
 export const GET_ALL_NOTES = 'v1/get-observation-by-type-id'
 
+export const ADD_NOTE_REACTION = 'v1/notes/add/reaction'
+
+export const REMOVE_NOTE_REACTION = 'v1/notes/remove/reaction'
+
+export const ADD_OBSERVATION_COMMENT = 'v1/observation/note/add'
+
+export const GET_OBSERVATION_DETAILS = 'v1/observation/details'
+
+export const CREATE_OBSERVATION = 'v1/observation2'
+
+export const DELETE_OBSERVATION = 'v1/observation/delete'
+
+export const EDIT_OBSERVATION = 'v1/observation2/edit'
+
+export const TRANSFER_AND_SECURITY_TEAM_LIST = `get-default-animal-movement-user-list-by-site-id`
+
 export const GET_ALL_SPECIES = 'v1/species/listing'
 
 export const GET_MORTALITY = 'animal/get-mortality-listing-type-wise'
@@ -577,6 +595,39 @@ export const ADD_INCHARGE = 'add-incharge'
 export const GET_USERS_LIST = 'get-userswith-access'
 
 export const GET_USERS_ROLE_LIST = 'role/list'
+
+// Site Team Management
+export const ADD_SITE_TEAM = 'zoos/site-team'
+
+export const EDIT_SITE_TEAM = 'zoos/edit-site-team'
+
+export const UPDATE_PERFORM_ACTION = 'zoos/update-perform-action'
+
+// Animal Transfer - Endpoints aligned with mobile implementation
+export const GET_ANIMAL_TRANSFER_LIST = 'v1/animal/get-transfer-list'
+
+// Animal Transfer Details APIs (from MoveAnimalService.js - used in ApprovalSummary.js)
+export const GET_ANIMAL_TRANSFER_SUMMARY = 'v1/animal/transfer/members'
+export const GET_ANIMAL_TRANSFER_BUTTON_STATUS = 'v1/animal/transfer/btn-status'
+export const GET_ANIMAL_TRANSFER_LOGS = 'antz/list-comments-logs'
+export const ADD_ANIMAL_TRANSFER_COMMENT = 'antz/transfer/addcomments'
+export const UPDATE_ANIMAL_TRANSFER_STATUS = 'antz/animal/update-transfer-status'
+
+// Hospital/Carcass Transfer APIs (from RTK Query transfer.js)
+export const GET_TRANSFER_SUMMARY = 'v1/get-transfer-summary'
+export const GET_TRANSFER_BUTTON_STATUS = 'v1/transfer'
+export const UPDATE_TRANSFER_STATUS = 'v1/transfer/update-btn-status'
+export const ADD_TRANSFER_COMMENT = 'v1/request/comment/create'
+export const GET_TRANSFER_ACTIVITY = 'v1/request'
+
+// Common Transfer APIs
+export const GET_TRANSFER_MEMBERS = 'v1/get-source-destination-wise-site-user-list-by-animal-movement-id'
+export const APPROVE_TRANSFER_REQUEST = 'antz/approve-transfer-request'
+export const REJECT_TRANSFER_REQUEST = 'animal/transfer/action'
+export const GET_ANIMAL_LIST_BY_SPECIES = 'v1/movement-animal-by-species'
+
+// Food Wastage APIs (matching mobile v1/site/food/wastage)
+export const GET_SITE_FOOD_WASTAGE = 'v1/site/food/wastage'
 
 // Compliance  module
 

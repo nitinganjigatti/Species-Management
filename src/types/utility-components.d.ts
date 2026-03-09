@@ -606,3 +606,14 @@ declare module 'src/components/drawers/FilterContent' {
   const FilterContent: FC<FilterContentProps>
   export default FilterContent
 }
+
+declare module 'geolocation' {
+  interface GeolocationModule {
+    getCurrentPosition: (
+      callback: (err: GeolocationPositionError | null, position: GeolocationPosition) => void
+    ) => void
+  }
+
+  const geolocation: GeolocationModule
+  export default geolocation
+}

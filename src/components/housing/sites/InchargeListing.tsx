@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { Box, Button, Typography,  useMediaQuery, useTheme } from '@mui/material'
+import { Box, Button, Typography, useMediaQuery, useTheme } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import styled from '@emotion/styled'
 import { useQuery } from '@tanstack/react-query'
@@ -30,14 +30,14 @@ const InchargeListing = () => {
     queryKey: ['incharge-list', id],
     queryFn: () =>
       getInchargeList({
-        ref_id: id,
+        ref_id: Number(id),
         ref_type: 'site'
       }),
     enabled: !!id
   })
 
   // Memoized incharge data for the table
-  const rows: Incharge[] = useMemo(() => data?.data?.incharges || [], [data])
+  const rows: Incharge[] = useMemo(() => (data?.data?.incharges || []) as unknown as Incharge[], [data])
   const total = useMemo(() => data?.data?.total_count || 0, [data])
   const userInList = useMemo(
     () => rows?.some((item: Incharge) => item?.user_id === loggedinUserId),
@@ -163,26 +163,27 @@ const InchargeListing = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', my: 4 }}>
         <ListingHeader title='Site Incharge List' totalCount={total} />
 
-        {userInList && addSiteAccess && (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              gap: 4,
-              flexWrap: 'wrap'
-            }}
-          >
-            <Button
-              variant='contained'
-              startIcon={<AddIcon />}
-              sx={{ py: 2, px: 3, borderRadius: '4px' }}
-              onClick={() => setOpenDrawer(true)}
+        {userInList ||
+          (addSiteAccess && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: 4,
+                flexWrap: 'wrap'
+              }}
             >
-              Choose Site Manager
-            </Button>
-          </Box>
-        )}
+              <Button
+                variant='contained'
+                startIcon={<AddIcon />}
+                sx={{ py: 2, px: 3, borderRadius: '4px' }}
+                onClick={() => setOpenDrawer(true)}
+              >
+                Choose Site Manager
+              </Button>
+            </Box>
+          ))}
       </Box>
       <Box sx={{ mt: 4 }}>
         <CommonTable
@@ -220,7 +221,7 @@ const StyledTypography = styled(Typography)<{ fontWeight?: number | string; font
   ({ theme, fontWeight, fontSize, color, sx }) => ({
     fontSize: fontSize || '1rem',
     fontWeight: fontWeight || 500,
-    color: color || theme.palette.customColors.OnSurfaceVariant,
+    color: color || (theme as any).palette?.customColors?.OnSurfaceVariant,
     ...(sx as any)
   })
 )

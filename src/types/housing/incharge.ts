@@ -87,6 +87,7 @@ export interface InchargeDrawerProps {
   title?: string;
   confirmLabel?: string;
   showFilter?: boolean;
+  onSubmit?: (selectedUsers: Incharge[]) => Promise<{ success?: boolean; message?: string }>;
 }
 
 export interface InchargeRoleFilterDrawerProps {

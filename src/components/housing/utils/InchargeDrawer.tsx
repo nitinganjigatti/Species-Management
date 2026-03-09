@@ -8,7 +8,7 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { debounce } from 'lodash'
 import { useInView } from 'react-intersection-observer'
 import { useInfiniteQuery } from '@tanstack/react-query'
-import {  addIncharge } from 'src/lib/api/housing'
+import { addIncharge } from 'src/lib/api/housing'
 import Toaster from 'src/components/Toaster'
 import { useRouter } from 'next/router'
 import NoDataFound from 'src/views/utility/NoDataFound'
@@ -26,7 +26,8 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
   selectedUsers = [],
   title = 'Select Site Manager',
   confirmLabel = 'Choose Site Manager',
-  showFilter = true
+  showFilter = true,
+  onSubmit
 }) => {
   const router = useRouter()
   const { id } = router.query
@@ -108,7 +109,7 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
   // Load more data when scrolling to bottom
   const loadMore = useCallback(() => {
     if (cooldownRef.current) return
-    
+
     if (!isFetchingNextPage && hasNextPage) {
       cooldownRef.current = true
       fetchNextPage().finally(() => {
@@ -157,7 +158,7 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
     })
   }
 
-  // Submit selected users 
+  // Submit selected users
   const handleConfirm = async () => {
     if (selectedIncharges.length > 10) {
       Toaster({ type: 'error', message: 'Maximum 10 users can be selected' })
@@ -171,13 +172,25 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
     }
     setSubmitLoader(true)
     try {
-      const res = await addIncharge(payload)
+      let res: { success?: boolean; message?: string }
+
+      // Use custom onSubmit if provided, otherwise use default addIncharge
+      if (onSubmit) {
+        res = await onSubmit(selectedIncharges)
+      } else {
+        const payload = {
+          site_id: Number(id),
+          user_ids: selectedIncharges.map(user => user.user_id)
+        }
+        res = await addIncharge(payload)
+      }
+
       if (res?.success) {
-        Toaster({ type: 'success', message: res?.message || 'Incharge added successfully' })
+        Toaster({ type: 'success', message: res?.message || 'Added successfully' })
         onSelect(selectedIncharges)
         closeDrawer()
       } else {
-        Toaster({ type: 'error', message: res?.message || 'Failed to add incharge' })
+        Toaster({ type: 'error', message: res?.message || 'Failed to add' })
       }
     } catch (error: any) {
       console.error(error?.message)
