@@ -516,6 +516,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
                   </Box>
                 </Box>
               ) : (
+                // !isDisabled && showPlus && <Icon icon={'mdi-plus'} fontSize={20} />
                 (!isDisabled || isPatientDischarged) && showPlus && <Icon icon={'mdi-plus'} fontSize={20} />
               )}
             </TimeSlot>
@@ -597,19 +598,19 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
   let dateNavGrid = 10
   let scheduleGrid = 2
 
-  if (isPatientDischarged && isAfterDischarge) {
-    dateNavGrid = 12
-    scheduleGrid = 0
-  } else if (isPatientDischarged && isDischargedToday && isToday) {
-    dateNavGrid = 12
-    scheduleGrid = 0
-  } else if ((isPatientDischarged && isToday)) {
-    dateNavGrid = 12
-    scheduleGrid = 0
-  } else if(!(monitoringData?.length > 0)) {
-    dateNavGrid = 10
-    scheduleGrid = 2
-  }
+  // if (isPatientDischarged && isAfterDischarge) {
+  //   dateNavGrid = 12
+  //   scheduleGrid = 0
+  // } else if (isPatientDischarged && isDischargedToday && isToday) {
+  //   dateNavGrid = 12
+  //   scheduleGrid = 0
+  // } else if ((isPatientDischarged && isToday)) {
+  //   dateNavGrid = 12
+  //   scheduleGrid = 0
+  // } else if(!(monitoringData?.length > 0)) {
+  //   dateNavGrid = 10
+  //   scheduleGrid = 2
+  // }
 
   return (
     <>
@@ -634,6 +635,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
             {monitoringLoading ? (
               <Skeleton variant='rectangular' height={48} sx={{ borderRadius: 1 }} animation='wave' />
             ) : !monitoringLoading && !isToday && !isAfterDischarge && (!isPatientDischarged || isDischargedToday) ? (
+              // !monitoringLoading && !isToday && !isAfterDischarge && (!isPatientDischarged || isDischargedToday) ? (
               <Button
                 sx={{
                   height: '48px',
@@ -649,10 +651,12 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
                 Today
               </Button>
             ) : (
-              !isPatientDischarged &&
+              // !isPatientDischarged &&
+              // isToday &&
+              // monitoringData?.length > 0 &&
+              // !isAfterDischarge && (
               isToday &&
-              monitoringData?.length > 0 &&
-              !isAfterDischarge && (
+              monitoringData?.length > 0 && (
                 <Button
                   sx={{ height: '48px', width: '100%', fontSize: '0.8rem' }}
                   variant='contained'
@@ -728,11 +732,14 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
                     >
                       Monitoring
                     </Typography>
-                    {!isPatientDischarged && (
+                    {/* !isPatientDischarged && (
                       <IconButton size='small' onClick={() => setAddParameterDrawerOpen(true)}>
                         <Icon icon={'icons8:plus'} fontSize={30} color={theme.palette.primary.main} />
                       </IconButton>
-                    )}
+                    ) */}
+                    <IconButton size='small' onClick={() => setAddParameterDrawerOpen(true)}>
+                      <Icon icon={'icons8:plus'} fontSize={30} color={theme.palette.primary.main} />
+                    </IconButton>
                   </HeaderContainer>
 
                   {displayMetrics?.map(metric => (
@@ -756,7 +763,23 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
                         </Box>
                       </Box>
 
-                      {metric?.canEdit && !isPatientDischarged && (
+                      {/* metric?.canEdit && !isPatientDischarged && (
+                        <IconButton
+                          size='small'
+                          onClick={() => {
+                            const hasEntries = metric?.timeSlots?.some(slot => slot.record)
+                            setParamData({
+                              ...metric,
+                              hasEntries
+                            })
+                            setOpenDeleteDialog(true)
+                          }}
+                          sx={{ color: theme.palette.customColors.OnPrimaryContainer, ml: 1 }}
+                        >
+                          <Icon icon={'mdi-close'} fontSize={20} />
+                        </IconButton>
+                      ) */}
+                      {metric?.canEdit && (
                         <IconButton
                           size='small'
                           onClick={() => {

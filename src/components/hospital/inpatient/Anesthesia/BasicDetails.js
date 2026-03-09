@@ -73,16 +73,33 @@ export default function BasicDetails({
   const data = watch()
   const anaesthesiaDateTimeValue = watch('basicDetails.anaesthesia_datetime')
 
+  const isDefaultDateSetRef = useRef(false)
+
   useEffect(() => {
-    if (!anaesthesiaDateTimeValue) {
+    // For new records, await patientData to set proper fallback
+    if (!anaesthesia_id && patientData && !isDefaultDateSetRef.current) {
+      const defaultDateTime = patientData?.discharge_at
+        ? dayjs.utc(patientData.discharge_at).local().format('YYYY-MM-DD HH:mm:ss')
+        : dayjs().format('YYYY-MM-DD HH:mm:ss')
+      setValue('basicDetails.anaesthesia_datetime', defaultDateTime, {
+        shouldValidate: true
+      })
+      isDefaultDateSetRef.current = true
+    } else if (!anaesthesiaDateTimeValue && !isDefaultDateSetRef.current && !anaesthesia_id) {
+      // Temporary fallback while patientData loads
       setValue('basicDetails.anaesthesia_datetime', dayjs().format('YYYY-MM-DD HH:mm:ss'), {
         shouldValidate: true
       })
+    } else if (!anaesthesiaDateTimeValue && anaesthesia_id) {
+       setValue('basicDetails.anaesthesia_datetime', dayjs().format('YYYY-MM-DD HH:mm:ss'), {
+        shouldValidate: true
+      })
     }
-    if (!anaesthesia_id) {
-      setValue('basicDetails.location', selectedHospital?.name)
+
+    if (!anaesthesia_id && selectedHospital?.name && !watch('basicDetails.location')) {
+      setValue('basicDetails.location', selectedHospital.name)
     }
-  }, [anaesthesiaDateTimeValue, setValue])
+  }, [anaesthesiaDateTimeValue, setValue, patientData, anaesthesia_id, selectedHospital])
 
   const commonTextFieldSx = {
     '& .MuiOutlinedInput-root': {
@@ -284,7 +301,7 @@ export default function BasicDetails({
                     onChange={handleDateChange}
                     format='DD MMM YYYY · hh:mm A'
                     minDateTime={dayjs.utc(patientData?.admitted_at).local()}
-                    maxDateTime={dayjs()}
+                    maxDateTime={patientData?.discharge_at ? dayjs(patientData.discharge_at) : dayjs()}
                     slotProps={{
                       textField: {
                         fullWidth: true,

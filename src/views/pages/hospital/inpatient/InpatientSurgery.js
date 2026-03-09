@@ -673,7 +673,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
           </Box>
 
           {loading ||
-            (!patientDischarged && !shouldShowEmptyState && (
+            (/* !patientDischarged && */ !shouldShowEmptyState && (
               <Button
                 onClick={handleAddSurgeryRecord}
                 variant='contained'
@@ -709,7 +709,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                   <NoMedicalData
                     btnText={'ADD NEW SURGERY RECORD'}
                     text={'All Added Surgery Records Will Appear here'}
-                    isDischarged={patientDischarged}
+                    // isDischarged={patientDischarged}
                     btnAction={handleAddSurgeryRecord}
                   />
                 </Box>
@@ -745,7 +745,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                 )}
               </Box>
               <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                {!patientDischarged && (
+                {/* !patientDischarged && (
                   <Box
                     component='img'
                     src='/icons/pencil_outlined.svg'
@@ -762,8 +762,24 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                       router.push({ pathname: '/hospital/inpatient/AddSurgeryRecord', query })
                     }}
                   />
-                )}
-                {!patientDischarged && (
+                ) */}
+                <Box
+                  component='img'
+                  src='/icons/pencil_outlined.svg'
+                  alt='Edit'
+                  sx={{ width: 24, height: 24, cursor: 'pointer' }}
+                  onClick={() => {
+                    if (!activeSurgeryRecordId) return
+
+                    const query = {}
+                    if (resolvedHospitalCaseId) query.hospital_case_id = resolvedHospitalCaseId
+                    if (medicalRecordId) query.medical_record_id = medicalRecordId
+                    query.id = activeSurgeryRecordId
+
+                    router.push({ pathname: '/hospital/inpatient/AddSurgeryRecord', query })
+                  }}
+                />
+                {/* !patientDischarged && (
                   <Box
                     component='img'
                     src='/icons/delete_outlined.svg'
@@ -776,7 +792,19 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                     }}
                     onClick={deleteDisabled ? undefined : handleDeleteClick}
                   />
-                )}
+                ) */}
+                <Box
+                  component='img'
+                  src='/icons/delete_outlined.svg'
+                  alt='Delete'
+                  sx={{
+                    width: 24,
+                    height: 24,
+                    cursor: deleteDisabled ? 'not-allowed' : 'pointer',
+                    opacity: deleteDisabled ? 0.4 : 1
+                  }}
+                  onClick={deleteDisabled ? undefined : handleDeleteClick}
+                />
               </Box>
             </Box>
 

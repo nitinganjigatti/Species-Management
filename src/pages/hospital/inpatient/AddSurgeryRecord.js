@@ -842,7 +842,27 @@ const AddSurgeryRecord = () => {
 
   const animalInfoData = useMemo(() => buildAnimalInfoData(patientData), [patientData])
   const minDate = useMemo(() => (admissionDateTime ? admissionDateTime.startOf('day') : null), [admissionDateTime])
-  const maxDate = dayjs()
+  const maxDate = useMemo(
+    () => (patientData?.discharge_at ? dayjs.utc(patientData.discharge_at).local() : dayjs()),
+    [patientData?.discharge_at]
+  )
+
+  const isDefaultDateSetRef = useRef(false)
+
+  useEffect(() => {
+    if (!isEditMode && patientData && !isDefaultDateSetRef.current) {
+      if (patientData.discharge_at) {
+        const dischargeDt = dayjs.utc(patientData.discharge_at).local()
+        setValue('date', dischargeDt, { shouldValidate: true })
+        // Start time should be 1 hour before discharge time
+        // End time should be exact discharge time
+        setValue('startTime', dischargeDt.subtract(1, 'hour'), { shouldValidate: true })
+        setValue('endTime', dischargeDt, { shouldValidate: true })
+      }
+      isDefaultDateSetRef.current = true
+    }
+  }, [patientData, isEditMode, setValue])
+
 
   useEffect(() => {
     if (!selectedDate || !startTimeValue || !endTimeValue) {

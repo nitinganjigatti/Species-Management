@@ -803,7 +803,16 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
             </Box>
           </Box>
 
-          {!patientDischarged && anesthesiaRecords.length > 0 && (
+          {/* !patientDischarged && anesthesiaRecords.length > 0 && (
+            <Button
+              onClick={() => router.push(`/hospital/inpatient/${patientData?.hospital_case_id}/AddAnesthesiaRecord/`)}
+              variant='contained'
+              sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
+            >
+              Add Anesthesia
+            </Button>
+          ) */}
+          {anesthesiaRecords.length > 0 && (
             <Button
               onClick={() => router.push(`/hospital/inpatient/${patientData?.hospital_case_id}/AddAnesthesiaRecord/`)}
               variant='contained'
@@ -825,7 +834,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
             <NoMedicalData
               btnText={'ADD ANESTHESIA'}
               text={'All Added Anesthesia Will Appear here'}
-              isDischarged={isDischared}
+              // isDischarged={isDischared}
               btnAction={() => router.push(`/hospital/inpatient/${hospitalCaseId}/AddAnesthesiaRecord`)}
             />
           </Box>
@@ -875,7 +884,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                 </Box>
 
                 <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  {!patientDischarged && (
+                  {/* !patientDischarged && (
                     <>
                       <Box
                         component='img'
@@ -898,7 +907,29 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                         onClick={handleDeleteClick}
                       />
                     </>
-                  )}
+                  ) */}
+                  <>
+                    <Box
+                      component='img'
+                      src='/icons/pencil_outlined.svg'
+                      alt='Edit'
+                      sx={{ width: 24, height: 24, cursor: 'pointer' }}
+                      onClick={() => handleEditClick(anesthesiaDetail)}
+                    />
+
+                    <Box
+                      component='img'
+                      src='/icons/delete_outlined.svg'
+                      alt='Delete'
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        cursor: activeRecordAnesthesiaId ? 'pointer' : 'not-allowed',
+                        opacity: activeRecordAnesthesiaId ? 1 : 0.4
+                      }}
+                      onClick={handleDeleteClick}
+                    />
+                  </>
                 </Box>
               </Box>
             </Box>
