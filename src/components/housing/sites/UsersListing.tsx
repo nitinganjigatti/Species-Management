@@ -1,5 +1,5 @@
 import React, { useState, useMemo ,useEffect} from 'react'
-import { Box, Typography, useTheme, useMediaQuery } from '@mui/material'
+import { Box, Typography, useTheme, useMediaQuery, Theme } from '@mui/material'
 import styled from '@emotion/styled'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
@@ -7,12 +7,16 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
 import { getUsersList } from 'src/lib/api/housing'
-import { UserWithAccess } from 'src/types/housing/incharge'
+import type { UserWithAccessItem } from 'src/types/housing'
 import { GridColDef } from '@mui/x-data-grid'
 import Search from 'src/views/utility/Search'
 import { debounce } from 'lodash'
 
-const UsersListing = () => {
+interface UsersListingProps {
+  refType?: 'site' | 'section' | 'enclosure' | 'animal'
+}
+
+const UsersListing: React.FC<UsersListingProps> = ({ refType = 'site' }) => {
   const router = useRouter()
   const { id } = router.query
   const theme = useTheme()
@@ -29,15 +33,15 @@ const UsersListing = () => {
 
   // Fetch users list
   const { data, isFetching } = useQuery({
-    queryKey: ['users-list', id, filters.page_no, filters.search],
+    queryKey: ['users-list', id, refType, filters.page_no, filters.search],
     queryFn: () =>
-      getUsersList({type: 'site',id,page_no: filters.page_no,search: filters.search}),
+      getUsersList({type: refType, id, page_no: filters.page_no, search: filters.search}),
     enabled: !!id,
     placeholderData: keepPreviousData
   })
 
   // user data for the table
-  const rows: UserWithAccess[] = data?.data?.result || []
+  const rows: UserWithAccessItem[] = data?.data?.result || []
   const total = data?.data?.total_count || 0
 
   // Debounced search
@@ -238,7 +242,7 @@ const StyledTypography = styled(Typography)<{ fontWeight?: number | string; font
   ({ theme, fontWeight, fontSize, color, sx }) => ({
     fontSize: fontSize || '1rem',
     fontWeight: fontWeight || 500,
-    color: color || theme.palette.customColors.OnSurfaceVariant,
+    color: color || (theme as Theme).palette.customColors?.OnSurfaceVariant,
     ...(sx as any)
   })
 )

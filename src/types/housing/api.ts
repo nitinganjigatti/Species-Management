@@ -591,3 +591,38 @@ export interface GetUsersListParams {
 }
 
 export interface GetUsersListResponse extends ApiResponse<User[]> {}
+
+// ==================== Users with Access API (get-userswith-access) ====================
+
+export interface UserWithAccessItem {
+  user_id: string | number
+  user_name?: string
+  full_name?: string
+  user_first_name?: string
+  user_last_name?: string
+  user_profile_pic?: string
+  profile_pic?: string
+  mobile_number?: string
+  user_mobile_number?: string
+  role_name?: string
+  can_perform_action?: number | boolean
+  account_status?: string
+  string_id?: string
+}
+
+export interface GetUsersWithAccessParams {
+  id: string | string[] | undefined
+  type: 'site' | 'section' | 'enclosure' | 'animal'
+  page_no?: number
+  search?: string
+  limit?: number
+}
+
+export interface GetUsersWithAccessResponse {
+  success?: boolean
+  message?: string
+  data?: {
+    result?: UserWithAccessItem[]
+    total_count?: number
+  }
+}

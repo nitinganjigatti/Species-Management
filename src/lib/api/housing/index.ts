@@ -83,7 +83,11 @@ import {
   REJECT_TRANSFER_REQUEST,
   GET_ANIMAL_LIST_BY_SPECIES,
   GET_SITE_FOOD_WASTAGE,
-  USER_LIST
+  GET_SECTION_FOOD_WASTAGE,
+  GET_ENCLOSURE_FOOD_WASTAGE,
+  GET_FOOD_WASTAGE_DETAILS,
+  USER_LIST,
+  GET_USERS_LIST
 } from 'src/constants/ApiConstant'
 import type {
   GetSitesParams,
@@ -668,6 +672,7 @@ export interface AddInchargePayload {
   site_id?: number
   section_id?: number
   enclosure_id?: number
+  cluster_id?: number
   user_ids: number[]
 }
 
@@ -1302,6 +1307,10 @@ export interface FoodWastageListItem {
   file_name?: string
   total_wastage?: string | number
   unit?: string
+  // Enclosure-level fields (daily entries)
+  wastage_date?: string
+  total_entry?: string | number
+  entries?: FoodWastageGraphEntry[]
 }
 
 export interface FoodWastageHighestWastage {
@@ -1338,7 +1347,9 @@ export interface FoodWastageData {
 }
 
 export interface GetFoodWastageParams {
-  site_id: string | number
+  site_id?: string | number
+  section_id?: string | number
+  enclosure_id?: string | number
   from_date: string
   to_date: string
   limit?: number
@@ -1355,6 +1366,96 @@ export interface GetFoodWastageResponse {
 
 export async function getSiteFoodWastage(params: GetFoodWastageParams): Promise<GetFoodWastageResponse> {
   const response = await axiosGet({ url: `${GET_SITE_FOOD_WASTAGE}`, params })
+
+  return response?.data
+}
+
+export async function getSectionFoodWastage(params: GetFoodWastageParams): Promise<GetFoodWastageResponse> {
+  const response = await axiosGet({ url: `${GET_SECTION_FOOD_WASTAGE}`, params })
+
+  return response?.data
+}
+
+export async function getEnclosureFoodWastage(params: GetFoodWastageParams): Promise<GetFoodWastageResponse> {
+  // Mobile uses v1/food/wastage with type=enclosure and type_id=<enclosure_id>
+  const enclosureParams = {
+    type: 'enclosure',
+    type_id: params.enclosure_id,
+    from_date: params.from_date,
+    to_date: params.to_date,
+    limit: params.limit,
+    filter: params.filter,
+    is_graph: params.is_graph,
+    page_no: params.page_no
+  }
+  const response = await axiosGet({ url: `${GET_ENCLOSURE_FOOD_WASTAGE}`, params: enclosureParams })
+
+  return response?.data
+}
+
+// Unified function that calls the correct endpoint based on refType
+export async function getFoodWastage(
+  refType: 'site' | 'section' | 'enclosure',
+  params: GetFoodWastageParams
+): Promise<GetFoodWastageResponse> {
+  if (refType === 'section') {
+    return getSectionFoodWastage(params)
+  }
+  if (refType === 'enclosure') {
+    return getEnclosureFoodWastage(params)
+  }
+  return getSiteFoodWastage(params)
+}
+
+// ==================== Food Wastage Details API ====================
+// For getting individual wastage entries for a specific date
+
+export interface FoodWastageDetailItem {
+  id?: number
+  wastage_quantity?: string | number
+  original_wastage_quantity?: string | number
+  unit?: string
+  unit_id?: number
+  wastage_date?: string
+  notes?: string
+  user_id?: number
+  user_full_name?: string
+  user_profile_pic?: string
+}
+
+export interface FoodWastageDetailsData {
+  list?: FoodWastageDetailItem[]
+  total_count?: number
+  total_wastage?: string | number
+  unit?: string
+}
+
+export interface GetFoodWastageDetailsParams {
+  enclosure_id: string | number
+  date: string
+  page_no?: number
+  limit?: number
+}
+
+export interface GetFoodWastageDetailsResponse {
+  success?: boolean
+  message?: string
+  data?: FoodWastageDetailsData
+}
+
+export async function getFoodWastageDetails(params: GetFoodWastageDetailsParams): Promise<GetFoodWastageDetailsResponse> {
+  const response = await axiosGet({ url: `${GET_FOOD_WASTAGE_DETAILS}`, params })
+
+  return response?.data
+}
+
+// ==================== Users with Access API ====================
+// Matches mobile implementation: get-userswith-access endpoint
+
+import type { GetUsersWithAccessParams, GetUsersWithAccessResponse } from 'src/types/housing'
+
+export async function getUsersList(params: GetUsersWithAccessParams): Promise<GetUsersWithAccessResponse> {
+  const response = await axiosGet({ url: `${GET_USERS_LIST}`, params })
 
   return response?.data
 }

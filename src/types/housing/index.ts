@@ -244,7 +244,12 @@ export type {
 
   // User
   GetUsersListParams,
-  GetUsersListResponse
+  GetUsersListResponse,
+
+  // Users with Access (get-userswith-access)
+  UserWithAccessItem,
+  GetUsersWithAccessParams,
+  GetUsersWithAccessResponse
 } from './api'
 
 // ==================== State Types ====================

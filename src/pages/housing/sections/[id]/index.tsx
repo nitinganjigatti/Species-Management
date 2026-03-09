@@ -5,6 +5,10 @@ import InsightsCard from 'src/views/utility/insights/InsightsCard'
 
 // Listing Components
 import SpeciesListing from 'src/components/housing/sections/SpeciesListing'
+import NotesListing from 'src/components/housing/sites/NotesListing'
+import UsersListing from 'src/components/housing/sites/UsersListing'
+import InchargeListing from 'src/components/housing/sites/InchargeListing'
+import FoodWastageListing from 'src/components/housing/sites/FoodWastageListing'
 
 import { useQuery } from '@tanstack/react-query'
 import { getSectionAnalytics } from 'src/lib/api/housing'
@@ -46,14 +50,14 @@ interface StatItem {
 
 const tabConfig: TabConfigItem[] = [
   { label: 'Enclosures', value: 'enclosures', component: EnclosureListing },
-  { label: 'Species', value: 'species', component: SpeciesListing }, // TODO: Update component as it is copied from site detail
-  { label: 'Media', value: 'media', component: MediaListing }, // TODO: Update component as it is copied from site detail
-  { label: 'Mortality', value: 'mortality', component: MortalityListing }, // TODO: Update component as it is copied from site detail
-  {
-    label: 'Animals Under Treatment',
-    value: 'animalTreatment',
-    component: AnimalTreatmentListing
-  } // TODO: Update component as it is copied from site detail
+  { label: 'Species', value: 'species', component: SpeciesListing },
+  { label: 'Media', value: 'media', component: MediaListing },
+  { label: 'Mortality', value: 'mortality', component: MortalityListing },
+  { label: 'Animals Under Treatment', value: 'animalTreatment', component: AnimalTreatmentListing },
+  { label: 'Users', value: 'users', component: UsersListing },
+  { label: 'Notes', value: 'notes', component: NotesListing },
+  { label: 'Food Wastage', value: 'foodWastage', component: FoodWastageListing },
+  { label: 'Incharges', value: 'incharges', component: InchargeListing }
 ]
 
 const SectionDetails: React.FC = () => {
@@ -250,6 +254,9 @@ const SectionDetails: React.FC = () => {
               drawerData={drawerData}
               setDrawerData={setDrawerData}
               refetchEnclosure={refetchEnclosure}
+              refType="section"
+              entityName={(data?.data as any)?.section_name}
+              entityImage={(data?.data as any)?.images?.[0]?.file}
             />
           </Box>
         </Card>

@@ -27,7 +27,8 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
   title = 'Select Site Manager',
   confirmLabel = 'Choose Site Manager',
   showFilter = true,
-  onSubmit
+  onSubmit,
+  refType = 'site'
 }) => {
   const router = useRouter()
   const { id } = router.query
@@ -57,9 +58,27 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
     }
   }, [debouncedSearch])
 
+  // Get the correct type and ID field based on refType
+  const getApiTypeAndIdField = () => {
+    switch (refType) {
+      case 'site':
+        return { type: 'site_incharge', idField: 'site_id' }
+      case 'section':
+        return { type: 'section_incharge', idField: 'section_id' }
+      case 'enclosure':
+        return { type: 'enclosure', idField: 'enclosure_id' }
+      case 'cluster':
+        return { type: 'cluster_incharge', idField: 'cluster_id' }
+      default:
+        return { type: 'site_incharge', idField: 'site_id' }
+    }
+  }
+
+  const { type: apiType, idField } = getApiTypeAndIdField()
+
   // Infinite query to fetch user list with search and filters
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } = useInfiniteQuery({
-    queryKey: ['user-list-incharge-drawer', searchQuery, id, selectedFilterOptions],
+    queryKey: ['user-list-incharge-drawer', searchQuery, id, selectedFilterOptions, refType],
     initialPageParam: 1,
     enabled: !!openDrawer,
     queryFn: async ({ pageParam = 1 }) => {
@@ -68,10 +87,10 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
         page_no: pageParam,
         q: searchQuery,
         isActive: true,
-        type: 'site_incharge',
+        type: apiType,
         length: 10,
         ...(selectedFilterOptions.Role && { role_id: selectedFilterOptions.Role }),
-        site_id: id
+        [idField]: id
       }
       const res = await getUserList(params)
       const incharges = (res?.data as User[]) || []
@@ -165,11 +184,6 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
       return
     }
 
-    const payload = {
-      ref_id: id,
-      ref_type: 'site',
-      user_id: selectedIncharges.map(user => user.user_id).join(',')
-    }
     setSubmitLoader(true)
     try {
       let res: { success?: boolean; message?: string }
@@ -178,11 +192,23 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
       if (onSubmit) {
         res = await onSubmit(selectedIncharges)
       } else {
-        const payload = {
-          site_id: Number(id),
-          user_ids: selectedIncharges.map(user => user.user_id)
+        // Build payload based on refType
+        const getPayload = () => {
+          const userIds = selectedIncharges.map(user => user.user_id)
+          switch (refType) {
+            case 'site':
+              return { site_id: Number(id), user_ids: userIds }
+            case 'section':
+              return { section_id: Number(id), user_ids: userIds }
+            case 'enclosure':
+              return { enclosure_id: Number(id), user_ids: userIds }
+            case 'cluster':
+              return { cluster_id: Number(id), user_ids: userIds }
+            default:
+              return { site_id: Number(id), user_ids: userIds }
+          }
         }
-        res = await addIncharge(payload)
+        res = await addIncharge(getPayload())
       }
 
       if (res?.success) {

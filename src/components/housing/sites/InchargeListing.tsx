@@ -13,25 +13,56 @@ import { useAuth } from 'src/hooks/useAuth'
 import { Incharge, InchargeFilters } from 'src/types/housing/incharge'
 import { GridColDef } from '@mui/x-data-grid'
 
-const InchargeListing = () => {
+interface InchargeListingProps {
+  refType?: 'site' | 'section' | 'enclosure' | 'cluster'
+}
+
+const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) => {
   const router = useRouter()
   const { id } = router.query
   const theme = useTheme()
   const authData: any = useAuth()
   const addSiteAccess = authData?.userData?.permission?.user_settings?.add_sites
+  const addSectionAccess = authData?.userData?.roles?.settings?.housing_add_section
+  const addEnclosureAccess = authData?.userData?.roles?.settings?.housing_add_enclosure
+  const addClusterAccess = authData?.userData?.roles?.settings?.manage_cluster_permission
   const loggedinUserId = authData?.userData?.user?.user_id
 
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
+
+  // Determine access based on refType
+  const getAddAccess = () => {
+    switch (refType) {
+      case 'site': return addSiteAccess
+      case 'section': return addSectionAccess
+      case 'enclosure': return addEnclosureAccess
+      case 'cluster': return addClusterAccess
+      default: return false
+    }
+  }
+  const hasAddAccess = getAddAccess()
+
+  // Get label based on refType
+  const getEntityLabel = () => {
+    switch (refType) {
+      case 'site': return 'Site'
+      case 'section': return 'Section'
+      case 'enclosure': return 'Enclosure'
+      case 'cluster': return 'Cluster'
+      default: return 'Site'
+    }
+  }
+  const entityLabel = getEntityLabel()
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
 
   // Fetch incharge list
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['incharge-list', id],
+    queryKey: ['incharge-list', id, refType],
     queryFn: () =>
       getInchargeList({
         ref_id: Number(id),
-        ref_type: 'site'
+        ref_type: refType
       }),
     enabled: !!id
   })
@@ -161,10 +192,10 @@ const InchargeListing = () => {
   return (
     <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', my: 4 }}>
-        <ListingHeader title='Site Incharge List' totalCount={total} />
+        <ListingHeader title={`${entityLabel} Incharge List`} totalCount={total} />
 
         {userInList ||
-          (addSiteAccess && (
+          (hasAddAccess && (
             <Box
               sx={{
                 display: 'flex',
@@ -180,7 +211,7 @@ const InchargeListing = () => {
                 sx={{ py: 2, px: 3, borderRadius: '4px' }}
                 onClick={() => setOpenDrawer(true)}
               >
-                Choose Site Manager
+                {`Choose ${entityLabel} Manager`}
               </Button>
             </Box>
           ))}
@@ -201,9 +232,10 @@ const InchargeListing = () => {
           openDrawer={openDrawer}
           closeDrawer={() => setOpenDrawer(false)}
           selectedUsers={rows}
-          title='Select Site Manager'
-          confirmLabel='Choose Site Manager'
+          title={`Select ${entityLabel} Manager`}
+          confirmLabel={`Choose ${entityLabel} Manager`}
           showFilter={true}
+          refType={refType}
           onSelect={(selectedUsers: Incharge[]) => {
             if (selectedUsers && selectedUsers.length > 0) {
               refetch()

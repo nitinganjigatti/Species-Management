@@ -5,6 +5,7 @@ import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
 import ClusterSites from 'src/components/housing/clusters/ClusterSites'
 import ClusterSpecies from 'src/components/housing/clusters/ClusterSpecies'
+import InchargeListing from 'src/components/housing/sites/InchargeListing'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { useAuth } from 'src/hooks/useAuth'
@@ -35,9 +36,8 @@ interface StatItem {
 
 const tabConfig: TabConfigItem[] = [
   { label: 'Sites', value: 'sites', component: ClusterSites },
-  { label: 'Species', value: 'species', component: ClusterSpecies }
-
-  //  { label: 'Incharges', value: 'Incharges', component: ClusterIncharges }
+  { label: 'Species', value: 'species', component: ClusterSpecies },
+  { label: 'Incharges', value: 'incharges', component: InchargeListing }
 ]
 
 const ClusterDetails: React.FC = () => {
@@ -218,6 +218,7 @@ const ClusterDetails: React.FC = () => {
               setDrawerType={setDrawerType}
               drawerData={drawerData}
               setDrawerData={setDrawerData}
+              refType="cluster"
             />
           </Box>
         </Card>

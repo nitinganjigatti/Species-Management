@@ -10,13 +10,14 @@ import {
 } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
-import { getSiteFoodWastage, FoodWastageData, FoodWastageListItem, FoodWastageGraphItem } from 'src/lib/api/housing'
+import { getFoodWastage, FoodWastageData, FoodWastageListItem, FoodWastageGraphItem } from 'src/lib/api/housing'
 import Icon from 'src/@core/components/icon'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { GridCellParams } from '@mui/x-data-grid'
 import { format, parse } from 'date-fns'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
+import FoodWastageDetailsDrawer from './FoodWastageDetailsDrawer'
 
 interface IndexedFoodWastageItem extends FoodWastageListItem {
   id: number | string
@@ -26,12 +27,21 @@ interface IndexedFoodWastageItem extends FoodWastageListItem {
 interface FoodWastageListingProps {
   selectedTab?: string
   setSelectedTab?: (tab: string) => void
+  refType?: 'site' | 'section' | 'enclosure'
 }
 
-const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
+// State for details drawer
+interface DetailsDrawerState {
+  open: boolean
+  wastageDate: string
+  totalWastage: string | number
+  unit: string
+}
+
+const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site' }) => {
   const theme = useTheme() as Theme
   const router = useRouter()
-  const { id: siteId } = router.query
+  const { id } = router.query
 
   const [loading, setLoading] = useState<boolean>(false)
   const [foodWastageData, setFoodWastageData] = useState<FoodWastageData>({})
@@ -53,6 +63,14 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
     endDate: null
   })
 
+  // Details drawer state (for enclosure level)
+  const [detailsDrawer, setDetailsDrawer] = useState<DetailsDrawerState>({
+    open: false,
+    wastageDate: '',
+    totalWastage: 0,
+    unit: 'Kg'
+  })
+
   // Handle date range change from CommonDateRangePickers
   const handleDateRangeChange = (startDate: Date | string, endDate: Date | string): void => {
     if (startDate && endDate) {
@@ -67,7 +85,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
   }
 
   const fetchFoodWastageData = useCallback(async (): Promise<void> => {
-    if (!siteId) return
+    if (!id) return
 
     setLoading(true)
     try {
@@ -75,17 +93,27 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
       const fromDate = filterDates.startDate ? format(filterDates.startDate, 'yyyy-MM-dd') : ''
       const toDate = filterDates.endDate ? format(filterDates.endDate, 'yyyy-MM-dd') : ''
 
+      // Build params based on refType
+      const getIdParam = () => {
+        switch (refType) {
+          case 'site': return { site_id: id as string }
+          case 'section': return { section_id: id as string }
+          case 'enclosure': return { enclosure_id: id as string }
+          default: return { site_id: id as string }
+        }
+      }
+
       const params = {
-        site_id: siteId as string,
+        ...getIdParam(),
         from_date: fromDate,
         to_date: toDate,
         limit: viewMode === 'List' ? pageSize : 50,
         filter: sortOrder,
-        is_graph: viewMode === 'List' ? 0 : 1,
+        is_graph: (viewMode === 'List' ? 0 : 1) as 0 | 1,
         page_no: page
-      } as const
+      }
 
-      const response = await getSiteFoodWastage(params)
+      const response = await getFoodWastage(refType, params)
 
       if (response?.success) {
         setFoodWastageData(response?.data || {})
@@ -106,7 +134,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
     } finally {
       setLoading(false)
     }
-  }, [siteId, filterDates, viewMode, sortOrder, page, pageSize])
+  }, [id, refType, filterDates, viewMode, sortOrder, page, pageSize])
 
   useEffect(() => {
     fetchFoodWastageData()
@@ -130,18 +158,48 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
   }
 
   const handleRowClick = (params: { row: IndexedFoodWastageItem }): void => {
-    // Navigate to section details with food wastage tab
-    const sectionId = params.row.section_id
-    if (sectionId) {
-      router.push(`/housing/section/${sectionId}?tab=foodWastage`)
+    if (refType === 'site') {
+      // Navigate to section details with food wastage tab
+      const sectionId = params.row.section_id
+      if (sectionId) {
+        router.push(`/housing/sections/${sectionId}?tab=foodWastage`)
+      }
+    } else if (refType === 'enclosure') {
+      // Open details drawer for enclosure
+      const row = params.row
+      if (row.wastage_date) {
+        setDetailsDrawer({
+          open: true,
+          wastageDate: row.wastage_date,
+          totalWastage: row.total_wastage || 0,
+          unit: row.unit || 'Kg'
+        })
+      }
     }
+    // For section view, enclosure navigation can be added if needed
   }
 
-  const indexedRows: IndexedFoodWastageItem[] = foodWastageList.map((row, index) => ({
-    ...row,
-    id: row.section_id || index,
-    sl_no: (page - 1) * pageSize + index + 1
-  }))
+  const handleCloseDetailsDrawer = (): void => {
+    setDetailsDrawer(prev => ({ ...prev, open: false }))
+  }
+
+  const indexedRows: IndexedFoodWastageItem[] = foodWastageList.map((row, index) => {
+    let rowId: number | string = index
+    if (refType === 'site') {
+      rowId = row.section_id || index
+    } else if (refType === 'section') {
+      rowId = row.enclosure_id || index
+    } else if (refType === 'enclosure') {
+      // For enclosure, use wastage_date as unique identifier
+      rowId = row.wastage_date || index
+    }
+
+    return {
+      ...row,
+      id: rowId,
+      sl_no: (page - 1) * pageSize + index + 1
+    }
+  })
 
   // Process graph data for chart
   const chartData = useMemo(() => {
@@ -270,7 +328,20 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
     [chartData, yAxisMax, theme, foodWastageData?.unit]
   )
 
-  const columns = [
+  // Dynamic labels based on refType
+  // Site shows Sections, Section shows Enclosures, Enclosure shows daily entries
+  const getEntityLabels = () => {
+    switch (refType) {
+      case 'site': return { singular: 'Section', plural: 'Sections' }
+      case 'section': return { singular: 'Enclosure', plural: 'Enclosures' }
+      case 'enclosure': return { singular: 'Date', plural: 'Daily Entries' }
+      default: return { singular: 'Section', plural: 'Sections' }
+    }
+  }
+  const { singular: entityLabel, plural: entityLabelPlural } = getEntityLabels()
+
+  // Columns for site and section (showing sub-entities)
+  const entityColumns = [
     {
       minWidth: 20,
       width: 80,
@@ -295,13 +366,14 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
     {
       minWidth: 200,
       flex: 1,
-      field: 'section_name',
-      headerName: 'Section',
+      field: refType === 'site' ? 'section_name' : 'user_enclosure_name',
+      headerName: entityLabel,
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
       renderCell: (params: GridCellParams) => {
         const row = params.row as IndexedFoodWastageItem
+        const name = refType === 'site' ? row.section_name : row.user_enclosure_name
 
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -309,7 +381,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
               <Box
                 component='img'
                 src={row.file_name}
-                alt={row.section_name}
+                alt={name}
                 sx={{
                   width: 44,
                   height: 44,
@@ -329,7 +401,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
                   justifyContent: 'center'
                 }}
               >
-                <Icon icon='mdi:folder-outline' fontSize={24} color={theme.palette.grey[500]} />
+                <Icon icon={refType === 'site' ? 'mdi:folder-outline' : 'mdi:home-outline'} fontSize={24} color={theme.palette.grey[500]} />
               </Box>
             )}
             <Typography
@@ -339,7 +411,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
                 fontWeight: 600
               }}
             >
-              {row.section_name || '-'}
+              {name || '-'}
             </Typography>
           </Box>
         )
@@ -382,6 +454,145 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
       }
     }
   ]
+
+  // Columns for enclosure (showing daily entries)
+  const enclosureColumns = [
+    {
+      minWidth: 20,
+      width: 80,
+      field: 'sl_no',
+      headerName: 'SL.NO',
+      align: 'left' as const,
+      headerAlign: 'left' as const,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.onPrimaryContainer,
+            fontSize: '14px',
+            fontWeight: 500,
+            pl: 2
+          }}
+        >
+          {(params.row as IndexedFoodWastageItem).sl_no}.
+        </Typography>
+      )
+    },
+    {
+      minWidth: 200,
+      flex: 1,
+      field: 'wastage_date',
+      headerName: 'Date',
+      align: 'left' as const,
+      headerAlign: 'left' as const,
+      sortable: false,
+      renderCell: (params: GridCellParams) => {
+        const row = params.row as IndexedFoodWastageItem
+        let formattedDate = row.wastage_date || '-'
+        try {
+          if (row.wastage_date) {
+            const date = parse(row.wastage_date, 'yyyy-MM-dd', new Date())
+            formattedDate = format(date, 'dd MMM yyyy')
+          }
+        } catch {
+          // Keep original date string
+        }
+
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: '8px',
+                backgroundColor: theme.palette.grey[100],
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Icon icon='mdi:calendar' fontSize={24} color={theme.palette.customColors.Tertiary} />
+            </Box>
+            <Typography
+              sx={{
+                color: theme.palette.customColors.onPrimaryContainer,
+                fontSize: '14px',
+                fontWeight: 600
+              }}
+            >
+              {formattedDate}
+            </Typography>
+          </Box>
+        )
+      }
+    },
+    {
+      minWidth: 100,
+      width: 120,
+      field: 'total_entry',
+      headerName: 'Entries',
+      align: 'center' as const,
+      headerAlign: 'center' as const,
+      sortable: false,
+      renderCell: (params: GridCellParams) => {
+        const row = params.row as IndexedFoodWastageItem
+
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+            <Icon icon='mdi:clipboard-list-outline' fontSize={18} color={theme.palette.text.secondary} />
+            <Typography
+              sx={{
+                color: theme.palette.text.secondary,
+                fontSize: '14px',
+                fontWeight: 500
+              }}
+            >
+              {row.total_entry || 0}
+            </Typography>
+          </Box>
+        )
+      }
+    },
+    {
+      minWidth: 150,
+      width: 200,
+      field: 'total_wastage',
+      headerName: 'Total Wastage',
+      align: 'right' as const,
+      headerAlign: 'right' as const,
+      sortable: false,
+      renderCell: (params: GridCellParams) => {
+        const row = params.row as IndexedFoodWastageItem
+
+        return (
+          <Typography
+            sx={{
+              color: theme.palette.customColors.Tertiary,
+              fontSize: '18px',
+              fontWeight: 600,
+              pr: 2
+            }}
+          >
+            {row.total_wastage || 0}
+            <Typography
+              component='span'
+              sx={{
+                color: theme.palette.customColors.Tertiary,
+                fontSize: '14px',
+                fontWeight: 500,
+                ml: 0.5
+              }}
+            >
+              {row.unit || 'Kg'}
+            </Typography>
+          </Typography>
+        )
+      }
+    }
+  ]
+
+  // Use appropriate columns based on refType
+  const columns = refType === 'enclosure' ? enclosureColumns : entityColumns
 
   return (
     <Box sx={{ mt: 4 }}>
@@ -430,7 +641,8 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
       </Box>
 
       {/* Summary Card - Only show in List view when data is available */}
-      {viewMode === 'List' && foodWastageData?.highest_wastage && (
+      {/* For site/section: show highest wastage info. For enclosure: show total and daily average */}
+      {viewMode === 'List' && (foodWastageData?.total_wastage || foodWastageData?.highest_wastage) && (
         <Card
           sx={{
             mb: 4,
@@ -472,39 +684,67 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
             </Typography>
           </Box>
 
-          <Box
-            sx={{
-              p: 2.5,
-              backgroundColor: theme.palette.common.white,
-              borderRadius: 1,
-              border: `1px solid ${theme.palette.customColors.OutlineVariant}`
-            }}
-          >
-            <Typography
+          {/* Show highest wastage info for site/section, daily average for enclosure */}
+          {refType !== 'enclosure' && foodWastageData?.highest_wastage && (
+            <Box
               sx={{
-                fontSize: '14px',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                lineHeight: 1.7
+                p: 2.5,
+                backgroundColor: theme.palette.common.white,
+                borderRadius: 1,
+                border: `1px solid ${theme.palette.customColors.OutlineVariant}`
               }}
             >
-              Section{' '}
               <Typography
-                component='span'
-                sx={{ fontWeight: 700, color: theme.palette.customColors.OnPrimaryContainer }}
+                sx={{
+                  fontSize: '14px',
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  lineHeight: 1.7
+                }}
               >
-                {foodWastageData?.highest_wastage?.section_name}
-              </Typography>{' '}
-              with{' '}
-              <Typography component='span' sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}>
-                {foodWastageData?.highest_wastage?.total_wastage} {foodWastageData?.highest_wastage?.unit || 'Kg'}
-              </Typography>{' '}
-              recorded the highest wastage in this site, accounting for{' '}
-              <Typography component='span' sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}>
-                {foodWastageData?.highest_wastage?.wastage_per}%
-              </Typography>{' '}
-              of the total.
-            </Typography>
-          </Box>
+                {entityLabel}{' '}
+                <Typography
+                  component='span'
+                  sx={{ fontWeight: 700, color: theme.palette.customColors.OnPrimaryContainer }}
+                >
+                  {refType === 'site' ? foodWastageData?.highest_wastage?.section_name : foodWastageData?.highest_wastage?.user_enclosure_name}
+                </Typography>{' '}
+                with{' '}
+                <Typography component='span' sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}>
+                  {foodWastageData?.highest_wastage?.total_wastage} {foodWastageData?.highest_wastage?.unit || 'Kg'}
+                </Typography>{' '}
+                recorded the highest wastage in this {refType}, accounting for{' '}
+                <Typography component='span' sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}>
+                  {foodWastageData?.highest_wastage?.wastage_per}%
+                </Typography>{' '}
+                of the total.
+              </Typography>
+            </Box>
+          )}
+
+          {/* Show daily average for enclosure */}
+          {refType === 'enclosure' && foodWastageData?.daily_average && (
+            <Box
+              sx={{
+                p: 2.5,
+                backgroundColor: theme.palette.common.white,
+                borderRadius: 1,
+                border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  lineHeight: 1.7
+                }}
+              >
+                Daily average:{' '}
+                <Typography component='span' sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}>
+                  {foodWastageData?.daily_average} {foodWastageData?.unit || 'Kg'}
+                </Typography>
+              </Typography>
+            </Box>
+          )}
         </Card>
       )}
 
@@ -606,7 +846,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
                   </Box>
                 </Box>
 
-                {/* Section Average Description Card */}
+                {/* Average Description Card */}
                 {foodWastageData?.section_average && (
                   <Box
                     sx={{
@@ -623,11 +863,11 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
                         lineHeight: 1.7
                       }}
                     >
-                      The site has an average food wastage of{' '}
+                      The {refType} has an average food wastage of{' '}
                       <Typography component='span' sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}>
                         {foodWastageData?.section_average} {foodWastageData?.unit || 'Kg'}
                       </Typography>{' '}
-                      per section
+                      per {entityLabel.toLowerCase()}
                     </Typography>
                   </Box>
                 )}
@@ -654,7 +894,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
       {/* List View */}
       {viewMode === 'List' && (
         <Box>
-          {/* Section header with sort toggle - matching mobile design */}
+          {/* Header with sort toggle - matching mobile design */}
           <Box
             sx={{
               display: 'flex',
@@ -671,7 +911,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
                 color: theme.palette.customColors.OnPrimaryContainer
               }}
             >
-              Sections
+              {entityLabelPlural}
             </Typography>
 
             <Box
@@ -703,7 +943,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
             total={totalCount}
             paginationModel={{ page: page - 1, pageSize }}
             setPaginationModel={handlePaginationChange}
-            // onRowClick={handleRowClick}
+            onRowClick={handleRowClick}
             getRowHeight={() => 'auto'}
             externalTableStyle={{
               '& .MuiDataGrid-cell': {
@@ -715,6 +955,18 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = () => {
             }}
           />
         </Box>
+      )}
+
+      {/* Food Wastage Details Drawer - for enclosure level */}
+      {refType === 'enclosure' && (
+        <FoodWastageDetailsDrawer
+          open={detailsDrawer.open}
+          onClose={handleCloseDetailsDrawer}
+          enclosureId={id as string}
+          wastageDate={detailsDrawer.wastageDate}
+          totalWastage={detailsDrawer.totalWastage}
+          unit={detailsDrawer.unit}
+        />
       )}
     </Box>
   )

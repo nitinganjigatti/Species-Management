@@ -9,11 +9,38 @@ export interface Incharge {
 }
 
 export interface UserWithAccess {
-  user_id:string
-  full_name: string;
-  profile_pic: string;
-  role_name: string;
-  mobile_number: string;
+  user_id: string | number
+  user_name?: string
+  full_name?: string
+  user_first_name?: string
+  user_last_name?: string
+  user_profile_pic?: string
+  profile_pic?: string
+  mobile_number?: string
+  user_mobile_number?: string
+  role_name?: string
+  can_perform_action?: number | boolean
+  account_status?: string
+  string_id?: string
+}
+
+// Params for getUsersList API (get-userswith-access endpoint)
+export interface GetUsersWithAccessParams {
+  id: string | string[] | undefined
+  type: 'site' | 'section' | 'enclosure' | 'animal'
+  page_no?: number
+  search?: string
+  limit?: number
+}
+
+// Response for getUsersList API
+export interface GetUsersWithAccessResponse {
+  success?: boolean
+  message?: string
+  data?: {
+    result?: UserWithAccess[]
+    total_count?: number
+  }
 }
 
 export interface InchargeRole {
@@ -88,6 +115,7 @@ export interface InchargeDrawerProps {
   confirmLabel?: string;
   showFilter?: boolean;
   onSubmit?: (selectedUsers: Incharge[]) => Promise<{ success?: boolean; message?: string }>;
+  refType?: 'site' | 'section' | 'enclosure' | 'cluster';
 }
 
 export interface InchargeRoleFilterDrawerProps {

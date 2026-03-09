@@ -626,8 +626,11 @@ export const APPROVE_TRANSFER_REQUEST = 'antz/approve-transfer-request'
 export const REJECT_TRANSFER_REQUEST = 'animal/transfer/action'
 export const GET_ANIMAL_LIST_BY_SPECIES = 'v1/movement-animal-by-species'
 
-// Food Wastage APIs (matching mobile v1/site/food/wastage)
+// Food Wastage APIs (matching mobile implementation)
 export const GET_SITE_FOOD_WASTAGE = 'v1/site/food/wastage'
+export const GET_SECTION_FOOD_WASTAGE = 'v1/section/food/wastage'
+export const GET_ENCLOSURE_FOOD_WASTAGE = 'v1/food/wastage' // Uses type=enclosure, type_id params
+export const GET_FOOD_WASTAGE_DETAILS = 'v1/food/wastage/details' // Details for a specific date
 
 // Compliance  module
 

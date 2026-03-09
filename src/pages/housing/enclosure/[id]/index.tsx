@@ -7,6 +7,10 @@ import React, { useEffect, useState } from 'react'
 import EnclosureWiseEnclosure from 'src/components/housing/enclosure/EnclosureWiseEnclosure'
 import EnclosureWiseSpecies from 'src/components/housing/enclosure/EnclosureWiseSpecies'
 import MediaListing from 'src/components/housing/enclosure/MediaListing'
+import NotesListing from 'src/components/housing/sites/NotesListing'
+import UsersListing from 'src/components/housing/sites/UsersListing'
+import InchargeListing from 'src/components/housing/sites/InchargeListing'
+import FoodWastageListing from 'src/components/housing/sites/FoodWastageListing'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { useAuth } from 'src/hooks/useAuth'
 import { getEnclosureWiseStat } from 'src/lib/api/housing'
@@ -54,11 +58,17 @@ const EnclsouerDetails: React.FC = () => {
 
   const tabConfig: TabConfigItem[] = [
     { label: 'Species', value: 'species', component: EnclosureWiseSpecies },
-    { label: 'Media', value: 'media', component: MediaListing }
+    { label: 'Media', value: 'media', component: MediaListing },
+    { label: 'Users', value: 'users', component: UsersListing },
+    { label: 'Notes', value: 'notes', component: NotesListing },
+    { label: 'Food Wastage', value: 'foodWastage', component: FoodWastageListing },
+    { label: 'Incharges', value: 'incharges', component: InchargeListing }
   ]
 
+  // Add Enclosures tab only if there are sub-enclosures
   if ((data?.data as any)?.total_sub_enclosure_count > 0) {
-    tabConfig.push({
+    // Insert after Media tab (index 2)
+    tabConfig.splice(2, 0, {
       label: 'Enclosures',
       value: 'enclosures',
       component: EnclosureWiseEnclosure
@@ -173,6 +183,9 @@ const EnclsouerDetails: React.FC = () => {
               setDrawerType={setDrawerType}
               drawerData={drawerData}
               setDrawerData={setDrawerData}
+              refType="enclosure"
+              entityName={(data?.data as any)?.user_enclosure_name}
+              entityImage={(data?.data as any)?.images?.[0]?.file}
             />
           </Box>
         </Card>
