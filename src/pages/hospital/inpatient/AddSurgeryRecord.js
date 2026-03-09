@@ -600,7 +600,8 @@ const AddSurgeryRecord = () => {
 
     return Array.from(unique.values())
   }, [surgeryMasterResponse, localProcedureOptions])
-  const getDoctorList = useCallback(async (hospitalId, pageNo = 1, searchTerm = '') => {
+
+    const getDoctorList = useCallback(async (hospitalId, pageNo = 1, searchTerm = '') => {
     if (!hospitalId) return
 
     setDoctorsLoading(true)
@@ -608,7 +609,8 @@ const AddSurgeryRecord = () => {
       const params = {
         hospital_id: hospitalId,
         page_no: pageNo,
-        limit: 10
+        limit: 10,
+        is_hospital_chief_doctor: '1'
       }
 
       if (searchTerm.trim()) {
@@ -624,23 +626,16 @@ const AddSurgeryRecord = () => {
           if (pageNo === 1) setDoctors([])
           return
         }
-        const chiefDoctor = data.records
-          .filter(item => item.is_hospital_chief_doctor === '1')
-          .map(item => ({
-            id: String(item.user_id),
-            name: item.user_full_name
-          }))
 
-        const attendingDoctor = data.records
-          .map(item => ({
-            value: String(item.user_id),
-            label: item.user_full_name
-          }))
+        const mapped = data.records.map(item => ({
+          id: String(item.user_id),
+          name: item.user_full_name
+        }))
 
-        if (!prefilledRef.current && chiefDoctor.length === 1 && selectedHospital?.id) {
+        if (!prefilledRef.current && mapped.length === 1 && selectedHospital?.id) {
           const prefilledDoc = {
-            value: chiefDoctor[0].id,
-            label: chiefDoctor[0].name
+            value: mapped[0].id,
+            label: mapped[0].name
           }
 
           setValue('surgeon', prefilledDoc)
@@ -651,16 +646,11 @@ const AddSurgeryRecord = () => {
         }
 
         if (pageNo === 1) {
-          setDoctors(chiefDoctor)
-          setAttendingDoctors(attendingDoctor)
+          setDoctors(mapped)
         } else {
           setDoctors(prev => {
-            const merged = [...prev, ...chiefDoctor]
+            const merged = [...prev, ...mapped]
             return Array.from(new Map(merged.map(item => [item.id, item])).values())
-          })
-          setAttendingDoctors(prev => {
-            const merged = [...prev, ...attendingDoctor]
-            return Array.from(new Map(merged.map(item => [item.value, item])).values())
           })
         }
 
@@ -675,18 +665,56 @@ const AddSurgeryRecord = () => {
     }
   }, []) // Empty dependency array for useCallback as it's a stable function definition
 
-
   
+  const getStaffList = async (searchTerm = '') => {
+    try {
+      if (!selectedHospital?.id) return
+
+      const params = {
+        page_no: 1,
+        limit: 10,
+        hospital_id: selectedHospital.id
+      }
+
+      if (searchTerm.trim()) {
+        params.q = searchTerm.trim()
+      }
+
+      const response = await getHospitalStaff({ params })
+
+      if (response?.success && response?.data?.records) {
+        const mappedData = response.data.records.map(item => ({
+          value: String(item.user_id),
+          label: item.user_full_name
+        }))
+
+        setAttendingDoctors(mappedData)
+      }
+    } catch (error) {
+      console.error('Error fetching hospital staff:', error?.message)
+    } finally {
+      setStaffLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (!selectedHospital?.id) return
-    const hospitalId = patientData?.hospital_id
-    if (!hospitalId) {
-      setDoctors([])
-      return
-    }
 
-    getDoctorList(hospitalId, 1, debouncedAttendingDoctorSearch)
-  }, [debouncedAttendingDoctorSearch, selectedHospital?.id])
+    getStaffList(debouncedAttendingDoctorSearch)
+  }, [debouncedAttendingDoctorSearch, selectedHospital?.id,])
+
+
+  
+  //   useEffect(() => {
+  //   const hospitalId = patientData?.hospital_id
+  //   if (!hospitalId) {
+  //     setDoctors([])
+  //     return
+  //   }
+
+  //   getDoctorList(hospitalId, 1, debouncedSurgeonSearchTerm)
+  // }, [patientData?.hospital_id, debouncedSurgeonSearchTerm, getDoctorList])
+
 
   //same person cannot be selected as chief and attending
   useEffect(() => {
@@ -720,7 +748,6 @@ const AddSurgeryRecord = () => {
 
   const handleSurgeonSelect = doctor => {
     setSelectedDoctor(doctor)
-    setValue('surgeon', doctor)
     clearErrors('surgeon')
   }
 
@@ -905,8 +932,6 @@ const AddSurgeryRecord = () => {
   const handleAttendingDoctorInputChange = useCallback((event, value, reason) => {
     if (reason === 'input') {
       setSearchAttendDoctor(value)
-    } else {
-      setSearchAttendDoctor('')
     }
   }, [])
 
