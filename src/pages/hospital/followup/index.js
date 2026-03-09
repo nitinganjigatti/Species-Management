@@ -23,7 +23,7 @@ import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDate
 import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { useHospital } from 'src/context/HospitalContext'
-import { getFollowUpPatientsListings, getPatientDischargeSummary } from 'src/lib/api/hospital/inpatient'
+import { getFollowUpPatientsListings, getPatientDischargeSummary, downloadFollowUpListings } from 'src/lib/api/hospital/inpatient'
 import Utility, { downloadPDF } from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
@@ -34,6 +34,8 @@ import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
 import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
+import toast from 'react-hot-toast'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const HospitalFollowUp = () => {
   const theme = useTheme()
@@ -50,6 +52,7 @@ const HospitalFollowUp = () => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [excelDownload, setExcelDownload] = useState(false);
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -231,6 +234,32 @@ const HospitalFollowUp = () => {
     id: +row?.discharge_id,
     sl_no: getSlNo(index)
   }))
+
+    const exportFollowUpListings = async () => {
+    try {
+      setExcelDownload(true)
+
+      const params = {
+        page_no: 1,
+        limit: 50,
+        q: searchValue,
+        hospital_id: selectedHospital?.id,
+        due_days_crossed: activeTab,
+        export: true
+      }
+
+      const response = await downloadFollowUpListings(params)
+      if (response?.success === true && response) {
+        Utility.downloadFileFromURL(response?.data?.download_url, Utility.extractHoursAndMinutes)
+        setExcelDownload(false)
+      }
+    } catch (error) {
+      toast.error(error?.message)
+    } finally {
+      setExcelDownload(false)
+    }
+  }
+
 
   const columns = [
     {
@@ -465,16 +494,25 @@ const HospitalFollowUp = () => {
                   }}
                 />
               </Box>
-              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
+              <Box sx={{ mr: 2, display: 'flex', alignItems: {xs: 'flex-start',sm: 'center'},flexDirection: {xs: 'column', sm: 'row'} , gap: 4, ml: 2 }}>
                 <CommonDateRangePickers
                   showFutureDates
                   filterDates={filterDate}
                   onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
                 />
+                <Box sx = {{display: 'flex', gap: 4}}>
                 <FilterButtonWithNotification
                   onClick={() => setOpenFilterDrawer(true)}
                   appliedFiltersCount={filterCount}
                 />
+                  <Box sx={{ width: 40, height: 40 }}>
+                  <ExportButton
+                    loading={excelDownload}
+                    onClick={exportFollowUpListings}
+                    disabled={total === 0 ? true : false}
+                  />
+                </Box>
+                </Box>
               </Box>
             </Box>
             <Box

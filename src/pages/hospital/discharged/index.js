@@ -24,6 +24,7 @@ import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { visitTypeOptions } from 'src/constants/Constants'
 import { useHospital } from 'src/context/HospitalContext'
 import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
+import { downloadDischargeListings } from 'src/lib/api/hospital/inpatient'
 import Utility, { downloadPDF } from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
@@ -34,6 +35,8 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
 import { getPatientDischargeSummary } from 'src/lib/api/hospital/inpatient'
+import toast from 'react-hot-toast'
+import { ExportButton } from 'src/views/utility/render-snippets'
 import { extractTextFromHtml } from 'src/utility'
 
 const HospitalDischarged = () => {
@@ -52,6 +55,7 @@ const HospitalDischarged = () => {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [selectedDischargeType, setSelectedDischargeType] = useState('')
+  const [excelDownload, setExcelDownload] = useState(false);
 
   const dischargeTabs = [
     { label: 'All', value: '' },
@@ -241,6 +245,31 @@ const HospitalDischarged = () => {
     id: +row?.hospital_case_id,
     sl_no: getSlNo(index)
   }))
+
+    const exportDischargeListings = async () => {
+    try {
+      setExcelDownload(true)
+
+      const params = {
+        q: searchValue,
+        hospital_id: selectedHospital?.id,
+        patient_category: 'discharge',
+        visit_type: selectedVisitType,
+        export: true
+      }
+
+      const response = await downloadDischargeListings(params)
+      if (response?.success === true && response) {
+        Utility.downloadFileFromURL(response?.data?.download_url, Utility.extractHoursAndMinutes)
+        setExcelDownload(false)
+      }
+    } catch (error) {
+      toast.error(error?.message)
+    } finally {
+      setExcelDownload(false)
+    }
+  }
+
 
   const columns = [
     {
@@ -502,11 +531,12 @@ const HospitalDischarged = () => {
                   }}
                 />
               </Box>
-              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
+              <Box sx={{ mr: 2, display: 'flex', alignItems: {xs: 'flex-start',sm: 'center'}, gap: 4, ml: 2, flexDirection: {xs: 'column', sm: 'row'} }}>
                 <CommonDateRangePickers
                   filterDates={filterDate}
                   onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
                 />
+                <Box sx = {{display: 'flex', gap: 4}}>
                 <Select
                   size='small'
                   value={selectedVisitType}
@@ -523,6 +553,14 @@ const HospitalDischarged = () => {
                   onClick={() => setOpenFilterDrawer(true)}
                   appliedFiltersCount={filterCount}
                 />
+                  <Box sx={{ width: 40, height: 40 }}>
+                  <ExportButton
+                    loading={excelDownload}
+                    onClick={exportDischargeListings}
+                    disabled={total === 0 ? true : false}
+                  />
+                </Box>
+                </Box>
               </Box>
             </Box>
             <Box sx={{ px: 5, mb: 2, borderBottom: 1, borderColor: 'divider' }}>

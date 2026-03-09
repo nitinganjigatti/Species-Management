@@ -867,6 +867,10 @@ export const GET_PATIENT_DISCHARGE_SUMMARY = `v1/hospital/report/hospital-discha
 
 export const GET_PATIENT_VISIT_SUMMARY = `v1/hospital/report/hospital-visit-report`
 
+export const DOWNLOAD_MORTALITY_LISTINGS = 'v1/hospital/get-mortality-discharge-list'
+
+export const DOWNLOAD_FOLLOWUP_LISTINGS = 'v1/hospital/get-followup-discharge-list'
+
 //Hospital rooms
 
 //Hospital masters
@@ -904,6 +908,10 @@ export const GET_PATIENT_LIST_BY_ENCLOSURES = `v1/hospital/bed/admitted-animals`
 // Hospital inpatient discharge
 
 export const ADD_DISCHARGE = 'v1/hospital/discharge'
+
+export const DOWNLOAD_DISCHARGE_LISTINGS = 'v1/hospital/get-hospital-patients'
+
+
 
 //  Inpatient Treatment Monitoring
 
