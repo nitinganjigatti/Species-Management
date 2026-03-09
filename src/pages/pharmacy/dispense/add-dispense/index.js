@@ -1,9 +1,6 @@
 import {
-  Autocomplete,
   Button,
   Card,
-  FormControl,
-  FormHelperText,
   Grid,
   IconButton,
   Table,
@@ -13,7 +10,6 @@ import {
   TableHead,
   Typography,
   TableRow,
-  TextField,
   Dialog,
   CircularProgress,
   Divider,
@@ -24,7 +20,7 @@ import Icon from 'src/@core/components/icon'
 import React, { useContext, useEffect, useState } from 'react'
 import { getUserList, submitDispense } from 'src/lib/api/pharmacy/dispenseProduct'
 import * as Yup from 'yup'
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import ProductForm from '../../../../components/pharmacy/dispense/ProductForm'
 import Router from 'next/router'
@@ -39,6 +35,8 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import AnimalLabelCard from 'src/views/utility/AnimalLabelCard'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 
 function AddDispense() {
   const theme = useTheme()
@@ -68,6 +66,8 @@ function AddDispense() {
 
   const [addedProcuctQty, setAddedProductQty] = useState(0)
 
+  const [manualUserEntry, setManualUserEntry] = useState(false)
+
   const [openDrawer, setOpenDrawer] = useState(false)
 
   const [openSnackbar, setOpenSnackbar] = useState({
@@ -85,14 +85,23 @@ function AddDispense() {
       label: '',
       value: ''
     },
+    user_name: '',
+    ep_number: '',
     dispense_item_details: []
   }
 
-  const PayloadValidationSchema = Yup.object().shape({
-    user_id: Yup.object({
-      value: Yup.string().required('Select the user')
-    })
-  })
+  const PayloadValidationSchema = manualUserEntry
+    ? Yup.object().shape({
+        user_name: Yup.string().required('Enter the user name'),
+        ep_number: Yup.string().required('Enter the EP number')
+      })
+    : Yup.object().shape({
+        user_id: Yup.object({
+          value: Yup.string().required('User name is required')
+        })
+          .nullable()
+          .required('User name is required')
+      })
 
   const form = useForm({
     defaultValues: PayloadInitialState,
@@ -101,7 +110,7 @@ function AddDispense() {
     reValidateMode: 'onChange',
     mode: 'onChange'
   })
-  const { control, handleSubmit, formState, getValues, watch, setValue, reset } = form
+  const { control, handleSubmit, formState, getValues, watch, setValue, reset, clearErrors } = form
 
   const { errors } = formState
 
@@ -185,12 +194,22 @@ function AddDispense() {
 
   const submitForm = async data => {
     const payload = {
-      user_id: getValues('user_id.value'),
+      ...(manualUserEntry
+        ? {
+            user_name: getValues('user_name'),
+            ep_number: getValues('ep_number')
+          }
+        : {
+            user_id: getValues('user_id.value')
+          }),
       animal_id: animals_s.map(i => i?.animal_id),
       dispense_item_details: productArray
     }
     setSubmitLoading(true)
     try {
+      console.log('payload', payload)
+      debugger
+
       await submitDispense(payload).then(res => {
         if (res?.success) {
           reset()
@@ -281,54 +300,96 @@ function AddDispense() {
           <form onSubmit={handleSubmit(submitForm, onError)}>
             <CardContent sx={{ px: 0, py: 4 }}>
               <Grid container spacing={5}>
-                <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
-                  <FormControl fullWidth>
-                    <Controller
+                {!manualUserEntry ? (
+                  <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
+                    <ControlledAutocomplete
                       name='user_id'
+                      label='Dispense To*'
                       control={control}
-                      render={({ field }) => (
-                        <>
-                          <Autocomplete
-                            forcePopupIcon={false}
-                            disablePortal
-                            value={field?.value}
-                            options={users}
-                            noOptionsText='Type to search'
-                            getOptionLabel={option => option?.label || ''}
-                            isOptionEqualToValue={(option, value) => option.value === value.value}
-                            renderOption={(props, option) => (
-                              <li {...props} key={option.value}>
-                                {option.label}
-                              </li>
-                            )}
-                            renderInput={params => (
-                              <TextField
-                                {...params}
-                                slotProps={{
-                                  ...params.inputProps,
-                                  tabIndex: 6
-                                }}
-                                label='Dispense To*'
-                                placeholder='Search & Select'
-                                error={Boolean(errors.user_id)}
-                              />
-                            )}
-                            onChange={(event, newValue) => {
-                              field.onChange(newValue)
-                            }}
-                          />
-                          {errors.user_id && (
-                            <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                              {errors.user_id?.message === 'user_id cannot be null'
-                                ? 'Select the user'
-                                : errors.user_id?.message || 'Select the user'}
-                            </FormHelperText>
-                          )}
-                        </>
-                      )}
+                      errors={errors}
+                      options={users}
+                      showIcons={false}
+                      autocompleteProps={{
+                        filterOptions: (options, state) => {
+                          const filtered = options?.filter(option =>
+                            option.label?.toLowerCase().includes(state.inputValue?.toLowerCase())
+                          )
+                          return [...filtered, { label: 'Add User Name & EP No', value: '__manual_entry__' }]
+                        }
+                      }}
+                      renderOption={(props, option) => {
+                        if (option.value === '__manual_entry__') {
+                          return (
+                            <li
+                              {...props}
+                              key='__manual_entry__'
+                              style={{ borderTop: '1px solid #e0e0e0', padding: 0 }}
+                            >
+                              <Button
+                                fullWidth
+                                variant='text'
+                                startIcon={<Icon icon='mdi:account-plus-outline' />}
+                                sx={{ justifyContent: 'flex-start', textTransform: 'none', py: 1.5 }}
+                              >
+                                Add User Name & EP No
+                              </Button>
+                            </li>
+                          )
+                        }
+
+                        return (
+                          <li {...props} key={option.value}>
+                            {option.label}
+                          </li>
+                        )
+                      }}
+                      onChangeOverride={newValue => {
+                        if (newValue?.value === '__manual_entry__') {
+                          setManualUserEntry(true)
+                          setValue('user_id', { label: '', value: '' })
+                          clearErrors()
+                        }
+                      }}
                     />
-                  </FormControl>
-                </Grid>
+                  </Grid>
+                ) : (
+                  <>
+                    <Grid item size={{ xs: 12, sm: 12, md: 5 }}>
+                      <ControlledTextField
+                        name='user_name'
+                        label='User Name*'
+                        placeholder='Enter user name'
+                        control={control}
+                        errors={errors}
+                      />
+                    </Grid>
+                    <Grid item size={{ xs: 12, sm: 12, md: 5 }}>
+                      <ControlledTextField
+                        name='ep_number'
+                        label='EP Number*'
+                        placeholder='Enter EP number'
+                        control={control}
+                        errors={errors}
+                      />
+                    </Grid>
+                    <Grid item size={{ xs: 12, sm: 12, md: 2 }} sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Button
+                        variant='text'
+                        color='primary'
+                        startIcon={<Icon icon='mdi:arrow-left' />}
+                        onClick={() => {
+                          setManualUserEntry(false)
+                          setValue('user_name', '')
+                          setValue('ep_number', '')
+                          clearErrors()
+                        }}
+                        sx={{ textTransform: 'none' }}
+                      >
+                        Select User
+                      </Button>
+                    </Grid>
+                  </>
+                )}
               </Grid>
             </CardContent>
             {/* <Box
@@ -429,7 +490,11 @@ function AddDispense() {
               </Grid>
               <Grid item sx={{ marginLeft: 'auto' }}>
                 <AddButtonContained
-                  disabled={watch('user_id')?.value === '' || errors.user_id}
+                  disabled={
+                    manualUserEntry
+                      ? !watch('user_name') || !watch('ep_number')
+                      : watch('user_id')?.value === '' || errors.user_id
+                  }
                   title='Add Dispense Item'
                   action={() => {
                     handleOpenAddDispense()

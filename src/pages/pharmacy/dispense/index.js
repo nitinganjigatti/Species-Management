@@ -1,9 +1,4 @@
-import {
-  Box,
-  Grid,
-  Typography,
-  debounce,
-} from '@mui/material'
+import { Grid, Typography, debounce } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState, useRef } from 'react'
 
@@ -15,8 +10,6 @@ import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useTheme } from '@emotion/react'
 import { AddButtonContained } from 'src/components/ButtonContained'
-import RenderUtility from 'src/utility/render'
-import CustomAvatar from 'src/@core/components/mui/avatar'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
@@ -72,7 +65,7 @@ function Dispense() {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
+            fontWeight: 500
           }}
         >
           {params.row.dispense_id}
@@ -153,7 +146,7 @@ function Dispense() {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
+            fontWeight: 500
           }}
         >
           {params.row.animal_count ? params.row.animal_count : 0}
@@ -171,7 +164,7 @@ function Dispense() {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))} -{' '}
@@ -186,18 +179,14 @@ function Dispense() {
       headerName: 'Dispensed to',
       renderCell: params => (
         <>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {params?.row?.profile_pic ? (
-              <CustomAvatar src={params?.row?.profile_pic} sx={{ mr: '16px', width: '40px', height: '40px' }} />
-            ) : (
-              <CustomAvatar sx={{ mr: '16px', width: '40px', height: '40px', fontSize: '.8rem' }}></CustomAvatar>
-            )}
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-                {`${params?.row?.user_first_name} ${params?.row?.user_last_name}` || 'NA'}
-              </Typography>
-            </Box>
-          </Box>
+          <UserAvatarDetails
+            profile_image={params?.row?.profile_pic}
+            user_name={
+              params?.row?.user_first_name ||
+              (params?.row?.user_last_name &&
+                `${params?.row?.user_first_name || ''} ${params?.row?.user_last_name || ''}`.trim())
+            }
+          />
         </>
       )
     },
@@ -213,6 +202,17 @@ function Dispense() {
             user_name={params?.row?.created_by_user_name}
             date={params?.row?.created_at}
           />
+        </>
+      )
+    },
+    {
+      width: 220,
+      minWidth: 100,
+      field: 'ep_number',
+      headerName: 'User Name & EP No',
+      renderCell: params => (
+        <>
+          <UserAvatarDetails user_name={params?.row?.dispense_user_name} role={`EP No: ${params?.row?.ep_number}`} />
         </>
       )
     }
@@ -339,7 +339,7 @@ function Dispense() {
             title='Add Dispense'
             action={() => router.push('/pharmacy/dispense/add-dispense')}
             fullWidth={'fullWidth'}
-            styles = {{
+            styles={{
               mr: 0
             }}
           />
@@ -352,33 +352,26 @@ function Dispense() {
     <>
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
       selectedPharmacy.permission.dispense_medicine ? (
-        
-          <PageCardLayout
-              title = 'Dispense'
-              action = {headerAction}>
-          
-            <Grid
-              container
-              spacing={4}
-              sx={
-                {
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
-
-                }
-              }
-            >
-              <Grid size={{ xs: 12, sm: 4, md: 3, xl: 2.5  }}>
-                <MUISearch
-                  width={'100%'}
-                  placeholder='Search...'
-                  value={searchValue}
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  onClear={() => handleSearch('')}
-                />
-              </Grid>
+        <PageCardLayout title='Dispense' action={headerAction}>
+          <Grid
+            container
+            spacing={4}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Grid size={{ xs: 12, sm: 4, md: 3, xl: 2.5 }}>
+              <MUISearch
+                width={'100%'}
+                placeholder='Search...'
+                value={searchValue}
+                onChange={e => handleSearch(e.target.value)}
+                fullWidth
+                onClear={() => handleSearch('')}
+              />
+            </Grid>
 
             {/* Switch */}
             {/* {status === 'all' || status === 'completed' ? (
@@ -394,23 +387,22 @@ function Dispense() {
                 />
               </Grid>
             ) : null} */}
-            </Grid>
+          </Grid>
 
-            <Grid>
-              <CommonTable
-                onRowClick={onRowClick}
-                indexedRows={indexedRows}
-                total={total}
-                handleSortModel={handleSortModel}
-                columns={columns}
-                paginationModel={paginationModel}
-                setPaginationModel={setPaginationModel}
-                loading={loading}
-                searchValue={searchValue}
-              />
-            </Grid>
-            </PageCardLayout>
-         
+          <Grid>
+            <CommonTable
+              onRowClick={onRowClick}
+              indexedRows={indexedRows}
+              total={total}
+              handleSortModel={handleSortModel}
+              columns={columns}
+              paginationModel={paginationModel}
+              setPaginationModel={setPaginationModel}
+              loading={loading}
+              searchValue={searchValue}
+            />
+          </Grid>
+        </PageCardLayout>
       ) : (
         <Error404 />
       )}
