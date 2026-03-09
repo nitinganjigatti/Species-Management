@@ -224,9 +224,11 @@ interface NecropsyData {
   additional_notes?: string
   necropsy_conducted_by?: ConductedByUser[]
   necropsy_organs?: Organ[]
-  attachments?: {
-    documents?: AttachmentDocument[]
-  } | AttachmentDocument[]
+  attachments?:
+    | {
+        documents?: AttachmentDocument[]
+      }
+    | AttachmentDocument[]
   documents?: AttachmentDocument[]
   [key: string]: unknown
 }
@@ -342,7 +344,8 @@ const submitSchema = yup.object().shape({
   is_suitable: yup.boolean(),
   reason_for_unsuitable: yup.string().when('is_suitable', {
     is: false,
-    then: schema => schema.test('not-empty', 'Reason for unsuitable is required', value => (value?.trim()?.length ?? 0) > 0),
+    then: schema =>
+      schema.test('not-empty', 'Reason for unsuitable is required', value => (value?.trim()?.length ?? 0) > 0),
     otherwise: schema => schema.notRequired()
   }),
   confirmed_cause_of_death: yup
@@ -441,7 +444,8 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
 
   const isEditing: boolean = !!necropsyId
   const isDraftEdit: boolean = isEditing && status?.toUpperCase() === 'DRAFT'
-  const isCompletedEdit: boolean = isEditing && (status?.toUpperCase() === 'COMPLETED' || status?.toUpperCase() === 'UNSUITABLE')
+  const isCompletedEdit: boolean =
+    isEditing && (status?.toUpperCase() === 'COMPLETED' || status?.toUpperCase() === 'UNSUITABLE')
 
   const {
     control,
@@ -486,7 +490,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
 
   // Merge form errors with draft validation errors
   const mergedErrors = useMemo(
-    () => ({ ...errors, ...draftErrors }) as FieldErrors<NecropsyFormValues> & DraftErrors,
+    () => ({ ...errors, ...draftErrors } as FieldErrors<NecropsyFormValues> & DraftErrors),
     [errors, draftErrors]
   )
 
@@ -820,7 +824,8 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
 
     if (data.necropsy_organs?.length && data.necropsy_organs.length > 0) setOrgans(data.necropsy_organs)
 
-    const attachmentDocs = (data.attachments as { documents?: AttachmentDocument[] })?.documents ||
+    const attachmentDocs =
+      (data.attachments as { documents?: AttachmentDocument[] })?.documents ||
       (data.attachments as AttachmentDocument[]) ||
       data.documents ||
       []
@@ -845,9 +850,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
     }
 
     if (conductedByUsers.length > 0) {
-      const userIds = conductedByUsers
-        .map(u => Number(u.user_id || u.id))
-        .filter(id => !isNaN(id) && id > 0)
+      const userIds = conductedByUsers.map(u => Number(u.user_id || u.id)).filter(id => !isNaN(id) && id > 0)
       if (userIds.length > 0) {
         fd.append('necropsy_conducted_by', JSON.stringify(userIds))
       }
@@ -1261,9 +1264,11 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
     setActiveTab(newValue)
   }
 
-  const handleAccordionChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean): void => {
-    setActiveTab(isExpanded ? panel : false)
-  }
+  const handleAccordionChange =
+    (panel: string) =>
+    (event: React.SyntheticEvent, isExpanded: boolean): void => {
+      setActiveTab(isExpanded ? panel : false)
+    }
 
   return (
     <Box>
@@ -1435,7 +1440,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                       errors={mergedErrors}
                       label='QR Number'
                       placeholder='Enter QR number'
-                      disabled={!!necropsyData?.qr_number}
+                      disabled={!!necropsyData?.qr_number || !!mortalityData?.qr_number}
                     />
                   </Grid>
                 </Grid>
@@ -1752,7 +1757,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                 </Box>
                 <Grid container spacing={6}>
                   <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography sx={labelSx}>Disposal Method</Typography>
+                    <Typography sx={labelSx}>Confirmed Cause of Death after Necropsy</Typography>
                     <ControlledAutocomplete
                       name='confirmed_cause_of_death'
                       control={control}
@@ -1762,7 +1767,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                     />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography sx={labelSx}>Confirmed Cause of Death after Necropsy</Typography>
+                    <Typography sx={labelSx}>Disposal Method</Typography>
                     <ControlledAutocomplete
                       name='disposal_method'
                       control={control}
@@ -1991,7 +1996,11 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
 
             <FormControlLabel
               control={
-                <Checkbox checked={dialogApproxAge} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDialogApproxAge(e.target.checked)} size='small' />
+                <Checkbox
+                  checked={dialogApproxAge}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDialogApproxAge(e.target.checked)}
+                  size='small'
+                />
               }
               label='Mark as approximate'
               sx={{
