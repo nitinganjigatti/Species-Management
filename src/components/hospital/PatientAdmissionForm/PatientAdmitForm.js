@@ -482,7 +482,7 @@ const PatientAdmitForm = ()=> {
     clearErrors('selectedDoctor')
 
     setAttendingSelectedDoctors(prev => {
-      const filtered = prev.filter(item => item.label !== doctor.name)
+      const filtered = prev.filter(item => item.value !== doctor.id)
       setValue('coAttendDoctor', filtered)
       return filtered
     })
@@ -880,7 +880,7 @@ const PatientAdmitForm = ()=> {
                       )}
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, }}>
                         <Typography
                           sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                         >

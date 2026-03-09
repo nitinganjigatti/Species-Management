@@ -408,7 +408,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
 
   useEffect(() => {
     getUserLists()
-  }, [searchAttendDoctor])
+  }, [])
   const onSubmit = async data => {
     const valid = await trigger()
     if (!valid) {
@@ -526,7 +526,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
     clearErrors('selectedDoctor')
 
     setAttendingSelectedDoctors(prev => {
-      const filtered = prev.filter(item => item.label !== doctor.name)
+      const filtered = prev.filter(item => item.value !== doctor.id)
       setValue('coAttendDoctor', filtered)
       return filtered
     })
@@ -888,7 +888,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                               : theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                        Select Chief Veterinarian*   
+                        Select chief Veterinarian*   
                         </Typography>
                         <Icon
                           icon='mdi:chevron-down'
