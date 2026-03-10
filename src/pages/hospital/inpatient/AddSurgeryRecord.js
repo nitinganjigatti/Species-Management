@@ -334,6 +334,8 @@ const AddSurgeryRecord = () => {
   const [selectedAnesthesiaRecord, setSelectedAnesthesiaRecord] = useState(null)
   const [initialAnesthesiaRecord, setInitialAnesthesiaRecord] = useState(null)
   const [pendingAnesthesiaRecord, setPendingAnesthesiaRecord] = useState(null)
+  const [anesthesiaRecordJustAdded, setAnesthesiaRecordJustAdded] = useState(false)
+  const [anesthesiaRefetchTrigger, setAnesthesiaRefetchTrigger] = useState(0)
   const [richNote, setRichNote] = useState('')
   const [initialRichNote, setInitialRichNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -538,6 +540,7 @@ const AddSurgeryRecord = () => {
     setSelectedAnesthesiaRecord(null)
     setInitialAnesthesiaRecord(null)
     setPendingAnesthesiaRecord(null)
+    setAnesthesiaRecordJustAdded(false)
     setRichNote('')
     setInitialRichNote('')
     setProcedureSearchTerm('')
@@ -914,6 +917,7 @@ const AddSurgeryRecord = () => {
 
   const handleClearSelectedAnesthesia = useCallback(() => {
     setSelectedAnesthesiaRecord(null)
+    setAnesthesiaRecordJustAdded(false)
   }, [])
 
   const formatAnesthesiaDateTime = useCallback(value => {
@@ -1058,12 +1062,16 @@ const AddSurgeryRecord = () => {
 
   const handleSelectanesthesiaRecord = useCallback(() => {
     setOpenSelectAnesthesiaDrawer(true)
+    setAnesthesiaRecordJustAdded(false)
   }, [])
 
   const handleAnesthesiaCreateSuccess = useCallback(
     record => {
       if (record) {
         setSelectedAnesthesiaRecord(record)
+        setAnesthesiaRecordJustAdded(true)
+        // Trigger refetch of anesthesia records list
+        setAnesthesiaRefetchTrigger(prev => prev + 1)
       }
     },
     [setSelectedAnesthesiaRecord]
@@ -1716,9 +1724,16 @@ const AddSurgeryRecord = () => {
                   { label: 'Location', value: selectedAnesthesia?.location || '--' },
                   {
                     label: 'Date and Time of Anesthesia',
-                    value: Utility.convertUTCToLocalDateTime(
-                      selectedAnesthesia?.anaesthesia_datetime || selectedAnesthesia?.anesthesia_datetime
-                    )
+                    value:
+                      // If record was just added, it's already in local time (use formatDateTimeDisplay)
+                      // Otherwise, it's from the database in UTC (use convertUTCToLocalDateTime)
+                      anesthesiaRecordJustAdded
+                        ? Utility.formatDateTimeDisplay(
+                            selectedAnesthesia?.anaesthesia_datetime || selectedAnesthesia?.anesthesia_datetime
+                          )
+                        : Utility.convertUTCToLocalDateTime(
+                            selectedAnesthesia?.anaesthesia_datetime || selectedAnesthesia?.anesthesia_datetime
+                          )
                   },
                   {
                     label: 'Estimated Time Required',
@@ -2027,6 +2042,7 @@ const AddSurgeryRecord = () => {
         medicalRecordId={medicalRecordId}
         onSelect={handleAnesthesiaRecordSelect}
         onConfirm={handleConfirmAnesthesiaRecord}
+        refetchTrigger={anesthesiaRefetchTrigger}
       />
     </Box>
   )
