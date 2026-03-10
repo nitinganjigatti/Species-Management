@@ -22,9 +22,11 @@ import Icon from 'src/@core/components/icon'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import FileDialog from 'src/components/utility/FileDialog'
 
 export default function DetailsTable({ ...props }) {
   const theme = useTheme()
+  const [filePreview, setFilePreview] = useState({ open: false, url: '', name: '' })
 
   // const [page, setPage] = useState(0)
   // const [rowsPerPage, setRowsPerPage] = useState(5)
@@ -97,16 +99,37 @@ export default function DetailsTable({ ...props }) {
         />
       ) : null}
 
-      {parseInt(el?.prescription_required) === 1 || parseInt(el?.control_substance) === 1 ? (
-        <Grid
+      {parseInt(el?.prescription_required) === 1 && el?.prescription_required_file ? (
+        <Box
           sx={{
             display: 'flex',
-            width: '100%',
-            cursor: 'pointer'
+            alignItems: 'center',
+            gap: 1,
+            cursor: 'pointer',
+            '&:hover': { opacity: 0.8 }
+          }}
+          onClick={e => {
+            e.stopPropagation()
+            setFilePreview({
+              open: true,
+              url: el.prescription_required_file,
+              name: el.prescription_required_filename || 'Prescription'
+            })
           }}
         >
-          <Box>{props?.renderAttachmentIcons(el)}</Box>
-        </Grid>
+          <Box sx={{ color: 'customColors.neutral_50', display: 'flex', alignItems: 'center' }}>
+            <Icon icon='material-symbols:attachment' width='1em' height='1em' />
+          </Box>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.primary',
+              opacity: '0.5'
+            }}
+          >
+            {el.prescription_required_filename || 'Prescription'}
+          </Typography>
+        </Box>
       ) : null}
     </>
   )
@@ -948,15 +971,13 @@ export default function DetailsTable({ ...props }) {
           </TableBody>
         </Table>
       </TableContainer>
-      {/* <TablePagination
-        component='div'
-        count={props.items.length}
-        page={page}
-        rowsPerPageOptions={[5, 10, 25]}
-        onPageChange={handleChangePage}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      /> */}
+
+      <FileDialog
+        open={filePreview.open}
+        onClose={() => setFilePreview({ open: false, url: '', name: '' })}
+        src={filePreview.url}
+        title={filePreview.name}
+      />
     </Card>
   )
 }
