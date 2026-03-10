@@ -27,10 +27,13 @@ import AddParameterDataEntry from 'src/views/pages/hospital/treatment-monitoring
 import { useQuery } from '@tanstack/react-query'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
+
+dayjs.extend(utc)
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -184,12 +187,21 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
   const animal_id = medicalRecordData?.animal_id
   const today = new Date().toISOString().split('T')[0]
 
+  // If patient is discharged, default to discharge date; otherwise use today
+  const getDefaultDate = () => {
+    if (isPatientDischarged && patientData?.discharge_at) {
+      const dischargeDate = dayjs.utc(patientData.discharge_at).local().format('YYYY-MM-DD')
+      return dischargeDate
+    }
+    return today
+  }
+
   const [didInitialScroll, setDidInitialScroll] = useState(false)
   const [openScheduleDrawer, setOpenScheduleDrawer] = useState(false)
   const [addParameterDrawerOpen, setAddParameterDrawerOpen] = useState(false)
   const [openParamsEntryDrawer, setOpenParamsEntryDrawer] = useState(false)
   const [dates, setDates] = useState(null)
-  const [selectedDate, setSelectedDate] = useState(today)
+  const [selectedDate, setSelectedDate] = useState(getDefaultDate())
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [paramData, setParamData] = useState(null)
