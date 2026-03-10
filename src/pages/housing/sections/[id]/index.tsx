@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, Typography, Tabs, Tab, Card } from '@mui/material'
+import { Box, Breadcrumbs, Typography, Tabs, Tab, Card, useTheme } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
@@ -61,6 +61,7 @@ const tabConfig: TabConfigItem[] = [
 ]
 
 const SectionDetails: React.FC = () => {
+  const theme = useTheme()
   const router = useRouter()
   const { id } = router.query as { id?: string }
 
@@ -165,7 +166,7 @@ const SectionDetails: React.FC = () => {
 
   useEffect(() => {
     // Updating URL with tab parameter when tab changes
-    router.push(
+    router.replace(
       {
         pathname: router.pathname,
         query: { ...router.query, tab: selectedTab }
@@ -195,10 +196,10 @@ const SectionDetails: React.FC = () => {
       <Box>
         {/* Breadcrumb */}
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleSectionListingClick}>
+          <Typography onClick={() => router.back()} sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}>
             Section Listing
           </Typography>
-          <Typography color='text.primary'>Section Details</Typography>
+          <Typography color={theme.palette.text.primary}>Section Details</Typography>
         </Breadcrumbs>
 
         {/* Insights */}

@@ -111,7 +111,7 @@ const EnclsouerDetails: React.FC = () => {
 
   useEffect(() => {
     // Updating URL with tab parameter when tab changes
-    router.push(
+    router.replace(
       {
         pathname: router.pathname,
         query: { ...router.query, tab: selectedTab }
@@ -132,10 +132,10 @@ const EnclsouerDetails: React.FC = () => {
     <>
       <Box>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => router.back()}>
+          <Typography onClick={() => router.back()} sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}>
             Enclosures
           </Typography>
-          <Typography color='text.primary'>Enclosure Details</Typography>
+          <Typography color={theme.palette.text.primary}>Enclosure Details</Typography>
         </Breadcrumbs>
         <InsightsCard
           data={data?.data as any}
