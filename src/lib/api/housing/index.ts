@@ -86,8 +86,22 @@ import {
   GET_SECTION_FOOD_WASTAGE,
   GET_ENCLOSURE_FOOD_WASTAGE,
   GET_FOOD_WASTAGE_DETAILS,
+  GET_TAXONOMY_HIERARCHY,
   USER_LIST,
-  GET_USERS_LIST
+  GET_USERS_LIST,
+  GET_FAMILY_TREE_PARENT_LIST,
+  GET_FAMILY_TREE_PAIR_LIST,
+  GET_FAMILY_TREE_SIBLING_LIST,
+  ADD_FAMILY_TREE_PARENT,
+  EDIT_EXTERNAL_PARENT,
+  DELETE_FAMILY_TREE_PARENT,
+  ADD_FAMILY_TREE_PAIR,
+  EDIT_FAMILY_TREE_PAIR,
+  DELETE_FAMILY_TREE_PAIR,
+  GET_USER_ACCESS_CHECK,
+  GET_LINEAGE_ANIMAL_LIST,
+  GET_FAMILY_TREE_CLUTCH_LIST,
+  GET_FAMILY_TREE_LITTER_LIST
 } from 'src/constants/ApiConstant'
 import type {
   GetSitesParams,
@@ -186,8 +200,36 @@ import type {
   RemoveNoteReactionResponse,
   AddObservationCommentResponse,
   GetUsersListParams,
-  GetUsersListResponse
+  GetUsersListResponse,
+  GetLineageParentParams,
+  GetLineageParentResponse,
+  GetLineagePairParams,
+  GetLineagePairResponse,
+  GetLineageSiblingParams,
+  GetLineageSiblingResponse,
+  AddLineageParentResponse,
+  EditExternalParentResponse,
+  DeleteLineageParentResponse,
+  AddLineagePairResponse,
+  EditLineagePairResponse,
+  DeleteLineagePairResponse,
+  GetLineageAnimalListParams,
+  GetLineageAnimalListResponse
 } from 'src/types/housing'
+import type {
+  AddParentPayload,
+  EditExternalParentPayload,
+  DeleteParentPayload,
+  AddPairPayload,
+  EditPairPayload,
+  DeletePairPayload,
+  UserAccessCheckParams,
+  UserAccessCheckResponse,
+  GetClutchListParams,
+  GetClutchListResponse,
+  GetLitterListParams,
+  GetLitterListResponse
+} from 'src/types/housing/models'
 
 // ==================== Site API ====================
 
@@ -673,6 +715,7 @@ export interface AddInchargePayload {
   section_id?: number
   enclosure_id?: number
   cluster_id?: number
+  animal_id?: number
   user_ids: number[]
 }
 
@@ -1078,6 +1121,7 @@ export interface GetTransferButtonStatusParams {
 
 export async function getTransferButtonStatus(params: GetTransferButtonStatusParams): Promise<GetTransferButtonStatusResponse> {
   const { animal_movement_id, ...restParams } = params
+
   const response = await axiosGet({
     url: `${GET_TRANSFER_BUTTON_STATUS}/${animal_movement_id}/button-status`,
     params: restParams
@@ -1104,6 +1148,7 @@ export interface UpdateTransferStatusResponse {
 export async function updateTransferStatus(payload: UpdateTransferStatusPayload): Promise<UpdateTransferStatusResponse> {
   // Mobile uses POST /v1/transfer/update-btn-status/{movement_id}
   const { movement_id, ...restPayload } = payload
+
   const response = await axiosPost({
     url: `${UPDATE_TRANSFER_STATUS}/${movement_id}`,
     body: restPayload
@@ -1404,7 +1449,8 @@ export async function getFoodWastage(
   if (refType === 'enclosure') {
     return getEnclosureFoodWastage(params)
   }
-  return getSiteFoodWastage(params)
+  
+return getSiteFoodWastage(params)
 }
 
 // ==================== Food Wastage Details API ====================
@@ -1456,6 +1502,184 @@ import type { GetUsersWithAccessParams, GetUsersWithAccessResponse } from 'src/t
 
 export async function getUsersList(params: GetUsersWithAccessParams): Promise<GetUsersWithAccessResponse> {
   const response = await axiosGet({ url: `${GET_USERS_LIST}`, params })
+
+  return response?.data
+}
+
+// ==================== Taxonomy Hierarchy API ====================
+
+export interface TaxonomyLevel {
+  name?: string
+  default_common_name?: string
+}
+
+export interface TaxonomyHierarchyData {
+  class?: TaxonomyLevel
+  order?: TaxonomyLevel
+  famely?: TaxonomyLevel // Note: API returns "famely" (typo preserved for compatibility)
+  genus?: TaxonomyLevel
+  complete_name?: string
+  species_common_name?: string
+}
+
+export interface GetTaxonomyHierarchyParams {
+  species_id: string | number
+}
+
+export interface GetTaxonomyHierarchyResponse {
+  success?: boolean
+  message?: string
+  data?: TaxonomyHierarchyData
+}
+
+export async function getTaxonomyHierarchy(params: GetTaxonomyHierarchyParams): Promise<GetTaxonomyHierarchyResponse> {
+  const response = await axiosGet({ url: `${GET_TAXONOMY_HIERARCHY}`, params })
+
+  return response?.data
+}
+
+// ==================== Vaccination/Deworming API ====================
+
+export interface GetVaccinationListParams {
+  animal_id: number | string
+  type: 'vaccination' | 'deworming'
+  status?: 'pending' | 'upcoming' | 'completed'
+  page_no?: number
+  length?: number
+}
+
+export interface VaccinationRecord {
+  id?: number
+  vaccine_name?: string
+  medicine_name?: string
+  name?: string
+  dose?: string
+  status?: string
+  scheduled_date?: string
+  administered_date?: string
+  created_at?: string
+  [key: string]: unknown
+}
+
+export interface GetVaccinationListResponse {
+  success?: boolean
+  message?: string
+  data?: VaccinationRecord[]
+  total_count?: number
+}
+
+export async function getVaccinationList(params: GetVaccinationListParams): Promise<GetVaccinationListResponse> {
+  const { GET_VACCINATION_LIST_ANIMAL_WISE } = await import('src/constants/ApiConstant')
+  const response = await axiosPost({ url: `${GET_VACCINATION_LIST_ANIMAL_WISE}`, body: params })
+
+  return response?.data
+}
+
+// ==================== Medicine Side Effect API ====================
+
+export interface GetMedicineSideEffectParams {
+  animal_id: number | string
+  page_no?: number
+}
+
+export interface MedicineSideEffect {
+  id?: number
+  medicine_name?: string
+  name?: string
+  side_effect?: string
+  reason?: string
+  [key: string]: unknown
+}
+
+export interface GetMedicineSideEffectResponse {
+  success?: boolean
+  message?: string
+  data?: MedicineSideEffect[]
+}
+
+export async function getMedicineSideEffect(params: GetMedicineSideEffectParams): Promise<GetMedicineSideEffectResponse> {
+  const { GET_MEDICINE_SIDE_EFFECT } = await import('src/constants/ApiConstant')
+  const response = await axiosPost({ url: `${GET_MEDICINE_SIDE_EFFECT}`, body: params })
+
+  return response?.data
+}
+
+// ==================== Lineage / Family Tree API ====================
+
+export async function getLineageParents(params: GetLineageParentParams): Promise<GetLineageParentResponse> {
+  const response = await axiosGet({ url: GET_FAMILY_TREE_PARENT_LIST, params })
+
+  return response?.data
+}
+
+export async function getLineagePairs(params: GetLineagePairParams): Promise<GetLineagePairResponse> {
+  const response = await axiosGet({ url: GET_FAMILY_TREE_PAIR_LIST, params })
+
+  return response?.data
+}
+
+export async function getLineageSiblings(params: GetLineageSiblingParams): Promise<GetLineageSiblingResponse> {
+  const response = await axiosGet({ url: GET_FAMILY_TREE_SIBLING_LIST, params })
+
+  return response?.data
+}
+
+export async function addLineageParent(params: AddParentPayload): Promise<AddLineageParentResponse> {
+  const response = await axiosPost({ url: ADD_FAMILY_TREE_PARENT, body: params })
+
+  return response?.data
+}
+
+export async function editExternalParent(params: EditExternalParentPayload): Promise<EditExternalParentResponse> {
+  const response = await axiosPost({ url: EDIT_EXTERNAL_PARENT, body: params })
+
+  return response?.data
+}
+
+export async function deleteLineageParent(params: DeleteParentPayload): Promise<DeleteLineageParentResponse> {
+  const response = await axiosPost({ url: DELETE_FAMILY_TREE_PARENT, body: params })
+
+  return response?.data
+}
+
+export async function addLineagePair(params: AddPairPayload): Promise<AddLineagePairResponse> {
+  const response = await axiosPost({ url: ADD_FAMILY_TREE_PAIR, body: params })
+
+  return response?.data
+}
+
+export async function editLineagePair(params: EditPairPayload): Promise<EditLineagePairResponse> {
+  const response = await axiosPost({ url: EDIT_FAMILY_TREE_PAIR, body: params })
+
+  return response?.data
+}
+
+export async function deleteLineagePair(params: DeletePairPayload): Promise<DeleteLineagePairResponse> {
+  const response = await axiosPost({ url: DELETE_FAMILY_TREE_PAIR, body: params })
+
+  return response?.data
+}
+
+export async function checkUserAccess(params: UserAccessCheckParams): Promise<UserAccessCheckResponse> {
+  const response = await axiosGet({ url: GET_USER_ACCESS_CHECK, params })
+
+  return response?.data
+}
+
+export async function getLineageAnimalList(params: GetLineageAnimalListParams): Promise<GetLineageAnimalListResponse> {
+  const response = await axiosGet({ url: GET_LINEAGE_ANIMAL_LIST, params })
+
+  return response?.data
+}
+
+export async function getClutchList(params: GetClutchListParams): Promise<GetClutchListResponse> {
+  const response = await axiosGet({ url: GET_FAMILY_TREE_CLUTCH_LIST, params })
+
+  return response?.data
+}
+
+export async function getLitterList(params: GetLitterListParams): Promise<GetLitterListResponse> {
+  const response = await axiosGet({ url: GET_FAMILY_TREE_LITTER_LIST, params })
 
   return response?.data
 }

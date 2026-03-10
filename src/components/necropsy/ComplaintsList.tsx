@@ -8,47 +8,37 @@ import { MedicalCommonDataParams } from 'src/types/necropsy/api'
 
 // ==================== Types ====================
 
-interface DiagnosisListProps {
+interface ComplaintsListProps {
   animalId: number | string
   mortalityId?: number | string | null
   mortalityCreatedAt?: string | null
 }
 
-interface DiagnosisCounts {
+interface ComplaintsCounts {
   active: number
   closed: number
   all: number
 }
 
-interface DiagnosisRecord {
+interface ComplaintRecord {
   id?: number | string
   clinical_assessment?: string
   [key: string]: unknown
 }
 
-interface MedicalCommonDataResponse {
-  success: boolean
-  data?: {
-    result?: DiagnosisRecord[]
-    active?: string | number
-    closed?: string | number
-    all?: string | number
-  }
-}
-
-type SubTabType = 'Active' | 'Resolved' | 'All'
+type SubTabType = 'Active' | 'Closed' | 'All'
 
 // ==================== Constants ====================
 
-const SUB_TABS: SubTabType[] = ['Active', 'Resolved', 'All']
+const SUB_TABS: SubTabType[] = ['Active', 'Closed', 'All']
 
 // ==================== Component ====================
 
-const DiagnosisList: FC<DiagnosisListProps> = ({ animalId, mortalityId, mortalityCreatedAt }) => {
+const ComplaintsList: FC<ComplaintsListProps> = ({ animalId, mortalityId, mortalityCreatedAt }) => {
   const theme = useTheme()
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>('Active')
-  const [data, setData] = useState<DiagnosisRecord[]>([])
-  const [counts, setCounts] = useState<DiagnosisCounts>({ active: 0, closed: 0, all: 0 })
+  const [data, setData] = useState<ComplaintRecord[]>([])
+  const [counts, setCounts] = useState<ComplaintsCounts>({ active: 0, closed: 0, all: 0 })
   const [pageNo, setPageNo] = useState<number>(1)
   const [loading, setLoading] = useState<boolean>(true)
   const [hasMore, setHasMore] = useState<boolean>(false)
@@ -58,7 +48,7 @@ const DiagnosisList: FC<DiagnosisListProps> = ({ animalId, mortalityId, mortalit
     switch (tab) {
       case 'Active':
         return 'active'
-      case 'Resolved':
+      case 'Closed':
         return 'closed'
       case 'All':
         return 'all'
@@ -73,11 +63,10 @@ const DiagnosisList: FC<DiagnosisListProps> = ({ animalId, mortalityId, mortalit
       else setLoadingMore(true)
 
       const params: MedicalCommonDataParams = {
-        medical_type: 'diagnosis',
+        medical_type: 'complaint',
         type: getTypeParam(tab),
         page_no: page,
         limit: 10,
-        purpose: 'necropsy',
         ...(mortalityCreatedAt && { till_date: mortalityCreatedAt }),
         ...(mortalityId && { mortality_id: mortalityId })
       }
@@ -85,9 +74,9 @@ const DiagnosisList: FC<DiagnosisListProps> = ({ animalId, mortalityId, mortalit
       const res = await getMedicalCommonData(Number(animalId), params)
 
       if (res?.success) {
-        const records = (res.data?.result || []) as unknown as DiagnosisRecord[]
+        const records = (res.data?.result || []) as unknown as ComplaintRecord[]
         if (append) {
-          setData((prev: DiagnosisRecord[]) => [...prev, ...records])
+          setData((prev: ComplaintRecord[]) => [...prev, ...records])
         } else {
           setData(records)
         }
@@ -99,7 +88,7 @@ const DiagnosisList: FC<DiagnosisListProps> = ({ animalId, mortalityId, mortalit
         setHasMore(records.length === 10)
       }
     } catch (error) {
-      console.error('Error fetching diagnosis data:', error)
+      console.error('Error fetching complaints data:', error)
     } finally {
       setLoading(false)
       setLoadingMore(false)
@@ -123,7 +112,7 @@ const DiagnosisList: FC<DiagnosisListProps> = ({ animalId, mortalityId, mortalit
     switch (tab) {
       case 'Active':
         return counts.active
-      case 'Resolved':
+      case 'Closed':
         return counts.closed
       case 'All':
         return counts.all
@@ -205,16 +194,16 @@ const DiagnosisList: FC<DiagnosisListProps> = ({ animalId, mortalityId, mortalit
               fontWeight: 400
             }}
           >
-            No Diagnosis Recorded
+            No Complaints Recorded
           </Typography>
         </Box>
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {data.map((record: DiagnosisRecord, index: number) => (
+          {data.map((record: ComplaintRecord, index: number) => (
             <ClinicalAssessmentCard
               key={record.id || index}
               record={record}
-              isDifferential={record.clinical_assessment === 'tentative'}
+              isDifferential={false}
             />
           ))}
 
@@ -241,7 +230,7 @@ const DiagnosisList: FC<DiagnosisListProps> = ({ animalId, mortalityId, mortalit
 
           {!hasMore && data.length > 10 && (
             <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled, fontSize: '0.875rem' }}>
-              No more assessments to load
+              No more complaints to load
             </Typography>
           )}
         </Box>
@@ -250,4 +239,4 @@ const DiagnosisList: FC<DiagnosisListProps> = ({ animalId, mortalityId, mortalit
   )
 }
 
-export default DiagnosisList
+export default ComplaintsList

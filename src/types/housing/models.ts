@@ -760,3 +760,324 @@ export type DrawerType =
   | 'sub-enclosures'
   | 'insights-animals'
   | null
+
+// ==================== Lineage / Family Tree ====================
+
+export interface LineageAnimal {
+  id?: number
+  animal_id?: number
+  common_name?: string
+  default_common_name?: string
+  vernacular_name?: string
+  complete_name?: string
+  scientific_name?: string
+  local_identifier?: string
+  local_identifier_value?: string
+  local_identifier_name?: string
+  sex?: string
+  is_alive?: number | string
+  image_url?: string
+  default_icon?: string
+  breed_name?: string
+  morph_name?: string
+  birth_date?: string
+  age?: string
+  enclosure_name?: string
+  user_enclosure_name?: string
+  section_name?: string
+  site_name?: string
+  taxonomy_id?: number
+  type?: string
+  total_animal?: number
+  organization_name?: string
+  accession_id?: string
+}
+
+export interface ExternalAnimal {
+  id?: number
+  external_parent_id?: number
+  sex?: string
+  is_alive?: number | string
+  breed_id?: number | string
+  breed_name?: string
+  morph_id?: number | string
+  morph_name?: string
+  locality?: string
+  institute_id?: number | string
+  organization_name?: string
+  institute_name?: string
+  common_name?: string
+  identifier?: string
+  identifier_type?: string
+  local_identifier?: string
+  local_identifier_id?: number | string
+  local_identifier_name?: string
+  notes?: string
+  taxonomy_id?: number | string
+}
+
+export interface LineageParentData {
+  animal_id?: number
+  mother?: LineageAnimal | LineageAnimal[]
+  father?: LineageAnimal | LineageAnimal[]
+  external_mother?: ExternalAnimal | ExternalAnimal[]
+  external_father?: ExternalAnimal | ExternalAnimal[]
+  mother_count?: number
+  father_count?: number
+  external_mother_count?: number
+  external_father_count?: number
+}
+
+export interface LineagePair {
+  id?: number
+  pair_id?: number
+  start_date?: string
+  end_date?: string | null
+  // Type of the paired animal
+  animal_type?: 'internal' | 'external'
+
+  // Paired animal fields (from API response - NOT prefixed with 'pair_')
+  // For internal animals
+  animal_id?: number | string
+  common_name?: string
+  default_common_name?: string
+  complete_name?: string
+  vernacular_name?: string
+  scientific_name?: string
+  sex?: string
+  is_alive?: number | string
+  default_icon?: string
+  image_url?: string
+  local_identifier?: string
+  local_identifier_value?: string
+  local_identifier_name?: string
+  user_enclosure_name?: string
+  enclosure_name?: string
+  section_name?: string
+  site_name?: string
+  type?: string
+  total_animal?: number
+  accession_id?: string
+  breed_name?: string
+  morph_name?: string
+
+  // For external animals
+  identifier?: string
+  identifier_type?: string
+  institute_name?: string
+  organization_name?: string
+  taxonomy_id?: number | string
+
+  // Legacy fields (some APIs may still use these prefixed versions)
+  pair_animal_id?: number | string
+  pair_animal_type?: 'internal' | 'external'
+  animal_details?: LineageAnimal
+  pair_animal_details?: LineageAnimal | ExternalAnimal
+  pair_common_name?: string
+  pair_sex?: string
+  pair_is_alive?: number | string
+  pair_image_url?: string
+}
+
+export interface LineageSibling {
+  animal_id?: number
+  common_name?: string
+  complete_name?: string
+  vernacular_name?: string
+  local_identifier_value?: string
+  sex?: string
+  is_alive?: number | string
+  image_url?: string
+  default_icon?: string
+  birth_date?: string
+  age?: string
+  enclosure_name?: string
+  user_enclosure_name?: string
+}
+
+// ==================== Lineage CRUD Payloads ====================
+
+export interface AddParentPayload {
+  animal_id: number | string
+  is_mother: 0 | 1 // 1 = Dam (mother), 0 = Sire (father)
+  type: 'internal' | 'external'
+  parent_id: string // JSON stringified - array of animal IDs for internal, object for external
+  // Clutch/Litter fields (for Dam with egg-laying animals)
+  ref_type?: 'clutch' | 'litter'
+  ref_id?: number | string
+  create_new?: boolean
+  confirm_delete?: 0 | 1
+}
+
+export interface EditExternalParentPayload {
+  external_parent_id: number | string
+  animal_id: number | string
+  parent_type: 'sire' | 'dam'
+  taxonomy_id?: number | string
+  local_identifier?: string
+  local_identifier_type_id?: number | string
+  organization_name?: string
+  is_alive?: number | string
+  breed_id?: number | string
+  morph_id?: number | string
+}
+
+export interface DeleteParentPayload {
+  entity_parent_id: string // JSON stringified array of entity_parent IDs e.g. "[123, 456]"
+}
+
+export interface AddPairPayload {
+  // Mobile API field names
+  primary_animal_id?: number | string
+  paired_animal_id?: number | string
+  // Legacy field names (for backwards compatibility)
+  animal_id?: number | string
+  pair_animal_id?: number | string
+  pair_animal_type?: 'internal' | 'external'
+  start_date: string
+  end_date?: string | null
+  is_currently_paired?: number | boolean
+  // External pair fields
+  taxonomy_id?: number | string
+  local_identifier?: string
+  local_identifier_type_id?: number | string
+  organization_name?: string
+  is_alive?: number | string
+  breed_id?: number | string
+  morph_id?: number | string
+  sex?: string
+}
+
+export interface EditPairPayload {
+  pair_id: number | string
+  animal_id: number | string
+  start_date?: string
+  end_date?: string | null
+  is_currently_paired?: number | boolean
+  primary_animal_type?: 'internal' | 'external'
+  paired_animal_type?: 'internal' | 'external'
+  confirm_edit?: number
+  // For external pairs
+  taxonomy_id?: number | string
+  local_identifier?: string
+  organization_name?: string
+  is_alive?: number | string
+  breed_id?: number | string
+  morph_id?: number | string
+}
+
+export interface DeletePairPayload {
+  pair_id: number | string
+  animal_id?: number | string
+  confirm_delete?: 0 | 1
+}
+
+export interface ExternalAnimalFormData {
+  taxonomy_id?: number | string
+  taxonomy_name?: string
+  local_identifier?: string
+  local_identifier_type_id?: number | string
+  organization_name?: string
+  is_alive?: number | string
+  breed_id?: number | string
+  breed_name?: string
+  morph_id?: number | string
+  morph_name?: string
+  sex?: string
+}
+
+export interface UserAccessCheckParams {
+  module: string
+  action: 'ADD' | 'EDIT' | 'DELETE' | 'VIEW'
+  ref_type?: string
+  ref_id?: number | string
+}
+
+export interface UserAccessCheckResponse {
+  success?: boolean
+  message?: string
+  data?: {
+    has_access?: boolean
+    permission?: string
+  }
+}
+
+export interface LineageAnimalListItem {
+  animal_id?: number
+  common_name?: string
+  complete_name?: string
+  vernacular_name?: string
+  local_identifier_value?: string
+  local_identifier_name?: string
+  sex?: string
+  is_alive?: number | string
+  image_url?: string
+  default_icon?: string
+  breed_name?: string
+  morph_name?: string
+  enclosure_name?: string
+  user_enclosure_name?: string
+  section_name?: string
+  site_name?: string
+  taxonomy_id?: number
+  type?: string
+  total_animal?: number
+}
+
+// ==================== Clutch / Litter ====================
+
+export interface ClutchItem {
+  clutch_id?: number
+  clutch_no?: string
+  title?: string
+  mother_id?: number
+  start_date?: string
+  created_at?: string
+  egg_count?: number
+  status?: string
+}
+
+export interface LitterItem {
+  litter_id?: number
+  litter_no?: string
+  title?: string
+  mother_id?: number
+  start_date?: string
+  created_at?: string
+  offspring_count?: number
+  status?: string
+}
+
+export interface GetClutchListParams {
+  animal_id: number | string
+  q?: string
+  page_no?: number
+}
+
+export interface GetClutchListResponse {
+  success?: boolean
+  message?: string
+  data?: {
+    result?: ClutchItem[]
+    total_count?: number
+  }
+}
+
+export interface GetLitterListParams {
+  animal_id: number | string
+  is_recent?: 0 | 1
+  q?: string
+  page_no?: number
+}
+
+export interface GetLitterListResponse {
+  success?: boolean
+  message?: string
+  data?: {
+    result?: LitterItem[]
+    total_count?: number
+    // When is_recent=1, returns most recent litter directly
+    litter_id?: number
+    litter_no?: string
+  }
+}

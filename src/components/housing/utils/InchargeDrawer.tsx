@@ -9,6 +9,7 @@ import { debounce } from 'lodash'
 import { useInView } from 'react-intersection-observer'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { addIncharge } from 'src/lib/api/housing'
+import { assignAnimalIncharges } from 'src/lib/api/caretaker'
 import Toaster from 'src/components/Toaster'
 import { useRouter } from 'next/router'
 import NoDataFound from 'src/views/utility/NoDataFound'
@@ -69,6 +70,8 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
         return { type: 'enclosure', idField: 'enclosure_id' }
       case 'cluster':
         return { type: 'cluster_incharge', idField: 'cluster_id' }
+      case 'animal':
+        return { type: 'animal', idField: 'animal_id' }
       default:
         return { type: 'site_incharge', idField: 'site_id' }
     }
@@ -164,7 +167,8 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
     const isSelected = selectedIncharges.some((item: Incharge) => item.user_id === user.user_id)
     if (!isSelected && selectedIncharges.length >= 10) {
       Toaster({ type: 'error', message: 'Maximum 10 users can be selected' })
-      return
+      
+return
     }
 
     setSelectedIncharges((prev: Incharge[]) => {
@@ -181,7 +185,8 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
   const handleConfirm = async () => {
     if (selectedIncharges.length > 10) {
       Toaster({ type: 'error', message: 'Maximum 10 users can be selected' })
-      return
+      
+return
     }
 
     setSubmitLoader(true)
@@ -191,8 +196,12 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
       // Use custom onSubmit if provided, otherwise use default addIncharge
       if (onSubmit) {
         res = await onSubmit(selectedIncharges)
+      } else if (refType === 'animal') {
+        // Use animal-specific API for assigning incharges
+        const userIdsString = selectedIncharges.map(user => user.user_id).join(',')
+        res = await assignAnimalIncharges(Number(id), userIdsString)
       } else {
-        // Build payload based on refType
+        // Build payload based on refType for housing entities
         const getPayload = () => {
           const userIds = selectedIncharges.map(user => user.user_id)
           switch (refType) {

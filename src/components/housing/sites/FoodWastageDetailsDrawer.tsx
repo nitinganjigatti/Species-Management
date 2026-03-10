@@ -46,12 +46,14 @@ const FoodWastageDetailsDrawer: React.FC<FoodWastageDetailsDrawerProps> = ({
     try {
       if (wastageDate) {
         const date = parse(wastageDate, 'yyyy-MM-dd', new Date())
-        return format(date, 'dd MMM yyyy')
+        
+return format(date, 'dd MMM yyyy')
       }
     } catch {
       return wastageDate
     }
-    return wastageDate
+    
+return wastageDate
   }
 
   // Get user initials for avatar
@@ -61,7 +63,8 @@ const FoodWastageDetailsDrawer: React.FC<FoodWastageDetailsDrawerProps> = ({
     if (parts.length >= 2) {
       return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
     }
-    return name.substring(0, 2).toUpperCase()
+    
+return name.substring(0, 2).toUpperCase()
   }
 
   // Format datetime for display
@@ -69,7 +72,8 @@ const FoodWastageDetailsDrawer: React.FC<FoodWastageDetailsDrawerProps> = ({
     if (!dateStr) return ''
     try {
       const date = new Date(dateStr)
-      return format(date, 'dd MMM yyyy • hh:mm a')
+      
+return format(date, 'dd MMM yyyy • hh:mm a')
     } catch {
       return dateStr
     }

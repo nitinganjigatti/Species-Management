@@ -115,7 +115,7 @@ export interface InchargeDrawerProps {
   confirmLabel?: string;
   showFilter?: boolean;
   onSubmit?: (selectedUsers: Incharge[]) => Promise<{ success?: boolean; message?: string }>;
-  refType?: 'site' | 'section' | 'enclosure' | 'cluster';
+  refType?: 'site' | 'section' | 'enclosure' | 'cluster' | 'animal';
 }
 
 export interface InchargeRoleFilterDrawerProps {

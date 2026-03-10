@@ -14,7 +14,7 @@ import { Incharge, InchargeFilters } from 'src/types/housing/incharge'
 import { GridColDef } from '@mui/x-data-grid'
 
 interface InchargeListingProps {
-  refType?: 'site' | 'section' | 'enclosure' | 'cluster'
+  refType?: 'site' | 'section' | 'enclosure' | 'cluster' | 'animal'
 }
 
 const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) => {
@@ -26,6 +26,7 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
   const addSectionAccess = authData?.userData?.roles?.settings?.housing_add_section
   const addEnclosureAccess = authData?.userData?.roles?.settings?.housing_add_enclosure
   const addClusterAccess = authData?.userData?.roles?.settings?.manage_cluster_permission
+  const addAnimalAccess = authData?.userData?.roles?.settings?.collection_animal_records
   const loggedinUserId = authData?.userData?.user?.user_id
 
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
@@ -37,6 +38,7 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
       case 'section': return addSectionAccess
       case 'enclosure': return addEnclosureAccess
       case 'cluster': return addClusterAccess
+      case 'animal': return addAnimalAccess
       default: return false
     }
   }
@@ -49,6 +51,7 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
       case 'section': return 'Section'
       case 'enclosure': return 'Enclosure'
       case 'cluster': return 'Cluster'
+      case 'animal': return 'Animal'
       default: return 'Site'
     }
   }
@@ -70,6 +73,7 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
   // Memoized incharge data for the table
   const rows: Incharge[] = useMemo(() => (data?.data?.incharges || []) as unknown as Incharge[], [data])
   const total = useMemo(() => data?.data?.total_count || 0, [data])
+
   const userInList = useMemo(
     () => rows?.some((item: Incharge) => item?.user_id === loggedinUserId),
     [rows, loggedinUserId]

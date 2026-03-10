@@ -608,29 +608,51 @@ export const GET_ANIMAL_TRANSFER_LIST = 'v1/animal/get-transfer-list'
 
 // Animal Transfer Details APIs (from MoveAnimalService.js - used in ApprovalSummary.js)
 export const GET_ANIMAL_TRANSFER_SUMMARY = 'v1/animal/transfer/members'
+
 export const GET_ANIMAL_TRANSFER_BUTTON_STATUS = 'v1/animal/transfer/btn-status'
+
 export const GET_ANIMAL_TRANSFER_LOGS = 'antz/list-comments-logs'
+
 export const ADD_ANIMAL_TRANSFER_COMMENT = 'antz/transfer/addcomments'
+
 export const UPDATE_ANIMAL_TRANSFER_STATUS = 'antz/animal/update-transfer-status'
 
 // Hospital/Carcass Transfer APIs (from RTK Query transfer.js)
 export const GET_TRANSFER_SUMMARY = 'v1/get-transfer-summary'
+
 export const GET_TRANSFER_BUTTON_STATUS = 'v1/transfer'
+
 export const UPDATE_TRANSFER_STATUS = 'v1/transfer/update-btn-status'
+
 export const ADD_TRANSFER_COMMENT = 'v1/request/comment/create'
+
 export const GET_TRANSFER_ACTIVITY = 'v1/request'
 
 // Common Transfer APIs
 export const GET_TRANSFER_MEMBERS = 'v1/get-source-destination-wise-site-user-list-by-animal-movement-id'
+
 export const APPROVE_TRANSFER_REQUEST = 'antz/approve-transfer-request'
+
 export const REJECT_TRANSFER_REQUEST = 'animal/transfer/action'
+
 export const GET_ANIMAL_LIST_BY_SPECIES = 'v1/movement-animal-by-species'
 
 // Food Wastage APIs (matching mobile implementation)
 export const GET_SITE_FOOD_WASTAGE = 'v1/site/food/wastage'
+
 export const GET_SECTION_FOOD_WASTAGE = 'v1/section/food/wastage'
+
 export const GET_ENCLOSURE_FOOD_WASTAGE = 'v1/food/wastage' // Uses type=enclosure, type_id params
+
 export const GET_FOOD_WASTAGE_DETAILS = 'v1/food/wastage/details' // Details for a specific date
+
+// Taxonomy Hierarchy API
+export const GET_TAXONOMY_HIERARCHY = 'get-texonomy-hierarchy-list-by-species'
+
+// Vaccination/Deworming API
+export const GET_VACCINATION_LIST_ANIMAL_WISE = 'vaccination/get-animal-wise-list'
+
+export const GET_MEDICINE_SIDE_EFFECT = 'medical/medicine-side-effect'
 
 // Compliance  module
 
@@ -1102,12 +1124,44 @@ export const GET_LAB_REQUESTS_BY_ANIMAL = 'medical/get-lab-test-request-status-w
 
 // Lab Request Details
 export const LAB_REQUEST_DETAILS = 'v1/lab-request-details'
+
 export const LAB_REQUEST_SAMPLES = 'v1/lab-request/get-sample-details'
+
 export const LAB_REQUEST_NOTES = 'v1/lab-request-report-notes'
+
 export const LAB_REQUEST_REPORTS = 'v1/lab-request/get-attachment-list'
+
 export const LAB_SUB_TESTS = 'v1/labs/master-data'
+
 export const LAB_SAMPLE_LOGS = 'v1/lab-request/get-sample-logs'
 
 export const GET_ASSESSMENT_ANIMAL_TYPES = 'v1/assessment/animal/types'
 
 export const GET_ASSESSMENT_ANIMAL_DATA = 'v1/assessment/animal/defaultValue'
+
+// Family Tree / Lineage
+export const GET_FAMILY_TREE_PARENT_LIST = 'v1/familytree/parent/list'
+
+export const GET_FAMILY_TREE_PAIR_LIST = 'v1/familytree/pair/list'
+
+export const GET_FAMILY_TREE_SIBLING_LIST = 'v1/familytree/sibling/list'
+
+export const ADD_FAMILY_TREE_PARENT = 'v1/familytree/add/parent'
+
+export const EDIT_EXTERNAL_PARENT = 'v1/familytree/edit/external/parent'
+
+export const DELETE_FAMILY_TREE_PARENT = 'v1/familytree/delete/parent'
+
+export const ADD_FAMILY_TREE_PAIR = 'v1/familytree/add/pair'
+
+export const EDIT_FAMILY_TREE_PAIR = 'v1/familytree/pair/edit'
+
+export const DELETE_FAMILY_TREE_PAIR = 'v1/familytree/delete/pair'
+
+export const GET_USER_ACCESS_CHECK = 'zoo/users/access/check'
+
+export const GET_LINEAGE_ANIMAL_LIST = 'v1/familytree/animal/list'
+
+export const GET_FAMILY_TREE_CLUTCH_LIST = 'v1/familytree/clutch/list'
+
+export const GET_FAMILY_TREE_LITTER_LIST = 'v1/familytree/litter/list'

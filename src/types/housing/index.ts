@@ -98,7 +98,34 @@ export type {
 
   // Drawer
   DrawerData,
-  DrawerType
+  DrawerType,
+
+  // Lineage / Family Tree
+  LineageAnimal,
+  ExternalAnimal,
+  LineageParentData,
+  LineagePair,
+  LineageSibling,
+
+  // Lineage CRUD
+  AddParentPayload,
+  EditExternalParentPayload,
+  DeleteParentPayload,
+  AddPairPayload,
+  EditPairPayload,
+  DeletePairPayload,
+  ExternalAnimalFormData,
+  UserAccessCheckParams,
+  UserAccessCheckResponse,
+  LineageAnimalListItem,
+
+  // Clutch / Litter
+  ClutchItem,
+  LitterItem,
+  GetClutchListParams,
+  GetClutchListResponse,
+  GetLitterListParams,
+  GetLitterListResponse
 } from './models'
 
 // ==================== API Types ====================
@@ -249,7 +276,25 @@ export type {
   // Users with Access (get-userswith-access)
   UserWithAccessItem,
   GetUsersWithAccessParams,
-  GetUsersWithAccessResponse
+  GetUsersWithAccessResponse,
+
+  // Lineage / Family Tree
+  GetLineageParentParams,
+  GetLineageParentResponse,
+  GetLineagePairParams,
+  GetLineagePairResponse,
+  GetLineageSiblingParams,
+  GetLineageSiblingResponse,
+
+  // Lineage CRUD API
+  AddLineageParentResponse,
+  EditExternalParentResponse,
+  DeleteLineageParentResponse,
+  AddLineagePairResponse,
+  EditLineagePairResponse,
+  DeleteLineagePairResponse,
+  GetLineageAnimalListParams,
+  GetLineageAnimalListResponse
 } from './api'
 
 // ==================== State Types ====================

@@ -2,15 +2,23 @@ import { useTheme } from '@emotion/react'
 import { Breadcrumbs, Card, Tab, Tabs, Typography, Skeleton } from '@mui/material'
 import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
+import AnimalAssessment from 'src/components/housing/animals/AnimalAssessment'
 import AnimalDiet from 'src/components/housing/animals/AnimalDiet'
 import AnimalHistory from 'src/components/housing/animals/AnimalHistory'
+import AnimalHospitalTransfer from 'src/components/housing/animals/AnimalHospitalTransfer'
 import AnimalIdentifier from 'src/components/housing/animals/AnimalIdentifier'
 import AnimalIncidents from 'src/components/housing/animals/AnimalIncidents'
 import AnimalJournals from 'src/components/housing/animals/AnimalJournals'
+import AnimalLineage from 'src/components/housing/animals/AnimalLineage'
+import AnimalMedical from 'src/components/housing/animals/AnimalMedical'
 import AnimalMortality from 'src/components/housing/animals/AnimalMortality'
+import AnimalOffspring from 'src/components/housing/animals/AnimalOffspring'
 import AnimalOverview from 'src/components/housing/animals/AnimalOverview'
-import withModuleAccess from 'src/components/ProtectedRoute'
+import AnimalTaxonomy from 'src/components/housing/animals/AnimalTaxonomy'
+import NotesListing from 'src/components/housing/sites/NotesListing'
+import InchargeListing from 'src/components/housing/sites/InchargeListing'
 import AnimalQRCard from 'src/views/pages/housing/animals/AnimalQRCard'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
@@ -45,6 +53,7 @@ interface AnimalDetailsState {
   age?: string
   type?: string
   taxonomyId?: string
+  taxonomy_id?: string | number
   contraceptionStatus?: string
   sexingType?: string
   collectionType?: string
@@ -59,6 +68,8 @@ interface AnimalDetailsState {
   institutes_label?: string
   is_necropsy?: boolean
   is_deleted?: boolean
+  is_egg_animal?: boolean
+  reproduction_type?: string
 }
 
 interface EnclosureDetailsState {
@@ -76,21 +87,38 @@ interface ApiResponse {
   }
 }
 
+// Tab configuration matching mobile order and structure
 const tabConfig: TabConfigItem[] = [
   { label: 'Overview', value: 'overview', component: AnimalOverview },
+  { label: 'Taxonomy', value: 'taxonomy', component: AnimalTaxonomy },
+  { label: 'Assessment', value: 'assessment', component: AnimalAssessment },
+  { label: 'Notes', value: 'notes', component: NotesListing },
+  { label: 'Journal', value: 'journal', component: AnimalJournals },
+  { label: 'Medical', value: 'medical', component: AnimalMedical },
+  { label: 'Mortality', value: 'mortality', component: AnimalMortality },
+  { label: 'Media', value: 'media', component: AnimalMedia },
+  { label: 'Identifier', value: 'identifier', component: AnimalIdentifier },
+  { label: 'History', value: 'history', component: AnimalHistory },
   { label: 'Incidents', value: 'incidents', component: AnimalIncidents },
   { label: 'Diet', value: 'diet', component: AnimalDiet },
-  { label: 'Journal', value: 'journal', component: AnimalJournals },
-  { label: 'History', value: 'history', component: AnimalHistory },
-  { label: 'Identifier', value: 'identifier', component: AnimalIdentifier },
-  { label: 'Mortality', value: 'mortality', component: AnimalMortality },
-  { label: 'Media', value: 'media', component: AnimalMedia }
+  { label: 'Lineage', value: 'lineage', component: AnimalLineage },
+  { label: 'Offspring', value: 'offspring', component: AnimalOffspring },
+  { label: 'Hospital Transfer', value: 'hospital', component: AnimalHospitalTransfer },
+  { label: 'Incharges', value: 'incharges', component: InchargeListing }
 ]
 
 const AnimalDetais: React.FC = () => {
   const theme = useTheme() as any
   const router = useRouter()
   const { id } = router.query as { id?: string }
+  const authData = useContext(AuthContext) as any
+
+  // Permission checks (matching mobile implementation)
+  const permissions = authData?.userData?.roles?.settings || {}
+  const hasMedicalRecordsPermission = permissions?.medical_records
+  const hasDietModulePermission = permissions?.diet_module
+  const hasAccessMortalityModule = permissions?.access_mortality_module
+  const hasApprovalMoveAnimalExternal = permissions?.approval_move_animal_external
 
   const [loading, setLoading] = useState<boolean>(false)
   const [selectedTab, setSelectedTab] = useState<string>(tabConfig[0].value)
@@ -134,6 +162,7 @@ const AnimalDetais: React.FC = () => {
             age: ad?.age,
             type: ad?.type,
             taxonomyId: ad.taxonomy_id,
+            taxonomy_id: ad.taxonomy_id,
             contraceptionStatus: ad?.contraception_status,
             sexingType: ad?.sexing_type,
             collectionType: ad?.master_collection_type,
@@ -147,7 +176,9 @@ const AnimalDetais: React.FC = () => {
             animal_transfered: ad?.animal_transfered,
             institutes_label: ad?.institutes_label,
             is_necropsy: ad?.is_necropsy,
-            is_deleted: ad?.is_deleted
+            is_deleted: ad?.is_deleted,
+            is_egg_animal: ad?.is_egg_animal === 1 || ad?.is_egg_animal === '1',
+            reproduction_type: ad?.reproduction_type
           })
           setEnclosureDetails({
             enclusreId: ed?.user_enclosure_name,
@@ -172,21 +203,60 @@ const AnimalDetais: React.FC = () => {
     setSelectedTab(newValue)
   }
 
-  // Switch to overview tab if currently on mortality tab but animal is alive
-  useEffect(() => {
-    if (selectedTab === 'mortality' && animalDetails.isAlive === '1') {
-      setSelectedTab('overview')
-    }
-  }, [animalDetails.isAlive, selectedTab])
-
-  // Filter tabs based on animal's alive status
+  // Filter tabs based on permissions and animal conditions (matching mobile implementation)
   const filteredTabConfig = tabConfig.filter(tab => {
+    // Medical tab - requires medical_records permission
+    if (tab.value === 'medical' && !hasMedicalRecordsPermission) {
+      return false
+    }
+
+    // Diet tab - requires diet_module permission
+    if (tab.value === 'diet' && !hasDietModulePermission) {
+      return false
+    }
+
+    // Mortality tab - requires access_mortality_module permission AND animal must be dead
     if (tab.value === 'mortality') {
-      return animalDetails.isAlive === '0'
+      if (!hasAccessMortalityModule || animalDetails.isAlive !== '0') {
+        return false
+      }
+    }
+
+    // Lineage tab - hide for group animals
+    if (tab.value === 'lineage' && animalDetails.type === 'group') {
+      return false
+    }
+
+    // Offspring tab - hide for group animals AND indeterminate/undetermined sex
+    if (tab.value === 'offspring') {
+      if (animalDetails.type === 'group') {
+        return false
+      }
+      if (animalDetails.sex === 'indeterminate' || animalDetails.sex === 'undetermined') {
+        return false
+      }
+    }
+
+    // Hospital Transfer tab - requires approval_move_animal_external permission
+    if (tab.value === 'hospital' && !hasApprovalMoveAnimalExternal) {
+      return false
+    }
+
+    // Assessment tab - hide for group animals (when type is not 'single')
+    if (tab.value === 'assessment' && animalDetails.type !== 'single' && animalDetails.type !== '') {
+      return false
     }
 
     return true
   })
+
+  // Switch to overview tab if currently selected tab is no longer available
+  useEffect(() => {
+    const isTabAvailable = filteredTabConfig.some(tab => tab.value === selectedTab)
+    if (!isTabAvailable && filteredTabConfig.length > 0) {
+      setSelectedTab('overview')
+    }
+  }, [filteredTabConfig.length, selectedTab, animalDetails.type, animalDetails.sex, animalDetails.isAlive])
 
   const selected = filteredTabConfig.find(tab => tab.value === selectedTab)
 
@@ -314,6 +384,8 @@ const AnimalDetais: React.FC = () => {
                   setSelectedTab={setSelectedTab}
                   animalDetails={animalDetails}
                   enclosureDetails={enclosureDetails}
+                  refType="animal"
+                  entityName={animalDetails?.commonName}
                 />
               </Box>
             </>

@@ -27,7 +27,8 @@ const AnimalDrawer = ({
   module = 'housing',
   filters = {},
   sortType,
-  filterCount
+  filterCount,
+  zIndex
 }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
@@ -233,6 +234,7 @@ const AnimalDrawer = ({
       open={open}
       ModalProps={{ keepMounted: true }}
       sx={{
+        ...(zIndex && { zIndex }),
         '& .MuiDrawer-paper': {
           width: ['100%', '562px'],
           display: 'flex',

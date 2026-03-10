@@ -410,6 +410,7 @@ export interface MedicalRecordStatsResponse {
 export interface MedicalBasicDataListParams {
   page_no?: number
   limit?: number
+  length?: number
 }
 
 export interface MedicalBasicDataListResponse
@@ -425,6 +426,11 @@ export interface MedicalCommonDataParams {
   limit?: number
   from_date?: string
   to_date?: string
+  till_date?: string
+  medical_type?: 'prescription' | 'diagnosis' | 'complaint' | 'clinical_notes' | 'side_effect'
+  type?: 'all' | 'active' | 'closed'
+  purpose?: string
+  mortality_id?: number | string
 }
 
 export interface MedicalCommonDataResponse

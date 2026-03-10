@@ -626,3 +626,125 @@ export interface GetUsersWithAccessResponse {
     total_count?: number
   }
 }
+
+// ==================== Lineage / Family Tree API ====================
+
+export interface GetLineageParentParams {
+  animal_id: number | string
+  // Optional params for paginated list (matching mobile implementation)
+  is_mother?: '0' | '1'
+  type?: 'internal' | 'external'
+  page_no?: number
+  limit?: number
+  q?: string
+}
+
+export interface GetLineageParentResponse {
+  success?: boolean
+  message?: string
+  data?: {
+    animal_id?: number
+    mother?: import('./models').LineageAnimal | import('./models').LineageAnimal[]
+    father?: import('./models').LineageAnimal | import('./models').LineageAnimal[]
+    external_mother?: import('./models').ExternalAnimal | import('./models').ExternalAnimal[]
+    external_father?: import('./models').ExternalAnimal | import('./models').ExternalAnimal[]
+    mother_count?: number
+    father_count?: number
+    external_mother_count?: number
+    external_father_count?: number
+    // For paginated list response
+    result?: import('./models').LineageAnimal[]
+    total_count?: number
+  }
+}
+
+export interface GetLineagePairParams {
+  animal_id: number | string
+  page_no?: number
+  limit?: number
+}
+
+export interface GetLineagePairResponse {
+  success?: boolean
+  message?: string
+  data?: import('./models').LineagePair[]
+  total_count?: number
+}
+
+export interface GetLineageSiblingParams {
+  animal_id: number | string
+  page_no?: number
+  limit?: number
+}
+
+export interface GetLineageSiblingResponse {
+  success?: boolean
+  message?: string
+  data?: {
+    result?: import('./models').LineageSibling[]
+    total_count?: number
+  }
+}
+
+// ==================== Lineage CRUD API Types ====================
+
+export interface AddLineageParentResponse {
+  success?: boolean
+  message?: string
+  data?: {
+    parent_id?: number
+    external_parent_id?: number
+  }
+}
+
+export interface EditExternalParentResponse {
+  success?: boolean
+  message?: string
+  data?: unknown
+}
+
+export interface DeleteLineageParentResponse {
+  success?: boolean
+  message?: string
+  data?: unknown
+}
+
+export interface AddLineagePairResponse {
+  success?: boolean
+  message?: string
+  data?: {
+    pair_id?: number
+  }
+}
+
+export interface EditLineagePairResponse {
+  success?: boolean
+  message?: string
+  data?: unknown
+}
+
+export interface DeleteLineagePairResponse {
+  success?: boolean
+  message?: string
+  data?: {
+    pair_present?: boolean
+  }
+}
+
+export interface GetLineageAnimalListParams {
+  animal_id: number | string
+  parent_type?: 'sire' | 'dam'
+  taxonomy_id?: number | string
+  page_no?: number
+  limit?: number
+  q?: string
+}
+
+export interface GetLineageAnimalListResponse {
+  success?: boolean
+  message?: string
+  data?: {
+    result?: import('./models').LineageAnimalListItem[]
+    total_count?: number
+  }
+}
