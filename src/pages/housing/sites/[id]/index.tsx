@@ -14,6 +14,7 @@ import TeamsListing from 'src/components/housing/sites/TeamsListing'
 import AnimalTransferListing from 'src/components/housing/sites/AnimalTransferListing'
 import FoodWastageListing from 'src/components/housing/sites/FoodWastageListing'
 import UsersListing from 'src/components/housing/sites/UsersListing'
+import HospitalTransferListing from 'src/components/housing/sites/HospitalTransferListing'
 
 import { useQuery } from '@tanstack/react-query'
 import { getSpecificSiteAnalytics } from 'src/lib/api/housing'
@@ -71,7 +72,8 @@ const allTabConfig: TabConfigItem[] = [
     requiresPermission: 'approval_move_animal_external'
   },
   { label: 'Food Wastage', value: 'foodWastage', component: FoodWastageListing },
-  { label: 'Incharges', value: 'incharges', component: InchargeListing }
+  { label: 'Incharges', value: 'incharges', component: InchargeListing },
+  { label: 'Hospital Transfer', value: 'hospitalTransfer', component: HospitalTransferListing }
 ]
 
 const SiteDetails: React.FC = () => {
