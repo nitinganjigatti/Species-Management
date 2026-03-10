@@ -301,7 +301,7 @@ export default function BasicDetails({
                     onChange={handleDateChange}
                     format='DD MMM YYYY · hh:mm A'
                     minDateTime={dayjs.utc(patientData?.admitted_at).local()}
-                    maxDateTime={patientData?.discharge_at ? dayjs(patientData.discharge_at) : dayjs()}
+                    maxDateTime={patientData?.discharge_at ? dayjs.utc(patientData.discharge_at).local() : dayjs()}
                     slotProps={{
                       textField: {
                         fullWidth: true,
