@@ -587,7 +587,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                         .filter(unit => unit?.measurement_type?.toLowerCase() === 'weight')
                         .map(unit => (
                           <MenuItem key={unit?.id} value={unit?.id}>
-                            {unit?.uom_name} ({unit?.uom_abbr})
+                            {unit?.uom_abbr}
                           </MenuItem>
                         ))}
                     </Select>
