@@ -38,19 +38,20 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import FilePreviewCard from 'src/views/utility/NewMediaCard'
 import AnimalCard from 'src/views/utility/AnimalCard'
 
+import TransferPassQRCard from 'src/components/necropsy/TransferPassQRCard'
 import TransferChecklistDrawer from 'src/components/necropsy/TransferChecklistDrawer'
 import { getPatientDetailsByTransferId } from 'src/lib/api/hospital/incomingPatient'
 import { createIncomingNecropsySummaryComment, getIncomingNecropsyChecklistDetails } from 'src/lib/api/necropsy'
 
 import type {
   StyledTypographyProps,
+  QRDialogData,
   HospitalTransferDrawerProps,
   HospitalTransferData,
   ChecklistComment,
   GroupedChecklistSection,
   HospitalTransferCommentPayload
 } from 'src/types/housing/hospitalTransfer'
-
 
 // Groups checklist comments by date for timeline display
 const groupCommentsByDate = (comments: ChecklistComment[]): GroupedChecklistSection[] => {
@@ -68,7 +69,7 @@ const groupCommentsByDate = (comments: ChecklistComment[]): GroupedChecklistSect
   return Object.values(grouped)
 }
 
-const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, onClose, transferId }) => {
+const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, onClose, transferId, showQRCode }) => {
   const theme = useTheme()
   const router = useRouter()
 
@@ -81,6 +82,8 @@ const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, o
   const [showChecklistDrawer, setShowChecklistDrawer] = useState<boolean>(false)
   const [copied, setCopied] = useState<boolean>(false)
   const [showMobileNumber, setShowMobileNumber] = useState<boolean>(false)
+  const [openQRDialog, setOpenQRDialog] = useState<boolean>(false)
+  const [qrDialogData, setQRDialogData] = useState<QRDialogData | null>(null)
 
   // Fetch transfer details and checklist comments simultaneously
   const fetchAllDrawerData = useCallback(async (): Promise<void> => {
@@ -137,12 +140,11 @@ const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, o
   // Derived state for transfer status and visibility flags
   const details = hospitalTransferData?.transfer_details
   const isCheckListFilled = details?.activity_status !== 'PENDING' && details?.transfer_type !== 'intra' // Check if checklist is already filled based on activity and transfer type
-  const isHospitalSource = details?.source_type !== 'hospital'     // Checks if transfer source is not hospital
+  const isHospitalSource = details?.source_type !== 'hospital' // Checks if transfer source is not hospital
   const isTransferCancelled = details?.transfer_status === 'CANCELED' // Flag indicating transfer was cancelled
   const isTransferRejected = details?.transfer_status === 'REJECTED' // Flag indicating transfer was rejected
 
-
-  // Copies mobile number to clipboard 
+  // Copies mobile number to clipboard
   const handleCopyNumber = (number: string): void => {
     navigator.clipboard.writeText(number)
     setCopied(true)
@@ -159,7 +161,7 @@ const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, o
   // Memoized grouping of checklist comments for timeline rendering
   const groupedChecklistComments = useMemo(() => groupCommentsByDate(checklistComments), [checklistComments])
 
-   useEffect(() => {
+  useEffect(() => {
     if (open && transferId) {
       fetchAllDrawerData()
     }
@@ -209,23 +211,55 @@ const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, o
               {/* Transfer Locations */}
               <Box sx={{ px: 4, pb: 4 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
                     <StyledTypography fontWeight={500} fontSize={'20px'} color={theme.palette.customColors?.OnPrimary}>
                       Hospitalize Animal
                     </StyledTypography>
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <img src='/images/line_start_circle.svg' alt='line-start-circle' />
-                      <StyledTypography fontWeight={500} color={theme.palette.customColors?.OnPrimary}>
-                        {hospitalTransferData?.transfer_details?.source_name}
-                      </StyledTypography>
-                    </Box>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 2,
+                        width: '100%'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                          <img src='/images/line_start_circle.svg' alt='line-start-circle' />
+                          <StyledTypography fontWeight={500} color={theme.palette.customColors?.OnPrimary}>
+                            {hospitalTransferData?.transfer_details?.source_name}
+                          </StyledTypography>
+                        </Box>
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <img src='/images/line_end_square.svg' alt='line-end-square' />
-                      <StyledTypography fontWeight={500} color={theme.palette.customColors?.OnPrimary}>
-                        {hospitalTransferData?.transfer_details?.destination_name}
-                      </StyledTypography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                          <img src='/images/line_end_square.svg' alt='line-end-square' />
+                          <StyledTypography fontWeight={500} color={theme.palette.customColors?.OnPrimary}>
+                            {hospitalTransferData?.transfer_details?.destination_name}
+                          </StyledTypography>
+                        </Box>
+                      </Box>
+                      {showQRCode && hospitalTransferData?.transfer_details?.qr_code_full_path && (
+                        <IconButton
+                          onClick={() => {
+                            setOpenQRDialog(true)
+                            setQRDialogData({
+                              requestId: hospitalTransferData?.transfer_details?.transfer_code,
+                              qrCodeUrl: hospitalTransferData?.transfer_details?.qr_code_full_path,
+                              title: 'Transfer Pass',
+                              subtitle: 'Transfer Request number'
+                            })
+                          }}
+                          sx={{ p: 0 }}
+                        >
+                          <Icon
+                            icon='ic:outline-qr-code-2'
+                            fontSize={46}
+                            color={theme.palette.customColors?.OnPrimary}
+                          />
+                        </IconButton>
+                      )}
                     </Box>
                   </Box>
                 </Box>
@@ -786,6 +820,17 @@ const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, o
         )}
       </Drawer>
 
+      {openQRDialog && (
+        <TransferPassQRCard
+          open={openQRDialog}
+          handleClose={() => {
+            setOpenQRDialog(false)
+            setQRDialogData(null)
+          }}
+          transferData={qrDialogData}
+        />
+      )}
+
       {showChecklistDrawer && (
         <TransferChecklistDrawer
           open={showChecklistDrawer}
@@ -803,7 +848,7 @@ const StyledTypography = styled(Typography)<StyledTypographyProps>(({ theme, fon
   fontSize: fontSize || '1rem',
   fontWeight: fontWeight || 400,
   color: color || (theme as any).palette?.customColors?.OnSurfaceVariant || (theme as any).palette?.text?.primary,
-  ...(sx as any),
+  ...(sx as any)
 }))
 
 const StyledTimeline = styled(Timeline)(() => ({

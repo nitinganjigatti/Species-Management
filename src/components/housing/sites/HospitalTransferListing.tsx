@@ -111,7 +111,7 @@ const HospitalTransferListing = () => {
   // Determines the transfer status label  based on activity and settings
   const getTransferStatus = (item: HospitalTransferRow): TransferStatusInfo => {
     const transfer_type = item?.transfer_type
-    console.log(transfer_type)
+
     const labels: Record<string, TransferStatusInfo> = {
       pending: { label: 'Pending' },
       cancelled: { label: 'Cancelled' },
@@ -233,7 +233,7 @@ const HospitalTransferListing = () => {
               color: theme.palette.customColors.OnSurfaceVariant || theme.palette.text.primary,
               fontSize: '1rem',
               fontWeight: 400,
-              paddingLeft: '1.4rem',
+              pl: 1.4,
               maxWidth: '250px'
             }}
           />
@@ -352,6 +352,7 @@ const HospitalTransferListing = () => {
           }}
           transferId={selectedTransferRow?.transfer_id}
           onAcceptSuccess={() => refetch()}
+          showQRCode={true}
         />
       )}
     </>
