@@ -195,7 +195,8 @@ const EnclosureCountRegister = () => {
 
                 // Map to AnimalCard expected keys
                 local_identifier_name: item.primary_identifier_type || null,
-                local_identifier_value: item.primary_identifier_value || null
+                local_identifier_value: item.primary_identifier_value || null,
+                total_animal: Number(item.total_animal || 0)
               }
             }
 
@@ -787,7 +788,7 @@ const EnclosureCountRegister = () => {
                   }}
                   placeholder='Search by Species name'
                   value={searchInput}
-                  disabled={loading}
+                  // disabled={loading}
                   width={297}
                   borderRadius='4px'
                   inputStyle={{ padding: '10px 12px' }}
