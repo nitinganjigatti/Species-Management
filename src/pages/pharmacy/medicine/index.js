@@ -633,10 +633,7 @@ const ListOfMedicine = () => {
                         const val = e.target.value
                         setCategoryFilter(val)
                       }}
-                      options={[
-                        { id: 'All', label: 'All' },
-                        ...productCategoryOptions.map(opt => ({ id: opt.value, label: opt.label }))
-                      ]}
+                      options={productCategoryOptions}
                       sx={{ minWidth: 150, maxWidth: 200 }}
                     />
                     <MUISearch

@@ -382,7 +382,6 @@ const AddMedicine = () => {
         setUploadedImage(response?.data?.image ? response?.data?.image : '/images/tablet.png')
         const saltsFormValues = []
         const tempSalts = []
-        debugger
         if (response?.data?.salts != null && response?.data?.salts?.length > 0) {
           response?.data?.salts?.map((value, index) => {
             saltsFormValues.push({
@@ -721,7 +720,6 @@ const AddMedicine = () => {
 
         setSubmitLoader(true)
         reset(defaultValues)
-
         Router.replace(`/pharmacy/medicine/${id}`)
       } else {
         setSubmitLoader(false)
@@ -1037,6 +1035,9 @@ const AddMedicine = () => {
                             options={manufacturer?.map(item => ({ label: item.label, value: item.id })) || []}
                             onInputChange={value => manufacturerSearch(value)}
                             onItemClear={() => manufacturerSearch('')}
+                            getOptionLabel={option => option?.label || ''}
+                            getOptionValue={option => option?.value || ''}
+                            isOptionEqualToValue={(option, value) => option?.value === value?.value}
                           />
                         </Grid>
                         {pharmacyRole && (
@@ -1071,6 +1072,9 @@ const AddMedicine = () => {
                             options={packages?.map(item => ({ label: item.label, value: item.id })) || []}
                             onInputChange={value => packageSearch(value)}
                             onItemClear={() => packageSearch('')}
+                            getOptionLabel={option => option?.label || ''}
+                            getOptionValue={option => option?.value || ''}
+                            isOptionEqualToValue={(option, value) => option?.value === value?.value}
                           />
                         </Grid>
                         <Grid item size={{ xs: 12, sm: 3 }}>
@@ -1092,6 +1096,9 @@ const AddMedicine = () => {
                             options={uomList?.map(item => ({ label: item.unit_name, value: item.id })) || []}
                             onInputChange={value => unitListSearch(value)}
                             onItemClear={() => unitListSearch('')}
+                            getOptionLabel={option => option?.label || ''}
+                            getOptionValue={option => option?.value || ''}
+                            isOptionEqualToValue={(option, value) => option?.value === value?.value}
                           />
                         </Grid>
                         <Grid item size={{ xs: 12, sm: 3 }}>
@@ -1103,6 +1110,9 @@ const AddMedicine = () => {
                             options={productForm?.map(item => ({ label: item?.label, value: item.id })) || []}
                             onInputChange={value => productFormSearch(value)}
                             onItemClear={() => productFormSearch('')}
+                            getOptionLabel={option => option?.label || ''}
+                            getOptionValue={option => option?.value || ''}
+                            isOptionEqualToValue={(option, value) => option?.value === value?.value}
                           />
                         </Grid>
 
@@ -1154,6 +1164,9 @@ const AddMedicine = () => {
                                       }
                                       onInputChange={value => saltsListSearch(value)}
                                       onItemClear={() => saltsListSearch('')}
+                                      getOptionLabel={option => option?.label || ''}
+                                      getOptionValue={option => option?.value || ''}
+                                      isOptionEqualToValue={(option, value) => option?.value === value?.value}
                                     />
                                   </Grid>
                                   <Grid item size={{ xs: 10, sm: 4 }}>
@@ -1197,6 +1210,9 @@ const AddMedicine = () => {
                             options={drugsClassList?.map(item => ({ label: item?.label, value: item.id })) || []}
                             onInputChange={value => drugClassListSearch(value)}
                             onItemClear={() => drugClassListSearch('')}
+                            getOptionLabel={option => option?.label || ''}
+                            getOptionValue={option => option?.value || ''}
+                            isOptionEqualToValue={(option, value) => option?.value === value?.value}
                           />
                         </Grid>
                         <Grid item size={{ xs: 12, sm: 6 }}>
@@ -1208,6 +1224,9 @@ const AddMedicine = () => {
                             options={storageList?.map(item => ({ label: item.label, value: item.id })) || []}
                             onInputChange={value => storageListSearch(value)}
                             onItemClear={() => storageListSearch('')}
+                            getOptionLabel={option => option?.label || ''}
+                            getOptionValue={option => option?.value || ''}
+                            isOptionEqualToValue={(option, value) => option?.value === value?.value}
                           />
                         </Grid>
 
@@ -1256,6 +1275,9 @@ const AddMedicine = () => {
                             errors={errors}
                             multiple={true}
                             options={productCategoryOptions}
+                            getOptionLabel={option => option?.label || ''}
+                            getOptionValue={option => option?.value || ''}
+                            isOptionEqualToValue={(option, value) => option?.value === value?.value}
                           />
                         </Grid>
                         <Grid item size={{ xs: 12, sm: 6 }}>

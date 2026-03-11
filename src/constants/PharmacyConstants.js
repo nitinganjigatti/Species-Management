@@ -33,7 +33,8 @@ export const statusOptions = [
 export const getPharmacyTransactionConstants = key => PHARMACY_TRANSACTION_CONSTANTS[key] || key
 
 export const productCategoryOptions = [
-  { label: 'Vaccination', value: 'Vaccination' },
-  { label: 'Antibiotic', value: 'Antibiotic' },
-  { label: 'Supplement', value: 'Supplement' }
+  { id: 'All', label: 'All', value: 'All' },
+  { id: 'Vaccination', label: 'Vaccination', value: 'Vaccination' },
+  { id: 'Antibiotic', label: 'Antibiotic', value: 'Antibiotic' },
+  { id: 'Supplement', label: 'Supplement', value: 'Supplement' }
 ]
