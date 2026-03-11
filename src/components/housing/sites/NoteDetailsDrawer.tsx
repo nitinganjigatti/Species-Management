@@ -26,6 +26,7 @@ import { useAuth } from 'src/hooks/useAuth'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import EditNoteDrawer from './EditNoteDrawer'
+import NoteCommentDialog from './NoteCommentDialog'
 import type { Note, NoteAttachment, NoteComment, NoteImage } from 'src/types/housing'
 
 interface PriorityIcons {
@@ -111,6 +112,8 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [editDrawerOpen, setEditDrawerOpen] = useState(false)
+  const [commentDialogOpen, setCommentDialogOpen] = useState(false)
+  const [commentDialogLoading, setCommentDialogLoading] = useState(false)
 
   // Local like state to avoid full re-render on like toggle
   const [likeState, setLikeState] = useState<{ isLiked: boolean; count: number } | null>(null)
@@ -213,7 +216,30 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
     setComment('')
     setDeleteDialogOpen(false)
     setEditDrawerOpen(false)
+    setCommentDialogOpen(false)
     onClose()
+  }
+
+  const handleCommentDialogSubmit = async (data: { observation_id: number; notes: string }) => {
+    setCommentDialogLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append('observation_id', String(data.observation_id))
+      formData.append('observation', data.notes)
+
+      await addObservationComment(formData)
+
+      setCommentDialogOpen(false)
+      fetchObservationDetails()
+      if (onUpdate) onUpdate()
+
+      Toaster({ type: 'success', message: 'Comment added successfully' })
+    } catch (error) {
+      console.error('Error adding comment:', error)
+      Toaster({ type: 'error', message: 'Failed to add comment' })
+    } finally {
+      setCommentDialogLoading(false)
+    }
   }
 
   const handleEditSuccess = () => {
@@ -253,7 +279,14 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
 
   const getAttachmentUrl = (attachment: NoteAttachment | null): string | null => {
     if (!attachment) return null
-    return attachment.file || (attachment as any).url || (attachment as any).uri || (attachment as any).attachment_url || null
+
+    return (
+      attachment.file ||
+      (attachment as any).url ||
+      (attachment as any).uri ||
+      (attachment as any).attachment_url ||
+      null
+    )
   }
 
   const getEntityImage = (
@@ -338,7 +371,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
         paper: {
           sx: {
             width: { xs: '100%', sm: 560 },
-            backgroundColor: theme.palette.customColors?.Background ,
+            backgroundColor: theme.palette.customColors?.Background,
             display: 'flex',
             flexDirection: 'column',
             height: '100%'
@@ -355,7 +388,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
           px: 5,
           py: 4,
           borderBottom: `1px solid ${theme.palette.divider}`,
-          backgroundColor: theme.palette.customColors?.OnPrimary ,
+          backgroundColor: theme.palette.customColors?.OnPrimary,
           flexShrink: 0
         }}
       >
@@ -363,17 +396,15 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
           sx={{
             fontSize: '24px',
             fontWeight: 500,
-            color: theme.palette.customColors?.OnSurfaceVariant           }}
+            color: theme.palette.customColors?.OnSurfaceVariant
+          }}
         >
           Note
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {isCreator && (
             <>
-              <IconButton
-                size='small'
-                onClick={() => setEditDrawerOpen(true)}
-              >
+              <IconButton size='small' onClick={() => setEditDrawerOpen(true)}>
                 <EditIcon />
               </IconButton>
               <IconButton
@@ -401,7 +432,8 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
             flex: 1,
             overflowY: 'auto',
             minHeight: 0,
-            backgroundColor: theme.palette.customColors?.OnPrimary           }}
+            backgroundColor: theme.palette.customColors?.OnPrimary
+          }}
         >
           {/* Note Type Header */}
           <Box sx={{ px: 5, py: 4 }}>
@@ -412,15 +444,13 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                     width: 40,
                     height: 40,
                     borderRadius: 1,
-                    bgcolor: theme.palette.customColors?.OnPrimaryContainer ,
+                    bgcolor: theme.palette.customColors?.OnPrimaryContainer,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center'
                   }}
                 >
-                  <NoteIcon
-                    sx={{ color: theme.palette.customColors?.OnPrimary , fontSize: 22 }}
-                  />
+                  <NoteIcon sx={{ color: theme.palette.customColors?.OnPrimary, fontSize: 22 }} />
                 </Box>
                 <Typography sx={{ fontSize: '1.25rem', fontWeight: 600 }}>{parentType}</Typography>
               </Box>
@@ -484,7 +514,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
               <Box
                 sx={{
                   borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors?.OutlineVariant }`,
+                  border: `1px solid ${theme.palette.customColors?.OutlineVariant}`,
                   mb: 3,
                   overflow: 'hidden'
                 }}
@@ -494,12 +524,12 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                     bgcolor: theme.palette.customColors?.Background,
                     px: 3,
                     py: 2,
-                    borderBottom: `1px solid ${theme.palette.customColors?.OutlineVariant }`
+                    borderBottom: `1px solid ${theme.palette.customColors?.OutlineVariant}`
                   }}
                 >
                   <Typography
                     sx={{
-                      color: theme.palette.customColors?.OnSurfaceVariant ,
+                      color: theme.palette.customColors?.OnSurfaceVariant,
                       fontWeight: 600,
                       fontSize: '1rem'
                     }}
@@ -519,7 +549,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                         py: 1.5,
                         borderBottom:
                           index < entities.length - 1
-                            ? `1px solid ${theme.palette.customColors?.OutlineVariant }`
+                            ? `1px solid ${theme.palette.customColors?.OutlineVariant}`
                             : 'none'
                       }}
                     >
@@ -528,7 +558,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                         sx={{
                           width: 48,
                           height: 48,
-                          border: `1px solid ${theme.palette.customColors?.OutlineVariant }`
+                          border: `1px solid ${theme.palette.customColors?.OutlineVariant}`
                         }}
                       >
                         {entity.name?.[0]}
@@ -596,8 +626,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                 <LikeIcon
                   sx={{
                     fontSize: 20,
-                    color: isLiked
-                      ? theme.palette.customColors?.amber                       : theme.palette.text.secondary
+                    color: isLiked ? theme.palette.customColors?.amber : theme.palette.text.secondary
                   }}
                 />
                 <Typography
@@ -615,7 +644,14 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                   '&:hover': { opacity: 0.7 }
                 }}
               >
-                <CommentIcon sx={{ fontSize: 20 }} />
+                <IconButton
+                  size='small'
+                  onClick={() => setCommentDialogOpen(true)}
+                  // sx={{ bgcolor: theme.palette.customColors?.Background, width: 32, height: 32 }}
+                >
+                  <CommentIcon sx={{ fontSize: 20 }} />
+                </IconButton>
+
                 <Typography sx={{ color: theme.palette.customColors?.onPrimaryContainer, fontWeight: 500 }}>
                   {totalComments}
                 </Typography>
@@ -691,7 +727,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
           px: 5,
           py: 4,
           borderTop: `1px solid ${theme.palette.divider}`,
-          backgroundColor: theme.palette.customColors?.OnPrimary ,
+          backgroundColor: theme.palette.customColors?.OnPrimary,
           flexShrink: 0,
           boxShadow: '0px -1px 10px 0px rgba(0, 0, 0, 0.05)'
         }}
@@ -749,6 +785,15 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
         onClose={() => setEditDrawerOpen(false)}
         note={observationData}
         onSuccess={handleEditSuccess}
+      />
+
+      {/* Add Comment Dialog */}
+      <NoteCommentDialog
+        open={commentDialogOpen}
+        onClose={() => setCommentDialogOpen(false)}
+        note={observationData as Note | null}
+        onSubmit={handleCommentDialogSubmit}
+        loading={commentDialogLoading}
       />
     </Drawer>
   )
