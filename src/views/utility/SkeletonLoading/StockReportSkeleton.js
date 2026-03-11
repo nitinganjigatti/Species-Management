@@ -45,6 +45,11 @@ function StockReportSkeleton({
                 <Skeleton variant='rounded' width={'100%'} height={'40px'} />
               </Grid>
             )}
+            {StockReport && (
+              <Grid size={{ xs: ExpiredProducts ? 10 : 12, sm: Escrow ? 8 : ExpiredProducts ? 11 : 12, md: 4 }}>
+                <Skeleton variant='rounded' width={'100%'} height={'40px'} />
+              </Grid>
+            )}
             {/* DateRangePicker */}
             {AboutToExpire && (
               <Grid size={{ xs: AboutToExpire ? 10 : 12, md: 5 }}>
