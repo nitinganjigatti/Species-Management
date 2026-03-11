@@ -15,6 +15,7 @@ import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { useAuth } from 'src/hooks/useAuth'
 import { getEnclosureWiseStat } from 'src/lib/api/housing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
+import { EntityAssessment } from 'src/components/housing/common/assessment'
 
 interface TabConfigItem {
   label: string
@@ -59,6 +60,7 @@ const EnclsouerDetails: React.FC = () => {
   const tabConfig: TabConfigItem[] = [
     { label: 'Species', value: 'species', component: EnclosureWiseSpecies },
     { label: 'Media', value: 'media', component: MediaListing },
+    { label: 'Assessment', value: 'assessment', component: EntityAssessment },
     { label: 'Users', value: 'users', component: UsersListing },
     { label: 'Notes', value: 'notes', component: NotesListing },
     { label: 'Food Wastage', value: 'foodWastage', component: FoodWastageListing },
@@ -186,6 +188,9 @@ const EnclsouerDetails: React.FC = () => {
               refType="enclosure"
               entityName={(data?.data as any)?.user_enclosure_name}
               entityImage={(data?.data as any)?.images?.[0]?.file}
+              entityType="enclosure"
+              entityId={id || ''}
+              entityDetails={data?.data}
             />
           </Box>
         </Card>

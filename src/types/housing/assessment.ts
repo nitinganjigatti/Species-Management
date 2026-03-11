@@ -79,11 +79,24 @@ export interface UpdateAssessmentPayload extends AddAssessmentPayload {
 // Entity assessment payloads (for enclosure/section/site)
 export interface AddEntityAssessmentPayload extends AddAssessmentPayload {
   ref_id: string | number
-  ref_type: string
+  ref_type: 'site' | 'section' | 'enclosure'
 }
 
 export interface UpdateEntityAssessmentPayload extends AddEntityAssessmentPayload {
   entity_assessments_id: string
+}
+
+// Entity assessment API params
+export interface GetEntityAssessmentTypesParams {
+  ref_id: string | number
+  ref_type: 'site' | 'section' | 'enclosure'
+}
+
+export interface GetEntityAssessmentHistoryParams {
+  ref_id: string | number
+  ref_type: 'site' | 'section' | 'enclosure'
+  assessment_type_id: string
+  page_no?: number
 }
 
 // ==================== API Responses ====================

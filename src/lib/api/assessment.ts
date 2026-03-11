@@ -10,7 +10,11 @@ import {
   MEASUREMENT_UNITS,
   GET_PARAMS_FILER_OPTIONS,
   GET_PARAMETERS_ON_FILTERS,
-  GET_ASSESSMENT_ANIMAL_DATA
+  GET_ASSESSMENT_ANIMAL_DATA,
+  GET_ASSESSMENT_ENTITY_TYPES,
+  ADD_ENTITY_ASSESSMENT_VALUE,
+  UPDATE_ENTITY_ASSESSMENT_VALUE,
+  ADD_ASSESSMENT_TYPES_TO_ENTITY
 } from 'src/constants/ApiConstant'
 import type {
   GetAssessmentTypesResponse,
@@ -25,7 +29,11 @@ import type {
   AddAssessmentTypesPayload,
   AddAssessmentTypesResponse,
   GetAssessmentHistoryParams,
-  GetAssessmentHistoryResponse
+  GetAssessmentHistoryResponse,
+  AddEntityAssessmentPayload,
+  UpdateEntityAssessmentPayload,
+  GetEntityAssessmentTypesParams,
+  GetEntityAssessmentHistoryParams
 } from 'src/types/housing/assessment'
 
 // Type-safe wrappers for axios utilities
@@ -160,6 +168,96 @@ export async function getAssessmentHistory(
   const response = await axiosGet({
     url: `${GET_ASSESSMENT_ANIMAL_DATA}/${animalId}`,
     params
+  })
+
+  return response?.data
+}
+
+// ==================== Entity Assessment APIs (Site/Section/Enclosure) ====================
+
+/**
+ * Get assessment types for an entity (site, section, or enclosure)
+ * @param params - Parameters including ref_id and ref_type
+ */
+export async function getAssessmentEntityTypes(
+  params: GetEntityAssessmentTypesParams
+): Promise<GetAssessmentTypesResponse> {
+  const response = await axiosGet({
+    url: GET_ASSESSMENT_ENTITY_TYPES,
+    params
+  })
+
+  return response?.data
+}
+
+/**
+ * Add a new assessment entry for an entity
+ * @param payload - The assessment data including ref_id, ref_type, and assessment details
+ */
+export async function addEntityAssessmentEntry(
+  payload: AddEntityAssessmentPayload
+): Promise<AddAssessmentResponse> {
+  const response = await axiosPost({
+    url: ADD_ENTITY_ASSESSMENT_VALUE,
+    body: payload
+  })
+
+  return response?.data
+}
+
+/**
+ * Update an existing assessment entry for an entity
+ * @param payload - The assessment data including entity_assessments_id
+ */
+export async function updateEntityAssessmentEntry(
+  payload: UpdateEntityAssessmentPayload
+): Promise<UpdateAssessmentResponse> {
+  const response = await axiosPost({
+    url: UPDATE_ENTITY_ASSESSMENT_VALUE,
+    body: payload
+  })
+
+  return response?.data
+}
+
+/**
+ * Get assessment history for an entity
+ * Uses the same endpoint as animal assessment history but with ref_type parameter
+ * @param params - Query parameters including ref_id, ref_type, assessment_type_id, page_no
+ */
+export async function getEntityAssessmentHistory(
+  params: GetEntityAssessmentHistoryParams
+): Promise<GetAssessmentHistoryResponse> {
+  const { ref_id, ...queryParams } = params
+
+  // Uses the same endpoint as animal history: v1/assessment/animal/defaultValue/{id}
+  // The ref_type parameter differentiates between animal/site/section/enclosure
+  const response = await axiosGet({
+    url: `${GET_ASSESSMENT_ANIMAL_DATA}/${ref_id}`,
+    params: queryParams
+  })
+
+  return response?.data
+}
+
+/**
+ * Add or remove assessment types for an entity
+ * @param refId - The entity ID
+ * @param refType - The entity type (site, section, enclosure)
+ * @param payload - Contains assessment_types_to_be_removed and new_assessment_types (JSON arrays)
+ */
+export async function addAssessmentTypesToEntity(
+  refId: number | string,
+  refType: string,
+  payload: AddAssessmentTypesPayload
+): Promise<AddAssessmentTypesResponse> {
+  const response = await axiosPost({
+    url: ADD_ASSESSMENT_TYPES_TO_ENTITY,
+    body: {
+      ...payload,
+      ref_id: refId,
+      ref_type: refType
+    }
   })
 
   return response?.data

@@ -1141,6 +1141,17 @@ export const GET_ASSESSMENT_ANIMAL_TYPES = 'v1/assessment/animal/types'
 
 export const GET_ASSESSMENT_ANIMAL_DATA = 'v1/assessment/animal/defaultValue'
 
+// Entity Assessment (Site, Section, Enclosure)
+export const GET_ASSESSMENT_ENTITY_TYPES = 'v1/assessment/entity/type/list'
+
+export const ADD_ENTITY_ASSESSMENT_VALUE = 'v1/assessment/entity/add'
+
+export const UPDATE_ENTITY_ASSESSMENT_VALUE = 'v1/assessment/entity/update'
+
+export const GET_ENTITY_ASSESSMENT_HISTORY = 'v1/assessment/entity/defaultValue'
+
+export const ADD_ASSESSMENT_TYPES_TO_ENTITY = 'v1/assessment/entity/types/edit'
+
 // Family Tree / Lineage
 export const GET_FAMILY_TREE_PARENT_LIST = 'v1/familytree/parent/list'
 

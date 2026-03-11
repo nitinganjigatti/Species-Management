@@ -21,6 +21,7 @@ import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 import AddEnclosureDrawer from 'src/views/pages/housing/enclosures/AddEnclosureDrawer'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
+import { EntityAssessment } from 'src/components/housing/common/assessment'
 
 interface TabConfigItem {
   label: string
@@ -52,6 +53,7 @@ const tabConfig: TabConfigItem[] = [
   { label: 'Enclosures', value: 'enclosures', component: EnclosureListing },
   { label: 'Species', value: 'species', component: SpeciesListing },
   { label: 'Media', value: 'media', component: MediaListing },
+  { label: 'Assessment', value: 'assessment', component: EntityAssessment },
   { label: 'Mortality', value: 'mortality', component: MortalityListing },
   { label: 'Animals Under Treatment', value: 'animalTreatment', component: AnimalTreatmentListing },
   { label: 'Users', value: 'users', component: UsersListing },
@@ -208,11 +210,11 @@ const SectionDetails: React.FC = () => {
           loading={isLoading}
           zooName={(data?.data as any)?.section_name}
           image={(data?.data as any)?.images?.[0]?.file}
-          subtitle=""
+          subtitle=''
           userName={(data?.data as any)?.incharge_name}
-          description=""
-          userImage=""
-          pageTitle="Section Details"
+          description=''
+          userImage=''
+          pageTitle='Section Details'
           actions={{
             onAddNew: addEnclosureAccess ? () => setAddEnclosureDrawerOpen(true) : null
           }}
@@ -255,9 +257,12 @@ const SectionDetails: React.FC = () => {
               drawerData={drawerData}
               setDrawerData={setDrawerData}
               refetchEnclosure={refetchEnclosure}
-              refType="section"
+              refType='section'
               entityName={(data?.data as any)?.section_name}
               entityImage={(data?.data as any)?.images?.[0]?.file}
+              entityType='section'
+              entityId={id || ''}
+              entityDetails={data?.data}
             />
           </Box>
         </Card>

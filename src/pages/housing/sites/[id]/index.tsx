@@ -24,6 +24,7 @@ import { useAuth } from 'src/hooks/useAuth'
 import AddSectionDrawer from 'src/views/pages/housing/section/AddSectionDrawer'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import InchargeListing from 'src/components/housing/sites/InchargeListing'
+import { EntityAssessment } from 'src/components/housing/common/assessment'
 
 interface TabConfigItem {
   label: string
@@ -56,6 +57,7 @@ const allTabConfig: TabConfigItem[] = [
   { label: 'Sections', value: 'sections', component: SectionListing },
   { label: 'Species', value: 'species', component: SpeciesListing },
   { label: 'Media', value: 'media', component: MediaListing },
+  { label: 'Assessment', value: 'assessment', component: EntityAssessment },
   { label: 'Mortality', value: 'mortality', component: MortalityListing },
   {
     label: 'Animals Under Treatment',
@@ -303,6 +305,9 @@ const SiteDetails: React.FC = () => {
               settings={settings}
               entityName={siteData?.site_name}
               entityImage={siteData?.images?.[0]?.file}
+              entityType="site"
+              entityId={id || ''}
+              entityDetails={siteData}
             />
           </Box>
         </Card>
