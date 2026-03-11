@@ -296,46 +296,36 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
   }, [resolvedHospitalCaseId])
 
   const handleAddSurgeryRecord = () => {
-    const query = {}
-    let href
+  const query = {}
 
-    if (resolvedHospitalCaseId) {
-      query.hospital_case_id = resolvedHospitalCaseId
-    }
-
-    if (medicalRecordId) {
-      query.medical_record_id = medicalRecordId
-    }
-
-    if (Object.keys(query).length > 0) {
-      if (category === 'Outpatients') {
-        href = {
-          pathname: '/hospital/outpatient/AddSurgeryRecord',
-          query
-        }
-      }
-      else if (category === 'Discharged') {
-        href = {
-          pathname: '/hospital/discharged/AddSurgeryRecord',
-          query
-        }
-      } else if (category === 'Mortality') {
-        href = {
-          pathname: '/hospital/mortality/AddSurgeryRecord',
-          query
-        }
-      } else if (category === 'Follow Up') {
-        href = {
-          pathname: '/hospital/followup/AddSurgeryRecord',
-          query
-        }
-      }
-    } else {
-      href = '/hospital/inpatient/AddSurgeryRecord'
-    }
-
-    router.push(href)
+  if (resolvedHospitalCaseId) {
+    query.hospital_case_id = resolvedHospitalCaseId
   }
+
+  if (medicalRecordId) {
+    query.medical_record_id = medicalRecordId
+  }
+
+  if (Object.keys(query).length > 0) {
+    if (category === 'Outpatients') {
+      router.push({ pathname: '/hospital/outpatient/AddSurgeryRecord', query })
+    } 
+    else if (category === 'Discharged') {
+      router.push({ pathname: '/hospital/discharged/AddSurgeryRecord', query })
+    } 
+    else if (category === 'Mortality') {
+      router.push({ pathname: '/hospital/mortality/AddSurgeryRecord', query })
+    } 
+    else if (category === 'Follow Up') {
+      router.push({ pathname: '/hospital/followup/AddSurgeryRecord', query })
+    } 
+    else {
+      router.push({ pathname: '/hospital/inpatient/AddSurgeryRecord', query })
+    }
+  } else {
+    router.push('/hospital/inpatient/AddSurgeryRecord')
+  }
+}
 
   const activeRecord = useMemo(() => {
     if (!surgeryRecords.length) return null
