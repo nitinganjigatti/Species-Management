@@ -326,6 +326,10 @@ export interface ClusterAnalytics {
 
 // ==================== Notes / Observations ====================
 
+export interface NoteReactionCounts {
+  like?: number
+}
+
 export interface Note {
   observation_id: number
   observation_guid?: string
@@ -353,6 +357,7 @@ export interface Note {
   attachments?: NoteAttachment[]
   tagged_users?: TaggedUser[]
   reaction_count?: number
+  reaction_counts?: NoteReactionCounts
   comment_count?: number
   user_reaction?: string | null
   created_by?: number

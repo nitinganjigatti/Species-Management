@@ -46,6 +46,7 @@ export type {
 
   // Notes / Observations
   Note,
+  NoteReactionCounts,
   NoteImage,
   NoteAttachment,
   TaggedUser,

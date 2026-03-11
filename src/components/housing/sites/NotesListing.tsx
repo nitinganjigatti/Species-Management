@@ -18,7 +18,8 @@ import {
   setPagination,
   setFilters,
   clearFilters,
-  clearNotes
+  clearNotes,
+  updateNoteLike
 } from 'src/store/slices/housing/notesSlice'
 import { addNoteReaction, removeNoteReaction, addObservationComment } from 'src/lib/api/housing'
 import { useAuth } from 'src/hooks/useAuth'
@@ -198,22 +199,26 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
 
   // Handle like click
   const handleLikeClick = async (note: Note) => {
-    try {
-      const isLiked = note.user_reaction === 'like'
+    const isLiked = note.user_reaction === 'like'
+    const newLikedState = !isLiked
 
+    // Optimistic update - update UI immediately
+    dispatch(updateNoteLike({ observationId: note.observation_id, isLiked: newLikedState }))
+
+    try {
       if (isLiked) {
         await removeNoteReaction(note.observation_id)
       } else {
         await addNoteReaction(note.observation_id)
       }
 
-      dispatch(fetchNotes(buildQueryParams()))
-
       Toaster({
         type: 'success',
         message: isLiked ? 'Like removed' : 'Liked successfully'
       })
     } catch (error) {
+      // Revert optimistic update on failure
+      dispatch(updateNoteLike({ observationId: note.observation_id, isLiked: isLiked }))
       console.error('Error toggling like:', error)
       Toaster({
         type: 'error',

@@ -142,6 +142,22 @@ const notesSlice = createSlice({
     clearFilters: state => {
       state.filters = initialFilters
       state.page = 1
+    },
+    updateNoteLike: (state, action: PayloadAction<{ observationId: number; isLiked: boolean }>) => {
+      const { observationId, isLiked } = action.payload
+      const noteIndex = state.list.findIndex(note => note.observation_id === observationId)
+      if (noteIndex !== -1) {
+        const note = state.list[noteIndex]
+        const currentCount = note.reaction_counts?.like || 0
+        state.list[noteIndex] = {
+          ...note,
+          user_reaction: isLiked ? 'like' : null,
+          reaction_counts: {
+            ...note.reaction_counts,
+            like: isLiked ? currentCount + 1 : Math.max(0, currentCount - 1)
+          }
+        }
+      }
     }
   },
   extraReducers: builder => {
@@ -201,6 +217,6 @@ const notesSlice = createSlice({
   }
 })
 
-export const { clearNotes, setPagination, setFilters, clearFilters } = notesSlice.actions
+export const { clearNotes, setPagination, setFilters, clearFilters, updateNoteLike } = notesSlice.actions
 
 export default notesSlice.reducer

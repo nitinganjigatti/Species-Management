@@ -614,7 +614,7 @@ export async function editObservation(formData: FormData): Promise<EditObservati
 export async function addNoteReaction(observationId: number): Promise<AddNoteReactionResponse> {
   const response = await axiosPost({
     url: `${ADD_NOTE_REACTION}`,
-    body: { observation_id: observationId, reaction_type: 'like' }
+    body: { notes_id: observationId }
   })
 
   return response?.data
@@ -623,7 +623,7 @@ export async function addNoteReaction(observationId: number): Promise<AddNoteRea
 export async function removeNoteReaction(observationId: number): Promise<RemoveNoteReactionResponse> {
   const response = await axiosPost({
     url: `${REMOVE_NOTE_REACTION}`,
-    body: { observation_id: observationId }
+    body: { notes_id: observationId }
   })
 
   return response?.data
