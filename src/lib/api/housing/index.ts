@@ -1564,13 +1564,22 @@ export interface VaccinationRecord {
 export interface GetVaccinationListResponse {
   success?: boolean
   message?: string
-  data?: VaccinationRecord[]
+  data?: {
+    result?: VaccinationRecord[]
+    stats?: {
+      pending?: number
+      upcoming?: number
+      completed?: number
+    }
+    total_count?: number
+  } | VaccinationRecord[]
   total_count?: number
 }
 
 export async function getVaccinationList(params: GetVaccinationListParams): Promise<GetVaccinationListResponse> {
   const { GET_VACCINATION_LIST_ANIMAL_WISE } = await import('src/constants/ApiConstant')
-  const response = await axiosPost({ url: `${GET_VACCINATION_LIST_ANIMAL_WISE}`, body: params })
+  // Mobile uses GET with query params
+  const response = await axiosGet({ url: `${GET_VACCINATION_LIST_ANIMAL_WISE}`, params })
 
   return response?.data
 }
@@ -1594,12 +1603,38 @@ export interface MedicineSideEffect {
 export interface GetMedicineSideEffectResponse {
   success?: boolean
   message?: string
-  data?: MedicineSideEffect[]
+  data?: {
+    result?: MedicineSideEffect[]
+    total_count?: number
+  } | MedicineSideEffect[]
 }
 
 export async function getMedicineSideEffect(params: GetMedicineSideEffectParams): Promise<GetMedicineSideEffectResponse> {
   const { GET_MEDICINE_SIDE_EFFECT } = await import('src/constants/ApiConstant')
-  const response = await axiosPost({ url: `${GET_MEDICINE_SIDE_EFFECT}`, body: params })
+  // Mobile sends animal_id as JSON stringified array
+  
+  const body = {
+    animal_id: JSON.stringify([params.animal_id]),
+    page_no: params.page_no || 1
+  }
+  const response = await axiosPost({ url: `${GET_MEDICINE_SIDE_EFFECT}`, body })
+
+  return response?.data
+}
+
+export interface DeleteMedicineSideEffectParams {
+  side_effect_id: number | string
+}
+
+export interface DeleteMedicineSideEffectResponse {
+  success?: boolean
+  message?: string
+}
+
+export async function deleteMedicineSideEffect(params: DeleteMedicineSideEffectParams): Promise<DeleteMedicineSideEffectResponse> {
+  const { DELETE_MEDICINE_SIDE_EFFECT } = await import('src/constants/ApiConstant')
+  // Mobile sends { side_effect_id: id }
+  const response = await axiosPost({ url: `${DELETE_MEDICINE_SIDE_EFFECT}`, body: params })
 
   return response?.data
 }

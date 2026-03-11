@@ -30,6 +30,7 @@ interface NotesListingProps {
   refType?: 'site' | 'section' | 'enclosure' | 'animal'
   entityName?: string
   entityImage?: string
+  animalData?: any
 }
 
 interface CommentSubmitData {
@@ -48,7 +49,7 @@ interface NotesQueryParams {
   tagged_to?: string | number
 }
 
-const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityName, entityImage }) => {
+const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityName, entityImage, animalData }) => {
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
   const auth = useAuth()
@@ -382,6 +383,7 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
         onSuccess={handleAddNoteSuccess}
         entityName={entityName}
         entityImage={entityImage}
+        animalData={animalData}
       />
     </Box>
   )

@@ -386,6 +386,8 @@ const AnimalDetais: React.FC = () => {
                   enclosureDetails={enclosureDetails}
                   refType="animal"
                   entityName={animalDetails?.commonName}
+                  entityImage={data?.data?.animal_details?.default_icon}
+                  animalData={data?.data?.animal_details}
                 />
               </Box>
             </>

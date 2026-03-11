@@ -654,6 +654,8 @@ export const GET_VACCINATION_LIST_ANIMAL_WISE = 'vaccination/get-animal-wise-lis
 
 export const GET_MEDICINE_SIDE_EFFECT = 'medical/medicine-side-effect'
 
+export const DELETE_MEDICINE_SIDE_EFFECT = 'medical/delete-medicine-side-effect'
+
 // Compliance  module
 
 export const GET_DOCUMENT_TYPE_LIST = 'v1/document-types'

@@ -398,6 +398,26 @@ export type {
   UseTreatmentList
 } from './hooks'
 
+// ==================== Assessment Types ====================
+export type {
+  AssessmentResponseType,
+  AssessmentDefaultValue,
+  AssessmentValue,
+  AssessmentType,
+  AssessmentCategory,
+  MeasurementUnit,
+  AddAssessmentPayload,
+  UpdateAssessmentPayload,
+  AddEntityAssessmentPayload,
+  UpdateEntityAssessmentPayload,
+  GetAssessmentTypesResponse,
+  AddAssessmentResponse,
+  UpdateAssessmentResponse,
+  GetMeasurementUnitsResponse,
+  AssessmentDrawerMode,
+  AssessmentFormValues
+} from './assessment'
+
 // ==================== Component Props Types ====================
 export type {
   // Base

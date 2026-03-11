@@ -66,7 +66,7 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
         limit: PAGE_SIZE
       }
 
-      const res = await getLineageParents(params)
+      const res = await getLineageParents(params as any)
 
       // Response mapping: data?.result (matching mobile implementation)
       const resultData: LineageAnimal[] = res?.data?.result || []

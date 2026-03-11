@@ -341,21 +341,19 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
                 const isSelected = selectedAnimals.some(a => a.animal_id === animal.animal_id)
                 const isDisabled = animal.in_transit === '1' || animal.is_hospitalized === '1'
 
+                // When using radio/checkbox, the selection is handled by the onChange callback
+                // We pass false for disabled animals so no radio/checkbox is rendered
                 const selectionHandler = isDisabled
                   ? false
                   : {
                       checked: isSelected,
-                      onChange: () => {}
+                      onChange: () => handleAnimalClick(animal)
                     }
 
                 if (isSingleSelectMode) {
                   return (
                     <Box
                       key={animal.animal_id}
-                      onClick={e => {
-                        e.stopPropagation()
-                        if (!isDisabled) handleAnimalClick(animal)
-                      }}
                       sx={{ cursor: isDisabled ? 'not-allowed' : 'pointer' }}
                     >
                       <AnimalParentCard data={animal} radio={selectionHandler} />
@@ -366,10 +364,6 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
                 return (
                   <Box
                     key={animal.animal_id}
-                    onClick={e => {
-                      e.stopPropagation()
-                      if (!isDisabled) handleAnimalClick(animal)
-                    }}
                     sx={{ cursor: isDisabled ? 'not-allowed' : 'pointer' }}
                   >
                     <AnimalParentCard data={animal} checkbox={selectionHandler} />

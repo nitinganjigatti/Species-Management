@@ -28,6 +28,7 @@ import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
 import SelectNoteTypeDrawer from './SelectNoteTypeDrawer'
 import Icon from 'src/@core/components/icon'
+import AnimalCard from 'src/views/utility/AnimalCard'
 import type { User, ObservationType, ObservationMasterItem } from 'src/types/housing'
 import type { RootState, AppDispatch } from 'src/store'
 
@@ -115,9 +116,19 @@ interface AddNoteDrawerProps {
   onSuccess?: () => void
   entityName?: string
   entityImage?: string
+  animalData?: any
 }
 
-const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({ open, onClose, refType = 'site', refId, onSuccess, entityName, entityImage }) => {
+const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
+  open,
+  onClose,
+  refType = 'site',
+  refId,
+  onSuccess,
+  entityName,
+  entityImage,
+  animalData
+}) => {
   const theme = useTheme()
   const dispatch = useDispatch<AppDispatch>()
   const auth = useAuth()
@@ -127,6 +138,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({ open, onClose, refType = 
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
 
   const [loading, setLoading] = useState(false)
+
   const [formData, setFormData] = useState<FormData>({
     observationType: null,
     childTypes: [],
@@ -219,6 +231,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({ open, onClose, refType = 
     if (parts.length >= 2) {
       return (parts[0][0] + parts[1][0]).toUpperCase()
     }
+
     return name.substring(0, 2).toUpperCase()
   }
 
@@ -243,6 +256,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({ open, onClose, refType = 
     if (!file) return false
     const fileName = file.name?.toLowerCase() || ''
     const extension = fileName.split('.').pop() || ''
+
     return EXT_ICON_MAP.image.includes(extension) || file.type?.startsWith('image/')
   }
 
@@ -434,7 +448,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({ open, onClose, refType = 
         {/* Form Content */}
         <Box sx={{ flex: 1, overflowY: 'auto', minHeight: 0, p: 5 }}>
           {/* Entity Info */}
-          {entityName && (
+          {(entityName || animalData) && (
             <Box sx={{ mb: 4 }}>
               <Box
                 sx={{
@@ -463,27 +477,31 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({ open, onClose, refType = 
                 </Box>
 
                 <Box sx={{ px: 3, py: 2 }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 2
-                    }}
-                  >
-                    <Avatar
-                      src={entityImage || undefined}
+                  {refType === 'animal' && animalData ? (
+                    <AnimalCard data={animalData} size='14px' />
+                  ) : (
+                    <Box
                       sx={{
-                        width: 48,
-                        height: 48,
-                        border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2
                       }}
                     >
-                      {entityName?.[0]}
-                    </Avatar>
-                    <Typography sx={{ fontSize: '0.95rem', fontWeight: 500, color: theme.palette.text.primary }}>
-                      {refType ? refType.charAt(0).toUpperCase() + refType.slice(1) : 'Entity'}: {entityName}
-                    </Typography>
-                  </Box>
+                      <Avatar
+                        src={entityImage || undefined}
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`
+                        }}
+                      >
+                        {entityName?.[0]}
+                      </Avatar>
+                      <Typography sx={{ fontSize: '0.95rem', fontWeight: 500, color: theme.palette.text.primary }}>
+                        {refType ? refType.charAt(0).toUpperCase() + refType.slice(1) : 'Entity'}: {entityName}
+                      </Typography>
+                    </Box>
+                  )}
                 </Box>
               </Box>
 
@@ -870,7 +888,12 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({ open, onClose, refType = 
                 onChange={handleFileSelect}
               />
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                <Box component='img' src='/images/housing/gallery-add.svg' alt='Upload' sx={{ width: 24, height: 24 }} />
+                <Box
+                  component='img'
+                  src='/images/housing/gallery-add.svg'
+                  alt='Upload'
+                  sx={{ width: 24, height: 24 }}
+                />
                 <Typography
                   sx={{
                     fontSize: '1rem',
