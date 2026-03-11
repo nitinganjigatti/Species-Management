@@ -323,7 +323,7 @@ const AddIngredientswithChoice = props => {
       toast.error('Please select a Cutsize', {
         duration: 1000
       })
-      
+
       const missingCutsizeCards = selectedCardIngchoice.filter(card => !size[card.ingredient_id])
       setValidationErrors(prev => {
         const newErrors = new Set(prev)
@@ -500,7 +500,7 @@ const AddIngredientswithChoice = props => {
 
         return newSize
       })
-      
+
       setValidationErrors(prevErrors => prevErrors.filter(id => id !== itemId))
     }
   }
@@ -976,11 +976,11 @@ const AddIngredientswithChoice = props => {
                   mx: '24px',
                   borderRadius: '8px',
                   my: 4,
-                  border: validationErrors.includes(item.id) 
-                    ? '2px solid red' 
+                  border: validationErrors.includes(item.id)
+                    ? '2px solid red'
                     : selectedCardIngchoice.some(card => card.ingredient_id === item.id)
-                      ? `2px solid ${theme.palette.primary.main}`
-                      : 'none'
+                    ? `2px solid ${theme.palette.primary.main}`
+                    : 'none'
                 }}
                 onClick={event => handelShowBottom(event, item, index)}
               >
@@ -1087,7 +1087,7 @@ const AddIngredientswithChoice = props => {
                       direction='row'
                       sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
                     >
-                      <Typography>Preparation Type</Typography>
+                      <Typography>Preparation Type*</Typography>
 
                       <Box sx={{ width: 200 }}>
                         <FormControl fullWidth>
@@ -1186,7 +1186,7 @@ const AddIngredientswithChoice = props => {
                       <>
                         <Divider mt={-2} />
                         <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
-                          <Typography>Enter cut size</Typography>
+                          <Typography>Enter cut size*</Typography>
 
                           <Box sx={{ pl: 5, width: 150 }}>
                             <FormControl fullWidth>
@@ -1368,7 +1368,7 @@ const AddIngredientswithChoice = props => {
                 </IconButton>
               </Box>
               <Box sx={{ mt: 12, mb: 8 }}>
-                <Typography sx={{ py: 4 }}>Feeding Days</Typography>
+                <Typography sx={{ py: 4 }}>Feeding Days*</Typography>
 
                 <Stack
                   direction='row'

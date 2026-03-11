@@ -1043,31 +1043,24 @@ const DietDetail = () => {
                                               >
                                                 <Typography>GENERIC</Typography>
                                               </TableCell>
-                                              <TableCell
-                                                sx={{
-                                                  border: 'none',
-                                                  backgroundColor: '#C1D3D099',
-                                                  height: '40px',
-                                                  width: '133px',
-                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                                  textAlign: 'center'
-                                                }}
-                                              >
-                                                <Typography>FEMALE </Typography>
-                                              </TableCell>
-                                              <TableCell
-                                                colSpan={8}
-                                                sx={{
-                                                  border: 'none',
-                                                  backgroundColor: '#C1D3D099',
-                                                  height: '40px',
-                                                  width: '133px',
-                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                                  textAlign: 'center'
-                                                }}
-                                              >
-                                                <Typography>MALE</Typography>
-                                              </TableCell>
+                                              {dietDetails.child?.map((all, index) => {
+                                                return (
+                                                  <TableCell
+                                                    colSpan={5}
+                                                    key={index}
+                                                    sx={{
+                                                      border: 'none',
+                                                      backgroundColor: '#C1D3D099',
+                                                      height: '40px',
+                                                      width: '137px',
+                                                      borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                                      textAlign: 'center'
+                                                    }}
+                                                  >
+                                                    <Typography>{all}</Typography>
+                                                  </TableCell>
+                                                )
+                                              })}
                                             </>
                                           ) : dietDetails.diet_type_name === 'By Lifestage' ? (
                                             <>
@@ -1077,73 +1070,33 @@ const DietDetail = () => {
                                                   border: 'none',
                                                   backgroundColor: '#C1D3D099',
                                                   height: '40px',
-                                                  width: '137px',
+                                                  width: '140px',
                                                   borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                                   textAlign: 'center'
                                                 }}
                                               >
                                                 <Typography>GENERIC</Typography>
                                               </TableCell>
-                                              <TableCell
-                                                sx={{
-                                                  border: 'none',
-                                                  backgroundColor: '#C1D3D099',
-                                                  height: '40px',
-                                                  width: '140px',
-                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                                  textAlign: 'center'
-                                                }}
-                                              >
-                                                <Typography>Juvenile </Typography>
-                                              </TableCell>
-                                              <TableCell
-                                                sx={{
-                                                  border: 'none',
-                                                  backgroundColor: '#C1D3D099',
-                                                  height: '40px',
-                                                  width: '140px',
-                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                                  textAlign: 'center'
-                                                }}
-                                              >
-                                                <Typography>Young</Typography>
-                                              </TableCell>
-                                              <TableCell
-                                                sx={{
-                                                  border: 'none',
-                                                  backgroundColor: '#C1D3D099',
-                                                  height: '40px',
-                                                  width: '140px',
-                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                                  textAlign: 'center'
-                                                }}
-                                              >
-                                                <Typography>Adult</Typography>
-                                              </TableCell>
-                                              <TableCell
-                                                sx={{
-                                                  border: 'none',
-                                                  backgroundColor: '#C1D3D099',
-                                                  height: '40px',
-                                                  width: '157px',
-                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                                  textAlign: 'center'
-                                                }}
-                                              >
-                                                <Typography>Undetermined</Typography>
-                                              </TableCell>
-                                              <TableCell
-                                                sx={{
-                                                  border: 'none',
-                                                  backgroundColor: '#C1D3D099',
-                                                  height: '40px',
-                                                  width: '127px',
-                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                                  textAlign: 'center'
-                                                }}
-                                              >
-                                                <Typography>Old</Typography>
-                                              </TableCell>
+
+                                              {dietDetails.child?.map((all, index) => {
+                                                return (
+                                                  <TableCell
+                                                    colSpan={5}
+                                                    key={index}
+                                                    sx={{
+                                                      border: 'none',
+                                                      backgroundColor: '#C1D3D099',
+                                                      height: '40px',
+                                                      width: '140px',
+                                                      borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                                      textAlign: 'center',
+                                                      p: all === 'Undetermined' ? '6px' : '16px'
+                                                    }}
+                                                  >
+                                                    <Typography>{all}</Typography>
+                                                  </TableCell>
+                                                )
+                                              })}
                                             </>
                                           ) : dietDetails.diet_type_name === 'Generic' ? (
                                             <>
@@ -3414,7 +3367,7 @@ const DietDetail = () => {
                                                                         key={index}
                                                                         sx={{
                                                                           height: '32px',
-                                                                          borderRadius: '16px',
+                                                                          borderRadius: '7px',
                                                                           backgroundColor: '#1F415B1A',
                                                                           display: 'center',
                                                                           px: 2,
@@ -3431,6 +3384,14 @@ const DietDetail = () => {
                                                                           }}
                                                                         >
                                                                           {item?.ingredient_name}
+                                                                          <span
+                                                                            style={{
+                                                                              lineHeight: '18px',
+                                                                              fontWeight: 400
+                                                                            }}
+                                                                          >
+                                                                            {' |'}&nbsp;
+                                                                          </span>
                                                                         </Typography>
                                                                         {item?.master_cut_size ? (
                                                                           <Typography
@@ -3441,8 +3402,8 @@ const DietDetail = () => {
                                                                               color: theme.palette.secondary.dark
                                                                             }}
                                                                           >
-                                                                            &nbsp;-&nbsp; {item?.preparation_type}
-                                                                            &nbsp;-&nbsp;
+                                                                            {' '}
+                                                                            {item?.preparation_type} |&nbsp;
                                                                             {item?.master_cut_size}
                                                                           </Typography>
                                                                         ) : (
@@ -3892,12 +3853,12 @@ const DietDetail = () => {
                                                       {itemd.notes}
                                                     </>
                                                   ) : (
-                                                    (<></>) // Render nothing if no notes are available
+                                                    <></> // Render nothing if no notes are available
                                                   )}
                                                 </TableCell>
                                               </TableRow>
                                             </>
-                                          );
+                                          )
                                         })}
                                       </TableBody>
                                     ) : (
@@ -3956,7 +3917,7 @@ const DietDetail = () => {
         </>
       )}
     </>
-  );
+  )
 }
 
 export default DietDetail

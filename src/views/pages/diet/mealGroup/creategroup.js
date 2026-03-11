@@ -50,6 +50,7 @@ const CreateMealGroup = ({
   const [searchTerm, setSearchTerm] = useState('')
   const [removedEnclosures, setRemovedEnclosures] = useState([])
   const [loading, setLoading] = useState(false)
+  const toastLock = useRef(false)
 
   const handleRemove = index => {
     const itemToRemove = selectedItems[index]
@@ -93,13 +94,29 @@ const CreateMealGroup = ({
   //   }
   // }
 
+  const showToast = (message, type = 'error') => {
+    if (toastLock.current) return
+
+    toastLock.current = true
+    toast[type](message)
+
+    setTimeout(() => {
+      toastLock.current = false
+    }, 3000)
+  }
+
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
       setGroupNameError(true)
-      
-return
+
+      return
     }
     setGroupNameError(false)
+
+    if (!selectedItems || selectedItems.length === 0) {
+      showToast('Please select an enclosure')
+      return
+    }
 
     if (loading) return
 
@@ -264,7 +281,6 @@ return
           sx={{ height: '58px' }}
           fullWidth
           disabled={loading}
-
           //   disabled={loader || watch('nursery_name') === '' || watch('site_id') === ''}
           variant='contained'
           type='submit'
@@ -277,6 +293,9 @@ return
       </Box>
     )
   }
+
+  const totalSpecies = selectedItems?.reduce((acc, item) => acc + Number(item?.species_count || 0), 0) || 0
+  const totalAnimals = selectedItems?.reduce((acc, item) => acc + Number(item?.animal_count || 0), 0) || 0
 
   return dietModule ? (
     <>
@@ -426,7 +445,8 @@ return
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      {siteStats?.total_enclosures}
+                      {selectedItems?.length}
+                      {/* {siteStats?.total_enclosures} */}
                     </Box>
                     <Box
                       component='span'
@@ -437,7 +457,7 @@ return
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Enclosures
+                      {selectedItems?.length === 1 ? 'Enclosure' : 'Enclosures'}
                     </Box>
                   </Typography>
 
@@ -452,7 +472,8 @@ return
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      {siteStats?.total_species}
+                      {totalSpecies}
+                      {/* {siteStats?.total_species} */}
                     </Box>
                     <Box
                       component='span'
@@ -478,7 +499,8 @@ return
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      {siteStats?.total_animals}
+                      {totalAnimals}
+                      {/* {siteStats?.total_animals} */}
                     </Box>
                     <Box
                       component='span'
@@ -489,7 +511,7 @@ return
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Animals
+                      {totalAnimals === 1 ? 'Animal' : 'Animals'}
                     </Box>
                   </Typography>
                 </Box>

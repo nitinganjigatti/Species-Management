@@ -1022,17 +1022,27 @@ const MealGroup = () => {
               Add Enclosure
             </Button>
           )}
+          <Box onClick={e => e.stopPropagation()}>
+            {params.row.enclosure_count !== '0' ? (
+              <IconButton
+                onClick={e => handleEdit(e, params.row)}
+                size='small'
+                sx={{ color: theme.palette.primary.light }}
+              >
+                <Icon icon='mdi:pencil-outline' fontSize={20} />
+              </IconButton>
+            ) : (
+              <Box sx={{ width: 60 }} />
+            )}
 
-          <IconButton onClick={e => handleEdit(e, params.row)} size='small' sx={{ color: theme.palette.primary.light }}>
-            <Icon icon='mdi:pencil-outline' fontSize={20} />
-          </IconButton>
-          <IconButton
-            onClick={e => handleRemove(e, params.row.id)}
-            size='small'
-            sx={{ color: theme.palette.primary.light }}
-          >
-            <Icon icon='mdi:close' fontSize={20} />
-          </IconButton>
+            <IconButton
+              onClick={e => handleRemove(e, params.row.id)}
+              size='small'
+              sx={{ color: theme.palette.primary.light }}
+            >
+              <Icon icon='mdi:close' fontSize={20} />
+            </IconButton>
+          </Box>
         </Box>
       )
     }
@@ -1463,7 +1473,6 @@ const MealGroup = () => {
                 value={defaultSite}
                 disablePortal
                 id='site_id'
-
                 // clearIcon={firstSite?.site_id ? true: false}
                 disableClearable={defaultSite?.site_id === firstSite?.site_id}
                 options={authData?.userData?.user?.zoos?.[0]?.sites || []}

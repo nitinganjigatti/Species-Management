@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { getMealGroupList, AddEnclosureToExistng } from 'src/lib/api/diet/mealgroup'
 import { AuthContext } from 'src/context/AuthContext'
@@ -39,6 +39,7 @@ const AddEnclosureToGroup = ({
   const [selectedEnclosureIds, setSelectedEnclosureIds] = useState([])
   const [mealGroupError, setMealGroupError] = useState(false)
   const [loading, setLoading] = useState(false)
+  const toastLock = useRef(false)
 
   const dietModule = authData?.userData?.roles?.settings?.diet_module
 
@@ -47,7 +48,7 @@ const AddEnclosureToGroup = ({
       setSelectedEnclosureIds(checkedRows)
       fetchGroupList()
     }
-  }, [addEnclosureDrawer])
+  }, [addEnclosureDrawer, checkedRows])
 
   const fetchGroupList = async () => {
     const params = { site_id: selectedOption }
@@ -65,7 +66,7 @@ const AddEnclosureToGroup = ({
   }
 
   const handleRemove = index => {
-    const itemToRemove = selectedItems[index] 
+    const itemToRemove = selectedItems[index]
 
     const updatedItems = selectedItems.filter((_, i) => i !== index)
 
@@ -76,18 +77,34 @@ const AddEnclosureToGroup = ({
     setSelectedItems(updatedItems)
 
     // setSelectedEnclosureIds(updatedIds) // update just the IDs for checking checkboxes
-    setCheckedRows(updatedIds) 
+    setCheckedRows(updatedIds)
   }
 
   const handleCheckboxChange = id => {
     setSelectedEnclosureIds(prev => (prev.includes(id) ? prev.filter(e => e !== id) : [...prev, id]))
   }
 
+  const showToast = (message, type = 'error') => {
+    if (toastLock.current) return
+
+    toastLock.current = true
+    toast[type](message)
+
+    setTimeout(() => {
+      toastLock.current = false
+    }, 3000)
+  }
+
   const handleAdd = async () => {
     if (!groupId) return setMealGroupError(true)
     setMealGroupError(false)
 
-    if (loading) return 
+    if (!selectedItems || selectedItems.length === 0) {
+      showToast('Please select an enclosure')
+      return
+    }
+
+    if (loading) return
     setLoading(true)
 
     const params = {
@@ -142,7 +159,6 @@ const AddEnclosureToGroup = ({
           onClick={handleAdd}
           fullWidth
           disabled={loading}
-
           //   disabled={loader || watch('nursery_name') === '' || watch('site_id') === ''}
           variant='contained'
           type='submit'
@@ -156,12 +172,16 @@ const AddEnclosureToGroup = ({
     )
   }
 
+  const totalSpecies = selectedItems?.reduce((acc, item) => acc + Number(item?.species_count || 0), 0) || 0
+  const totalAnimals = selectedItems?.reduce((acc, item) => acc + Number(item?.animal_count || 0), 0) || 0
+
   return dietModule ? (
     <>
       <Drawer
         anchor='right'
         open={addEnclosureDrawer}
-        onClose={() => setAddEnclosureDrawer(false)}
+        ModalProps={{ keepMounted: true }}
+        //onClose={() => setAddEnclosureDrawer(false)}
         sx={{ '& .MuiDrawer-paper': { width: '100%', maxWidth: '562px' } }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 3, bgcolor: '#EEF5F1' }}>
@@ -181,7 +201,7 @@ const AddEnclosureToGroup = ({
               p: 3,
               borderRadius: '10px',
               mb: 4,
-              height: 120
+              height: mealGroupError ? 135 : 120
             }}
           >
             <Typography
@@ -237,6 +257,7 @@ const AddEnclosureToGroup = ({
               value={groupList.find(g => g.id === groupId) || null}
               onChange={(event, newValue) => {
                 setGroupId(newValue ? newValue.id : '')
+                setMealGroupError(false)
               }}
               isOptionEqualToValue={(option, value) => option.id === value.id}
               renderInput={params => (
@@ -245,6 +266,7 @@ const AddEnclosureToGroup = ({
                   label='Select'
                   placeholder='Search...'
                   error={mealGroupError}
+                  helperText={mealGroupError ? 'Please select Group name' : ''}
                   size='small'
                   sx={{
                     bgcolor: 'white',
@@ -306,7 +328,8 @@ const AddEnclosureToGroup = ({
                   color: '#006D35'
                 }}
               >
-                {siteStats?.total_enclosures}
+                {selectedItems?.length}
+                {/* {siteStats?.total_enclosures} */}
               </Box>
               <Box
                 component='span'
@@ -317,7 +340,7 @@ const AddEnclosureToGroup = ({
                   color: '#006D35'
                 }}
               >
-                Enclosures
+                {selectedItems?.length === 1 ? 'Enclosure' : 'Enclosures'}
               </Box>
             </Typography>
 
@@ -332,7 +355,8 @@ const AddEnclosureToGroup = ({
                   color: '#006D35'
                 }}
               >
-                {siteStats?.total_species}
+                {totalSpecies}
+                {/* {siteStats?.total_species} */}
               </Box>
               <Box
                 component='span'
@@ -358,7 +382,8 @@ const AddEnclosureToGroup = ({
                   color: '#006D35'
                 }}
               >
-                {siteStats?.total_animals}
+                {totalAnimals}
+                {/* {siteStats?.total_animals} */}
               </Box>
               <Box
                 component='span'
@@ -369,7 +394,7 @@ const AddEnclosureToGroup = ({
                   color: '#006D35'
                 }}
               >
-                Animals
+                {totalAnimals === 1 ? 'Animal' : 'Animals'}
               </Box>
             </Typography>
           </Box>
@@ -379,7 +404,7 @@ const AddEnclosureToGroup = ({
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
                 <CircularProgress />
               </Box>
-            ) : (
+            ) : selectedItems && selectedItems?.length > 0 ? (
               selectedItems.map((item, index) => (
                 <Box sx={{ mt: 3 }}>
                   <Card
@@ -415,6 +440,16 @@ const AddEnclosureToGroup = ({
                   </Card>
                 </Box>
               ))
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}
+              >
+                <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#888', mt: 30 }}>No Data Found</Typography>
+              </Box>
             )}
           </Box>
         </Box>
