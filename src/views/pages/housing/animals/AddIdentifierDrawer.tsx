@@ -238,7 +238,7 @@ const AddIdentifierDrawer: React.FC<AddIdentifierDrawerProps> = ({ open, setOpen
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: '#EFF5F2',
+            backgroundColor: theme.palette.customColors?.Background,
             px: '1.2rem',
             py: '1rem',
             borderBottom: `1px solid ${theme.palette.divider}`
@@ -255,7 +255,7 @@ const AddIdentifierDrawer: React.FC<AddIdentifierDrawerProps> = ({ open, setOpen
             </IconButton>
           </Box>
         </Box>
-        <Box sx={{ flex: 1, overflow: 'auto', background: '#EFF5F2' }}>
+        <Box sx={{ flex: 1, overflow: 'auto', background: theme.palette.customColors?.Background }}>
           <Box sx={{ px: 6, py: 4 }}>
             <form onSubmit={handleSubmit(onSubmit)}>
               <Card
@@ -325,7 +325,7 @@ const AddIdentifierDrawer: React.FC<AddIdentifierDrawerProps> = ({ open, setOpen
                                 width: 100,
                                 height: 100,
                                 borderRadius: 1,
-                                background: '#eaf6f6',
+                                background: theme.palette.customColors?.displaybgPrimary,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center'
@@ -352,13 +352,13 @@ const AddIdentifierDrawer: React.FC<AddIdentifierDrawerProps> = ({ open, setOpen
                                   position: 'absolute',
                                   top: 6,
                                   right: 6,
-                                  background: '#979797',
-                                  color: '#fff',
+                                  background: theme.palette.customColors?.secondaryBg,
+                                  color: theme.palette.customColors?.OnPrimary,
                                   width: 24,
                                   height: 24,
                                   zIndex: 1,
                                   '&:hover': {
-                                    background: '#757575'
+                                    background: theme.palette.customColors?.OnSurfaceVariant
                                   }
                                 }}
                               >
@@ -376,7 +376,7 @@ const AddIdentifierDrawer: React.FC<AddIdentifierDrawerProps> = ({ open, setOpen
                         <Box>
                           <Box
                             sx={{
-                              border: `2px dashed ${error ? theme.palette.error.main : '#E0E0E0'}`,
+                              border: `2px dashed ${error ? theme.palette.error.main : theme.palette.customColors?.OutlineVariant}`,
                               borderRadius: 1.2,
                               p: 2,
                               textAlign: 'center',
@@ -387,8 +387,8 @@ const AddIdentifierDrawer: React.FC<AddIdentifierDrawerProps> = ({ open, setOpen
                               justifyContent: 'center',
                               gap: 2,
                               '&:hover': {
-                                background: '#F5F5F5',
-                                borderColor: error ? theme.palette.error.main : '#BDBDBD'
+                                background: theme.palette.grey[100],
+                                borderColor: error ? theme.palette.error.main : theme.palette.grey[400]
                               }
                             }}
                             onClick={() => fileInputRef.current?.click()}
@@ -470,7 +470,7 @@ const AddIdentifierDrawer: React.FC<AddIdentifierDrawerProps> = ({ open, setOpen
             size='large'
             sx={{
               py: 2,
-              background: '#37BD69'
+              background: theme.palette.primary.main
             }}
             onClick={handleSubmit(onSubmit)}
           >

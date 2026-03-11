@@ -164,7 +164,7 @@ const EnclosureDrawer: React.FC<EnclosureDrawerProps> = ({ open, onClose, data }
         <Box
           sx={{
             border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-            backgroundColor: theme.palette.common.white,
+            backgroundColor: theme.palette.customColors?.OnPrimary,
             paddingX: 4,
             paddingY: 3,
             marginY: 6,
@@ -197,13 +197,13 @@ const EnclosureDrawer: React.FC<EnclosureDrawerProps> = ({ open, onClose, data }
             width: '100%',
             height: 52,
             borderRadius: '8px',
-            backgroundColor: theme.palette.common.white
+            backgroundColor: theme.palette.customColors?.OnPrimary
           }}
           placeholder='Search for a Enclosure'
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
-          backgroundColor={theme.palette.common.white}
+          backgroundColor={theme.palette.customColors?.OnPrimary}
         />
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>

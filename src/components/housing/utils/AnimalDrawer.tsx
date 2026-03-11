@@ -163,7 +163,7 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
         <Box
           sx={{
             border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-            backgroundColor: theme.palette.common.white,
+            backgroundColor: theme.palette.customColors?.OnPrimary,
             paddingX: 4,
             paddingY: 3,
             marginY: 6,
@@ -209,13 +209,13 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
             width: '100%',
             height: 52,
             borderRadius: '8px',
-            backgroundColor: theme.palette.common.white
+            backgroundColor: theme.palette.customColors?.OnPrimary
           }}
           placeholder='Search for animals'
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
-          backgroundColor={theme.palette.common.white}
+          backgroundColor={theme.palette.customColors?.OnPrimary}
         />
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>

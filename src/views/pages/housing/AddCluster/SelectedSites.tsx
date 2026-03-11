@@ -70,12 +70,12 @@ const SelectedSites: React.FC<SelectedSitesProps> = ({ open, setShowSelectedSite
             display: 'flex',
             alignItems: 'center',
             gap: 4,
-            background: '#fff',
+            background: theme.palette.customColors?.OnPrimary,
             borderRadius: 1,
             p: 4,
             mb: 2,
             mt: 6,
-            border: '1px solid #e0e0e0',
+            border: `1px solid ${theme.palette.customColors?.OutlineVariant}`,
             mx: 5
           }}
         >

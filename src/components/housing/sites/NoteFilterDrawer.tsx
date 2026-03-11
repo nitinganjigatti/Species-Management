@@ -183,8 +183,7 @@ const NoteFilterDrawer: React.FC<NoteFilterDrawerProps> = ({ open, onClose, filt
                   <Typography
                     sx={{
                       fontSize: '16px',
-                      color: theme.palette.customColors?.OnSurfaceVarient || theme.palette.text.primary
-                    }}
+                      color: theme.palette.customColors?.OnSurfaceVarient                     }}
                   >
                     {item.label}
                   </Typography>

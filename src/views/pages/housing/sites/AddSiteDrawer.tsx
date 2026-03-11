@@ -248,13 +248,13 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '4px',
                       '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#E0E0E0'
+                        borderColor: theme.palette.customColors?.OutlineVariant
                       },
                       '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#E0E0E0'
+                        borderColor: theme.palette.customColors?.OutlineVariant
                       },
                       '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#E0E0E0'
+                        borderColor: theme.palette.customColors?.OutlineVariant
                       }
                     },
                     '& .MuiInputBase-input': {
@@ -278,13 +278,13 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
                 '& .MuiOutlinedInput-root': {
                   borderRadius: '4px',
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#E0E0E0'
+                    borderColor: theme.palette.customColors?.OutlineVariant
                   },
                   '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#E0E0E0'
+                    borderColor: theme.palette.customColors?.OutlineVariant
                   },
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#E0E0E0'
+                    borderColor: theme.palette.customColors?.OutlineVariant
                   }
                 },
                 '& .MuiInputBase-input': {
@@ -309,7 +309,7 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
                         width: 100,
                         height: 100,
                         borderRadius: 1,
-                        bgcolor: '#eaf6f6',
+                        bgcolor: theme.palette.customColors?.displaybgPrimary,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center'
@@ -336,13 +336,13 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
                           position: 'absolute',
                           top: 6,
                           right: 6,
-                          background: '#979797',
-                          color: '#fff',
+                          background: theme.palette.customColors?.secondaryBg,
+                          color: theme.palette.customColors?.OnPrimary,
                           width: 24,
                           height: 24,
                           zIndex: 1,
                           '&:hover': {
-                            background: '#757575'
+                            background: theme.palette.customColors?.OnSurfaceVariant
                           }
                         }}
                       >
@@ -360,7 +360,7 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
                 <Box>
                   <Box
                     sx={{
-                      border: `2px dashed ${error ? theme.palette.error.main : '#E0E0E0'}`,
+                      border: `2px dashed ${error ? theme.palette.error.main : theme.palette.customColors?.OutlineVariant}`,
                       borderRadius: 1.2,
                       p: 2,
                       textAlign: 'center',
@@ -371,8 +371,8 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
                       justifyContent: 'center',
                       gap: 2,
                       '&:hover': {
-                        bgcolor: '#F5F5F5',
-                        borderColor: error ? theme.palette.error.main : '#BDBDBD'
+                        bgcolor: theme.palette.grey[100],
+                        borderColor: error ? theme.palette.error.main : theme.palette.grey[400]
                       }
                     }}
                     onClick={() => fileInputRef.current?.click()}
@@ -453,7 +453,7 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
                 '& .MuiOutlinedInput-root': {
                   borderRadius: '4px',
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#E0E0E0'
+                    borderColor: theme.palette.customColors?.OutlineVariant
                   }
                 },
                 '& .MuiInputBase-input': {
@@ -474,7 +474,7 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
                 '& .MuiOutlinedInput-root': {
                   borderRadius: '4px',
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#E0E0E0'
+                    borderColor: theme.palette.customColors?.OutlineVariant
                   }
                 },
                 '& .MuiInputBase-input': {
@@ -499,7 +499,7 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
               bottom: 0,
               zIndex: 1,
               px: 4,
-              bgcolor: 'white',
+              bgcolor: theme.palette.customColors?.OnPrimary,
               alignItems: 'center',
               justifyContent: 'center',
               display: 'flex'

@@ -758,7 +758,7 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
             },
             position: 'fixed',
             bottom: 0,
-            bgcolor: 'white',
+            bgcolor: theme.palette.customColors?.OnPrimary,
             alignItems: 'center',
             justifyContent: 'center',
             display: 'flex',

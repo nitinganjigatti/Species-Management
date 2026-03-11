@@ -218,7 +218,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
         paper: {
           sx: {
             width: { xs: '100%', sm: 560 },
-            backgroundColor: theme.palette.customColors?.Background || theme.palette.background.paper,
+            backgroundColor: theme.palette.customColors?.Background ,
             display: 'flex',
             flexDirection: 'column',
             height: '100%'
@@ -228,7 +228,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
     >
       <Box
         sx={{
-          backgroundColor: theme.palette.customColors?.OnPrimary || theme.palette.background.paper,
+          backgroundColor: theme.palette.customColors?.OnPrimary ,
           height: '100%',
           display: 'flex',
           flexDirection: 'column'
@@ -240,7 +240,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: theme.palette.customColors?.OnPrimary || theme.palette.background.paper,
+            backgroundColor: theme.palette.customColors?.OnPrimary ,
             px: 5,
             py: 4,
             borderBottom: `1px solid ${theme.palette.divider}`,
@@ -253,8 +253,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
               sx={{
                 fontSize: '24px',
                 fontWeight: 500,
-                color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
-              }}
+                color: theme.palette.customColors?.OnSurfaceVariant               }}
             >
               Select Note Type
             </Typography>
@@ -313,19 +312,17 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
                       flexShrink: 0,
                       border: 'none',
                       backgroundColor: isActive
-                        ? theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main
-                        : theme.palette.customColors?.mdAntzNeutral || theme.palette.grey[200],
+                        ? theme.palette.customColors?.OnPrimaryContainer
+                        : theme.palette.customColors?.mdAntzNeutral,
                       color: isActive
-                        ? theme.palette.customColors?.OnPrimary || theme.palette.common.white
-                        : theme.palette.customColors?.OnPrimaryContainer || theme.palette.text.primary,
+                        ? theme.palette.customColors?.OnPrimary
+                        : theme.palette.customColors?.OnPrimaryContainer,
                       '&:hover': isActive
                         ? {
-                            backgroundColor: `${
-                              theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main
-                            } !important`
+                            backgroundColor: `${theme.palette.customColors?.OnPrimaryContainer} !important`
                           }
                         : {
-                            backgroundColor: theme.palette.customColors?.OutlineVariant || theme.palette.grey[300]
+                            backgroundColor: theme.palette.customColors?.OutlineVariant
                           }
                     }}
                   >
@@ -355,8 +352,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
               sx={{
                 fontSize: '1rem',
                 fontWeight: 500,
-                color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
-              }}
+                color: theme.palette.customColors?.OnSurfaceVariant               }}
             >
               {isAllSelected ? 'Deselect all' : 'Select all'}
             </Typography>
@@ -413,10 +409,9 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
                           p: 4,
                           border: isSelected
                             ? `1px solid ${theme.palette.primary.main}`
-                            : `1px solid ${theme.palette.customColors?.SurfaceVariant || theme.palette.divider}`,
+                            : `1px solid ${theme.palette.customColors?.SurfaceVariant }`,
                           backgroundColor: isSelected
-                            ? theme.palette.customColors?.Surface || theme.palette.action.selected
-                            : theme.palette.customColors?.OnPrimary || theme.palette.background.paper,
+                            ? theme.palette.customColors?.Surface                             : theme.palette.customColors?.OnPrimary ,
                           borderRadius: 1,
                           cursor: 'pointer',
                           transition: 'background 0.2s, border-color 0.2s'
@@ -428,8 +423,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
                             sx={{
                               fontSize: '1rem',
                               fontWeight: 600,
-                              color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
-                            }}
+                              color: theme.palette.customColors?.OnSurfaceVariant                             }}
                           >
                             {typeLabel}
                           </Typography>
@@ -449,7 +443,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
           sx={{
             p: 4,
             borderTop: `1px solid ${theme.palette.divider}`,
-            backgroundColor: theme.palette.customColors?.OnPrimary || theme.palette.background.paper,
+            backgroundColor: theme.palette.customColors?.OnPrimary ,
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -461,8 +455,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
             sx={{
               fontSize: '1.25rem',
               fontWeight: 500,
-              color: theme.palette.customColors?.OnSurface || theme.palette.text.primary
-            }}
+              color: theme.palette.customColors?.OnSurface             }}
           >
             Selected - {localSelected.length}
           </Typography>
@@ -472,8 +465,8 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
               fullWidth
               onClick={handleDrawerClose}
               sx={{
-                borderColor: theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main,
-                color: theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main,
+                borderColor: theme.palette.customColors?.OnPrimaryContainer ,
+                color: theme.palette.customColors?.OnPrimaryContainer ,
                 height: '56px'
               }}
             >

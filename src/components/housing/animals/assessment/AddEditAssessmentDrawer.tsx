@@ -1,13 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Drawer,
-  IconButton,
-  TextField,
-  Typography
-} from '@mui/material'
+import { Box, Button, CircularProgress, Drawer, IconButton, TextField, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -21,11 +13,7 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import AssessmentScaleList from './AssessmentScaleList'
 import Toaster from 'src/components/Toaster'
 import { addAssessmentEntry, updateAssessmentEntry } from 'src/lib/api/assessment'
-import type {
-  AssessmentType,
-  AssessmentValue,
-  MeasurementUnit
-} from 'src/types/housing/assessment'
+import type { AssessmentType, AssessmentValue, MeasurementUnit } from 'src/types/housing/assessment'
 
 interface AddEditAssessmentDrawerProps {
   open: boolean
@@ -233,9 +221,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
           assessment_value: assessmentValue,
           comments: data.notes || '',
           recorded_date_time: recordedDateTime,
-          ...(assessment.response_type === 'numeric_value' && data.unitId
-            ? { assessment_unit_id: data.unitId }
-            : {})
+          ...(assessment.response_type === 'numeric_value' && data.unitId ? { assessment_unit_id: data.unitId } : {})
         }
 
         const res = await addAssessmentEntry(animalId, payload)
@@ -254,9 +240,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
           assessment_value: assessmentValue,
           comments: data.notes || '',
           recorded_date_time: recordedDateTime,
-          ...(assessment.response_type === 'numeric_value' && data.unitId
-            ? { assessment_unit_id: data.unitId }
-            : {})
+          ...(assessment.response_type === 'numeric_value' && data.unitId ? { assessment_unit_id: data.unitId } : {})
         }
 
         const res = await updateAssessmentEntry(animalId, payload)
@@ -475,13 +459,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
                     />
                   </Box>
                   <Box sx={{ flex: 1 }}>
-                    <ControlledTimePicker
-                      name='time'
-                      control={control}
-                      label='Time'
-                      required
-                      disabled={isViewMode}
-                    />
+                    <ControlledTimePicker name='time' control={control} label='Time' required disabled={isViewMode} />
                   </Box>
                 </Box>
               </Box>
@@ -514,7 +492,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
                 sx={{
                   px: 6,
                   py: 4,
-                  backgroundColor: theme.palette.customColors?.antzNotes || '#FFFDE7',
+                  backgroundColor: theme.palette.customColors?.antzNotes,
                   borderRadius: '0 0 4px 4px'
                 }}
               >
@@ -593,13 +571,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
                 }
               }}
             >
-              {loading ? (
-                <CircularProgress size={24} color='inherit' />
-              ) : isAddMode ? (
-                'ADD'
-              ) : (
-                'UPDATE'
-              )}
+              {loading ? <CircularProgress size={24} color='inherit' /> : isAddMode ? 'ADD' : 'UPDATE'}
             </Button>
           </Box>
         )}

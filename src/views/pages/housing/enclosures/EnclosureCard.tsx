@@ -8,19 +8,23 @@ interface StatProps {
   value: number | string
 }
 
-const Stat: React.FC<StatProps> = ({ label, value }) => (
-  <Chip
-    label={`${label} ${value}`}
-    sx={{
-      bgcolor: '#f0f4f2',
-      fontWeight: 600,
-      fontSize: 14,
-      borderRadius: 2,
-      mr: 1,
-      mb: 1
-    }}
-  />
-)
+const Stat: React.FC<StatProps> = ({ label, value }) => {
+  const theme = useTheme() as any
+
+  return (
+    <Chip
+      label={`${label} ${value}`}
+      sx={{
+        bgcolor: theme.palette.customColors?.Background,
+        fontWeight: 600,
+        fontSize: 14,
+        borderRadius: 2,
+        mr: 1,
+        mb: 1
+      }}
+    />
+  )
+}
 
 interface EnclosureImage {
   file?: string
@@ -48,7 +52,7 @@ const EnclosureCard: React.FC<EnclosureCardProps> = ({ enclosure, onClick }) => 
     <Box
       sx={{
         border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-        backgroundColor: theme.palette.common.white,
+        backgroundColor: theme.palette.customColors?.OnPrimary,
         padding: 4,
         width: '100%',
         display: 'flex',

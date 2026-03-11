@@ -163,6 +163,7 @@ const AnimalMortality: React.FC<AnimalMortalityProps> = ({ animalDetails }) => {
   ]
 
   const createdBy = mortality?.reported_by
+
   const createdAt = `${Utility?.formatDisplayDate(mortality?.reported_on)} | ${Utility?.convertUTCToLocaltime(
     mortality?.reported_on
   )}`

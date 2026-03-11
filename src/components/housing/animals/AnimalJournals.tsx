@@ -165,6 +165,7 @@ const AnimalJournals: React.FC = () => {
   const fetchAnimalJournalLogs = async (): Promise<void> => {
     const animalId = Array.isArray(id) ? id[0] : id
     if (!animalId) return
+
     const params = {
       animal_id: Number(animalId),
       category: 'animal_family_tree',
@@ -454,7 +455,7 @@ const AnimalJournals: React.FC = () => {
                                   </span>
                                 </Typography>
                               </Tooltip>
-                            );
+                            )
                           })}
 
                         {item.createdBy && (
@@ -491,7 +492,7 @@ const AnimalJournals: React.FC = () => {
           </Box>
         ))}
       </Box>
-    );
+    )
   }
 
   const handleSelection = async (selectedIDs: (string | number)[] | DateRange, category: string): Promise<void> => {
@@ -507,18 +508,21 @@ const AnimalJournals: React.FC = () => {
     // Only run array logic if it's array
     if (Array.isArray(selectedIDs) && selectedIDs.includes(isAllSelected as any)) {
       if (category === 'Users') {
-        (stateSetter as typeof setSelectedUsers)(users.map(user => user.user_id)) // Select all
+        ;(stateSetter as typeof setSelectedUsers)(users.map(user => user.user_id)) // Select all
         params[key] = ''
       } else if (category === 'Categories') {
-        (stateSetter as typeof setSelectedOptions)(prev => ({ ...prev, Categories: categoriesData.map(c => c.categoryId) }))
+        ;(stateSetter as typeof setSelectedOptions)(prev => ({
+          ...prev,
+          Categories: categoriesData.map(c => c.categoryId)
+        }))
         params[key] = ''
       }
     } else {
       params[key] = Array.isArray(selectedIDs) ? selectedIDs.toString() : ''
       if (category === 'Users') {
-        (stateSetter as typeof setSelectedUsers)(selectedIDs as (string | number)[])
+        ;(stateSetter as typeof setSelectedUsers)(selectedIDs as (string | number)[])
       } else if (category === 'Categories') {
-        (stateSetter as typeof setSelectedOptions)(prev => ({ ...prev, Categories: selectedIDs as number[] }))
+        ;(stateSetter as typeof setSelectedOptions)(prev => ({ ...prev, Categories: selectedIDs as number[] }))
       } else if (category === 'Date Range') {
         setSelectedOptions(prev => ({
           ...prev,

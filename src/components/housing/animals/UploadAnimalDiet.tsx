@@ -73,9 +73,9 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
   fetchTableData,
   animalData
 }) => {
-    const theme = useTheme() as any
-    const fileInputRef = useRef<HTMLInputElement>(null)
-    const authData = useContext(AuthContext)
+  const theme = useTheme() as any
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const authData = useContext(AuthContext)
 
   const [preparedByUsers, setPreparedByUsers] = useState<UserOption[]>([])
   const [defaultPreparedBy, setDefaultPreparedBy] = useState<UserOption | null>(null)
@@ -103,30 +103,33 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
     reValidateMode: 'onChange'
   })
 
-    useEffect(() => {
-        if (uploadAnimalDietDrawer) {
-            getUsers()
+  useEffect(() => {
+    if (uploadAnimalDietDrawer) {
+      getUsers()
 
-            // Prefill with current user when opening
-            const user = (authData as any)?.userData?.user
-            if (user) {
-                const current: UserOption = { user_id: user?.user_id, user_name: `${user?.user_first_name} ${user?.user_last_name}` }
-                setDefaultPreparedBy(current)
-                setValue('dietitian_id', String(current.user_id))
-            }
+      // Prefill with current user when opening
+      const user = (authData as any)?.userData?.user
+      if (user) {
+        const current: UserOption = {
+          user_id: user?.user_id,
+          user_name: `${user?.user_first_name} ${user?.user_last_name}`
         }
-    }, [uploadAnimalDietDrawer, authData])
-
-    const getUsers = async (): Promise<void> => {
-        try {
-            const zoo_id = (authData as any)?.userData?.user?.zoos?.[0]?.zoo_id
-            if (!zoo_id) return
-            const Users = await getUserList({ zoo_id })
-            setPreparedByUsers(Users?.data)
-        } catch (error) {
-            Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
-        }
+        setDefaultPreparedBy(current)
+        setValue('dietitian_id', String(current.user_id))
+      }
     }
+  }, [uploadAnimalDietDrawer, authData])
+
+  const getUsers = async (): Promise<void> => {
+    try {
+      const zoo_id = (authData as any)?.userData?.user?.zoos?.[0]?.zoo_id
+      if (!zoo_id) return
+      const Users = await getUserList({ zoo_id })
+      setPreparedByUsers(Users?.data)
+    } catch (error) {
+      Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
+    }
+  }
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, speciesId?: string): Promise<void> => {
     const file = event?.target?.files?.[0]
@@ -182,7 +185,7 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
           sm: '560px'
         },
         zIndex: 100,
-        backgroundColor: '#fff',
+        backgroundColor: theme.palatte.customColors.Onprimary,
         display: 'flex',
         gap: 1,
         padding: '20px 16px'
@@ -325,7 +328,9 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
                         id='dietitian_id'
                         options={preparedByUsers}
                         getOptionLabel={(option: UserOption) => option.user_name}
-                        isOptionEqualToValue={(option: UserOption, value: UserOption) => option?.user_id === value?.user_id}
+                        isOptionEqualToValue={(option: UserOption, value: UserOption) =>
+                          option?.user_id === value?.user_id
+                        }
                         onChange={(e: React.SyntheticEvent, val: UserOption | null) => {
                           if (val === null) {
                             setDefaultPreparedBy(null)
@@ -390,7 +395,6 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
                     <Controller
                       name='notes'
                       control={control}
-
                       //   rules={{ required: !editNurseryId }}
                       render={({ field: { value, onChange } }) => (
                         <Grid onClick={() => fileInputRef.current?.click()} size={{ md: 12, sm: 12, xs: 12 }}>
@@ -514,7 +518,7 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
             },
             position: 'fixed',
             bottom: 0,
-            bgcolor: 'white',
+            bgcolor: theme.palette.customColors?.OnPrimary,
             alignItems: 'center',
             justifyContent: 'center',
             display: 'flex',
@@ -528,7 +532,6 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
             variant='contained'
             size='large'
             sx={{ height: '58px', width: '514px', mx: 4 }}
-
             // onClick={() => {
             //   handleSubmit()
             // }}

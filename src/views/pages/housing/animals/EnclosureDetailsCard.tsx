@@ -93,8 +93,8 @@ const EnclosureDetailsCard: React.FC<EnclosureDetailsCardProps> = ({ enclosureDa
               alignItems: 'center',
               borderRight: {
                 xs: 'none',
-                sm: idx % 2 === 1 ? 'none' : '0.5px solid #006D354D',
-                md: info.length === idx + 1 ? 'none' : '0.5px solid #006D354D'
+                sm: idx % 2 === 1 ? 'none' : `0.5px solid ${theme.palette.customColors?.Outline}`,
+                md: info.length === idx + 1 ? 'none' : `0.5px solid ${theme.palette.customColors?.Outline}`
               },
               minWidth: 0
             }}

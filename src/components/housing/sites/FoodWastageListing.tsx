@@ -317,7 +317,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
       },
       markers: {
         size: 4,
-        colors: [theme.palette.common.white],
+        colors: [theme.palette.customColors?.OnPrimary],
         strokeColors: theme.palette.customColors.Tertiary,
         strokeWidth: 2,
         hover: {
@@ -689,7 +689,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
             <Box
               sx={{
                 p: 2.5,
-                backgroundColor: theme.palette.common.white,
+                backgroundColor: theme.palette.customColors?.OnPrimary,
                 borderRadius: 1,
                 border: `1px solid ${theme.palette.customColors.OutlineVariant}`
               }}
@@ -726,7 +726,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
             <Box
               sx={{
                 p: 2.5,
-                backgroundColor: theme.palette.common.white,
+                backgroundColor: theme.palette.customColors?.OnPrimary,
                 borderRadius: 1,
                 border: `1px solid ${theme.palette.customColors.OutlineVariant}`
               }}
@@ -851,7 +851,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
                   <Box
                     sx={{
                       p: 2.5,
-                      backgroundColor: theme.palette.common.white,
+                      backgroundColor: theme.palette.customColors?.OnPrimary,
                       borderRadius: 1,
                       border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                     }}

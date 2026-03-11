@@ -568,11 +568,11 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                     opacity: isInternalDisabled ? 0.5 : 1,
                     backgroundColor:
                       parentSource === 'internal'
-                        ? theme.palette.customColors?.OnPrimaryContainer || '#1F515B'
+                        ? theme.palette.customColors?.OnPrimaryContainer
                         : theme.palette.background.paper,
                     border: `1px solid ${
                       parentSource === 'internal'
-                        ? theme.palette.customColors?.OnPrimaryContainer || '#1F515B'
+                        ? theme.palette.customColors?.OnPrimaryContainer
                         : theme.palette.customColors?.OutlineVariant || theme.palette.divider
                     }`,
                     borderRight: parentSource === 'internal' ? undefined : 'none',
@@ -583,7 +583,8 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                     sx={{
                       fontSize: '14px',
                       fontWeight: 500,
-                      color: parentSource === 'internal' ? theme.palette.customColors?.OnPrimary : theme.palette.text.primary
+                      color:
+                        parentSource === 'internal' ? theme.palette.customColors?.OnPrimary : theme.palette.text.primary
                     }}
                   >
                     Antz
@@ -593,7 +594,9 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                       width: 22,
                       height: 22,
                       borderRadius: '50%',
-                      border: `2px solid ${parentSource === 'internal' ? theme.palette.primary.main : theme.palette.grey[400]}`,
+                      border: `2px solid ${
+                        parentSource === 'internal' ? theme.palette.primary.main : theme.palette.grey[400]
+                      }`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -631,11 +634,11 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                     opacity: isExternalDisabled ? 0.5 : 1,
                     backgroundColor:
                       parentSource === 'external'
-                        ? theme.palette.customColors?.OnPrimaryContainer || '#1F515B'
+                        ? theme.palette.customColors?.OnPrimaryContainer
                         : theme.palette.background.paper,
                     border: `1px solid ${
                       parentSource === 'external'
-                        ? theme.palette.customColors?.OnPrimaryContainer || '#1F515B'
+                        ? theme.palette.customColors?.OnPrimaryContainer
                         : theme.palette.customColors?.OutlineVariant || theme.palette.divider
                     }`,
                     transition: 'all 0.2s ease'
@@ -645,7 +648,8 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                     sx={{
                       fontSize: '14px',
                       fontWeight: 500,
-                      color: parentSource === 'external' ? theme.palette.customColors?.OnPrimary : theme.palette.text.primary
+                      color:
+                        parentSource === 'external' ? theme.palette.customColors?.OnPrimary : theme.palette.text.primary
                     }}
                   >
                     External
@@ -655,7 +659,9 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                       width: 22,
                       height: 22,
                       borderRadius: '50%',
-                      border: `2px solid ${parentSource === 'external' ? theme.palette.primary.main : theme.palette.grey[400]}`,
+                      border: `2px solid ${
+                        parentSource === 'external' ? theme.palette.primary.main : theme.palette.grey[400]
+                      }`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -820,7 +826,9 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                     }
                   }}
                 >
-                  <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.primary.main }}>Select Animal</Typography>
+                  <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.primary.main }}>
+                    Select Animal
+                  </Typography>
                   <AddIcon sx={{ color: theme.palette.primary.main }} />
                 </Box>
               )}

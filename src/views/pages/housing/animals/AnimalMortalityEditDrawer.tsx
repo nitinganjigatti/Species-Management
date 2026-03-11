@@ -230,7 +230,7 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: '#FFFFFF',
+            backgroundColor: theme.palette.customColors?.OnPrimary,
             px: '1.2rem',
             py: '1rem'
           }}
@@ -246,7 +246,7 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
             </IconButton>
           </Box>
         </Box>
-        <Box sx={{ flex: 1, overflow: 'auto', background: '#EFF5F2' }}>
+        <Box sx={{ flex: 1, overflow: 'auto', background: theme.palette.customColors?.Background }}>
           <Box sx={{ px: 6, py: 4 }}>
             <form onSubmit={handleSubmit(onSubmit)}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -261,7 +261,7 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                     gap: 3
                   }}
                 >
-                  <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
+                  <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors?.OnSurfaceVariant }}>
                     Date and Time of Discovery
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 4 }}>
@@ -290,7 +290,7 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                         />
                       )}
                     />
-                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#44544A' }}>
+                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors?.OnSurfaceVariant }}>
                       Mark this Date as Approximate
                     </Typography>
                   </Box>
@@ -308,7 +308,7 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                 }}
               >
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>Manner of Death</Typography>
+                  <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors?.OnSurfaceVariant }}>Manner of Death</Typography>
                   <ControlledSelect
                     name={'mannerOfDeath'}
                     control={control}
@@ -321,7 +321,7 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                   />
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
+                  <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors?.OnSurfaceVariant }}>
                     Carcass Condition
                   </Typography>
                   <ControlledSelect
@@ -336,7 +336,7 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                   />
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
+                  <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors?.OnSurfaceVariant }}>
                     Carcass Deposition
                   </Typography>
                   <ControlledSelect
@@ -357,12 +357,12 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                     alignItems: 'center',
                     px: 3,
                     borderRadius: 1,
-                    border: `1px solid #C3CEC7`,
+                    border: `1px solid ${theme.palette.customColors?.OutlineVariant}`,
                     py: 2,
                     mt: 2
                   }}
                 >
-                  <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Necropsy Need</Typography>
+                  <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors?.Outline }}>Necropsy Need</Typography>
                   <Controller
                     name="necropsyNeed"
                     control={control}
@@ -386,7 +386,7 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                   mt: 6
                 }}
               >
-                <Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#44544A' }}>Set Priority</Typography>
+                <Typography sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors?.OnSurfaceVariant }}>Set Priority</Typography>
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', gap: 4 }}>
                   <Box
                     sx={{
@@ -400,7 +400,7 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                         selectedType === 'Low'
                           ? `2px solid ${theme.palette.primary.main}`
                           : `1px solid ${theme.palette.divider}`,
-                      bgcolor: selectedType === 'Low' ? theme.palette.action.selected : theme.palette.common.white,
+                      bgcolor: selectedType === 'Low' ? theme.palette.action.selected : theme.palette.customColors?.OnPrimary,
                       cursor: 'pointer',
                       transition: 'border-color 0.2s, background-color 0.2s'
                     }}
@@ -454,7 +454,7 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                         selectedType === 'High'
                           ? `2px solid ${theme.palette.primary.main}`
                           : `1px solid ${theme.palette.divider}`,
-                      bgcolor: selectedType === 'High' ? theme.palette.action.selected : theme.palette.common.white,
+                      bgcolor: selectedType === 'High' ? theme.palette.action.selected : theme.palette.customColors?.OnPrimary,
                       cursor: 'pointer',
                       transition: 'border-color 0.2s, background-color 0.2s'
                     }}
@@ -531,7 +531,7 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                               width: 100,
                               height: 100,
                               borderRadius: 1,
-                              background: '#eaf6f6',
+                              background: theme.palette.customColors?.displaybgPrimary,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center'
@@ -558,13 +558,13 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                                 position: 'absolute',
                                 top: 6,
                                 right: 6,
-                                background: '#979797',
-                                color: '#fff',
+                                background: theme.palette.customColors?.secondaryBg,
+                                color: theme.palette.customColors?.OnPrimary,
                                 width: 24,
                                 height: 24,
                                 zIndex: 1,
                                 '&:hover': {
-                                  background: '#757575'
+                                  background: theme.palette.customColors?.OnSurfaceVariant
                                 }
                               }}
                             >
@@ -582,7 +582,7 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                       <Box>
                         <Box
                           sx={{
-                            border: `2px dashed ${error ? theme.palette.error.main : '#E0E0E0'}`,
+                            border: `2px dashed ${error ? theme.palette.error.main : theme.palette.customColors?.OutlineVariant}`,
                             borderRadius: 1.2,
                             p: 2,
                             textAlign: 'center',
@@ -593,8 +593,8 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                             justifyContent: 'center',
                             gap: 2,
                             '&:hover': {
-                              background: '#F5F5F5',
-                              borderColor: error ? theme.palette.error.main : '#BDBDBD'
+                              background: theme.palette.grey[100],
+                              borderColor: error ? theme.palette.error.main : theme.palette.grey[400]
                             }
                           }}
                           onClick={() => fileInputRef.current?.click()}
@@ -660,7 +660,7 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
             size='large'
             sx={{
               py: 2,
-              background: '#37BD69'
+              background: theme.palette.primary.main
             }}
             onClick={handleSubmit(onSubmit)}
           >

@@ -410,7 +410,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
         paper: {
           sx: {
             width: { xs: '100%', sm: 500 },
-            backgroundColor: theme.palette.customColors?.Background || theme.palette.background.paper,
+            backgroundColor: theme.palette.customColors?.Background ,
             display: 'flex',
             flexDirection: 'column',
             height: '100%'
@@ -423,8 +423,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
-          backgroundColor: theme.palette.customColors?.OnPrimary || theme.palette.background.paper
-        }}
+          backgroundColor: theme.palette.customColors?.OnPrimary         }}
       >
         {/* Header */}
         <Box
@@ -432,7 +431,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
             px: 5,
             py: 4,
             borderBottom: `1px solid ${theme.palette.divider}`,
-            backgroundColor: theme.palette.customColors?.OnPrimary || theme.palette.background.paper,
+            backgroundColor: theme.palette.customColors?.OnPrimary ,
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -453,21 +452,21 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
               <Box
                 sx={{
                   borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`,
+                  border: `1px solid ${theme.palette.customColors?.OutlineVariant }`,
                   overflow: 'hidden'
                 }}
               >
                 <Box
                   sx={{
-                    bgcolor: theme.palette.customColors?.displaybgPrimary || theme.palette.action.hover,
+                    bgcolor: theme.palette.customColors?.displaybgPrimary ,
                     px: 3,
                     py: 2,
-                    borderBottom: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`
+                    borderBottom: `1px solid ${theme.palette.customColors?.OutlineVariant }`
                   }}
                 >
                   <Typography
                     sx={{
-                      color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary,
+                      color: theme.palette.customColors?.OnSurfaceVariant ,
                       fontWeight: 600,
                       fontSize: '1rem'
                     }}
@@ -492,7 +491,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                         sx={{
                           width: 48,
                           height: 48,
-                          border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`
+                          border: `1px solid ${theme.palette.customColors?.OutlineVariant }`
                         }}
                       >
                         {entityName?.[0]}
@@ -688,8 +687,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                   px: 2,
                   py: 1.5,
                   backgroundColor: formData.notifyEnabled
-                    ? theme.palette.customColors?.displaybgPrimary || theme.palette.action.hover
-                    : theme.palette.background.paper
+                    ? theme.palette.customColors?.displaybgPrimary                     : theme.palette.background.paper
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -802,7 +800,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                         width: 100,
                         height: 100,
                         borderRadius: 1,
-                        backgroundColor: theme.palette.customColors?.displaybgPrimary || '#E8F4F2',
+                        backgroundColor: theme.palette.customColors?.displaybgPrimary,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center'
@@ -844,12 +842,12 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                           position: 'absolute',
                           top: 4,
                           right: 4,
-                          backgroundColor: theme.palette.customColors?.secondaryBg || '#979797',
-                          color: theme.palette.customColors?.OnPrimary || '#fff',
+                          backgroundColor: theme.palette.customColors?.secondaryBg,
+                          color: theme.palette.customColors?.OnPrimary,
                           width: 22,
                           height: 22,
                           '&:hover': {
-                            backgroundColor: theme.palette.customColors?.OnSurfaceVariant || '#757575'
+                            backgroundColor: theme.palette.customColors?.OnSurfaceVariant
                           }
                         }}
                       >
@@ -867,14 +865,14 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
               onDrop={handleDrop}
               onDragOver={(e: React.DragEvent<HTMLDivElement>) => e.preventDefault()}
               sx={{
-                border: `2px dashed ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`,
+                border: `2px dashed ${theme.palette.customColors?.OutlineVariant }`,
                 borderRadius: 2,
                 p: 3.5,
                 textAlign: 'center',
                 cursor: 'pointer',
                 transition: 'background-color 0.2s, border-color 0.2s',
                 '&:hover': {
-                  backgroundColor: theme.palette.customColors?.lightBg || theme.palette.action.hover,
+                  backgroundColor: theme.palette.customColors?.lightBg ,
                   borderColor: theme.palette.primary.main
                 }
               }}
@@ -898,8 +896,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                   sx={{
                     fontSize: '1rem',
                     fontWeight: 400,
-                    color: theme.palette.customColors?.OnSurfaceVariant60 || theme.palette.text.secondary
-                  }}
+                    color: theme.palette.customColors?.OnSurfaceVariant60                   }}
                 >
                   Drop your files here
                 </Typography>
@@ -913,7 +910,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
           sx={{
             p: 4,
             borderTop: `1px solid ${theme.palette.divider}`,
-            backgroundColor: theme.palette.customColors?.OnPrimary || theme.palette.background.paper,
+            backgroundColor: theme.palette.customColors?.OnPrimary ,
             display: 'flex',
             gap: 2,
             flexShrink: 0,

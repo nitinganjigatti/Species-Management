@@ -194,8 +194,7 @@ return format(date, 'dd MMM yyyy • hh:mm a')
             sx={{
               fontSize: '36px',
               fontWeight: 700,
-              color: theme.palette.customColors?.Tertiary || theme.palette.error.main
-            }}
+              color: theme.palette.customColors?.Tertiary             }}
           >
             {totalWastage}
             <Typography
@@ -203,7 +202,7 @@ return format(date, 'dd MMM yyyy • hh:mm a')
               sx={{
                 fontSize: '18px',
                 fontWeight: 600,
-                color: theme.palette.customColors?.Tertiary || theme.palette.error.main,
+                color: theme.palette.customColors?.Tertiary ,
                 ml: 0.5
               }}
             >

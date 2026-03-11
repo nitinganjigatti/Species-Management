@@ -230,7 +230,7 @@ const HospitalTransferListing = () => {
             enableDialog={false}
             text={statusObj.label}
             style={{
-              color: theme.palette.customColors.OnSurfaceVariant || theme.palette.text.primary,
+              color: theme.palette.customColors.OnSurfaceVariant ,
               fontSize: '1rem',
               fontWeight: 400,
               pl: 1.4,
@@ -250,7 +250,7 @@ const HospitalTransferListing = () => {
           enableDialog={false}
           text={params?.row?.reason_for_transfer || '-'}
           style={{
-            color: theme.palette.customColors.OnSurfaceVariant || theme.palette.text.primary,
+            color: theme.palette.customColors.OnSurfaceVariant ,
             fontSize: '1rem',
             fontWeight: 400,
             pl: 1.4,

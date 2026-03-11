@@ -27,7 +27,7 @@ const SiteCard: React.FC<SiteCardProps> = ({
         p: 3,
         border: `1px solid ${theme.palette.divider}`,
         borderRadius: 0.8,
-        bgcolor: theme.palette.common.white,
+        bgcolor: theme.palette.customColors?.OnPrimary,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -45,7 +45,7 @@ const SiteCard: React.FC<SiteCardProps> = ({
           !isDisabled &&
           mode === 'select' && {
             borderColor: theme.palette.success.main,
-            bgcolor: '#f8fff8'
+            bgcolor: theme.palette.customColors?.displaybgPrimary
           })
       }}
       onClick={() => {
@@ -86,9 +86,9 @@ const SiteCard: React.FC<SiteCardProps> = ({
             if (!isDisabled) onAction(site.site_id)
           }}
           sx={{
-            color: '#37BD69',
+            color: theme.palette.primary.main,
             '&.Mui-checked': {
-              color: '#37BD69'
+              color: theme.palette.primary.main
             }
           }}
         />

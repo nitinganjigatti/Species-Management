@@ -707,7 +707,7 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
             },
             position: 'fixed',
             bottom: 0,
-            bgcolor: 'white',
+            bgcolor: theme.palette.customColors?.OnPrimary,
             alignItems: 'center',
             justifyContent: 'center',
             display: 'flex',

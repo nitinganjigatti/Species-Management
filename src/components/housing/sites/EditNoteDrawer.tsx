@@ -540,7 +540,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
         paper: {
           sx: {
             width: { xs: '100%', sm: 500 },
-            backgroundColor: theme.palette.customColors?.Background || theme.palette.background.paper,
+            backgroundColor: theme.palette.customColors?.Background ,
             display: 'flex',
             flexDirection: 'column',
             height: '100%'
@@ -553,8 +553,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
-          backgroundColor: theme.palette.customColors?.OnPrimary || theme.palette.background.paper
-        }}
+          backgroundColor: theme.palette.customColors?.OnPrimary         }}
       >
         {/* Header */}
         <Box
@@ -562,7 +561,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
             px: 5,
             py: 4,
             borderBottom: `1px solid ${theme.palette.divider}`,
-            backgroundColor: theme.palette.customColors?.OnPrimary || theme.palette.background.paper,
+            backgroundColor: theme.palette.customColors?.OnPrimary ,
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -583,21 +582,21 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
               <Box
                 sx={{
                   borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`,
+                  border: `1px solid ${theme.palette.customColors?.OutlineVariant }`,
                   overflow: 'hidden'
                 }}
               >
                 <Box
                   sx={{
-                    bgcolor: theme.palette.customColors?.displaybgPrimary || theme.palette.action.hover,
+                    bgcolor: theme.palette.customColors?.displaybgPrimary ,
                     px: 3,
                     py: 2,
-                    borderBottom: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`
+                    borderBottom: `1px solid ${theme.palette.customColors?.OutlineVariant }`
                   }}
                 >
                   <Typography
                     sx={{
-                      color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary,
+                      color: theme.palette.customColors?.OnSurfaceVariant ,
                       fontWeight: 600,
                       fontSize: '1rem'
                     }}
@@ -617,7 +616,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
                         py: 1.5,
                         borderBottom:
                           index < entities.length - 1
-                            ? `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`
+                            ? `1px solid ${theme.palette.customColors?.OutlineVariant }`
                             : 'none'
                       }}
                     >
@@ -626,7 +625,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
                         sx={{
                           width: 48,
                           height: 48,
-                          border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`
+                          border: `1px solid ${theme.palette.customColors?.OutlineVariant }`
                         }}
                       >
                         {entity.name?.[0]}
@@ -674,7 +673,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
                   justifyContent: 'space-between',
                   px: 2,
                   py: 1.5,
-                  backgroundColor: theme.palette.customColors?.Background || theme.palette.action.hover,
+                  backgroundColor: theme.palette.customColors?.Background ,
                   borderBottom: childTypes.length > 0 ? `1px solid ${theme.palette.divider}` : 'none'
                 }}
               >
@@ -682,8 +681,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
                   sx={{
                     fontWeight: 600,
                     fontSize: '0.95rem',
-                    color: theme.palette.customColors?.OnPrimaryContainer || theme.palette.text.primary
-                  }}
+                    color: theme.palette.customColors?.OnPrimaryContainer                   }}
                 >
                   {parentType}
                 </Typography>
@@ -715,8 +713,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
                         sx={{
                           fontSize: '14px',
                           fontWeight: 500,
-                          color: theme.palette.customColors?.OnPrimaryContainer || theme.palette.text.primary
-                        }}
+                          color: theme.palette.customColors?.OnPrimaryContainer                         }}
                       >
                         {childType.type_name}
                       </Typography>
@@ -802,8 +799,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
                   px: 2,
                   py: 1.5,
                   backgroundColor: formData.notifyEnabled
-                    ? theme.palette.customColors?.displaybgPrimary || theme.palette.action.hover
-                    : theme.palette.background.paper
+                    ? theme.palette.customColors?.displaybgPrimary                     : theme.palette.background.paper
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -920,7 +916,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
                           width: 100,
                           height: 100,
                           borderRadius: 1,
-                          backgroundColor: theme.palette.customColors?.displaybgPrimary || '#E8F4F2',
+                          backgroundColor: theme.palette.customColors?.displaybgPrimary,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center'
@@ -962,12 +958,12 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
                             position: 'absolute',
                             top: 4,
                             right: 4,
-                            backgroundColor: theme.palette.customColors?.secondaryBg || '#979797',
-                            color: theme.palette.customColors?.OnPrimary || '#fff',
+                            backgroundColor: theme.palette.customColors?.secondaryBg,
+                            color: theme.palette.customColors?.OnPrimary,
                             width: 22,
                             height: 22,
                             '&:hover': {
-                              backgroundColor: theme.palette.customColors?.OnSurfaceVariant || '#757575'
+                              backgroundColor: theme.palette.customColors?.OnSurfaceVariant
                             }
                           }}
                         >
@@ -1000,7 +996,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
                           width: 100,
                           height: 100,
                           borderRadius: 1,
-                          backgroundColor: theme.palette.customColors?.displaybgPrimary || '#E8F4F2',
+                          backgroundColor: theme.palette.customColors?.displaybgPrimary,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center'
@@ -1042,12 +1038,12 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
                             position: 'absolute',
                             top: 4,
                             right: 4,
-                            backgroundColor: theme.palette.customColors?.secondaryBg || '#979797',
-                            color: theme.palette.customColors?.OnPrimary || '#fff',
+                            backgroundColor: theme.palette.customColors?.secondaryBg,
+                            color: theme.palette.customColors?.OnPrimary,
                             width: 22,
                             height: 22,
                             '&:hover': {
-                              backgroundColor: theme.palette.customColors?.OnSurfaceVariant || '#757575'
+                              backgroundColor: theme.palette.customColors?.OnSurfaceVariant
                             }
                           }}
                         >
@@ -1066,14 +1062,14 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
               onDrop={handleDrop}
               onDragOver={(e: React.DragEvent<HTMLDivElement>) => e.preventDefault()}
               sx={{
-                border: `2px dashed ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`,
+                border: `2px dashed ${theme.palette.customColors?.OutlineVariant }`,
                 borderRadius: 2,
                 p: 3.5,
                 textAlign: 'center',
                 cursor: 'pointer',
                 transition: 'background-color 0.2s, border-color 0.2s',
                 '&:hover': {
-                  backgroundColor: theme.palette.customColors?.lightBg || theme.palette.action.hover,
+                  backgroundColor: theme.palette.customColors?.lightBg ,
                   borderColor: theme.palette.primary.main
                 }
               }}
@@ -1097,8 +1093,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
                   sx={{
                     fontSize: '1rem',
                     fontWeight: 400,
-                    color: theme.palette.customColors?.OnSurfaceVariant60 || theme.palette.text.secondary
-                  }}
+                    color: theme.palette.customColors?.OnSurfaceVariant60                   }}
                 >
                   Drop your files here
                 </Typography>
@@ -1112,7 +1107,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
           sx={{
             p: 4,
             borderTop: `1px solid ${theme.palette.divider}`,
-            backgroundColor: theme.palette.customColors?.OnPrimary || theme.palette.background.paper,
+            backgroundColor: theme.palette.customColors?.OnPrimary ,
             display: 'flex',
             gap: 2,
             flexShrink: 0,

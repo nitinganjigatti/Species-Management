@@ -82,7 +82,7 @@ const AnimalRevokeDrawer: React.FC<AnimalRevokeDrawerProps> = ({ open, setDrawer
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        backgroundColor: '#FFFFFF',
+                        backgroundColor: theme.palette.customColors?.OnPrimary,
                         px: '1.2rem',
                         py: '1rem'
                     }}
@@ -98,7 +98,7 @@ const AnimalRevokeDrawer: React.FC<AnimalRevokeDrawerProps> = ({ open, setDrawer
                         </IconButton>
                     </Box>
                 </Box>
-                <Box sx={{ flex: 1, overflow: 'auto', background: '#EFF5F2' }}>
+                <Box sx={{ flex: 1, overflow: 'auto', background: theme.palette.customColors?.Background }}>
                     <Box sx={{ px: 6, py: 4 }}>
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <Card
@@ -111,7 +111,7 @@ const AnimalRevokeDrawer: React.FC<AnimalRevokeDrawerProps> = ({ open, setDrawer
                                     gap: 3
                                 }}
                             >
-                                <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
+                                <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors?.OnSurfaceVariant }}>
                                     Reason
                                 </Typography>
                                 <ControlledTextArea control={control} name={'reason'} label={'Enter Reason'} />
@@ -138,7 +138,7 @@ const AnimalRevokeDrawer: React.FC<AnimalRevokeDrawerProps> = ({ open, setDrawer
                         size='large'
                         sx={{
                             py: 2,
-                            background: '#37BD69'
+                            background: theme.palette.primary.main
                         }}
                         onClick={handleSubmit(onSubmit)}
                     >

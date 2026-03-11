@@ -46,6 +46,7 @@ const AnimalMedia: React.FC = () => {
     queryKey: ['animal-media', id, activeTab, search],
     queryFn: async ({ pageParam = 1 }) => {
       const animalId = Array.isArray(id) ? id[0] : id
+
       const res = await getAnimalMedia({
         animal_id: Number(animalId),
         type: activeTab,
@@ -59,6 +60,7 @@ const AnimalMedia: React.FC = () => {
       console.log('res.total_count:', res?.data?.total_count)
 
       const mediaItems = res?.data?.result || []
+
       return {
         result: mediaItems,
         nextPage: mediaItems.length === PAGE_SIZE ? (pageParam as number) + 1 : undefined,
@@ -117,7 +119,7 @@ const AnimalMedia: React.FC = () => {
     <Box
       sx={{
         height: '100%',
-        bgcolor: 'common.white',
+        bgcolor: 'customColors.OnPrimary',
         position: 'relative',
         border: '1px solid #e0e0e0',
         borderRadius: 1,

@@ -104,10 +104,12 @@ const AnimalIdentifier: React.FC = () => {
 
   const getSlNo = (index: number): number => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows: IndexedIdentifierRow[] | undefined = data?.data?.map((row: AnimalIdentifierType, index: number) => ({
-    ...row,
-    sl: getSlNo(index)
-  }))
+  const indexedRows: IndexedIdentifierRow[] | undefined = data?.data?.map(
+    (row: AnimalIdentifierType, index: number) => ({
+      ...row,
+      sl: getSlNo(index)
+    })
+  )
 
   const columns = [
     {
@@ -296,6 +298,7 @@ const AnimalIdentifier: React.FC = () => {
 
   const handleDelete = async (): Promise<void> => {
     if (!selectedItemToDelete?.id) return
+
     const params = {
       identifier_id: selectedItemToDelete.id,
       type: 'delete' as const
@@ -322,6 +325,7 @@ const AnimalIdentifier: React.FC = () => {
 
   const handleRestore = async (selectedRow: IndexedIdentifierRow): Promise<void> => {
     if (!selectedRow?.id) return
+
     const params = {
       identifier_id: selectedRow.id,
       type: 'restore' as const
@@ -377,7 +381,10 @@ const AnimalIdentifier: React.FC = () => {
         </Typography>
         <Box sx={{ display: 'flex', columnGap: '8px', rowGap: '12px', flexWrap: 'wrap' }}>
           <Box sx={{ display: 'none' }}>
-            <Search value={searchValue} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchValue(e.target.value)} />
+            <Search
+              value={searchValue}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchValue(e.target.value)}
+            />
           </Box>
           <Button onClick={handleAddIdentifierDrawer} sx={{ height: '38px', padding: '8px' }} variant='contained'>
             <Icon icon='mdi:plus' /> Add Identifier
@@ -504,16 +511,17 @@ const AnimalIdentifier: React.FC = () => {
             )}
           </MenuItem>
         ) : (
-
           // Show edit and delete options for active identifiers
-          (<>
+          <>
             <MenuItem
               onClick={() => {
                 setAddIdentifierDrawer(true)
                 if (selectedRow) {
                   setIdentifierData({
                     id: String(selectedRow.id),
-                    type: selectedRow.local_identifier_type_id ? String(selectedRow.local_identifier_type_id) : undefined,
+                    type: selectedRow.local_identifier_type_id
+                      ? String(selectedRow.local_identifier_type_id)
+                      : undefined,
                     local_identifier_value: selectedRow.local_identifier_value,
                     is_primary: selectedRow.is_primary ? String(selectedRow.is_primary) : undefined
                   })
@@ -544,11 +552,11 @@ const AnimalIdentifier: React.FC = () => {
             >
               Delete Identifier
             </MenuItem>
-          </>)
+          </>
         )}
       </Menu>
     </Box>
-  );
+  )
 }
 
 export default AnimalIdentifier

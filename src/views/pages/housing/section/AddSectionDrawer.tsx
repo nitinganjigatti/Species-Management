@@ -237,7 +237,7 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
                   p: 4,
                   border: `1px solid ${theme.palette.divider}`,
                   borderRadius: 1,
-                  bgcolor: theme.palette.common.white,
+                  bgcolor: theme.palette.customColors?.OnPrimary,
                   mb: 6
                 }}
               >
@@ -273,7 +273,7 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
                             width: 100,
                             height: 100,
                             borderRadius: 1,
-                            bgcolor: '#eaf6f6',
+                            bgcolor: theme.palette.customColors?.displaybgPrimary,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center'
@@ -300,13 +300,13 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
                               position: 'absolute',
                               top: 6,
                               right: 6,
-                              background: '#979797',
-                              color: '#fff',
+                              background: theme.palette.customColors?.secondaryBg,
+                              color: theme.palette.customColors?.OnPrimary,
                               width: 24,
                               height: 24,
                               zIndex: 1,
                               '&:hover': {
-                                background: '#757575'
+                                background: theme.palette.customColors?.OnSurfaceVariant
                               }
                             }}
                           >
@@ -324,7 +324,7 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
                     <Box>
                       <Box
                         sx={{
-                          border: `2px dashed ${error ? theme.palette.error.main : '#E0E0E0'}`,
+                          border: `2px dashed ${error ? theme.palette.error.main : theme.palette.customColors?.OutlineVariant}`,
                           borderRadius: 1.2,
                           p: 2,
                           textAlign: 'center',
@@ -335,8 +335,8 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
                           justifyContent: 'center',
                           gap: 2,
                           '&:hover': {
-                            bgcolor: '#F5F5F5',
-                            borderColor: error ? theme.palette.error.main : '#BDBDBD'
+                            bgcolor: theme.palette.grey[100],
+                            borderColor: error ? theme.palette.error.main : theme.palette.grey[400]
                           }
                         }}
                         onClick={() => fileInputRef.current?.click()}
@@ -399,12 +399,12 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
                   }}
                 >
                   <Icon icon='ic:baseline-my-location' fontSize={20} />
-                  <Typography variant='caption' sx={{ fontSize: '16px', color: '#006D35' }}>
+                  <Typography variant='caption' sx={{ fontSize: '16px', color: theme.palette.primary.dark }}>
                     Current Location
                   </Typography>
                 </Box>
               </Box>
-              <Card sx={{ p: 3, boxShadow: 'none', mt: 3, border: '1px solid #C3CEC7' }}>
+              <Card sx={{ p: 3, boxShadow: 'none', mt: 3, border: `1px solid ${theme.palette.customColors?.OutlineVariant}` }}>
                 <Controller
                   name='longitude'
                   control={control}
@@ -421,14 +421,14 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
                         '& .MuiOutlinedInput-root': {
                           borderRadius: '4px',
                           '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#E0E0E0'
+                            borderColor: theme.palette.customColors?.OutlineVariant
                           }
                         },
                         '& .MuiInputBase-input': {
                           fontSize: '16px',
                           fontWeight: 400,
                           fontFamily: 'Inter',
-                          color: '#839D8D'
+                          color: theme.palette.customColors?.Outline
                         }
                       }}
                     />
@@ -450,14 +450,14 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
                         '& .MuiOutlinedInput-root': {
                           borderRadius: '4px',
                           '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#E0E0E0'
+                            borderColor: theme.palette.customColors?.OutlineVariant
                           }
                         },
                         '& .MuiInputBase-input': {
                           fontSize: '16px',
                           fontWeight: 400,
                           fontFamily: 'Inter',
-                          color: '#839D8D'
+                          color: theme.palette.customColors?.Outline
                         }
                       }}
                     />
@@ -485,7 +485,7 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
             size='large'
             sx={{
               py: 1.8,
-              bgcolor: '#37BD69'
+              bgcolor: theme.palette.primary.main
             }}
             onClick={handleSubmit(onSubmit)}
           >

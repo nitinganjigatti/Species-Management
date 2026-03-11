@@ -237,13 +237,13 @@ return true
                                 key={menu}
                                 sx={{
                                     width: '190px',
-                                    bgcolor: activeCategory === menu ? 'white' : 'transparent',
+                                    bgcolor: activeCategory === menu ? theme.palette.customColors?.OnPrimary : 'transparent',
                                     cursor: 'pointer',
                                     p: 4,
                                     borderTopLeftRadius: '8px',
                                     borderBottomLeftRadius: '8px',
                                     '&:hover': {
-                                        backgroundColor: activeCategory === menu ? 'white' : theme.palette.grey[100]
+                                        backgroundColor: activeCategory === menu ? theme.palette.customColors?.OnPrimary : theme.palette.grey[100]
                                     }
                                 }}
                                 onClick={() => {
@@ -259,7 +259,7 @@ return true
                     <Grid size={{ xs: 8, sm: 8, md: 8 }}>
                         <Box
                             sx={{
-                                bgcolor: '#fff',
+                                bgcolor: theme.palette.customColors?.OnPrimary,
                                 borderRadius: '8px',
                                 width: '345px',
                                 height: 'calc(100vh - 190px)',
@@ -270,14 +270,14 @@ return true
                                 },
                                 '-ms-overflow-style': 'none',
                                 scrollbarWidth: 'none',
-                                bgColor: '#fff'
+                                bgColor: theme.palette.customColors?.OnPrimary
                             }}
                         >
                             {(activeCategory === 'Users' || activeCategory === 'Categories') && (
                                 <Box
                                     sx={{
                                         p: '16px',
-                                        bgColor: '#fff',
+                                        bgColor: theme.palette.customColors?.OnPrimary,
                                         position: 'sticky',
                                         top: 0,
                                         zIndex: 1,
@@ -402,7 +402,7 @@ return true
                     position: 'fixed',
                     bottom: 0,
                     px: 4,
-                    bgcolor: 'white',
+                    bgcolor: theme.palette.customColors?.OnPrimary,
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 5,

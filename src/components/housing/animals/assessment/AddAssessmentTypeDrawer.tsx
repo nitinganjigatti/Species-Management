@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import {
-  Box,
-  Drawer,
-  Typography,
-  IconButton,
-  Button,
-  Checkbox,
-  CircularProgress,
-  Skeleton
-} from '@mui/material'
+import { Box, Drawer, Typography, IconButton, Button, Checkbox, CircularProgress, Skeleton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useInView } from 'react-intersection-observer'
 import { debounce } from 'lodash'
@@ -16,15 +7,8 @@ import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
 import Search from 'src/views/utility/Search'
 import NoDataFound from 'src/views/utility/NoDataFound'
-import {
-  getAssessmentCategoryList,
-  getAssessmentTypeList,
-  addAssessmentTypesToAnimal
-} from 'src/lib/api/assessment'
-import type {
-  AssessmentCategoryOption,
-  AssessmentTypeOption
-} from 'src/types/housing/assessment'
+import { getAssessmentCategoryList, getAssessmentTypeList, addAssessmentTypesToAnimal } from 'src/lib/api/assessment'
+import type { AssessmentCategoryOption, AssessmentTypeOption } from 'src/types/housing/assessment'
 
 const PAGE_SIZE = 20
 
@@ -121,44 +105,47 @@ const AddAssessmentTypeDrawer: React.FC<AddAssessmentTypeDrawerProps> = ({
   }
 
   // Fetch types
-  const fetchTypes = useCallback(async (page: number, reset: boolean = false) => {
-    setIsTypesLoading(true)
-    try {
-      const params: any = {
-        page_no: page,
-        ref_type: 'animal'
-      }
-
-      if (activeTab) {
-        params.cat_id = activeTab
-      }
-
-      if (search.trim()) {
-        params.q = search.trim()
-      }
-
-      const response = await getAssessmentTypeList(params)
-      if (response?.success) {
-        const newTypes = response.data?.result || []
-        const total = response.data?.total_count || 0
-
-        setTotalCount(total)
-
-        if (reset) {
-          setAvailableTypes(newTypes)
-        } else {
-          setAvailableTypes(prev => [...prev, ...newTypes])
+  const fetchTypes = useCallback(
+    async (page: number, reset: boolean = false) => {
+      setIsTypesLoading(true)
+      try {
+        const params: any = {
+          page_no: page,
+          ref_type: 'animal'
         }
 
-        const currentTotal = reset ? newTypes.length : availableTypes.length + newTypes.length
-        setHasMore(currentTotal < total && newTypes.length === PAGE_SIZE)
+        if (activeTab) {
+          params.cat_id = activeTab
+        }
+
+        if (search.trim()) {
+          params.q = search.trim()
+        }
+
+        const response = await getAssessmentTypeList(params)
+        if (response?.success) {
+          const newTypes = response.data?.result || []
+          const total = response.data?.total_count || 0
+
+          setTotalCount(total)
+
+          if (reset) {
+            setAvailableTypes(newTypes)
+          } else {
+            setAvailableTypes(prev => [...prev, ...newTypes])
+          }
+
+          const currentTotal = reset ? newTypes.length : availableTypes.length + newTypes.length
+          setHasMore(currentTotal < total && newTypes.length === PAGE_SIZE)
+        }
+      } catch (error) {
+        console.error('Error fetching assessment types:', error)
+      } finally {
+        setIsTypesLoading(false)
       }
-    } catch (error) {
-      console.error('Error fetching assessment types:', error)
-    } finally {
-      setIsTypesLoading(false)
-    }
-  }, [activeTab, search, availableTypes.length])
+    },
+    [activeTab, search, availableTypes.length]
+  )
 
   // Refetch when category or search changes
   useEffect(() => {
@@ -357,7 +344,7 @@ const AddAssessmentTypeDrawer: React.FC<AddAssessmentTypeDrawerProps> = ({
               >
                 {categories.map((item, index) => {
                   const isActive = activeTab === item.value
-                  const showCount = item.value === '' ? totalCount : (item.count ?? 0)
+                  const showCount = item.value === '' ? totalCount : item.count ?? 0
 
                   return (
                     <Button
@@ -378,11 +365,13 @@ const AddAssessmentTypeDrawer: React.FC<AddAssessmentTypeDrawerProps> = ({
                           ? theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main
                           : theme.palette.customColors?.mdAntzNeutral || theme.palette.grey[200],
                         color: isActive
-                          ? theme.palette.customColors?.OnPrimary || '#fff'
+                          ? theme.palette.customColors?.OnPrimary
                           : theme.palette.customColors?.OnPrimaryContainer || theme.palette.text.primary,
                         '&:hover': isActive
                           ? {
-                              backgroundColor: `${theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main} !important`
+                              backgroundColor: `${
+                                theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main
+                              } !important`
                             }
                           : {
                               backgroundColor: theme.palette.customColors?.OutlineVariant || theme.palette.grey[300]
@@ -431,8 +420,8 @@ const AddAssessmentTypeDrawer: React.FC<AddAssessmentTypeDrawerProps> = ({
                         backgroundColor: isSelected
                           ? theme.palette.customColors?.Surface || theme.palette.action.selected
                           : isExisting
-                            ? theme.palette.action.disabledBackground
-                            : theme.palette.customColors?.OnPrimary || theme.palette.background.paper,
+                          ? theme.palette.action.disabledBackground
+                          : theme.palette.customColors?.OnPrimary || theme.palette.background.paper,
                         borderRadius: 1,
                         cursor: isExisting ? 'not-allowed' : 'pointer',
                         opacity: isExisting ? 0.6 : 1,
@@ -464,7 +453,7 @@ const AddAssessmentTypeDrawer: React.FC<AddAssessmentTypeDrawerProps> = ({
                       <Checkbox
                         checked={isSelected || isExisting}
                         disabled={isExisting}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={e => e.stopPropagation()}
                         onChange={() => handleToggleType(type)}
                       />
                     </Box>

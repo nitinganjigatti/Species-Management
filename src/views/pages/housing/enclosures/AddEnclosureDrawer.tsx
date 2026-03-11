@@ -453,7 +453,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
                       p: 4,
                       border: `1px solid ${theme.palette.divider}`,
                       borderRadius: 1,
-                      bgcolor: theme.palette.common.white,
+                      bgcolor: theme.palette.customColors?.OnPrimary,
                       mb: 6,
                       display: 'flex',
                       flexDirection: 'column',
@@ -474,7 +474,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
                               ? `2px solid ${theme.palette.primary.main}`
                               : `1px solid ${theme.palette.divider}`,
                           bgcolor:
-                            selectedType === 'Single' ? theme.palette.action.selected : theme.palette.common.white,
+                            selectedType === 'Single' ? theme.palette.action.selected : theme.palette.customColors?.OnPrimary,
                           cursor: 'pointer',
                           transition: 'border-color 0.2s, background-color 0.2s'
                         }}
@@ -533,7 +533,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
                               ? `2px solid ${theme.palette.primary.main}`
                               : `1px solid ${theme.palette.divider}`,
                           bgcolor:
-                            selectedType === 'Batch' ? theme.palette.action.selected : theme.palette.common.white,
+                            selectedType === 'Batch' ? theme.palette.action.selected : theme.palette.customColors?.OnPrimary,
                           cursor: 'pointer',
                           transition: 'border-color 0.2s, background-color 0.2s'
                         }}
@@ -620,7 +620,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
                       p: 4,
                       border: `1px solid ${theme.palette.divider}`,
                       borderRadius: 1,
-                      bgcolor: theme.palette.common.white,
+                      bgcolor: theme.palette.customColors?.OnPrimary,
                       mb: 6,
                       display: 'flex',
                       flexDirection: 'column',
@@ -697,7 +697,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
                                   width: 100,
                                   height: 100,
                                   borderRadius: 1,
-                                  bgcolor: '#eaf6f6',
+                                  bgcolor: theme.palette.customColors?.displaybgPrimary,
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center'
@@ -724,13 +724,13 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
                                     position: 'absolute',
                                     top: 6,
                                     right: 6,
-                                    background: '#979797',
-                                    color: '#fff',
+                                    background: theme.palette.customColors?.secondaryBg,
+                                    color: theme.palette.customColors?.OnPrimary,
                                     width: 24,
                                     height: 24,
                                     zIndex: 1,
                                     '&:hover': {
-                                      background: '#757575'
+                                      background: theme.palette.customColors?.OnSurfaceVariant
                                     }
                                   }}
                                 >
@@ -748,7 +748,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
                           <Box>
                             <Box
                               sx={{
-                                border: `2px dashed ${error ? theme.palette.error.main : '#E0E0E0'}`,
+                                border: `2px dashed ${error ? theme.palette.error.main : theme.palette.customColors?.OutlineVariant}`,
                                 borderRadius: 1.2,
                                 p: 2,
                                 textAlign: 'center',
@@ -759,8 +759,8 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
                                 justifyContent: 'center',
                                 gap: 2,
                                 '&:hover': {
-                                  bgcolor: '#F5F5F5',
-                                  borderColor: error ? theme.palette.error.main : '#BDBDBD'
+                                  bgcolor: theme.palette.grey[100],
+                                  borderColor: error ? theme.palette.error.main : theme.palette.grey[400]
                                 }
                               }}
                               onClick={() => fileInputRef.current?.click()}
@@ -814,7 +814,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
                       p: 4,
                       border: `1px solid ${theme.palette.divider}`,
                       borderRadius: 1,
-                      bgcolor: theme.palette.common.white,
+                      bgcolor: theme.palette.customColors?.OnPrimary,
                       mb: 6,
                       display: 'flex',
                       flexDirection: 'column',
@@ -828,7 +828,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
 
                       <Box
                         sx={{
-                          bgcolor: theme.palette.common.white,
+                          bgcolor: theme.palette.customColors?.OnPrimary,
                           display: 'flex',
                           flexDirection: 'row',
                           gap: 4
@@ -846,7 +846,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
                             border: movable
                               ? `2px solid ${theme.palette.primary.main}`
                               : `1px solid ${theme.palette.divider}`,
-                            bgcolor: movable ? theme.palette.action.selected : theme.palette.common.white,
+                            bgcolor: movable ? theme.palette.action.selected : theme.palette.customColors?.OnPrimary,
                             cursor: 'pointer',
                             transition: 'border-color 0.2s, background-color 0.2s'
                           }}
@@ -896,7 +896,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
                             border: walkable
                               ? `2px solid ${theme.palette.primary.main}`
                               : `1px solid ${theme.palette.divider}`,
-                            bgcolor: walkable ? theme.palette.action.selected : theme.palette.common.white,
+                            bgcolor: walkable ? theme.palette.action.selected : theme.palette.customColors?.OnPrimary,
                             cursor: 'pointer',
                             transition: 'border-color 0.2s, background-color 0.2s'
                           }}
@@ -954,7 +954,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
                     />
                     <Box
                       sx={{
-                        backgroundColor: '#FFF9C4',
+                        backgroundColor: theme.palette.warning.light,
                         borderRadius: 1,
                         p: 3,
                         mt: 4,
@@ -1011,7 +1011,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
               size='large'
               sx={{
                 py: 1.8,
-                bgcolor: '#37BD69'
+                bgcolor: theme.palette.primary.main
               }}
               onClick={handleSubmit(onSubmit)}
             >

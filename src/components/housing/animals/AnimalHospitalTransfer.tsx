@@ -194,6 +194,7 @@ const AnimalHospitalTransfer = () => {
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => {
         const statusObj = getTransferStatus(params.row)
+
         return (
           <TextEllipsisWithModal
             enableDialog={false}

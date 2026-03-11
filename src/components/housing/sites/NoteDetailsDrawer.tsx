@@ -338,7 +338,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
         paper: {
           sx: {
             width: { xs: '100%', sm: 560 },
-            backgroundColor: theme.palette.customColors?.Background || theme.palette.background.paper,
+            backgroundColor: theme.palette.customColors?.Background ,
             display: 'flex',
             flexDirection: 'column',
             height: '100%'
@@ -355,7 +355,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
           px: 5,
           py: 4,
           borderBottom: `1px solid ${theme.palette.divider}`,
-          backgroundColor: theme.palette.customColors?.OnPrimary || theme.palette.background.paper,
+          backgroundColor: theme.palette.customColors?.OnPrimary ,
           flexShrink: 0
         }}
       >
@@ -363,8 +363,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
           sx={{
             fontSize: '24px',
             fontWeight: 500,
-            color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
-          }}
+            color: theme.palette.customColors?.OnSurfaceVariant           }}
         >
           Note
         </Typography>
@@ -402,8 +401,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
             flex: 1,
             overflowY: 'auto',
             minHeight: 0,
-            backgroundColor: theme.palette.customColors?.OnPrimary || theme.palette.background.paper
-          }}
+            backgroundColor: theme.palette.customColors?.OnPrimary           }}
         >
           {/* Note Type Header */}
           <Box sx={{ px: 5, py: 4 }}>
@@ -414,14 +412,14 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                     width: 40,
                     height: 40,
                     borderRadius: 1,
-                    bgcolor: theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.dark,
+                    bgcolor: theme.palette.customColors?.OnPrimaryContainer ,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center'
                   }}
                 >
                   <NoteIcon
-                    sx={{ color: theme.palette.customColors?.OnPrimary || theme.palette.common.white, fontSize: 22 }}
+                    sx={{ color: theme.palette.customColors?.OnPrimary , fontSize: 22 }}
                   />
                 </Box>
                 <Typography sx={{ fontSize: '1.25rem', fontWeight: 600 }}>{parentType}</Typography>
@@ -486,7 +484,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
               <Box
                 sx={{
                   borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`,
+                  border: `1px solid ${theme.palette.customColors?.OutlineVariant }`,
                   mb: 3,
                   overflow: 'hidden'
                 }}
@@ -496,12 +494,12 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                     bgcolor: theme.palette.customColors?.Background,
                     px: 3,
                     py: 2,
-                    borderBottom: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`
+                    borderBottom: `1px solid ${theme.palette.customColors?.OutlineVariant }`
                   }}
                 >
                   <Typography
                     sx={{
-                      color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary,
+                      color: theme.palette.customColors?.OnSurfaceVariant ,
                       fontWeight: 600,
                       fontSize: '1rem'
                     }}
@@ -521,7 +519,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                         py: 1.5,
                         borderBottom:
                           index < entities.length - 1
-                            ? `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`
+                            ? `1px solid ${theme.palette.customColors?.OutlineVariant }`
                             : 'none'
                       }}
                     >
@@ -530,7 +528,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                         sx={{
                           width: 48,
                           height: 48,
-                          border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`
+                          border: `1px solid ${theme.palette.customColors?.OutlineVariant }`
                         }}
                       >
                         {entity.name?.[0]}
@@ -599,8 +597,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                   sx={{
                     fontSize: 20,
                     color: isLiked
-                      ? theme.palette.customColors?.amber || theme.palette.warning.main
-                      : theme.palette.text.secondary
+                      ? theme.palette.customColors?.amber                       : theme.palette.text.secondary
                   }}
                 />
                 <Typography
@@ -637,7 +634,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                           sx={{
                             p: 3,
                             borderRadius: 1,
-                            bgcolor: theme.palette.customColors?.antzNotes || theme.palette.grey[50]
+                            bgcolor: theme.palette.customColors?.antzNotes
                           }}
                         >
                           <Box sx={{ mb: 1.5 }}>
@@ -694,7 +691,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
           px: 5,
           py: 4,
           borderTop: `1px solid ${theme.palette.divider}`,
-          backgroundColor: theme.palette.customColors?.OnPrimary || theme.palette.background.paper,
+          backgroundColor: theme.palette.customColors?.OnPrimary ,
           flexShrink: 0,
           boxShadow: '0px -1px 10px 0px rgba(0, 0, 0, 0.05)'
         }}
@@ -723,7 +720,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
           onClick={handleCommentSubmit}
           sx={{
             bgcolor: theme.palette.primary.main,
-            color: theme.palette.common.white,
+            color: theme.palette.customColors?.OnPrimary,
             '&:hover': { bgcolor: theme.palette.primary.dark },
             '&:disabled': { bgcolor: theme.palette.action.disabledBackground }
           }}
@@ -742,7 +739,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
         confirmAction={handleDelete}
         loading={deleteLoading}
         image='/images/warning-icon.svg'
-        imgStyle={{ background: theme.palette.customColors?.TertiaryLight || '#FFF3E0', p: 4 }}
+        imgStyle={{ background: theme.palette.customColors?.TertiaryLight, p: 4 }}
         confirmBtnStyle={{ background: theme.palette.error.main, py: 2 }}
       />
 

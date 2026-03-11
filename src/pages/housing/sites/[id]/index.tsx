@@ -178,6 +178,7 @@ const SiteDetails: React.FC = () => {
   }
 
   const siteData = data?.data as any
+
   const statsData: StatItem[] = [
     {
       label: 'Species',

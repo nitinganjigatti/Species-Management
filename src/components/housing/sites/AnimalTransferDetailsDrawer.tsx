@@ -131,7 +131,7 @@ const StyledTimelineOppositeContent = styled(TimelineOppositeContent)(() => ({
 }))
 
 const StyledSectionHeader = styled(Box)(({ theme }) => ({
-  backgroundColor: (theme as ExtendedTheme).palette.customColors?.Background || theme.palette.grey[100],
+  backgroundColor: (theme as ExtendedTheme).palette.customColors?.Background,
   padding: '0.75rem 1rem',
   borderRadius: '8px',
   display: 'flex',
@@ -576,7 +576,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                 position: 'sticky',
                 top: 0,
                 zIndex: 1,
-                backgroundColor: theme.palette.customColors?.OnPrimary || '#FFFFFF',
+                backgroundColor: theme.palette.customColors?.OnPrimary,
                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
               }}
             >
@@ -589,7 +589,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                   sx={{
                     fontWeight: 600,
                     fontSize: '18px',
-                    color: theme.palette.customColors?.OnPrimaryContainer || '#1F515B'
+                    color: theme.palette.customColors?.OnPrimaryContainer
                   }}
                 >
                   {transferDetails?.request_id?.toUpperCase() || ''}
@@ -603,7 +603,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                   sx={{
                     fontWeight: 500,
                     fontSize: '16px',
-                    color: theme.palette.customColors?.OnPrimaryContainer || '#1F515B',
+                    color: theme.palette.customColors?.OnPrimaryContainer,
                     mb: 1
                   }}
                 >
@@ -614,7 +614,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                   sx={{
                     fontWeight: 600,
                     fontSize: '18px',
-                    color: theme.palette.customColors?.OnPrimaryContainer || '#1F515B',
+                    color: theme.palette.customColors?.OnPrimaryContainer,
                     mb: 1
                   }}
                 >
@@ -626,7 +626,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                   sx={{
                     fontSize: '13px',
                     fontWeight: 400,
-                    color: theme.palette.customColors?.neutralSecondary || '#666'
+                    color: theme.palette.customColors?.neutralSecondary
                   }}
                 >
                   {Utility.convertUTCToLocalDateTime(transferDetails?.requested_on || '')}
@@ -648,7 +648,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                   sx={{
                     width: 36,
                     height: 36,
-                    bgcolor: theme.palette.customColors?.OnPrimaryContainer || '#1F515B'
+                    bgcolor: theme.palette.customColors?.OnPrimaryContainer
                   }}
                 >
                   {(transferDetails?.user_first_name?.[0] || '') + (transferDetails?.user_last_name?.[0] || '')}
@@ -657,7 +657,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                   sx={{
                     fontSize: '14px',
                     fontWeight: 500,
-                    color: theme.palette.customColors?.OnPrimaryContainer || '#1F515B',
+                    color: theme.palette.customColors?.OnPrimaryContainer,
                     flex: 1
                   }}
                 >
@@ -670,8 +670,8 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                       size='small'
                       onClick={() => window.open(`tel:${transferDetails?.user_mobile_number}`, '_self')}
                       sx={{
-                        backgroundColor: alpha(theme.palette.customColors?.neutralPrimary || '#000', 0.05),
-                        '&:hover': { backgroundColor: alpha(theme.palette.customColors?.neutralPrimary || '#000', 0.1) }
+                        backgroundColor: alpha(theme.palette.customColors?.neutralPrimary , 0.05),
+                        '&:hover': { backgroundColor: alpha(theme.palette.customColors?.neutralPrimary , 0.1) }
                       }}
                     >
                       <Icon icon='mdi:phone' fontSize={18} />
@@ -680,8 +680,8 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                       size='small'
                       onClick={() => window.open(`sms:${transferDetails?.user_mobile_number}`, '_self')}
                       sx={{
-                        backgroundColor: alpha(theme.palette.customColors?.neutralPrimary || '#000', 0.05),
-                        '&:hover': { backgroundColor: alpha(theme.palette.customColors?.neutralPrimary || '#000', 0.1) }
+                        backgroundColor: alpha(theme.palette.customColors?.neutralPrimary , 0.05),
+                        '&:hover': { backgroundColor: alpha(theme.palette.customColors?.neutralPrimary , 0.1) }
                       }}
                     >
                       <Icon icon='mdi:message-text-outline' fontSize={18} />
@@ -720,7 +720,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                   <Icon
                     icon='mdi:arrow-top-right'
                     fontSize={22}
-                    color={theme.palette.customColors?.editIconColor || '#666'}
+                    color={theme.palette.customColors?.editIconColor}
                   />
                   <Box>
                     <Typography
@@ -747,7 +747,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                   sx={{
                     fontWeight: 600,
                     fontSize: '14px',
-                    color: theme.palette.customColors?.onSurface || theme.palette.primary.main
+                    color: theme.palette.customColors?.onSurface
                   }}
                 >
                   {animalListLoading ? <CircularProgress size={16} /> : 'View'}
@@ -763,7 +763,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                     <Icon
                       icon='mdi:help-circle-outline'
                       fontSize={22}
-                      color={theme.palette.customColors?.editIconColor || '#666'}
+                      color={theme.palette.customColors?.editIconColor}
                       style={{ marginTop: 2 }}
                     />
                     <Box sx={{ flex: 1 }}>
@@ -798,7 +798,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                     <Icon
                       icon='mdi:arrow-top-right'
                       fontSize={22}
-                      color={theme.palette.customColors?.editIconColor || '#666'}
+                      color={theme.palette.customColors?.editIconColor}
                     />
                     <Box>
                       <Typography
@@ -844,7 +844,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                       <Icon
                         icon='mdi:account'
                         fontSize={22}
-                        color={theme.palette.customColors?.editIconColor || '#666'}
+                        color={theme.palette.customColors?.editIconColor}
                       />
                       <Box>
                         <Typography
@@ -871,7 +871,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                       sx={{
                         fontWeight: 600,
                         fontSize: '14px',
-                        color: theme.palette.customColors?.onSurface || theme.palette.primary.main
+                        color: theme.palette.customColors?.onSurface
                       }}
                     >
                       {memberListLoading ? <CircularProgress size={16} /> : 'View'}
@@ -946,7 +946,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                               >
                                 {`${item.user_first_name || ''} ${item.user_last_name || ''}`.trim()}
                               </Typography>
-                              {item.status === 'APPROVED' && <Icon icon='mdi:star' fontSize={14} color='#FFD700' />}
+                              {item.status === 'APPROVED' && <Icon icon='mdi:star' fontSize={14} color={theme.palette.warning.main} />}
                             </Box>
                             <Typography
                               sx={{
@@ -994,7 +994,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     gap: 2,
-                    backgroundColor: theme.palette.customColors?.mdAntzNeutral || theme.palette.grey[100],
+                    backgroundColor: theme.palette.customColors?.mdAntzNeutral,
                     borderRadius: 1,
                     px: 2,
                     py: 1,
@@ -1072,7 +1072,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                             display: 'flex',
                             alignItems: 'flex-start',
                             gap: 2,
-                            backgroundColor: theme.palette.customColors?.mdAntzNeutral || theme.palette.grey[100],
+                            backgroundColor: theme.palette.customColors?.mdAntzNeutral,
                             borderRadius: 2,
                             p: 3
                           }}
@@ -1082,7 +1082,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                             sx={{
                               width: 36,
                               height: 36,
-                              bgcolor: theme.palette.customColors?.OnPrimaryContainer || '#1F515B',
+                              bgcolor: theme.palette.customColors?.OnPrimaryContainer,
                               fontSize: '13px',
                               fontWeight: 600
                             }}
@@ -1098,7 +1098,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                                 sx={{
                                   fontSize: '14px',
                                   fontWeight: 600,
-                                  color: theme.palette.customColors?.OnPrimaryContainer || '#1F515B'
+                                  color: theme.palette.customColors?.OnPrimaryContainer
                                 }}
                               >
                                 {userName}
@@ -1191,7 +1191,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                         sx={{
                           fontSize: '18px',
                           fontWeight: 600,
-                          color: theme.palette.customColors?.OnPrimaryContainer || '#1F515B'
+                          color: theme.palette.customColors?.OnPrimaryContainer
                         }}
                       >
                         {getStatusDisplay()}
@@ -1280,7 +1280,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                                   <Box
                                     sx={{
                                       backgroundColor:
-                                        theme.palette.customColors?.Background || theme.palette.grey[100],
+                                        theme.palette.customColors?.Background,
                                       borderRadius: 1,
                                       px: 3,
                                       py: 2,
@@ -1322,7 +1322,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                       borderRadius: '10px',
                       backgroundColor: 'rgba(0, 0, 0, 0.1)',
                       '& .MuiLinearProgress-bar': {
-                        backgroundColor: theme.palette.customColors?.onSurface || '#1F515B',
+                        backgroundColor: theme.palette.customColors?.onSurface,
                         borderRadius: '10px'
                       }
                     }}
@@ -1349,8 +1349,8 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                       width: '90%'
                     }}
                   >
-                    <Icon icon='mdi:check' fontSize={20} color={theme.palette.common.white} />
-                    <Typography sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.common.white }}>
+                    <Icon icon='mdi:check' fontSize={20} color={theme.palette.customColors?.OnPrimary} />
+                    <Typography sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors?.OnPrimary }}>
                       {buttonStatus?.show_you_approved ? 'You Approved' : 'Approved'}
                     </Typography>
                   </Box>
@@ -1374,8 +1374,8 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                       width: '90%'
                     }}
                   >
-                    <Icon icon='mdi:close' fontSize={20} color={theme.palette.common.white} />
-                    <Typography sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.common.white }}>
+                    <Icon icon='mdi:close' fontSize={20} color={theme.palette.customColors?.OnPrimary} />
+                    <Typography sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors?.OnPrimary }}>
                       {buttonStatus?.show_you_rejected ? 'You Rejected' : 'Rejected'}
                     </Typography>
                   </Box>
@@ -1393,13 +1393,13 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                       gap: 1.5,
                       py: 2,
                       px: 6,
-                      backgroundColor: theme.palette.customColors?.neutralSecondary || '#7A8684',
+                      backgroundColor: theme.palette.customColors?.neutralSecondary ,
                       borderRadius: '50px',
                       width: '90%'
                     }}
                   >
-                    <Icon icon='mdi:close' fontSize={20} color={theme.palette.common.white} />
-                    <Typography sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.common.white }}>Canceled</Typography>
+                    <Icon icon='mdi:close' fontSize={20} color={theme.palette.customColors?.OnPrimary} />
+                    <Typography sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors?.OnPrimary }}>Canceled</Typography>
                   </Box>
                 </Box>
               ) : null}
@@ -1468,7 +1468,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                           sx={{
                             fontWeight: 600,
                             fontSize: '15px',
-                            color: theme.palette.customColors?.OnPrimaryContainer || '#1F515B'
+                            color: theme.palette.customColors?.OnPrimaryContainer
                           }}
                         >
                           {species.common_name || 'Unknown Species'}
@@ -1562,7 +1562,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
               sx={{
                 fontSize: '18px',
                 fontWeight: 600,
-                color: theme.palette.customColors?.OnPrimaryContainer || '#1F515B'
+                color: theme.palette.customColors?.OnPrimaryContainer
               }}
             >
               Transfer Members
@@ -1571,13 +1571,13 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
               <Icon
                 icon='mdi:account-circle'
                 fontSize={24}
-                color={theme.palette.customColors?.OnPrimaryContainer || '#1F515B'}
+                color={theme.palette.customColors?.OnPrimaryContainer}
               />
               <Typography
                 sx={{
                   fontSize: '16px',
                   fontWeight: 600,
-                  color: theme.palette.customColors?.OnPrimaryContainer || '#1F515B'
+                  color: theme.palette.customColors?.OnPrimaryContainer
                 }}
               >
                 {memberList.length}
@@ -1628,7 +1628,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                         sx={{
                           width: 44,
                           height: 44,
-                          bgcolor: theme.palette.customColors?.OnPrimaryContainer || '#1F515B',
+                          bgcolor: theme.palette.customColors?.OnPrimaryContainer,
                           fontSize: '14px',
                           fontWeight: 600
                         }}
@@ -1642,14 +1642,14 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                             sx={{
                               fontWeight: 600,
                               fontSize: '15px',
-                              color: theme.palette.customColors?.OnPrimaryContainer || '#1F515B'
+                              color: theme.palette.customColors?.OnPrimaryContainer
                             }}
                           >
                             {displayName}
                           </Typography>
                           {/* Star icon - shown when user can perform action (API returns 0/1 or "0"/"1") */}
                           {Boolean(Number(member.can_perform_action)) && (
-                            <Icon icon='mdi:star-circle' fontSize={16} color='#C9A227' />
+                            <Icon icon='mdi:star-circle' fontSize={16} color={theme.palette.warning.dark} />
                           )}
                         </Box>
 
@@ -1659,7 +1659,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                             sx={{
                               fontSize: '13px',
                               fontWeight: 400,
-                              color: theme.palette.customColors?.neutralSecondary || '#666',
+                              color: theme.palette.customColors?.neutralSecondary,
                               mt: 0.25
                             }}
                           >
@@ -1673,7 +1673,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                             sx={{
                               fontSize: '12px',
                               fontWeight: 400,
-                              color: theme.palette.customColors?.neutralSecondary || '#666',
+                              color: theme.palette.customColors?.neutralSecondary,
                               mt: 0.25
                             }}
                           >

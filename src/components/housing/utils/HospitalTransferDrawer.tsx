@@ -284,7 +284,7 @@ const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, o
                 >
                   <StyledTypography
                     fontSize={'12px'}
-                    color={alpha(theme.palette.customColors?.OnPrimary || '#fff', 0.8)}
+                    color={alpha(theme.palette.customColors?.OnPrimary , 0.8)}
                   >
                     Initiated by
                   </StyledTypography>
@@ -335,7 +335,7 @@ const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, o
                         onClick={() => setShowMobileNumber(prev => !prev)}
                         sx={{
                           color: theme.palette.customColors?.OnPrimary,
-                          '&:hover': { backgroundColor: alpha(theme.palette.customColors?.OnPrimary || '#fff', 0.1) }
+                          '&:hover': { backgroundColor: alpha(theme.palette.customColors?.OnPrimary , 0.1) }
                         }}
                       >
                         <Icon icon='mdi:phone' fontSize={20} />
@@ -367,7 +367,7 @@ const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, o
                             sx={{
                               color: theme.palette.customColors?.OnPrimary,
                               '&:hover': {
-                                backgroundColor: alpha(theme.palette.customColors?.OnPrimary || '#fff', 0.1)
+                                backgroundColor: alpha(theme.palette.customColors?.OnPrimary , 0.1)
                               }
                             }}
                           >
@@ -882,6 +882,7 @@ const StyledSectionHeader = styled(Box)(({ theme }) => ({
 // Loading Skeleton UI
 function LoadingSkeleton() {
   const theme = useTheme()
+
   return (
     <>
       <Box
