@@ -44,6 +44,7 @@ const AddParameterDrawer = ({
   const [openSelectParamDrawer, setOpenSelectParamDrawer] = useState(false)
   const [selectedAssessments, setSelectedAssessments] = useState([])
   const [parameters, setParameters] = useState([])
+  const [apiParameters, setApiParameters] = useState([]) // Store API parameters separately
   const [saveTemplate, setSaveTemplate] = useState(false)
   const [templateName, setTemplateName] = useState('')
   const [loadingParams, setLoadingParams] = useState(false)
@@ -66,16 +67,10 @@ const AddParameterDrawer = ({
                 label: item?.label,
                 isExisting: true
               })) || []
-            setParameters(prev => {
-              const combined = [...prev, ...apiParams]
-
-              return combined.filter((param, index, self) => index === self.findIndex(p => p.id === param.id))
-            })
-            setSelectedAssessments(prev => {
-              const combined = [...prev, ...apiParams]
-
-              return combined.filter((param, index, self) => index === self.findIndex(p => p.id === param.id))
-            })
+            // Set API parameters as the base and store separately
+            setParameters(apiParams)
+            setSelectedAssessments(apiParams)
+            setApiParameters(apiParams) // Store for later use
             setMonitoringLoading(false)
           }
         })
@@ -115,19 +110,15 @@ const AddParameterDrawer = ({
     const isAlreadySelected = selectedTemplates.includes(value)
 
     if (isAlreadySelected) {
-      setSelectedTemplates(prev => prev.filter(item => item !== value))
-
-      const paramsToRemove = await getParametersBasedOnTemplates({ assessment_template_id: value })
-
-      const paramIdsToRemove =
-        paramsToRemove?.data?.assessment_category?.flatMap(
-          category => category.assessment_types?.map(type => type.assessment_type_id) || []
-        ) || []
-
-      setParameters(prev => prev.filter(p => !paramIdsToRemove.includes(p.id)))
-      setSelectedAssessments(prev => prev.filter(p => !paramIdsToRemove.includes(p.id)))
+      // Deselect the template - keep API + manually added params
+      setSelectedTemplates([])
+      const apiParamsWithFlag = apiParameters.map(p => ({ ...p, isExisting: true }))
+      const manualParams = parameters.filter(p => p.isManuallyAdded)
+      const allParams = [...apiParamsWithFlag, ...manualParams]
+      setParameters(allParams)
+      setSelectedAssessments(allParams)
     } else {
-      setSelectedTemplates(prev => [...prev, value])
+      // Select new template (only one at a time)
       setLoadingParams(true)
 
       try {
@@ -143,16 +134,27 @@ const AddParameterDrawer = ({
               })) || []
           ) || []
 
-        setParameters(prev => {
-          const all = [...prev, ...fetchedParams]
+        // Mark template params that are already prescribed (in apiParameters) as existing
+        const newParams = fetchedParams.map(p => ({
+          ...p,
+          isExisting: apiParameters.some(api => api.id === p.id) // Mark as existing if already prescribed
+        }))
 
-          return all.filter((param, index, self) => index === self.findIndex(p => p.id === param.id))
-        })
-        setSelectedAssessments(prev => {
-          const all = [...prev, ...fetchedParams]
+        // Reconstruct API params to ensure isExisting flag is preserved
+        const apiParamsWithFlag = apiParameters.map(p => ({ ...p, isExisting: true }))
 
-          return all.filter((param, index, self) => index === self.findIndex(p => p.id === param.id))
-        })
+        // Preserve manually added parameters
+        const manualParams = parameters.filter(p => p.isManuallyAdded)
+
+        // Combine: API params + manually added params + new template params (without duplicates)
+        const allParams = [...apiParamsWithFlag, ...manualParams, ...newParams]
+        const unique = allParams.filter((param, index, self) => index === self.findIndex(p => p.id === param.id))
+
+        setParameters(unique)
+        setSelectedAssessments(unique)
+
+        // Update selected template AFTER parameters are updated to avoid race conditions
+        setSelectedTemplates([value])
       } catch (err) {
         console.error('Error fetching template parameters:', err)
       } finally {
@@ -162,9 +164,25 @@ const AddParameterDrawer = ({
   }
 
   const handleAddParameters = params => {
+    // Track manually added parameters with a flag
+    const newManualParams = params.map(p => ({
+      ...p,
+      id: String(p.id),
+      isExisting: false,
+      isManuallyAdded: true
+    }))
+
     setParameters(prev => {
-      const combined = [...prev, ...params.map(p => ({ ...p, id: String(p.id), isExisting: false }))]
-      const unique = combined.filter((param, index, self) => index === self.findIndex(p => p.id === param.id))
+      // Preserve existing API parameters with isExisting flag
+      const existingApiParams = prev.filter(p => apiParameters.some(api => api.id === p.id))
+      const nonApiParams = prev.filter(p => !apiParameters.some(api => api.id === p.id))
+
+      // Ensure API params have isExisting: true
+      const apiParamsWithFlag = existingApiParams.map(p => ({ ...p, isExisting: true }))
+
+      // Combine all without duplicates
+      const allParams = [...apiParamsWithFlag, ...nonApiParams, ...newManualParams]
+      const unique = allParams.filter((param, index, self) => index === self.findIndex(p => p.id === param.id))
 
       return unique
     })
@@ -308,6 +326,7 @@ const AddParameterDrawer = ({
             <Box sx={{ px: 6, pt: 6, pb: 3 }}>
               <Button
                 onClick={() => setOpenSelectParamDrawer(true)}
+                disabled={monitoringLoading}
                 sx={{
                   width: '100%',
                   backgroundColor: theme.palette.customColors.SecondaryContainer,
@@ -315,7 +334,8 @@ const AddParameterDrawer = ({
                   fontSize: '20px',
                   fontWeight: 500,
                   textTransform: 'none',
-                  '&:hover': { backgroundColor: theme.palette.customColors.SecondaryContainer }
+                  '&:hover': { backgroundColor: theme.palette.customColors.SecondaryContainer },
+                  '&:disabled': { opacity: 0.5 }
                 }}
                 startIcon={<Icon icon='mdi:plus' fontSize={30} />}
               >
@@ -332,7 +352,7 @@ const AddParameterDrawer = ({
                 <Typography
                   sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Selected ({parameters?.length})
+                  Selected ({parameters?.filter(p => !p.isExisting)?.length})
                 </Typography>
                 <Box
                   sx={{
