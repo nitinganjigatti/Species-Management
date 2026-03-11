@@ -533,6 +533,7 @@ const AddanesthesiaRecordDrawer = ({
                   handleVetSelect={handleVetSelect}
                   handleAnesthetistSelect={handleAnesthetistSelect}
                   patientData={patientData}
+                  drawerOpen={openAddanesthesiaDrawer}
                 />
               </Card>
             </Box>

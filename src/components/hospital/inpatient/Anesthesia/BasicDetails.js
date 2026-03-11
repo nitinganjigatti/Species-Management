@@ -45,7 +45,8 @@ export default function BasicDetails({
   handleAnesthetistSearch = () => {},
   handleVetSelect = () => {},
   handleAnesthetistSelect = () => {},
-  patientData = []
+  patientData = [],
+  drawerOpen = true
 }) {
   const {
     control,
@@ -75,6 +76,17 @@ export default function BasicDetails({
 
   const isDefaultDateSetRef = useRef(false)
 
+  // Clear search states when drawer closes and reset date ref when drawer opens
+  useEffect(() => {
+    if (!drawerOpen) {
+      setSearchQuery('')
+      setSearchValue('')
+    } else {
+      // Reset the ref when drawer opens so date/time gets prefilled again
+      isDefaultDateSetRef.current = false
+    }
+  }, [drawerOpen])
+
   useEffect(() => {
     // For new records, await patientData to set proper fallback
     if (!anaesthesia_id && patientData && !isDefaultDateSetRef.current) {
@@ -99,7 +111,7 @@ export default function BasicDetails({
     if (!anaesthesia_id && selectedHospital?.name && !watch('basicDetails.location')) {
       setValue('basicDetails.location', selectedHospital.name)
     }
-  }, [anaesthesiaDateTimeValue, setValue, patientData, anaesthesia_id, selectedHospital])
+  }, [anaesthesiaDateTimeValue, setValue, patientData, anaesthesia_id, selectedHospital, drawerOpen])
 
   const commonTextFieldSx = {
     '& .MuiOutlinedInput-root': {
