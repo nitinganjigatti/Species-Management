@@ -445,7 +445,7 @@ const AssessmentSummaryDrawer: React.FC<AssessmentSummaryDrawerProps> = ({
                         sx={{
                           fontSize: '20px',
                           fontWeight: 600,
-                          color: theme.palette.mode === 'dark' ? theme.palette.primary.main : '#00796B'
+                          color: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.customColors?.OnPrimaryContainer
                         }}
                       >
                         {main}
@@ -455,7 +455,7 @@ const AssessmentSummaryDrawer: React.FC<AssessmentSummaryDrawerProps> = ({
                           sx={{
                             fontSize: '14px',
                             fontWeight: 500,
-                            color: theme.palette.mode === 'dark' ? theme.palette.primary.light : '#4DB6AC'
+                            color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.customColors?.SecondaryDark
                           }}
                         >
                           {unit}
@@ -495,9 +495,9 @@ const AssessmentSummaryDrawer: React.FC<AssessmentSummaryDrawerProps> = ({
                 textTransform: 'none',
                 fontSize: '16px',
                 fontWeight: 600,
-                backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : '#4CAF50',
+                backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.primary.main,
                 '&:hover': {
-                  backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : '#43A047'
+                  backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.dark
                 }
               }}
             >

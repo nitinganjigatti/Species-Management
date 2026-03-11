@@ -243,7 +243,7 @@ return true
                                     borderTopLeftRadius: '8px',
                                     borderBottomLeftRadius: '8px',
                                     '&:hover': {
-                                        backgroundColor: activeCategory === menu ? 'white' : '#f5f5f5'
+                                        backgroundColor: activeCategory === menu ? 'white' : theme.palette.grey[100]
                                     }
                                 }}
                                 onClick={() => {

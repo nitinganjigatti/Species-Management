@@ -29,7 +29,7 @@ const AssessmentCard: React.FC<AssessmentCardProps> = ({
   // Header background color - teal/cyan like mobile
   const headerBgColor = theme.palette.mode === 'dark'
     ? alpha(theme.palette.primary.main, 0.15)
-    : '#E0F2F1' // Light teal color matching mobile
+    : theme.palette.customColors?.displaybgPrimary
 
   const handleValueClick = (value: AssessmentValue, index: number) => {
     onValueClick(assessment, value, index)
@@ -70,7 +70,7 @@ const AssessmentCard: React.FC<AssessmentCardProps> = ({
               sx={{
                 fontWeight: 600,
                 fontSize: '16px',
-                color: theme.palette.mode === 'dark' ? theme.palette.primary.main : '#00796B',
+                color: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.customColors?.OnPrimaryContainer,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap'
@@ -81,7 +81,7 @@ const AssessmentCard: React.FC<AssessmentCardProps> = ({
             <Icon
               icon='mdi:chevron-right'
               fontSize={20}
-              color={theme.palette.mode === 'dark' ? theme.palette.primary.main : '#00796B'}
+              color={theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.customColors?.OnPrimaryContainer}
             />
           </Box>
 
@@ -90,7 +90,7 @@ const AssessmentCard: React.FC<AssessmentCardProps> = ({
             sx={{
               fontSize: '13px',
               fontWeight: 500,
-              color: theme.palette.mode === 'dark' ? theme.palette.text.secondary : '#004D40',
+              color: theme.palette.mode === 'dark' ? theme.palette.text.secondary : theme.palette.customColors?.OnSurfaceVariant,
               mt: 0.5
             }}
           >
@@ -106,7 +106,7 @@ const AssessmentCard: React.FC<AssessmentCardProps> = ({
             sx={{
               color: theme.palette.mode === 'dark'
                 ? theme.palette.primary.main
-                : '#4DB6AC', // Sky blue / teal color like mobile
+                : theme.palette.customColors?.SecondaryDark,
               p: 0.5,
               '&:hover': {
                 backgroundColor: alpha(theme.palette.primary.main, 0.1)
@@ -147,14 +147,14 @@ const AssessmentCard: React.FC<AssessmentCardProps> = ({
               onAddClick(assessment)
             }}
             sx={{
-              borderColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : '#00796B',
-              color: theme.palette.mode === 'dark' ? theme.palette.primary.main : '#00796B',
+              borderColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.customColors?.OnPrimaryContainer,
+              color: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.customColors?.OnPrimaryContainer,
               px: 6,
               py: 1,
               fontSize: '14px',
               fontWeight: 500,
               '&:hover': {
-                borderColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : '#004D40',
+                borderColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.customColors?.OnSurfaceVariant,
                 backgroundColor: alpha(theme.palette.primary.main, 0.04)
               }
             }}

@@ -228,8 +228,8 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
                 border: `1px solid transparent`,
                 cursor: 'pointer',
                 '&:hover': {
-                  borderColor: '#37BD69',
-                  background: '#F2FFF8'
+                  borderColor: theme.palette.primary.main,
+                  background: (theme.palette as any).customColors?.Surface
                 }
               }}
             />

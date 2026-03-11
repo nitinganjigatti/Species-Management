@@ -354,20 +354,20 @@ const AddPairDrawer: React.FC<AddPairDrawerProps> = ({
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   p: 4,
-                  border: `2px dashed #37BD69`,
+                  border: `2px dashed ${theme.palette.primary.main}`,
                   borderRadius: '8px',
                   cursor: editMode ? 'not-allowed' : 'pointer',
                   opacity: editMode ? 0.5 : 1,
-                  backgroundColor: alpha('#37BD69', 0.05),
+                  backgroundColor: alpha(theme.palette.primary.main, 0.05),
                   '&:hover': editMode
                     ? {}
                     : {
-                        backgroundColor: alpha('#37BD69', 0.1)
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1)
                       }
                 }}
               >
-                <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#37BD69' }}>Select Animal</Typography>
-                <AddIcon sx={{ color: '#37BD69' }} />
+                <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.primary.main }}>Select Animal</Typography>
+                <AddIcon sx={{ color: theme.palette.primary.main }} />
               </Box>
             ) : (
               <Card
@@ -525,7 +525,7 @@ const AddPairDrawer: React.FC<AddPairDrawerProps> = ({
         btnText='SELECT'
         selectionMode='single'
         extraParams={animalDrawerParams}
-        // zIndex={1300}
+        zIndex={1300}
       />
     </>
   )

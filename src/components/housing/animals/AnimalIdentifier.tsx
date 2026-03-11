@@ -408,15 +408,15 @@ const AnimalIdentifier: React.FC = () => {
           total={indexedRows?.length}
           externalTableStyle={{
             '& .deleted-row': {
-              backgroundColor: '#ffebee',
+              backgroundColor: theme.palette.customColors?.ErrorContainer,
               '&:hover': {
-                backgroundColor: '#ffcdd2 !important'
+                backgroundColor: `${theme.palette.customColors?.AntzTertiary} !important`
               }
             },
             '& .primary-row': {
-              backgroundColor: '#e3f2fd',
+              backgroundColor: theme.palette.customColors?.SecondaryContainer,
               '&:hover': {
-                backgroundColor: '#bbdefb !important'
+                backgroundColor: `${theme.palette.customColors?.antzSecondaryBg} !important`
               }
             }
           }}
@@ -453,7 +453,7 @@ const AnimalIdentifier: React.FC = () => {
         onClose={() => setMenuAnchorEl(null)}
         PaperProps={{
           sx: {
-            border: '1px solid #37BD69',
+            border: `1px solid ${theme.palette.primary.main}`,
             borderRadius: 2,
             minWidth: 120,
             boxShadow: 2,

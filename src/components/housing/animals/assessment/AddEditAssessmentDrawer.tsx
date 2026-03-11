@@ -298,7 +298,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
                 inputProps={{ maxLength: 200 }}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    backgroundColor: theme.palette.customColors?.Surface || '#F5F5F5'
+                    backgroundColor: theme.palette.customColors?.Surface || theme.palette.grey[100]
                   }
                 }}
               />
@@ -328,7 +328,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
                     }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        backgroundColor: theme.palette.customColors?.Surface || '#F5F5F5'
+                        backgroundColor: theme.palette.customColors?.Surface || theme.palette.grey[100]
                       }
                     }}
                   />
@@ -348,7 +348,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
                   getOptionValue={(opt: { label: string; value: string }) => opt.value}
                   disabled={isViewMode}
                   sx={{
-                    backgroundColor: theme.palette.customColors?.Surface || '#F5F5F5'
+                    backgroundColor: theme.palette.customColors?.Surface || theme.palette.grey[100]
                   }}
                 />
               </Box>
@@ -373,7 +373,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
             getOptionValue={(opt: { label: string; value: string }) => opt.value}
             disabled={isViewMode}
             sx={{
-              backgroundColor: theme.palette.customColors?.Surface || '#F5F5F5'
+              backgroundColor: theme.palette.customColors?.Surface || theme.palette.grey[100]
             }}
           />
         )
@@ -399,7 +399,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
     >
       <Box
         sx={{
-          backgroundColor: theme.palette.customColors?.Background || '#F5F5F5',
+          backgroundColor: theme.palette.customColors?.Background || theme.palette.grey[100],
           height: '100%',
           display: 'flex',
           flexDirection: 'column'
@@ -585,11 +585,11 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
               disabled={loading}
               sx={{
                 height: '56px',
-                backgroundColor: theme.palette.customColors?.OnPrimaryContainer || '#1F4A3D',
+                backgroundColor: theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.dark,
                 textTransform: 'uppercase',
                 fontWeight: 600,
                 '&:hover': {
-                  backgroundColor: theme.palette.customColors?.OnPrimaryContainer || '#163830'
+                  backgroundColor: theme.palette.primary.dark
                 }
               }}
             >

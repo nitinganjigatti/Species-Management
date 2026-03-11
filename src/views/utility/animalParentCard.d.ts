@@ -2,12 +2,12 @@ import { SxProps, Theme } from '@mui/material'
 
 interface CheckboxProps {
   checked: boolean
-  onChange: () => void
+  onChange?: () => void
 }
 
 interface RadioProps {
   checked: boolean
-  onChange: () => void
+  onChange?: () => void
 }
 
 interface AnimalParentCardProps {
@@ -18,6 +18,7 @@ interface AnimalParentCardProps {
   ondelete?: () => void
   radio?: boolean | RadioProps
   checkbox?: boolean | CheckboxProps
+  onClick?: () => void
   sx?: SxProps<Theme>
 }
 

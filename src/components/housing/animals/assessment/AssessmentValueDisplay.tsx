@@ -86,7 +86,7 @@ const AssessmentValueDisplay: React.FC<AssessmentValueDisplayProps> = ({
             sx={{
               fontWeight: 600,
               fontSize: '20px',
-              color: theme.palette.mode === 'dark' ? theme.palette.primary.main : '#00796B'
+              color: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.customColors?.OnPrimaryContainer
             }}
           >
             {main}

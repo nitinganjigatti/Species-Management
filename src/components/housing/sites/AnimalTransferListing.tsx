@@ -37,18 +37,38 @@ interface AnimalTransferListingProps {
 }
 
 // Transfer status configuration matching mobile Config.js TRANSFER_STATUS
+// Basic config for dropdown and name lookup
 const TRANSFER_STATUS = [
   { id: -1, name: 'Show All', value: 'ALL' },
-  { id: 0, name: 'Awaiting Approval', value: 'PENDING', color: '#FCF4AE', textColor: '#FA6140' },
-  { id: 1, name: 'Approved', value: 'APPROVED', color: '#E1F9ED', textColor: '#37BD69' },
-  { id: 2, name: 'Rejected', value: 'REJECTED', color: '#FFD3D3', textColor: '#E93353' },
-  { id: 3, name: 'Canceled', value: 'CANCELED', color: '#7A8684', textColor: '#FFFFFF' },
-  { id: 4, name: 'Completed', value: 'COMPLETED', color: '#000000', textColor: '#FFFFFF' },
-  { id: 5, name: 'Allocate', value: 'REACHED_DESTINATION', value1: 'ALLOCATE', color: '#37BD69', textColor: '#FFFFFF' },
-  { id: 6, name: 'Received Animals', value: 'RECEIVED_ANIMALS', color: '#37BD69', textColor: '#FFFFFF' },
-  { id: 7, name: 'SECURITY CHECKOUT CLEARED', value: 'SECURITY_CHECKOUT_ALLOWED', color: '#FFFFFF', textColor: '#1F515B' },
-  { id: 8, name: 'SECURITY CHECKIN CLEARED', value: 'SECURITY_CHECKIN_ALLOWED', color: '#FFFFFF', textColor: '#1F515B' }
+  { id: 0, name: 'Awaiting Approval', value: 'PENDING' },
+  { id: 1, name: 'Approved', value: 'APPROVED' },
+  { id: 2, name: 'Rejected', value: 'REJECTED' },
+  { id: 3, name: 'Canceled', value: 'CANCELED' },
+  { id: 4, name: 'Completed', value: 'COMPLETED' },
+  { id: 5, name: 'Allocate', value: 'REACHED_DESTINATION', value1: 'ALLOCATE' },
+  { id: 6, name: 'Received Animals', value: 'RECEIVED_ANIMALS' },
+  { id: 7, name: 'SECURITY CHECKOUT CLEARED', value: 'SECURITY_CHECKOUT_ALLOWED' },
+  { id: 8, name: 'SECURITY CHECKIN CLEARED', value: 'SECURITY_CHECKIN_ALLOWED' }
 ]
+
+// Returns status colors based on theme
+const getStatusColorsFromTheme = (status: string, theme: Theme): { backgroundColor: string; textColor: string } => {
+  const customColors = (theme.palette as any).customColors
+  const statusColorMap: Record<string, { backgroundColor: string; textColor: string }> = {
+    'PENDING': { backgroundColor: customColors?.antzNotes, textColor: customColors?.Tertiary },
+    'APPROVED': { backgroundColor: customColors?.OnBackground, textColor: theme.palette.primary.main },
+    'REJECTED': { backgroundColor: customColors?.ErrorContainer, textColor: customColors?.Error },
+    'CANCELED': { backgroundColor: customColors?.secondaryBg, textColor: customColors?.OnPrimary },
+    'COMPLETED': { backgroundColor: customColors?.deepDark, textColor: customColors?.OnPrimary },
+    'REACHED_DESTINATION': { backgroundColor: theme.palette.primary.main, textColor: customColors?.OnPrimary },
+    'ALLOCATE': { backgroundColor: theme.palette.primary.main, textColor: customColors?.OnPrimary },
+    'RECEIVED_ANIMALS': { backgroundColor: theme.palette.primary.main, textColor: customColors?.OnPrimary },
+    'SECURITY_CHECKOUT_ALLOWED': { backgroundColor: customColors?.OnPrimary, textColor: customColors?.OnPrimaryContainer },
+    'SECURITY_CHECKIN_ALLOWED': { backgroundColor: customColors?.OnPrimary, textColor: customColors?.OnPrimaryContainer }
+  }
+
+  return statusColorMap[status] || { backgroundColor: theme.palette.grey[100], textColor: customColors?.OnPrimaryContainer }
+}
 
 // Sub-tabs configuration
 const TRANSFER_TABS = [
@@ -125,30 +145,16 @@ const getStatusText = (item: AnimalTransferItem, loggedInUserId?: number | strin
   return activityStatus?.replace(/_/g, ' ') || 'Pending'
 }
 
-// Get status colors from TRANSFER_STATUS config using allocateButtonCheck (matching mobile)
+// Get status colors using theme (matching mobile)
 const getStatusColors = (
   item: AnimalTransferItem,
-  loggedInUserId?: number | string
+  loggedInUserId: number | string | undefined,
+  theme: Theme
 ): { backgroundColor: string; textColor: string } => {
   const activityStatus = item.activity_status || ''
   const transformedStatus = allocateButtonCheck(activityStatus, item, loggedInUserId)
 
-  const statusConfig = TRANSFER_STATUS.find(
-    s => s.value === transformedStatus || (s as any).value1 === transformedStatus
-  )
-
-  if (statusConfig && statusConfig.color && statusConfig.textColor) {
-    return {
-      backgroundColor: statusConfig.color,
-      textColor: statusConfig.textColor
-    }
-  }
-
-  // Default colors
-  return {
-    backgroundColor: '#F5F5F5',
-    textColor: '#1F515B'
-  }
+  return getStatusColorsFromTheme(transformedStatus, theme)
 }
 
 const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
@@ -440,7 +446,7 @@ const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
       renderCell: (params: GridCellParams) => {
         const row = params.row as IndexedTransferItem
         const statusText = getStatusText(row, loggedInUserId)
-        const statusColors = getStatusColors(row, loggedInUserId)
+        const statusColors = getStatusColors(row, loggedInUserId, theme)
 
         return (
           <Box

@@ -43,7 +43,7 @@ const GreenSwitch = styled(Switch)(({ theme }) => ({
       transform: 'translateX(18px)',
       color: theme.palette.primary.contrastText,
       '& + .MuiSwitch-track': {
-        backgroundColor: '#4CAF50', // ✅ Green background
+        backgroundColor: theme.palette.primary.main,
         opacity: 1
       }
     }
@@ -285,7 +285,7 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
                 <Box sx={{ maxWidth: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Box
                     sx={{
-                      backgroundColor: '#FFE7E7',
+                      backgroundColor: theme.palette.customColors?.ErrorContainer,
                       p: 1,
                       borderRadius: 1,
                       display: 'flex',

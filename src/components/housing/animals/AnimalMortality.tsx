@@ -198,7 +198,7 @@ const AnimalMortality: React.FC<AnimalMortalityProps> = ({ animalDetails }) => {
                 onClose={handleMenuClose}
                 PaperProps={{
                   sx: {
-                    border: '1px solid #37BD69',
+                    border: `1px solid ${theme.palette.primary.main}`,
                     borderRadius: 2,
                     minWidth: 120,
                     boxShadow: 2,
@@ -241,7 +241,7 @@ const AnimalMortality: React.FC<AnimalMortalityProps> = ({ animalDetails }) => {
         </Box>
         <Box
           sx={{
-            background: '#FFBDA833',
+            background: theme.palette.customColors?.Tertiary20,
             borderRadius: 1,
             px: { xs: 3, sm: 6 },
             py: { xs: 2, sm: 6 },

@@ -275,7 +275,7 @@ const AnimalHistory: React.FC = () => {
                     }}
                   >
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: '200px' }}>
-                      <Typography variant='subtitle2' sx={{ color: '#6b7a7a' }}>
+                      <Typography variant='subtitle2' sx={{ color: theme.palette.customColors?.secondaryBg }}>
                         {item.label}
                       </Typography>
                       <Typography variant='body1' sx={{ fontWeight: 600 }}>

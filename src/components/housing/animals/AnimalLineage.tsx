@@ -108,8 +108,12 @@ const CardShimmer: FC<{ count?: number }> = ({ count = 2 }) => {
               }}
             />
             <Box sx={{ flex: 1 }}>
-              <Box sx={{ height: 16, width: '40%', backgroundColor: theme.palette.action.hover, borderRadius: 1, mb: 1 }} />
-              <Box sx={{ height: 14, width: '60%', backgroundColor: theme.palette.action.hover, borderRadius: 1, mb: 0.5 }} />
+              <Box
+                sx={{ height: 16, width: '40%', backgroundColor: theme.palette.action.hover, borderRadius: 1, mb: 1 }}
+              />
+              <Box
+                sx={{ height: 14, width: '60%', backgroundColor: theme.palette.action.hover, borderRadius: 1, mb: 0.5 }}
+              />
               <Box sx={{ height: 12, width: '50%', backgroundColor: theme.palette.action.hover, borderRadius: 1 }} />
             </Box>
           </Box>
@@ -125,7 +129,16 @@ const EmptyState: FC<{ message: string }> = ({ message }) => {
   const theme = useTheme()
 
   return (
-    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8, flexDirection: 'column' }}>
+    <Box
+      sx={{
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        py: 8,
+        flexDirection: 'column'
+      }}
+    >
       <NoDataFound variant='Meerkat' height={150} width={150} />
       <Typography sx={{ fontSize: '0.875rem', color: theme.palette.text.secondary, fontWeight: 400, mt: 2 }}>
         {message}
@@ -149,7 +162,7 @@ const PillTabs: FC<PillTabProps> = ({ tabs, activeTab, onTabClick, onRefresh }) 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <Box sx={{ display: 'flex', gap: 1.5 }}>
-        {tabs.map((tab) => (
+        {tabs.map(tab => (
           <Box
             key={tab}
             onClick={() => onTabClick(tab)}
@@ -157,18 +170,17 @@ const PillTabs: FC<PillTabProps> = ({ tabs, activeTab, onTabClick, onRefresh }) 
               px: 3,
               py: 1,
               borderRadius: '6px',
-              backgroundColor: activeTab === tab
-                ? theme.palette.secondary.dark
-                : theme.palette.customColors?.mdAntzNeutral || alpha(theme.palette.grey[500], 0.08),
+              backgroundColor:
+                activeTab === tab
+                  ? theme.palette.secondary.dark
+                  : theme.palette.customColors?.mdAntzNeutral || alpha(theme.palette.grey[500], 0.08),
               cursor: 'pointer',
               transition: 'all 0.2s ease'
             }}
           >
             <Typography
               sx={{
-                color: activeTab === tab
-                  ? theme.palette.primary.contrastText
-                  : theme.palette.text.primary,
+                color: activeTab === tab ? theme.palette.primary.contrastText : theme.palette.text.primary,
                 fontSize: '14px',
                 fontWeight: 500
               }}
@@ -178,11 +190,11 @@ const PillTabs: FC<PillTabProps> = ({ tabs, activeTab, onTabClick, onRefresh }) 
           </Box>
         ))}
       </Box>
-      {onRefresh && (
+      {/* {onRefresh && (
         <IconButton onClick={onRefresh} size='small' sx={{ ml: 1 }}>
           <RefreshIcon />
         </IconButton>
-      )}
+      )} */}
     </Box>
   )
 }
@@ -213,9 +225,11 @@ const AddFamilyCard: FC<AddFamilyCardProps> = ({ title, onClick, disabled = fals
         cursor: disabled ? 'not-allowed' : 'pointer',
         mb: 2,
         opacity: disabled ? 0.5 : 1,
-        '&:hover': disabled ? {} : {
-          backgroundColor: alpha(theme.palette.success.main, 0.12)
-        }
+        '&:hover': disabled
+          ? {}
+          : {
+              backgroundColor: alpha(theme.palette.success.main, 0.12)
+            }
       }}
     >
       <AddIcon sx={{ fontSize: 20, color: disabled ? theme.palette.grey[500] : theme.palette.success.dark }} />
@@ -248,8 +262,8 @@ const SexBadge: FC<SexBadgeProps> = ({ sex }) => {
         }
       case 'female':
         return {
-          bg: alpha('#E91E63', 0.15),
-          color: '#C2185B',
+          bg: alpha(theme.palette.error.main, 0.15),
+          color: theme.palette.error.dark,
           label: 'F'
         }
       case 'undetermined':
@@ -285,9 +299,7 @@ const SexBadge: FC<SexBadgeProps> = ({ sex }) => {
         mt: 0.5
       }}
     >
-      <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: styles.color }}>
-        {styles.label}
-      </Typography>
+      <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: styles.color }}>{styles.label}</Typography>
     </Box>
   )
 }
@@ -311,9 +323,7 @@ const GroupBadge: FC<{ count?: number }> = ({ count }) => {
         }}
       />
       {count && count > 1 && (
-        <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>
-          Count: {count}
-        </Typography>
+        <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>Count: {count}</Typography>
       )}
     </Box>
   )
@@ -403,32 +413,32 @@ const AnimalCardComponent: FC<AnimalCardComponentProps> = ({
 
   const getBreedName = () => {
     if ('breed_name' in animal && animal.breed_name) return animal.breed_name
-    
-return null
+
+    return null
   }
 
   const getMorphName = () => {
     if ('morph_name' in animal && animal.morph_name) return animal.morph_name
-    
-return null
+
+    return null
   }
 
   const getOrganization = () => {
     if ('organization_name' in animal && animal.organization_name) return animal.organization_name
-    
-return null
+
+    return null
   }
 
   const isGroup = () => {
     if ('type' in animal) return animal.type === 'group'
-    
-return false
+
+    return false
   }
 
   const getTotalAnimal = () => {
     if ('total_animal' in animal) return (animal as any).total_animal
-    
-return null
+
+    return null
   }
 
   const isAlive = () => {
@@ -456,9 +466,11 @@ return null
         borderBottomRightRadius: isLast ? '8px' : 0,
         cursor: onClick ? 'pointer' : 'default',
         position: 'relative',
-        '&:hover': onClick ? {
-          backgroundColor: alpha(theme.palette.primary.main, 0.02)
-        } : {}
+        '&:hover': onClick
+          ? {
+              backgroundColor: alpha(theme.palette.primary.main, 0.02)
+            }
+          : {}
       }}
       onClick={onClick}
     >
@@ -582,16 +594,14 @@ return null
 
         {/* Site */}
         {!isExternal && getSite() && (
-          <Typography sx={{ fontSize: '0.8125rem', color: theme.palette.text.secondary }}>
-            Site: {getSite()}
-          </Typography>
+          <Typography sx={{ fontSize: '0.8125rem', color: theme.palette.text.secondary }}>Site: {getSite()}</Typography>
         )}
       </Box>
 
       {/* Remove Button */}
       {showRemove && onRemove && (
         <IconButton
-          onClick={(e) => {
+          onClick={e => {
             e.stopPropagation()
             onRemove()
           }}
@@ -782,9 +792,11 @@ const ParentAnimalCardWrapper: FC<ParentAnimalCardWrapperProps> = ({
         borderBottomRightRadius: isLast ? '8px' : 0,
         cursor: onClick ? 'pointer' : 'default',
         position: 'relative',
-        '&:hover': onClick ? {
-          backgroundColor: alpha(theme.palette.primary.main, 0.02)
-        } : {}
+        '&:hover': onClick
+          ? {
+              backgroundColor: alpha(theme.palette.primary.main, 0.02)
+            }
+          : {}
       }}
       onClick={onClick}
     >
@@ -833,7 +845,7 @@ const ParentAnimalCardWrapper: FC<ParentAnimalCardWrapperProps> = ({
       {/* Remove Button */}
       {showRemove && onRemove && (
         <IconButton
-          onClick={(e) => {
+          onClick={e => {
             e.stopPropagation()
             onRemove()
           }}
@@ -904,7 +916,7 @@ const ParentSectionCard: FC<ParentSectionCardProps> = ({
 
         return (
           <ParentAnimalCardWrapper
-            key={('animal_id' in animal ? animal.animal_id : ('id' in animal ? animal.id : index)) || index}
+            key={('animal_id' in animal ? animal.animal_id : 'id' in animal ? animal.id : index) || index}
             animal={animal}
             isExternal={section.isExternal}
             isLast={isLastDisplayed && isActuallyLast}
@@ -914,9 +926,7 @@ const ParentSectionCard: FC<ParentSectionCardProps> = ({
           />
         )
       })}
-      {hasMoreItems && onMoreClick && (
-        <MoreItemsButton count={section.totalCount - 1} onClick={onMoreClick} />
-      )}
+      {hasMoreItems && onMoreClick && <MoreItemsButton count={section.totalCount - 1} onClick={onMoreClick} />}
     </Box>
   )
 }
@@ -932,14 +942,7 @@ interface ParentsTabProps {
   canDelete: boolean
 }
 
-const ParentsTab: FC<ParentsTabProps> = ({
-  animalId,
-  taxonomyId,
-  isEggAnimal,
-  canAdd,
-  canEdit,
-  canDelete
-}) => {
+const ParentsTab: FC<ParentsTabProps> = ({ animalId, taxonomyId, isEggAnimal, canAdd, canEdit, canDelete }) => {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [loading, setLoading] = useState<boolean>(true)
@@ -1161,13 +1164,11 @@ const ParentsTab: FC<ParentsTabProps> = ({
   }, [parentData])
 
   // Check if we need to show "Add" cards
-  const showAddSire = parentData &&
-    Number(parentData.father_count || 0) === 0 &&
-    Number(parentData.external_father_count || 0) === 0
+  const showAddSire =
+    parentData && Number(parentData.father_count || 0) === 0 && Number(parentData.external_father_count || 0) === 0
 
-  const showAddDam = parentData &&
-    Number(parentData.mother_count || 0) === 0 &&
-    Number(parentData.external_mother_count || 0) === 0
+  const showAddDam =
+    parentData && Number(parentData.mother_count || 0) === 0 && Number(parentData.external_mother_count || 0) === 0
 
   const canShowAddButtons = canAdd && !isEggAnimal
 
@@ -1181,22 +1182,16 @@ const ParentsTab: FC<ParentsTabProps> = ({
     <Box>
       {/* Add Sire Card */}
       {showAddSire && canShowAddButtons && (
-        <AddFamilyCard
-          title='Add Sire (Father)'
-          onClick={() => handleAddParent('sire')}
-        />
+        <AddFamilyCard title='Add Sire (Father)' onClick={() => handleAddParent('sire')} />
       )}
 
       {/* Add Dam Card */}
       {showAddDam && canShowAddButtons && (
-        <AddFamilyCard
-          title='Add Dam (Mother)'
-          onClick={() => handleAddParent('dam')}
-        />
+        <AddFamilyCard title='Add Dam (Mother)' onClick={() => handleAddParent('dam')} />
       )}
 
       {/* Parent Sections */}
-      {sections.map((section) => {
+      {sections.map(section => {
         // Mobile logic for showEdit:
         // - For internal parents: show when totalCount > 1 AND user has DELETE permission AND not isEggAnimal
         // - For external parents: show when user has EDIT permission
@@ -1208,21 +1203,20 @@ const ParentsTab: FC<ParentsTabProps> = ({
         // - For external: open AddParentDrawer in edit mode
         // - For internal: open ParentListDrawer in edit mode
         const handleEditClick = section.isExternal
-          ? () => handleEditParent(section.data[0] as ExternalAnimal, section.parentType.toLowerCase() as 'sire' | 'dam')
+          ? () =>
+              handleEditParent(section.data[0] as ExternalAnimal, section.parentType.toLowerCase() as 'sire' | 'dam')
           : () => handleEditInternalParent(section)
 
         return (
           <ParentSectionCard
             key={section.key}
             section={section}
-            onAnimalClick={(animal) => handleAnimalClick(animal, section.isExternal)}
+            onAnimalClick={animal => handleAnimalClick(animal, section.isExternal)}
             onAdd={() => handleAddParent(section.parentType.toLowerCase() as 'sire' | 'dam')}
             onEdit={showEditIcon ? handleEditClick : undefined}
-            onRemove={(animal) => handleRemoveParent(
-              animal,
-              section.parentType.toLowerCase() as 'sire' | 'dam',
-              section.isExternal
-            )}
+            onRemove={animal =>
+              handleRemoveParent(animal, section.parentType.toLowerCase() as 'sire' | 'dam', section.isExternal)
+            }
             onMoreClick={section.totalCount > 1 ? () => handleMoreClick(section) : undefined}
             showRemove={canDelete && section.isConfirmed && !isEggAnimal}
             showAdd={canShowAddButtons && !section.isExternal}
@@ -1350,6 +1344,7 @@ const PairCard: FC<PairCardProps> = ({
   // The API returns paired animal data directly on the pair object, not nested
   // Fields: animal_id, common_name, sex, local_identifier, etc. (not prefixed with 'pair_')
   const details = pair.pair_animal_details as LineageAnimal | undefined
+
   const pairAnimal: LineageAnimal = {
     // Use direct fields from pair, fallback to prefixed fields for legacy support
     animal_id: Number(pair.animal_id || pair.pair_animal_id),
@@ -1438,7 +1433,7 @@ const PairCard: FC<PairCardProps> = ({
           {showEdit && onEdit && (
             <IconButton
               size='small'
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation()
                 onEdit()
               }}
@@ -1450,7 +1445,7 @@ const PairCard: FC<PairCardProps> = ({
           {showDelete && onDelete && (
             <IconButton
               size='small'
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation()
                 onDelete()
               }}
@@ -1530,15 +1525,7 @@ interface PairsTabProps {
   canDelete: boolean
 }
 
-const PairsTab: FC<PairsTabProps> = ({
-  animalId,
-  animalSex,
-  taxonomyId,
-  isEggAnimal,
-  canAdd,
-  canEdit,
-  canDelete
-}) => {
+const PairsTab: FC<PairsTabProps> = ({ animalId, animalSex, taxonomyId, isEggAnimal, canAdd, canEdit, canDelete }) => {
   const router = useRouter()
   const queryClient = useQueryClient()
 
@@ -1628,7 +1615,7 @@ const PairsTab: FC<PairsTabProps> = ({
         common_name: pair.common_name || pair.pair_common_name,
         local_identifier: pair.identifier || pair.local_identifier || pair.local_identifier_value
       }
-      setSelectedExternalAnimal(pair.pair_animal_details as ExternalAnimal || externalAnimal)
+      setSelectedExternalAnimal((pair.pair_animal_details as ExternalAnimal) || externalAnimal)
       setExternalDetailsOpen(true)
     } else if (pairedAnimalId) {
       router.push(`/housing/animals/${pairedAnimalId}`)
@@ -1700,12 +1687,7 @@ const PairsTab: FC<PairsTabProps> = ({
   return (
     <Box>
       {/* Add Pair Card */}
-      {canShowAddButton && (
-        <AddFamilyCard
-          title='Add Pair'
-          onClick={() => setAddPairDrawerOpen(true)}
-        />
-      )}
+      {canShowAddButton && <AddFamilyCard title='Add Pair' onClick={() => setAddPairDrawerOpen(true)} />}
 
       {pairs.length === 0 && !isFetching ? (
         <EmptyState message='No Pairs Recorded' />
@@ -1927,7 +1909,10 @@ const SiblingsTab: FC<SiblingsTabProps> = ({ animalId }) => {
     getNextPageParam: (lastPage: SiblingPageResult) => lastPage.nextPage
   })
 
-  const siblings = useMemo(() => queryData?.pages?.flatMap((page: SiblingPageResult) => page?.result) || [], [queryData])
+  const siblings = useMemo(
+    () => queryData?.pages?.flatMap((page: SiblingPageResult) => page?.result) || [],
+    [queryData]
+  )
 
   const loadMore = useCallback(() => {
     if (cooldownRef.current) return
@@ -1959,11 +1944,7 @@ const SiblingsTab: FC<SiblingsTabProps> = ({ animalId }) => {
   return (
     <Box>
       {siblings.map((sibling, index) => (
-        <SiblingCard
-          key={sibling.animal_id || index}
-          sibling={sibling}
-          onClick={() => handleSiblingClick(sibling)}
-        />
+        <SiblingCard key={sibling.animal_id || index} sibling={sibling} onClick={() => handleSiblingClick(sibling)} />
       ))}
 
       {(isFetchingNextPage || hasNextPage) && siblings.length > 0 && (
@@ -2008,9 +1989,7 @@ const AnimalLineage: FC<AnimalLineageProps> = ({ animalDetails }) => {
   // Pairs tab only shows for single animals with male/female sex (matching mobile)
   const showPairsTab = animalType === 'single' && (animalSex === 'male' || animalSex === 'female')
 
-  const availableTabs: LineageTabType[] = showPairsTab
-    ? ['Parents', 'Pairs', 'Siblings']
-    : ['Parents', 'Siblings']
+  const availableTabs: LineageTabType[] = showPairsTab ? ['Parents', 'Pairs', 'Siblings'] : ['Parents', 'Siblings']
 
   const [activeTab, setActiveTab] = useState<LineageTabType>('Parents')
 
@@ -2058,7 +2037,7 @@ const AnimalLineage: FC<AnimalLineageProps> = ({ animalDetails }) => {
         <PillTabs
           tabs={availableTabs}
           activeTab={activeTab}
-          onTabClick={(tab) => setActiveTab(tab as LineageTabType)}
+          onTabClick={tab => setActiveTab(tab as LineageTabType)}
           onRefresh={handleRefresh}
         />
       </Box>

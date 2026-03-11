@@ -532,7 +532,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
               maxHeight: '100vh',
               display: 'flex',
               flexDirection: 'column',
-              backgroundColor: '#FFFFFF',
+              backgroundColor: theme.palette.background.paper,
               p: 0,
               overflow: 'hidden',
               position: 'fixed',
@@ -697,7 +697,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                 flex: 1,
                 overflowY: 'auto',
                 overflowX: 'hidden',
-                backgroundColor: '#FFFFFF',
+                backgroundColor: theme.palette.background.paper,
                 display: 'flex',
                 flexDirection: 'column',
                 minHeight: 0
@@ -1164,7 +1164,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                 left: 0,
                 width: '100%',
                 borderTop: `1px solid ${theme.palette.divider}`,
-                backgroundColor: '#FFFFFF',
+                backgroundColor: theme.palette.background.paper,
                 zIndex: 10
               }}
             >
@@ -1349,8 +1349,8 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                       width: '90%'
                     }}
                   >
-                    <Icon icon='mdi:check' fontSize={20} color='#FFFFFF' />
-                    <Typography sx={{ fontWeight: 600, fontSize: '16px', color: '#FFFFFF' }}>
+                    <Icon icon='mdi:check' fontSize={20} color={theme.palette.common.white} />
+                    <Typography sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.common.white }}>
                       {buttonStatus?.show_you_approved ? 'You Approved' : 'Approved'}
                     </Typography>
                   </Box>
@@ -1374,8 +1374,8 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                       width: '90%'
                     }}
                   >
-                    <Icon icon='mdi:close' fontSize={20} color='#FFFFFF' />
-                    <Typography sx={{ fontWeight: 600, fontSize: '16px', color: '#FFFFFF' }}>
+                    <Icon icon='mdi:close' fontSize={20} color={theme.palette.common.white} />
+                    <Typography sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.common.white }}>
                       {buttonStatus?.show_you_rejected ? 'You Rejected' : 'Rejected'}
                     </Typography>
                   </Box>
@@ -1398,8 +1398,8 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                       width: '90%'
                     }}
                   >
-                    <Icon icon='mdi:close' fontSize={20} color='#FFFFFF' />
-                    <Typography sx={{ fontWeight: 600, fontSize: '16px', color: '#FFFFFF' }}>Canceled</Typography>
+                    <Icon icon='mdi:close' fontSize={20} color={theme.palette.common.white} />
+                    <Typography sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.common.white }}>Canceled</Typography>
                   </Box>
                 </Box>
               ) : null}

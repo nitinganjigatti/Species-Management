@@ -5,12 +5,30 @@ import React from 'react'
 import AnimalCard from './AnimalCard'
 import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 
-const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelete, radio = false, checkbox = false, sx }) => {
+const AnimalParentCard = ({
+  data,
+  backgroundColor,
+  size,
+  animal = false,
+  ondelete,
+  radio = false,
+  checkbox = false,
+  onClick,
+  sx
+}) => {
   const theme = useTheme()
-  const interactive = Boolean(radio) || Boolean(checkbox)
+  const interactive = Boolean(radio) || Boolean(checkbox) || Boolean(onClick)
   const isChecked = radio?.checked || checkbox?.checked
 
   const handleSelect = () => {
+    // If explicit onClick prop is provided, use that
+    if (onClick) {
+      onClick()
+
+      return
+    }
+
+    // Otherwise use radio/checkbox onChange
     if (radio) {
       radio?.onChange?.()
     } else if (checkbox) {
@@ -42,10 +60,12 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelet
             gap: '10px',
             border: isChecked ? `1px solid #37BD69` : 'none',
             cursor: interactive ? 'pointer' : 'default',
-            '&:hover': interactive ? {
-              borderColor: '#37BD69',
-              background: '#F2FFF8'
-            } : {},
+            '&:hover': interactive
+              ? {
+                  borderColor: '#37BD69',
+                  background: '#F2FFF8'
+                }
+              : {},
             ...sx
           }}
           onClick={interactive ? handleSelect : undefined}
@@ -85,17 +105,11 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelet
             <Box>
               <Radio
                 checked={radio?.checked}
-                onChange={event => {
-                  event.stopPropagation()
-                  radio?.onChange?.()
-                }}
-                onClick={event => {
-                  event.stopPropagation()
-                }}
                 sx={{
                   width: 24,
                   height: 24,
                   p: 0,
+                  pointerEvents: 'none',
                   '& .MuiSvgIcon-root': {
                     fontSize: 24
                   }
@@ -109,17 +123,11 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelet
             <Box>
               <Checkbox
                 checked={checkbox?.checked}
-                onChange={event => {
-                  event.stopPropagation()
-                  checkbox?.onChange?.()
-                }}
-                onClick={event => {
-                  event.stopPropagation()
-                }}
                 sx={{
                   width: 24,
                   height: 24,
                   p: 0,
+                  pointerEvents: 'none',
                   color: theme.palette.customColors?.OutlineVariant,
                   '&.Mui-checked': {
                     color: '#37BD69'

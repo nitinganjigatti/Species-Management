@@ -196,7 +196,9 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
 
       return res?.data || []
     },
-    enabled: Boolean(open && taxonomySearchInput && taxonomySearchInput.length >= 3 && (parentSource === 'external' || editMode))
+    enabled: Boolean(
+      open && taxonomySearchInput && taxonomySearchInput.length >= 3 && (parentSource === 'external' || editMode)
+    )
   })
 
   // Fetch animal configs for identifier types
@@ -484,15 +486,11 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
         anchor='right'
         open={open}
         onClose={onClose}
-        slotProps={{
-          paper: {
-            sx: {
-              width: { xs: '100%', sm: '80%', md: 560 },
-              display: 'flex',
-              flexDirection: 'column',
-              backgroundColor: theme.palette.customColors?.Background || theme.palette.background.default,
-              p: 0
-            }
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: ['100%', '562px'],
+            display: 'flex',
+            flexDirection: 'column'
           }
         }}
       >
@@ -501,7 +499,6 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
           sx={{
             position: 'sticky',
             top: 0,
-            zIndex: 1,
             p: 5,
             display: 'flex',
             justifyContent: 'space-between',
@@ -522,12 +519,12 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
         <Box
           sx={{
             flex: 1,
-            overflowY: 'auto',
+            overflow: 'auto',
             display: 'flex',
             flexDirection: 'column',
             gap: 4,
-            minHeight: 0,
-            p: 5
+            px: 5,
+            py: 4
           }}
         >
           {/* Parent Source Toggle - Hide in edit mode */}
@@ -586,7 +583,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                     sx={{
                       fontSize: '14px',
                       fontWeight: 500,
-                      color: parentSource === 'internal' ? '#FFFFFF' : theme.palette.text.primary
+                      color: parentSource === 'internal' ? theme.palette.customColors?.OnPrimary : theme.palette.text.primary
                     }}
                   >
                     Antz
@@ -596,7 +593,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                       width: 22,
                       height: 22,
                       borderRadius: '50%',
-                      border: `2px solid ${parentSource === 'internal' ? '#37BD69' : theme.palette.grey[400]}`,
+                      border: `2px solid ${parentSource === 'internal' ? theme.palette.primary.main : theme.palette.grey[400]}`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -609,7 +606,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                           width: 12,
                           height: 12,
                           borderRadius: '50%',
-                          backgroundColor: '#37BD69'
+                          backgroundColor: theme.palette.primary.main
                         }}
                       />
                     )}
@@ -648,7 +645,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                     sx={{
                       fontSize: '14px',
                       fontWeight: 500,
-                      color: parentSource === 'external' ? '#FFFFFF' : theme.palette.text.primary
+                      color: parentSource === 'external' ? theme.palette.customColors?.OnPrimary : theme.palette.text.primary
                     }}
                   >
                     External
@@ -658,7 +655,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                       width: 22,
                       height: 22,
                       borderRadius: '50%',
-                      border: `2px solid ${parentSource === 'external' ? '#37BD69' : theme.palette.grey[400]}`,
+                      border: `2px solid ${parentSource === 'external' ? theme.palette.primary.main : theme.palette.grey[400]}`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -671,7 +668,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                           width: 12,
                           height: 12,
                           borderRadius: '50%',
-                          backgroundColor: '#37BD69'
+                          backgroundColor: theme.palette.primary.main
                         }}
                       />
                     )}
@@ -814,37 +811,30 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     p: 4,
-                    border: `2px dashed #37BD69`,
+                    border: `2px dashed ${theme.palette.primary.main}`,
                     borderRadius: '8px',
                     cursor: 'pointer',
-                    backgroundColor: alpha('#37BD69', 0.05),
+                    backgroundColor: alpha(theme.palette.primary.main, 0.05),
                     '&:hover': {
-                      backgroundColor: alpha('#37BD69', 0.1)
+                      backgroundColor: alpha(theme.palette.primary.main, 0.1)
                     }
                   }}
                 >
-                  <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#37BD69' }}>Select Animal</Typography>
-                  <AddIcon sx={{ color: '#37BD69' }} />
+                  <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.primary.main }}>Select Animal</Typography>
+                  <AddIcon sx={{ color: theme.palette.primary.main }} />
                 </Box>
               )}
 
               {/* Selected Animals Display */}
               {selectedAnimals.length > 0 && (
-                <Card
-                  elevation={0}
-                  sx={{
-                    borderRadius: '8px',
-                    backgroundColor: theme.palette.background.paper,
-                    overflow: 'hidden'
-                  }}
-                >
+                <>
                   {/* Header */}
                   <Box
                     sx={{
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      p: 3,
+                      pb: 2,
                       borderBottom: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`
                     }}
                   >
@@ -859,56 +849,34 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                     </IconButton>
                   </Box>
 
-                  {/* Animal Cards - Show first 2 */}
-                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    {selectedAnimals.slice(0, 2).map((animal, index) => (
-                      <Box
-                        key={animal.animal_id}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          p: 3,
-                          borderBottom:
-                            index < Math.min(selectedAnimals.length, 2) - 1
-                              ? `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`
-                              : 'none'
-                        }}
-                      >
-                        {/* Animal Card */}
-                        <AnimalCard data={animal} />
-
-                        {/* Remove Button */}
-                        <IconButton
-                          onClick={() => handleRemoveSelected(animal.animal_id)}
-                          sx={{ color: theme.palette.error.main, p: 0.5, alignSelf: 'center' }}
-                        >
-                          <CancelIcon />
-                        </IconButton>
-                      </Box>
-                    ))}
-                  </Box>
-
-                  {/* More Button */}
-                  {selectedAnimals.length > 2 && (
+                  {/* Animal Cards - Show all selected */}
+                  {selectedAnimals.map((animal, index) => (
                     <Box
-                      onClick={() => setAnimalDrawerOpen(true)}
+                      key={animal.animal_id}
                       sx={{
-                        p: 2,
-                        textAlign: 'center',
-                        backgroundColor: alpha(theme.palette.primary.main, 0.05),
-                        cursor: 'pointer',
-                        '&:hover': {
-                          backgroundColor: alpha(theme.palette.primary.main, 0.1)
-                        }
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        py: 3,
+                        borderBottom:
+                          index < selectedAnimals.length - 1
+                            ? `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`
+                            : 'none'
                       }}
                     >
-                      <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.primary.main }}>
-                        + {selectedAnimals.length - 2} more
-                      </Typography>
+                      {/* Animal Card */}
+                      <AnimalCard data={animal} />
+
+                      {/* Remove Button */}
+                      <IconButton
+                        onClick={() => handleRemoveSelected(animal.animal_id)}
+                        sx={{ color: theme.palette.error.main, p: 0.5, alignSelf: 'center' }}
+                      >
+                        <CancelIcon />
+                      </IconButton>
                     </Box>
-                  )}
-                </Card>
+                  ))}
+                </>
               )}
             </Card>
           )}
@@ -1154,21 +1122,17 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
           )}
         </Box>
 
-        {/* Sticky Footer Button */}
+        {/* Footer Button */}
         <Box
           sx={{
             position: 'sticky',
             bottom: 0,
-            left: 0,
-            width: '100%',
-            p: 5,
+            p: 4,
             borderTop: `1px solid ${theme.palette.divider}`,
             backgroundColor: theme.palette.background.paper,
-            zIndex: 1,
-            boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.06)',
-            flexShrink: 0,
+            boxShadow: '0px -1px 30px 0px rgba(0, 0, 0, 0.1)',
             display: 'flex',
-            gap: 4
+            gap: 2
           }}
         >
           <Button
@@ -1235,6 +1199,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
           use_case: 'add_parent',
           relevant_animal_id: animalId
         }}
+        zIndex={1300}
       />
     </>
   )

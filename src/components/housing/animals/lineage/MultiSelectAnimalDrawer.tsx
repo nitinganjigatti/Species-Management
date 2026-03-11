@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Drawer, Typography, IconButton, CircularProgress, Button } from '@mui/material'
+import { Box, Drawer, Typography, IconButton, CircularProgress, Button, Radio, Checkbox } from '@mui/material'
 import { Close as CloseIcon } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
 import { debounce } from 'lodash'
 import { useInView } from 'react-intersection-observer'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 
-import AnimalParentCard from 'src/views/utility/animalParentCard'
+import AnimalCard from 'src/views/utility/AnimalCard'
 import Search from 'src/views/utility/Search'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
@@ -50,11 +50,8 @@ interface MultiSelectAnimalDrawerProps {
   title?: string
   btnText?: string
   searchPlaceholder?: string
-  // Selection mode - 'single' for radio buttons, 'multi' for checkboxes
   selectionMode?: 'single' | 'multi'
-  // Extra params to pass to API - parent component controls all filter params
   extraParams?: Record<string, any>
-  // z-index for proper stacking with other drawers
   zIndex?: number
 }
 
@@ -68,29 +65,47 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
   searchPlaceholder = 'Search animal by AID or identifier',
   selectionMode = 'multi',
   extraParams = {},
-  zIndex
+  zIndex = 1300
 }) => {
   const theme = useTheme() as any
   const queryClient = useQueryClient()
 
   const [search, setSearch] = useState('')
   const [localSearch, setLocalSearch] = useState('')
-  const [selectedAnimals, setSelectedAnimals] = useState<Animal[]>([])
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [selectedAnimalsData, setSelectedAnimalsData] = useState<Map<number, Animal>>(new Map())
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
   const cooldownRef = useRef(false)
+  const prevOpenRef = useRef(false)
 
   const debouncedSearch = useMemo(() => debounce((value: string) => setSearch(value), 500), [])
 
   const isSingleSelectMode = selectionMode === 'single'
 
-  // Reset state when drawer opens
+  // Reset state only when drawer opens (transitions from closed to open)
   useEffect(() => {
-    if (open) {
+    if (open && !prevOpenRef.current) {
       setLocalSearch('')
       setSearch('')
-      setSelectedAnimals(initialSelectedAnimals || [])
+
+      // Initialize from initialSelectedAnimals
+      const ids = new Set<number>()
+      const dataMap = new Map<number, Animal>()
+
+      if (initialSelectedAnimals && initialSelectedAnimals.length > 0) {
+        initialSelectedAnimals.forEach(animal => {
+          if (animal.animal_id) {
+            ids.add(animal.animal_id)
+            dataMap.set(animal.animal_id, animal)
+          }
+        })
+      }
+
+      setSelectedIds(ids)
+      setSelectedAnimalsData(dataMap)
     }
+    prevOpenRef.current = open
   }, [open, initialSelectedAnimals])
 
   // Cleanup debounce on unmount
@@ -100,7 +115,6 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
     }
   }, [debouncedSearch])
 
-  // Include extraParams in queryKey for proper cache invalidation
   const queryKey = ['multi-select-animal-drawer', search, JSON.stringify(extraParams), open]
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } = useInfiniteQuery({
@@ -108,8 +122,6 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
     enabled: Boolean(open),
     initialPageParam: 1,
     queryFn: async ({ pageParam }) => {
-      // Default params: page_no, limit, search
-      // All other params come from extraParams
       const params: Record<string, any> = {
         page_no: pageParam,
         limit: PAGE_SIZE,
@@ -118,7 +130,6 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
       }
 
       const res = await getNewAnimalListWithFilters(params)
-
       const resultData = res?.data || []
       const totalCount = res?.total_count || 0
 
@@ -149,7 +160,7 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
     }
   }, [open, queryClient, clearQuery])
 
-  // Transform API response to consistent animal format
+  // Transform API response
   const list = useMemo(
     () =>
       data?.pages?.flatMap(page =>
@@ -185,7 +196,7 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
     [data]
   )
 
-  // Infinite scroll load more
+  // Infinite scroll
   const loadMore = useCallback(() => {
     if (cooldownRef.current) return
     if (!isFetchingNextPage && hasNextPage) {
@@ -206,9 +217,8 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
 
   // Search handlers
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setLocalSearch(value)
-    debouncedSearch(value)
+    setLocalSearch(e.target.value)
+    debouncedSearch(e.target.value)
   }
 
   const handleSearchClear = () => {
@@ -216,52 +226,79 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
     setSearch('')
   }
 
-  // Selection handlers
-  const handleAnimalClick = (animal: Animal) => {
-    if (isSingleSelectMode) {
-      // Single select: just set the animal (toggle off if same animal clicked)
-      setSelectedAnimals(prev => {
-        if (prev.length > 0 && prev[0].animal_id === animal.animal_id) {
-          return []
+  // Selection handler - using Set for O(1) lookup
+  const handleAnimalSelect = useCallback((animal: Animal) => {
+    const animalId = animal.animal_id
+    if (!animalId) return
+
+    setSelectedIds(prev => {
+      const newSet = new Set(prev)
+
+      if (isSingleSelectMode) {
+        // Single select: clear all and toggle
+        if (newSet.has(animalId)) {
+          newSet.clear()
+        } else {
+          newSet.clear()
+          newSet.add(animalId)
         }
-
-        return [animal]
-      })
-    } else {
-      // Multi select: toggle in array
-      setSelectedAnimals(prev => {
-        const isSelected = prev.some(a => a.animal_id === animal.animal_id)
-        if (isSelected) {
-          return prev.filter(a => a.animal_id !== animal.animal_id)
+      } else {
+        // Multi select: toggle
+        if (newSet.has(animalId)) {
+          newSet.delete(animalId)
+        } else {
+          newSet.add(animalId)
         }
+      }
 
-        return [...prev, animal]
-      })
-    }
-  }
+      return newSet
+    })
 
-  // Submit selection
+    setSelectedAnimalsData(prev => {
+      const newMap = new Map(prev)
+
+      if (isSingleSelectMode) {
+        if (newMap.has(animalId)) {
+          newMap.clear()
+        } else {
+          newMap.clear()
+          newMap.set(animalId, animal)
+        }
+      } else {
+        if (newMap.has(animalId)) {
+          newMap.delete(animalId)
+        } else {
+          newMap.set(animalId, animal)
+        }
+      }
+
+      return newMap
+    })
+  }, [isSingleSelectMode])
+
+  // Submit
   const handleSubmit = () => {
+    const selectedAnimals = Array.from(selectedAnimalsData.values())
     onSelect(selectedAnimals)
     onClose()
   }
 
-  // Close and reset
+  // Close
   const handleClose = () => {
-    setSelectedAnimals([])
+    setSelectedIds(new Set())
+    setSelectedAnimalsData(new Map())
     onClose()
   }
 
-  // Button text with count (hide count in single select mode)
   const getButtonText = () => {
-    if (!isSingleSelectMode && selectedAnimals.length > 1) {
-      return `${btnText} (${selectedAnimals.length})`
+    if (!isSingleSelectMode && selectedIds.size > 1) {
+      return `${btnText} (${selectedIds.size})`
     }
 
     return btnText
   }
 
-  const hasValidSelection = selectedAnimals.length > 0
+  const hasValidSelection = selectedIds.size > 0
 
   return (
     <Drawer
@@ -269,7 +306,7 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
       open={open}
       onClose={handleClose}
       sx={{
-        ...(zIndex && { zIndex }),
+        zIndex,
         '& .MuiDrawer-paper': {
           width: ['100%', '562px'],
           display: 'flex',
@@ -315,6 +352,8 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
             inputStyle={{ py: '12px', px: '12px' }}
           />
         </Box>
+
+        {/* Animal List */}
         <Box
           sx={{
             flex: 1,
@@ -324,11 +363,10 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
             bgcolor: theme.palette.customColors?.bodyBg || theme.palette.background.default,
             display: 'flex',
             flexDirection: 'column',
-            gap: 3,
+            gap: 2,
             minHeight: 0,
             '&::-webkit-scrollbar': { display: 'none' },
-            scrollbarWidth: 'none',
-            '-ms-overflow-style': 'none'
+            scrollbarWidth: 'none'
           }}
         >
           {isFetching && list.length === 0 ? (
@@ -338,35 +376,70 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
           ) : (
             <>
               {list.map((animal: Animal) => {
-                const isSelected = selectedAnimals.some(a => a.animal_id === animal.animal_id)
+                const animalId = animal.animal_id
+                const isSelected = animalId ? selectedIds.has(animalId) : false
                 const isDisabled = animal.in_transit === '1' || animal.is_hospitalized === '1'
-
-                // When using radio/checkbox, the selection is handled by the onChange callback
-                // We pass false for disabled animals so no radio/checkbox is rendered
-                const selectionHandler = isDisabled
-                  ? false
-                  : {
-                      checked: isSelected,
-                      onChange: () => handleAnimalClick(animal)
-                    }
-
-                if (isSingleSelectMode) {
-                  return (
-                    <Box
-                      key={animal.animal_id}
-                      sx={{ cursor: isDisabled ? 'not-allowed' : 'pointer' }}
-                    >
-                      <AnimalParentCard data={animal} radio={selectionHandler} />
-                    </Box>
-                  )
-                }
 
                 return (
                   <Box
-                    key={animal.animal_id}
-                    sx={{ cursor: isDisabled ? 'not-allowed' : 'pointer' }}
+                    key={animalId}
+                    onClick={() => {
+                      if (!isDisabled) {
+                        handleAnimalSelect(animal)
+                      }
+                    }}
+                    sx={{
+                      width: '100%',
+                      backgroundColor: isSelected
+                        ? theme.palette.customColors?.Surface
+                        : theme.palette.background.paper,
+                      borderRadius: '8px',
+                      p: 3,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 2,
+                      border: `1px solid ${isSelected ? theme.palette.primary.main : theme.palette.divider}`,
+                      cursor: isDisabled ? 'not-allowed' : 'pointer',
+                      opacity: isDisabled ? 0.6 : 1,
+                      transition: 'all 0.15s ease',
+                      '&:hover': !isDisabled
+                        ? {
+                            borderColor: theme.palette.primary.main,
+                            backgroundColor: theme.palette.customColors?.Surface
+                          }
+                        : {}
+                    }}
                   >
-                    <AnimalParentCard data={animal} checkbox={selectionHandler} />
+                    <AnimalCard data={animal} />
+
+                    {/* Selection Control */}
+                    {!isDisabled && (
+                      <Box sx={{ flexShrink: 0 }}>
+                        {isSingleSelectMode ? (
+                          <Radio
+                            checked={isSelected}
+                            onChange={() => {}}
+                            sx={{
+                              p: 0,
+                              '&.Mui-checked': { color: theme.palette.primary.main },
+                              '& .MuiSvgIcon-root': { fontSize: 24 }
+                            }}
+                          />
+                        ) : (
+                          <Checkbox
+                            checked={isSelected}
+                            onChange={() => {}}
+                            sx={{
+                              p: 0,
+                              color: theme.palette.customColors?.OutlineVariant,
+                              '&.Mui-checked': { color: theme.palette.primary.main },
+                              '& .MuiSvgIcon-root': { fontSize: 24 }
+                            }}
+                          />
+                        )}
+                      </Box>
+                    )}
                   </Box>
                 )
               })}
@@ -401,7 +474,7 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
         </Box>
       </Box>
 
-      {/* Sticky Footer Button */}
+      {/* Footer Button */}
       {hasValidSelection && (
         <Box
           sx={{

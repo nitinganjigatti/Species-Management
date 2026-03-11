@@ -196,9 +196,9 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
             sx={{
               width: 35,
               height: 35,
-              border: '1px solid #C3CEC7',
+              border: `1px solid ${theme.palette.customColors?.OutlineVariant}`,
               borderRadius: '50%',
-              background: '#E8F4F2',
+              background: theme.palette.customColors?.displaybgPrimary,
               overflow: 'hidden'
             }}
           >
@@ -307,10 +307,10 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '24px',
-                  backgroundColor: '#fff',
+                  backgroundColor: theme.palette.background.paper,
                   borderRadius: '8px',
                   border: 1,
-                  borderColor: '#c3cec7'
+                  borderColor: theme.palette.customColors?.OutlineVariant
                 }}
               >
                 <FormControl fullWidth>

@@ -268,7 +268,7 @@ const ClusterIncharges: React.FC = () => {
             placeholder='Search…'
             sx={{ justifyContent: 'flex-end' }}
           />
-          <ExportButton loading={downloading} onClick={handleDownload} bgcolor={(theme.palette as any).primary?.main || '#37BD69'} />
+          <ExportButton loading={downloading} onClick={handleDownload} bgcolor={theme.palette.primary.main} />
         </Box>
 
         <Grid

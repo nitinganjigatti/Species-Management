@@ -77,6 +77,7 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
   const [teamList, setTeamList] = useState<TeamMember[]>([])
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
   const [isEditMode, setIsEditMode] = useState<boolean>(false)
+
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean
     user: TeamMember | null
@@ -366,75 +367,75 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
           </Box>
         )
       }
-    },
+    }
     // Permission to Approve column - only for Transfer Team in view mode
-    ...(activeTab === 'transfer_user' && !isEditMode
-      ? [
-          {
-            minWidth: 40,
-            width: 200,
-            field: 'permission_to_approve',
-            headerName: 'Permission to Approve',
-            align: 'left' as const,
-            headerAlign: 'left' as const,
-            sortable: false,
-            renderCell: (params: GridCellParams) => (
-              <Box
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  pl: 2
-                }}
-              >
-                <IOSSwitch
-                  checked={(params.row as IndexedTeamMember).can_perform_action === '1'}
-                  onChange={() => {
-                    if (hasEditPermission) {
-                      handleTogglePermission(params.row as IndexedTeamMember)
-                    }
-                  }}
-                  disabled={!hasEditPermission}
-                />
-              </Box>
-            )
-          }
-        ]
-      : []),
+    // ...(activeTab === 'transfer_user' && !isEditMode
+    //   ? [
+    //       {
+    //         minWidth: 40,
+    //         width: 200,
+    //         field: 'permission_to_approve',
+    //         headerName: 'Permission to Approve',
+    //         align: 'left' as const,
+    //         headerAlign: 'left' as const,
+    //         sortable: false,
+    //         renderCell: (params: GridCellParams) => (
+    //           <Box
+    //             sx={{
+    //               width: '100%',
+    //               height: '100%',
+    //               display: 'flex',
+    //               alignItems: 'center',
+    //               pl: 2
+    //             }}
+    //           >
+    //             <IOSSwitch
+    //               checked={(params.row as IndexedTeamMember).can_perform_action === '1'}
+    //               onChange={() => {
+    //                 if (hasEditPermission) {
+    //                   handleTogglePermission(params.row as IndexedTeamMember)
+    //                 }
+    //               }}
+    //               disabled={!hasEditPermission}
+    //             />
+    //           </Box>
+    //         )
+    //       }
+    //     ]
+    //   : []),
     // Remove action column - only in edit mode with permission
-    ...(isEditMode && hasEditPermission
-      ? [
-          {
-            minWidth: 40,
-            width: 100,
-            field: 'actions',
-            headerName: 'Actions',
-            align: 'center' as const,
-            headerAlign: 'center' as const,
-            sortable: false,
-            renderCell: (params: GridCellParams) => (
-              <Box
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <IconButton
-                  size='small'
-                  onClick={() => handleConfirmRemove(params.row as IndexedTeamMember)}
-                  sx={{ color: theme.palette.error.main }}
-                >
-                  <Icon icon='mdi:close-circle-outline' fontSize={24} />
-                </IconButton>
-              </Box>
-            )
-          }
-        ]
-      : [])
+    // ...(isEditMode && hasEditPermission
+    //   ? [
+    //       {
+    //         minWidth: 40,
+    //         width: 100,
+    //         field: 'actions',
+    //         headerName: 'Actions',
+    //         align: 'center' as const,
+    //         headerAlign: 'center' as const,
+    //         sortable: false,
+    //         renderCell: (params: GridCellParams) => (
+    //           <Box
+    //             sx={{
+    //               width: '100%',
+    //               height: '100%',
+    //               display: 'flex',
+    //               alignItems: 'center',
+    //               justifyContent: 'center'
+    //             }}
+    //           >
+    //             <IconButton
+    //               size='small'
+    //               onClick={() => handleConfirmRemove(params.row as IndexedTeamMember)}
+    //               sx={{ color: theme.palette.error.main }}
+    //             >
+    //               <Icon icon='mdi:close-circle-outline' fontSize={24} />
+    //             </IconButton>
+    //           </Box>
+    //         )
+    //       }
+    //     ]
+    //   : [])
   ]
 
   return (
@@ -471,7 +472,7 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
                 </Box>
               )}
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               {hasEditPermission && (
                 <>
                   {isEditMode ? (
@@ -508,7 +509,7 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
                   )}
                 </>
               )}
-            </Box>
+            </Box> */}
           </Box>
           <CommonTable
             columns={columns}
@@ -609,7 +610,7 @@ const IOSSwitch = styled(Switch)(({ theme }) => ({
   },
   '& .MuiSwitch-track': {
     borderRadius: 24 / 2,
-    backgroundColor: theme.palette.mode === 'dark' ? '#555' : '#E0E0E0',
+    backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[300],
     opacity: 1,
     transition: theme.transitions.create(['background-color'], { duration: 300 })
   }
