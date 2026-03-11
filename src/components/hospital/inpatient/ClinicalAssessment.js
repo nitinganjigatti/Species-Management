@@ -441,7 +441,23 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
       router.push({
         pathname: `/hospital/outpatient/${id}/add-clinical-assessment`
       })
-    } else {
+    } 
+    else if(category === 'Discharged') {
+      router.push({
+        pathname: `/hospital/discharged/${id}/add-clinical-assessment`
+      })
+    }
+    else if(category === 'Mortality') {
+      router.push({
+        pathname: `/hospital/mortality/${id}/add-clinical-assessment`
+      })
+    }
+    else if(category === 'Follow Up') {
+      router.push({
+        pathname: `/hospital/followup/${id}/add-clinical-assessment`
+      })
+    }
+    else {
       router.push({
         pathname: `/hospital/inpatient/${id}/add-clinical-assessment`
       })

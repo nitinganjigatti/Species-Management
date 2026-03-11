@@ -23,7 +23,7 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
 
-function AddClinicalAssessment() {
+function AddClinicalAssessment({from = 'Inpatient'}) {
   const theme = useTheme()
   const router = useRouter()
   const { data, updateState } = useDynamicStateContext()
@@ -376,7 +376,7 @@ function AddClinicalAssessment() {
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Typography sx={{ color: 'inherit' }}>Hospital</Typography>
         <Typography sx={{ color: 'inherit' }}>Patients</Typography>
-        <Typography sx={{ color: 'inherit' }}>Inpatient</Typography>
+        <Typography sx={{ color: 'inherit' }}>{from}</Typography>
         <Typography sx={{ color: 'text.primary', cursor: 'pointer' }} onClick={handleBack}>
           Details
         </Typography>
