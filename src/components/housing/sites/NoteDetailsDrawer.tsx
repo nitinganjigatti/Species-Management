@@ -114,6 +114,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
   const [editDrawerOpen, setEditDrawerOpen] = useState(false)
   const [commentDialogOpen, setCommentDialogOpen] = useState(false)
   const [commentDialogLoading, setCommentDialogLoading] = useState(false)
+  const [taggedMembersDrawerOpen, setTaggedMembersDrawerOpen] = useState(false)
 
   // Local like state to avoid full re-render on like toggle
   const [likeState, setLikeState] = useState<{ isLiked: boolean; count: number } | null>(null)
@@ -217,6 +218,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
     setDeleteDialogOpen(false)
     setEditDrawerOpen(false)
     setCommentDialogOpen(false)
+    setTaggedMembersDrawerOpen(false)
     onClose()
   }
 
@@ -275,7 +277,9 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
 
   const comments = observationData?.notes || []
   const taggedMembers = (data as any)?.assign_to || []
-  const totalComments = comments.length
+  // Use total_comments from API if available, fallback to notes array length
+  const totalComments =
+    (observationData as any)?.total_comments ?? (data as any)?.note?.total_comments ?? comments.length
 
   const getAttachmentUrl = (attachment: NoteAttachment | null): string | null => {
     if (!attachment) return null
@@ -597,19 +601,34 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
               </Box>
             )}
 
-            {/* Like — uses local likeState for instant UI update */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Avatar sx={{ width: 24, height: 24, bgcolor: theme.palette.primary.main }}>
-                <PersonIcon sx={{ fontSize: 16 }} />
-              </Avatar>
-              <Typography
-                variant='body2'
-                sx={{ color: taggedMembers.length > 0 ? theme.palette.text.primary : theme.palette.error.main }}
-              >
-                {taggedMembers.length > 0
-                  ? `${taggedMembers.length} member${taggedMembers.length > 1 ? 's' : ''} Tagged`
-                  : 'No member Tagged'}
-              </Typography>
+            {/* Tagged Members - Clickable to show drawer */}
+            <Box
+              onClick={() => taggedMembers.length > 0 && setTaggedMembersDrawerOpen(true)}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                cursor: taggedMembers.length > 0 ? 'pointer' : 'default',
+                '&:hover': taggedMembers.length > 0 ? { opacity: 0.7 } : {}
+              }}
+            >
+              <PersonIcon sx={{ fontSize: 24, color: theme.palette.primary.main }} />
+              {taggedMembers.length > 0 ? (
+                <>
+                  <Typography variant='body2' sx={{ color: theme.palette.text.primary }}>
+                    {taggedMembers[0]?.full_name || taggedMembers[0]?.user_name || 'Member'}
+                  </Typography>
+                  {taggedMembers.length > 1 && (
+                    <Typography variant='body2' sx={{ color: theme.palette.text.secondary }}>
+                      +{taggedMembers.length - 1}
+                    </Typography>
+                  )}
+                </>
+              ) : (
+                <Typography variant='body2' sx={{ color: theme.palette.error.main }}>
+                  No member Tagged
+                </Typography>
+              )}
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, mt: 4 }}>
@@ -663,9 +682,15 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
             <Box sx={{ mt: 3 }}>
               {comments.length > 0 ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {comments.map((item: any, index: number) => (
-                    <Box key={index}>
-                      {(item.observation || (item.notes_attachment && item.notes_attachment.length > 0)) && (
+                  {comments.map((item: any, index: number) => {
+                    // Check all possible field names for comment text
+                    const commentText = item.observation || item.notes || item.comment || ''
+                    const hasContent = commentText || (item.notes_attachment && item.notes_attachment.length > 0)
+
+                    if (!hasContent) return null
+
+                    return (
+                      <Box key={index}>
                         <Box
                           sx={{
                             p: 3,
@@ -675,17 +700,17 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                         >
                           <Box sx={{ mb: 1.5 }}>
                             <UserAvatarDetails
-                              profile_image={item.user_profile_pic}
-                              user_name={item.created_by_name}
-                              date={item.created_at}
+                              profile_image={item.user_profile_pic || item.commented_by_image}
+                              user_name={item.created_by_name || item.commented_by_name}
+                              date={item.created_at || item.commented_at}
                               size='medium'
                               show_time
                             />
                           </Box>
 
-                          {item.observation && (
+                          {commentText && (
                             <Box sx={{ ml: 5, mb: 1.5 }}>
-                              <Typography variant='body2'>{item.observation}</Typography>
+                              <Typography variant='body2'>{commentText}</Typography>
                             </Box>
                           )}
 
@@ -704,9 +729,9 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                             </Box>
                           )}
                         </Box>
-                      )}
-                    </Box>
-                  ))}
+                      </Box>
+                    )
+                  })}
                 </Box>
               ) : (
                 <Typography variant='body2' color='text.secondary' sx={{ textAlign: 'center', py: 4 }}>
@@ -795,6 +820,88 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
         onSubmit={handleCommentDialogSubmit}
         loading={commentDialogLoading}
       />
+
+      {/* Tagged Members Drawer - Positioned at right bottom */}
+      <Drawer
+        anchor='right'
+        open={taggedMembersDrawerOpen}
+        onClose={() => setTaggedMembersDrawerOpen(false)}
+        slotProps={{
+          paper: {
+            sx: {
+              width: { xs: '100%', sm: 560 },
+              maxHeight: '60vh',
+              position: 'fixed',
+              bottom: 0,
+              right: 0,
+              top: 'auto',
+              borderTopLeftRadius: 16,
+              borderTopRightRadius: 16,
+              backgroundColor: theme.palette.background.paper
+            }
+          },
+          backdrop: {
+            sx: {
+              backgroundColor: 'rgba(0, 0, 0, 0.3)'
+            }
+          }
+        }}
+      >
+        {/* Header */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            px: 4,
+            py: 3,
+            borderBottom: `1px solid ${theme.palette.divider}`
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <PersonIcon sx={{ fontSize: 24, color: theme.palette.text.secondary }} />
+            <Typography sx={{ fontWeight: 600, fontSize: '1rem' }}>
+              {taggedMembers.length} Tagged Member{taggedMembers.length !== 1 ? 's' : ''}
+            </Typography>
+          </Box>
+          <IconButton size='small' onClick={() => setTaggedMembersDrawerOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        {/* Members List */}
+        <Box sx={{ px: 4, py: 2, overflowY: 'auto', maxHeight: 'calc(60vh - 70px)' }}>
+          {taggedMembers.map((member: any, index: number) => (
+            <Box
+              key={member.user_id || index}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                p: 2,
+                mb: 1,
+                borderRadius: 2,
+                border: `1px solid ${theme.palette.divider}`,
+                backgroundColor: theme.palette.background.default
+              }}
+            >
+              <Avatar src={member.profile_image || member.user_profile_pic} sx={{ width: 40, height: 40 }}>
+                {(member.full_name || member.user_name || 'U')[0].toUpperCase()}
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography sx={{ fontWeight: 500, fontSize: '0.95rem' }}>
+                  {member.full_name || member.user_name || 'Unknown'}
+                </Typography>
+                {member.role && (
+                  <Typography variant='caption' color='text.secondary'>
+                    {member.role}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      </Drawer>
     </Drawer>
   )
 }
