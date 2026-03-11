@@ -709,6 +709,21 @@ const PrescriptionMonitoringGrid = ({
         pathname: `/hospital/outpatient/${id}/schedule-prescription`,
         query: queryParams
       })
+    } else if (category === 'Discharged') {
+      router.push({
+        pathname: `/hospital/discharged/${id}/schedule-prescription`,
+        query: queryParams
+      })
+    } else if (category === 'Mortality') {
+      router.push({
+        pathname: `/hospital/mortality/${id}/schedule-prescription`,
+        query: queryParams
+      })
+    } else if (category === 'Follow Up') {
+      router.push({
+        pathname: `/hospital/followup/${id}/schedule-prescription`,
+        query: queryParams
+      })
     } else {
       router.push({
         pathname: `/hospital/inpatient/${id}/schedule-prescription`,

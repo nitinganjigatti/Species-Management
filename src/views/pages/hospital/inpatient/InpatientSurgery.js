@@ -225,7 +225,7 @@ const MediaScroller = ({ items = [] }) => {
   )
 }
 
-function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged = false }) {
+function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged = false, category }) {
   const theme = useTheme()
   const scrollbarThumbColor = theme.palette.customColors.neutralSecondary
   const router = useRouter()
@@ -297,6 +297,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
 
   const handleAddSurgeryRecord = () => {
     const query = {}
+    let href
 
     if (resolvedHospitalCaseId) {
       query.hospital_case_id = resolvedHospitalCaseId
@@ -306,10 +307,32 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
       query.medical_record_id = medicalRecordId
     }
 
-    const href =
-      Object.keys(query).length > 0
-        ? { pathname: '/hospital/inpatient/AddSurgeryRecord', query }
-        : '/hospital/inpatient/AddSurgeryRecord'
+    if (Object.keys(query).length > 0) {
+      if (category === 'Outpatients') {
+        href = {
+          pathname: '/hospital/outpatient/AddSurgeryRecord',
+          query
+        }
+      }
+      else if (category === 'Discharged') {
+        href = {
+          pathname: '/hospital/discharged/AddSurgeryRecord',
+          query
+        }
+      } else if (category === 'Mortality') {
+        href = {
+          pathname: '/hospital/mortality/AddSurgeryRecord',
+          query
+        }
+      } else if (category === 'Follow Up') {
+        href = {
+          pathname: '/hospital/followup/AddSurgeryRecord',
+          query
+        }
+      }
+    } else {
+      href = '/hospital/inpatient/AddSurgeryRecord'
+    }
 
     router.push(href)
   }
@@ -394,7 +417,40 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
       query.anaesthesia_id = activeDetail.anaesthesia_id
     }
 
-    router.push({ pathname: `/hospital/inpatient/${resolvedHospitalCaseId}`, query })
+    if (medicalRecordId) {
+      query.medical_record_id = medicalRecordId
+    }
+
+    if (activeDetail?.anaesthesia_id) {
+      query.anaesthesia_id = activeDetail.anaesthesia_id
+    }
+
+    if (category === 'Discharge') {
+      router.push({
+        pathname: `/hospital/discharged/${resolvedHospitalCaseId}`,
+        query
+      })
+    } else if (category === 'Outpatients') {
+      router.push({
+        pathname: `/hospital/outpatient/${resolvedHospitalCaseId}`,
+        query
+      })
+    } else if (category === 'Mortality') {
+      router.push({
+        pathname: `/hospital/mortality/${resolvedHospitalCaseId}`,
+        query
+      })
+    } else if (category === 'Follow Up') {
+      router.push({
+        pathname: `/hospital/followup/${resolvedHospitalCaseId}`,
+        query
+      })
+    } else {
+      router.push({
+        pathname: `/hospital/inpatient/${resolvedHospitalCaseId}`,
+        query
+      })
+    }
   }, [activeDetail?.anaesthesia_id, medicalRecordId, resolvedHospitalCaseId, router])
 
   const canViewAnesthesia = Boolean(resolvedHospitalCaseId)
@@ -422,7 +478,10 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
       { label: 'Surgical Approach', value: detail.surgical_approach || '--' },
       { label: 'Type Of Surgery', value: detail.type_of_surgery || '--' },
       { label: 'Name Of Surgeon', value: detail.name_of_surgeon || '--' },
-      { label: detail.secondary_surgeons?.length > 1? 'Attending Veterinarians': 'Attending Veterinarian', value: secondarySurgeons || '--' }
+      {
+        label: detail.secondary_surgeons?.length > 1 ? 'Attending Veterinarians' : 'Attending Veterinarian',
+        value: secondarySurgeons || '--'
+      }
     ]
   }, [activeDetail])
 

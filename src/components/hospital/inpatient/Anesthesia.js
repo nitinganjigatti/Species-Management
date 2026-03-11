@@ -84,7 +84,7 @@ const formatStaffNames = list => {
   return names || '--'
 }
 
-function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData, patientDischarged = false }) {
+function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData, patientDischarged = false, category }) {
   const theme = useTheme()
   const router = useRouter()
   const scrollContainerRef = useRef(null)
@@ -771,6 +771,33 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
       </Typography>
     </Box>
   )
+  const handleRouterNavigation = () => {
+    if(category === 'Discharged') {
+      router.push({
+        pathname: `/hospital/discharged/${hospitalCaseId}/AddAnesthesiaRecord`
+      })
+    }
+    else if(category === 'Mortality') {
+      router.push({
+        pathname: `/hospital/mortality/${hospitalCaseId}/AddAnesthesiaRecord`
+      })
+    }
+    else if(category === 'Follow Up') {
+      router.push({
+        pathname: `/hospital/followup/${hospitalCaseId}/AddAnesthesiaRecord`
+      })
+    }
+    else if(category === 'Outpatients'){
+      router.push({
+        pathname: `/hospital/outpatient/${hospitalCaseId}/AddAnesthesiaRecord`
+      })
+    }
+    else {
+      router.push({
+        pathname: `/hospital/inpatient/${hospitalCaseId}/AddAnesthesiaRecord`
+      })
+    }
+  }
 
   if (isRecordsLoading) {
     return <LoadingSkeleton />
@@ -814,7 +841,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
           ) */}
           {anesthesiaRecords.length > 0 && (
             <Button
-              onClick={() => router.push(`/hospital/inpatient/${patientData?.hospital_case_id}/AddAnesthesiaRecord/`)}
+              onClick={handleRouterNavigation}
               variant='contained'
               sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
             >
@@ -835,7 +862,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
               btnText={'ADD ANESTHESIA'}
               text={'All Added Anesthesia Will Appear here'}
               // isDischarged={isDischared}
-              btnAction={() => router.push(`/hospital/inpatient/${hospitalCaseId}/AddAnesthesiaRecord`)}
+              btnAction={handleRouterNavigation}
             />
           </Box>
         )}
