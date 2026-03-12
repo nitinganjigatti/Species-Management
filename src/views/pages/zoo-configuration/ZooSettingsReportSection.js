@@ -9,7 +9,7 @@ import MultiUserDrawer from 'src/components/zoo-configuration/MultiUserDrawer'
 
 // Report types are fetched from GET /zoo/report-types API and passed as props
 
-const RecipientField = ({ label, users, onEdit }) => {
+const RecipientField = ({ label, users, onEdit, onRemove }) => {
   return (
     <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3, mb: 3 }}>
       <Typography
@@ -46,6 +46,7 @@ const RecipientField = ({ label, users, onEdit }) => {
               key={u.user_id}
               size='small'
               label={u.user_name}
+              onDelete={e => { e.stopPropagation(); onRemove(u.user_id) }}
               avatar={
                 <Avatar
                   alt={u.user_name}
@@ -56,7 +57,8 @@ const RecipientField = ({ label, users, onEdit }) => {
               sx={{
                 bgcolor: '#F2FFF8', color: 'customColors.OnSurfaceVariant',
                 border: '1px solid #DAE7DF', fontWeight: 500, fontSize: '12px',
-                '& .MuiChip-avatar': { width: 20, height: 20 }
+                '& .MuiChip-avatar': { width: 20, height: 20 },
+                '& .MuiChip-deleteIcon': { color: '#839D8D', fontSize: 16, '&:hover': { color: '#FA6140' } }
               }}
             />
           ))
@@ -81,6 +83,11 @@ const ReportCard = ({ report, recipients, onUpdateRecipients }) => {
 
   const handleConfirm = users => {
     onUpdateRecipients(report.key, activeField, users)
+  }
+
+  const handleRemoveUser = (field, userId) => {
+    const filtered = recipients[field].filter(u => String(u.user_id) !== String(userId))
+    onUpdateRecipients(report.key, field, filtered)
   }
 
   const currentSelected = activeField ? recipients[activeField] : []
@@ -132,11 +139,13 @@ const ReportCard = ({ report, recipients, onUpdateRecipients }) => {
               label='To'
               users={recipients.to}
               onEdit={() => openDrawer('to')}
+              onRemove={userId => handleRemoveUser('to', userId)}
             />
             <RecipientField
               label='CC'
               users={recipients.cc}
               onEdit={() => openDrawer('cc')}
+              onRemove={userId => handleRemoveUser('cc', userId)}
             />
           </CardContent>
         </Collapse>
