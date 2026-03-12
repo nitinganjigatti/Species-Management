@@ -5,7 +5,7 @@ import {
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
-import MultiUserDrawer from './MultiUserDrawer'
+import MultiUserDrawer from 'src/components/zoo-configuration/MultiUserDrawer'
 
 // Report types are fetched from GET /zoo/report-types API and passed as props
 
