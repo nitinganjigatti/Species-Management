@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Drawer, Typography, IconButton, CircularProgress, Button, Radio, Checkbox } from '@mui/material'
+import { Box, Drawer, Typography, IconButton, CircularProgress, Button, Radio, Checkbox, Badge } from '@mui/material'
 import { Close as CloseIcon } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
+import Icon from 'src/@core/components/icon'
 import { debounce } from 'lodash'
 import { useInView } from 'react-intersection-observer'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
@@ -53,6 +54,10 @@ interface MultiSelectAnimalDrawerProps {
   selectionMode?: 'single' | 'multi'
   extraParams?: Record<string, any>
   zIndex?: number
+  showFilterButton?: boolean
+  filterCount?: number
+  onFilterClick?: () => void
+  filterChips?: React.ReactNode
 }
 
 const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
@@ -65,7 +70,11 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
   searchPlaceholder = 'Search animal by AID or identifier',
   selectionMode = 'multi',
   extraParams = {},
-  zIndex = 1300
+  zIndex = 1300,
+  showFilterButton = false,
+  filterCount = 0,
+  onFilterClick,
+  filterChips
 }) => {
   const theme = useTheme() as any
   const queryClient = useQueryClient()
@@ -227,54 +236,57 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
   }
 
   // Selection handler - using Set for O(1) lookup
-  const handleAnimalSelect = useCallback((animal: Animal) => {
-    const animalId = animal.animal_id
-    if (!animalId) return
+  const handleAnimalSelect = useCallback(
+    (animal: Animal) => {
+      const animalId = animal.animal_id
+      if (!animalId) return
 
-    setSelectedIds(prev => {
-      const newSet = new Set(prev)
+      setSelectedIds(prev => {
+        const newSet = new Set(prev)
 
-      if (isSingleSelectMode) {
-        // Single select: clear all and toggle
-        if (newSet.has(animalId)) {
-          newSet.clear()
+        if (isSingleSelectMode) {
+          // Single select: clear all and toggle
+          if (newSet.has(animalId)) {
+            newSet.clear()
+          } else {
+            newSet.clear()
+            newSet.add(animalId)
+          }
         } else {
-          newSet.clear()
-          newSet.add(animalId)
+          // Multi select: toggle
+          if (newSet.has(animalId)) {
+            newSet.delete(animalId)
+          } else {
+            newSet.add(animalId)
+          }
         }
-      } else {
-        // Multi select: toggle
-        if (newSet.has(animalId)) {
-          newSet.delete(animalId)
+
+        return newSet
+      })
+
+      setSelectedAnimalsData(prev => {
+        const newMap = new Map(prev)
+
+        if (isSingleSelectMode) {
+          if (newMap.has(animalId)) {
+            newMap.clear()
+          } else {
+            newMap.clear()
+            newMap.set(animalId, animal)
+          }
         } else {
-          newSet.add(animalId)
+          if (newMap.has(animalId)) {
+            newMap.delete(animalId)
+          } else {
+            newMap.set(animalId, animal)
+          }
         }
-      }
 
-      return newSet
-    })
-
-    setSelectedAnimalsData(prev => {
-      const newMap = new Map(prev)
-
-      if (isSingleSelectMode) {
-        if (newMap.has(animalId)) {
-          newMap.clear()
-        } else {
-          newMap.clear()
-          newMap.set(animalId, animal)
-        }
-      } else {
-        if (newMap.has(animalId)) {
-          newMap.delete(animalId)
-        } else {
-          newMap.set(animalId, animal)
-        }
-      }
-
-      return newMap
-    })
-  }, [isSingleSelectMode])
+        return newMap
+      })
+    },
+    [isSingleSelectMode]
+  )
 
   // Submit
   const handleSubmit = () => {
@@ -341,16 +353,47 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
           </IconButton>
         </Box>
 
-        {/* Search */}
+        {/* Search and Filter */}
         <Box sx={{ px: 4, pb: 4, background: theme.palette.background.paper }}>
-          <Search
-            width='100%'
-            placeholder={searchPlaceholder}
-            value={localSearch}
-            onChange={handleSearchChange}
-            onClear={handleSearchClear}
-            inputStyle={{ py: '12px', px: '12px' }}
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ flex: 1 }}>
+              <Search
+                width='100%'
+                placeholder={searchPlaceholder}
+                value={localSearch}
+                onChange={handleSearchChange}
+                onClear={handleSearchClear}
+                inputStyle={{ py: '12px', px: '12px' }}
+              />
+            </Box>
+            {/* Filter Button - Conditionally rendered */}
+            {showFilterButton && (
+              <IconButton
+                onClick={onFilterClick}
+                sx={{
+                  border: `1px solid ${filterCount > 0 ? theme.palette.primary.main : theme.palette.divider}`,
+                  borderRadius: 1,
+                  width: 48,
+                  height: 48,
+                  backgroundColor: filterCount > 0 ? theme.palette.primary.main : 'transparent',
+                  '&:hover': {
+                    backgroundColor: filterCount > 0 ? theme.palette.primary.dark : theme.palette.action.hover
+                  }
+                }}
+              >
+                <Badge badgeContent={filterCount} color='error' invisible={filterCount === 0}>
+                  <Icon
+                    icon='mdi:filter-variant'
+                    fontSize={24}
+                    color={filterCount > 0 ? theme.palette.common.white : theme.palette.text.secondary}
+                  />
+                </Badge>
+              </IconButton>
+            )}
+          </Box>
+
+          {/* Filter Chips - Rendered from parent */}
+          {filterChips && <Box sx={{ mt: 2 }}>{filterChips}</Box>}
         </Box>
 
         {/* Animal List */}
@@ -378,16 +421,11 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
               {list.map((animal: Animal) => {
                 const animalId = animal.animal_id
                 const isSelected = animalId ? selectedIds.has(animalId) : false
-                const isDisabled = animal.in_transit === '1' || animal.is_hospitalized === '1'
 
                 return (
                   <Box
                     key={animalId}
-                    onClick={() => {
-                      if (!isDisabled) {
-                        handleAnimalSelect(animal)
-                      }
-                    }}
+                    onClick={() => handleAnimalSelect(animal)}
                     sx={{
                       width: '100%',
                       backgroundColor: isSelected
@@ -400,46 +438,41 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
                       alignItems: 'center',
                       gap: 2,
                       border: `1px solid ${isSelected ? theme.palette.primary.main : theme.palette.divider}`,
-                      cursor: isDisabled ? 'not-allowed' : 'pointer',
-                      opacity: isDisabled ? 0.6 : 1,
+                      cursor: 'pointer',
                       transition: 'all 0.15s ease',
-                      '&:hover': !isDisabled
-                        ? {
-                            borderColor: theme.palette.primary.main,
-                            backgroundColor: theme.palette.customColors?.Surface
-                          }
-                        : {}
+                      '&:hover': {
+                        borderColor: theme.palette.primary.main,
+                        backgroundColor: theme.palette.customColors?.Surface
+                      }
                     }}
                   >
                     <AnimalCard data={animal} />
 
                     {/* Selection Control */}
-                    {!isDisabled && (
-                      <Box sx={{ flexShrink: 0 }}>
-                        {isSingleSelectMode ? (
-                          <Radio
-                            checked={isSelected}
-                            onChange={() => {}}
-                            sx={{
-                              p: 0,
-                              '&.Mui-checked': { color: theme.palette.primary.main },
-                              '& .MuiSvgIcon-root': { fontSize: 24 }
-                            }}
-                          />
-                        ) : (
-                          <Checkbox
-                            checked={isSelected}
-                            onChange={() => {}}
-                            sx={{
-                              p: 0,
-                              color: theme.palette.customColors?.OutlineVariant,
-                              '&.Mui-checked': { color: theme.palette.primary.main },
-                              '& .MuiSvgIcon-root': { fontSize: 24 }
-                            }}
-                          />
-                        )}
-                      </Box>
-                    )}
+                    <Box sx={{ flexShrink: 0 }}>
+                      {isSingleSelectMode ? (
+                        <Radio
+                          checked={isSelected}
+                          onChange={() => {}}
+                          sx={{
+                            p: 0,
+                            '&.Mui-checked': { color: theme.palette.primary.main },
+                            '& .MuiSvgIcon-root': { fontSize: 24 }
+                          }}
+                        />
+                      ) : (
+                        <Checkbox
+                          checked={isSelected}
+                          onChange={() => {}}
+                          sx={{
+                            p: 0,
+                            color: theme.palette.customColors?.OutlineVariant,
+                            '&.Mui-checked': { color: theme.palette.primary.main },
+                            '& .MuiSvgIcon-root': { fontSize: 24 }
+                          }}
+                        />
+                      )}
+                    </Box>
                   </Box>
                 )
               })}

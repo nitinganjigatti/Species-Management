@@ -11,9 +11,10 @@ interface CustomDrawerProps {
   iconColor?: string
   children: ReactNode
   backgroundColor?: string
+  zIndex?: number
 }
 
-const CustomDrawer: React.FC<CustomDrawerProps> = ({ open, onClose, title, icon, iconColor, children, backgroundColor }) => {
+const CustomDrawer: React.FC<CustomDrawerProps> = ({ open, onClose, title, icon, iconColor, children, backgroundColor, zIndex }) => {
   const theme = useTheme()
 
   return (
@@ -22,6 +23,7 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({ open, onClose, title, icon,
       onClose={onClose}
       anchor='right'
       variant='temporary'
+      sx={{ ...(zIndex && { zIndex }) }}
       slotProps={{
         paper: {
           sx: {

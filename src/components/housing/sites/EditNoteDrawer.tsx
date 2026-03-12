@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import {
   Box,
   Typography,
@@ -17,7 +17,7 @@ import {
   Switch,
   Avatar
 } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { useTheme, alpha, Theme } from '@mui/material/styles'
 import { Close as CloseIcon, PersonAdd as PersonAddIcon } from '@mui/icons-material'
 import { useSelector, useDispatch } from 'react-redux'
 import { editObservation } from 'src/lib/api/housing'
@@ -57,19 +57,19 @@ const EXT_ICON_MAP: ExtIconMap = {
   zip: ['zip', 'rar', '7z']
 }
 
-// Icon configuration for non-image files
-const FILE_ICONS: FileIconsMap = {
-  pdf: { icon: 'mdi:file-pdf-box', bg_color: '#FFEBEE', icon_color: '#D32F2F' },
-  xls: { icon: 'mdi:file-excel', bg_color: '#E8F5E9', icon_color: '#388E3C' },
-  document: { icon: 'mdi:file-word', bg_color: '#E3F2FD', icon_color: '#1976D2' },
-  audio: { icon: 'mdi:file-music', bg_color: '#FFF3E0', icon_color: '#F57C00' },
-  video: { icon: 'mdi:play-circle', bg_color: '#E1F5FE', icon_color: '#0288D1' },
-  ppt: { icon: 'mdi:file-powerpoint', bg_color: '#FBE9E7', icon_color: '#D84315' },
-  text: { icon: 'mdi:file-document', bg_color: '#F5F5F5', icon_color: '#616161' },
-  csv: { icon: 'mdi:file-delimited', bg_color: '#E8F5E9', icon_color: '#388E3C' },
-  zip: { icon: 'mdi:folder-zip', bg_color: '#FFF8E1', icon_color: '#FFA000' },
-  default: { icon: 'mdi:file', bg_color: '#ECEFF1', icon_color: '#607D8B' }
-}
+// Icon configuration for non-image files - uses theme colors
+const getFileIcons = (theme: Theme): FileIconsMap => ({
+  pdf: { icon: 'mdi:file-pdf-box', bg_color: alpha(theme.palette.error.main, 0.1), icon_color: theme.palette.error.main },
+  xls: { icon: 'mdi:file-excel', bg_color: alpha(theme.palette.success.main, 0.1), icon_color: theme.palette.success.dark },
+  document: { icon: 'mdi:file-word', bg_color: alpha(theme.palette.info.main, 0.1), icon_color: theme.palette.info.main },
+  audio: { icon: 'mdi:file-music', bg_color: alpha(theme.palette.warning.main, 0.1), icon_color: theme.palette.warning.dark },
+  video: { icon: 'mdi:play-circle', bg_color: alpha(theme.palette.info.main, 0.15), icon_color: theme.palette.info.dark },
+  ppt: { icon: 'mdi:file-powerpoint', bg_color: alpha((theme.palette as any).customColors?.Tertiary || '#FA6140', 0.1), icon_color: (theme.palette as any).customColors?.Tertiary || '#FA6140' },
+  text: { icon: 'mdi:file-document', bg_color: theme.palette.grey[100], icon_color: theme.palette.grey[700] },
+  csv: { icon: 'mdi:file-delimited', bg_color: alpha(theme.palette.success.main, 0.1), icon_color: theme.palette.success.dark },
+  zip: { icon: 'mdi:folder-zip', bg_color: alpha(theme.palette.warning.main, 0.15), icon_color: theme.palette.warning.main },
+  default: { icon: 'mdi:file', bg_color: theme.palette.grey[200], icon_color: theme.palette.grey[600] }
+})
 
 interface PriorityOption {
   value: string
@@ -185,6 +185,9 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
   const dispatch = useDispatch<AppDispatch>()
   const auth = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Memoized file icons using theme colors
+  const FILE_ICONS = useMemo(() => getFileIcons(theme), [theme])
 
   const { users, usersLoading } = useSelector((state: RootState) => state.notes)
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id

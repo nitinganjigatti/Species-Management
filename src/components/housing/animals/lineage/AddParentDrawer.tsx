@@ -15,7 +15,8 @@ import {
   Drawer,
   IconButton,
   Autocomplete,
-  Card
+  Card,
+  Chip
 } from '@mui/material'
 import {
   Close as CloseIcon,
@@ -33,6 +34,7 @@ import { format } from 'date-fns'
 
 import Toaster from 'src/components/Toaster'
 import MultiSelectAnimalDrawer, { type Animal } from './MultiSelectAnimalDrawer'
+import LineageFilterDrawer, { type LineageFilters, DEFAULT_LINEAGE_FILTERS } from './LineageFilterDrawer'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import { addLineageParent, editExternalParent, getClutchList, getLitterList } from 'src/lib/api/housing'
 import { getAnimalGetconfigs, getMasterInstitutes } from 'src/lib/api/egg/egg/createAnimal'
@@ -146,6 +148,11 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
 
   // Animal Drawer state
   const [animalDrawerOpen, setAnimalDrawerOpen] = useState(false)
+
+  // Filter Drawer state
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
+  const [animalFilters, setAnimalFilters] = useState<LineageFilters>(DEFAULT_LINEAGE_FILTERS)
+  const [filterCount, setFilterCount] = useState(0)
 
   // Clutch/Litter state (for Dam with egg-laying animals)
   const [clutchLitterMode, setClutchLitterMode] = useState<'existing' | 'new'>('new')
@@ -293,6 +300,8 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
         setSelectedInstitute(null)
         setSelectedBreed(null)
         setSelectedMorph(null)
+        setAnimalFilters(DEFAULT_LINEAGE_FILTERS)
+        setFilterCount(0)
         reset({
           taxonomy_id: '',
           taxonomy_name: '',
@@ -341,6 +350,155 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
 
   const handleAnimalSelection = (animals: Animal[]) => {
     setSelectedAnimals(animals)
+  }
+
+  // Handle filter apply
+  const handleApplyFilters = (filters: LineageFilters) => {
+    setAnimalFilters(filters)
+  }
+
+  // Build extra params with filters
+  const buildExtraParams = () => {
+    const params: Record<string, any> = {
+      type: 'single',
+      gender: parentType === 'sire' ? 'male' : 'female',
+      ignore_permission: 1,
+      tsn_id: taxonomyId,
+      use_case: 'add_parent',
+      relevant_animal_id: animalId
+    }
+
+    const { localSelections, statusFilter } = animalFilters
+
+    // Add entity filters - use first selected item (single select flow)
+    if (localSelections.Sites.length > 0) {
+      params.site_id = localSelections.Sites.map(s => s.site_id)
+    }
+    if (localSelections.Sections.length > 0) {
+      params.section_id = localSelections.Sections.map(s => s.section_id)
+    }
+    if (localSelections.Enclosures.length > 0) {
+      params.enclosure_id = localSelections.Enclosures.map(e => e.enclosure_id)
+    }
+
+    // Add status filter (single select)
+    if (statusFilter === 'dead') {
+      params.include_dead_animal = 1
+      params.is_dead = 1
+    } else if (statusFilter === 'missing') {
+      params.is_missing = 1
+    } else if (statusFilter === 'transferred') {
+      params.is_transferred = 1
+    }
+    // 'alive' is default - no additional params needed
+
+    return params
+  }
+
+  // Render filter chips
+  const renderFilterChips = () => {
+    const chips: React.ReactNode[] = []
+    const { localSelections, statusFilter } = animalFilters
+
+    // Site chips
+    localSelections.Sites.forEach(site => {
+      chips.push(
+        <Chip
+          key={`site-${site.site_id}`}
+          label={site.site_name}
+          size='small'
+          color='primary'
+          variant='outlined'
+          onDelete={() => {
+            setAnimalFilters(prev => ({
+              ...prev,
+              localSelections: {
+                Sites: prev.localSelections.Sites.filter(s => s.site_id !== site.site_id),
+                Sections: [],
+                Enclosures: []
+              }
+            }))
+            setFilterCount(prev => Math.max(0, prev - 1))
+          }}
+        />
+      )
+    })
+
+    // Section chips
+    localSelections.Sections.forEach(section => {
+      chips.push(
+        <Chip
+          key={`section-${section.section_id}`}
+          label={section.section_name}
+          size='small'
+          color='primary'
+          variant='outlined'
+          onDelete={() => {
+            setAnimalFilters(prev => ({
+              ...prev,
+              localSelections: {
+                ...prev.localSelections,
+                Sections: prev.localSelections.Sections.filter(s => s.section_id !== section.section_id),
+                Enclosures: []
+              }
+            }))
+            setFilterCount(prev => Math.max(0, prev - 1))
+          }}
+        />
+      )
+    })
+
+    // Enclosure chips
+    localSelections.Enclosures.forEach(enclosure => {
+      chips.push(
+        <Chip
+          key={`enclosure-${enclosure.enclosure_id}`}
+          label={enclosure.user_enclosure_name}
+          size='small'
+          color='primary'
+          variant='outlined'
+          onDelete={() => {
+            setAnimalFilters(prev => ({
+              ...prev,
+              localSelections: {
+                ...prev.localSelections,
+                Enclosures: prev.localSelections.Enclosures.filter(e => e.enclosure_id !== enclosure.enclosure_id)
+              }
+            }))
+            setFilterCount(prev => Math.max(0, prev - 1))
+          }}
+        />
+      )
+    })
+
+    // Status chip (only for non-default status - single select)
+    if (statusFilter && statusFilter !== 'alive') {
+      const statusLabel = statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)
+      chips.push(
+        <Chip
+          key='status'
+          label={statusLabel}
+          size='small'
+          color='primary'
+          variant='outlined'
+          onDelete={() => {
+            setAnimalFilters(prev => ({
+              ...prev,
+              statusFilter: 'alive'
+            }))
+            setFilterCount(prev => Math.max(0, prev - 1))
+          }}
+        />
+      )
+    }
+
+    if (chips.length === 0) return null
+
+    return (
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+        {chips}
+      </Box>
+    )
   }
 
   const handleSubmitInternal = async () => {
@@ -1198,16 +1356,22 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
         title={`Select ${parentType === 'sire' ? 'Sire (Father)' : 'Dam (Mother)'}`}
         btnText='SELECT'
         searchPlaceholder={`Search ${parentType === 'sire' ? 'male' : 'female'} animals`}
-        extraParams={{
-          type: 'single',
-          gender: parentType === 'sire' ? 'male' : 'female',
-          include_dead_animal: 1,
-          ignore_permission: 1,
-          tsn_id: taxonomyId,
-          use_case: 'add_parent',
-          relevant_animal_id: animalId
-        }}
+        extraParams={buildExtraParams()}
         zIndex={1300}
+        // Filter props
+        showFilterButton={true}
+        filterCount={filterCount}
+        onFilterClick={() => setFilterDrawerOpen(true)}
+        filterChips={renderFilterChips()}
+      />
+
+      {/* Lineage Filter Drawer */}
+      <LineageFilterDrawer
+        open={filterDrawerOpen}
+        onClose={() => setFilterDrawerOpen(false)}
+        onApply={handleApplyFilters}
+        initialFilters={animalFilters}
+        setFilterCount={setFilterCount}
       />
     </>
   )
