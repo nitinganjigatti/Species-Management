@@ -243,10 +243,14 @@ const AddEditSymptomDrawer = ({
       >
         <Box
           sx={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 1,
             px: 5,
             pt: 4,
             pb: 2,
-            borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+            borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+            backgroundColor: theme.palette.common.white
           }}
         >
           <Box display='flex' justifyContent='space-between' alignItems='center'>
@@ -258,11 +262,12 @@ const AddEditSymptomDrawer = ({
             </IconButton>
           </Box>
         </Box>
-          
+
         <Box
           sx={{
-            pb: 22,
-            height: processedActivities?.length > 0 ? '-webkit-fill-available' : '80%'
+            flex: 1,
+            overflowY: 'auto',
+            minHeight: 0
           }}
         >
           <Box
@@ -477,7 +482,17 @@ const AddEditSymptomDrawer = ({
             ''
           )}
         </Box>
-        <Box sx={{ position: 'fixed', bottom: 0 }}>
+        <Box
+          sx={{
+            position: 'sticky',
+            bottom: 0,
+            left: 0,
+            width: '100%',
+            backgroundColor: theme.palette.common.white,
+            zIndex: 1,
+            flexShrink: 0
+          }}
+        >
           <SideSheetActionButtons
             addLabel='UPDATE'
             cancelLabel='CANCEL'
