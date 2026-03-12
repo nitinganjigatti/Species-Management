@@ -1,4 +1,4 @@
-const composeSettingsNavigation = () => {
+const composeSettingsNavigation = ({ userRole } = {}) => {
   const settingsTitle = {
     sectionTitle: 'Settings'
   }
@@ -11,9 +11,17 @@ const composeSettingsNavigation = () => {
 
   const settingsNavigation = [settingsTitle, requestEnclosureQRCode]
 
+  if (userRole === 'Super Admin') {
+    settingsNavigation.push({
+      title: 'Zoo Settings',
+      path: '/zoo-configuration/settings',
+      icon: 'mdi:cog'
+    })
+  }
+
   return settingsNavigation
 }
 
-const settingsNavigation = () => composeSettingsNavigation()
+const settingsNavigation = ({ userRole } = {}) => composeSettingsNavigation({ userRole })
 
 export default settingsNavigation
