@@ -122,7 +122,7 @@ const ComposeNavigation = () => {
   }
 
   if (housingModule || housingModuleWeb) {
-    const settingsNav = settingsNavigation()
+    const settingsNav = settingsNavigation({ userRole })
     navigationArray.push(...settingsNav)
   }
 
