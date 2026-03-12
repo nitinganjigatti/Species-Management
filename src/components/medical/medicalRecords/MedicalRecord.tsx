@@ -488,7 +488,9 @@ const MedicalRecords = () => {
     <Box sx={{ display: 'flex', gap: '24px' }}>
       {selectedAnimal && (
         <>
-          <DownloadReport isDownloading={isDownloading} handleDownloadReport={handleDownloadReport} />
+          {indexedRows?.length > 0 && (
+            <DownloadReport isDownloading={isDownloading} handleDownloadReport={handleDownloadReport} />
+          )}
           <Box
             sx={{
               height: '32px',
