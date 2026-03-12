@@ -142,7 +142,7 @@ export const DISPENSE_LIST = 'dispense-item'
 
 export const USER_LIST = 'user/listing'
 
-export const PHARMACY_SETTINGS = 'zoo-setting-pharmacy'
+export const PHARMACY_STOCK_SETTINGS_LIST = 'zoo-setting-pharmacy'
 
 export const PRODUCT_LIST = 'v1/pharma/stock/list'
 

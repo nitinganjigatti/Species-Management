@@ -2,6 +2,10 @@ import { useState, useEffect, useCallback, useContext } from 'react'
 
 // ** MUI Imports
 import { Grid, Box, CircularProgress } from '@mui/material'
+import Tab from '@mui/material/Tab'
+import TabPanel from '@mui/lab/TabPanel'
+import TabContext from '@mui/lab/TabContext'
+import TabList from '@mui/lab/TabList'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -14,10 +18,16 @@ import { AuthContext } from 'src/context/AuthContext'
 import PharmacySettingsDrawer from 'src/views/pages/pharmacy/store/pharmacy-settings/PharmacySettingsDrawer'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 // ** API
-import { getPharmacySettingsList, submitPharmacySettings } from 'src/lib/api/pharmacy/pharmacySettings'
+import { getLowStockNotificationUserList, submitPharmacySettings } from 'src/lib/api/pharmacy/pharmacySettings'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import toast from 'react-hot-toast'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+
+const notificationTabs = [
+  { label: 'Low Stock Notification', value: '1', key: 'weekly_low_stock_qty_notification' },
+  { label: 'Expired Stock Notification', value: '2', key: 'weekly_expired_stock_qty_notification' },
+  { label: 'About To Expire Notification', value: '3', key: 'weekly_about_to_expire_stock_qty_notification' }
+]
 
 const PharmacySettingsList = () => {
   const { userData } = useContext(AuthContext)
@@ -25,7 +35,8 @@ const PharmacySettingsList = () => {
 
   const pharmacyRole = userData?.roles?.settings?.add_pharmacy && selectedPharmacy?.type === 'central'
 
-  const [tableData, setTableData] = useState([])
+  const [activeTab, setActiveTab] = useState('1')
+  const [settingsData, setSettingsData] = useState({})
   const [usersList, setUsersList] = useState([])
 
   const [loading, setLoading] = useState(false)
@@ -33,13 +44,26 @@ const PharmacySettingsList = () => {
   const [submitLoading, setSubmitLoading] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
+  const activeSettingKey = notificationTabs.find(t => t.value === activeTab)?.key
+  const tableData = settingsData[activeSettingKey] || []
+
   const fetchData = useCallback(async () => {
     setLoading(true)
-    const response = await getPharmacySettingsList()
+    const response = await getLowStockNotificationUserList()
 
     if (response?.data?.success) {
-      const rawUsers = response?.data?.data[0]?.weekly_low_stock_qty_notification || []
-      setTableData(rawUsers)
+      const dataArray = response?.data?.data || []
+      const parsed = {}
+      dataArray.forEach(item => {
+        if (item?.key) {
+          parsed[item.key] = item[item.key] || []
+        }
+      })
+      setSettingsData({
+        weekly_low_stock_qty_notification: parsed?.weekly_low_stock_qty_notification || [],
+        weekly_expired_stock_qty_notification: parsed?.weekly_expired_stock_qty_notification || [],
+        weekly_about_to_expire_stock_qty_notification: parsed?.weekly_about_to_expire_stock_qty_notification || []
+      })
     } else {
       toast.error(response?.message || 'Failed to fetch data')
     }
@@ -74,10 +98,9 @@ const PharmacySettingsList = () => {
 
   const handleSubmit = async userIds => {
     setSubmitLoading(true)
-    const key = 'weekly_low_stock_qty_notification'
 
     const payload = {
-      key: key,
+      key: activeSettingKey,
       value: Array.isArray(userIds) ? userIds.join(',') : userIds,
       action: 'add'
     }
@@ -86,7 +109,7 @@ const PharmacySettingsList = () => {
     if (response?.success) {
       toast.success(response?.message)
       setDrawerOpen(false)
-      fetchData() // Refresh list
+      fetchData()
     } else {
       toast.error(response?.message || 'Submission failed')
     }
@@ -95,18 +118,17 @@ const PharmacySettingsList = () => {
 
   const deleteHandler = async userId => {
     setDeleteLoading(userId)
-    const key = 'weekly_low_stock_qty_notification'
 
     const payload = {
-      key: key,
+      key: activeSettingKey,
       value: userId,
-      action: 'delete'
+      action: 'remove'
     }
     const response = await submitPharmacySettings(payload)
 
     if (response?.success) {
       toast.success(response?.message)
-      fetchData() // Refresh list
+      fetchData()
     } else {
       toast.error(response?.message || 'Submission failed')
     }
@@ -147,27 +169,37 @@ const PharmacySettingsList = () => {
   ]
 
   return (
-    <Grid container spacing={4}>
-      <Grid size={12} sx={{ width: '100%' }}>
-        <PageCardLayout
-          title='Pharmacy Settings'
-          action={
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              {pharmacyRole && <AddButtonContained title='Add Setting' action={openDrawer} styles={{ m: 0 }} />}
-            </Box>
-          }
-        >
-          <CommonTable
-            hideFooter
-            disablePagination
-            indexedRows={tableData}
-            columns={columns}
-            loading={loading}
-            externalTableStyle={{ mt: 0 }}
-          />
-        </PageCardLayout>
-      </Grid>
-
+    <PageCardLayout
+      title='Pharmacy Notification Settings'
+      action={
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {pharmacyRole && (
+            <AddButtonContained title='Add Notification Recipient' action={openDrawer} styles={{ m: 0 }} />
+          )}
+        </Box>
+      }
+    >
+      <TabContext value={activeTab}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+          <TabList onChange={(e, newValue) => setActiveTab(newValue)} variant='scrollable' allowScrollButtonsMobile>
+            {notificationTabs?.map(tab => (
+              <Tab key={tab.value} label={tab.label} value={tab.value} />
+            ))}
+          </TabList>
+        </Box>
+        {notificationTabs?.map(tab => (
+          <TabPanel key={tab.value} value={tab.value} sx={{ p: 0 }}>
+            <CommonTable
+              hideFooter
+              disablePagination
+              indexedRows={tableData}
+              columns={columns}
+              loading={loading}
+              externalTableStyle={{ mt: 0 }}
+            />
+          </TabPanel>
+        ))}
+      </TabContext>
       {drawerOpen && (
         <PharmacySettingsDrawer
           open={drawerOpen}
@@ -177,7 +209,7 @@ const PharmacySettingsList = () => {
           availableUsers={usersList}
         />
       )}
-    </Grid>
+    </PageCardLayout>
   )
 }
 
