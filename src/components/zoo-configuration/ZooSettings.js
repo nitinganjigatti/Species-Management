@@ -14,12 +14,16 @@ const ZooSettings = () => {
 
   const { data: settingsData, isLoading: settingsLoading } = useQuery({
     queryKey: ['zoo-settings'],
-    queryFn: getZooSettings
+    queryFn: getZooSettings,
+    retry: false,
+    onError: () => {}
   })
 
   const { data: reportTypesData, isLoading: reportTypesLoading } = useQuery({
     queryKey: ['zoo-report-types'],
-    queryFn: getZooReportTypes
+    queryFn: getZooReportTypes,
+    retry: false,
+    onError: () => {}
   })
 
   // Prefill state from API response
