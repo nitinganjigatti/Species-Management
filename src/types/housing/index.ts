@@ -337,7 +337,9 @@ export type {
   SiteFilters,
   SectionFilters,
   SpeciesFilters,
-  AnimalFilters
+  AnimalFilters,
+  ObservationTemplate,
+  ObservationTemplateUser
 } from './state'
 
 // ==================== Hook Types ====================

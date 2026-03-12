@@ -14,7 +14,6 @@ import {
   CircularProgress,
   FormHelperText,
   Chip,
-  Autocomplete,
   Switch,
   Avatar,
   Divider
@@ -27,6 +26,7 @@ import { fetchUsers } from 'src/store/slices/housing/notesSlice'
 import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
 import SelectNoteTypeDrawer from './SelectNoteTypeDrawer'
+import NotifyMembersDrawer from './NotifyMembersDrawer'
 import Icon from 'src/@core/components/icon'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import type { User, ObservationType, ObservationMasterItem } from 'src/types/housing'
@@ -150,6 +150,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
   })
   const [errors, setErrors] = useState<FormErrors>({})
   const [noteTypeDrawerOpen, setNoteTypeDrawerOpen] = useState(false)
+  const [notifyMembersDrawerOpen, setNotifyMembersDrawerOpen] = useState(false)
 
   useEffect(() => {
     if (open) {
@@ -214,8 +215,17 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
     }))
   }
 
-  const handleNotifyMembersChange = (_event: React.SyntheticEvent, newValue: User[]) => {
+  const handleNotifyMembersChange = (newValue: User[]) => {
     setFormData(prev => ({ ...prev, notifyMembers: newValue }))
+  }
+
+  const handleOpenNotifyMembersDrawer = () => {
+    if (!formData.observationType) {
+      Toaster({ type: 'warning', message: 'Please select the note type first to add members' })
+
+      return
+    }
+    setNotifyMembersDrawerOpen(true)
   }
 
   const handleRemoveMember = (userId: number) => {
@@ -362,16 +372,12 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
         submitData.append('observation_name', formData.notes.trim())
       }
 
-      // Reference type and ID
-      if (refType === 'site') {
-        submitData.append('site_id', JSON.stringify([refId]))
-      } else if (refType === 'section') {
-        submitData.append('section_id', JSON.stringify([refId]))
-      } else if (refType === 'enclosure') {
-        submitData.append('enclosure_id', JSON.stringify([refId]))
-      } else if (refType === 'animal') {
-        submitData.append('animal_id', JSON.stringify([refId]))
-      }
+      // Reference type and IDs - Pass all entity IDs (matching mobile implementation)
+      // Mobile passes all 4 entity ID fields, with empty arrays for non-relevant types
+      submitData.append('site_id', JSON.stringify(refType === 'site' ? [refId] : []))
+      submitData.append('section_id', JSON.stringify(refType === 'section' ? [refId] : []))
+      submitData.append('enclosure_id', JSON.stringify(refType === 'enclosure' ? [refId] : []))
+      submitData.append('animal_id', JSON.stringify(refType === 'animal' ? [refId] : []))
 
       // Attachments
       formData.attachments.forEach(file => {
@@ -379,9 +385,10 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
       })
 
       // Notify Members (assign_to) - only if toggle is enabled
+      // Mobile passes as comma-separated string, not JSON array
       if (formData.notifyEnabled && formData.notifyMembers.length > 0) {
         const memberIds = formData.notifyMembers.map(member => member.user_id)
-        submitData.append('assign_to', JSON.stringify(memberIds))
+        submitData.append('assign_to', memberIds.join(','))
       }
 
       const response = await createObservation(submitData)
@@ -410,7 +417,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
         paper: {
           sx: {
             width: { xs: '100%', sm: 500 },
-            backgroundColor: theme.palette.customColors?.Background ,
+            backgroundColor: theme.palette.customColors?.Background,
             display: 'flex',
             flexDirection: 'column',
             height: '100%'
@@ -423,7 +430,8 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
-          backgroundColor: theme.palette.customColors?.OnPrimary         }}
+          backgroundColor: theme.palette.customColors?.OnPrimary
+        }}
       >
         {/* Header */}
         <Box
@@ -431,7 +439,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
             px: 5,
             py: 4,
             borderBottom: `1px solid ${theme.palette.divider}`,
-            backgroundColor: theme.palette.customColors?.OnPrimary ,
+            backgroundColor: theme.palette.customColors?.OnPrimary,
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -452,21 +460,21 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
               <Box
                 sx={{
                   borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors?.OutlineVariant }`,
+                  border: `1px solid ${theme.palette.customColors?.OutlineVariant}`,
                   overflow: 'hidden'
                 }}
               >
                 <Box
                   sx={{
-                    bgcolor: theme.palette.customColors?.displaybgPrimary ,
+                    bgcolor: theme.palette.customColors?.displaybgPrimary,
                     px: 3,
                     py: 2,
-                    borderBottom: `1px solid ${theme.palette.customColors?.OutlineVariant }`
+                    borderBottom: `1px solid ${theme.palette.customColors?.OutlineVariant}`
                   }}
                 >
                   <Typography
                     sx={{
-                      color: theme.palette.customColors?.OnSurfaceVariant ,
+                      color: theme.palette.customColors?.OnSurfaceVariant,
                       fontWeight: 600,
                       fontSize: '1rem'
                     }}
@@ -491,7 +499,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                         sx={{
                           width: 48,
                           height: 48,
-                          border: `1px solid ${theme.palette.customColors?.OutlineVariant }`
+                          border: `1px solid ${theme.palette.customColors?.OutlineVariant}`
                         }}
                       >
                         {entityName?.[0]}
@@ -687,7 +695,8 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                   px: 2,
                   py: 1.5,
                   backgroundColor: formData.notifyEnabled
-                    ? theme.palette.customColors?.displaybgPrimary                     : theme.palette.background.paper
+                    ? theme.palette.customColors?.displaybgPrimary
+                    : theme.palette.background.paper
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -700,25 +709,30 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
               {/* Member Selection - Only shown when toggle is ON */}
               {formData.notifyEnabled && (
                 <Box sx={{ borderTop: `1px solid ${theme.palette.divider}` }}>
-                  {/* Add Members Button */}
-                  <Box sx={{ p: 2 }}>
-                    <Autocomplete
-                      multiple
-                      options={users || []}
-                      getOptionLabel={(option: User) => option.user_name || ''}
-                      value={formData.notifyMembers}
-                      onChange={handleNotifyMembersChange}
-                      loading={usersLoading}
-                      renderInput={params => (
-                        <TextField
-                          {...params}
-                          placeholder={formData.notifyMembers.length === 0 ? 'Add members to be notified' : ''}
-                          size='small'
-                        />
-                      )}
-                      renderTags={() => null}
-                      isOptionEqualToValue={(option, value) => option.user_id === value.user_id}
-                    />
+                  {/* Add Members Button - Mobile Style */}
+                  <Box
+                    onClick={handleOpenNotifyMembersDrawer}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      px: 2,
+                      py: 1.5,
+                      cursor: 'pointer',
+                      '&:hover': {
+                        backgroundColor: theme.palette.action.hover
+                      }
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Icon
+                        icon='mdi:home-plus-outline'
+                        fontSize={24}
+                        color={theme.palette.customColors?.OnPrimaryContainer}
+                      />
+                      <Typography sx={{ fontWeight: 500, fontSize: '0.9rem' }}>Add members to be notified</Typography>
+                    </Box>
+                    <Icon icon='mdi:plus-circle' fontSize={22} color={theme.palette.primary.main} />
                   </Box>
 
                   {/* Selected Members Display */}
@@ -865,14 +879,14 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
               onDrop={handleDrop}
               onDragOver={(e: React.DragEvent<HTMLDivElement>) => e.preventDefault()}
               sx={{
-                border: `2px dashed ${theme.palette.customColors?.OutlineVariant }`,
+                border: `2px dashed ${theme.palette.customColors?.OutlineVariant}`,
                 borderRadius: 2,
                 p: 3.5,
                 textAlign: 'center',
                 cursor: 'pointer',
                 transition: 'background-color 0.2s, border-color 0.2s',
                 '&:hover': {
-                  backgroundColor: theme.palette.customColors?.lightBg ,
+                  backgroundColor: theme.palette.customColors?.lightBg,
                   borderColor: theme.palette.primary.main
                 }
               }}
@@ -896,7 +910,8 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                   sx={{
                     fontSize: '1rem',
                     fontWeight: 400,
-                    color: theme.palette.customColors?.OnSurfaceVariant60                   }}
+                    color: theme.palette.customColors?.OnSurfaceVariant60
+                  }}
                 >
                   Drop your files here
                 </Typography>
@@ -910,7 +925,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
           sx={{
             p: 4,
             borderTop: `1px solid ${theme.palette.divider}`,
-            backgroundColor: theme.palette.customColors?.OnPrimary ,
+            backgroundColor: theme.palette.customColors?.OnPrimary,
             display: 'flex',
             gap: 2,
             flexShrink: 0,
@@ -935,6 +950,16 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
           childTypes: formData.childTypes
         }}
         onAddSelected={handleNoteTypeSelect}
+      />
+
+      {/* Notify Members Drawer - Mobile Style */}
+      {/* Note: Templates are associated with parent observation type, so always pass parent ID */}
+      <NotifyMembersDrawer
+        open={notifyMembersDrawerOpen}
+        onClose={() => setNotifyMembersDrawerOpen(false)}
+        selectedMembers={formData.notifyMembers}
+        onMembersChange={handleNotifyMembersChange}
+        noteTypeId={formData.observationType?.id}
       />
     </Drawer>
   )

@@ -647,6 +647,9 @@ export async function getAllUsers(params?: GetUsersListParams): Promise<GetUsers
 export interface GetUserListPostParams {
   zoo_id?: number
   isActive?: boolean
+  role_id?: string | number  // Filter by role ID (comma-separated for multiple)
+  site_id?: string | number  // Filter by site ID (comma-separated for multiple)
+  q?: string                 // Search query
 }
 
 export interface UserListItem {
@@ -1715,6 +1718,112 @@ export async function getClutchList(params: GetClutchListParams): Promise<GetClu
 
 export async function getLitterList(params: GetLitterListParams): Promise<GetLitterListResponse> {
   const response = await axiosGet({ url: GET_FAMILY_TREE_LITTER_LIST, params })
+
+  return response?.data
+}
+
+// ==================== Observation Templates API ====================
+// For managing notify member groups/templates (matching mobile implementation)
+
+import {
+  OBSERVATION_TEMPLATE_LIST,
+  OBSERVATION_TEMPLATE_CREATE,
+  OBSERVATION_TEMPLATE_UPDATE,
+  OBSERVATION_TEMPLATE_DELETE
+} from 'src/constants/ApiConstant'
+
+export interface ObservationTemplateUser {
+  user_id: number
+  user_name?: string
+  full_name?: string
+  user_profile_pic?: string
+  role_name?: string
+}
+
+export interface ObservationTemplate {
+  id: number
+  template_name: string
+  template_type: string
+  template_items: ObservationTemplateUser[]
+  template_sub_type?: number
+  is_default: number
+  status: number
+  zoo_id?: number
+  created_at?: string
+  updated_at?: string
+}
+
+export interface GetObservationTemplatesParams {
+  ZooId: number
+  observation_types?: number | string
+}
+
+export interface GetObservationTemplatesResponse {
+  success?: boolean
+  message?: string
+  result?: ObservationTemplate[]
+  data?: {
+    result?: ObservationTemplate[]
+  }
+}
+
+export async function getObservationTemplates(params: GetObservationTemplatesParams): Promise<GetObservationTemplatesResponse> {
+  const response = await axiosGet({ url: OBSERVATION_TEMPLATE_LIST, params })
+
+  return response?.data
+}
+
+export interface CreateObservationTemplatePayload {
+  zooID: number
+  template_name: string
+  template_type: string
+  template_items: string  // JSON string of user_ids
+  template_sub_type?: number
+  is_default?: number
+  status?: number
+}
+
+export interface CreateObservationTemplateResponse {
+  success?: boolean
+  message?: string
+  data?: ObservationTemplate
+}
+
+export async function createObservationTemplate(payload: CreateObservationTemplatePayload): Promise<CreateObservationTemplateResponse> {
+  const response = await axiosPost({ url: OBSERVATION_TEMPLATE_CREATE, body: payload })
+
+  return response?.data
+}
+
+export interface UpdateObservationTemplatePayload {
+  template_name?: string
+  template_items?: string  // JSON string of user_ids
+  is_default?: number
+  status?: number
+}
+
+export interface UpdateObservationTemplateResponse {
+  success?: boolean
+  message?: string
+  data?: ObservationTemplate
+}
+
+export async function updateObservationTemplate(
+  id: number,
+  payload: UpdateObservationTemplatePayload
+): Promise<UpdateObservationTemplateResponse> {
+  const response = await axiosPost({ url: `${OBSERVATION_TEMPLATE_UPDATE}/${id}`, body: payload })
+
+  return response?.data
+}
+
+export interface DeleteObservationTemplateResponse {
+  success?: boolean
+  message?: string
+}
+
+export async function deleteObservationTemplate(id: number): Promise<DeleteObservationTemplateResponse> {
+  const response = await axiosPost({ url: `${OBSERVATION_TEMPLATE_DELETE}/${id}`, body: {} })
 
   return response?.data
 }

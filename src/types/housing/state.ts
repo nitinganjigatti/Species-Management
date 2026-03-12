@@ -113,6 +113,28 @@ export interface NotesFilters {
   taggedTo: number | string | null
 }
 
+// Observation Template for notify member groups
+export interface ObservationTemplateUser {
+  user_id: number
+  user_name?: string
+  full_name?: string
+  user_profile_pic?: string
+  role_name?: string
+}
+
+export interface ObservationTemplate {
+  id: number
+  template_name: string
+  template_type: string
+  template_items: ObservationTemplateUser[]
+  template_sub_type?: number
+  is_default: number
+  status: number
+  zoo_id?: number
+  created_at?: string
+  updated_at?: string
+}
+
 export interface NotesState extends PaginationState, LoadingErrorState {
   list: Note[]
   filters: NotesFilters
@@ -122,6 +144,8 @@ export interface NotesState extends PaginationState, LoadingErrorState {
   observationMasterListLoading: boolean
   users: User[]
   usersLoading: boolean
+  templates: ObservationTemplate[]
+  templatesLoading: boolean
 }
 
 // ==================== Combined Housing Module State ====================

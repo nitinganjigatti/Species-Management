@@ -10,14 +10,16 @@ import {
   Comment as CommentIcon,
   Send as SendIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  PersonAdd as PersonAddIcon
 } from '@mui/icons-material'
 import {
   getObservationDetails,
   addNoteReaction,
   removeNoteReaction,
   addObservationComment,
-  deleteObservation
+  deleteObservation,
+  editObservation
 } from 'src/lib/api/housing'
 import Toaster from 'src/components/Toaster'
 import moment from 'moment'
@@ -27,7 +29,8 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import EditNoteDrawer from './EditNoteDrawer'
 import NoteCommentDialog from './NoteCommentDialog'
-import type { Note, NoteAttachment, NoteComment, NoteImage } from 'src/types/housing'
+import SearchUsersDrawer from './SearchUsersDrawer'
+import type { Note, NoteAttachment, NoteComment, NoteImage, User } from 'src/types/housing'
 
 interface PriorityIcons {
   [key: string]: string
@@ -115,6 +118,8 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
   const [commentDialogOpen, setCommentDialogOpen] = useState(false)
   const [commentDialogLoading, setCommentDialogLoading] = useState(false)
   const [taggedMembersDrawerOpen, setTaggedMembersDrawerOpen] = useState(false)
+  const [searchUsersDrawerOpen, setSearchUsersDrawerOpen] = useState(false)
+  const [updateMembersLoading, setUpdateMembersLoading] = useState(false)
 
   // Local like state to avoid full re-render on like toggle
   const [likeState, setLikeState] = useState<{ isLiked: boolean; count: number } | null>(null)
@@ -219,6 +224,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
     setEditDrawerOpen(false)
     setCommentDialogOpen(false)
     setTaggedMembersDrawerOpen(false)
+    setSearchUsersDrawerOpen(false)
     onClose()
   }
 
@@ -270,6 +276,32 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
     }
   }
 
+  const handleUpdateMembers = async (selectedUsers: User[]) => {
+    setUpdateMembersLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append('observation_id', String(observationData?.observation_id))
+      // Mobile uses comma-separated string for assign_to, not JSON array
+      formData.append('assign_to', selectedUsers.map(u => u.user_id).join(','))
+
+      const response = await editObservation(formData)
+      if (response?.success) {
+        Toaster({ type: 'success', message: 'Members updated successfully' })
+        setSearchUsersDrawerOpen(false)
+        setTaggedMembersDrawerOpen(false)
+        fetchObservationDetails()
+        if (onUpdate) onUpdate()
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to update members' })
+      }
+    } catch (error) {
+      console.error('Error updating members:', error)
+      Toaster({ type: 'error', message: 'Failed to update members' })
+    } finally {
+      setUpdateMembersLoading(false)
+    }
+  }
+
   const data = observationData || note
   const parentType = (data as any)?.child_master_type?.parent_observation_type || 'Note'
   const childTypes = (data as any)?.child_master_type?.child_observation_type || []
@@ -278,6 +310,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
   const comments = observationData?.notes || []
   const taggedMembers = (data as any)?.assign_to || []
   // Use total_comments from API if available, fallback to notes array length
+
   const totalComments =
     (observationData as any)?.total_comments ?? (data as any)?.note?.total_comments ?? comments.length
 
@@ -864,9 +897,21 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
               {taggedMembers.length} Tagged Member{taggedMembers.length !== 1 ? 's' : ''}
             </Typography>
           </Box>
-          <IconButton size='small' onClick={() => setTaggedMembersDrawerOpen(false)}>
-            <CloseIcon />
-          </IconButton>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {isCreator && (
+              <IconButton
+                size='small'
+                onClick={() => setSearchUsersDrawerOpen(true)}
+                disabled={updateMembersLoading}
+                sx={{ color: theme.palette.primary.main }}
+              >
+                <PersonAddIcon />
+              </IconButton>
+            )}
+            <IconButton size='small' onClick={() => setTaggedMembersDrawerOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </Box>
 
         {/* Members List */}
@@ -875,33 +920,40 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
             <Box
               key={member.user_id || index}
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
                 p: 2,
-                mb: 1,
-                borderRadius: 2,
+                mb: 2,
+                borderRadius: 1,
                 border: `1px solid ${theme.palette.divider}`,
                 backgroundColor: theme.palette.background.default
               }}
             >
-              <Avatar src={member.profile_image || member.user_profile_pic} sx={{ width: 40, height: 40 }}>
-                {(member.full_name || member.user_name || 'U')[0].toUpperCase()}
-              </Avatar>
-              <Box sx={{ flex: 1 }}>
-                <Typography sx={{ fontWeight: 500, fontSize: '0.95rem' }}>
-                  {member.full_name || member.user_name || 'Unknown'}
-                </Typography>
-                {member.role && (
-                  <Typography variant='caption' color='text.secondary'>
-                    {member.role}
-                  </Typography>
-                )}
-              </Box>
+              <UserAvatarDetails
+                profile_image={member.profile_image || member.user_profile_pic}
+                user_name={member.full_name || member.user_name || 'Unknown'}
+                role={member.role_name || member.role}
+                size='large'
+              />
             </Box>
           ))}
         </Box>
       </Drawer>
+
+      {/* Search Users Drawer for adding/editing members */}
+      <SearchUsersDrawer
+        open={searchUsersDrawerOpen}
+        onClose={() => setSearchUsersDrawerOpen(false)}
+        selectedUsers={taggedMembers.map(
+          (member: any) =>
+            ({
+              user_id: member.user_id,
+              user_name: member.user_name,
+              full_name: member.full_name,
+              user_profile_pic: member.profile_image || member.user_profile_pic,
+              role_name: member.role
+            } as User)
+        )}
+        onUsersSelected={handleUpdateMembers}
+      />
     </Drawer>
   )
 }

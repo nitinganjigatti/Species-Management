@@ -1,6 +1,14 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import { getAllNotes, getObservationMasterList, getUserListPost, getObservationTypes } from 'src/lib/api/housing'
-import type { GetUserListPostParams } from 'src/lib/api/housing'
+import {
+  getAllNotes,
+  getObservationMasterList,
+  getUserListPost,
+  getObservationTypes,
+  getObservationTemplates,
+  createObservationTemplate,
+  deleteObservationTemplate
+} from 'src/lib/api/housing'
+import type { GetUserListPostParams, CreateObservationTemplatePayload } from 'src/lib/api/housing'
 import type {
   Note,
   NotesState,
@@ -12,7 +20,8 @@ import type {
   ObservationMasterItem,
   User,
   GetNotesParams,
-  GetObservationMasterListParams
+  GetObservationMasterListParams,
+  ObservationTemplate
 } from 'src/types/housing'
 
 // Async thunk to fetch notes with pagination
@@ -70,24 +79,124 @@ export const fetchObservationMasterList = createAsyncThunk<
   }
 })
 
-// Async thunk to fetch users list using POST method (matches mobile implementation)
 export const fetchUsers = createAsyncThunk<
   User[],
   GetUserListPostParams,
   { rejectValue: string }
 >('notes/fetchUsers', async (params, { rejectWithValue }) => {
   try {
-    const response = await getUserListPost({
+    const requestParams: GetUserListPostParams = {
       zoo_id: params.zoo_id,
-      isActive: true // Only fetch active users
-    })
+      isActive: true
+    }
 
-    // Map API response to User type
+    if (params.role_id) {
+      requestParams.role_id = params.role_id
+    }
+    if (params.site_id) {
+      requestParams.site_id = params.site_id
+    }
+    if (params.q) {
+      requestParams.q = params.q
+    }
+
+    const response = await getUserListPost(requestParams)
+
     return (response.data || []) as User[]
   } catch (error) {
     const err = error as { response?: { data?: { message?: string } } }
 
     return rejectWithValue(err.response?.data?.message || 'Failed to fetch users')
+  }
+})
+
+// Async thunk to fetch observation templates (notify member groups)
+export interface FetchTemplatesParams {
+  zoo_id: number
+  observation_types?: number | string
+}
+
+export const fetchTemplates = createAsyncThunk<
+  ObservationTemplate[],
+  FetchTemplatesParams,
+  { rejectValue: string }
+>('notes/fetchTemplates', async (params, { rejectWithValue }) => {
+  try {
+    const response = await getObservationTemplates({
+      ZooId: params.zoo_id,
+      observation_types: params.observation_types
+    })
+
+    const result = response?.data?.result || response?.result || []
+    const rawTemplates = Array.isArray(result) ? result : []
+
+    const templates = rawTemplates.map(template => {
+      let templateItems = template.template_items
+
+      if (typeof templateItems === 'string') {
+        try {
+          templateItems = JSON.parse(templateItems)
+        } catch (e) {
+          templateItems = []
+        }
+      }
+
+      if (!Array.isArray(templateItems)) {
+        templateItems = []
+      }
+
+      return {
+        ...template,
+        template_items: templateItems
+      }
+    })
+
+    return templates
+  } catch (error) {
+    const err = error as { response?: { data?: { message?: string } } }
+
+    return rejectWithValue(err.response?.data?.message || 'Failed to fetch templates')
+  }
+})
+
+export const createTemplate = createAsyncThunk<
+  ObservationTemplate,
+  CreateObservationTemplatePayload,
+  { rejectValue: string }
+>('notes/createTemplate', async (payload, { rejectWithValue }) => {
+  try {
+    const response = await createObservationTemplate(payload)
+
+    if (response?.success !== false && response?.data) {
+      return response.data
+    }
+
+    return rejectWithValue(response?.message || 'Failed to create template')
+  } catch (error) {
+    const err = error as { response?: { data?: { message?: string } } }
+
+    return rejectWithValue(err.response?.data?.message || 'Failed to create template')
+  }
+})
+
+// Async thunk to delete observation template
+export const deleteTemplate = createAsyncThunk<
+  number,
+  number,
+  { rejectValue: string }
+>('notes/deleteTemplate', async (templateId, { rejectWithValue }) => {
+  try {
+    const response = await deleteObservationTemplate(templateId)
+
+    if (response.success) {
+      return templateId
+    }
+
+    return rejectWithValue(response.message || 'Failed to delete template')
+  } catch (error) {
+    const err = error as { response?: { data?: { message?: string } } }
+
+    return rejectWithValue(err.response?.data?.message || 'Failed to delete template')
   }
 })
 
@@ -111,7 +220,9 @@ const initialState: NotesState = {
   observationMasterList: [],
   observationMasterListLoading: false,
   users: [],
-  usersLoading: false
+  usersLoading: false,
+  templates: [],
+  templatesLoading: false
 }
 
 const notesSlice = createSlice({
@@ -213,6 +324,25 @@ const notesSlice = createSlice({
       })
       .addCase(fetchUsers.rejected, state => {
         state.usersLoading = false
+      })
+      // Fetch Templates
+      .addCase(fetchTemplates.pending, state => {
+        state.templatesLoading = true
+      })
+      .addCase(fetchTemplates.fulfilled, (state, action: PayloadAction<ObservationTemplate[]>) => {
+        state.templatesLoading = false
+        state.templates = action.payload
+      })
+      .addCase(fetchTemplates.rejected, state => {
+        state.templatesLoading = false
+      })
+      // Create Template
+      .addCase(createTemplate.fulfilled, (state, action: PayloadAction<ObservationTemplate>) => {
+        state.templates = [...state.templates, action.payload]
+      })
+      // Delete Template
+      .addCase(deleteTemplate.fulfilled, (state, action: PayloadAction<number>) => {
+        state.templates = state.templates.filter(t => t.id !== action.payload)
       })
   }
 })

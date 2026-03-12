@@ -1,11 +1,12 @@
 import React from 'react'
-import { Box, Card, Typography, Chip, Divider } from '@mui/material'
+import { Box, Card, Typography, Chip, Divider, IconButton, Tooltip } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
 import {
   Description as NoteIcon,
   ThumbUp as LikeIcon,
   ThumbUpOutlined as LikeOutlinedIcon,
-  ChatBubbleOutline as CommentIcon
+  ChatBubbleOutline as CommentIcon,
+  AttachFile as AttachmentIcon
 } from '@mui/icons-material'
 import Utility from 'src/utility'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
@@ -17,7 +18,7 @@ const priorityIcons = {
   Critical: '/images/priority/flag_priority_critical.svg'
 }
 
-// Get background color based on priority (similar to severity colors in Hospital module)
+// Get background color based on priority
 const getPriorityBgColor = (priority, theme) => {
   switch (priority) {
     case 'Low':
@@ -79,16 +80,17 @@ const NoteCard = ({ note, onClick, onLikeClick, onCommentClick, sx = {} }) => {
     <Card
       onClick={handleCardClick}
       sx={{
-        p: 3,
         position: 'relative',
         overflow: 'hidden',
         cursor: onClick ? 'pointer' : 'default',
         boxShadow: 'none',
         borderRadius: '8px',
         backgroundColor: priorityBgColor,
+        transition: 'all 0.2s ease-in-out',
         ...sx
       }}
     >
+      {/* Priority Flag Icon */}
       {priorityIcon && (
         <Box
           component='img'
@@ -96,174 +98,264 @@ const NoteCard = ({ note, onClick, onLikeClick, onCommentClick, sx = {} }) => {
           alt={priority}
           sx={{
             position: 'absolute',
-            top: 12,
+            top: 0,
             right: 0,
-            height: 36,
+            height: 40,
             transform: 'scaleX(-1)'
           }}
         />
       )}
 
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          alignItems: { xs: 'flex-start', md: 'flex-start' },
-          gap: { xs: 2, md: 4 },
-          pr: priorityIcon ? 6 : 0
-        }}
-      >
-        <Box sx={{ minWidth: { xs: 'auto', md: 280 }, maxWidth: { md: 320 }, flexShrink: 0 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-            <Box
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: 1,
-                bgcolor: theme.palette.customColors?.Background || theme.palette.grey[100],
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              <NoteIcon sx={{ color: theme.palette.primary.main, fontSize: 18 }} />
-            </Box>
-            <Typography
-              variant='subtitle1'
-              sx={{
-                fontWeight: 600,
-                color: theme.palette.text.primary
-              }}
-            >
-              {parentType}
-            </Typography>
-          </Box>
-
-          {childTypes?.length > 0 && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-              {childTypes?.[0] && (
-                <Chip
-                  label={childTypes[0]?.type_name}
-                  size='small'
-                  sx={{
-                    bgcolor: theme.palette.customColors?.Background || theme.palette.grey[100],
-                    color: theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.dark,
-                    fontSize: '12px',
-                    height: 24
-                  }}
-                />
-              )}
-              {childTypes?.length > 1 && (
-                <Typography variant='caption' color='text.secondary'>
-                  +{childTypes.length - 1} more
-                </Typography>
-              )}
-            </Box>
-          )}
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mt: 1.5 }}>
-            <Box
-              onClick={e => {
-                e.stopPropagation()
-                if (onLikeClick) onLikeClick(note)
-              }}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.5,
-                cursor: 'pointer',
-                '&:hover': { opacity: 0.7 }
-              }}
-            >
-              {user_reaction === 'like' ? (
-                <LikeIcon sx={{ fontSize: 18, color: theme.palette.primary.main }} />
-              ) : (
-                <LikeOutlinedIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-              )}
-              <Typography
-                variant='body2'
-                color={user_reaction === 'like' ? 'primary' : 'text.secondary'}
-                sx={{ fontWeight: 500 }}
-              >
-                {reaction_counts?.like || 0}
-              </Typography>
-            </Box>
-
-            <Box
-              onClick={e => {
-                e.stopPropagation()
-                if (onCommentClick) onCommentClick(note)
-              }}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.5,
-                cursor: 'pointer',
-                '&:hover': { opacity: 0.7 }
-              }}
-            >
-              <CommentIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-              <Typography variant='body2' color='text.secondary' sx={{ fontWeight: 500 }}>
-                {totalComments}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-
-        <Box sx={{ flex: 1, minWidth: { xs: 'auto', md: 200 }, pt: { md: 0.5 } }}>
-          {observation_name && (
-            <Box sx={{ mb: 1 }}>
-              <Typography variant='body2' color='text.secondary' component='span'>
-                Notes :{' '}
-              </Typography>
-              <Typography
-                variant='body2'
-                component='span'
-                sx={{
-                  fontWeight: 500,
-                  color: theme.palette.text.primary
-                }}
-              >
-                {observation_name?.length > 100 ? `${observation_name.substring(0, 100)}...` : observation_name}
-              </Typography>
-            </Box>
-          )}
-
-          {getAttachmentText() && (
-            <Box>
-              <Typography variant='body2' color='text.secondary' component='span'>
-                Attachments :{' '}
-              </Typography>
-              <Typography variant='body2' component='span' sx={{ fontWeight: 500 }}>
-                {getAttachmentText()}
-              </Typography>
-            </Box>
-          )}
-        </Box>
-
+      {/* Main Content Area */}
+      <Box sx={{ p: 3 }}>
         <Box
           sx={{
-            minWidth: { md: 180 },
-            flexShrink: 0,
-            mr: priorityIcon ? 6 : 0
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: { xs: 'flex-start', md: 'flex-start' },
+            gap: { xs: 2.5, md: 4 },
+            pr: priorityIcon ? 5 : 0
           }}
         >
-          <Typography
+          {/* Left Section - Note Type */}
+          <Box sx={{ minWidth: { xs: 'auto', md: 200 }, maxWidth: { md: 240 }, flexShrink: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+              <Box
+                sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '8px',
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <NoteIcon sx={{ color: theme.palette.primary.main, fontSize: 20 }} />
+              </Box>
+              <Typography
+                variant='subtitle1'
+                sx={{
+                  fontWeight: 600,
+                  color: theme.palette.text.primary,
+                  fontSize: '1rem'
+                }}
+              >
+                {parentType}
+              </Typography>
+            </Box>
+
+            {childTypes?.length > 0 && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', ml: 0.5 }}>
+                {childTypes?.[0] && (
+                  <Chip
+                    label={childTypes[0]?.type_name}
+                    size='small'
+                    sx={{
+                      bgcolor: alpha(theme.palette.primary.main, 0.08),
+                      color: theme.palette.primary.dark,
+                      fontSize: '0.75rem',
+                      fontWeight: 500,
+                      height: 26,
+                      borderRadius: '6px',
+                      '& .MuiChip-label': {
+                        px: 1.5
+                      }
+                    }}
+                  />
+                )}
+                {childTypes?.length > 1 && (
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: theme.palette.text.secondary,
+                      fontWeight: 500
+                    }}
+                  >
+                    +{childTypes.length - 1} more
+                  </Typography>
+                )}
+              </Box>
+            )}
+          </Box>
+
+          {/* Middle Section - Note Content */}
+          <Box
             sx={{
-              color: theme.palette.customColors?.neutralSecondary || 'text.secondary',
-              fontSize: '0.75rem',
-              mb: 1
+              flex: 1,
+              minWidth: { xs: 'auto', md: 200 },
+              py: { md: 0.5 },
+              borderLeft: { md: `1px solid ${theme.palette.divider}` },
+              pl: { md: 4 }
             }}
           >
-            Noted by
+            {observation_name && (
+              <Box sx={{ mb: 1.5 }}>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: theme.palette.text.secondary,
+                    fontSize: '0.75rem',
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    mb: 0.5
+                  }}
+                >
+                  Notes
+                </Typography>
+                <Tooltip title={observation_name}>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      fontWeight: 500,
+                      color: theme.palette.text.primary,
+                      lineHeight: 1.5
+                    }}
+                  >
+                    {observation_name?.length > 100 ? `${observation_name.substring(0, 100)}...` : observation_name}
+                  </Typography>
+                </Tooltip>
+              </Box>
+            )}
+
+            {getAttachmentText() && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                <AttachmentIcon
+                  sx={{
+                    fontSize: 16,
+                    color: theme.palette.text.secondary,
+                    transform: 'rotate(-45deg)'
+                  }}
+                />
+                <Typography
+                  variant='body2'
+                  sx={{
+                    fontWeight: 500,
+                    color: theme.palette.text.secondary,
+                    fontSize: '0.813rem'
+                  }}
+                >
+                  {getAttachmentText()}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+
+          {/* Right Section - Noted By */}
+          <Box
+            sx={{
+              minWidth: { md: 180 },
+              flexShrink: 0,
+              borderLeft: { md: `1px solid ${theme.palette.divider}` },
+              pl: { md: 4 },
+              pr: priorityIcon ? 4 : 0
+            }}
+          >
+            <Typography
+              sx={{
+                color: theme.palette.text.secondary,
+                fontSize: '0.75rem',
+                fontWeight: 500,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                mb: 1
+              }}
+            >
+              Noted by
+            </Typography>
+            <UserAvatarDetails
+              profile_image={created_by_profile_pic}
+              user_name={created_by}
+              date={created_at}
+              show_time
+              size='medium'
+            />
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Footer - Actions Section (Segregated) */}
+      <Box
+        sx={{
+          borderTop: `1px solid ${alpha(theme.palette.common.black, 0.06)}`,
+          px: 3,
+          py: 1.5,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1
+        }}
+      >
+        {/* Like Button */}
+        <Box
+          onClick={e => {
+            e.stopPropagation()
+            if (onLikeClick) onLikeClick(note)
+          }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.75,
+            cursor: 'pointer',
+            py: 0.75,
+            px: 1.5,
+            borderRadius: '20px',
+            backgroundColor: user_reaction === 'like' ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              backgroundColor:
+                user_reaction === 'like' ? alpha(theme.palette.primary.main, 0.15) : alpha(theme.palette.grey[500], 0.1)
+            }
+          }}
+        >
+          {user_reaction === 'like' ? (
+            <LikeIcon sx={{ fontSize: 20, color: theme.palette.primary.main }} />
+          ) : (
+            <LikeOutlinedIcon sx={{ fontSize: 20, color: theme.palette.text.secondary }} />
+          )}
+          <Typography
+            variant='body2'
+            sx={{
+              fontWeight: 600,
+              fontSize: '0.813rem',
+              color: user_reaction === 'like' ? theme.palette.primary.main : theme.palette.text.secondary
+            }}
+          >
+            {reaction_counts?.like || 0}
           </Typography>
-          <UserAvatarDetails
-            profile_image={created_by_profile_pic}
-            user_name={created_by}
-            date={created_at}
-            show_time
-            size='medium'
-          />
+        </Box>
+
+        {/* Comment Button */}
+        <Box
+          onClick={e => {
+            e.stopPropagation()
+            if (onCommentClick) onCommentClick(note)
+          }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.75,
+            cursor: 'pointer',
+            py: 0.75,
+            px: 1.5,
+            borderRadius: '20px',
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.grey[500], 0.1)
+            }
+          }}
+        >
+          <CommentIcon sx={{ fontSize: 18, color: theme.palette.text.secondary }} />
+          <Typography
+            variant='body2'
+            sx={{
+              fontWeight: 600,
+              fontSize: '0.813rem',
+              color: theme.palette.text.secondary
+            }}
+          >
+            {totalComments}
+          </Typography>
         </Box>
       </Box>
     </Card>

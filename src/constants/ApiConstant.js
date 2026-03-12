@@ -1178,3 +1178,12 @@ export const GET_LINEAGE_ANIMAL_LIST = 'v1/familytree/animal/list'
 export const GET_FAMILY_TREE_CLUTCH_LIST = 'v1/familytree/clutch/list'
 
 export const GET_FAMILY_TREE_LITTER_LIST = 'v1/familytree/litter/list'
+
+// Observation Templates
+export const OBSERVATION_TEMPLATE_LIST = 'antz/observation/templates'
+
+export const OBSERVATION_TEMPLATE_CREATE = 'antz/observation/templates/create'
+
+export const OBSERVATION_TEMPLATE_UPDATE = 'antz/observation/templates/update'
+
+export const OBSERVATION_TEMPLATE_DELETE = 'antz/observation/templates/delete'

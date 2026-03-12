@@ -35,6 +35,8 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
+import TransferPassQRCard from 'src/components/necropsy/TransferPassQRCard'
+import TransferChecklistDrawer from 'src/components/necropsy/TransferChecklistDrawer'
 import {
   getAnimalTransferSummary,
   getAnimalTransferButtonStatus,
@@ -181,6 +183,8 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
   const [memberList, setMemberList] = useState<TransferMemberUser[]>([])
   const [animalListLoading, setAnimalListLoading] = useState<boolean>(false)
   const [memberListLoading, setMemberListLoading] = useState<boolean>(false)
+  const [openQRDialog, setOpenQRDialog] = useState<boolean>(false)
+  const [showChecklistDrawer, setShowChecklistDrawer] = useState<boolean>(false)
 
   const transferDetails = summaryData?.transfer_details
   const entityDetails = summaryData?.entity_details || summaryData?.animal_details || []
@@ -237,6 +241,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
         const transferType = summaryRes?.data?.transfer_details?.transfer_type
         const approvalList = summaryRes?.data?.approval_list || []
         const isApproved = approvalList[0]?.status === 'APPROVED'
+
         const approvedOn =
           (approvalList[0] as any)?.commented_on || (summaryRes?.data?.transfer_details as any)?.approved_on
 
@@ -463,6 +468,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
     if (status === 'REJECTED') return 'Approval Rejected'
     if (status === 'CANCELED') return 'Cancelled by'
     if (approvalList.some(item => item.status === 'APPROVED')) return 'Approved by'
+
     return 'Awaiting Approval'
   }
 
@@ -499,6 +505,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
   // Get progress percentage
   const getProgressPercentage = (): number => {
     const status = transferDetails?.activity_status
+
     const statusOrder = [
       'PENDING',
       'APPROVED',
@@ -509,6 +516,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
       'COMPLETED'
     ]
     const index = statusOrder.indexOf(status || 'PENDING')
+
     return index >= 0 ? ((index + 1) / statusOrder.length) * 100 : 10
   }
 
@@ -594,7 +602,28 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                 >
                   {transferDetails?.request_id?.toUpperCase() || ''}
                 </Typography>
-                <Box sx={{ width: 32 }} />
+                {/* QR Code Button - Show when qr_code_full_path exists */}
+                {transferDetails?.qr_code_full_path &&
+                  (transferDetails?.transfer_type === 'intra' ||
+                    !['PENDING', 'FILL_TRANSFER_CHECKLIST', 'LOADED_ANIMALS'].includes(
+                      transferDetails?.activity_status || ''
+                    )) ? (
+                  <IconButton
+                    onClick={() => setOpenQRDialog(true)}
+                    size='small'
+                    sx={{
+                      backgroundColor: theme.palette.customColors?.OnPrimaryContainer,
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.customColors?.OnPrimaryContainer || '#000', 0.85)
+                      }
+                    }}
+                  >
+                    <Icon icon='ic:outline-qr-code-2' fontSize={28} color={theme.palette.customColors?.OnPrimary} />
+                  </IconButton>
+                ) : (
+                  <Box sx={{ width: 32 }} />
+                )}
               </Box>
 
               {/* Transfer Type & Destination */}
@@ -670,8 +699,8 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                       size='small'
                       onClick={() => window.open(`tel:${transferDetails?.user_mobile_number}`, '_self')}
                       sx={{
-                        backgroundColor: alpha(theme.palette.customColors?.neutralPrimary , 0.05),
-                        '&:hover': { backgroundColor: alpha(theme.palette.customColors?.neutralPrimary , 0.1) }
+                        backgroundColor: alpha(theme.palette.customColors?.neutralPrimary || '#000', 0.05),
+                        '&:hover': { backgroundColor: alpha(theme.palette.customColors?.neutralPrimary || '#000', 0.1) }
                       }}
                     >
                       <Icon icon='mdi:phone' fontSize={18} />
@@ -680,8 +709,8 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                       size='small'
                       onClick={() => window.open(`sms:${transferDetails?.user_mobile_number}`, '_self')}
                       sx={{
-                        backgroundColor: alpha(theme.palette.customColors?.neutralPrimary , 0.05),
-                        '&:hover': { backgroundColor: alpha(theme.palette.customColors?.neutralPrimary , 0.1) }
+                        backgroundColor: alpha(theme.palette.customColors?.neutralPrimary || '#000', 0.05),
+                        '&:hover': { backgroundColor: alpha(theme.palette.customColors?.neutralPrimary || '#000', 0.1) }
                       }}
                     >
                       <Icon icon='mdi:message-text-outline' fontSize={18} />
@@ -717,11 +746,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                  <Icon
-                    icon='mdi:arrow-top-right'
-                    fontSize={22}
-                    color={theme.palette.customColors?.editIconColor}
-                  />
+                  <Icon icon='mdi:arrow-top-right' fontSize={22} color={theme.palette.customColors?.editIconColor} />
                   <Box>
                     <Typography
                       sx={{
@@ -795,11 +820,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
               {transferDetails?.transfer_type === 'intra' && transferDetails?.assign_to?.enclosure_id && (
                 <>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3, px: 4, py: 3 }}>
-                    <Icon
-                      icon='mdi:arrow-top-right'
-                      fontSize={22}
-                      color={theme.palette.customColors?.editIconColor}
-                    />
+                    <Icon icon='mdi:arrow-top-right' fontSize={22} color={theme.palette.customColors?.editIconColor} />
                     <Box>
                       <Typography
                         sx={{
@@ -825,6 +846,68 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                 </>
               )}
 
+              {/* Transfer Checklist - Show for inter/external transfers when not pending */}
+              {transferDetails?.activity_status !== 'PENDING' && transferDetails?.transfer_type !== 'intra' && (
+                <>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                      justifyContent: 'space-between',
+                      backgroundColor: theme.palette.customColors?.avatarBackground,
+                      px: 4,
+                      py: 3,
+                      mt: '1px'
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                      <Icon
+                        icon='uis:check-circle'
+                        color={theme.palette.customColors?.neutralSecondary}
+                        fontSize={22}
+                      />
+                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                        <Typography
+                          sx={{
+                            fontWeight: 400,
+                            fontSize: '13px',
+                            color: theme.palette.customColors?.neutralSecondary
+                          }}
+                        >
+                          Transfer Checklist
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: '16px',
+                            color: theme.palette.customColors?.OnSurfaceVariant
+                          }}
+                        >
+                          {transferDetails?.checked_count || 0}/
+                          {transferDetails?.total_checklist_count || 0} Filled
+                        </Typography>
+                      </Box>
+                    </Box>
+                    {(transferDetails?.checked_count || 0) > 0 && (
+                      <Typography
+                        onClick={() => setShowChecklistDrawer(true)}
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '14px',
+                          color: theme.palette.primary.main,
+                          cursor: 'pointer',
+                          '&:hover': { textDecoration: 'underline' }
+                        }}
+                      >
+                        View
+                      </Typography>
+                    )}
+                  </Box>
+                  <Divider />
+                </>
+              )}
+
               {/* Transfer Team - Conditional on ANIMAL_TRANSFER_REQUIRES_APPROVAL */}
               {animalTransferApproval && (
                 <>
@@ -841,11 +924,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                      <Icon
-                        icon='mdi:account'
-                        fontSize={22}
-                        color={theme.palette.customColors?.editIconColor}
-                      />
+                      <Icon icon='mdi:account' fontSize={22} color={theme.palette.customColors?.editIconColor} />
                       <Box>
                         <Typography
                           sx={{
@@ -946,7 +1025,9 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                               >
                                 {`${item.user_first_name || ''} ${item.user_last_name || ''}`.trim()}
                               </Typography>
-                              {item.status === 'APPROVED' && <Icon icon='mdi:star' fontSize={14} color={theme.palette.warning.main} />}
+                              {item.status === 'APPROVED' && (
+                                <Icon icon='mdi:star' fontSize={14} color={theme.palette.warning.main} />
+                              )}
                             </Box>
                             <Typography
                               sx={{
@@ -1279,8 +1360,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                                 <TimelineContent sx={{ py: 1, display: 'flex', alignItems: 'center' }}>
                                   <Box
                                     sx={{
-                                      backgroundColor:
-                                        theme.palette.customColors?.Background,
+                                      backgroundColor: theme.palette.customColors?.Background,
                                       borderRadius: 1,
                                       px: 3,
                                       py: 2,
@@ -1350,7 +1430,9 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                     }}
                   >
                     <Icon icon='mdi:check' fontSize={20} color={theme.palette.customColors?.OnPrimary} />
-                    <Typography sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors?.OnPrimary }}>
+                    <Typography
+                      sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors?.OnPrimary }}
+                    >
                       {buttonStatus?.show_you_approved ? 'You Approved' : 'Approved'}
                     </Typography>
                   </Box>
@@ -1375,7 +1457,9 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                     }}
                   >
                     <Icon icon='mdi:close' fontSize={20} color={theme.palette.customColors?.OnPrimary} />
-                    <Typography sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors?.OnPrimary }}>
+                    <Typography
+                      sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors?.OnPrimary }}
+                    >
                       {buttonStatus?.show_you_rejected ? 'You Rejected' : 'Rejected'}
                     </Typography>
                   </Box>
@@ -1393,13 +1477,17 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                       gap: 1.5,
                       py: 2,
                       px: 6,
-                      backgroundColor: theme.palette.customColors?.neutralSecondary ,
+                      backgroundColor: theme.palette.customColors?.neutralSecondary,
                       borderRadius: '50px',
                       width: '90%'
                     }}
                   >
                     <Icon icon='mdi:close' fontSize={20} color={theme.palette.customColors?.OnPrimary} />
-                    <Typography sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors?.OnPrimary }}>Canceled</Typography>
+                    <Typography
+                      sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors?.OnPrimary }}
+                    >
+                      Canceled
+                    </Typography>
                   </Box>
                 </Box>
               ) : null}
@@ -1568,11 +1656,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
               Transfer Members
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Icon
-                icon='mdi:account-circle'
-                fontSize={24}
-                color={theme.palette.customColors?.OnPrimaryContainer}
-              />
+              <Icon icon='mdi:account-circle' fontSize={24} color={theme.palette.customColors?.OnPrimaryContainer} />
               <Typography
                 sx={{
                   fontSize: '16px',
@@ -1769,6 +1853,25 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
           </Box>
         </Paper>
       </Modal>
+
+      {/* QR Code Dialog */}
+      <TransferPassQRCard
+        open={openQRDialog}
+        handleClose={() => setOpenQRDialog(false)}
+        transferData={{
+          requestId: transferDetails?.request_id,
+          qrCodeUrl: transferDetails?.qr_code_full_path,
+          title: 'Transfer Pass',
+          subtitle: 'Transfer Request number'
+        }}
+      />
+
+      {/* Transfer Checklist Drawer */}
+      <TransferChecklistDrawer
+        open={showChecklistDrawer}
+        onClose={() => setShowChecklistDrawer(false)}
+        transferId={transferId ? Number(transferId) : null}
+      />
     </>
   )
 }
