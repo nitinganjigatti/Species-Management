@@ -4,18 +4,43 @@
 Zoo-level configuration page where admins can manage general preferences (timezone, currency) and configure report distribution recipients (To/CC) for scheduled email reports.
 
 ## Page Route
-`/zoo-configuration/`
+`/zoo-configuration/settings`
 
-## Files
+## Architecture
 
-| File | Purpose |
-|------|---------|
-| `src/pages/zoo-configuration/index.js` | Next.js page entry |
-| `src/views/pages/zoo-configuration/ZooSettingsView.js` | Main view — fetches data, manages state, handles save |
-| `src/views/pages/zoo-configuration/ZooSettingsGeneralSection.js` | Timezone & currency dropdowns with per-section Save |
-| `src/views/pages/zoo-configuration/ZooSettingsReportSection.js` | Report distribution cards with To/CC recipient fields |
-| `src/views/pages/zoo-configuration/MultiUserDrawer.js` | Multi-select user picker drawer (checkbox, infinite scroll, search) |
-| `src/lib/api/zoo-settings/index.js` | API functions for zoo settings |
+This module follows the project's **component-view separation** pattern (same as necropsy module):
+
+```
+src/pages/zoo-configuration/settings/
+└── index.js                              ← Page entry point (auth guard, imports component)
+
+src/components/zoo-configuration/
+├── ZooSettings.js                        ← Business logic (API calls, state, handlers)
+└── MultiUserDrawer.js                    ← Reusable drawer with own API logic (infinite scroll, search)
+
+src/views/pages/zoo-configuration/
+├── ZooSettingsView.js                    ← Pure template (receives all data as props)
+├── ZooSettingsGeneralSection.js          ← Timezone & currency dropdowns
+└── ZooSettingsReportSection.js           ← Report distribution cards with To/CC fields
+
+src/lib/api/zoo-settings/
+└── index.js                              ← API functions (GET/POST)
+```
+
+### Separation of Concerns
+
+| Layer | Folder | Responsibility |
+|-------|--------|---------------|
+| **Page** | `src/pages/` | Route entry, auth guard, imports component |
+| **Component** | `src/components/` | Business logic — API calls (React Query), state management, event handlers, toast notifications |
+| **View** | `src/views/pages/` | Pure templates — receives props, renders JSX, no API calls |
+| **API** | `src/lib/api/` | Axios request definitions using project utility (`axiosGet`, `axiosPost`) |
+
+### Why this pattern?
+- **Views are reusable and testable** — no side effects, just props in → JSX out
+- **Business logic is encapsulated** — API calls, state transforms, error handling live in one place
+- **Components with own API logic** (like `MultiUserDrawer`) belong in `components/`, not `views/`
+- **Consistent with other modules** — necropsy, hospital follow the same pattern
 
 ## API Endpoints
 
@@ -111,14 +136,16 @@ Backend expects user IDs (not full objects). Frontend maps `user_id` from local 
 
 ## Data Flow
 
-1. **Page load** — `ZooSettingsView` fires 2 React Query calls: `getZooSettings` + `getZooReportTypes`
+1. **Page load** — `ZooSettings` (component) fires 2 React Query calls: `getZooSettings` + `getZooReportTypes`
 2. **Prefill** — `useEffect` populates `generalValues` (timezone, currency) and `reportRecipients` (full user objects for chip display)
-3. **Edit recipients** — clicking a To/CC field opens `MultiUserDrawer` (multi-select with checkbox, infinite scroll, debounced search via `getUserListing` API)
-4. **Save General** — `POST { section: 'general', timezone, currency }` on General section Save click
-5. **Save Reports** — maps user objects to IDs, then `POST { section: 'report_recipients', report_recipients: {...} }` on Report section Save click
+3. **Render** — `ZooSettings` passes all data + handlers as props to `ZooSettingsView` (pure template)
+4. **Edit recipients** — clicking a To/CC field opens `MultiUserDrawer` (multi-select with checkbox, infinite scroll, debounced search via `getUserListing` API)
+5. **Save General** — `POST { section: 'general', timezone, currency }` on General section Save click
+6. **Save Reports** — maps user objects to IDs, then `POST { section: 'report_recipients', report_recipients: {...} }` on Report section Save click
 
 ## Notes
 - `user_id` from GET settings is a string (`"1"`), from user listing API may be numeric — comparisons use `String()` coercion
 - Report types are fully dynamic from API — adding/removing a report type on backend automatically reflects in UI
 - Each section has its own Save button — independent saves
 - `MultiUserDrawer` is a reusable component (same pattern as existing `UserDrawer` but with checkboxes instead of radio)
+- API queries use `retry: false` so the page loads gracefully with empty defaults if backend endpoints aren't deployed yet
