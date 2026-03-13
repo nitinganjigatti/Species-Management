@@ -415,7 +415,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
       query.anaesthesia_id = activeDetail.anaesthesia_id
     }
 
-    if (category === 'Discharge') {
+    if (category === 'Discharged') {
       router.push({
         pathname: `/hospital/discharged/${resolvedHospitalCaseId}`,
         query
