@@ -545,7 +545,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
       sortable: false,
       renderCell: params => (
         <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
-          {params?.row?.duration}
+          {params?.row?.frequency_key === 'one_time' ? '1 day' : params?.row?.duration}
         </StyledTypography>
       )
     },
