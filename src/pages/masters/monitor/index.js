@@ -117,7 +117,7 @@ function AddMonitorCategory() {
     {
       width: 280,
       field: 'assessment_type_count',
-      headerName: 'Assessment Type Count',
+      headerName: 'Active Assessment Type Count',
 
       renderCell: params => (
         <Typography
@@ -128,7 +128,9 @@ function AddMonitorCategory() {
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
             color: theme.palette.customColors.customHeadingTextColor,
-            pl: '6px'
+            display: 'flex',
+            justifyContent: 'center',
+            flex: 1
           }}
           variant='body2'
         >

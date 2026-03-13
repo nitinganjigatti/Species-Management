@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   CardHeader,
+  Grid,
   IconButton,
   Tooltip,
   Typography,
@@ -26,6 +27,8 @@ import AddCategories from 'src/views/pages/medical/AddCategories'
 import { AuthContext } from 'src/context/AuthContext'
 
 import Error404 from 'src/pages/404'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const Diagnosis = () => {
   const theme = useTheme()
@@ -159,8 +162,7 @@ const Diagnosis = () => {
 
   const columns = [
     {
-      flex: 0.1,
-      Width: 20,
+      width: 120,
       field: 'id',
       headerName: 'NO',
       align: 'center',
@@ -181,13 +183,10 @@ const Diagnosis = () => {
     },
 
     {
-      flex: 0.6,
-      minWidth: 40,
+      width: 350,
       sortable: false,
       field: 'Category',
       headerName: 'Category',
-
-      // headerAlign: 'left',
       align: 'left',
 
       renderCell: params => (
@@ -205,62 +204,29 @@ const Diagnosis = () => {
       )
     },
     {
-      flex: 0.1,
-      minWidth: 10,
+      width: 150,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
         <>
           {params.row.zoo_id === zoo_id ? ( // Show only if the zoo_id matches
-            (<Box>
+            <Box>
               <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
                 <Icon icon='mdi:pencil-outline' />
               </IconButton>
-            </Box>)
+            </Box>
           ) : null}
         </>
       )
-
-      // renderCell: params => (
-      //   <>
-      //     <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-      //       <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
-      //         <Icon icon='mdi:pencil-outline' />
-      //       </IconButton>
-      //       {/* <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handleDelete(params.row.id)} aria-label='Edit'>
-      //         <Icon icon='mdi:delete-outline' />
-      //       </IconButton> */}
-      //     </Box>
-      //   </>
-      // )
     }
-
-    // {
-    //   flex: 0.3,
-    //   minWidth: 30,
-    //   sortable: false,
-    //   field: 'Type',
-    //   headerName: 'Type',
-    //   align: 'left',
-
-    //   renderCell: params => (
-    //     <Typography
-    //       noWrap
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.type}
-    //     </Typography>
-    //   )
-    // }
   ]
 
   const handleCellClick = params => {
-    router.push(`diagnosis/${params.row.id}`)
+    const { id, label } = params.row
+    router.push({
+      pathname: `diagnosis/${id}`,
+      query: { label: label }
+    })
   }
 
   const headerAction = (
@@ -295,25 +261,46 @@ const Diagnosis = () => {
           Category
         </Typography>
       </Breadcrumbs>
-      <Card>
-        <CardHeader title='Category List' action={headerAction} />
 
-        <CommonTable
-          indexedRows={indexedRows === undefined ? [] : indexedRows}
-          total={total}
-          columns={columns}
-          handleSortModel={handleSortModel}
-          loading={loading}
-          searchValue={searchValue}
-          handleSearch={handleSearch}
-          onCellClick={handleCellClick}
-          hideFooterPagination={true}
-          disablePagination={true}
-          columnVisibilityModel={{
-            sl_no: false
-          }}
-        />
-      </Card>
+      <PageCardLayout title='Category List' action={headerAction}>
+        {' '}
+        <Grid container>
+          <Grid container item size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+            <Grid item size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+              <MUISearch
+                sx={{
+                  width: {
+                    xs: '100%',
+                    sm: '250px'
+                  }
+                }}
+                placeholder='Search...'
+                onChange={e => handleSearch(e.target.value)}
+                onClear={() => handleSearch('')}
+                value={searchValue}
+              />
+            </Grid>
+          </Grid>
+
+          <Grid item size={{ xs: 12 }}>
+            <CommonTable
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
+              columns={columns}
+              handleSortModel={handleSortModel}
+              loading={loading}
+              searchValue={searchValue}
+              handleSearch={handleSearch}
+              onCellClick={handleCellClick}
+              hideFooterPagination={true}
+              disablePagination={true}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+            />
+          </Grid>
+        </Grid>
+      </PageCardLayout>
       {openDrawer && (
         <AddCategories
           openDrawer={openDrawer}
@@ -326,7 +313,7 @@ const Diagnosis = () => {
         />
       )}
     </>
-  );
+  )
 }
 
 export default Diagnosis
