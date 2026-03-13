@@ -55,6 +55,7 @@ import {
 } from 'src/lib/api/hospital/surgeryMaster'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { borderRadius } from '@mui/system'
+import { minTime } from 'date-fns'
 
 const FORM_ID = 'add-surgery-record-form'
 
@@ -233,7 +234,42 @@ const schema = yup.object().shape({
 
       return !dayjs(value).startOf('day').isAfter(dayjs().startOf('day'))
     }),
-  startTime: yup.mixed().test('start-required', 'Start time is required', value => Boolean(value)),
+  startTime: yup.mixed().test('start-required', 'Start time is required', value => Boolean(value)).when('date', (date, schema) =>
+      schema.test('starttime', function (value) {
+        if (!value || !date) return true
+        console.log("Time field value:", value)
+  
+        const selectedStartDate = dayjs(date)
+        const selectedStartTime = dayjs(value)
+  
+        const patientData = this.options?.context?.patientData
+        if (!patientData) return true
+  
+        const admittedAt = dayjs.utc(patientData.admitted_at).local()
+        const dischargeAt = dayjs.utc(patientData.discharge_at).local()
+        const now = dayjs()
+  
+        const selectedDateTime = selectedStartDate.hour(selectedStartTime.hour()).minute(selectedStartTime.minute()).second(0)
+  
+        if (selectedStartDate.isSame(admittedAt, 'day') && selectedDateTime.isBefore(admittedAt)) {
+          return this.createError({
+            message: `Time cannot be before the admitted time (${admittedAt.format('hh:mm A')})`
+          })
+        }
+  
+        if (selectedStartDate.isSame(dischargeAt, 'day') && selectedDateTime.isAfter(dischargeAt.clone().subtract(1, 'hour'))) {
+          return this.createError({
+            message: `Time should be at least 1 hour less than the discharge time (${dischargeAt.format('hh:mm A')})`
+          })
+        }
+  
+        if (selectedStartDate.isSame(now, 'day') && selectedDateTime.isAfter(now)) {
+          return this.createError({ message: 'Time cannot be in the future' })
+        }
+  
+        return true
+      })
+    ),
   endTime: yup
     .mixed()
     .test('end-required', 'End time is required', value => Boolean(value))
@@ -312,7 +348,7 @@ const AddSurgeryRecord = () => {
     }),
     []
   )
-  const formResolver = useMemo(() => yupResolver(schema, { context: { admissionDateTime } }), [admissionDateTime])
+  const formResolver = useMemo(() => yupResolver(schema, { context: { admissionDateTime, patientData, } }), [admissionDateTime, patientData,])
 
   const {
     control,
@@ -320,12 +356,14 @@ const AddSurgeryRecord = () => {
     reset,
     clearErrors,
     setValue,
+        trigger,
     watch,
     formState: { errors, isDirty }
   } = useForm({
     resolver: formResolver,
     mode: 'onChange',
     reValidateMode: 'onChange',
+    context: { patientData },
     defaultValues: defaultFormValues
   })
 
@@ -377,6 +415,12 @@ const AddSurgeryRecord = () => {
   const debouncedAttendingDoctorSearch = useDebounce(searchAttendDoctor, 400)
 
   const { selectedHospital } = useHospital()
+
+    useEffect(() => {
+      if (selectedDate) {
+        trigger('startTime')
+      }
+    }, [selectedDate, trigger]) //time validation dependent on date field
 
   const parseUtcDateToLocalDayjs = useCallback(value => {
     if (!value) return null
@@ -912,6 +956,39 @@ const AddSurgeryRecord = () => {
     }
   }, [minEndTime, endTimeValue, setValue])
 
+
+    const minTime = useMemo(() => {
+    if (!patientData?.admitted_at || !selectedDate) return null
+  
+    const admitted = dayjs.utc(patientData.admitted_at).local()
+  
+    if (dayjs(selectedDate).isSame(admitted, 'day')) {
+      return dayjs()
+        .hour(admitted.hour())
+        .minute(admitted.minute())
+        .second(0)
+    }
+  
+    return null
+  }, [patientData?.admitted_at, selectedDate])
+  
+  const maxTime = useMemo(() => {
+    if (!patientData?.discharge_at || !selectedDate) return null
+  
+    const discharge = dayjs.utc(patientData.discharge_at).local()
+  
+    if (dayjs(selectedDate).isSame(discharge, 'day')) {
+      const startLimit = discharge.subtract(1, 'hour')
+  
+      return dayjs()
+        .hour(startLimit.hour())
+        .minute(startLimit.minute())
+        .second(0)
+    }
+    return null
+  }, [patientData?.discharge_at, selectedDate])
+
+
   const handleClearSelectedAnesthesia = useCallback(() => {
     setSelectedAnesthesiaRecord(null)
   }, [])
@@ -1362,6 +1439,8 @@ const AddSurgeryRecord = () => {
                 label='Start Time'
                 name={'startTime'}
                 control={control}
+                minTime={minTime}
+                maxTime={maxTime}
               />
             </Grid>
             <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
