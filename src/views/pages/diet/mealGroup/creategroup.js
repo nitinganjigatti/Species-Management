@@ -187,6 +187,14 @@ const CreateMealGroup = ({
       return
     }
 
+    const isNameChanged = groupName !== (editParam?.group_name || '')
+    const hasEnclosuresRemoved = removedEnclosures.length > 0
+
+    if (!isNameChanged && !hasEnclosuresRemoved) {
+      return
+    }
+
+    setLoading(true)
     try {
       const params = {
         site_id: selectedOption,
@@ -210,6 +218,8 @@ const CreateMealGroup = ({
     } catch (error) {
       toast.error('Server error. Please try again.')
       console.error('Create Meal Group Error:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -280,7 +290,12 @@ const CreateMealGroup = ({
           onClick={Object.keys(editParam).length > 0 ? handleUpdateGroup : handleCreateGroup}
           sx={{ height: '58px' }}
           fullWidth
-          disabled={loading}
+          disabled={
+            loading ||
+            (Object.keys(editParam).length > 0 &&
+              groupName === (editParam?.group_name || '') &&
+              removedEnclosures.length === 0)
+          }
           //   disabled={loader || watch('nursery_name') === '' || watch('site_id') === ''}
           variant='contained'
           type='submit'

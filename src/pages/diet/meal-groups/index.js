@@ -575,9 +575,6 @@ const MealGroup = () => {
       setLoader(true)
       setGroupId(id)
 
-      // setCheckedRows([])
-      console.log('Checked rows >>', checkedRows)
-
       const params = {
         q: searchValue,
         type: 'unmapped',
