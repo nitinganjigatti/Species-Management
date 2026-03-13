@@ -44,9 +44,11 @@ const AddClinicalAsmntDrawer = ({
     if (isDischarged && dischargedDate) {
       // Convert UTC discharge date to local time
       const localDischargeDateTime = dayjs.utc(dischargedDate).local()
+      const localAdmittedDateTime = dayjs.utc(admittedDate).local()
+
       setRecordedDateTime(localDischargeDateTime)
-      setMinDate(dayjs.utc(admittedDate).local().startOf('day'))
-      setMaxDate(localDischargeDateTime.endOf('day'))
+      setMinDate(localAdmittedDateTime)
+      setMaxDate(localDischargeDateTime)
     } else {
       setRecordedDateTime(dayjs())
       setMinDate(admittedDate ? dayjs.utc(admittedDate).local().startOf('day') : null)
@@ -121,9 +123,7 @@ const AddClinicalAsmntDrawer = ({
 
         <Box sx={{ pb: 2 }}>
           <Box sx={{ p: 5, background: theme.palette.common.white, px: 5 }}>
-            <Typography
-              sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1 }}
-            >
+            <Typography sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1 }}>
               Date & Time
             </Typography>
             <Box sx={{ mb: 6 }}>

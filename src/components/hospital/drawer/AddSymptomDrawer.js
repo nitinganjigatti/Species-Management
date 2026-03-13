@@ -53,9 +53,12 @@ const AddSymptomDrawer = ({
     if (isDischarged && dischargedDate) {
       // Convert UTC discharge date to local time
       const localDischargeDateTime = dayjs.utc(dischargedDate).local()
+      const localAdmittedDateTime = dayjs.utc(admittedDate).local()
       setRecordedDateTime(localDischargeDateTime)
-      setMinDate(dayjs.utc(admittedDate).local().startOf('day'))
-      setMaxDate(localDischargeDateTime.endOf('day'))
+      // setMinDate(dayjs.utc(admittedDate).local().startOf('day'))
+      // setMaxDate(localDischargeDateTime.endOf('day'))
+      setMinDate(localAdmittedDateTime)
+      setMaxDate(localDischargeDateTime)
     } else {
       setRecordedDateTime(dayjs())
       setMinDate(admittedDate ? dayjs.utc(admittedDate).local().startOf('day') : null)
