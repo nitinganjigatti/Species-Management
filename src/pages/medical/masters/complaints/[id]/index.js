@@ -1,26 +1,12 @@
-import {
-  Avatar,
-  Box,
-  Breadcrumbs,
-  Button,
-  Card,
-  CardHeader,
-  IconButton,
-  Tooltip,
-  Typography,
-  debounce
-} from '@mui/material'
+import { Box, Button, IconButton, Tooltip, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { useRouter } from 'next/router'
 import { useTheme } from '@mui/material/styles'
-import Router from 'next/router'
 import {
   addMedicalComplaintOrDiagnosis,
   getMedicalCategoryListById,
-  updateMedicalCategory,
   updateMedicalCategoryComplaint
 } from 'src/lib/api/medical/masters'
 import toast from 'react-hot-toast'
@@ -33,6 +19,7 @@ import { Grid } from '@mui/system'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import Utility from 'src/utility'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const ComplaintsDetails = () => {
   const theme = useTheme()
@@ -253,22 +240,10 @@ const ComplaintsDetails = () => {
     <>
       {complaints_permission ? (
         <>
-          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-              Medical
-            </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
-              Category
-            </Typography>
-            <Typography
-              sx={{
-                color: 'text.primary',
-                cursor: 'pointer'
-              }}
-            >
-              {label}
-            </Typography>
-          </Breadcrumbs>
+          <DynamicBreadcrumbs
+            pageItems={[{ title: 'Medical' }, { title: 'Category', onClick: () => router.back() }, { title: label }]}
+          />
+
           <PageCardLayout title={label || 'Symptoms List'} action={headerAction}>
             <Grid container>
               <Grid

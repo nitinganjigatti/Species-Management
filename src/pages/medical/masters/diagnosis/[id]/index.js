@@ -1,27 +1,14 @@
-import {
-  Avatar,
-  Box,
-  Breadcrumbs,
-  Button,
-  Card,
-  CardHeader,
-  Grid,
-  IconButton,
-  Tooltip,
-  Typography,
-  debounce
-} from '@mui/material'
+import { Box, Button, Grid, IconButton, Tooltip, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+
 import { useRouter } from 'next/router'
 import { useTheme } from '@mui/material/styles'
-import Router from 'next/router'
+
 import {
   addMedicalComplaintOrDiagnosis,
   getMedicalCategoryListById,
-  updateMedicalCategory,
   updateMedicalCategoryDiagnosis
 } from 'src/lib/api/medical/masters'
 import toast from 'react-hot-toast'
@@ -33,6 +20,7 @@ import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Utility from 'src/utility'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const DiagnosisDetails = () => {
   const theme = useTheme()
@@ -254,22 +242,9 @@ const DiagnosisDetails = () => {
     <>
       {diagnosis_permission ? (
         <>
-          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-              Medical
-            </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
-              Category
-            </Typography>
-            <Typography
-              sx={{
-                color: 'text.primary',
-                cursor: 'pointer'
-              }}
-            >
-              {label}
-            </Typography>
-          </Breadcrumbs>
+          <DynamicBreadcrumbs
+            pageItems={[{ title: 'Medical' }, { title: 'Category', onClick: () => router.back() }, { title: label }]}
+          />
           <PageCardLayout title={label || 'Diagnosis List'} action={headerAction}>
             <Grid container>
               <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>

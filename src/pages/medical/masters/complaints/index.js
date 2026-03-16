@@ -1,23 +1,9 @@
-import {
-  Avatar,
-  Box,
-  Breadcrumbs,
-  Button,
-  Card,
-  CardHeader,
-  Grid,
-  IconButton,
-  Tooltip,
-  Typography,
-  debounce
-} from '@mui/material'
+import { Box, Button, Grid, IconButton, Tooltip, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { useRouter } from 'next/router'
 import { useTheme } from '@mui/material/styles'
-import Router from 'next/router'
 import { addMedicalCategory, getCategoriesList, updateMedicalCategory } from 'src/lib/api/medical/masters'
 import toast from 'react-hot-toast'
 import Toaster from 'src/components/Toaster'
@@ -25,8 +11,8 @@ import { AuthContext } from 'src/context/AuthContext'
 import AddCategories from 'src/views/pages/medical/AddCategories'
 import Error404 from 'src/pages/404'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
-
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const Complaints = () => {
   const theme = useTheme()
@@ -232,19 +218,7 @@ const Complaints = () => {
     <>
       {complaints_permission ? (
         <>
-          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-              Medical
-            </Typography>
-            <Typography
-              sx={{
-                color: 'text.primary',
-                cursor: 'pointer'
-              }}
-            >
-              Category
-            </Typography>
-          </Breadcrumbs>
+          <DynamicBreadcrumbs pageItems={[{ title: 'Medical' }, { title: 'Category' }]} />
           <PageCardLayout title='Category List' action={headerAction}>
             <Grid container>
               <Grid
