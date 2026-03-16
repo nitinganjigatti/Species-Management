@@ -689,6 +689,12 @@ export const CARCASS_DEPOSITION = `masters/carcassDisposition`
 
 export const MEASUREMENT_UNITS = `masters/measurement-units`
 
+export const ADD_MEASUREMENT_UNITS = 'master/measurement-units/add'
+
+export const UPDATE_MEASUREMENT_UNITS = 'master/measurement-units/update'
+
+export const GET_MEASUREMENT_BASE_UOM = 'masters/measurement-unit-by-id'
+
 export const NECROPSY_CENTER = `v1/entity/types/necropsy_centre`
 
 export const ANIMAL_DIET_LIST = `diet/get-species-detail`
@@ -935,6 +941,10 @@ export const UPDATE_TREATMENT = 'v1/hospital/treatment/update'
 
 export const DELETE_TREATMENT = 'v1/hospital/treatment/delete'
 
+export const ADD_TREATMENT_MASTERS = 'v1/hospital/treatment-master/create'
+
+export const UPDATE_TREATMENT_MASTERS = 'v1/hospital/treatment-master/update'
+
 export const ADD_ASSESSMENT_VALUE_TO_PARAMS = `v1/assessment/animal/add`
 
 export const GET_HOSPITAL_PARAMETERS_UNIT = `v1/hospital/get-assessment-details`
@@ -949,6 +959,16 @@ export const DELETE_PARAMETER_ASSESSMENT_HISTORY = `v1/hospital/delete-assessmen
 
 export const GET_ASSESSMENT_LIST_ANESTHESIA = `v1/hospital/anaesthesia/assessment-items`
 
+export const ADD_ASSESSMENT_MASTERS_BY_TYPE = 'v1/hospital/anaesthesia/assessment-master-add'
+
+export const UPDATE_ASSESSMENT_MASTERS_BY_TYPE = 'v1/hospital/anaesthesia/assessment-master-update'
+
+export const ASSESSMENT_RESPONSE_TYPE = 'v1/assessment/masters/config'
+
+export const ADD_ASSESSMENT_MASTERS = 'v1/assessment/type/add'
+
+export const UPDATE_ASSESSMENT_MASTERS = 'v1/assessment/type/edit'
+
 export const ADD_ANESTHESIA = `v1/hospital/anaesthesia/save`
 
 export const GET_ANESTHESIA_SETUP_LIST = `v1/hospital/anaesthesia/sections`
@@ -960,6 +980,14 @@ export const DELETE_ANESTHESIA = `v1/hospital/anaesthesia/delete`
 export const DELETE_MONITORING_MONITORING = `v1/hospital/delete-scheduled-monitoring-parameter`
 
 export const GET_MEDICAL_DELIVERY_ROUTE = `master/get-medical-delivery-route`
+
+export const GET_MEDICAL_DELIVERY_ROUTE_LIST = `master/list-medical-delivery-route`
+
+export const GET_MEASUREMENT_UNITS_MASTERS = `masters/measurement-units-v2`
+
+export const ADD_MEDICAL_DELIVERY_ROUTE = `master/add-medical-delivery-route`
+
+export const UPDATE_MEDICAL_DELIVERY_ROUTE = `master/edit-medical-delivery-route`
 
 export const GET_VITAL_MONITORING_LIST = `v1/hospital/anaesthesia/sections`
 
@@ -1040,10 +1068,15 @@ export const GET_LAB_REQUESTS_BY_ANIMAL = 'medical/get-lab-test-request-status-w
 
 // Lab Request Details
 export const LAB_REQUEST_DETAILS = 'v1/lab-request-details'
+
 export const LAB_REQUEST_SAMPLES = 'v1/lab-request/get-sample-details'
+
 export const LAB_REQUEST_NOTES = 'v1/lab-request-report-notes'
+
 export const LAB_REQUEST_REPORTS = 'v1/lab-request/get-attachment-list'
+
 export const LAB_SUB_TESTS = 'v1/labs/master-data'
+
 export const LAB_SAMPLE_LOGS = 'v1/lab-request/get-sample-logs'
 
 export const GET_ASSESSMENT_ANIMAL_TYPES = 'v1/assessment/animal/types'
