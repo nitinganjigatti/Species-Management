@@ -610,19 +610,22 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
   let dateNavGrid = 10
   let scheduleGrid = 2
 
-  // if (isPatientDischarged && isAfterDischarge) {
-  //   dateNavGrid = 12
-  //   scheduleGrid = 0
-  // } else if (isPatientDischarged && isDischargedToday && isToday) {
-  //   dateNavGrid = 12
-  //   scheduleGrid = 0
-  // } else if ((isPatientDischarged && isToday)) {
-  //   dateNavGrid = 12
-  //   scheduleGrid = 0
-  // } else if(!(monitoringData?.length > 0)) {
-  //   dateNavGrid = 10
-  //   scheduleGrid = 2
-  // }
+  if (isPatientDischarged && isAfterDischarge) {
+    dateNavGrid = 12
+    scheduleGrid = 0
+  } else if (isPatientDischarged && isDischargedToday && isToday) {
+    dateNavGrid = 12
+    scheduleGrid = 0
+  } else if ((isPatientDischarged && isToday)) {
+    dateNavGrid = 12
+    scheduleGrid = 0
+  } else if(!(monitoringData?.length > 0)) {
+    dateNavGrid = 12
+    scheduleGrid = 0
+  } else {
+    dateNavGrid = 10
+    scheduleGrid = 2
+  }
 
   return (
     <>
