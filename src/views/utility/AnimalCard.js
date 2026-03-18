@@ -4,7 +4,7 @@ import { useTheme } from '@mui/material/styles'
 import React, { useEffect, useState } from 'react'
 import Utility from 'src/utility'
 
-const AnimalCard = ({ data, size, edit, valueColor, onWeightClick }) => {
+const AnimalCard = ({ data, size, edit, valueColor, onWeightClick, maxWidth }) => {
   const theme = useTheme()
   const [imageLoading, setImageLoading] = useState(true)
   const [src, setSrc] = useState(data?.default_icon)
@@ -164,7 +164,7 @@ const AnimalCard = ({ data, size, edit, valueColor, onWeightClick }) => {
                 lineHeight: '19.36px',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                maxWidth: edit ? '118px' : '200px'
+                maxWidth: maxWidth ? maxWidth : edit ? '118px' : '200px'
               }}
             >
               <span> {data?.local_identifier_name}: </span>
@@ -205,7 +205,7 @@ const AnimalCard = ({ data, size, edit, valueColor, onWeightClick }) => {
                 color: valueColor || theme.palette.customColors.OnSurfaceVariant,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                maxWidth: edit ? '118px' : '200px'
+                maxWidth:  maxWidth ? maxWidth : edit ? '118px' : '200px'
               }}
             >
               AID : {data?.animal_id}

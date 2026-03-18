@@ -464,7 +464,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category, tota
                 {loading ? (
                   <Skeleton variant='rectangular' width='100%' height={140} sx={{ borderRadius: 1 }} />
                 ) : (
-                  <AnimalCard data={animalData} onWeightClick={() => setAssessmentDrawerOpen(true)} />
+                  <AnimalCard data={animalData} onWeightClick={() => setAssessmentDrawerOpen(true)} maxWidth={"auto"} />
                 )}
               </Grid>
 
